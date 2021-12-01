@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A single tab."""
 
 # pylint: disable=unused-import
 from qutebrowser.browser.browsertab import WebTabError, AbstractTab as Tab
+from qutebrowser.browser.inspector import (Position as InspectorPosition,
+                                           Error as InspectorError)
 from qutebrowser.browser.webelem import (Error as WebElemError,
                                          AbstractWebElement as WebElement)
 from qutebrowser.utils.usertypes import ClickTarget, JsWorld

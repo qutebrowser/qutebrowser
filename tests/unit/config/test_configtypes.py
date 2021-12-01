@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -14,18 +14,19 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.configtypes."""
 
 import re
+import sys
 import json
 import math
 import warnings
 import inspect
 import functools
+import dataclasses
 
-import attr
 import pytest
 import hypothesis
 from hypothesis import strategies
@@ -34,11 +35,11 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects
-from qutebrowser.config import configtypes, configexc, configutils
-from qutebrowser.utils import debug, utils, qtutils, urlmatch
+from qutebrowser.config import configtypes, configexc
+from qutebrowser.utils import debug, utils, qtutils, urlmatch, usertypes
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
-from helpers import utils as testutils
+from helpers import testutils
 
 
 class Font(QFont):
@@ -48,22 +49,20 @@ class Font(QFont):
     def __repr__(self):
         weight = debug.qenum_key(QFont, self.weight(), add_base=True,
                                  klass=QFont.Weight)
-        return utils.get_repr(self, family=self.family(), pt=self.pointSize(),
-                              px=self.pixelSize(), weight=weight,
-                              style=self.style())
+        kwargs = {
+            'family': self.family(),
+            'pt': self.pointSize(),
+            'px': self.pixelSize(),
+            'weight': weight,
+            'style': self.style(),
+        }
+        try:
+            kwargs['families'] = self.families()
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
 
-    @classmethod
-    def fromdesc(cls, desc):
-        """Get a Font based on a font description."""
-        f = cls()
-        f.setStyle(desc.style)
-        f.setWeight(desc.weight)
-        if desc.pt is not None and desc.pt != -1:
-            f.setPointSize(desc.pt)
-        if desc.px is not None and desc.pt != -1:
-            f.setPixelSize(desc.px)
-        f.setFamily(desc.family)
-        return f
+        return utils.get_repr(self, **kwargs)
 
 
 class RegexEq:
@@ -139,10 +138,16 @@ class TestValidValues:
 
     def test_descriptions(self, klass):
         """Test descriptions."""
-        vv = klass(('foo', "foo desc"), ('bar', "bar desc"), 'baz')
-        assert vv.descriptions['foo'] == "foo desc"
-        assert vv.descriptions['bar'] == "bar desc"
-        assert 'baz' not in vv.descriptions
+        vv = klass(
+            ('one-with', "desc 1"),
+            ('two-with', "desc 2"),
+            'three-without',
+            ('four-without', None)
+        )
+        assert vv.descriptions['one-with'] == "desc 1"
+        assert vv.descriptions['two-with'] == "desc 2"
+        assert 'three-without' not in vv.descriptions
+        assert 'four-without' not in vv.descriptions
 
     @pytest.mark.parametrize('args, expected', [
         (['a', 'b'], "<qutebrowser.config.configtypes.ValidValues "
@@ -192,17 +197,25 @@ class TestAll:
         """
         for _name, member in inspect.getmembers(configtypes, inspect.isclass):
             if member in [configtypes.BaseType, configtypes.MappingType,
-                          configtypes._Numeric]:
+                          configtypes._Numeric, configtypes.FontBase]:
                 pass
             elif (member is configtypes.List or
                   member is configtypes.ListOrValue):
-                yield functools.partial(member, valtype=configtypes.Int())
-                yield functools.partial(member, valtype=configtypes.Url())
+                yield pytest.param(
+                    functools.partial(member, valtype=configtypes.Int()),
+                    id=member.__name__ + '-Int')
+                yield pytest.param(
+                    functools.partial(member, valtype=configtypes.Url()),
+                    id=member.__name__ + '-Url')
             elif member is configtypes.Dict:
-                yield functools.partial(member, keytype=configtypes.String(),
-                                        valtype=configtypes.String())
+                yield pytest.param(
+                    functools.partial(member, keytype=configtypes.String(),
+                                      valtype=configtypes.String()),
+                    id=member.__name__)
             elif member is configtypes.FormatString:
-                yield functools.partial(member, fields=['a', 'b'])
+                yield pytest.param(
+                    functools.partial(member, fields=['a', 'b']),
+                    id=member.__name__)
             elif issubclass(member, configtypes.BaseType):
                 yield member
 
@@ -227,8 +240,8 @@ class TestAll:
 
         # For some types, we don't actually get the internal (YAML-like) value
         # back from from_str(), so we can't convert it back.
-        if klass in [configtypes.FuzzyUrl, configtypes.QtFont,
-                     configtypes.ShellCommand, configtypes.Url]:
+        if klass in [configtypes.FuzzyUrl, configtypes.ShellCommand,
+                     configtypes.Url]:
             return
 
         converted = typ.to_str(val)
@@ -242,8 +255,11 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        if (isinstance(typ, configtypes.ListOrValue) and
-                isinstance(typ.valtype, configtypes.Int)):
+        elif (isinstance(klass, functools.partial) and klass.func in [
+                configtypes.ListOrValue, configtypes.List, configtypes.Dict]):
+            # ListOrValue: "- /" -> "/"
+            # List: "- /" -> ["/"]
+            # Dict: '{":": "A"}' -> ':: A'
             return
 
         assert converted == s
@@ -277,7 +293,7 @@ class TestAll:
     @pytest.mark.parametrize('none_ok', [True, False])
     def test_unset(self, klass, none_ok):
         typ = klass(none_ok=none_ok)
-        assert typ.to_py(configutils.UNSET) is configutils.UNSET
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
 
     def test_to_str_none(self, klass):
         assert klass().to_str(None) == ''
@@ -294,6 +310,18 @@ class TestAll:
         if completions is not None:
             for value, _desc in completions:
                 typ.from_str(value)
+
+    def test_custom_completions(self, klass):
+        """Make sure we can pass custom completions."""
+        completions = [('1', 'one'), ('2', 'two')]
+        typ = klass(completions=completions)
+        assert typ.complete() == completions
+
+    def test_signature(self, klass):
+        """Make sure flag arguments are kw-only."""
+        sig = inspect.signature(klass)
+        for name in ['none_ok', 'completions']:
+            assert sig.parameters[name].kind == inspect.Parameter.KEYWORD_ONLY
 
 
 class TestBaseType:
@@ -386,13 +414,10 @@ class MappingSubclass(configtypes.MappingType):
     """A MappingType we use in TestMappingType which is valid/good."""
 
     MAPPING = {
-        'one': 1,
-        'two': 2,
+        'one': (1, 'one doc'),
+        'two': (2, 'two doc'),
+        'three': (3, None),
     }
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.valid_values = configtypes.ValidValues('one', 'two')
 
 
 class TestMappingType:
@@ -419,11 +444,12 @@ class TestMappingType:
     def test_to_str(self, klass):
         assert klass().to_str('one') == 'one'
 
-    @pytest.mark.parametrize('typ', [configtypes.ColorSystem(),
-                                     configtypes.Position(),
-                                     configtypes.SelectOnRemove()])
-    def test_mapping_type_matches_valid_values(self, typ):
-        assert sorted(typ.MAPPING) == sorted(typ.valid_values)
+    def test_valid_values(self, klass):
+        assert klass().valid_values == configtypes.ValidValues(
+            ('one', 'one doc'),
+            ('two', 'two doc'),
+            ('three', None),
+        )
 
 
 class TestString:
@@ -458,6 +484,8 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('abcd')}, 'abcd'),
         # Surrogate escapes are allowed in strings
         ({}, '\U00010000'),
+        # Regex
+        ({'regex': '[aA]'}, 'a'),
     ])
     def test_to_py_valid(self, klass, kwargs, val):
         assert klass(**kwargs).to_py(val) == val
@@ -475,6 +503,8 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('blah')}, 'abcd'),
         # Encoding
         ({'encoding': 'ascii'}, 'fooäbar'),
+        # Regex
+        ({'regex': '[aA]'}, 'abc'),
     ])
     def test_to_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
@@ -516,8 +546,7 @@ class ListSubclass(configtypes.List):
             elemtype = configtypes.String(none_ok=none_ok_inner)
         super().__init__(elemtype, none_ok=none_ok_outer, length=length)
         if set_valid_values:
-            self.valtype.valid_values = configtypes.ValidValues(
-                'foo', 'bar', 'baz')
+            self.valtype.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
 
 
 class FlagListSubclass(configtypes.FlagList):
@@ -1008,6 +1037,10 @@ class TestInt:
         converted = typ.from_str(text)
         assert typ.to_str(converted) == text
 
+    def test_bounds_handling_unset(self, klass):
+        typ = klass(minval=1, maxval=2)
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
+
 
 class TestFloat:
 
@@ -1244,6 +1277,7 @@ class TestQtColor:
     @pytest.mark.parametrize('val, expected', [
         ('#123', QColor('#123')),
         ('#112233', QColor('#112233')),
+        ('#44112233', QColor('#44112233')),
         ('#111222333', QColor('#111222333')),
         ('#111122223333', QColor('#111122223333')),
         ('red', QColor('red')),
@@ -1290,6 +1324,7 @@ class TestQssColor:
     @pytest.mark.parametrize('val', [
         '#123',
         '#112233',
+        '#44112233',
         '#111222333',
         '#111122223333',
         'red',
@@ -1326,19 +1361,17 @@ class TestQssColor:
             klass().to_py(val)
 
 
-@attr.s
+@dataclasses.dataclass
 class FontDesc:
 
-    style = attr.ib()
-    weight = attr.ib()
-    pt = attr.ib()
-    px = attr.ib()
-    family = attr.ib()
+    style: QFont.Style
+    weight: QFont.Weight
+    pt: int
+    px: int
+    family: str
 
 
 class TestFont:
-
-    """Test Font/QtFont."""
 
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
@@ -1387,38 +1420,13 @@ class TestFont:
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
 
-    @pytest.fixture(params=[configtypes.Font, configtypes.QtFont])
-    def klass(self, request):
-        return request.param
-
     @pytest.fixture
-    def font_class(self):
+    def klass(self):
         return configtypes.Font
-
-    @pytest.fixture
-    def qtfont_class(self):
-        return configtypes.QtFont
 
     @pytest.mark.parametrize('val, desc', sorted(TESTS.items()))
     def test_to_py_valid(self, klass, val, desc):
-        if klass is configtypes.Font:
-            expected = val
-        elif klass is configtypes.QtFont:
-            expected = Font.fromdesc(desc)
-        assert klass().to_py(val) == expected
-
-    def test_qtfont_float(self, qtfont_class):
-        """Test QtFont's to_py with a float as point size.
-
-        We can't test the point size for equality as Qt seems to do some
-        rounding as appropriate.
-        """
-        value = Font(qtfont_class().to_py('10.5pt "Foobar Neue"'))
-        assert value.family() == 'Foobar Neue'
-        assert value.weight() == QFont.Normal
-        assert value.style() == QFont.StyleNormal
-        assert value.pointSize() >= 10
-        assert value.pointSize() <= 11
+        assert klass().to_py(val) == val
 
     @pytest.mark.parametrize('val', [
         pytest.param('green "Foobar Neue"', marks=font_xfail),
@@ -1436,15 +1444,9 @@ class TestFont:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
-    def test_monospace_replacement(self, klass, monkeypatch):
-        monkeypatch.setattr(configtypes.Font, 'monospace_fonts', 'Terminus')
-        if klass is configtypes.Font:
-            expected = '10pt Terminus'
-        elif klass is configtypes.QtFont:
-            desc = FontDesc(QFont.StyleNormal, QFont.Normal, 10, None,
-                            'Terminus')
-            expected = Font.fromdesc(desc)
-        assert klass().to_py('10pt monospace') == expected
+    def test_defaults_replacement(self, klass, monkeypatch):
+        configtypes.FontBase.set_defaults(['Terminus'], '23pt')
+        assert klass().to_py('23pt default_family') == '23pt Terminus'
 
 
 class TestFontFamily:
@@ -1497,26 +1499,18 @@ class TestRegex:
     @pytest.mark.parametrize('val', [
         pytest.param(r'(foo|bar))?baz[fis]h', id='unmatched parens'),
         pytest.param('(' * 500, id='too many parens'),
+        pytest.param(r'foo\Xbar', id='invalid escape X'),
+        pytest.param(r'foo\Cbar', id='invalid escape C'),
+        pytest.param(r'[[]]', id='nested set', marks=pytest.mark.skipif(
+            sys.hexversion < 0x03070000,
+            reason="Warning was added in Python 3.7")),
+        pytest.param(r'[a||b]', id='set operation', marks=pytest.mark.skipif(
+            sys.hexversion < 0x03070000,
+            reason="Warning was added in Python 3.7")),
     ])
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
-
-    @pytest.mark.parametrize('val', [
-        r'foo\Xbar',
-        r'foo\Cbar',
-    ])
-    def test_to_py_maybe_valid(self, klass, val):
-        """Those values are valid on some Python versions (and systems?).
-
-        On others, they raise a DeprecationWarning because of an invalid
-        escape. This tests makes sure this gets translated to a
-        ValidationError.
-        """
-        try:
-            klass().to_py(val)
-        except configexc.ValidationError:
-            pass
 
     @pytest.mark.parametrize('warning', [
         Warning('foo'), DeprecationWarning('foo'),
@@ -1531,20 +1525,6 @@ class TestRegex:
         m.compile.side_effect = lambda *args: warnings.warn(warning)
         m.error = re.error
         with pytest.raises(type(warning)):
-            regex.to_py('foo')
-
-    def test_bad_pattern_warning(self, mocker, klass):
-        """Test a simulated bad pattern warning.
-
-        This only seems to happen with Python 3.5, so we simulate this for
-        better coverage.
-        """
-        regex = klass()
-        m = mocker.patch('qutebrowser.config.configtypes.re')
-        m.compile.side_effect = lambda *args: warnings.warn(r'bad escape \C',
-                                                            DeprecationWarning)
-        m.error = re.error
-        with pytest.raises(configexc.ValidationError):
             regex.to_py('foo')
 
     @pytest.mark.parametrize('flags, expected', [
@@ -1727,10 +1707,6 @@ class TestFile:
     def klass(self, request):
         return request.param
 
-    @pytest.fixture
-    def file_class(self):
-        return configtypes.File
-
     def test_to_py_does_not_exist_file(self, os_mock):
         """Test to_py with a file which does not exist (File)."""
         os_mock.path.isfile.return_value = False
@@ -1838,8 +1814,12 @@ class TestDirectory:
 class TestFormatString:
 
     @pytest.fixture
-    def typ(self):
-        return configtypes.FormatString(fields=('foo', 'bar'))
+    def klass(self):
+        return configtypes.FormatString
+
+    @pytest.fixture
+    def typ(self, klass):
+        return klass(fields=('foo', 'bar'))
 
     @pytest.mark.parametrize('val', [
         'foo bar baz',
@@ -1852,10 +1832,25 @@ class TestFormatString:
         '{foo} {bar} {baz}',
         '{foo} {bar',
         '{1}',
+        '{foo.attr}',
+        '{foo[999]}',
     ])
     def test_to_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
             typ.to_py(val)
+
+    def test_invalid_encoding(self, klass):
+        typ = klass(fields=[], encoding='ascii')
+        with pytest.raises(configexc.ValidationError):
+            typ.to_py('fooäbar')
+
+    @pytest.mark.parametrize('value', [
+        None,
+        ['one', 'two'],
+        [('1', 'one'), ('2', 'two')],
+    ])
+    def test_complete(self, klass, value):
+        assert klass(fields=('foo'), completions=value).complete() == value
 
 
 class TestShellCommand:
@@ -1953,7 +1948,6 @@ class TestSearchEngineUrl:
 
     @pytest.mark.parametrize('val', [
         'foo',  # no placeholder
-        ':{}',  # invalid URL
         'foo{bar}baz{}',  # {bar} format string variable
         '{1}{}',  # numbered format string variable
         '{{}',  # invalid format syntax
@@ -1977,7 +1971,7 @@ class TestFuzzyUrl:
         assert klass().to_py(val) == expected
 
     @pytest.mark.parametrize('val', [
-        '::foo',  # invalid URL
+        '',  # invalid URL
         'foo bar',  # invalid search term
     ])
     def test_to_py_invalid(self, klass, val):
@@ -2126,6 +2120,24 @@ class TestUrlPattern:
     def test_to_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().to_py('http://')
+
+
+class TestStatusbarWidget:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.StatusbarWidget
+
+    @pytest.mark.parametrize('value', ['text:bar', 'foo'])
+    def test_validate_valid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        assert widget.to_py(value) == value
+
+    @pytest.mark.parametrize('value', ['text', 'foo:bar'])
+    def test_validate_invalid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        with pytest.raises(configexc.ValidationError):
+            widget.to_py(value)
 
 
 @pytest.mark.parametrize('first, second, equal', [

@@ -77,6 +77,9 @@
         if ("onerror" in details) {
             oXhr.onerror = function () { details.onerror(oXhr); };
         }
+        if ("overrideMimeType" in details) {
+            oXhr.overrideMimeType(details.overrideMimeType);
+        }
 
         oXhr.open(details.method, details.url, true);
 
@@ -107,6 +110,22 @@
         }
     }
 
+    // Based on GreaseMonkey:
+    // https://github.com/greasemonkey/greasemonkey/blob/4.11/src/bg/api-provider-source.js#L232-L249
+    function GM_setClipboard(text) {
+        function onCopy(event) {
+            document.removeEventListener('copy', onCopy, true);
+
+            event.stopImmediatePropagation();
+            event.preventDefault();
+
+            event.clipboardData.setData('text/plain', text);
+        }
+
+        document.addEventListener('copy', onCopy, true);
+        document.execCommand('copy');
+    }
+
     // Stub these two so that the gm4 polyfill script doesn't try to
     // create broken versions as attributes of window.
     function GM_getResourceText(caption, commandFunc, accessKey) {
@@ -123,6 +142,7 @@
     const entries = {
         'log': GM_log,
         'addStyle': GM_addStyle,
+        'setClipboard': GM_setClipboard,
         'deleteValue': GM_deleteValue,
         'getValue': GM_getValue,
         'listValues': GM_listValues,
@@ -145,47 +165,47 @@
         }
     };
 
+    const unsafeWindow = window;
     {% if use_proxy %}
-      /*
-       * Try to give userscripts an environment that they expect. Which
-       * seems to be that the global window object should look the same as
-       * the page's one and that if a script writes to an attribute of
-       * window it should be able to access that variable in the global
-       * scope.
-       * Use a Proxy to stop scripts from actually changing the global
-       * window (that's what unsafeWindow is for).
-       * Use the "with" statement to make the proxy provide what looks
-       * like global scope.
-       *
-       * There are other Proxy functions that we may need to override.
-       * set, get and has are definitely required.
-       */
-      const unsafeWindow = window;
-      const qute_gm_window_shadow = {};  // stores local changes to window
-      const qute_gm_windowProxyHandler = {
-        get: function(target, prop) {
-          if (prop in qute_gm_window_shadow)
-            return qute_gm_window_shadow[prop];
-          if (prop in target) {
-            if (typeof target[prop] === 'function' && typeof target[prop].prototype == 'undefined')
-              // Getting TypeError: Illegal Execution when callers try to execute
-              // eg addEventListener from here because they were returned
-              // unbound
-              return target[prop].bind(target);
-            return target[prop];
-          }
-        },
-        set: function(target, prop, val) {
-          return qute_gm_window_shadow[prop] = val;
-        },
-        has: function(target, key) {
-          return key in qute_gm_window_shadow || key in target;
-        }
-      };
-      const qute_gm_window_proxy = new Proxy(
-        unsafeWindow, qute_gm_windowProxyHandler);
+    /*
+     * Try to give userscripts an environment that they expect. Which seems
+     * to be that the global window object should look the same as the page's
+     * one and that if a script writes to an attribute of window all other
+     * scripts should be able to access that variable in the global scope.
+     * Use a Proxy to stop scripts from actually changing the global window
+     * (that's what unsafeWindow is for). Use the "with" statement to make
+     * the proxy provide what looks like global scope.
+     *
+     * There are other Proxy functions that we may need to override.  set,
+     * get and has are definitely required.
+     */
 
-      with (qute_gm_window_proxy) {
+    if (!window._qute_gm_window_proxy) {
+        const qute_gm_window_shadow = {}; // stores local changes to window
+        const qute_gm_windowProxyHandler = {
+            get: function (target, prop) {
+                if (prop in qute_gm_window_shadow)
+                    return qute_gm_window_shadow[prop];
+                if (prop in target) {
+                    if (typeof target[prop] === 'function' && typeof target[prop].prototype == 'undefined')
+                        // Getting TypeError: Illegal Execution when callers try
+                        // to execute eg addEventListener from here because they
+                        // were returned unbound
+                        return target[prop].bind(target);
+                    return target[prop];
+                }
+            },
+            set: function(target, prop, val) {
+                return qute_gm_window_shadow[prop] = val;
+            },
+            has: function(target, key) {
+                return key in qute_gm_window_shadow || key in target;
+            }
+        };
+        window._qute_gm_window_proxy = new Proxy(unsafeWindow, qute_gm_windowProxyHandler);
+    }
+    const qute_gm_window_proxy = window._qute_gm_window_proxy;
+    with (qute_gm_window_proxy) {
         // We can't return `this` or `qute_gm_window_proxy` from
         // `qute_gm_window_proxy.get('window')` because the Proxy implementation
         // does typechecking on read-only things. So we have to shadow `window`
@@ -194,10 +214,10 @@
         // ====== The actual user script source ====== //
 {{ scriptSource }}
         // ====== End User Script ====== //
-      };
+    };
     {% else %}
-      // ====== The actual user script source ====== //
+        // ====== The actual user script source ====== //
 {{ scriptSource }}
-      // ====== End User Script ====== //
+        // ====== End User Script ====== //
     {% endif %}
 })();

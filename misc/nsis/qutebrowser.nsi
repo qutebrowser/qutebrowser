@@ -1,4 +1,5 @@
 # Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# encoding: iso-8859-1
 #
 # This file is part of qutebrowser.
 #
@@ -13,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # NSIS installer script. Uses NsisMultiUser plugin and contains portions of
 # its demo code, copyright 2017 Richard Drizin, Alex Mitev.
@@ -58,7 +59,7 @@ ShowUninstDetails hide
 !define CONTACT "mail@qutebrowser.org"
 !define COMMENTS "A keyboard-driven, vim-like browser based on PyQt5."
 !define LANGID "1033" ; U.S. English
-!define MIN_WIN_VER "XP"
+!define MIN_WIN_VER "8"
 !define SETUP_MUTEX "${PRODUCT_NAME} Setup Mutex" ; do not change this between program versions!
 !define APP_MUTEX "${PRODUCT_NAME} App Mutex" ; do not change this between program versions!
 !define REG_UN "Software\Microsoft\Windows\CurrentVersion\Uninstall"

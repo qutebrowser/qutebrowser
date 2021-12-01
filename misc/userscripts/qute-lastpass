@@ -16,10 +16,10 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Insert login information using lastpass CLI and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...). 
+Insert login information using lastpass CLI and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 A short demonstration can be seen here: https://i.imgur.com/zA61NrF.gifv.
 """
 
@@ -39,14 +39,14 @@ you decide to submit a crash report!"""
 
 import argparse
 import enum
-import fnmatch
 import functools
+import json
 import os
 import re
 import shlex
 import subprocess
 import sys
-import json
+
 import tldextract
 
 argument_parser = argparse.ArgumentParser(
@@ -60,6 +60,8 @@ argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
                              help='Encoding used to communicate with subprocesses')
 argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
                              help='Merge pass candidates for fully-qualified and registered domain name')
+argument_parser.add_argument('--no-tld-download', action='store_true',
+                             help="Don't download TLD list")
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e',
                    action='store_true', help='Only insert username')
@@ -82,18 +84,17 @@ def qute_command(command):
         fifo.flush()
 
 def pass_(domain, encoding):
-    args = ['lpass', 'show', '-x', '-j', '-G', '.*{:s}.*'.format(domain)]
+    domain = re.escape(domain)
+    args = ['lpass', 'show', '-x', '-j', '-G', '\\b{:s}'.format(domain)]
     process = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    candidates = json.loads(process.stdout.decode(encoding).strip() or '[]')
     err = process.stderr.decode(encoding).strip()
-    if err:
-        msg = "LastPass CLI returned for {:s} - {:s}".format(domain, err)
-        stderr(msg)
-        return '[]'
+    if 'could not find specified account' in err.lower():
+        return candidates, ''
 
-    out = process.stdout.decode(encoding).strip()
+    return candidates, err
 
-    return out
 
 def dmenu(items, invocation, encoding):
     command = shlex.split(invocation)
@@ -103,10 +104,14 @@ def dmenu(items, invocation, encoding):
 
 
 def fake_key_raw(text):
-    for character in text:
-        # Escape all characters by default, space requires special handling
-        sequence = '" "' if character == ' ' else '\{}'.format(character)
-        qute_command('fake-key {}'.format(sequence))
+    # Escape all characters by default, space, '<' and '>' requires special handling
+    special_escapes = {
+        ' ': '" "',
+        '<': '<less>',
+        '>': '<greater>',
+    }
+    sequence = ''.join([special_escapes.get(c, '\\{}'.format(c)) for c in text])
+    qute_command(f'fake-key {sequence}')
 
 
 def main(arguments):
@@ -114,18 +119,31 @@ def main(arguments):
         argument_parser.print_help()
         return ExitCodes.FAILURE
 
-    extract_result = tldextract.extract(arguments.url)
+    if arguments.no_tld_download:
+        extract = tldextract.TLDExtract(suffix_list_urls=None)
+    else:
+        extract = tldextract.extract
+
+    extract_result = extract(arguments.url)
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name and finally: the IPv4 address if that's what
     # the URL represents
     candidates = []
+    seen_id = set()
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4]):
-        target_candidates = json.loads(pass_(target, arguments.io_encoding))
+        target_candidates, err = pass_(target, arguments.io_encoding)
+        if err:
+            stderr("LastPass CLI returned for {:s} - {:s}".format(target, err))
+            return ExitCodes.FAILURE
+
         if not target_candidates:
             continue
 
-        candidates = candidates + target_candidates
+        for candidate in target_candidates:
+            if candidate["id"] not in seen_id:
+                seen_id.add(candidate["id"])
+                candidates.append(candidate)
         if not arguments.merge_candidates:
             break
     else:
@@ -162,7 +180,7 @@ def main(arguments):
         fake_key_raw(password)
 
     if arguments.insert_mode:
-        qute_command('enter-mode insert')
+        qute_command('mode-enter insert')
 
     return ExitCodes.SUCCESS
 

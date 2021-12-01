@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,15 +15,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test hints based on html files with special comments."""
 
-import os
-import os.path
+import pathlib
 import textwrap
+import dataclasses
+from typing import Optional
 
-import attr
 import pytest
 import bs4
 
@@ -31,17 +31,17 @@ from qutebrowser.utils import utils
 
 
 def collect_tests():
-    basedir = os.path.dirname(__file__)
-    datadir = os.path.join(basedir, 'data', 'hints', 'html')
-    files = [f for f in os.listdir(datadir) if f != 'README.md']
+    basedir = pathlib.Path(__file__).parent
+    datadir = basedir / 'data' / 'hints' / 'html'
+    files = [f.name for f in datadir.iterdir() if f.name != 'README.md']
     return files
 
 
-@attr.s
+@dataclasses.dataclass
 class ParsedFile:
 
-    target = attr.ib()
-    qtwebengine_todo = attr.ib()
+    target: str
+    qtwebengine_todo: Optional[str]
 
 
 class InvalidFile(Exception):
@@ -54,9 +54,9 @@ class InvalidFile(Exception):
 
 def _parse_file(test_name):
     """Parse the given HTML file."""
-    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             'data', 'hints', 'html', test_name)
-    with open(file_path, 'r', encoding='utf-8') as html:
+    file_path = (pathlib.Path(__file__).parent.resolve()
+                 / 'data' / 'hints' / 'html' / test_name)
+    with file_path.open('r', encoding='utf-8') as html:
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
     comment = str(soup.find(text=lambda text: isinstance(text, bs4.Comment)))
@@ -110,7 +110,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
     # follow hint
     quteproc.send_cmd(':hint all normal')
     quteproc.wait_for(message='hints: a', category='hints')
-    quteproc.send_cmd(':follow-hint a')
+    quteproc.send_cmd(':hint-follow a')
     quteproc.wait_for_load_finished('data/' + parsed.target)
     # reset
     quteproc.send_cmd(':zoom 100')
@@ -120,9 +120,9 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
 
 
 @pytest.mark.skip  # Too flaky
-def test_word_hints_issue1393(quteproc, tmpdir):
-    dict_file = tmpdir / 'dict'
-    dict_file.write(textwrap.dedent("""
+def test_word_hints_issue1393(quteproc, tmp_path):
+    dict_file = tmp_path / 'dict'
+    dict_file.write_text(textwrap.dedent("""
         alph
         beta
         gamm
@@ -147,5 +147,5 @@ def test_word_hints_issue1393(quteproc, tmpdir):
         quteproc.open_path('data/hints/issue1393.html')
         quteproc.send_cmd(':hint')
         quteproc.wait_for(message='hints: *', category='hints')
-        quteproc.send_cmd(':follow-hint {}'.format(hint))
+        quteproc.send_cmd(':hint-follow {}'.format(hint))
         quteproc.wait_for_load_finished('data/{}'.format(target))

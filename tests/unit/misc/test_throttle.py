@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Jay Kamat <jaygkamat@gmail.com>:
+# Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>:
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.throttle."""
 
@@ -25,11 +25,11 @@ import sip
 import pytest
 from PyQt5.QtCore import QObject
 
-from helpers import utils
+from helpers import testutils
 from qutebrowser.misc import throttle
 
 
-DELAY = 300 if utils.ON_CI else 100
+DELAY = 500 if testutils.ON_CI else 100
 
 
 @pytest.fixture

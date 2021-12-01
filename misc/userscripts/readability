@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Executes python-readability on current page and opens the summary as new tab.
 #
@@ -56,6 +56,9 @@ with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
         doc = Document(data)
         title = doc.title()
         content = doc.summary().replace('<html>', HEADER % title)
+
+    # add a class to make styling the page easier
+    content = content.replace('<body>', '<body class="qute-readability">')
 
     with codecs.open(tmpfile, 'w', 'utf-8') as target:
         target.write(content.lstrip())

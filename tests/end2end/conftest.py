@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # pylint: disable=unused-import
 
@@ -23,18 +23,19 @@
 
 import re
 import os
-import os.path
+import pathlib
 import sys
 import shutil
 import pstats
 import operator
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
-from end2end.fixtures.webserver import server, server_per_test, ssl_server
+from end2end.fixtures.notificationserver import notification_server
+from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
@@ -55,9 +56,24 @@ def pytest_unconfigure(config):
     """Combine profiles."""
     if config.getoption('--qute-profile-subprocs'):
         stats = pstats.Stats()
-        for fn in os.listdir('prof'):
-            stats.add(os.path.join('prof', fn))
-        stats.dump_stats(os.path.join('prof', 'combined.pstats'))
+        for fn in pathlib.Path('prof').iterdir():
+            stats.add((pathlib.Path('prof') / fn))
+        stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
+
+
+def _check_hex_version(op_str, running_version, version):
+    operators = {
+        '==': operator.eq,
+        '!=': operator.ne,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '>': operator.gt,
+        '<': operator.lt,
+    }
+    op = operators[op_str]
+    major, minor, patch = [int(e) for e in version.split('.')]
+    hex_version = (major << 16) | (minor << 8) | patch
+    return op(running_version, hex_version)
 
 
 def _get_version_tag(tag):
@@ -68,7 +84,7 @@ def _get_version_tag(tag):
     casesinto an appropriate @pytest.mark.skip marker, and falls back to
     """
     version_re = re.compile(r"""
-        (?P<package>qt|pyqt)
+        (?P<package>qt|pyqt|pyqtwebengine)
         (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
@@ -91,18 +107,31 @@ def _get_version_tag(tag):
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
-        operators = {
-            '==': operator.eq,
-            '>=': operator.ge,
-            '!=': operator.ne,
-        }
-        op = operators[match.group('operator')]
-        major, minor, patch = [int(e) for e in version.split('.')]
-        hex_version = (major << 16) | (minor << 8) | patch
-        return pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
-                                  reason='Needs ' + tag)
+        return pytest.mark.skipif(
+            not _check_hex_version(
+                op_str=match.group('operator'),
+                running_version=PYQT_VERSION,
+                version=version
+            ),
+            reason='Needs ' + tag,
+        )
+    elif package == 'pyqtwebengine':
+        try:
+            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        except ImportError:
+            running_version = PYQT_VERSION
+        else:
+            running_version = PYQT_WEBENGINE_VERSION
+        return pytest.mark.skipif(
+            not _check_hex_version(
+                op_str=match.group('operator'),
+                running_version=running_version,
+                version=version
+            ),
+            reason='Needs ' + tag,
+        )
     else:
-        raise ValueError("Invalid package {!r}".format(package))
+        raise utils.Unreachable(package)
 
 
 def _get_backend_tag(tag):
@@ -136,22 +165,40 @@ if not getattr(sys, 'frozen', False):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
+    """Apply @qtwebengine_* markers."""
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
+    # (note this isn't actually fixed properly before Qt 5.15)
+    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
+
+    lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
+    qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
+
     markers = [
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_notifications',
-         'Skipped with QtWebEngine < 5.13',
+         'Skipped unless QtWebEngine >= 5.13',
          pytest.mark.skipif,
-         config.webengine and not qtutils.version_check('5.13')),
+         not (config.webengine and qtutils.version_check('5.13'))),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
+        ('js_headers', 'Sets headers dynamically via JS',
+         pytest.mark.skipif,
+         config.webengine and not header_bug_fixed),
+        ('qtwebkit_pdf_imageformat_skip',
+         'Skipped with QtWebKit if PDF image plugin is available',
+         pytest.mark.skipif,
+         not config.webengine and qpdf_image_plugin.exists()),
+        ('windows_skip',
+         'Skipped on Windows',
+         pytest.mark.skipif,
+         utils.is_windows),
     ]
 
     for item in items:

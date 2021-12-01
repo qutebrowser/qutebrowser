@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Update all third-party-modules."""
 
@@ -64,15 +64,23 @@ def download_nsis_plugins():
     urllib.request.urlcleanup()
 
 
-def get_latest_pdfjs_url():
+def get_latest_pdfjs_url(gh_token):
     """Get the URL of the latest pdf.js prebuilt package.
 
     Returns a (version, url)-tuple.
     """
     github_api = 'https://api.github.com'
     endpoint = 'repos/mozilla/pdf.js/releases/latest'
-    request_url = '{}/{}'.format(github_api, endpoint)
-    with urllib.request.urlopen(request_url) as fp:
+    request = urllib.request.Request(f'{github_api}/{endpoint}')
+
+    if gh_token is not None:
+        # Without token will work as well, but has a strict rate limit, so we need to
+        # use the token on CI.
+        request.add_header('Authorization', f'token {gh_token}')
+    elif 'CI' in os.environ:
+        raise Exception("No GitHub token given on CI")
+
+    with urllib.request.urlopen(request) as fp:
         data = json.loads(fp.read().decode('utf-8'))
 
     download_url = data['assets'][0]['browser_download_url']
@@ -80,16 +88,17 @@ def get_latest_pdfjs_url():
     return (version_name, download_url)
 
 
-def update_pdfjs(target_version=None):
+def update_pdfjs(target_version=None, gh_token=None):
     """Download and extract the latest pdf.js version.
 
     If target_version is not None, download the given version instead.
 
     Args:
         target_version: None or version string ('x.y.z')
+        gh_token: GitHub token to use for the API. Optional except on CI.
     """
     if target_version is None:
-        version, url = get_latest_pdfjs_url()
+        version, url = get_latest_pdfjs_url(gh_token)
     else:
         # We need target_version as x.y.z, without the 'v' prefix, though the
         # user might give it on the command line
@@ -159,12 +168,12 @@ def test_dicts():
 
 
 def run(nsis=False, ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
-        dicts=False):
+        dicts=False, gh_token=None):
     """Update components based on the given arguments."""
     if nsis:
         download_nsis_plugins()
     if pdfjs:
-        update_pdfjs(pdfjs_version)
+        update_pdfjs(pdfjs_version, gh_token=gh_token)
     if ace:
         update_ace()
     if fancy_dmg:
@@ -189,9 +198,11 @@ def main():
         help='Test whether all available dictionaries '
         'can be reached at the remote repository.',
         required=False, action='store_true')
+    parser.add_argument(
+        '--gh-token', help="GitHub token to use.", nargs='?')
     args = parser.parse_args()
     run(nsis=False, ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
-        pdfjs_version=args.pdfjs, dicts=args.dicts)
+        pdfjs_version=args.pdfjs, dicts=args.dicts, gh_token=args.gh_token)
 
 
 if __name__ == '__main__':

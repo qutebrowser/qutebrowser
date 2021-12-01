@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Run vulture on the source files and filter out false-positives."""
 
@@ -32,8 +32,7 @@ import vulture
 import qutebrowser.app  # pylint: disable=unused-import
 from qutebrowser.extensions import loader
 from qutebrowser.misc import objects
-from qutebrowser.utils import utils
-from qutebrowser.browser.webkit import rfc6266
+from qutebrowser.utils import utils, version
 # To run the decorators from there
 # pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
@@ -42,20 +41,13 @@ from qutebrowser.browser import qutescheme
 from qutebrowser.config import configtypes
 
 
-def whitelist_generator():  # noqa
+def whitelist_generator():  # noqa: C901
     """Generator which yields lines to add to a vulture whitelist."""
     loader.load_components(skip_hooks=True)
 
     # qutebrowser commands
     for cmd in objects.commands.values():
         yield utils.qualname(cmd.handler)
-
-    # pyPEG2 classes
-    for name, member in inspect.getmembers(rfc6266, inspect.isclass):
-        for attr in ['grammar', 'regex']:
-            if hasattr(member, attr):
-                yield 'qutebrowser.browser.webkit.rfc6266.{}.{}'.format(name,
-                                                                        attr)
 
     # PyQt properties
     yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.color_flags'
@@ -69,6 +61,7 @@ def whitelist_generator():  # noqa
     yield 'scripts.utils.bg_colors'
     yield 'qutebrowser.misc.sql.SqliteErrorCode.CONSTRAINT'
     yield 'qutebrowser.misc.throttle.Throttle.set_delay'
+    yield 'qutebrowser.misc.guiprocess.GUIProcess.stderr'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
@@ -87,7 +80,6 @@ def whitelist_generator():  # noqa
     yield 'qutebrowser.utils.jinja.Loader.get_source'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
-    yield 'qutebrowser.misc.guiprocess.spawn_output'
     yield 'qutebrowser.utils.usertypes.ExitStatus.reserved'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py
@@ -123,6 +115,10 @@ def whitelist_generator():  # noqa
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
+    yield 'scripts.dev.build_release.pefile.PE.OPTIONAL_HEADER.CheckSum'
+
+    for dist in version.Distribution:
+        yield 'qutebrowser.utils.version.Distribution.{}'.format(dist.name)
 
     # attrs
     yield 'qutebrowser.browser.webkit.network.networkmanager.ProxyId.hostname'
@@ -132,13 +128,23 @@ def whitelist_generator():  # noqa
     yield 'scripts.importer.import_moz_places.places.row_factory'
 
     # component hooks
-    yield 'qutebrowser.components.adblock.on_config_changed'
+    yield 'qutebrowser.components.hostblock.on_lists_changed'
+    yield 'qutebrowser.components.braveadblock.on_lists_changed'
+    yield 'qutebrowser.components.hostblock.on_method_changed'
+    yield 'qutebrowser.components.braveadblock.on_method_changed'
 
     # used in type comments
     yield 'pending_download_type'
     yield 'world_id_type'
     yield 'ParserDictType'
     yield 'qutebrowser.config.configutils.Values._VmapKeyType'
+
+    # ELF
+    yield 'qutebrowser.misc.elf.Endianness.big'
+    for name in ['phoff', 'ehsize', 'phentsize', 'phnum']:
+        yield f'qutebrowser.misc.elf.Header.{name}'
+    for name in ['addr', 'addralign', 'entsize']:
+        yield f'qutebrowser.misc.elf.SectionHeader.{name}'
 
 
 def filter_func(item):
@@ -158,8 +164,7 @@ def report(items):
     properties which get used for the items.
     """
     output = []
-    for item in sorted(items,
-                       key=lambda e: (e.filename.lower(), e.first_lineno)):
+    for item in sorted(items, key=lambda e: (str(e.filename).lower(), e.first_lineno)):
         output.append(item.get_report())
     return output
 

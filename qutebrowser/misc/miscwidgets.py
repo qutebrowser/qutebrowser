@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,20 +15,23 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Misc. widgets used at different places."""
 
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication)
-from PyQt5.QtGui import QValidator, QPainter
+                             QStyleOption, QStyle, QLayout, QApplication,
+                             QSplitter)
+from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
 
-from qutebrowser.config import config
-from qutebrowser.utils import utils
+from qutebrowser.config import config, configfiles
+from qutebrowser.utils import utils, log, usertypes
 from qutebrowser.misc import cmdhistory
+from qutebrowser.browser import inspector
+from qutebrowser.keyinput import keyutils, modeman
 
 
 class MinimalLineEditMixin:
@@ -36,7 +39,7 @@ class MinimalLineEditMixin:
     """A mixin to give a QLineEdit a minimal look and nicer repr()."""
 
     def __init__(self):
-        self.setStyleSheet(  # type: ignore
+        self.setStyleSheet(  # type: ignore[attr-defined]
             """
             QLineEdit {
                 border: 0px;
@@ -45,7 +48,8 @@ class MinimalLineEditMixin:
             }
             """
         )
-        self.setAttribute(Qt.WA_MacShowFocusRect, False)  # type: ignore
+        self.setAttribute(  # type: ignore[attr-defined]
+            Qt.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
@@ -56,9 +60,9 @@ class MinimalLineEditMixin:
                 e.ignore()
             else:
                 e.accept()
-                self.insert(text)  # type: ignore
+                self.insert(text)  # type: ignore[attr-defined]
             return
-        super().keyPressEvent(e)  # type: ignore
+        super().keyPressEvent(e)  # type: ignore[misc]
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -235,12 +239,16 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = typing.cast(QWidget, None)
+        self._widget: Optional[QWidget] = None
+        self._container: Optional[QWidget] = None
 
     def addItem(self, _widget):
         raise utils.Unreachable
 
     def sizeHint(self):
+        """Get the size of the underlying widget."""
+        if self._widget is None:
+            return QSize()
         return self._widget.sizeHint()
 
     def itemAt(self, _index):
@@ -250,58 +258,30 @@ class WrapperLayout(QLayout):
         raise utils.Unreachable
 
     def setGeometry(self, rect):
+        """Pass through setGeometry calls to the underlying widget."""
+        if self._widget is None:
+            return
         self._widget.setGeometry(rect)
 
     def wrap(self, container, widget):
         """Wrap the given widget in the given container."""
+        self._container = container
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
 
     def unwrap(self):
-        self._widget.setParent(None)  # type: ignore
+        """Remove the widget from this layout.
+
+        Does nothing if it nothing was wrapped before.
+        """
+        if self._widget is None:
+            return
+        assert self._container is not None
+        self._widget.setParent(None)  # type: ignore[call-overload]
         self._widget.deleteLater()
-
-
-class PseudoLayout(QLayout):
-
-    """A layout which isn't actually a real layout.
-
-    This is used to replace QWebEngineView's internal layout, as a WORKAROUND
-    for https://bugreports.qt.io/browse/QTBUG-68224 and other related issues.
-
-    This is partly inspired by https://codereview.qt-project.org/#/c/230894/
-    which does something similar as part of Qt.
-    """
-
-    def addItem(self, item):
-        assert self.parent() is not None
-        item.widget().setParent(self.parent())
-
-    def removeItem(self, item):
-        item.widget().setParent(None)
-
-    def count(self):
-        return 0
-
-    def itemAt(self, _pos):
-        return None
-
-    def widget(self):
-        return self.parent().render_widget()
-
-    def setGeometry(self, rect):
-        """Resize the render widget when the view is resized."""
-        widget = self.widget()
-        if widget is not None:
-            widget.setGeometry(rect)
-
-    def sizeHint(self):
-        """Make sure the view has the sizeHint of the render widget."""
-        widget = self.widget()
-        if widget is not None:
-            return widget.sizeHint()
-        return QSize()
+        self._widget = None
+        self._container.setFocusProxy(None)  # type: ignore[arg-type]
 
 
 class FullscreenNotification(QLabel):
@@ -326,7 +306,7 @@ class FullscreenNotification(QLabel):
             self.setText("Page is now fullscreen.")
 
         self.resize(self.sizeHint())
-        if config.val.content.windowed_fullscreen:
+        if config.val.content.fullscreen.window:
             geom = self.parentWidget().geometry()
         else:
             geom = QApplication.desktop().screenGeometry(self)
@@ -341,3 +321,186 @@ class FullscreenNotification(QLabel):
         """Hide and delete the widget."""
         self.hide()
         self.deleteLater()
+
+
+class InspectorSplitter(QSplitter):
+
+    """Allows putting an inspector inside the tab.
+
+    Attributes:
+        _main_idx: index of the main webview widget
+        _position: position of the inspector (right/left/top/bottom)
+        _preferred_size: the preferred size of the inpector widget in pixels
+
+    Class attributes:
+        _PROTECTED_MAIN_SIZE: How much space should be reserved for the main
+                              content (website).
+        _SMALL_SIZE_THRESHOLD: If the window size is under this threshold, we
+                               consider this a temporary "emergency" situation.
+    """
+
+    _PROTECTED_MAIN_SIZE = 150
+    _SMALL_SIZE_THRESHOLD = 300
+
+    def __init__(self, win_id: int, main_webview: QWidget,
+                 parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self._win_id = win_id
+        self.addWidget(main_webview)
+        self.setFocusProxy(main_webview)
+        self.splitterMoved.connect(self._on_splitter_moved)
+        self._main_idx: Optional[int] = None
+        self._inspector_idx: Optional[int] = None
+        self._position: Optional[inspector.Position] = None
+        self._preferred_size: Optional[int] = None
+
+    def cycle_focus(self):
+        """Cycle keyboard focus between the main/inspector widget."""
+        if self.count() == 1:
+            raise inspector.Error("No inspector inside main window")
+
+        assert self._main_idx is not None
+        assert self._inspector_idx is not None
+
+        main_widget = self.widget(self._main_idx)
+        inspector_widget = self.widget(self._inspector_idx)
+
+        if not inspector_widget.isVisible():
+            raise inspector.Error("No inspector inside main window")
+
+        if main_widget.hasFocus():
+            inspector_widget.setFocus()
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          reason='Inspector focused', only_if_normal=True)
+        elif inspector_widget.hasFocus():
+            main_widget.setFocus()
+
+    def set_inspector(self, inspector_widget: inspector.AbstractWebInspector,
+                      position: inspector.Position) -> None:
+        """Set the position of the inspector."""
+        assert position != inspector.Position.window
+
+        if position in [inspector.Position.right, inspector.Position.bottom]:
+            self._main_idx = 0
+            self._inspector_idx = 1
+        else:
+            self._inspector_idx = 0
+            self._main_idx = 1
+
+        self.setOrientation(Qt.Horizontal
+                            if position in [inspector.Position.left,
+                                            inspector.Position.right]
+                            else Qt.Vertical)
+        self.insertWidget(self._inspector_idx, inspector_widget)
+        self._position = position
+        self._load_preferred_size()
+        self._adjust_size()
+
+    def _save_preferred_size(self) -> None:
+        """Save the preferred size of the inspector widget."""
+        assert self._position is not None
+        size = str(self._preferred_size)
+        configfiles.state['inspector'][self._position.name] = size
+
+    def _load_preferred_size(self) -> None:
+        """Load the preferred size of the inspector widget."""
+        assert self._position is not None
+        full = (self.width() if self.orientation() == Qt.Horizontal
+                else self.height())
+
+        # If we first open the inspector with a window size of < 300px
+        # (self._SMALL_SIZE_THRESHOLD), we don't want to default to half of the
+        # window size as the small window is likely a temporary situation and
+        # the inspector isn't very usable in that state.
+        self._preferred_size = max(self._SMALL_SIZE_THRESHOLD, full // 2)
+
+        try:
+            size = int(configfiles.state['inspector'][self._position.name])
+        except KeyError:
+            # First start
+            pass
+        except ValueError as e:
+            log.misc.error("Could not read inspector size: {}".format(e))
+        else:
+            self._preferred_size = int(size)
+
+    def _adjust_size(self) -> None:
+        """Adjust the size of the inspector similarly to Chromium.
+
+        In general, we want to keep the absolute size of the inspector (rather
+        than the ratio) the same, as it's confusing when the layout of its
+        contents changes.
+
+        We're essentially handling three different cases:
+
+        1) We have plenty of space -> Keep inspector at the preferred absolute
+           size.
+
+        2) We're slowly running out of space. Make sure the page still has
+           150px (self._PROTECTED_MAIN_SIZE) left, give the rest to the
+           inspector.
+
+        3) The window is very small (< 300px, self._SMALL_SIZE_THRESHOLD).
+           Keep Qt's behavior of keeping the aspect ratio, as all hope is lost
+           at this point.
+        """
+        sizes = self.sizes()
+        total = sizes[0] + sizes[1]
+
+        assert self._main_idx is not None
+        assert self._inspector_idx is not None
+        assert self._preferred_size is not None
+
+        if total >= self._preferred_size + self._PROTECTED_MAIN_SIZE:
+            # Case 1 above
+            sizes[self._inspector_idx] = self._preferred_size
+            sizes[self._main_idx] = total - self._preferred_size
+            self.setSizes(sizes)
+        elif (sizes[self._main_idx] < self._PROTECTED_MAIN_SIZE and
+              total >= self._SMALL_SIZE_THRESHOLD):
+            # Case 2 above
+            handle_size = self.handleWidth()
+            sizes[self._main_idx] = (
+                self._PROTECTED_MAIN_SIZE - handle_size // 2)
+            sizes[self._inspector_idx] = (
+                total - self._PROTECTED_MAIN_SIZE + handle_size // 2)
+            self.setSizes(sizes)
+        else:
+            # Case 3 above
+            pass
+
+    @pyqtSlot()
+    def _on_splitter_moved(self) -> None:
+        assert self._inspector_idx is not None
+        sizes = self.sizes()
+        self._preferred_size = sizes[self._inspector_idx]
+        self._save_preferred_size()
+
+    def resizeEvent(self, e: QResizeEvent) -> None:
+        """Window resize event."""
+        super().resizeEvent(e)
+        if self.count() == 2:
+            self._adjust_size()
+
+
+class KeyTesterWidget(QWidget):
+
+    """Widget displaying key presses."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self._layout = QHBoxLayout(self)
+        self._label = QLabel(text="Waiting for keypress...")
+        self._layout.addWidget(self._label)
+
+    def keyPressEvent(self, e):
+        """Show pressed keys."""
+        lines = [
+            str(keyutils.KeyInfo.from_event(e)),
+            '',
+            'key: 0x{:x}'.format(int(e.key())),
+            'modifiers: 0x{:x}'.format(int(e.modifiers())),
+            'text: {!r}'.format(e.text()),
+        ]
+        self._label.setText('\n'.join(lines))

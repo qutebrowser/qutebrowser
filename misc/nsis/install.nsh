@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # NSIS installer header. Uses NsisMultiUser plugin and contains portions of
 # its demo code, copyright 2017 Richard Drizin, Alex Mitev.
@@ -351,13 +351,12 @@ Section "Register with Windows" SectionWindowsRegister
     !insertmacro UpdateRegDWORD SHCTX "SOFTWARE\Classes\$2" "EditFlags" 0x00000002
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\DefaultIcon" "" "$1,0"
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell" "" "open"
-    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\command" "" "$\"$1$\" $\"%1$\""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\command" "" "$\"$1$\" --untrusted-args $\"%1$\""
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\ddeexec" "" ""
     StrCmp $2 "${PRODUCT_NAME}HTML" 0 +4
     StrCpy $2 "${PRODUCT_NAME}URL"
     StrCpy $3 "${PRODUCT_NAME} URL"
     Goto WriteRegHandler
-    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2" "URL Protocol" ""
   ${endif}
 SectionEnd
 

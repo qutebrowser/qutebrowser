@@ -1,7 +1,20 @@
 Jinja2
-Pygments
-pyPEG2
 PyYAML
-colorama
-cssutils
-attrs
+
+## stdlib backports
+importlib-resources
+dataclasses
+
+## Optional dependencies
+Pygments  # For :view-source --pygments or on QtWebKit
+colorama  # Colored log output on Windows
+adblock  # Improved adblocking
+
+# Optional, only relevant when installing PyQt5/PyQtWebEngine via pip.
+importlib-metadata  # Determining PyQt version
+typing_extensions  # from importlib-metadata
+
+#@ markers: importlib-resources python_version<"3.9"
+#@ markers: importlib-metadata python_version<"3.8"
+#@ markers: typing_extensions python_version<"3.8"
+#@ markers: dataclasses python_version<"3.7"

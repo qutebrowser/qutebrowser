@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """qutebrowser has the concept of functions, exposed to the user as commands.
 
@@ -45,12 +45,12 @@ Possible values:
   value.
 - A python enum type: All members of the enum are possible values.
 - A ``typing.Union`` of multiple types above: Any of these types are valid
-  values, e.g., ``typing.Union[str, int]``.
+  values, e.g., ``Union[str, int]``.
 """
 
 
 import inspect
-import typing
+from typing import Any, Callable, Iterable
 
 from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc
@@ -91,8 +91,7 @@ def check_overflow(arg: int, ctype: str) -> None:
                            "representation.".format(ctype))
 
 
-def check_exclusive(flags: typing.Iterable[bool],
-                    names: typing.Iterable[str]) -> None:
+def check_exclusive(flags: Iterable[bool], names: Iterable[str]) -> None:
     """Check if only one flag is set with exclusive flags.
 
     Raise a CommandError if not.
@@ -106,6 +105,9 @@ def check_exclusive(flags: typing.Iterable[bool],
         raise CommandError("Only one of {} can be given!".format(argstr))
 
 
+_CmdHandlerType = Callable[..., Any]
+
+
 class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to register a new command handler."""
@@ -113,7 +115,8 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
     def __init__(self, *,
                  instance: str = None,
                  name: str = None,
-                 **kwargs: typing.Any) -> None:
+                 deprecated_name: str = None,
+                 **kwargs: Any) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -123,12 +126,14 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         """
         # The object from the object registry to be used as "self".
         self._instance = instance
-        # The name (as string) or names (as list) of the command.
+        # The name of the command
         self._name = name
+        # A possible deprecated alias (old name) of the command
+        self._deprecated_name = deprecated_name
         # The arguments to pass to Command.
         self._kwargs = kwargs
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: _CmdHandlerType) -> _CmdHandlerType:
         """Register the command before running the function.
 
         Gets called when a function should be decorated.
@@ -148,9 +153,28 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
             assert isinstance(self._name, str), self._name
             name = self._name
 
-        cmd = command.Command(name=name, instance=self._instance,
-                              handler=func, **self._kwargs)
+        cmd = command.Command(
+            name=name,
+            instance=self._instance,
+            handler=func,
+            **self._kwargs,
+        )
         cmd.register()
+
+        if self._deprecated_name is not None:
+            deprecated_cmd = command.Command(
+                name=self._deprecated_name,
+                instance=self._instance,
+                handler=func,
+                deprecated=f"use {name} instead",
+                **self._kwargs,
+            )
+            deprecated_cmd.register()
+
+        # This is checked by future @cmdutils.argument calls so they fail
+        # (as they'd be silently ignored otherwise)
+        func.qute_args = None  # type: ignore[attr-defined]
+
         return func
 
 
@@ -175,7 +199,7 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
       def foo(bar: str):
           ...
 
-    For ``typing.Union`` types, the given ``choices`` are only checked if other
+    For ``Union`` types, the given ``choices`` are only checked if other
     types (like ``int``) don't match.
 
     The following arguments are supported for ``@cmdutils.argument``:
@@ -197,23 +221,23 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
     trailing underscores stripped and underscores replaced by dashes.
     """
 
-    def __init__(self, argname: str, **kwargs: typing.Any) -> None:
+    def __init__(self, argname: str, **kwargs: Any) -> None:
         self._argname = argname   # The name of the argument to handle.
         self._kwargs = kwargs  # Valid ArgInfo members.
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: _CmdHandlerType) -> _CmdHandlerType:
         funcname = func.__name__
 
         if self._argname not in inspect.signature(func).parameters:
             raise ValueError("{} has no argument {}!".format(funcname,
                                                              self._argname))
         if not hasattr(func, 'qute_args'):
-            func.qute_args = {}  # type: ignore
-        elif func.qute_args is None:  # type: ignore
+            func.qute_args = {}  # type: ignore[attr-defined]
+        elif func.qute_args is None:  # type: ignore[attr-defined]
             raise ValueError("@cmdutils.argument got called above (after) "
                              "@cmdutils.register for {}!".format(funcname))
 
         arginfo = command.ArgInfo(**self._kwargs)
-        func.qute_args[self._argname] = arginfo  # type: ignore
+        func.qute_args[self._argname] = arginfo  # type: ignore[attr-defined]
 
         return func

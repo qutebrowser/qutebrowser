@@ -23,7 +23,7 @@ Silver sponsors
 - https://benary.org[benaryorg]
 - https://scratchbook.ch[Claude]
 - Martin Tournoij
-- http://supported.elsensohn.ch[Thomas Elsensohn]
+- https://elsensohn.ch[Thomas Elsensohn]
 - Christian Helbling
 - Gavin Troy
 - Chris King-Parra
@@ -174,7 +174,7 @@ Other sponsors
 2016
 ----
 
-Mid-2016, qutebrowser did run a http://igg.me/at/qutebrowser[crowdfunding] for
+Mid-2016, qutebrowser did run a https://igg.me/at/qutebrowser[crowdfunding] for
 QtWebEngine support in qutebrowser.
 
 Thanks a lot to the following people who contributed to it:

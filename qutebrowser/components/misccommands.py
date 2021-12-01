@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Various commands."""
 
@@ -23,7 +23,8 @@ import os
 import signal
 import functools
 import logging
-import typing
+import pathlib
+from typing import Optional
 
 try:
     import hunter
@@ -35,10 +36,17 @@ from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.api import cmdutils, apitypes, message, config
 
+# FIXME should be part of qutebrowser.api?
+from qutebrowser.completion.models import miscmodels
+from qutebrowser.utils import utils
+
+
+_LOGGER = logging.getLogger('misc')
+
 
 @cmdutils.register(name='reload')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def reloadpage(tab: typing.Optional[apitypes.Tab],
+def reloadpage(tab: Optional[apitypes.Tab],
                force: bool = False) -> None:
     """Reload the current/[count]th tab.
 
@@ -52,7 +60,7 @@ def reloadpage(tab: typing.Optional[apitypes.Tab],
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def stop(tab: typing.Optional[apitypes.Tab]) -> None:
+def stop(tab: Optional[apitypes.Tab]) -> None:
     """Stop loading in the current/[count]th tab.
 
     Args:
@@ -71,11 +79,13 @@ def _print_preview(tab: apitypes.Tab) -> None:
     tab.printing.check_preview_support()
     diag = QPrintPreviewDialog(tab)
     diag.setAttribute(Qt.WA_DeleteOnClose)
-    diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
-                        Qt.WindowMinimizeButtonHint)
+    diag.setWindowFlags(
+        diag.windowFlags() |  # type: ignore[operator, arg-type]
+        Qt.WindowMaximizeButtonHint |
+        Qt.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
-    diag.exec_()
+    diag.exec()
 
 
 def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
@@ -86,13 +96,13 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
     if directory and not os.path.exists(directory):
         os.mkdir(directory)
     tab.printing.to_pdf(filename)
-    logging.getLogger('misc').debug("Print to file: {}".format(filename))
+    _LOGGER.debug("Print to file: {}".format(filename))
 
 
 @cmdutils.register(name='print')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
 @cmdutils.argument('pdf', flag='f', metavar='file')
-def printpage(tab: typing.Optional[apitypes.Tab],
+def printpage(tab: Optional[apitypes.Tab],
               preview: bool = False, *,
               pdf: str = None) -> None:
     """Print the current/[count]th tab.
@@ -150,6 +160,45 @@ def debug_dump_page(tab: apitypes.Tab, dest: str, plain: bool = False) -> None:
     tab.dump_async(callback, plain=plain)
 
 
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def screenshot(
+        tab: apitypes.Tab,
+        filename: pathlib.Path,
+        *,
+        rect: str = None,
+        force: bool = False,
+) -> None:
+    """Take a screenshot of the currently shown part of the page.
+
+    The file format is automatically determined based on the given file extension.
+
+    Args:
+        filename: The file to save the screenshot to (~ gets expanded).
+        rect: The rectangle to save, as a string like WxH+X+Y.
+        force: Overwrite existing files.
+    """
+    expanded = filename.expanduser()
+    if expanded.exists() and not force:
+        raise cmdutils.CommandError(
+            f"File {filename} already exists (use --force to overwrite)")
+
+    try:
+        qrect = None if rect is None else utils.parse_rect(rect)
+    except ValueError as e:
+        raise cmdutils.CommandError(str(e))
+
+    pic = tab.grab_pixmap(qrect)
+    if pic is None:
+        raise cmdutils.CommandError("Getting screenshot failed")
+
+    ok = pic.save(str(expanded))
+    if not ok:
+        raise cmdutils.CommandError(f"Saving to {filename} failed")
+
+    _LOGGER.debug(f"Screenshot saved to {filename}")
+
+
 @cmdutils.register(maxsplit=0)
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def insert_text(tab: apitypes.Tab, text: str) -> None:
@@ -158,7 +207,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
     Args:
         text: The text to insert.
     """
-    def _insert_text_cb(elem: typing.Optional[apitypes.WebElement]) -> None:
+    def _insert_text_cb(elem: Optional[apitypes.WebElement]) -> None:
         if elem is None:
             message.error("No element focused!")
             return
@@ -190,7 +239,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
     """
-    def single_cb(elem: typing.Optional[apitypes.WebElement]) -> None:
+    def single_cb(elem: Optional[apitypes.WebElement]) -> None:
         """Click a single element."""
         if elem is None:
             message.error("No element found with id {}!".format(value))
@@ -215,8 +264,8 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
     """Execute a webaction.
 
     Available actions:
-    http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
-    http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+    https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
+    https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
 
     Args:
         action: The action to execute, e.g. MoveToNextChar.
@@ -231,7 +280,7 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def tab_mute(tab: typing.Optional[apitypes.Tab]) -> None:
+def tab_mute(tab: Optional[apitypes.Tab]) -> None:
     """Mute/Unmute the current/[count]th tab.
 
     Args:
@@ -311,3 +360,37 @@ def debug_trace(expr: str = "") -> None:
         eval('hunter.trace({})'.format(expr))
     except Exception as e:
         raise cmdutils.CommandError("{}: {}".format(e.__class__.__name__, e))
+
+
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+@cmdutils.argument('position', completion=miscmodels.inspector_position)
+def devtools(tab: apitypes.Tab,
+             position: apitypes.InspectorPosition = None) -> None:
+    """Toggle the developer tools (web inspector).
+
+    Args:
+        position: Where to open the devtools
+                  (right/left/top/bottom/window).
+    """
+    try:
+        tab.private_api.toggle_inspector(position)
+    except apitypes.InspectorError as e:
+        raise cmdutils.CommandError(e)
+
+
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def devtools_focus(tab: apitypes.Tab) -> None:
+    """Toggle focus between the devtools/tab."""
+    assert tab.data.splitter is not None
+    try:
+        tab.data.splitter.cycle_focus()
+    except apitypes.InspectorError as e:
+        raise cmdutils.CommandError(e)
+
+
+@cmdutils.register(name='Ni!')
+def knights_who_say_ni() -> None:
+    """We are the Knights Who Say... 'Ni'!"""  # noqa: D400
+    raise cmdutils.CommandError("Do you demand a shrubbery?")

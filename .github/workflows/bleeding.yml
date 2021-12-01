@@ -1,0 +1,116 @@
+name: Bleeding-edge CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every day at 03:05 UTC
+    # https://crontab.guru/#05_03_*_*_*
+    - cron: '05 03 * * *'
+
+jobs:
+  tests:
+    if: "github.repository == 'qutebrowser/qutebrowser'"
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    container:
+      image: "qutebrowser/ci:archlinux-webengine-unstable"
+      env:
+        PY_COLORS: "1"
+        DOCKER: "archlinux-webengine-unstable"
+        CI: true
+        PYTEST_ADDOPTS: "--color=yes"
+      volumes:
+        # Hardcoded because we can't use ${{ runner.temp }} here apparently.
+        - /home/runner/work/_temp/:/home/runner/work/_temp/
+      options: --privileged --tty
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Set up problem matchers
+        run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
+      - name: Run tox
+        run: dbus-run-session tox -e bleeding
+
+  pyinstaller:
+    if: "github.repository == 'qutebrowser/qutebrowser'"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-10.15
+          - os: windows-2019
+            args: --64bit
+          - os: windows-2019
+            args: --32bit
+          - os: macos-10.15
+            args: --debug
+          - os: windows-2019
+            args: --64bit --debug
+          - os: windows-2019
+            args: --32bit --debug
+    runs-on: "${{ matrix.os }}"
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Get asciidoc
+        uses: actions/checkout@v2
+        with:
+          repository: asciidoc-py/asciidoc-py
+          ref: '9.x'
+          path: asciidoc
+          persist-credentials: false
+      - name: Move asciidoc out of the repo
+        run: mv asciidoc ..
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Patch qutebrowser for debugging
+        if: "contains(matrix.args, '--debug')"
+        run: |
+          sed -i '' '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py
+      - name: Run tox
+        run: "tox -e build-release -- --asciidoc ../asciidoc/asciidoc.py --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
+      - name: Wait 90s to avoid upload errors
+        if: "contains(matrix.args, '--32bit')"
+        run: "sleep 90"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: "qutebrowser-nightly-${{ github.sha }}"
+          path: |
+            dist/qutebrowser-*.dmg
+            dist/qutebrowser-*-windows-standalone-*.zip
+            dist/qutebrowser-*-*.exe
+
+  irc:
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    needs: [tests, pyinstaller]
+    if: "always() && github.repository == 'qutebrowser/qutebrowser'"
+    steps:
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.tests.result == 'success' && needs.pyinstaller.result == 'success'"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.tests.result != 'success' || needs.pyinstaller.result != 'success'"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            tests: ${{ needs.tests.result }}, pyinstaller: ${{ needs.pyinstaller.result }}"

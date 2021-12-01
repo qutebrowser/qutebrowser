@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Contains the Command class, a skeleton for a command."""
 
@@ -23,27 +23,29 @@ import inspect
 import collections
 import traceback
 import typing
-
-import attr
+import dataclasses
+from typing import (Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional,
+                    Callable)
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
+from qutebrowser.completion.models import completionmodel
 
 
-@attr.s
+@dataclasses.dataclass
 class ArgInfo:
 
     """Information about an argument."""
 
-    value = attr.ib(None)
-    hide = attr.ib(False)
-    metavar = attr.ib(None)
-    flag = attr.ib(None)
-    completion = attr.ib(None)
-    choices = attr.ib(None)
+    value: Optional[usertypes.CommandValue] = None
+    hide: bool = False
+    metavar: Optional[str] = None
+    flag: Optional[str] = None
+    completion: Optional[Callable[..., completionmodel.CompletionModel]] = None
+    choices: Optional[List[str]] = None
 
 
 class Command:
@@ -116,19 +118,17 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self.opt_args = collections.OrderedDict(
-        )  # type: typing.MutableMapping[str, typing.Tuple[str, str]]
+        self.opt_args: MutableMapping[str, Tuple[str, str]] = collections.OrderedDict()
         self.namespace = None
         self._count = None
-        self.pos_args = [
-        ]  # type: typing.MutableSequence[typing.Tuple[str, str]]
-        self.flags_with_args = []  # type: typing.MutableSequence[str]
+        self.pos_args: MutableSequence[Tuple[str, str]] = []
+        self.flags_with_args: MutableSequence[str] = []
         self._has_vararg = False
 
-        # This is checked by future @cmdutils.argument calls so they fail
-        # (as they'd be silently ignored otherwise)
+        self._signature = inspect.signature(handler)
+        self._type_hints = typing.get_type_hints(handler)
+
         self._qute_args = getattr(self.handler, 'qute_args', {})
-        self.handler.qute_args = None
 
         self._check_func()
         self._inspect_func()
@@ -149,25 +149,23 @@ class Command:
                 "backend.".format(self.name, self.backend.name))
 
         if self.deprecated:
-            message.warning('{} is deprecated - {}'.format(self.name,
-                                                           self.deprecated))
+            message.warning(f'{self.name} is deprecated - {self.deprecated}')
 
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
-        signature = inspect.signature(self.handler)
-        if 'self' in signature.parameters:
+        if 'self' in self._signature.parameters:
             if self._instance is None:
                 raise TypeError("{} is a class method, but instance was not "
                                 "given!".format(self.name))
-            arg_info = self.get_arg_info(signature.parameters['self'])
+            arg_info = self.get_arg_info(self._signature.parameters['self'])
             if arg_info.value is not None:
                 raise TypeError("{}: Can't fill 'self' with value!"
                                 .format(self.name))
-        elif 'self' not in signature.parameters and self._instance is not None:
+        elif 'self' not in self._signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
                             "given!".format(self.name))
         elif any(param.kind == inspect.Parameter.VAR_KEYWORD
-                 for param in signature.parameters.values()):
+                 for param in self._signature.parameters.values()):
             raise TypeError("{}: functions with varkw arguments are not "
                             "supported!".format(self.name))
 
@@ -215,14 +213,13 @@ class Command:
         Return:
             How many user-visible arguments the command has.
         """
-        signature = inspect.signature(self.handler)
         doc = inspect.getdoc(self.handler)
         if doc is not None:
             self.desc = doc.splitlines()[0].strip()
         else:
             self.desc = ""
 
-        for param in signature.parameters.values():
+        for param in self._signature.parameters.values():
             # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
             # "Python has no explicit syntax for defining positional-only
             # parameters, but many built-in and extension module functions
@@ -244,13 +241,13 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug(  # type: ignore
+            log.commands.vdebug(  # type: ignore[attr-defined]
                 'Adding arg {} of type {} -> {}'
                 .format(param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
             if param.kind == inspect.Parameter.VAR_POSITIONAL:
                 self._has_vararg = True
-        return signature.parameters.values()
+        return self._signature.parameters.values()
 
     def _param_to_argparse_kwargs(self, param, is_bool):
         """Get argparse keyword arguments for a parameter.
@@ -334,17 +331,19 @@ class Command:
         Args:
             param: The inspect.Parameter to look at.
         """
-        arginfo = self.get_arg_info(param)
-        if arginfo.value:
+        arg_info = self.get_arg_info(param)
+        if arg_info.value:
             # Filled values are passed 1:1
             return None
         elif param.kind in [inspect.Parameter.VAR_POSITIONAL,
                             inspect.Parameter.VAR_KEYWORD]:
             # For *args/**kwargs we only support strings
-            assert param.annotation in [inspect.Parameter.empty, str], param
+            if param.name in self._type_hints and self._type_hints[param.name] != str:
+                raise TypeError("Expected str annotation for {}, got {}".format(
+                    param, self._type_hints[param.name]))
             return None
-        elif param.annotation is not inspect.Parameter.empty:
-            return param.annotation
+        elif param.name in self._type_hints:
+            return self._type_hints[param.name]
         elif param.default not in [None, inspect.Parameter.empty]:
             return type(param.default)
         else:
@@ -406,21 +405,19 @@ class Command:
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
 
-        if hasattr(typing, 'UnionMeta'):
-            # Python 3.5.2
-            # pylint: disable=no-member,useless-suppression
-            is_union = isinstance(typ, typing.UnionMeta)  # type: ignore
-        else:
-            is_union = getattr(typ, '__origin__', None) is typing.Union
+        try:
+            origin = typing.get_origin(typ)  # type: ignore[attr-defined]
+        except AttributeError:
+            # typing.get_origin was added in Python 3.8
+            origin = getattr(typ, '__origin__', None)
 
-        if is_union:
-            # this is... slightly evil, I know
+        if origin is Union:
             try:
-                types = list(typ.__args__)
+                types = list(typing.get_args(typ))  # type: ignore[attr-defined]
             except AttributeError:
-                # Python 3.5.2
-                types = list(typ.__union_params__)
-            # pylint: enable=no-member,useless-suppression
+                # typing.get_args was added in Python 3.8
+                types = list(typ.__args__)
+
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
             choices = self.get_arg_info(param).choices
@@ -496,11 +493,10 @@ class Command:
         Return:
             An (args, kwargs) tuple.
         """
-        args = []  # type: typing.Any
-        kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
-        signature = inspect.signature(self.handler)
+        args: Any = []
+        kwargs: MutableMapping[str, Any] = {}
 
-        for i, param in enumerate(signature.parameters.values()):
+        for i, param in enumerate(self._signature.parameters.values()):
             if self._handle_special_call_arg(pos=i, param=param,
                                              win_id=win_id, args=args,
                                              kwargs=kwargs):
@@ -575,7 +571,7 @@ class Command:
 
     def register(self):
         """Register this command in objects.commands."""
-        log.commands.vdebug(  # type: ignore
+        log.commands.vdebug(  # type: ignore[attr-defined]
             "Registering command {} (from {}:{})".format(
                 self.name, self.handler.__module__, self.handler.__qualname__))
         if self.name in objects.commands:

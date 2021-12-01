@@ -21,7 +21,7 @@ Why another browser?::
 Read the next few questions to find out why I was unhappy with existing
 software.
 
-What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/jumanji/... (projects based on WebKitGTK)?::
+What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://luakit.github.io/[luakit]/jumanji/... (projects based on WebKitGTK)?::
     Most of them are based on the https://webkitgtk.org/[WebKitGTK+]
     https://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
     which causes a lot of crashes. As the GTK API using WebKit1 is
@@ -92,18 +92,25 @@ https://github.com/qutebrowser/qutebrowser/issues/4039[#4039] for more details.
 Security issues in qutebrowser's code happen very rarely (as per September 2019,
 there have been three security issues caused by qutebrowser in almost 6 years).
 Those were handled appropriately
-(http://seclists.org/oss-sec/2018/q3/29[example]) and fixed timely. To report
+(https://seclists.org/oss-sec/2018/q3/29[example]) and fixed timely. To report
 security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
-Is there an adblocker?::
-    There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
-    adblocker has a
-    https://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
-    impact] on browsing speed and
-    https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
-    usage], so implementing support for AdBlockPlus-like lists is currently not
-    a priority.
+Is there an ad blocker?::
+    Since version 2.0.0, if the
+    https://pypi.org/project/adblock/[Python `adblock` library] is available,
+    it will be used to integrate
+    https://github.com/brave/adblock-rust[Brave's Rust adblocker library]
+    for improved adblocking, based on
+    https://help.eyeo.com/en/adblockplus/how-to-write-filters[ABP-like filter lists]
+    (such as https://easylist.to/[EasyList]).
+    If that library is unavailable or on older versions of qutebrowser, a
+    simpler built-in ad blocker is used instead. It takes `/etc/hosts`-like lists
+    and thus is only able to block entire hosts.
++
+Note that even the more sophisticated blocker
+https://github.com/qutebrowser/qutebrowser/issues/5754[does not support element hiding]
+(cosmetic filtering) yet, it only blocks network requests.
 
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
@@ -112,11 +119,14 @@ How can I get No-Script-like behavior?::
 :set content.javascript.enabled false
 ----
 +
-The basic command for enabling JavaScript for the current host is `tsh`.
+The basic keybinding for enabling JavaScript for the current host is `tsh`.
 This will allow JavaScript execution for the current session.
 Use `S` instead of `s` to make the exception permanent.
 With `H` instead of `h`, subdomains are included.
-With `u` instead of `h`, only the current URL is whitelisted (not the whole host).
+With `u` instead of `h`, JavaScript is allowed for the current URL only (not the whole host).
++
+The list of domains that have been permanently granted permission to execute
+JavaScript will be written to `autoconfig.yml`.
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video
@@ -188,11 +198,9 @@ For QtWebKit:
   (also see the README file for `qtwebkit-plugins`).
 . Remember to install the hunspell dictionaries if you don't have them already
   (most distros should have packages for this).
-
 +
 For QtWebEngine:
 
-. Make sure your versions of PyQt and Qt are 5.8 or higher.
 . Use `dictcli.py` script to install dictionaries.
   Run the script with `-h` for the parameter description.
 . Set `spellcheck.languages` to the desired list of languages, e.g.:
@@ -209,7 +217,9 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
     and qutebrowser's keybindings are designed to be compatible with dwb's.
     The rationale behind it is that J is "down" in vim, and K is "up", which
     corresponds nicely to "next"/"previous". It also makes much more sense with
-    vertical tabs (e.g. `:set tabs.position left`).
+    vertical tabs (e.g. `:set tabs.position left`). If you prefer swapped
+    bindings, you can run `:bind J tab-prev` and `:bind K tab-next` to swap
+    them.
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
@@ -226,7 +236,7 @@ Why does it take longer to open a URL in qutebrowser than in chromium?::
     One workaround is to use this
     https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
     and place it in your $PATH with the name "qutebrowser". This
-    script passes the URL via an unix socket to qutebrowser (if its
+    script passes the URL via a unix socket to qutebrowser (if its
     running already) using socat which is much faster and starts a new
     qutebrowser if it is not running already.
 
@@ -253,11 +263,6 @@ Note that there are some missing features which you may run into:
 . Some scripts expect `GM_xmlhttpRequest` to ignore Cross Origin Resource
   Sharing restrictions, this is currently not supported, so scripts making
   requests to third party sites will often fail to function correctly.
-. If your backend is a QtWebEngine version 5.8, 5.9 or 5.10 then regular
-  expressions are not supported in `@include` or `@exclude` rules. If your
-  script uses them you can re-write them to use glob expressions or convert
-  them to `@match` rules.
-  See https://wiki.greasespot.net/Metadata_Block[the wiki] for more info.
 . Any greasemonkey API function to do with adding UI elements is not currently
   supported. That means context menu extentensions and background pages.
 
@@ -266,6 +271,93 @@ How do I change the `WM_CLASS` used by qutebrowser windows?::
     with `--qt-arg name foo`. Note that all windows are part of the same
     qutebrowser instance (unless you use `--temp-basedir` or `--basedir`), so
     they all will share the same `WM_CLASS`.
+
+How do I use X.509 Client Certificates?::
+Right now there is no certificate-chooser prompt implemented when there are
+multiple matches. Subscribe to https://github.com/qutebrowser/qutebrowser/issues/4587[Issue#4587]
+for progress notifications.
++
+QtWebEngine will attempt to use certificates stored in `${HOME}/.pki/nssdb`. If
+you have Chromium installed, you can import the certificate there and
+qutebrowser will pick it up as well. Alternatively, you can use the `certutil`
+commandline tool:
++
+Assuming you have a CA Certificate and a
+Client Certificate that you want for authenticating yourself on a web
+service that validates against this CA Certificate, you need to perform
+the following steps.
++
+1. Import the CA Certificate
++
+----
+certutil -d "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
+----
++
+2. Merge your `<cert.crt>` and `<privkey.pem>` files into a single `PKCS#12`
+certificate file (optional, skip if your Client Certificate already is in
+`PKCS#12` format)
++
+----
+openssl pkcs12 -export -in <path_to_client_cert.crt> -inkey <path_to_client_cert_privkey.pem> -out my_fancy_client_cert.pkcs12
+----
++
+3. Import your Client Certificate into the certificate store
++
+----
+pk12util -d "sql:${HOME}/.pki/nssdb" -i <path_to_my_fancy_client_cert.pkcs12> -n "My Fancy Client Certificate"
+----
++
+Upon visiting a website that requests a Client Certificate you should now
+be prompted by qutebrowser whether you want to submit the newly imported
+Client Certificate or not.
++
+If you ever need to renew any of these certificates, you can take a look
+at the currently imported certificates using:
++
+----
+certutil -d "sql:${HOME}/.pki/nssdb" -L
+----
++
+Then remove the expired certificates using:
++
+----
+certutil -d "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
+----
++
+And then import the new and valid certificates using the procedure
+described above.
+
+Is there a dark mode? How can I filter websites to be darker?::
+There is a total of four possible approaches to get dark websites:
++
+- The `colors.webpage.preferred_color_scheme` setting tells websites that you prefer
+  a light or dark theme. However, this requires websites to ship an appropriate dark
+  style sheet. The setting requires a restart and QtWebEngine with at least Qt 5.14.
+- The `colors.webpage.darkmode.*` settings enable the dark mode of the underlying
+  Chromium. Those setting require a restart and QtWebEngine with at least Qt 5.14. It's
+  unfortunately not possible (due to limitations
+  https://bugs.chromium.org/p/chromium/issues/detail?id=952419[in Chromium] and/or
+  https://bugreports.qt.io/browse/QTBUG-84484[QtWebEngine]) to
+  change them dynamically or to specify a list of excluded websites.
+  There is some remaining hope to
+  https://github.com/qutebrowser/qutebrowser/issues/5542[allow for this]
+  using HTML/CSS features, but so far nobody has been able to get things to
+  work (even with Chromium) - help welcome!
+- The `content.user_stylesheets` setting allows specifying a custom CSS such as
+  https://github.com/alphapapa/solarized-everything-css/[Solarized Everything]. Despite
+  the name, the repository also offers themes other than just Solarized. This approach
+  often yields worse results compared to the above ones, but it's possible to toggle it
+  dynamically using a binding like `:bind ,d config-cycle content.user_stylesheets
+  ~/path/to/solarized-everything-css/css/gruvbox/gruvbox-all-sites.css ""`
+- Finally, qutebrowser's Greasemonkey support should allow for running a
+  https://github.com/darkreader/darkreader/issues/926#issuecomment-575893299[stripped down version]
+  of the Dark Reader extension. This is mostly untested, though.
+
+How do I make copy to clipboard buttons work?::
+You can `:set content.javascript.can_access_clipboard true`, or
+`:set -u some.domain content.javascript.can_access_clipboard true` if you want to limit
+the setting to `some.domain`.
+
 
 == Troubleshooting
 
@@ -313,68 +405,32 @@ My issue is not listed.::
 
 Using https://github.com/sponsors/The-Compiler[GitHub Sponsors], you can sign
 up for a monthly donation to The-Compiler (qutebrowser's main developer),
-allowing him to work part-time on qutebrowser. If you sign up in 2019, you can
-even get qutebrowser shirts, stickers and other swag.
+allowing him to work part-time on qutebrowser. If you keep your donation level
+for long enough, you can get some qutebrowser stickers!
 
-Why GitHub Sponsors? What is the GitHub Matching Fund?::
-    Thanks to the
-    https://help.github.com/en/github/supporting-the-open-source-community-with-github-sponsors/about-github-sponsors#about-the-github-sponsors-matching-fund[GitHub Sponsors Matching Fund],
-    all donations are doubled by GitHub in the first year, up to a $5000 total limit.
+Why GitHub Sponsors?::
+    GitHub Sponsors is a crowdfundign platform nicely integrated with
+    qutebrowser's existing GitHub page and a better offering than alternatives such
+    as Patreon or Liberapay.
 +
-Even outside of the matching fund, GitHub Sponsors is nicely integrated with
-qutebrowser's existing GitHub page and a better offering than alternatives such
-as Patreon or Liberapay.
-
-How do the different tiers/perks work?::
-    The perks you will receive are based on the *total amount* you
-    contributed (without GitHub's matching) until May 2020. For example, anyone who contributed $15 by the
-    cut-off date will get qutebrowser stickers. You could reach that amount in
-    different ways: As an example, you could sign up for the $3/month tier in
-    November/December 2019, so that you paid that amount 5 times by then. Or
-    you could sign up for the $15/month tier at a later time to reach the same
-    goal.
-+
-The displayed tiers take that into account - they're designed for people who
-sign up in 2019 and keep that tier until May 2020. In January 2020, they will
-be adjusted accordingly.
-+
-In some cases, a tier allows you to reach a reward goal in a single month, but
-another higher goal when you keep it for those five months. For example, if you
-select the "shirt and premium swag" tier, you will receive stickers even if you
-only keep the tier for a single month, but get shirt and swag when you keep it
-for five months.
+It also offers a
+https://help.github.com/en/github/supporting-the-open-source-community-with-github-sponsors/about-github-sponsors#about-the-github-sponsors-matching-fund[Matching Fund]
+which matches all donations until a cap of $5000, which has already been
+reached by qutebrowser.
 
 Is it possible to contribute via a one-time donation instead?::
-   If you prefer a one-time donation, there are various possibilities:
-+
-- Select a tier which covers the goal you want to reach (note that payments are
-  prorated based on the current date). After the payment is processed, cancel
-  your GitHub sponsors subscription again. This has a big benefit: Thanks to
-  GitHub's matching fund, your donation will be doubled (and nothing will be
-  lost to fees).
-+
-- Sign up for a lower recurring donation instead. At a later point, it will be
-  possible to "upgrade" to a higher tier via a one-time donation - see the next
-  question for details.
-+
-- Do so via the https://github.com/qutebrowser/qutebrowser#donating[existing
-  donation methods]. Rewards (shirts/stickers/swag) are handled on a
-  case-by-case basis as GitHub's matching fund isn't applicable and there might
-  be relatively high fees which make this tricky.
-+
-- If you want to contribute via a one-time donation and want to make sure
-  you'll receive a reward, you might want to sign up to the
-  https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce]
-  mailinglist and wait until there is an official way to do so. It's planned to
-  set this up at a later date. Note that the thresholds for perks will be
-  higher because those donations aren't matched by GitHub and fees are
-  relatively high.
+    Yes! GitHub Sponsors allows for one-time donations (including custom amounts) using
+    the buttons next to "Select a tier". Alternatively, see the
+    https://github.com/qutebrowser/qutebrowser#donating[readme] for other donation
+    methods, but note that physical rewards (stickers/shirts) for such donations are
+    handled on a case-by-case basis due to the higher administrative overhead and fees.
 
 I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller monthly donation. Can I upgrade via a one-time donation?::
-    It's planned to set up a donation page to allow this at a later date.
-    However, the thresholds for perks will be higher because those donations
-    aren't matched by GitHub and fees are relatively high. Note that you can
-    switch tiers on GitHub sponsors at any time.
+    GitHub allows for one-time donations (see the previous question). For physical
+    rewards, your total contributions will be summed up, so you can indeed make a
+    one-time donation to "upgrade". Before rewards are ordered, all sponsors will be
+    contacted with their total donation amount so that they can still upgrade, if
+    desired.
 
 GitHub tries to charge me for an entire year. What gives?::
     This happens if you have an existing annual billing cycle with GitHub (for
@@ -387,17 +443,17 @@ Can I support you without getting any rewards/merchandise?::
     an option to not get any merch at all.
 
 Can I select my own amount rather than using the predefined tiers?::
-    Unfortunately, GitHub sponsors doesn't support this at the moment. The
-    existing tiers should hopefully cover various options. If you disagree,
-    please mailto:mail@qutebrowser.org[get in touch] - I might be able to add a
-    new sponsorship tier.
+    At the bottom of the tier list, GitHub allows specifying a custom donation amount.
 
 When will rewards be shipped?::
-    Rewards will be ordered and subsequently shipped once it's clear how many
-    people are eliglible. The cut-off date for the donation goals is May
-    2020, so rewards will likely be shipped Q2/2020. This also applies to tiers
-    which make you eliglible for a certain perk immediately, though stickers
-    might be shipped earlier depending on how many people this affects.
+    Due to COVID-19, the Swiss Post currently
+    https://service.post.ch/vgkklp/info/informationen/Verkehrseinschraenkungen?lang=en[only
+    accepts priority letters for many countries], including the US. Especially for the
+    t-shirts, the difference between economy and priority shipments is quite
+    significant. For the shirts, I estimate I'd spend a total of $250 to $1500 on
+    *extra* postage. Thus, shipping is currently on hold until the shipping situation
+    resolves. There's currently no ETA for that happening, but rest assured everyone
+    will be notified (if contact details are available) once there are news.
 
 I'd like some stickers, but I can't donate anything because of my financial situation.::
     Please mailto:mail@qutebrowser.org[get in touch]! As long as this doesn't
@@ -420,7 +476,7 @@ Can you share details on the swag?::
 +
 image:https://qutebrowser.org/img/sponsors/swag.jpg["swag",width=300,link="https://qutebrowser.org/img/sponsors/swag.jpg"]
 +
-It's planned to order more swag, depending on the exact demand. Possibilites
+It's planned to order more swag, depending on the exact demand. Possibilities
 would include:
 +
 - qutebrowser pens (refillable)
@@ -454,22 +510,25 @@ For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
 
 === Website
 
-The qutebrowser.org website does not use any cookies or trackers.
-
-However, IP addresses are currently (October 2019) logged and stored
-indefinitely. It's planned to change this soon by migrating qutebrowser.org to
-a different server.
+The qutebrowser.org website does not use any cookies or trackers. It does not
+store any logs, except in rare situations when those are explicitly (and
+temporarily) enabled to debug website issues. Even if enabled, IP addresses are
+partially redacted in the logs. As soon as debugging is finished, any logs
+are removed.
 
 Note that some services related to qutebrowser are stored on third-party
-services such as GitHub, Travis CI or AppVeyor. By using their websites, you're
-subject to their privacy policies.
+services such as GitHub. By using their websites, you're subject to their
+privacy policies.
 
 === Crash reports
 
 When qutebrowser crashes or you use the `:report` command, you have the
 possibility to send a crash report. If you decide to do so, your crash report
-is stored on qutebrowser's server, where core qutebrowser developers (four
-people at the time of writing) can access it.
+is stored on qutebrowser's server, where qutebrowser's maintainer (Florian Bruhin / The
+Compiler) can access it. Before February 2021, other core qutebrowser developers (a
+maximum of four people total) could access the reports as well (access was restricted
+based on the sensitive nature of those reports, not because of any known issues with
+those individuals).
 
 If you select the option to include a debug log with your report, it's possible
 that sensitive information is contained in your report. You can show and edit

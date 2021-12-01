@@ -1,7 +1,17 @@
-pylint
+pylint<2.5
 ./scripts/dev/pylint_checkers
 requests
 github3.py
+pefile
 
 # fix qute-pylint location
-#@ replace: qute-pylint==.* ./scripts/dev/pylint_checkers
+#@ replace: qute-pylint.* ./scripts/dev/pylint_checkers
+#@ markers: typed-ast python_version<"3.8"
+#@ filter: pylint < 2.5
+#@ filter: astroid < 2.4
+
+# Already included via test requirements
+#@ ignore: urllib3
+
+# For pylint_checkers
+#@ pip_args: --use-feature=in-tree-build

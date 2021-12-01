@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,18 +15,69 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the SQL API."""
 
 import pytest
 
-from PyQt5.QtSql import QSqlError
+import hypothesis
+from hypothesis import strategies
+from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.misc import sql
 
 
-pytestmark = pytest.mark.usefixtures('init_sql')
+pytestmark = pytest.mark.usefixtures('data_tmpdir')
+
+
+class TestUserVersion:
+
+    @pytest.mark.parametrize('val, major, minor', [
+        (0x0008_0001, 8, 1),
+        (0x7FFF_FFFF, 0x7FFF, 0xFFFF),
+    ])
+    def test_from_int(self, val, major, minor):
+        version = sql.UserVersion.from_int(val)
+        assert version.major == major
+        assert version.minor == minor
+
+    @pytest.mark.parametrize('major, minor, val', [
+        (8, 1, 0x0008_0001),
+        (0x7FFF, 0xFFFF, 0x7FFF_FFFF),
+    ])
+    def test_to_int(self, major, minor, val):
+        version = sql.UserVersion(major, minor)
+        assert version.to_int() == val
+
+    @pytest.mark.parametrize('val', [0x8000_0000, -1])
+    def test_from_int_invalid(self, val):
+        with pytest.raises(AssertionError):
+            sql.UserVersion.from_int(val)
+
+    @pytest.mark.parametrize('major, minor', [
+        (-1, 0),
+        (0, -1),
+        (0, 0x10000),
+        (0x8000, 0),
+    ])
+    def test_to_int_invalid(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        with pytest.raises(AssertionError):
+            version.to_int()
+
+    @hypothesis.given(val=strategies.integers(min_value=0, max_value=0x7FFF_FFFF))
+    def test_from_int_hypothesis(self, val):
+        version = sql.UserVersion.from_int(val)
+        assert version.to_int() == val
+
+    @hypothesis.given(
+        major=strategies.integers(min_value=0, max_value=0x7FFF),
+        minor=strategies.integers(min_value=0, max_value=0xFFFF)
+    )
+    def test_to_int_hypothesis(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        assert version.from_int(version.to_int()) == version
 
 
 @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
@@ -49,22 +100,8 @@ class TestSqlError:
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
-    def test_qtbug_70506(self):
-        """Test Qt's wrong handling of errors while opening the database.
-
-        Due to https://bugreports.qt.io/browse/QTBUG-70506 we get an error with
-        "out of memory" as string and -1 as error code.
-        """
-        sql_err = QSqlError("Error opening database",
-                            "out of memory",
-                            QSqlError.UnknownError,
-                            sql.SqliteErrorCode.UNKNOWN)
-        with pytest.raises(sql.KnownError):
-            sql.raise_sqlite_error("Message", sql_err)
-
     def test_logging(self, caplog):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
-                            '23')
+        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError, '23')
         with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 
@@ -83,26 +120,26 @@ class TestSqlError:
         assert err.text() == "db text"
 
 
-def test_init():
-    sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_init_table(database):
+    database.table('Foo', ['name', 'val', 'lucky'])
     # should not error if table already exists
-    sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+    database.table('Foo', ['name', 'val', 'lucky'])
 
 
-def test_insert(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    with qtbot.waitSignal(table.changed):
+def test_insert(qtbot, database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 1, 'lucky': False})
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'wan', 'val': 1, 'lucky': False})
 
 
-def test_insert_replace(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
-                         constraints={'name': 'PRIMARY KEY'})
-    with qtbot.waitSignal(table.changed):
+def test_insert_replace(qtbot, database):
+    table = database.table('Foo', ['name', 'val', 'lucky'],
+                     constraints={'name': 'PRIMARY KEY'})
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 1, 'lucky': False}, replace=True)
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
 
@@ -110,10 +147,10 @@ def test_insert_replace(qtbot):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
 
 
-def test_insert_batch(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_insert_batch(qtbot, database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert_batch({'name': ['one', 'nine', 'thirteen'],
                             'val': [1, 9, 13],
                             'lucky': [False, False, True]})
@@ -123,16 +160,16 @@ def test_insert_batch(qtbot):
                            ('thirteen', 13, True)]
 
 
-def test_insert_batch_replace(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
-                         constraints={'name': 'PRIMARY KEY'})
+def test_insert_batch_replace(qtbot, database):
+    table = database.table('Foo', ['name', 'val', 'lucky'],
+                     constraints={'name': 'PRIMARY KEY'})
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert_batch({'name': ['one', 'nine', 'thirteen'],
                             'val': [1, 9, 13],
                             'lucky': [False, False, True]})
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]},
@@ -148,8 +185,8 @@ def test_insert_batch_replace(qtbot):
                             'lucky': [True, True]})
 
 
-def test_iter():
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_iter(database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
@@ -168,30 +205,30 @@ def test_iter():
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', -1,
      [(1, 6), (2, 5), (3, 4)]),
 ])
-def test_select(rows, sort_by, sort_order, limit, result):
-    table = sql.SqlTable('Foo', ['a', 'b'])
+def test_select(rows, sort_by, sort_order, limit, result, database):
+    table = database.table('Foo', ['a', 'b'])
     for row in rows:
         table.insert(row)
     assert list(table.select(sort_by, sort_order, limit)) == result
 
 
-def test_delete(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_delete(qtbot, database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     with pytest.raises(KeyError):
         table.delete('name', 'nope')
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.delete('name', 'thirteen')
     assert list(table) == [('one', 1, False), ('nine', 9, False)]
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.delete('lucky', False)
     assert not list(table)
 
 
-def test_len():
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_len(database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     assert len(table) == 1
@@ -201,8 +238,28 @@ def test_len():
     assert len(table) == 3
 
 
-def test_contains():
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_bool(database):
+    table = database.table('Foo', ['name'])
+    assert not table
+    table.insert({'name': 'one'})
+    assert table
+
+
+def test_bool_benchmark(benchmark, database):
+    table = database.table('Foo', ['number'])
+
+    # Simulate a history table
+    table.create_index('NumberIndex', 'number')
+    table.insert_batch({'number': [str(i) for i in range(100_000)]})
+
+    def run():
+        assert table
+
+    benchmark(run)
+
+
+def test_contains(database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
@@ -222,12 +279,12 @@ def test_contains():
     assert not val_query.run(val=10).value()
 
 
-def test_delete_all(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+def test_delete_all(qtbot, database):
+    table = database.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.delete_all()
     assert list(table) == []
 
@@ -238,76 +295,118 @@ def test_version():
 
 class TestSqlQuery:
 
-    def test_prepare_error(self):
+    def test_prepare_error(self, database):
         with pytest.raises(sql.BugError) as excinfo:
-            sql.Query('invalid')
+            database.query('invalid')
 
         expected = ('Failed to prepare query "invalid": "near "invalid": '
                     'syntax error Unable to execute statement"')
         assert str(excinfo.value) == expected
 
     @pytest.mark.parametrize('forward_only', [True, False])
-    def test_forward_only(self, forward_only):
-        q = sql.Query('SELECT 0 WHERE 0', forward_only=forward_only)
+    def test_forward_only(self, forward_only, database):
+        q = database.query('SELECT 0 WHERE 0', forward_only=forward_only)
         assert q.query.isForwardOnly() == forward_only
 
-    def test_iter_inactive(self):
-        q = sql.Query('SELECT 0')
+    def test_iter_inactive(self, database):
+        q = database.query('SELECT 0')
         with pytest.raises(sql.BugError,
                            match='Cannot iterate inactive query'):
             next(iter(q))
 
-    def test_iter_empty(self):
-        q = sql.Query('SELECT 0 AS col WHERE 0')
+    def test_iter_empty(self, database):
+        q = database.query('SELECT 0 AS col WHERE 0')
         q.run()
         with pytest.raises(StopIteration):
             next(iter(q))
 
-    def test_iter(self):
-        q = sql.Query('SELECT 0 AS col')
+    def test_iter(self, database):
+        q = database.query('SELECT 0 AS col')
         q.run()
         result = next(iter(q))
         assert result.col == 0
 
-    def test_iter_multiple(self):
-        q = sql.Query('VALUES (1), (2), (3);')
+    def test_iter_multiple(self, database):
+        q = database.query('VALUES (1), (2), (3);')
         res = list(q.run())
         assert len(res) == 3
         assert res[0].column1 == 1
 
-    def test_run_binding(self):
-        q = sql.Query('SELECT :answer')
+    def test_run_binding(self, database):
+        q = database.query('SELECT :answer')
         q.run(answer=42)
         assert q.value() == 42
 
-    def test_run_missing_binding(self):
-        q = sql.Query('SELECT :answer')
+    def test_run_missing_binding(self, database):
+        q = database.query('SELECT :answer')
         with pytest.raises(sql.BugError, match='Missing bound values!'):
             q.run()
 
-    def test_run_batch(self):
-        q = sql.Query('SELECT :answer')
+    def test_run_batch(self, database):
+        q = database.query('SELECT :answer')
         q.run_batch(values={'answer': [42]})
         assert q.value() == 42
 
-    def test_run_batch_missing_binding(self):
-        q = sql.Query('SELECT :answer')
+    def test_run_batch_missing_binding(self, database):
+        q = database.query('SELECT :answer')
         with pytest.raises(sql.BugError, match='Missing bound values!'):
             q.run_batch(values={})
 
-    def test_value_missing(self):
-        q = sql.Query('SELECT 0 WHERE 0')
+    def test_value_missing(self, database):
+        q = database.query('SELECT 0 WHERE 0')
         q.run()
-        with pytest.raises(sql.BugError,
-                           match='No result for single-result query'):
+        with pytest.raises(sql.BugError, match='No result for single-result query'):
             q.value()
 
-    def test_num_rows_affected(self):
-        q = sql.Query('SELECT 0')
-        q.run()
-        assert q.rows_affected() == 0
+    def test_num_rows_affected_not_active(self, database):
+        with pytest.raises(AssertionError):
+            q = database.query('SELECT 0')
+            q.rows_affected()
 
-    def test_bound_values(self):
-        q = sql.Query('SELECT :answer')
+    def test_num_rows_affected_select(self, database):
+        with pytest.raises(AssertionError):
+            q = database.query('SELECT 0')
+            q.run()
+            q.rows_affected()
+
+    @pytest.mark.parametrize('condition', [0, 1])
+    def test_num_rows_affected(self, condition, database):
+        table = database.table('Foo', ['name'])
+        table.insert({'name': 'helloworld'})
+        q = database.query(f'DELETE FROM Foo WHERE {condition}')
+        q.run()
+        assert q.rows_affected() == condition
+
+    def test_bound_values(self, database):
+        q = database.query('SELECT :answer')
         q.run(answer=42)
         assert q.bound_values() == {':answer': 42}
+
+
+class TestTransaction:
+
+    def test_successful_transaction(self, database):
+        my_table = database.table('my_table', ['column'])
+        with database.transaction():
+            my_table.insert({'column': 1})
+            my_table.insert({'column': 2})
+
+            db2 = QSqlDatabase.addDatabase('QSQLITE', 'db2')
+            db2.setDatabaseName(database.qt_database().databaseName())
+            db2.open()
+            query = QSqlQuery(db2)
+            query.exec('select count(*) from my_table')
+            query.next()
+            assert query.record().value(0) == 0
+        assert database.query('select count(*) from my_table').run().value() == 2
+
+    def test_failed_transaction(self, database):
+        my_table = database.table('my_table', ['column'])
+        try:
+            with database.transaction():
+                my_table.insert({'column': 1})
+                my_table.insert({'column': 2})
+                raise Exception('something went horribly wrong')
+        except Exception:
+            pass
+        assert database.query('select count(*) from my_table').run().value() == 0

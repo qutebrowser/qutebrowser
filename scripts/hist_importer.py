@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Josefson Souza <josefson.br@gmail.com>
 
 # This file is part of qutebrowser.
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 """Tool to import browser history from other browsers."""
@@ -135,7 +135,8 @@ def insert_qb(history, dest):
         'INSERT INTO History (url,title,atime,redirect) VALUES (?,?,?,?)',
         history
     )
-    cursor.execute('DROP TABLE CompletionHistory')
+    cursor.execute('UPDATE CompletionMetaInfo SET value = 1 '
+                   'WHERE key = "force_rebuild"')
     conn.commit()
     conn.close()
 

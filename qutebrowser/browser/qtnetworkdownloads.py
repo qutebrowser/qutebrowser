@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Download manager."""
 
@@ -23,24 +23,26 @@ import io
 import os.path
 import shutil
 import functools
-import typing
+import dataclasses
+from typing import Dict, IO, Optional
 
-import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
 
-from qutebrowser.config import config
-from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug
+from qutebrowser.config import config, websettings
+from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
+from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 
 
-@attr.s
+@dataclasses.dataclass
 class _RetryInfo:
 
-    request = attr.ib()
-    manager = attr.ib()
+    request: QNetworkRequest
+    manager: QNetworkAccessManager
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -70,7 +72,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  target file.
         _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
-        _manager: The DownloadManager which started this download
         _reply: The QNetworkReply associated with this download.
         _autoclose: Whether to close the associated file when the download is
                     done.
@@ -90,12 +91,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
         Args:
             reply: The QNetworkReply to download.
         """
-        super().__init__(parent=manager)
-        self.fileobj = None  # type: typing.Optional[typing.IO[bytes]]
-        self.raw_headers = {}  # type: typing.Dict[bytes, bytes]
+        super().__init__(manager=manager, parent=manager)
+        self.fileobj: Optional[IO[bytes]] = None
+        self.raw_headers: Dict[bytes, bytes] = {}
 
         self._autoclose = True
-        self._manager = manager
         self._retry_info = None
         self._reply = None
         self._buffer = io.BytesIO()
@@ -181,11 +181,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert self.done
         assert not self.successful
         assert self._retry_info is not None
+
+        # Not calling self.cancel() here because the download is done (albeit
+        # unsuccessfully)
+        self.remove()
+        self.delete()
+
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = self._manager.fetch(new_reply,
                                            suggested_filename=self.basename)
         self.adopt_download.emit(new_download)
-        self.cancel()
 
     def _get_open_filename(self):
         filename = self._filename
@@ -197,6 +202,17 @@ class DownloadItem(downloads.AbstractDownloadItem):
         # Note: self._reply is deleted when the download finishes
         return self._url
 
+    def origin(self) -> QUrl:
+        if self._reply is None:
+            return QUrl()
+        origin = self._reply.request().originatingObject()
+        try:
+            return origin.url()
+        except AttributeError:
+            # Raised either if origin is None or some object that doesn't
+            # have its own url.
+            return QUrl()
+
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! filename: {}, "
@@ -206,11 +222,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _after_set_filename(self):
         self._create_fileobj()
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+        yes_action = custom_yes_action or self._after_set_filename
         no_action = functools.partial(self.cancel, remove_data=False)
         url = 'file://{}'.format(self._filename)
-        message.confirm_async(title=title, text=msg,
-                              yes_action=self._after_set_filename,
+        message.confirm_async(title=title, text=msg, yes_action=yes_action,
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error], url=url)
 
@@ -414,12 +430,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
-    def get(self, url, *, user_agent=None, **kwargs):
+    def get(self, url, cache=True, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
-            user_agent: The UA to set for the request, or None.
+            cache: If set to False, don't cache the response.
             **kwargs: passed to get_request().
 
         Return:
@@ -428,9 +444,14 @@ class DownloadManager(downloads.AbstractDownloadManager):
         if not url.isValid():
             urlutils.invalid_url_error(url, "start download")
             return None
+
         req = QNetworkRequest(url)
-        if user_agent is not None:
-            req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+        user_agent = websettings.user_agent(url)
+        req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+
+        if not cache:
+            req.setAttribute(QNetworkRequest.CacheSaveControlAttribute, False)
+
         return self.get_request(req, **kwargs)
 
     def get_mhtml(self, tab, target):
@@ -455,6 +476,25 @@ class DownloadManager(downloads.AbstractDownloadManager):
                 mhtml.start_download_checked, tab=tab))
             message.global_bridge.ask(question, blocking=False)
 
+    def _get_suggested_filename(self, request):
+        """Get the suggested filename for the given request."""
+        filename_url = request.url()
+        if request.url().scheme().lower() == 'data':
+            # We might be downloading a binary blob embedded on a page or even
+            # generated dynamically via javascript. If we happen to know where it's
+            # coming from, we can try to figure out a more sensible name than the base64
+            # content of the data.
+            origin = request.originatingObject()
+            try:
+                filename_url = origin.url()
+            except AttributeError:
+                # Raised either if origin is None or some object that doesn't
+                # have its own url. We're probably fine with a default fallback
+                # based on the data URL then.
+                pass
+
+        return urlutils.filename_from_url(filename_url, fallback='qutebrowser-download')
+
     def get_request(self, request, *, target=None,
                     suggested_fn=None, **kwargs):
         """Start a download with a QNetworkRequest.
@@ -472,29 +512,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
 
-        if suggested_fn is not None:
-            pass
-        elif request.url().scheme().lower() != 'data':
-            suggested_fn = urlutils.filename_from_url(request.url())
-        else:
-            # We might be downloading a binary blob embedded on a page or even
-            # generated dynamically via javascript. We try to figure out a more
-            # sensible name than the base64 content of the data.
-            origin = request.originatingObject()
-            try:
-                origin_url = origin.url()
-            except AttributeError:
-                # Raised either if origin is None or some object that doesn't
-                # have its own url. We're probably fine with a default fallback
-                # then.
-                suggested_fn = 'binary blob'
-            else:
-                # Use the originating URL as a base for the filename (works
-                # e.g. for pdf.js).
-                suggested_fn = urlutils.filename_from_url(origin_url)
-
         if suggested_fn is None:
-            suggested_fn = 'qutebrowser-download'
+            suggested_fn = self._get_suggested_filename(request)
 
         return self._fetch_request(request,
                                    target=target,
@@ -541,6 +560,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         download = DownloadItem(reply, manager=self)
         self._init_item(download, auto_remove, suggested_filename)
 
+        if download.cancel_for_origin():
+            return download
+
         if target is not None:
             download.set_target(target)
             return download
@@ -577,3 +599,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
             if download._uses_nam(nam):  # pylint: disable=protected-access
                 nam.adopt_download(download)
         return nam.adopted_downloads
+
+
+def init():
+    """Initialize the global QtNetwork download manager."""
+    download_manager = DownloadManager(parent=QApplication.instance())
+    objreg.register('qtnetwork-download-manager', download_manager)
+    quitter.instance.shutting_down.connect(download_manager.shutdown)

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Prefers colorscheme test</title>
+        <style>
+body {
+    background: #aa0000;
+}
+#dark-text {
+    display: none;
+}
+#light-text {
+    display: none;
+}
+#no-preference-text {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #222222;
+        color: #ffffff;
+    }
+    #dark-text {
+        display: inline;
+    }
+    #missing-support-text {
+        display: none;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    body {
+        background: #dddddd;
+    }
+    #light-text {
+        display: inline;
+    }
+    #missing-support-text {
+        display: none;
+    }
+}
+
+@media (prefers-color-scheme: no-preference) {
+    body {
+        background: #00aa00;
+    }
+    #no-preference-text {
+        display: inline;
+    }
+    #missing-support-text {
+        display: none;
+    }
+}
+        </style>
+    </head>
+    <body>
+        <p id="dark-text">Dark preference detected.</p>
+        <p id="light-text">Light preference detected.</p>
+        <p id="no-preference-text">No preference detected.</p>
+        <p id="missing-support-text">Preference support missing.</p>
+    </body>
+</html>

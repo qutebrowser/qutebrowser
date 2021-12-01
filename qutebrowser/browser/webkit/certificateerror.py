@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,33 +15,53 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Wrapper over a QSslError."""
+"""A wrapper over a list of QSslErrors."""
 
+from typing import Sequence
 
 from PyQt5.QtNetwork import QSslError
 
-from qutebrowser.utils import usertypes, utils, debug
+from qutebrowser.utils import usertypes, utils, debug, jinja
 
 
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
-    """A wrapper over a QSslError."""
+    """A wrapper over a list of QSslErrors."""
 
-    def __str__(self):
-        return self._error.errorString()
+    def __init__(self, errors: Sequence[QSslError]) -> None:
+        self._errors = tuple(errors)  # needs to be hashable
 
-    def __repr__(self):
+    def __str__(self) -> str:
+        return '\n'.join(err.errorString() for err in self._errors)
+
+    def __repr__(self) -> str:
         return utils.get_repr(
-            self, error=debug.qenum_key(QSslError, self._error.error()),
+            self,
+            errors=[debug.qenum_key(QSslError, err.error()) for err in self._errors],
             string=str(self))
 
-    def __hash__(self):
-        return hash(self._error)
+    def __hash__(self) -> int:
+        return hash(self._errors)
 
-    def __eq__(self, other):
-        return self._error == other._error
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CertificateErrorWrapper):
+            return NotImplemented
+        return self._errors == other._errors
 
-    def is_overridable(self):
+    def is_overridable(self) -> bool:
         return True
+
+    def html(self):
+        if len(self._errors) == 1:
+            return super().html()
+
+        template = jinja.environment.from_string("""
+            <ul>
+            {% for err in errors %}
+                <li>{{err.errorString()}}</li>
+            {% endfor %}
+            </ul>
+        """.strip())
+        return template.render(errors=self._errors)

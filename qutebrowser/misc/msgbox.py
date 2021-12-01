@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,23 +15,22 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Convenience functions to show message boxes."""
-
-import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.misc import objects
+from qutebrowser.utils import log
 
 
 class DummyBox:
 
     """A dummy QMessageBox returned when --no-err-windows is used."""
 
-    def exec_(self):
+    def exec(self):
         pass
 
 
@@ -52,7 +51,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         A new QMessageBox.
     """
     if objects.args.no_err_windows:
-        print('Message box: {}; {}'.format(title, text), file=sys.stderr)
+        log.misc.info(f'{title}\n\n{text}')
         return DummyBox()
 
     box = QMessageBox(parent)
@@ -60,7 +59,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:
-        box.finished.connect(on_finished)  # type: ignore
+        box.finished.connect(on_finished)
     if plain_text:
         box.setTextFormat(Qt.PlainText)
     elif plain_text is not None:

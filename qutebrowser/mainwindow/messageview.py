@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,16 +15,16 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Showing messages above the statusbar."""
 
-import typing
+from typing import MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import usertypes
 
 
@@ -32,23 +32,31 @@ class Message(QLabel):
 
     """A single error/warning/info message."""
 
-    def __init__(self, level, text, replace, parent=None):
+    def __init__(
+            self,
+            level: usertypes.MessageLevel,
+            text: str,
+            replace: Optional[str],
+            parent: QWidget = None,
+    ) -> None:
         super().__init__(text, parent)
         self.replace = replace
+        self.level = level
         self.setAttribute(Qt.WA_StyledBackground, True)
-        stylesheet = """
+        self.setWordWrap(True)
+        qss = """
             padding-top: 2px;
             padding-bottom: 2px;
         """
         if level == usertypes.MessageLevel.error:
-            stylesheet += """
+            qss += """
                 background-color: {{ conf.colors.messages.error.bg }};
                 color: {{ conf.colors.messages.error.fg }};
                 font: {{ conf.fonts.messages.error }};
                 border-bottom: 1px solid {{ conf.colors.messages.error.border }};
             """
         elif level == usertypes.MessageLevel.warning:
-            stylesheet += """
+            qss += """
                 background-color: {{ conf.colors.messages.warning.bg }};
                 color: {{ conf.colors.messages.warning.fg }};
                 font: {{ conf.fonts.messages.warning }};
@@ -56,7 +64,7 @@ class Message(QLabel):
                     1px solid {{ conf.colors.messages.warning.border }};
             """
         elif level == usertypes.MessageLevel.info:
-            stylesheet += """
+            qss += """
                 background-color: {{ conf.colors.messages.info.bg }};
                 color: {{ conf.colors.messages.info.fg }};
                 font: {{ conf.fonts.messages.info }};
@@ -64,10 +72,7 @@ class Message(QLabel):
             """
         else:  # pragma: no cover
             raise ValueError("Invalid level {!r}".format(level))
-        # We don't bother with set_register_stylesheet here as it's short-lived
-        # anyways.
-        config.set_register_stylesheet(self, stylesheet=stylesheet,
-                                       update=False)
+        stylesheet.set_register(self, qss, update=False)
 
 
 class MessageView(QWidget):
@@ -78,7 +83,7 @@ class MessageView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._messages = []  # type: typing.MutableSequence[Message]
+        self._messages: MutableSequence[Message] = []
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
@@ -89,12 +94,6 @@ class MessageView(QWidget):
         config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
-
-    def sizeHint(self):
-        """Get the proposed height for the view."""
-        height = sum(label.sizeHint().height() for label in self._messages)
-        # The width isn't really relevant as we're expanding anyways.
-        return QSize(-1, height)
 
     @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
@@ -120,14 +119,25 @@ class MessageView(QWidget):
         self.hide()
         self._clear_timer.stop()
 
-    @pyqtSlot(usertypes.MessageLevel, str, bool)
-    def show_message(self, level, text, replace=False):
+    @pyqtSlot(usertypes.MessageLevel, str, str)
+    def show_message(
+            self,
+            level: usertypes.MessageLevel,
+            text: str,
+            replace: str = None,
+    ) -> None:
         """Show the given message with the given MessageLevel."""
         if text == self._last_text:
             return
 
-        if replace and self._messages and self._messages[-1].replace:
-            self._remove_message(self._messages.pop())
+        if replace:  # None -> QString() -> ''
+            existing = [msg for msg in self._messages if msg.replace == replace]
+            if existing:
+                assert len(existing) == 1, existing
+                assert existing[0].level == level, (existing, level)
+                existing[0].setText(text)
+                self.update_geometry.emit()
+                return
 
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)

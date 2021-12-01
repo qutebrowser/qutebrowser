@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test interceptor.py for webengine."""
 
@@ -29,11 +29,15 @@ from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
 from qutebrowser.browser.webengine import interceptor
 
 
-class TestWebengineInterceptor:
+def test_no_missing_resource_types():
+    request_interceptor = interceptor.RequestInterceptor()
+    qb_keys = request_interceptor._resource_types.keys()
+    qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
+               if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
+    assert qt_keys == qb_keys
 
-    def test_requestinfo_dict_valid(self):
-        """Test that the RESOURCE_TYPES dict is not missing any values."""
-        qb_keys = interceptor.RequestInterceptor.RESOURCE_TYPES.keys()
-        qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
-                   if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
-        assert qt_keys == qb_keys
+
+def test_resource_type_values():
+    request_interceptor = interceptor.RequestInterceptor()
+    for qt_value, qb_item in request_interceptor._resource_types.items():
+        assert qt_value == qb_item.value

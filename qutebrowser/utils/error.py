@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,9 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tools related to error printing/displaying."""
-
-import argparse
 
 from PyQt5.QtWidgets import QMessageBox
 
@@ -38,8 +36,8 @@ def _get_name(exc: BaseException) -> str:
 
 
 def handle_fatal_exc(exc: BaseException,
-                     args: argparse.Namespace,
                      title: str, *,
+                     no_err_windows: bool,
                      pre_text: str = '',
                      post_text: str = '') -> None:
     """Handle a fatal "expected" exception by displaying an error box.
@@ -49,12 +47,12 @@ def handle_fatal_exc(exc: BaseException,
 
     Args:
         exc: The Exception object being handled.
-        args: The argparser namespace.
+        no_err_windows: Show text in log instead of error window.
         title: The title to be used for the error message.
         pre_text: The text to be displayed before the exception text.
         post_text: The text to be displayed after the exception text.
     """
-    if args.no_err_windows:
+    if no_err_windows:
         lines = [
             "Handling fatal {} with --no-err-windows!".format(_get_name(exc)),
             "",
@@ -63,8 +61,9 @@ def handle_fatal_exc(exc: BaseException,
             "post_text: {}".format(post_text),
             "exception text: {}".format(str(exc) or 'none'),
         ]
-        log.misc.exception('\n'.join(lines))
+        log.misc.error('\n'.join(lines))
     else:
+        log.misc.error("Fatal exception:")
         if pre_text:
             msg_text = '{}: {}'.format(pre_text, exc)
         else:
@@ -72,4 +71,4 @@ def handle_fatal_exc(exc: BaseException,
         if post_text:
             msg_text += '\n\n{}'.format(post_text)
         msgbox = QMessageBox(QMessageBox.Critical, title, msg_text)
-        msgbox.exec_()
+        msgbox.exec()

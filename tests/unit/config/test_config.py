@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.config."""
 
@@ -23,10 +23,10 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import config, configdata, configexc, configutils
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
@@ -187,17 +187,40 @@ class TestKeyConfig:
 
     @pytest.mark.parametrize('bindings, expected', [
         # Simple
-        ({'a': 'message-info foo', 'b': 'message-info bar'},
-         {'message-info foo': ['a'], 'message-info bar': ['b']}),
+        ({'a': 'open foo', 'b': 'open bar'},
+         {'open foo': ['a'], 'open bar': ['b']}),
         # Multiple bindings
-        ({'a': 'message-info foo', 'b': 'message-info foo'},
-         {'message-info foo': ['b', 'a']}),
+        ({'a': 'open foo', 'b': 'open foo'},
+         {'open foo': ['b', 'a']}),
         # With modifier keys (should be listed last and normalized)
-        ({'a': 'message-info foo', '<ctrl-a>': 'message-info foo'},
-         {'message-info foo': ['a', '<Ctrl+a>']}),
+        ({'a': 'open foo', '<ctrl-a>': 'open foo'},
+         {'open foo': ['a', '<Ctrl+a>']}),
         # Chained command
-        ({'a': 'message-info foo ;; message-info bar'},
-         {'message-info foo': ['a'], 'message-info bar': ['a']}),
+        ({'a': 'open foo ;; open bar'},
+         {'open foo': ['a'], 'open bar': ['a']}),
+        # Command using set-cmd-text (#5942)
+        (
+            {
+                "o": "set-cmd-text -s :open",
+                "O": "set-cmd-text -s :open -t",
+                "go": "set-cmd-text :open {url:pretty}",
+                # all of these should be ignored
+                "/": "set-cmd-text /",
+                "?": "set-cmd-text ?",
+                ":": "set-cmd-text :",
+                "a": "set-cmd-text no_leading_colon",
+                "b": "set-cmd-text -s -a :skip_cuz_append",
+                "c": "set-cmd-text --append :skip_cuz_append",
+                "x": "set-cmd-text",
+            },
+            {
+                "open": ["o"],
+                "open -t": ["O"],
+                "open {url:pretty}": ["go"],
+            }
+        ),
+        # Empty/unknown commands
+        ({"a": "", "b": "notreal"}, {}),
     ])
     def test_get_reverse_bindings_for(self, key_config_stub, config_stub,
                                       no_bindings, bindings, expected):
@@ -410,7 +433,7 @@ class TestConfig:
 
         assert conf.get(name) == 'always'
         if save_yaml:
-            assert yaml_value(name) is configutils.UNSET
+            assert yaml_value(name) is usertypes.UNSET
         else:
             assert yaml_value(name) == 'never'
 
@@ -432,15 +455,15 @@ class TestConfig:
         assert conf.get_obj(name1) == 'never'
         assert conf.get_obj(name2) is True
 
-        with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
+        with qtbot.wait_signals([conf.changed, conf.changed]) as blocker:
             conf.clear(save_yaml=save_yaml)
 
         options = {e.args[0] for e in blocker.all_signals_and_args}
         assert options == {name1, name2}
 
         if save_yaml:
-            assert yaml_value(name1) is configutils.UNSET
-            assert yaml_value(name2) is configutils.UNSET
+            assert yaml_value(name1) is usertypes.UNSET
+            assert yaml_value(name2) is usertypes.UNSET
         else:
             assert yaml_value(name1) == 'never'
             assert yaml_value(name2) is True
@@ -482,7 +505,7 @@ class TestConfig:
 
     @pytest.mark.parametrize('fallback, expected', [
         (True, True),
-        (False, configutils.UNSET)
+        (False, usertypes.UNSET)
     ])
     def test_get_for_url_fallback(self, conf, fallback, expected):
         """Test conf.get() with a URL and fallback."""
@@ -617,7 +640,7 @@ class TestConfig:
         pattern = urlmatch.UrlPattern('*://example.com')
         name = 'content.javascript.enabled'
         value = conf.get_obj_for_pattern(name, pattern=pattern)
-        assert value is configutils.UNSET
+        assert value is usertypes.UNSET
 
     def test_get_str(self, conf):
         assert conf.get_str('content.plugins') == 'false'
@@ -637,7 +660,7 @@ class TestConfig:
         if save_yaml:
             assert yaml_value(option) is True
         else:
-            assert yaml_value(option) is configutils.UNSET
+            assert yaml_value(option) is usertypes.UNSET
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_invalid(self, conf, qtbot, method):
@@ -669,7 +692,7 @@ class TestConfig:
                 meth(option, value, save_yaml=True)
 
         assert not conf._values[option]
-        assert yaml_value(option) is configutils.UNSET
+        assert yaml_value(option) is usertypes.UNSET
 
     @pytest.mark.parametrize('method, value', [
         ('set_obj', {}),
@@ -725,7 +748,7 @@ class TestContainer:
     def test_getattr_invalid_private(self, container):
         """Make sure an invalid _attribute doesn't try getting a container."""
         with pytest.raises(AttributeError):
-            container._foo  # pylint: disable=pointless-statement
+            container._foo
 
     def test_getattr_prefix(self, container):
         new_container = container.tabs
@@ -744,7 +767,7 @@ class TestContainer:
 
     def test_getattr_invalid(self, container):
         with pytest.raises(configexc.NoOptionError) as excinfo:
-            container.tabs.foobar  # pylint: disable=pointless-statement
+            container.tabs.foobar
         assert excinfo.value.option == 'tabs.foobar'
 
     def test_setattr_option(self, config_stub, container):
@@ -754,69 +777,32 @@ class TestContainer:
     def test_confapi_errors(self, container):
         configapi = types.SimpleNamespace(errors=[])
         container._configapi = configapi
-        container.tabs.foobar  # pylint: disable=pointless-statement
+        container.tabs.foobar
 
         assert len(configapi.errors) == 1
         error = configapi.errors[0]
         assert error.text == "While getting 'tabs.foobar'"
         assert str(error.exception) == "No option 'tabs.foobar'"
 
+    def test_confapi_missing_prefix(self, container):
+        configapi = types.SimpleNamespace(errors=[])
+        container._configapi = configapi
+        container.content.host_blocking.lists = []
+
+        assert len(configapi.errors) == 2
+
+        error1 = configapi.errors[0]
+        assert error1.text == "While getting 'content.host_blocking'"
+        assert str(error1.exception) == "No option 'content.host_blocking'"
+
+        error2 = configapi.errors[1]
+        assert error2.text == "While setting 'content.host_blocking.lists'"
+        assert str(error2.exception) == (
+            "No option 'content.host_blocking.lists' (this option was renamed to "
+            "'content.blocking.hosts.lists')")
+
     def test_pattern_no_configapi(self, config_stub):
         pattern = urlmatch.UrlPattern('https://example.com/')
         with pytest.raises(TypeError,
                            match="Can't use pattern without configapi!"):
             config.ConfigContainer(config_stub, pattern=pattern)
-
-
-class StyleObj(QObject):
-
-    def __init__(self, stylesheet=None, parent=None):
-        super().__init__(parent)
-        if stylesheet is not None:
-            self.STYLESHEET = stylesheet  # noqa: N801,N806 pylint: disable=invalid-name
-        self.rendered_stylesheet = None
-
-    def setStyleSheet(self, stylesheet):
-        self.rendered_stylesheet = stylesheet
-
-
-def test_get_stylesheet(config_stub):
-    config_stub.val.colors.hints.fg = 'magenta'
-    observer = config.StyleSheetObserver(
-        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}", update=False)
-    assert observer._get_stylesheet() == 'magenta'
-
-
-@pytest.mark.parametrize('delete', [True, False])
-@pytest.mark.parametrize('stylesheet_param', [True, False])
-@pytest.mark.parametrize('update', [True, False])
-def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
-                                 config_stub, caplog):
-    config_stub.val.colors.hints.fg = 'magenta'
-    stylesheet = "{{ conf.colors.hints.fg }}"
-
-    with caplog.at_level(9):  # VDEBUG
-        if stylesheet_param:
-            obj = StyleObj()
-            config.set_register_stylesheet(obj, stylesheet=stylesheet,
-                                           update=update)
-        else:
-            obj = StyleObj(stylesheet)
-            config.set_register_stylesheet(obj, update=update)
-
-    assert caplog.messages[-1] == 'stylesheet for StyleObj: magenta'
-
-    assert obj.rendered_stylesheet == 'magenta'
-
-    if delete:
-        with qtbot.waitSignal(obj.destroyed):
-            obj.deleteLater()
-
-    config_stub.val.colors.hints.fg = 'yellow'
-
-    if delete or not update:
-        expected = 'magenta'
-    else:
-        expected = 'yellow'
-
-    assert obj.rendered_stylesheet == expected

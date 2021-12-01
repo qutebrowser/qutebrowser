@@ -89,6 +89,10 @@ Feature: Various utility commands.
         When I run :jseval Array(5002).join("x")
         Then the message "x* [...trimmed...]" should be shown
 
+    Scenario: :jseval --url
+        When I run :jseval --url javascript:console.log("hello world?")
+        Then the javascript message "hello world?" should be logged
+
     @qtwebengine_skip
     Scenario: :jseval with --world on QtWebKit
         When I run :jseval --world=1 console.log("Hello from JS!");
@@ -136,7 +140,7 @@ Feature: Various utility commands.
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
         When I run :jseval --file /nonexistentfile
-        Then the error "[Errno 2] No such file or directory: '/nonexistentfile'" should be shown
+        Then the error "[Errno 2] *: '/nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
     # :debug-webaction
@@ -167,25 +171,20 @@ Feature: Various utility commands.
 
     # :inspect
 
-    @qtwebkit_skip @qt<5.11
-    Scenario: Inspector without --enable-webengine-inspector
-        When I run :inspector
-        Then the error "QtWebEngine inspector is not enabled. See 'qutebrowser --help' for details." should be shown
-
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
-        When I run :inspector
+        When I run :devtools
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
-        And I run :inspector
+        And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
     # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
-        When I run :inspector
+        When I run :devtools
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
-        And I run :inspector
+        And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
@@ -310,14 +309,13 @@ Feature: Various utility commands.
         And I press the key "<Ctrl-C>"
         Then no crash should happen
 
-    @js_prompt
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for "Entering mode KeyMode.prompt *" in the log
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
-        And I run :leave-mode
+        And I run :mode-leave
         Then no crash should happen
 
     ## Custom headers
@@ -326,6 +324,11 @@ Feature: Various utility commands.
         When I set content.headers.custom to {"X-Qute-Test": "testvalue"}
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
+
+    Scenario: Setting accept header
+        When I set content.headers.custom to {"Accept": "testvalue"}
+        And I open headers
+        Then the header Accept should be set to testvalue
 
     Scenario: DNT header
         When I set content.headers.do_not_track to true
@@ -349,25 +352,32 @@ Feature: Various utility commands.
 
     # This still doesn't set window.navigator.language
     # See https://bugreports.qt.io/browse/QTBUG-61949
-    @qtwebkit_skip
+    @qtwebkit_skip @js_headers
     Scenario: Accept-Language header (JS)
         When I set content.headers.accept_language to it,fr
         And I run :jseval console.log(window.navigator.languages)
         Then the javascript message "it,fr" should be logged
 
-    Scenario: Setting a custom user-agent header
+    Scenario: User-agent header
         When I set content.headers.user_agent to toaster
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
-        And the javascript message "toaster" should be logged
 
-    Scenario: Setting the default user-agent header
-        When I set content.headers.user_agent to <empty>
-        And I open headers
+    @js_headers
+    Scenario: User-agent header (JS)
+        When I set content.headers.user_agent to toaster
+        And I open about:blank
         And I run :jseval console.log(window.navigator.userAgent)
-        Then the header User-Agent should be set to Mozilla/5.0 *
-        And the javascript message "Mozilla/5.0 *" should be logged
+        Then the javascript message "toaster" should be logged
+
+    @qtwebkit_skip
+    Scenario: Custom headers via XHR
+        When I set content.headers.custom to {"Accept": "config-value", "X-Qute-Test": "config-value"}
+        And I open data/misc/xhr_headers.html
+        And I wait for the javascript message "Got headers via XHR"
+        Then the header Accept should be set to '*/*'
+        And the header X-Qute-Test should be set to config-value
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
@@ -458,6 +468,18 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "blah" should be shown
 
+    Scenario: Command starting with space and calling previous command
+        When I run :set-cmd-text :message-info first
+        And I run :command-accept
+        And I wait for "first" in the log
+        When I run :set-cmd-text : message-info second
+        And I run :command-accept
+        And I wait for "second" in the log
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        Then the message "first" should be shown
+
     Scenario: Calling previous command with :completion-item-focus
         When I run :set-cmd-text :message-info blah
         And I wait for "Entering mode KeyMode.command (reason: *)" in the log
@@ -494,36 +516,25 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
-    ## Modes blacklisted for :enter-mode
+    ## Modes blacklisted for :mode-enter
 
-    Scenario: Trying to enter command mode with :enter-mode
-        When I run :enter-mode command
+    Scenario: Trying to enter command mode with :mode-enter
+        When I run :mode-enter command
         Then the error "Mode command can't be entered manually!" should be shown
 
     ## Renderer crashes
 
     # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix @qt<5.9
+    @qtwebkit_skip @no_invalid_lines @posix
     Scenario: Renderer crash
         When I run :open -t chrome://crash
-        Then the error "Renderer process crashed" should be shown
-
-    @qtwebkit_skip @no_invalid_lines @qt<5.9
-    Scenario: Renderer kill
-        When I run :open -t chrome://kill
-        Then the error "Renderer process was killed" should be shown
-
-    # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix @qt>=5.9
-    Scenario: Renderer crash (5.9)
-        When I run :open -t chrome://crash
-        Then "Renderer process crashed" should be logged
+        Then "Renderer process crashed (status *)" should be logged
         And "* 'Error loading chrome://crash/'" should be logged
 
-    @qtwebkit_skip @no_invalid_lines @qt>=5.9 @flaky
-    Scenario: Renderer kill (5.9)
+    @qtwebkit_skip @no_invalid_lines @flaky
+    Scenario: Renderer kill
         When I run :open -t chrome://kill
-        Then "Renderer process was killed" should be logged
+        Then "Renderer process was killed (status *)" should be logged
         And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
@@ -533,11 +544,25 @@ Feature: Various utility commands.
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :open chrome://kill
-        And I wait for "Renderer process was killed" in the log
+        And I wait for "Renderer process was killed (status *)" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
 
-    Scenario: Simple adblock update
-        When I set up "simple" as block lists
-        And I run :adblock-update
-        Then the message "adblock: Read 1 hosts from 1 sources." should be shown
+    # https://github.com/qutebrowser/qutebrowser/issues/5721
+    @qtwebkit_skip @qt!=5.15.1
+    Scenario: WebRTC renderer process crash
+        When I open data/crashers/webrtc.html in a new tab
+        And I run :reload
+        And I wait until data/crashers/webrtc.html is loaded
+        Then "Renderer process crashed (status *)" should not be logged
+
+    Scenario: InstalledApps crash
+        When I open data/crashers/installedapp.html in a new tab
+        Then "Renderer process was killed (status *)" should not be logged
+
+    ## Other
+
+    Scenario: Resource with invalid URL
+        When I open data/invalid_resource.html in a new tab
+        Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
+        And no crash should happen

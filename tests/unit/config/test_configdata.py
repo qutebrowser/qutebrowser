@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.configdata."""
 
@@ -47,10 +47,20 @@ def test_data(config_stub):
         # https://github.com/qutebrowser/qutebrowser/issues/3104
         # For lists/dicts, don't use None as default
         if isinstance(option.typ, (configtypes.Dict, configtypes.List)):
-            assert option.default is not None
+            assert option.default is not None, option
         # For ListOrValue, use a list as default
         if isinstance(option.typ, configtypes.ListOrValue):
-            assert isinstance(option.default, list)
+            assert isinstance(option.default, list), option
+
+        # Make sure floats also have floats for defaults/bounds
+        if isinstance(option.typ, configtypes.Float):
+            for value in [option.default,
+                          option.typ.minval,
+                          option.typ.maxval]:
+                assert value is None or isinstance(value, float), option
+
+        # No double spaces after dots
+        assert '.  ' not in option.description, option
 
 
 def test_init_benchmark(benchmark):
@@ -279,7 +289,7 @@ class TestParseYamlBackend:
         data = self._yaml("""
             backend:
               QtWebKit: {}
-              QtWebEngine: Qt 5.8
+              QtWebEngine: Qt 5.15
         """.format('true' if webkit else 'false'))
         monkeypatch.setattr(configdata.qtutils, 'version_check',
                             lambda v: has_new_version)

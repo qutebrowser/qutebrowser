@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for CompletionModel."""
 
@@ -77,7 +77,7 @@ def test_set_pattern(pat, qtbot):
     for c in cats:
         c.set_pattern = mock.Mock(spec=[])
         model.add_category(c)
-    with qtbot.waitSignals([model.layoutAboutToBeChanged, model.layoutChanged],
+    with qtbot.wait_signals([model.layoutAboutToBeChanged, model.layoutChanged],
                            order='strict'):
         model.set_pattern(pat)
     for c in cats:

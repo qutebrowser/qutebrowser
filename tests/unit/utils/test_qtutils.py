@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,14 +15,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 """Tests for qutebrowser.utils.qtutils."""
 
 import io
 import os
-import os.path
+import pathlib
+import dataclasses
 import unittest
 import unittest.mock
 
@@ -33,6 +34,7 @@ from PyQt5.QtGui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
+from helpers import testutils
 
 if utils.is_linux:
     # Those are not run on macOS because that seems to cause a hang sometimes.
@@ -53,23 +55,25 @@ else:
 @pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
                           'expected'], [
     # equal versions
-    ('5.4.0', None, None, '5.4.0', False, True),
-    ('5.4.0', None, None, '5.4.0', True, True),  # exact=True
-    ('5.4.0', None, None, '5.4', True, True),  # without trailing 0
+    ('5.14.0', None, None, '5.14.0', False, True),
+    ('5.14.0', None, None, '5.14.0', True, True),  # exact=True
+    ('5.14.0', None, None, '5.14', True, True),  # without trailing 0
     # newer version installed
-    ('5.4.1', None, None, '5.4', False, True),
-    ('5.4.1', None, None, '5.4', True, False),  # exact=True
+    ('5.14.1', None, None, '5.14', False, True),
+    ('5.14.1', None, None, '5.14', True, False),  # exact=True
     # older version installed
-    ('5.3.2', None, None, '5.4', False, False),
-    ('5.3.0', None, None, '5.3.2', False, False),
-    ('5.3.0', None, None, '5.3.2', True, False),  # exact=True
+    ('5.13.2', None, None, '5.14', False, False),
+    ('5.13.0', None, None, '5.13.2', False, False),
+    ('5.13.0', None, None, '5.13.2', True, False),  # exact=True
     # compiled=True
     # new Qt runtime, but compiled against older version
-    ('5.4.0', '5.3.0', '5.4.0', '5.4.0', False, False),
+    ('5.14.0', '5.13.0', '5.14.0', '5.14.0', False, False),
     # new Qt runtime, compiled against new version, but old PyQt
-    ('5.4.0', '5.4.0', '5.3.0', '5.4.0', False, False),
+    ('5.14.0', '5.14.0', '5.13.0', '5.14.0', False, False),
     # all up-to-date
-    ('5.4.0', '5.4.0', '5.4.0', '5.4.0', False, True),
+    ('5.14.0', '5.14.0', '5.14.0', '5.14.0', False, True),
+    # dev suffix
+    ('5.15.1', '5.15.1', '5.15.2.dev2009281246', '5.15.0', False, True),
 ])
 # pylint: enable=bad-continuation
 def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
@@ -119,7 +123,7 @@ def test_is_new_qtwebkit(monkeypatch, version, is_new):
 ])
 def test_is_single_process(monkeypatch, stubs, backend, arguments, single_process):
     qapp = stubs.FakeQApplication(arguments=arguments)
-    monkeypatch.setattr(qtutils, 'QApplication', qapp)
+    monkeypatch.setattr(qtutils.objects, 'qapp', qapp)
     monkeypatch.setattr(qtutils.objects, 'backend', backend)
     assert qtutils.is_single_process() == single_process
 
@@ -432,75 +436,75 @@ class TestSavefileOpen:
     ## Tests with real files
 
     @pytest.mark.parametrize('data', ["Hello World", "Snowman! ☃"])
-    def test_utf8(self, data, tmpdir):
+    def test_utf8(self, data, tmp_path):
         """Test with UTF8 data."""
-        filename = tmpdir / 'foo'
-        filename.write("Old data")
+        filename = tmp_path / 'foo'
+        filename.write_text("Old data", encoding="utf-8")
         with qtutils.savefile_open(str(filename)) as f:
             f.write(data)
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_text(encoding='utf-8') == data
 
-    def test_binary(self, tmpdir):
+    def test_binary(self, tmp_path):
         """Test with binary data."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with qtutils.savefile_open(str(filename), binary=True) as f:
             f.write(b'\xde\xad\xbe\xef')
-        assert tmpdir.listdir() == [filename]
-        assert filename.read_binary() == b'\xde\xad\xbe\xef'
+        assert list(tmp_path.iterdir()) == [filename]
+        assert filename.read_bytes() == b'\xde\xad\xbe\xef'
 
-    def test_exception(self, tmpdir):
+    def test_exception(self, tmp_path):
         """Test with an exception in the block."""
-        filename = tmpdir / 'foo'
-        filename.write("Old content")
+        filename = tmp_path / 'foo'
+        filename.write_text("Old content", encoding="utf-8")
         with pytest.raises(SavefileTestException):
             with qtutils.savefile_open(str(filename)) as f:
                 f.write("Hello World!")
                 raise SavefileTestException
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_text(encoding='utf-8') == "Old content"
 
-    def test_existing_dir(self, tmpdir):
+    def test_existing_dir(self, tmp_path):
         """Test with the filename already occupied by a directory."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         filename.mkdir()
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename)):
                 pass
-        errors = ["Filename refers to a directory",  # Qt >= 5.4
-                  "Commit failed!"]  # older Qt versions
-        assert str(excinfo.value) in errors
-        assert tmpdir.listdir() == [filename]
 
-    def test_failing_flush(self, tmpdir):
+        msg = "Filename refers to a directory: {!r}".format(str(filename))
+        assert str(excinfo.value) == msg
+        assert list(tmp_path.iterdir()) == [filename]
+
+    def test_failing_flush(self, tmp_path):
         """Test with the file being closed before flushing."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with pytest.raises(ValueError, match="IO operation on closed device!"):
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
                 f.dev.commit()  # provoke failing flush
 
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
 
-    def test_failing_commit(self, tmpdir):
+    def test_failing_commit(self, tmp_path):
         """Test with the file being closed before committing."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with pytest.raises(OSError, match='Commit failed!'):
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
                 f.dev.cancelWriting()  # provoke failing commit
 
-        assert tmpdir.listdir() == []
+        assert list(tmp_path.iterdir()) == []
 
-    def test_line_endings(self, tmpdir):
+    def test_line_endings(self, tmp_path):
         """Make sure line endings are translated correctly.
 
         See https://github.com/qutebrowser/qutebrowser/issues/309
         """
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with qtutils.savefile_open(str(filename)) as f:
             f.write('foo\nbar\nbaz')
-        data = filename.read_binary()
+        data = filename.read_bytes()
         if utils.is_windows:
             assert data == b'foo\r\nbar\r\nbaz'
         else:
@@ -517,7 +521,7 @@ if test_file is not None:
         """Clean up the python testfile after tests if tests didn't."""
         yield
         try:
-            os.remove(test_file.TESTFN)
+            pathlib.Path(test_file.TESTFN).unlink()
         except FileNotFoundError:
             pass
 
@@ -678,9 +682,9 @@ class TestPyQIODevice:
         pyqiodev.write(data)
         assert len(pyqiodev) == len(data)
 
-    def test_failing_open(self, tmpdir):
+    def test_failing_open(self, tmp_path):
         """Test open() which fails (because it's an existent directory)."""
-        qf = QFile(str(tmpdir))
+        qf = QFile(str(tmp_path))
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(qtutils.QtOSError) as excinfo:
             dev.open(QIODevice.WriteOnly)
@@ -850,7 +854,7 @@ class TestPyQIODevice:
             pyqiodev_failing.write(b'x')
 
     @pytest.mark.posix
-    @pytest.mark.skipif(not os.path.exists('/dev/full'),
+    @pytest.mark.skipif(not pathlib.Path('/dev/full').exists(),
                         reason="Needs /dev/full.")
     def test_write_error_real(self):
         """Test a real write error with /dev/full on supported systems."""
@@ -917,14 +921,14 @@ class TestEventLoop:
     def _double_exec(self):
         """Slot which gets called from timers to assert double-exec fails."""
         with pytest.raises(AssertionError):
-            self.loop.exec_()
+            self.loop.exec()
 
     def test_normal_exec(self):
         """Test exec_ without double-executing."""
         self.loop = qtutils.EventLoop()
         QTimer.singleShot(100, self._assert_executing)
         QTimer.singleShot(200, self.loop.quit)
-        self.loop.exec_()
+        self.loop.exec()
         assert not self.loop._executing
 
     def test_double_exec(self):
@@ -934,5 +938,97 @@ class TestEventLoop:
         QTimer.singleShot(200, self._double_exec)
         QTimer.singleShot(300, self._assert_executing)
         QTimer.singleShot(400, self.loop.quit)
-        self.loop.exec_()
+        self.loop.exec()
         assert not self.loop._executing
+
+
+class TestInterpolateColor:
+
+    @dataclasses.dataclass
+    class Colors:
+
+        white: testutils.Color
+        black: testutils.Color
+
+    @pytest.fixture
+    def colors(self):
+        """Example colors to be used."""
+        return self.Colors(testutils.Color('white'), testutils.Color('black'))
+
+    def test_invalid_start(self, colors):
+        """Test an invalid start color."""
+        with pytest.raises(qtutils.QtValueError):
+            qtutils.interpolate_color(testutils.Color(), colors.white, 0)
+
+    def test_invalid_end(self, colors):
+        """Test an invalid end color."""
+        with pytest.raises(qtutils.QtValueError):
+            qtutils.interpolate_color(colors.white, testutils.Color(), 0)
+
+    @pytest.mark.parametrize('perc', [-1, 101])
+    def test_invalid_percentage(self, colors, perc):
+        """Test an invalid percentage."""
+        with pytest.raises(ValueError):
+            qtutils.interpolate_color(colors.white, colors.white, perc)
+
+    def test_invalid_colorspace(self, colors):
+        """Test an invalid colorspace."""
+        with pytest.raises(ValueError):
+            qtutils.interpolate_color(colors.white, colors.black, 10, QColor.Cmyk)
+
+    @pytest.mark.parametrize('colorspace', [QColor.Rgb, QColor.Hsv, QColor.Hsl])
+    def test_0_100(self, colors, colorspace):
+        """Test 0% and 100% in different colorspaces."""
+        white = qtutils.interpolate_color(colors.white, colors.black, 0, colorspace)
+        black = qtutils.interpolate_color(colors.white, colors.black, 100, colorspace)
+        assert testutils.Color(white) == colors.white
+        assert testutils.Color(black) == colors.black
+
+    def test_interpolation_rgb(self):
+        """Test an interpolation in the RGB colorspace."""
+        color = qtutils.interpolate_color(
+            testutils.Color(0, 40, 100), testutils.Color(0, 20, 200), 50, QColor.Rgb)
+        assert testutils.Color(color) == testutils.Color(0, 30, 150)
+
+    def test_interpolation_hsv(self):
+        """Test an interpolation in the HSV colorspace."""
+        start = testutils.Color()
+        stop = testutils.Color()
+        start.setHsv(0, 40, 100)
+        stop.setHsv(0, 20, 200)
+        color = qtutils.interpolate_color(start, stop, 50, QColor.Hsv)
+        expected = testutils.Color()
+        expected.setHsv(0, 30, 150)
+        assert testutils.Color(color) == expected
+
+    def test_interpolation_hsl(self):
+        """Test an interpolation in the HSL colorspace."""
+        start = testutils.Color()
+        stop = testutils.Color()
+        start.setHsl(0, 40, 100)
+        stop.setHsl(0, 20, 200)
+        color = qtutils.interpolate_color(start, stop, 50, QColor.Hsl)
+        expected = testutils.Color()
+        expected.setHsl(0, 30, 150)
+        assert testutils.Color(color) == expected
+
+    @pytest.mark.parametrize('colorspace', [QColor.Rgb, QColor.Hsv, QColor.Hsl])
+    def test_interpolation_alpha(self, colorspace):
+        """Test interpolation of colorspace's alpha."""
+        start = testutils.Color(0, 0, 0, 30)
+        stop = testutils.Color(0, 0, 0, 100)
+        color = qtutils.interpolate_color(start, stop, 50, colorspace)
+        expected = testutils.Color(0, 0, 0, 65)
+        assert testutils.Color(color) == expected
+
+    @pytest.mark.parametrize('percentage, expected', [
+        (0, (0, 0, 0)),
+        (99, (0, 0, 0)),
+        (100, (255, 255, 255)),
+    ])
+    def test_interpolation_none(self, percentage, expected):
+        """Test an interpolation with a gradient turned off."""
+        color = qtutils.interpolate_color(
+            testutils.Color(0, 0, 0), testutils.Color(255, 255, 255), percentage, None)
+        assert isinstance(color, QColor)
+        assert testutils.Color(color) == testutils.Color(*expected)

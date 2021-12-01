@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,28 +15,33 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Completer attached to a CompletionView."""
 
-import attr
+import dataclasses
+from typing import TYPE_CHECKING
+
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import runners
-from qutebrowser.misc import objects
-from qutebrowser.utils import log, utils, debug
+from qutebrowser.commands import parser, cmdexc
+from qutebrowser.misc import objects, split
+from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
+if TYPE_CHECKING:
+    from qutebrowser.browser import browsertab
 
 
-@attr.s
+@dataclasses.dataclass
 class CompletionInfo:
 
     """Context passed into all completion functions."""
 
-    config = attr.ib()
-    keyconf = attr.ib()
-    win_id = attr.ib()
+    config: config.Config
+    keyconf: config.KeyConfig
+    win_id: int
+    cur_tab: 'browsertab.AbstractTab'
 
 
 class Completer(QObject):
@@ -134,13 +139,18 @@ class Completer(QObject):
         if not text or not text.strip():
             # Only ":", empty part under the cursor with nothing before/after
             return [], '', []
-        parser = runners.CommandParser()
-        result = parser.parse(text, fallback=True, keep=True)
-        parts = [x for x in result.cmdline if x]
+
+        try:
+            parse_result = parser.CommandParser().parse(text, keep=True)
+        except cmdexc.NoSuchCommandError:
+            cmdline = split.split(text, keep=True)
+        else:
+            cmdline = parse_result.cmdline
+
+        parts = [x for x in cmdline if x]
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
-        log.completion.debug('partitioning {} around position {}'.format(parts,
-                                                                         pos))
+        log.completion.debug(f'partitioning {parts} around position {pos}')
         for i, part in enumerate(parts):
             pos -= len(part)
             if pos <= 0:
@@ -149,13 +159,12 @@ class Completer(QObject):
                     parts.insert(i, '')
                 prefix = [x.strip() for x in parts[:i]]
                 center = parts[i].strip()
-                # strip trailing whitepsace included as a separate token
+                # strip trailing whitespace included as a separate token
                 postfix = [x.strip() for x in parts[i+1:] if not x.isspace()]
-                log.completion.debug(
-                    "partitioned: {} '{}' {}".format(prefix, center, postfix))
+                log.completion.debug(f"partitioned: {prefix} '{center}' {postfix}")
                 return prefix, center, postfix
 
-        raise utils.Unreachable("Not all parts consumed: {}".format(parts))
+        raise utils.Unreachable(f"Not all parts consumed: {parts}")
 
     @pyqtSlot(str)
     def on_selection_changed(self, text):
@@ -246,17 +255,28 @@ class Completer(QObject):
             self._last_before_cursor = None
             return
 
-        if before_cursor != self._last_before_cursor:
-            self._last_before_cursor = before_cursor
-            args = (x for x in before_cursor[1:] if not x.startswith('-'))
-            with debug.log_time(log.completion, 'Starting {} completion'
-                                .format(func.__name__)):
-                info = CompletionInfo(config=config.instance,
-                                      keyconf=config.key_instance,
-                                      win_id=self._win_id)
-                model = func(*args, info=info)
-            with debug.log_time(log.completion, 'Set completion model'):
-                completion.set_model(model)
+        if before_cursor == self._last_before_cursor:
+            # If the part before the cursor didn't change since the last
+            # completion, we only need to filter existing matches without
+            # having to regenerate completion results.
+            completion.set_pattern(pattern)
+            return
+
+        self._last_before_cursor = before_cursor
+
+        args = (x for x in before_cursor[1:] if not x.startswith('-'))
+        cur_tab = objreg.get('tab', scope='tab', window=self._win_id,
+                             tab='current')
+
+        with debug.log_time(log.completion, 'Starting {} completion'
+                            .format(func.__name__)):
+            info = CompletionInfo(config=config.instance,
+                                  keyconf=config.key_instance,
+                                  win_id=self._win_id,
+                                  cur_tab=cur_tab)
+            model = func(*args, info=info)
+        with debug.log_time(log.completion, 'Set completion model'):
+            completion.set_model(model)
 
         completion.set_pattern(pattern)
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import pytest
 
-from helpers import utils
+from helpers import testutils
 
 
 @pytest.mark.parametrize('val1, val2', [
@@ -32,7 +32,7 @@ from helpers import utils
     ("foobarbaz", "foo*baz"),
 ])
 def test_partial_compare_equal(val1, val2):
-    assert utils.partial_compare(val1, val2)
+    assert testutils.partial_compare(val1, val2)
 
 
 @pytest.mark.parametrize('val1, val2, error', [
@@ -48,9 +48,9 @@ def test_partial_compare_equal(val1, val2):
     (23.42, 13.37, "23.42 != 13.37 (float comparison)"),
 ])
 def test_partial_compare_not_equal(val1, val2, error):
-    outcome = utils.partial_compare(val1, val2)
+    outcome = testutils.partial_compare(val1, val2)
     assert not outcome
-    assert isinstance(outcome, utils.PartialCompareOutcome)
+    assert isinstance(outcome, testutils.PartialCompareOutcome)
     assert outcome.error == error
 
 
@@ -72,9 +72,9 @@ def test_partial_compare_not_equal(val1, val2, error):
     ('foo?ar', 'foo?ar', True),
 ])
 def test_pattern_match(pattern, value, expected):
-    assert utils.pattern_match(pattern=pattern, value=value) == expected
+    assert testutils.pattern_match(pattern=pattern, value=value) == expected
 
 
 def test_nop_contextmanager():
-    with utils.nop_contextmanager():
+    with testutils.nop_contextmanager():
         pass

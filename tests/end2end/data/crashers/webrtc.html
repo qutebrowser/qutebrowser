@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+<!--
+     Thanks to NixUnderflow:
+     https://github.com/qutebrowser/qutebrowser/issues/5721#issuecomment-700374149
+-->
+
+<html lang="en">
+	<head>
+		<title>Crashes on refresh</title>
+		<meta charset="UTF-8"/>
+	</head>
+	<body>
+		<p>Crashes on refresh</p>
+		<script>
+			const rtc = new window.RTCPeerConnection();
+			rtc.createDataChannel("");
+			rtc.createOffer((description) => {
+				rtc.setLocalDescription(description);
+			}, (error) => console.error);
+		</script>
+	</body>
+</html>

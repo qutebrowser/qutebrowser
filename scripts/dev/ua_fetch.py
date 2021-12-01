@@ -1,97 +1,73 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2018 lamarpavel
-# Copyright 2015-2018 Alexey Nabrodov (Averrin)
-#
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+"""Fetch and print the most common user agents.
 
-
-"""Fetch list of popular user-agents.
-
-The script is based on a gist posted by github.com/averrin, the output of this
-script is formatted to be pasted into configdata.yml
+This script fetches the most common user agents according to
+https://github.com/Kikobeats/top-user-agents, and prints the most recent
+Chrome user agent for Windows, macOS and Linux.
 """
 
+import math
+import sys
+import textwrap
+
 import requests
-from lxml import html  # pylint: disable=import-error
+import qutebrowser.config.websettings
 
 
-def fetch():
-    """Fetch list of popular user-agents.
-
-    Return:
-        List of relevant strings.
-    """
-    url = 'https://techblog.willshouse.com/2012/01/03/most-common-user-agents/'
-    page = requests.get(url)
-    page = html.fromstring(page.text)
-    path = '//*[@id="post-2229"]/div[2]/table/tbody'
-    return page.xpath(path)[0]
+def version(ua):
+    """Comparable version of a user agent."""
+    return tuple(int(v) for v in ua.upstream_browser_version.split('.')[:2])
 
 
-def filter_list(complete_list, browsers):
-    """Filter the received list based on a look up table.
-
-    The LUT should be a dictionary of the format {browser: versions}, where
-    'browser' is the name of the browser (eg. "Firefox") as string and
-    'versions' is a set of different versions of this browser that should be
-    included when found (eg. {"Linux", "MacOSX"}). This function returns a
-    dictionary with the same keys as the LUT, but storing lists of tuples
-    (user_agent, browser_description) as values.
-    """
-    # pylint: disable=too-many-nested-blocks
-    table = {}
-    for entry in complete_list:
-        # Tuple of (user_agent, browser_description)
-        candidate = (entry[1].text_content(), entry[2].text_content())
-        for name in browsers:
-            found = False
-            if name.lower() in candidate[1].lower():
-                for version in browsers[name]:
-                    if version.lower() in candidate[1].lower():
-                        if table.get(name) is None:
-                            table[name] = []
-                        table[name].append(candidate)
-                        browsers[name].remove(version)
-                        found = True
-                        break
-            if found:
-                break
-    return table
+def wrap(ini, sub, string):
+    return textwrap.wrap(string, width=80, initial_indent=ini, subsequent_indent=sub)
 
 
-def main():
-    """Generate user agent code."""
-    fetched = fetch()
-    lut = {
-        "Chrome": {"Win10", "Linux"},
-    }
-    filtered = filter_list(fetched, lut)
-    filtered["empty"] = [('', "Use default QtWebKit/QtWebEngine User-Agent")]
+response = requests.get('https://raw.githubusercontent.com/Kikobeats/top-user-agents/master/index.json')
 
-    tab = "  "
-    for browser in ["Chrome", "empty"]:
-        for it in filtered[browser]:
-            print('{}- - "{}"'.format(3 * tab, it[0]))
-            desc = it[1].replace('\xa0', ' ').replace('  ', ' ')
-            print("{}- {}".format(4 * tab, desc))
-        print("")
+if response.status_code != 200:
+    print('Unable to fetch the user agent index', file=sys.stderr)
+    sys.exit(1)
 
+ua_checks = {
+    'Win10': lambda ua: ua.os_info.startswith('Windows NT'),
+    'macOS': lambda ua: ua.os_info.startswith('Macintosh'),
+    'Linux': lambda ua: ua.os_info.startswith('X11'),
+}
 
-if __name__ == '__main__':
-    main()
+ua_strings = {}
+ua_versions = {}
+ua_names = {}
+
+for ua_string in reversed(response.json()):
+    # reversed to prefer more common versions
+
+    # Filter out browsers that are not Chrome-based
+    parts = ua_string.split()
+    if not any(part.startswith("Chrome/") for part in parts):
+        continue
+    if any(part.startswith("OPR/") or part.startswith("Edg/") for part in parts):
+        continue
+    if 'Chrome/99.0.7113.93' in parts:
+        # Fake or false-positive entry
+        continue
+
+    user_agent = qutebrowser.config.websettings.UserAgent.parse(ua_string)
+
+    # check which os_string conditions are met and select the most recent version
+    for key, check in ua_checks.items():
+        if check(user_agent):
+            v = version(user_agent)
+            if v >= ua_versions.get(key, (-math.inf,)):
+                ua_versions[key] = v
+                ua_strings[key] = ua_string
+                ua_names[key] = f'Chrome {v[0]} {key}'
+
+for key, ua_string in ua_strings.items():
+    quoted_ua_string = f'"{ua_string}"'
+    for line in wrap("      - - ", "          ", quoted_ua_string):
+        print(line)
+    for line in wrap("        - ", "          ", ua_names[key]):
+        print(line)

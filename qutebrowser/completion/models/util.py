@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,17 +15,17 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utility functions for completion models."""
 
-import typing
+from typing import Callable, Sequence
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
-DeleteFuncType = typing.Callable[[typing.Sequence[str]], None]
+DeleteFuncType = Callable[[Sequence[str]], None]
 
 
 def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
@@ -46,7 +46,8 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
         hide_debug = obj.debug and not objects.args.debug
         hide_mode = (usertypes.KeyMode.normal not in obj.modes and
                      not include_hidden)
-        if not (hide_debug or hide_mode or obj.deprecated):
+        hide_ni = obj.name == 'Ni!'
+        if not (hide_debug or hide_mode or obj.deprecated or hide_ni):
             bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 

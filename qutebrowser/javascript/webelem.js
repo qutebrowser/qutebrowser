@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+ * along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -70,25 +70,6 @@ window._qutebrowser.webelem = (function() {
         };
     }
 
-    function get_caret_position(elem, frame) {
-        // With older Chromium versions (and QtWebKit), InvalidStateError will
-        // be thrown if elem doesn't have selectionStart.
-        // With newer Chromium versions (>= Qt 5.10), we get null.
-        try {
-            return elem.selectionStart;
-        } catch (err) {
-            if ((err instanceof DOMException ||
-                 (frame && err instanceof frame.DOMException)) &&
-                err.name === "InvalidStateError") {
-                // nothing to do, caret_position is already null
-            } else {
-                // not the droid we're looking for
-                throw err;
-            }
-        }
-        return null;
-    }
-
     function serialize_elem(elem, frame = null, hintReason = null) {
         if (!elem) {
             return null;
@@ -97,12 +78,16 @@ window._qutebrowser.webelem = (function() {
         const id = elements.length;
         elements[id] = elem;
 
-        const caret_position = get_caret_position(elem, frame);
+        const caret_position = elem.selectionStart;
+
+        // isContentEditable occasionally returns undefined.
+        const is_content_editable = elem.isContentEditable || false;
 
         const out = {
             "id": id,
             "rects": [],  // Gets filled up later
             "caret_position": caret_position,
+            "is_content_editable": is_content_editable,
         };
 
         // Deal with various fun things which can happen in form elements
@@ -170,6 +155,25 @@ window._qutebrowser.webelem = (function() {
         return out;
     }
 
+    function is_hidden_css(elem) {
+        // Check if the element is hidden via CSS
+        const win = elem.ownerDocument.defaultView;
+        const style = win.getComputedStyle(elem, null);
+
+        const invisible = style.getPropertyValue("visibility") !== "visible";
+        const none_display = style.getPropertyValue("display") === "none";
+        const zero_opacity = style.getPropertyValue("opacity") === "0";
+
+        const is_framework = (
+            // ACE editor
+            elem.classList.contains("ace_text-input") ||
+            // bootstrap CSS
+            elem.classList.contains("custom-control-input")
+        );
+
+        return (invisible || none_display || (zero_opacity && !is_framework));
+    }
+
     function is_visible(elem, frame = null) {
         // Adopted from vimperator:
         // https://github.com/vimperator/vimperator-labs/blob/vimperator-3.14.0/common/content/hints.js#L259-L285
@@ -177,7 +181,10 @@ window._qutebrowser.webelem = (function() {
         // the cVim implementation here?
         // https://github.com/1995eaton/chromium-vim/blob/1.2.85/content_scripts/dom.js#L74-L134
 
-        const win = elem.ownerDocument.defaultView;
+        if (is_hidden_css(elem)) {
+            return false;
+        }
+
         const offset_rect = get_frame_offset(frame);
         let rect = add_offset_rect(elem.getBoundingClientRect(), offset_rect);
 
@@ -190,25 +197,7 @@ window._qutebrowser.webelem = (function() {
         }
 
         rect = elem.getClientRects()[0];
-        if (!rect) {
-            return false;
-        }
-
-        const style = win.getComputedStyle(elem, null);
-        if (style.getPropertyValue("visibility") !== "visible" ||
-                style.getPropertyValue("display") === "none" ||
-                style.getPropertyValue("opacity") === "0") {
-            // FIXME:qtwebengine do we need this <area> handling?
-            // visibility and display style are misleading for area tags and
-            // they get "display: none" by default.
-            // See https://github.com/vimperator/vimperator-labs/issues/236
-            if (elem.nodeName.toLowerCase() !== "area" &&
-                    !elem.classList.contains("ace_text-input")) {
-                return false;
-            }
-        }
-
-        return true;
+        return Boolean(rect);
     }
 
     // Runs a function in a frame until the result is not null, then return
@@ -345,8 +334,11 @@ window._qutebrowser.webelem = (function() {
     funcs.find_at_pos = (x, y) => {
         const elem = document.elementFromPoint(x, y);
 
-        const frame_win = utils.get_frame_window(elem);
+        if (!elem) {
+            return null;
+        }
 
+        const frame_win = utils.get_frame_window(elem);
         if (frame_win !== window) {
             // Subtract offsets due to being in an iframe
             const frame_offset_rect =

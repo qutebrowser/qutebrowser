@@ -1,7 +1,15 @@
 __pycache__
 *.py~
 *.pyc
-*.swp
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+[._]*.un~
+Session.vim
+Sessionx.vim
+*~
 /build
 /dist
 /qutebrowser.egg-info
@@ -27,7 +35,8 @@ __pycache__
 /.pytest_cache
 /.testmondata
 /.hypothesis
-/.mypy_cache
+/.benchmarks
+.mypy_cache
 /prof
 /venv
 TODO
@@ -40,7 +49,9 @@ TODO
 /scripts/testbrowser/cpp/webengine/testbrowser
 /scripts/testbrowser/cpp/webengine/.qmake.stash
 /scripts/dev/pylint_checkers/qute_pylint.egg-info
+/scripts/dev/pylint_checkers/build
 /misc/file_version_info.txt
 /doc/extapi/_build
 /misc/nsis/include
 /misc/nsis/plugins
+/wheels

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,17 +15,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Handling of proxies."""
-
-import typing
 
 from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
-from qutebrowser.utils import message, usertypes, urlutils
+from qutebrowser.utils import message, usertypes, urlutils, utils
 from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
@@ -54,7 +52,8 @@ def _warn_for_pac():
 
 @pyqtSlot()
 def shutdown():
-    QNetworkProxyFactory.setApplicationProxyFactory(None)  # type: ignore
+    QNetworkProxyFactory.setApplicationProxyFactory(
+        None)  # type: ignore[arg-type]
 
 
 class ProxyFactory(QNetworkProxyFactory):
@@ -73,6 +72,18 @@ class ProxyFactory(QNetworkProxyFactory):
         else:
             return None
 
+    def _set_capabilities(self, proxy):
+        if proxy.type() == QNetworkProxy.NoProxy:
+            return
+
+        capabilities = proxy.capabilities()
+        lookup_cap = QNetworkProxy.HostNameLookupCapability
+        if config.val.content.proxy_dns_requests:
+            capabilities |= lookup_cap
+        else:
+            capabilities &= ~lookup_cap
+        proxy.setCapabilities(capabilities)
+
     def queryProxy(self, query):
         """Get the QNetworkProxies for a query.
 
@@ -86,23 +97,20 @@ class ProxyFactory(QNetworkProxyFactory):
         if proxy is configtypes.SYSTEM_PROXY:
             # On Linux, use "export http_proxy=socks5://host:port" to manually
             # set system proxy.
-            # ref. http://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
+            # ref. https://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
             if objects.backend == usertypes.Backend.QtWebEngine:
                 # Looks like query.url() is always invalid on QtWebEngine...
-                proxies = [urlutils.proxy_from_url(QUrl('direct://'))]
-            else:
+                proxy = urlutils.proxy_from_url(QUrl('direct://'))
+                assert not isinstance(proxy, pac.PACFetcher)
+                proxies = [proxy]
+            elif objects.backend == usertypes.Backend.QtWebKit:
                 proxies = proxy.resolve(query)
+            else:
+                raise utils.Unreachable(objects.backend)
         else:
             proxies = [proxy]
-        for p in proxies:
-            if p.type() != QNetworkProxy.NoProxy:
-                capabilities = p.capabilities()
-                lookup_cap = QNetworkProxy.HostNameLookupCapability
-                if config.val.content.proxy_dns_requests:
-                    capabilities |= lookup_cap  # type: ignore
-                else:
-                    capabilities &= ~lookup_cap  # type: ignore
-                p.setCapabilities(capabilities)
+        for proxy in proxies:
+            self._set_capabilities(proxy)
         return proxies

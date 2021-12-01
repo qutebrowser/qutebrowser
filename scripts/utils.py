@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utility functions for scripts."""
 
 import os
 import os.path
+import sys
+import contextlib
 
 
 # Import side-effects are an evil thing, but here it's okay so scripts using
@@ -37,6 +39,8 @@ use_color = os.name != 'nt' or colorama
 
 
 fg_colors = {
+    'reset': 0,
+    'bold': 1,
     'black': 30,
     'red': 31,
     'green': 32,
@@ -45,11 +49,13 @@ fg_colors = {
     'magenta': 35,
     'cyan': 36,
     'white': 37,
-    'reset': 39,
 }
 
 
 bg_colors = {name: col + 10 for name, col in fg_colors.items()}
+
+
+ON_CI = 'CI' in os.environ
 
 
 def _esc(code):
@@ -57,18 +63,23 @@ def _esc(code):
     return '\033[{}m'.format(code)
 
 
-def print_col(text, color):
+def print_col(text, color, file=sys.stdout):
     """Print a colorized text."""
     if use_color:
         fg = _esc(fg_colors[color.lower()])
         reset = _esc(fg_colors['reset'])
-        print(''.join([fg, text, reset]))
+        print(''.join([fg, text, reset]), file=file, flush=True)
     else:
-        print(text)
+        print(text, file=file, flush=True)
+
+
+def print_error(text):
+    print_col(text, 'red', file=sys.stderr)
 
 
 def print_title(text):
     """Print a title."""
+    print()
     print_col("==================== {} ====================".format(text),
               'yellow')
 
@@ -83,3 +94,26 @@ def change_cwd():
     cwd = os.getcwd()
     if os.path.split(cwd)[1] == 'scripts':
         os.chdir(os.path.join(cwd, os.pardir))
+
+
+@contextlib.contextmanager
+def gha_group(name):
+    """Print a GitHub Actions group.
+
+    Gets ignored if not on CI.
+    """
+    if ON_CI:
+        print('::group::' + name)
+        yield
+        print('::endgroup::')
+    else:
+        yield
+
+
+def gha_error(message):
+    """Print a GitHub Actions error.
+
+    Should only be called on CI.
+    """
+    assert ON_CI
+    print('::error::' + message)

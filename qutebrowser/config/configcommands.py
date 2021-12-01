@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,13 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Commands related to the configuration."""
 
-import typing
 import os.path
 import contextlib
+from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
 from PyQt5.QtCore import QUrl
 
@@ -32,7 +32,7 @@ from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.config.config import Config, KeyConfig
 
 
@@ -47,17 +47,14 @@ class ConfigCommands:
         self._keyconfig = keyconfig
 
     @contextlib.contextmanager
-    def _handle_config_error(self) -> typing.Iterator[None]:
+    def _handle_config_error(self) -> Iterator[None]:
         """Catch errors in set_command and raise CommandError."""
         try:
             yield
         except configexc.Error as e:
             raise cmdutils.CommandError(str(e))
 
-    def _parse_pattern(
-            self,
-            pattern: typing.Optional[str]
-    ) -> typing.Optional[urlmatch.UrlPattern]:
+    def _parse_pattern(self, pattern: Optional[str]) -> Optional[urlmatch.UrlPattern]:
         """Parse a pattern string argument to a pattern."""
         if pattern is None:
             return None
@@ -75,8 +72,7 @@ class ConfigCommands:
         except keyutils.KeyParseError as e:
             raise cmdutils.CommandError(str(e))
 
-    def _print_value(self, option: str,
-                     pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
+    def _print_value(self, option: str, pattern: Optional[urlmatch.UrlPattern]) -> None:
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
@@ -105,7 +101,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             value: The value to set.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -209,7 +205,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             values: The values to cycle through.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -248,7 +244,14 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.customized_option)
-    def config_unset(self, option: str, temp: bool = False) -> None:
+    @cmdutils.argument('pattern', flag='u')
+    def config_unset(
+        self,
+        option: str,
+        *,
+        pattern: str = None,
+        temp: bool = False,
+    ) -> None:
         """Unset an option.
 
         This sets an option back to its default and removes it from
@@ -256,10 +259,31 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
         """
+        parsed_pattern = self._parse_pattern(pattern)
         with self._handle_config_error():
-            self._config.unset(option, save_yaml=not temp)
+            changed = self._config.unset(
+                option,
+                save_yaml=not temp,
+                pattern=parsed_pattern,
+            )
+
+        if not changed:
+            text = f'{option} is not customized'
+            if pattern is not None:
+                text += f' for {pattern}'
+            raise cmdutils.CommandError(text)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    def config_diff(self, win_id: int) -> None:
+        """Show all customized options."""
+        url = QUrl('qute://configdiff')
+        tabbed_browser = objreg.get('tabbed-browser',
+                                    scope='window', window=win_id)
+        tabbed_browser.load_url(url, newtab=False)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
@@ -443,15 +467,15 @@ class ConfigCommands:
         if filename is None:
             filename = standarddir.config_py()
         else:
+            filename = os.path.expanduser(filename)
             if not os.path.isabs(filename):
                 filename = os.path.join(standarddir.config(), filename)
-            filename = os.path.expanduser(filename)
 
         if os.path.exists(filename) and not force:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options = []  # type: typing.List
+        options: List[Tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]

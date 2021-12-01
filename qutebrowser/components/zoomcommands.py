@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Zooming-related commands."""
 
@@ -37,7 +37,7 @@ def zoom_in(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
     except ValueError as e:
         raise cmdutils.CommandError(e)
     if not quiet:
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        message.info("Zoom level: {}%".format(int(perc)), replace='zoom-level')
 
 
 @cmdutils.register()
@@ -55,7 +55,7 @@ def zoom_out(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
     except ValueError as e:
         raise cmdutils.CommandError(e)
     if not quiet:
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        message.info("Zoom level: {}%".format(int(perc)), replace='zoom-level')
 
 
 @cmdutils.register()
@@ -92,4 +92,4 @@ def zoom(tab: apitypes.Tab,
     except ValueError:
         raise cmdutils.CommandError("Can't zoom {}%!".format(int_level))
     if not quiet:
-        message.info("Zoom level: {}%".format(int_level), replace=True)
+        message.info("Zoom level: {}%".format(int_level), replace='zoom-level')

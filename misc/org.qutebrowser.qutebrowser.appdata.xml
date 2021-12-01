@@ -44,6 +44,29 @@
 	</content_rating>
 	<releases>
 <!-- Add new releases here -->
+<release version="2.4.0" date="2021-10-21"/>
+<release version="2.3.1" date="2021-07-28"/>
+<release version="2.3.0" date="2021-06-28"/>
+<release version="2.2.3" date="2021-06-01"/>
+<release version="2.2.2" date="2021-05-20"/>
+<release version="2.2.1" date="2021-04-29"/>
+<release version="2.2.0" date="2021-04-13"/>
+<release version="2.1.1" date="2021-04-01"/>
+<release version="2.1.0" date="2021-03-12"/>
+<release version="2.0.2" date="2021-02-04"/>
+<release version="2.0.1" date="2021-01-28"/>
+<release version="2.0.0" date="2021-01-28"/>
+<release version="1.14.1" date="2020-12-04"/>
+<release version="1.14.0" date="2020-10-15"/>
+<release version="1.13.1" date="2020-07-17"/>
+<release version="1.13.0" date="2020-06-26"/>
+<release version="1.12.0" date="2020-06-01"/>
+<release version="1.11.1" date="2020-05-07"/>
+<release version="1.11.0" date="2020-04-27"/>
+<release version="1.10.2" date="2020-04-17"/>
+<release version="1.10.1" date="2020-02-15"/>
+<release version="1.10.0" date="2020-02-02"/>
+<release version="1.9.0" date="2020-01-08"/>
 <release version="1.8.3" date="2019-12-05"/>
 <release version="1.8.2" date="2019-11-22"/>
 <release version="1.8.1" date="2019-09-27"/>

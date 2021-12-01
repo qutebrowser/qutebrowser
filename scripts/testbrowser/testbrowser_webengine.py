@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Very simple browser for testing purposes."""
 
@@ -31,7 +31,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 def parse_args():
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', help='The URL to open')
+    parser.add_argument('url', help='The URL to open',
+                        nargs='?', default='https://qutebrowser.org/')
     return parser.parse_known_args()[0]
 
 
@@ -47,4 +48,4 @@ if __name__ == '__main__':
     wv.load(QUrl.fromUserInput(args.url))
     wv.show()
 
-    app.exec_()
+    app.exec()

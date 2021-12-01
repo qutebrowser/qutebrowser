@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,45 +15,148 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.utils."""
 
 import sys
 import enum
-import os.path
+import os
 import io
 import logging
 import functools
-import socket
 import re
 import shlex
 import math
+import operator
 
-import pkg_resources
-import attr
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QClipboard
+from PyQt5.QtCore import QUrl, QRect
+from PyQt5.QtGui import QClipboard
 import pytest
 import hypothesis
 from hypothesis import strategies
+import yaml
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, qtutils, version, usertypes
+from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils.utils import VersionNumber
+
+
+class TestVersionNumber:
+
+    @pytest.mark.parametrize('num, expected', [
+        (VersionNumber(5, 15, 2), 'VersionNumber(5, 15, 2)'),
+        (VersionNumber(5, 15), 'VersionNumber(5, 15)'),
+        (VersionNumber(5), 'VersionNumber(5)'),
+    ])
+    def test_repr(self, num, expected):
+        assert repr(num) == expected
+
+    @pytest.mark.parametrize('num, expected', [
+        (VersionNumber(5, 15, 2), '5.15.2'),
+        (VersionNumber(5, 15), '5.15'),
+        (VersionNumber(5), '5'),
+        (VersionNumber(1, 2, 3, 4), '1.2.3.4'),
+    ])
+    def test_str(self, num, expected):
+        assert str(num) == expected
+
+    def test_not_normalized(self):
+        with pytest.raises(ValueError, match='Refusing to construct'):
+            VersionNumber(5, 15, 0)
+
+    @pytest.mark.parametrize('num, expected', [
+        (VersionNumber(5, 15, 2), VersionNumber(5, 15)),
+        (VersionNumber(5, 15), VersionNumber(5, 15)),
+        (VersionNumber(6), VersionNumber(6)),
+        (VersionNumber(1, 2, 3, 4), VersionNumber(1, 2)),
+    ])
+    def test_strip_patch(self, num, expected):
+        assert num.strip_patch() == expected
+
+    @pytest.mark.parametrize('s, expected', [
+        ('1x6.2', VersionNumber(1)),
+        ('6', VersionNumber(6)),
+        ('5.15', VersionNumber(5, 15)),
+        ('5.15.3', VersionNumber(5, 15, 3)),
+        ('5.15.3.dev1234', VersionNumber(5, 15, 3)),
+        ('1.2.3.4', VersionNumber(1, 2, 3, 4)),
+    ])
+    def test_parse_valid(self, s, expected):
+        assert VersionNumber.parse(s) == expected
+
+    @pytest.mark.parametrize('s, message', [
+        ('foo6', "Failed to parse foo6"),
+        ('.6', "Failed to parse .6"),
+        ('0x6.2', "Can't construct a null version"),
+    ])
+    def test_parse_invalid(self, s, message):
+        with pytest.raises(ValueError, match=message):
+            VersionNumber.parse(s)
+
+    @pytest.mark.parametrize('lhs, op, rhs, outcome', [
+        # ==
+        (VersionNumber(6), operator.eq, VersionNumber(6), True),
+        (VersionNumber(6), operator.eq, object(), False),
+
+        # !=
+        (VersionNumber(6), operator.ne, VersionNumber(5), True),
+        (VersionNumber(6), operator.ne, object(), True),
+
+        # >=
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 13, 5), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.ge, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.ge, VersionNumber(5, 14, 3), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 13), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 14), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 15), False),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(4), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(6), False),
+
+        # >
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 13, 5), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.gt, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.gt, VersionNumber(5, 14, 3), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 13), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 14), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 15), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(4), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(6), False),
+
+        # <=
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 13, 5), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.le, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.le, VersionNumber(5, 14, 3), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 13), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 14), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 15), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(4), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(6), True),
+
+        # <
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 13, 5), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.lt, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.lt, VersionNumber(5, 14, 3), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 13), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 14), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 15), True),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(4), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(6), True),
+    ])
+    def test_comparisons(self, lhs, op, rhs, outcome):
+        assert op(lhs, rhs) == outcome
 
 
 ELLIPSIS = '\u2026'
-
-
-class Color(QColor):
-
-    """A QColor with a nicer repr()."""
-
-    def __repr__(self):
-        return utils.get_repr(self, constructor=True, red=self.red(),
-                              green=self.green(), blue=self.blue(),
-                              alpha=self.alpha())
 
 
 class TestCompactText:
@@ -115,143 +218,6 @@ class TestElidingFilenames:
     ])
     def test_elided(self, filename, length, expected):
         assert utils.elide_filename(filename, length) == expected
-
-
-@pytest.fixture(params=[True, False])
-def freezer(request, monkeypatch):
-    if request.param and not getattr(sys, 'frozen', False):
-        monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
-    elif not request.param and getattr(sys, 'frozen', False):
-        # Want to test unfrozen tests, but we are frozen
-        pytest.skip("Can't run with sys.frozen = True!")
-
-
-@pytest.mark.usefixtures('freezer')
-class TestReadFile:
-
-    """Test read_file."""
-
-    def test_readfile(self):
-        """Read a test file."""
-        content = utils.read_file(os.path.join('utils', 'testfile'))
-        assert content.splitlines()[0] == "Hello World!"
-
-    @pytest.mark.parametrize('filename', ['javascript/scroll.js',
-                                          'html/error.html'])
-    def test_read_cached_file(self, mocker, filename):
-        utils.preload_resources()
-        m = mocker.patch('pkg_resources.resource_string')
-        utils.read_file(filename)
-        m.assert_not_called()
-
-    def test_readfile_binary(self):
-        """Read a test file in binary mode."""
-        content = utils.read_file(os.path.join('utils', 'testfile'),
-                                  binary=True)
-        assert content.splitlines()[0] == b"Hello World!"
-
-
-@pytest.mark.usefixtures('freezer')
-def test_resource_filename():
-    """Read a test file."""
-    filename = utils.resource_filename(os.path.join('utils', 'testfile'))
-    with open(filename, 'r', encoding='utf-8') as f:
-        assert f.read().splitlines()[0] == "Hello World!"
-
-
-class TestInterpolateColor:
-
-    """Tests for interpolate_color.
-
-    Attributes:
-        white: The Color white as a valid Color for tests.
-        white: The Color black as a valid Color for tests.
-    """
-
-    @attr.s
-    class Colors:
-
-        white = attr.ib()
-        black = attr.ib()
-
-    @pytest.fixture
-    def colors(self):
-        """Example colors to be used."""
-        return self.Colors(Color('white'), Color('black'))
-
-    def test_invalid_start(self, colors):
-        """Test an invalid start color."""
-        with pytest.raises(qtutils.QtValueError):
-            utils.interpolate_color(Color(), colors.white, 0)
-
-    def test_invalid_end(self, colors):
-        """Test an invalid end color."""
-        with pytest.raises(qtutils.QtValueError):
-            utils.interpolate_color(colors.white, Color(), 0)
-
-    @pytest.mark.parametrize('perc', [-1, 101])
-    def test_invalid_percentage(self, colors, perc):
-        """Test an invalid percentage."""
-        with pytest.raises(ValueError):
-            utils.interpolate_color(colors.white, colors.white, perc)
-
-    def test_invalid_colorspace(self, colors):
-        """Test an invalid colorspace."""
-        with pytest.raises(ValueError):
-            utils.interpolate_color(colors.white, colors.black, 10,
-                                    QColor.Cmyk)
-
-    @pytest.mark.parametrize('colorspace', [QColor.Rgb, QColor.Hsv,
-                                            QColor.Hsl])
-    def test_0_100(self, colors, colorspace):
-        """Test 0% and 100% in different colorspaces."""
-        white = utils.interpolate_color(colors.white, colors.black, 0,
-                                        colorspace)
-        black = utils.interpolate_color(colors.white, colors.black, 100,
-                                        colorspace)
-        assert Color(white) == colors.white
-        assert Color(black) == colors.black
-
-    def test_interpolation_rgb(self):
-        """Test an interpolation in the RGB colorspace."""
-        color = utils.interpolate_color(Color(0, 40, 100), Color(0, 20, 200),
-                                        50, QColor.Rgb)
-        assert Color(color) == Color(0, 30, 150)
-
-    def test_interpolation_hsv(self):
-        """Test an interpolation in the HSV colorspace."""
-        start = Color()
-        stop = Color()
-        start.setHsv(0, 40, 100)
-        stop.setHsv(0, 20, 200)
-        color = utils.interpolate_color(start, stop, 50, QColor.Hsv)
-        expected = Color()
-        expected.setHsv(0, 30, 150)
-        assert Color(color) == expected
-
-    def test_interpolation_hsl(self):
-        """Test an interpolation in the HSL colorspace."""
-        start = Color()
-        stop = Color()
-        start.setHsl(0, 40, 100)
-        stop.setHsl(0, 20, 200)
-        color = utils.interpolate_color(start, stop, 50, QColor.Hsl)
-        expected = Color()
-        expected.setHsl(0, 30, 150)
-        assert Color(color) == expected
-
-    @pytest.mark.parametrize('percentage, expected', [
-        (0, (0, 0, 0)),
-        (99, (0, 0, 0)),
-        (100, (255, 255, 255)),
-    ])
-    def test_interpolation_none(self, percentage, expected):
-        """Test an interpolation with a gradient turned off."""
-        color = utils.interpolate_color(Color(0, 0, 0), Color(255, 255, 255),
-                                        percentage, None)
-        assert isinstance(color, QColor)
-        assert Color(color) == Color(*expected)
 
 
 @pytest.mark.parametrize('seconds, out', [
@@ -560,8 +526,12 @@ class TestIsEnum:
 
     def test_enum(self):
         """Test is_enum with an enum."""
-        e = enum.Enum('Foo', 'bar, baz')
-        assert utils.is_enum(e)
+        class Foo(enum.Enum):
+
+            bar = enum.auto()
+            baz = enum.auto()
+
+        assert utils.is_enum(Foo)
 
     def test_class(self):
         """Test is_enum with a non-enum class."""
@@ -622,26 +592,57 @@ def test_force_encoding(inp, enc, expected):
     assert utils.force_encoding(inp, enc) == expected
 
 
-@pytest.mark.parametrize('inp, expected', [
-    pytest.param('normal.txt', 'normal.txt',
-                 marks=pytest.mark.fake_os('windows')),
-    pytest.param('user/repo issues.mht', 'user_repo issues.mht',
-                 marks=pytest.mark.fake_os('windows')),
-    pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
-                 marks=pytest.mark.fake_os('windows')),
-    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
-                 marks=pytest.mark.fake_os('mac')),
-    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
-                 marks=pytest.mark.fake_os('posix')),
-])
-def test_sanitize_filename(inp, expected, monkeypatch):
-    assert utils.sanitize_filename(inp) == expected
+class TestSanitizeFilename:
 
+    LONG_FILENAME = ("this is a very long filename which is probably longer "
+                     "than 255 bytes if I continue typing some more nonsense "
+                     "I will find out that a lot of nonsense actually fits in "
+                     "those 255 bytes still not finished wow okay only about "
+                     "50 to go and 30 now finally enough.txt")
 
-@pytest.mark.fake_os('windows')
-def test_sanitize_filename_empty_replacement():
-    name = '/<Bad File>/'
-    assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
+    LONG_EXTENSION = (LONG_FILENAME.replace("filename", ".extension")
+                      .replace(".txt", ""))
+
+    @pytest.mark.parametrize('inp, expected', [
+        pytest.param('normal.txt', 'normal.txt',
+                     marks=pytest.mark.fake_os('windows')),
+        pytest.param('user/repo issues.mht', 'user_repo issues.mht',
+                     marks=pytest.mark.fake_os('windows')),
+        pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
+                     marks=pytest.mark.fake_os('windows')),
+        pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
+                     marks=pytest.mark.fake_os('mac')),
+        pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
+                     marks=pytest.mark.fake_os('posix')),
+        (LONG_FILENAME, LONG_FILENAME),  # no shortening
+    ])
+    def test_special_chars(self, inp, expected):
+        assert utils.sanitize_filename(inp) == expected
+
+    @pytest.mark.parametrize('inp, expected', [
+        (
+            LONG_FILENAME,
+            LONG_FILENAME.replace("now finally enough.txt", "n.txt")
+        ),
+        (
+            LONG_EXTENSION,
+            LONG_EXTENSION.replace("this is a very long .extension",
+                                   "this .extension"),
+        ),
+    ])
+    @pytest.mark.linux
+    def test_shorten(self, inp, expected):
+        assert utils.sanitize_filename(inp, shorten=True) == expected
+
+    @pytest.mark.fake_os('windows')
+    def test_empty_replacement(self):
+        name = '/<Bad File>/'
+        assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
+
+    @hypothesis.given(filename=strategies.text(min_size=100))
+    def test_invariants(self, filename):
+        sanitized = utils.sanitize_filename(filename, shorten=True)
+        assert len(os.fsencode(sanitized)) <= 255 - len("(123).download")
 
 
 class TestGetSetClipboard:
@@ -714,16 +715,10 @@ class TestGetSetClipboard:
             utils.get_clipboard(fallback=True)
 
 
-def test_random_port():
-    port = utils.random_port()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', port))
-    sock.close()
-
-
 class TestOpenFile:
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_without_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -733,6 +728,7 @@ class TestOpenFile:
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_with_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
@@ -742,6 +738,7 @@ class TestOpenFile:
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_setting_override(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -764,17 +761,7 @@ class TestOpenFile:
             r"Opening /foo/bar with the system application", result)
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
-    @pytest.fixture
-    def sandbox_patch(self, monkeypatch):
-        info = version.DistributionInfo(
-            id='org.kde.Platform',
-            parsed=version.Distribution.kde_flatpak,
-            version=pkg_resources.parse_version('5.12'),
-            pretty='Unknown')
-        monkeypatch.setattr(version, 'distribution',
-                            lambda: info)
-
-    def test_cmdline_sandboxed(self, sandbox_patch,
+    def test_cmdline_sandboxed(self, fake_flatpak,
                                config_stub, message_mock, caplog):
         with caplog.at_level(logging.ERROR):
             utils.open_file('/foo/bar', 'custom_cmd')
@@ -782,7 +769,7 @@ class TestOpenFile:
         assert msg.text == 'Cannot spawn download dispatcher from sandbox'
 
     @pytest.mark.not_frozen
-    def test_setting_override_sandboxed(self, sandbox_patch, openurl_mock,
+    def test_setting_override_sandboxed(self, fake_flatpak, openurl_mock,
                                         caplog, config_stub):
         config_stub.val.downloads.open_dispatcher = 'test'
 
@@ -794,7 +781,7 @@ class TestOpenFile:
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
     def test_system_default_sandboxed(self, config_stub, openurl_mock,
-                                      sandbox_patch):
+                                      fake_flatpak):
         utils.open_file('/foo/bar')
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
@@ -821,20 +808,26 @@ class TestYaml:
     def test_load(self):
         assert utils.yaml_load("[1, 2]") == [1, 2]
 
-    def test_load_file(self, tmpdir):
-        tmpfile = tmpdir / 'foo.yml'
-        tmpfile.write('[1, 2]')
+    def test_load_float_bug(self):
+        try:
+            utils.yaml_load("._")
+        except yaml.YAMLError:
+            # Either no exception or YAMLError, not ValueError
+            pass
+
+    def test_load_file(self, tmp_path):
+        tmpfile = tmp_path / 'foo.yml'
+        tmpfile.write_text('[1, 2]')
         with tmpfile.open(encoding='utf-8') as f:
             assert utils.yaml_load(f) == [1, 2]
 
     def test_dump(self):
         assert utils.yaml_dump([1, 2]) == '- 1\n- 2\n'
 
-    def test_dump_file(self, tmpdir):
-        tmpfile = tmpdir / 'foo.yml'
-        with tmpfile.open('w', encoding='utf-8') as f:
-            utils.yaml_dump([1, 2], f)
-        assert tmpfile.read() == '- 1\n- 2\n'
+    def test_dump_file(self, tmp_path):
+        tmpfile = tmp_path / 'foo.yml'
+        tmpfile.write_text(utils.yaml_dump([1, 2]), encoding='utf-8')
+        assert tmpfile.read_text() == '- 1\n- 2\n'
 
 
 @pytest.mark.parametrize('elems, n, expected', [
@@ -885,3 +878,151 @@ def test_ceil_log_invalid(number, base):
         math.log(number, base)
     with pytest.raises(ValueError):
         utils.ceil_log(number, base)
+
+
+@pytest.mark.parametrize('duration, out', [
+    ("0", 0),
+    ("0s", 0),
+    ("0.5s", 500),
+    ("59s", 59000),
+    ("60", 60),
+    ("60.4s", 60400),
+    ("1m1s", 61000),
+    ("1.5m", 90000),
+    ("1m", 60000),
+    ("1h", 3_600_000),
+    ("0.5h", 1_800_000),
+    ("1h1s", 3_601_000),
+    ("1h 1s", 3_601_000),
+    ("1h1m", 3_660_000),
+    ("1h1m1s", 3_661_000),
+    ("1h1m10s", 3_670_000),
+    ("10h1m10s", 36_070_000),
+])
+def test_parse_duration(duration, out):
+    assert utils.parse_duration(duration) == out
+
+
+@pytest.mark.parametrize('duration', [
+    "-1s",  # No sense to wait for negative seconds
+    "-1",
+    "34ss",
+    "",
+    "h",
+    "1.s",
+    "1.1.1s",
+    ".1s",
+    ".s",
+    "10e5s",
+    "5s10m",
+])
+def test_parse_duration_invalid(duration):
+    with pytest.raises(ValueError, match='Invalid duration'):
+        utils.parse_duration(duration)
+
+
+@hypothesis.given(strategies.text())
+def test_parse_duration_hypothesis(duration):
+    try:
+        utils.parse_duration(duration)
+    except ValueError:
+        pass
+
+
+@pytest.mark.parametrize('mimetype, extension', [
+    ('application/pdf', '.pdf'),  # handled by Python
+    ('text/plain', '.txt'),  # wrong in Python 3.6, overridden
+    ('application/manifest+json', '.webmanifest'),  # newer
+    ('text/xul', '.xul'),  # strict=False
+    ('doesnot/exist', None),
+])
+def test_mimetype_extension(mimetype, extension):
+    assert utils.mimetype_extension(mimetype) == extension
+
+
+class TestCleanupFileContext:
+
+    def test_no_file(self, tmp_path, caplog):
+        tmpfile = tmp_path / 'tmp.txt'
+        with caplog.at_level(logging.ERROR, 'misc'):
+            with utils.cleanup_file(tmpfile):
+                pass
+        assert len(caplog.messages) == 1
+        assert caplog.messages[0].startswith("Failed to delete tempfile")
+        assert not tmpfile.exists()
+
+    def test_no_error(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
+        with tmpfile.open('w'):
+            pass
+        with utils.cleanup_file(tmpfile):
+            pass
+        assert not tmpfile.exists()
+
+    def test_error(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
+        with tmpfile.open('w'):
+            pass
+        with pytest.raises(RuntimeError):
+            with utils.cleanup_file(tmpfile):
+                raise RuntimeError
+        assert not tmpfile.exists()
+
+    def test_directory(self, tmp_path, caplog):
+        assert tmp_path.is_dir()
+        # removal of file fails since it's a directory
+        with caplog.at_level(logging.ERROR, 'misc'):
+            with utils.cleanup_file(tmp_path):
+                pass
+        assert len(caplog.messages) == 1
+        assert caplog.messages[0].startswith("Failed to delete tempfile")
+
+
+class TestParseRect:
+
+    @pytest.mark.parametrize('value, expected', [
+        ('1x1+0+0', QRect(0, 0, 1, 1)),
+        ('123x789+12+34', QRect(12, 34, 123, 789)),
+    ])
+    def test_valid(self, value, expected):
+        assert utils.parse_rect(value) == expected
+
+    @pytest.mark.parametrize('value, message', [
+        ('0x0+1+1', "Invalid rectangle"),
+        ('1x1-1+1', "String 1x1-1+1 does not match WxH+X+Y"),
+        ('1x1+1-1', "String 1x1+1-1 does not match WxH+X+Y"),
+        ('1x1', "String 1x1 does not match WxH+X+Y"),
+        ('+1+2', "String +1+2 does not match WxH+X+Y"),
+        ('1e0x1+0+0', "String 1e0x1+0+0 does not match WxH+X+Y"),
+        ('¹x1+0+0', "String ¹x1+0+0 does not match WxH+X+Y"),
+    ])
+    def test_invalid(self, value, message):
+        with pytest.raises(ValueError) as excinfo:
+            utils.parse_rect(value)
+        assert str(excinfo.value) == message
+
+    @hypothesis.given(strategies.text())
+    def test_hypothesis_text(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.tuples(
+        strategies.integers(),
+        strategies.integers(),
+        strategies.integers(),
+        strategies.integers(),
+    ).map(lambda tpl: '{}x{}+{}+{}'.format(*tpl)))
+    def test_hypothesis_sophisticated(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.from_regex(utils._RECT_PATTERN))
+    def test_hypothesis_regex(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)

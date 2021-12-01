@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,19 +15,18 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Our own QNetworkAccessManager."""
 
 import collections
 import html
-import typing
+import dataclasses
+from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
-import attr
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
-                          QByteArray)
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError)
+                             QNetworkProxy)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -40,22 +39,22 @@ from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 from qutebrowser.misc import objects
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow import prompt
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-_proxy_auth_cache = {}  # type: typing.Dict[ProxyId, prompt.AuthInfo]
+_proxy_auth_cache: Dict['ProxyId', 'prompt.AuthInfo'] = {}
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class ProxyId:
 
     """Information identifying a proxy server."""
 
-    type = attr.ib()
-    hostname = attr.ib()
-    port = attr.ib()
+    type: QNetworkProxy.ProxyType
+    hostname: str
+    port: int
 
 
 def _is_secure_cipher(cipher):
@@ -69,19 +68,19 @@ def _is_secure_cipher(cipher):
         # https://weakdh.org/
         return False
     elif cipher.encryptionMethod().upper().startswith('RC4'):
-        # http://en.wikipedia.org/wiki/RC4#Security
+        # https://en.wikipedia.org/wiki/RC4#Security
         # https://codereview.qt-project.org/#/c/148906/
         return False
     elif cipher.encryptionMethod().upper().startswith('DES'):
-        # http://en.wikipedia.org/wiki/Data_Encryption_Standard#Security_and_cryptanalysis
+        # https://en.wikipedia.org/wiki/Data_Encryption_Standard#Security_and_cryptanalysis
         return False
     elif 'MD5' in tokens:
-        # http://www.win.tue.nl/hashclash/rogue-ca/
+        # https://www.win.tue.nl/hashclash/rogue-ca/
         return False
     # OpenSSL should already protect against this in a better way
     # elif (('CBC3' in tokens or 'CBC' in tokens) and (cipher.protocol() not in
     #         [QSsl.TlsV1_0, QSsl.TlsV1_1, QSsl.TlsV1_2])):
-    #     # http://en.wikipedia.org/wiki/POODLE
+    #     # https://en.wikipedia.org/wiki/POODLE
     #     return False
     ### These things should never happen as those are already filtered out by
     ### either the SSL libraries or Qt - but let's be sure.
@@ -105,8 +104,9 @@ def _is_secure_cipher(cipher):
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
     default_ciphers = QSslSocket.defaultCiphers()
-    log.init.debug("Default Qt ciphers: {}".format(
-        ', '.join(c.name() for c in default_ciphers)))
+    log.init.vdebug(  # type: ignore[attr-defined]
+        "Default Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
     bad_ciphers = []
@@ -116,13 +116,16 @@ def init():
         else:
             bad_ciphers.append(cipher)
 
-    log.init.debug("Disabling bad ciphers: {}".format(
-        ', '.join(c.name() for c in bad_ciphers)))
-    QSslSocket.setDefaultCiphers(good_ciphers)
+    if bad_ciphers:
+        log.init.debug("Disabling bad ciphers: {}".format(
+            ', '.join(c.name() for c in bad_ciphers)))
+        QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-_SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
-                                         typing.Sequence[QSslError]]
+_SavedErrorsType = MutableMapping[
+    urlutils.HostTupleType,
+    Set[certificateerror.CertificateErrorWrapper],
+]
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -141,8 +144,8 @@ class NetworkManager(QNetworkAccessManager):
                  (or None for generic network managers)
         _tab_id: The tab ID this NetworkManager is associated with.
                  (or None for generic network managers)
-        _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
-        _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
+        _rejected_ssl_errors: A {QUrl: {SslError}} dict of rejected errors.
+        _accepted_ssl_errors: A {QUrl: {SslError}} dict of accepted errors.
         _private: Whether we're in private browsing mode.
         netrc_used: Whether netrc authentication was performed.
 
@@ -156,7 +159,9 @@ class NetworkManager(QNetworkAccessManager):
         log.init.debug("Initializing NetworkManager")
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
-            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            #
+            # Still needed on Qt/PyQt 5.15.2 according to #6010.
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
@@ -169,15 +174,11 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect(self.on_ssl_errors)  # type: ignore
-        self._rejected_ssl_errors = collections.defaultdict(
-            list)  # type: _SavedErrorsType
-        self._accepted_ssl_errors = collections.defaultdict(
-            list)  # type: _SavedErrorsType
-        self.authenticationRequired.connect(  # type: ignore
-            self.on_authentication_required)
-        self.proxyAuthenticationRequired.connect(  # type: ignore
-            self.on_proxy_authentication_required)
+        self.sslErrors.connect(self.on_ssl_errors)
+        self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(set)
+        self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(set)
+        self.authenticationRequired.connect(self.on_authentication_required)
+        self.proxyAuthenticationRequired.connect(self.on_proxy_authentication_required)
         self.netrc_used = False
 
     def _set_cookiejar(self):
@@ -191,8 +192,7 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cookie jar - we restore its parent so we don't
         # take ownership of it.
         self.setCookieJar(cookie_jar)
-        app = QCoreApplication.instance()
-        cookie_jar.setParent(app)
+        cookie_jar.setParent(objects.qapp)
 
     def _set_cache(self):
         """Set the cache of the NetworkManager correctly."""
@@ -200,9 +200,8 @@ class NetworkManager(QNetworkAccessManager):
             return
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
-        app = QCoreApplication.instance()
         self.setCache(cache.diskcache)
-        cache.diskcache.setParent(app)
+        cache.diskcache.setParent(objects.qapp)
 
     def _get_abort_signals(self, owner=None):
         """Get a list of signals which should abort a question."""
@@ -218,6 +217,25 @@ class NetworkManager(QNetworkAccessManager):
             abort_on.append(tab.load_started)
         return abort_on
 
+    def _get_tab(self):
+        """Get the tab this NAM is associated with.
+
+        Return:
+            The tab if available, None otherwise.
+        """
+        # There are some scenarios where we can't figure out current_url:
+        # - There's a generic NetworkManager, e.g. for downloads
+        # - The download was in a tab which is now closed.
+        if self._tab_id is None:
+            return None
+
+        assert self._win_id is not None
+        try:
+            return objreg.get('tab', scope='tab', window=self._win_id, tab=self._tab_id)
+        except KeyError:
+            # https://github.com/qutebrowser/qutebrowser/issues/889
+            return None
+
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
@@ -225,33 +243,30 @@ class NetworkManager(QNetworkAccessManager):
 
     # No @pyqtSlot here, see
     # https://github.com/qutebrowser/qutebrowser/issues/2213
-    def on_ssl_errors(self, reply, errors):  # noqa: C901 pragma: no mccabe
+    def on_ssl_errors(self, reply, qt_errors):  # noqa: C901 pragma: no mccabe
         """Decide if SSL errors should be ignored or not.
 
         This slot is called on SSL/TLS errors by the self.sslErrors signal.
 
         Args:
             reply: The QNetworkReply that is encountering the errors.
-            errors: A list of errors.
+            qt_errors: A list of errors.
         """
-        errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
-        log.webview.debug("Certificate errors: {!r}".format(
-            ' / '.join(str(err) for err in errors)))
+        errors = certificateerror.CertificateErrorWrapper(qt_errors)
+        log.network.debug("Certificate errors: {!r}".format(errors))
         try:
-            host_tpl = urlutils.host_tuple(
-                reply.url())  # type: typing.Optional[urlutils.HostTupleType]
+            host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
+                reply.url())
         except ValueError:
             host_tpl = None
             is_accepted = False
             is_rejected = False
         else:
             assert host_tpl is not None
-            is_accepted = set(errors).issubset(
-                self._accepted_ssl_errors[host_tpl])
-            is_rejected = set(errors).issubset(
-                self._rejected_ssl_errors[host_tpl])
+            is_accepted = errors in self._accepted_ssl_errors[host_tpl]
+            is_rejected = errors in self._rejected_ssl_errors[host_tpl]
 
-        log.webview.debug("Already accepted: {} / "
+        log.network.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
 
         if is_rejected:
@@ -261,15 +276,22 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         abort_on = self._get_abort_signals(reply)
-        ignore = shared.ignore_certificate_errors(reply.url(), errors,
-                                                  abort_on=abort_on)
+
+        tab = self._get_tab()
+        first_party_url = QUrl() if tab is None else tab.data.last_navigation.url
+
+        ignore = shared.ignore_certificate_error(
+            request_url=reply.url(),
+            first_party_url=first_party_url,
+            error=errors,
+            abort_on=abort_on,
+        )
         if ignore:
             reply.ignoreSslErrors()
-            err_dict = self._accepted_ssl_errors
-        else:
-            err_dict = self._rejected_ssl_errors
-        if host_tpl is not None:
-            err_dict[host_tpl] += errors
+            if host_tpl is not None:
+                self._accepted_ssl_errors[host_tpl].add(errors)
+        elif host_tpl is not None:
+            self._rejected_ssl_errors[host_tpl].add(errors)
 
     def clear_all_ssl_errors(self):
         """Clear all remembered SSL errors."""
@@ -368,13 +390,6 @@ class NetworkManager(QNetworkAccessManager):
             # https://www.playstation.com/ for example.
             pass
 
-    # WORKAROUND for:
-    # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html
-    #
-    # By returning False, we provoke a TypeError because of a wrong return
-    # type, which does *not* trigger a segfault but invoke our return handler
-    # immediately.
-    @utils.prevent_exceptions(False)
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
 
@@ -393,25 +408,24 @@ class NetworkManager(QNetworkAccessManager):
                     req, proxy_error, QNetworkReply.UnknownProxyError,
                     self)
 
+        if not req.url().isValid():
+            log.network.debug("Ignoring invalid requested URL: {}".format(
+                req.url().errorString()))
+            return networkreply.ErrorNetworkReply(
+                req, "Invalid request URL", QNetworkReply.HostNotFoundError,
+                self)
+
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
-        # There are some scenarios where we can't figure out current_url:
-        # - There's a generic NetworkManager, e.g. for downloads
-        # - The download was in a tab which is now closed.
+        tab = self._get_tab()
         current_url = QUrl()
-
-        if self._tab_id is not None:
-            assert self._win_id is not None
+        if tab is not None:
             try:
-                tab = objreg.get('tab', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
                 current_url = tab.url()
-            except (KeyError, RuntimeError):
-                # https://github.com/qutebrowser/qutebrowser/issues/889
-                # Catching RuntimeError because we could be in the middle of
-                # the webpage shutdown here.
-                current_url = QUrl()
+            except RuntimeError:
+                # We could be in the middle of the webpage shutdown here.
+                pass
 
         request = interceptors.Request(first_party_url=current_url,
                                        request_url=req.url())
@@ -424,7 +438,7 @@ class NetworkManager(QNetworkAccessManager):
         if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
-            log.webview.debug("{} {}, first-party {}".format(
+            log.network.debug("{} {}, first-party {}".format(
                 operation,
                 req.url().toDisplayString(),
                 current_url.toDisplayString()))

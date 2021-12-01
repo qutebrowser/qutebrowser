@@ -19,7 +19,7 @@
 # Ryan Roden-Corrent (rcorre), 2016
 # Any feedback is welcome!
 #
-# For more info on Taskwarrior, see http://taskwarrior.org/
+# For more info on Taskwarrior, see https://taskwarrior.org/
 
 # use either the current page title or the hint text as the task description
 [[ $QUTE_MODE == 'hints' ]] && title=$QUTE_SELECTED_TEXT || title=$QUTE_TITLE

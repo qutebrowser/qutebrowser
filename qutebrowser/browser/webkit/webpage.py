@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
 
 import html
 import functools
+from typing import cast
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
@@ -29,7 +30,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
-from qutebrowser.config import config
+from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -77,22 +78,24 @@ class BrowserPage(QWebPage):
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)
-        self.printRequested.connect(  # type: ignore
+        self.printRequested.connect(  # type: ignore[attr-defined]
             self.on_print_requested)
-        self.downloadRequested.connect(  # type: ignore
+        self.downloadRequested.connect(  # type: ignore[attr-defined]
             self.on_download_requested)
-        self.unsupportedContent.connect(  # type: ignore
+        self.unsupportedContent.connect(  # type: ignore[attr-defined]
             self.on_unsupported_content)
-        self.loadStarted.connect(self.on_load_started)  # type: ignore
-        self.featurePermissionRequested.connect(  # type: ignore
+        self.loadStarted.connect(  # type: ignore[attr-defined]
+            self.on_load_started)
+        self.featurePermissionRequested.connect(  # type: ignore[attr-defined]
             self._on_feature_permission_requested)
-        self.saveFrameStateRequested.connect(  # type: ignore
+        self.saveFrameStateRequested.connect(  # type: ignore[attr-defined]
             self.on_save_frame_state_requested)
-        self.restoreFrameStateRequested.connect(  # type: ignore
+        self.restoreFrameStateRequested.connect(  # type: ignore[attr-defined]
             self.on_restore_frame_state_requested)
-        self.loadFinished.connect(  # type: ignore
+        self.loadFinished.connect(  # type: ignore[attr-defined]
             functools.partial(self._inject_userjs, self.mainFrame()))
-        self.frameCreated.connect(self._connect_userjs_signals)  # type: ignore
+        self.frameCreated.connect(  # type: ignore[attr-defined]
+            self._connect_userjs_signals)
 
     @pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
@@ -189,6 +192,19 @@ class BrowserPage(QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
+    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str) -> str:
+        """Override chooseFile to (optionally) invoke custom file uploader."""
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            return super().chooseFile(parent_frame, suggested_file)
+
+        assert handler == "external", handler
+        selected = shared.choose_file(qb_mode=shared.FileSelectionMode.single_file)
+        if not selected:
+            return ''
+        else:
+            return selected[0]
+
     def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
@@ -202,11 +218,18 @@ class BrowserPage(QWebPage):
         Return:
             True on success, the superclass return value on failure.
         """
-        suggested_file = ""
-        if info.suggestedFileNames:
-            suggested_file = info.suggestedFileNames[0]
-        files.fileNames, _ = QFileDialog.getOpenFileNames(
-            None, None, suggested_file)  # type: ignore
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            suggested_file = ""
+            if info.suggestedFileNames:
+                suggested_file = info.suggestedFileNames[0]
+
+            files.fileNames, _ = QFileDialog.getOpenFileNames(
+                None, None, suggested_file)  # type: ignore[arg-type]
+            return True
+
+        assert handler == "external", handler
+        files.fileNames = shared.choose_file(shared.FileSelectionMode.multiple_files)
         return True
 
     def shutdown(self):
@@ -251,7 +274,7 @@ class BrowserPage(QWebPage):
         correct for some common errors the server do.
 
         At some point we might want to implement the MIME Sniffing standard
-        here: http://mimesniff.spec.whatwg.org/
+        here: https://mimesniff.spec.whatwg.org/
         """
         inline, suggested_filename = http.parse_content_disposition(reply)
         download_manager = objreg.get('qtnetwork-download-manager')
@@ -320,7 +343,7 @@ class BrowserPage(QWebPage):
 
         for script in toload:
             if frame is self.mainFrame() or script.runs_on_sub_frames:
-                log.webview.debug('Running GM script: {}'.format(script.name))
+                log.webview.debug(f'Running GM script: {script}')
                 frame.evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
@@ -334,7 +357,7 @@ class BrowserPage(QWebPage):
             return
 
         options = {
-            QWebPage.Notifications: 'content.notifications',
+            QWebPage.Notifications: 'content.notifications.enabled',
             QWebPage.Geolocation: 'content.geolocation',
         }
         messages = {
@@ -348,11 +371,11 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(QUrl.RemoveUserInfo |
-                                   QUrl.RemovePath |
-                                   QUrl.RemoveQuery |
-                                   QUrl.RemoveFragment)
-
+        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
+                                        QUrl.RemoveUserInfo |
+                                        QUrl.RemovePath |
+                                        QUrl.RemoveQuery |
+                                        QUrl.RemoveFragment))
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -360,7 +383,7 @@ class BrowserPage(QWebPage):
             abort_on=[self.shutting_down, self.loadStarted])
 
         if question is not None:
-            self.featurePermissionRequestCanceled.connect(  # type: ignore
+            self.featurePermissionRequestCanceled.connect(  # type: ignore[attr-defined]
                 functools.partial(self._on_feature_permission_cancelled,
                                   question, frame, feature))
 
@@ -411,11 +434,9 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.instance.get('content.headers.user_agent', url=url)
-        if ua is None:
-            return super().userAgentForUrl(url)
-        else:
-            return ua
+        if not url.isValid():
+            url = None
+        return websettings.user_agent(url)
 
     def supportsExtension(self, ext):
         """Override QWebPage::supportsExtension to provide error pages.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,37 +15,54 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A HintManager to draw hints over links."""
 
 import collections
-import typing
 import functools
 import os
 import re
 import html
 import enum
+import dataclasses
 from string import ascii_lowercase
+from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
+                    MutableSequence, Optional, Sequence, Set)
 
-import attr
-from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
 from qutebrowser.browser import webelem, history
-from qutebrowser.commands import userscripts, runners
+from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
-                              'window', 'yank', 'yank_primary', 'run', 'fill',
-                              'hover', 'download', 'userscript', 'spawn',
-                              'delete', 'right_click'])
+class Target(enum.Enum):
+
+    """What action to take on a hint."""
+
+    normal = enum.auto()
+    current = enum.auto()
+    tab = enum.auto()
+    tab_fg = enum.auto()
+    tab_bg = enum.auto()
+    window = enum.auto()
+    yank = enum.auto()
+    yank_primary = enum.auto()
+    run = enum.auto()
+    fill = enum.auto()
+    hover = enum.auto()
+    download = enum.auto()
+    userscript = enum.auto()
+    spawn = enum.auto()
+    delete = enum.auto()
+    right_click = enum.auto()
 
 
 class HintingError(Exception):
@@ -74,6 +91,8 @@ class HintLabel(QLabel):
         super().__init__(parent=context.tab)
         self._context = context
         self.elem = elem
+
+        self.setTextFormat(Qt.RichText)
 
         # Make sure we can style the background via a style sheet, and we don't
         # get any extra text indent from Qt.
@@ -133,7 +152,7 @@ class HintLabel(QLabel):
         self.deleteLater()
 
 
-@attr.s
+@dataclasses.dataclass
 class HintContext:
 
     """Context namespace used for hinting.
@@ -164,22 +183,23 @@ class HintContext:
         group: The group of web elements to hint.
     """
 
-    all_labels = attr.ib(attr.Factory(list))  # type: typing.List[HintLabel]
-    labels = attr.ib(attr.Factory(dict))  # type: typing.Dict[str, HintLabel]
-    target = attr.ib(None)  # type: Target
-    baseurl = attr.ib(None)  # type: QUrl
-    to_follow = attr.ib(None)  # type: str
-    rapid = attr.ib(False)  # type: bool
-    first_run = attr.ib(True)  # type: bool
-    add_history = attr.ib(False)  # type: bool
-    filterstr = attr.ib(None)  # type: str
-    args = attr.ib(attr.Factory(list))  # type: typing.List[str]
-    tab = attr.ib(None)  # type: browsertab.AbstractTab
-    group = attr.ib(None)  # type: str
-    hint_mode = attr.ib(None)  # type: str
-    first = attr.ib(False)  # type: bool
+    tab: 'browsertab.AbstractTab'
+    target: Target
+    rapid: bool
+    hint_mode: str
+    add_history: bool
+    first: bool
+    baseurl: QUrl
+    args: List[str]
+    group: str
 
-    def get_args(self, urlstr: str) -> typing.Sequence[str]:
+    all_labels: List[HintLabel] = dataclasses.field(default_factory=list)
+    labels: Dict[str, HintLabel] = dataclasses.field(default_factory=dict)
+    to_follow: Optional[str] = None
+    first_run: bool = True
+    filterstr: Optional[str] = None
+
+    def get_args(self, urlstr: str) -> Sequence[str]:
         """Get the arguments, with {hint-url} replaced by the given URL."""
         args = []
         for arg in self.args:
@@ -235,7 +255,7 @@ class HintActions:
         flags = QUrl.FullyEncoded | QUrl.RemovePassword
         if url.scheme() == 'mailto':
             flags |= QUrl.RemoveScheme
-        urlstr = url.toString(flags)  # type: ignore
+        urlstr = url.toString(flags)  # type: ignore[arg-type]
 
         new_content = urlstr
 
@@ -252,18 +272,19 @@ class HintActions:
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
             urlstr)
-        message.info(msg)
+        message.info(msg, replace='rapid-hints' if context.rapid else None)
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
+        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        urlstr = url.toDisplayString(QUrl.FullyEncoded)  # type: ignore
+        flags = QUrl.FullyEncoded
+        urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
@@ -286,12 +307,10 @@ class HintActions:
 
         prompt = False if context.rapid else None
         qnam = context.tab.private_api.networkaccessmanager()
-        user_agent = context.tab.private_api.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager')
-        download_manager.get(url, qnam=qnam, user_agent=user_agent,
-                             prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
     def call_userscript(self, elem: webelem.AbstractWebElement,
                         context: HintContext) -> None:
@@ -301,16 +320,24 @@ class HintActions:
             elem: The QWebElement to use in the userscript.
             context: The HintContext to use.
         """
+        # lazy import to avoid circular import issues
+        from qutebrowser.commands import userscripts
+
         cmd = context.args[0]
         args = context.args[1:]
+        flags = QUrl.FullyEncoded
+
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
+            'QUTE_CURRENT_URL':
+                context.baseurl.toString(flags),  # type: ignore[arg-type]
         }
+
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)  # type: ignore
+            env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
 
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
@@ -330,14 +357,14 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore
+            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
 
 
-_ElemsType = typing.Sequence[webelem.AbstractWebElement]
-_HintStringsType = typing.MutableSequence[str]
+_ElemsType = Sequence[webelem.AbstractWebElement]
+_HintStringsType = MutableSequence[str]
 
 
 class HintManager(QObject):
@@ -353,7 +380,7 @@ class HintManager(QObject):
         _tab_id: The tab ID this HintManager is associated with.
 
     Signals:
-        See HintActions
+        set_text: Request for the statusbar to change its text.
     """
 
     HINT_TEXTS = {
@@ -375,11 +402,13 @@ class HintManager(QObject):
         Target.delete: "Delete an element",
     }
 
+    set_text = pyqtSignal(str)
+
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         """Constructor."""
         super().__init__(parent)
         self._win_id = win_id
-        self._context = None  # type: typing.Optional[HintContext]
+        self._context: Optional[HintContext] = None
         self._word_hinter = WordHinter()
 
         self._actions = HintActions(win_id)
@@ -402,10 +431,8 @@ class HintManager(QObject):
         for label in self._context.all_labels:
             label.cleanup()
 
-        text = self._get_text()
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.maybe_reset_text(text)
+        self.set_text.emit('')
+
         self._context = None
 
     def _hint_strings(self, elems: _ElemsType) -> _HintStringsType:
@@ -511,12 +538,10 @@ class HintManager(QObject):
         Return:
             A list of shuffled hint strings.
         """
-        buckets = [
-            [] for i in range(length)
-        ]  # type: typing.Sequence[_HintStringsType]
+        buckets: Sequence[_HintStringsType] = [[] for i in range(length)]
         for i, hint in enumerate(hints):
             buckets[i % len(buckets)].append(hint)
-        result = []  # type: _HintStringsType
+        result: _HintStringsType = []
         for bucket in buckets:
             result += bucket
         return result
@@ -541,7 +566,7 @@ class HintManager(QObject):
             A hint string.
         """
         base = len(chars)
-        hintstr = []  # type: typing.MutableSequence[str]
+        hintstr: MutableSequence[str] = []
         remainder = 0
         while True:
             remainder = number % base
@@ -575,7 +600,7 @@ class HintManager(QObject):
                 raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
-    def _filter_matches(self, filterstr: str, elemstr: str) -> bool:
+    def _filter_matches(self, filterstr: Optional[str], elemstr: str) -> bool:
         """Return True if `filterstr` matches `elemstr`."""
         # Empty string and None always match
         if not filterstr:
@@ -633,11 +658,10 @@ class HintManager(QObject):
         keyparser = self._get_keyparser(usertypes.KeyMode.hint)
         keyparser.update_bindings(strings)
 
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.set_text(self._get_text())
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
+
+        self.set_text.emit(self._get_text())
 
         if self._context.first:
             self._fire(strings[0])
@@ -660,9 +684,8 @@ class HintManager(QObject):
         Args:
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
-                   open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background=true`), `tab-bg`,
-                   `window`, `run`, `hover`, `userscript` and `spawn`.
+                   open multiple links. Note this won't work with targets
+                   `tab-fg`, `fill`, `delete` and `right-click`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
             first: Click the first hinted element without prompting.
@@ -730,33 +753,35 @@ class HintManager(QObject):
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
-        if rapid:
-            if target in [Target.tab_bg, Target.window, Target.run,
-                          Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current,
-                          Target.yank, Target.yank_primary]:
-                pass
-            elif target == Target.tab and config.val.tabs.background:
-                pass
-            else:
-                name = target.name.replace('_', '-')
-                raise cmdutils.CommandError("Rapid hinting makes no sense "
-                                            "with target {}!".format(name))
+        no_rapid_targets = [
+            Target.tab_fg,  # opens new tab
+            Target.fill,  # exits hint mode
+            Target.right_click,  # opens multiple context menus
+            Target.delete,  # deleting elements shifts them
+        ]
+        if rapid and target in no_rapid_targets:
+            name = target.name.replace('_', '-')
+            raise cmdutils.CommandError(
+                f"Rapid hinting makes no sense with target {name}!")
 
         self._check_args(target, *args)
-        self._context = HintContext()
-        self._context.tab = tab
-        self._context.target = target
-        self._context.rapid = rapid
-        self._context.hint_mode = self._get_hint_mode(mode)
-        self._context.add_history = add_history
-        self._context.first = first
+
         try:
-            self._context.baseurl = tabbed_browser.current_url()
+            baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdutils.CommandError("No URL set for this page yet!")
-        self._context.args = list(args)
-        self._context.group = group
+
+        self._context = HintContext(
+            tab=tab,
+            target=target,
+            rapid=rapid,
+            hint_mode=self._get_hint_mode(mode),
+            add_history=add_history,
+            first=first,
+            baseurl=baseurl,
+            args=list(args),
+            group=group,
+        )
 
         try:
             css_selector, special_selectors = webelem.css_selector(
@@ -771,7 +796,7 @@ class HintManager(QObject):
             only_visible=True,
             special_classes=special_selectors)
 
-    def _get_hint_mode(self, mode: typing.Optional[str]) -> str:
+    def _get_hint_mode(self, mode: Optional[str]) -> str:
         """Get the hinting mode to use based on a mode argument."""
         if mode is None:
             return config.val.hints.mode
@@ -783,7 +808,7 @@ class HintManager(QObject):
             raise cmdutils.CommandError("Invalid mode: {}".format(e))
         return mode
 
-    def current_mode(self) -> typing.Optional[str]:
+    def current_mode(self) -> Optional[str]:
         """Return the currently active hinting mode (or None otherwise)."""
         if self._context is None:
             return None
@@ -794,7 +819,7 @@ class HintManager(QObject):
             self,
             keystr: str = "",
             filterstr: str = "",
-            visible: typing.Mapping[str, HintLabel] = None
+            visible: Mapping[str, HintLabel] = None
     ) -> None:
         """Handle the auto_follow option."""
         assert self._context is not None
@@ -820,7 +845,7 @@ class HintManager(QObject):
         else:
             follow = False
             # save the keystr of the only one visible hint to be picked up
-            # later by self.follow_hint
+            # later by self.hint_follow
             self._context.to_follow = list(visible.keys())[0]
 
         if follow:
@@ -856,7 +881,7 @@ class HintManager(QObject):
                 pass
         self._handle_auto_follow(keystr=keystr)
 
-    def filter_hints(self, filterstr: typing.Optional[str]) -> None:
+    def filter_hints(self, filterstr: Optional[str]) -> None:
         """Filter displayed hints according to a text.
 
         Args:
@@ -896,7 +921,7 @@ class HintManager(QObject):
 
         if self._context.hint_mode == 'number':
             # renumber filtered hints
-            strings = self._hint_strings(visible)
+            strings = self._hint_strings([label.elem for label in visible])
             self._context.labels = {}
             for label, string in zip(visible, strings):
                 label.update_text('', string)
@@ -983,7 +1008,7 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='window',
                        modes=[usertypes.KeyMode.hint])
-    def follow_hint(self, select: bool = False, keystring: str = None) -> None:
+    def hint_follow(self, select: bool = False, keystring: str = None) -> None:
         """Follow a hint.
 
         Args:
@@ -1027,7 +1052,7 @@ class WordHinter:
 
     def __init__(self) -> None:
         # will be initialized on first use.
-        self.words = set()  # type: typing.Set[str]
+        self.words: Set[str] = set()
         self.dictionary = None
 
     def ensure_initialized(self) -> None:
@@ -1053,16 +1078,19 @@ class WordHinter:
                             hints.discard(word[:i + 1])
                         hints.add(word)
                     self.words.update(hints)
-            except IOError as e:
+            except OSError as e:
                 error = "Word hints requires reading the file at {}: {}"
+                raise HintingError(error.format(dictionary, str(e)))
+            except UnicodeDecodeError as e:
+                error = "Word hints expects the file at {} to be encoded as UTF-8: {}"
                 raise HintingError(error.format(dictionary, str(e)))
 
     def extract_tag_words(
             self, elem: webelem.AbstractWebElement
-    ) -> typing.Iterator[str]:
+    ) -> Iterator[str]:
         """Extract tag words form the given element."""
-        _extractor_type = typing.Callable[[webelem.AbstractWebElement], str]
-        attr_extractors = {
+        _extractor_type = Callable[[webelem.AbstractWebElement], str]
+        attr_extractors: Mapping[str, _extractor_type] = {
             "alt": lambda elem: elem["alt"],
             "name": lambda elem: elem["name"],
             "title": lambda elem: elem["title"],
@@ -1070,7 +1098,7 @@ class WordHinter:
             "src": lambda elem: elem["src"].split('/')[-1],
             "href": lambda elem: elem["href"].split('/')[-1],
             "text": str,
-        }  # type: typing.Mapping[str, _extractor_type]
+        }
 
         extractable_attrs = collections.defaultdict(list, {
             "img": ["alt", "title", "src"],
@@ -1086,8 +1114,8 @@ class WordHinter:
 
     def tag_words_to_hints(
             self,
-            words: typing.Iterable[str]
-    ) -> typing.Iterator[str]:
+            words: Iterable[str]
+    ) -> Iterator[str]:
         """Take words and transform them to proper hints if possible."""
         for candidate in words:
             if not candidate:
@@ -1098,20 +1126,20 @@ class WordHinter:
             if 4 < match.end() - match.start() < 8:
                 yield candidate[match.start():match.end()].lower()
 
-    def any_prefix(self, hint: str, existing: typing.Iterable[str]) -> bool:
+    def any_prefix(self, hint: str, existing: Iterable[str]) -> bool:
         return any(hint.startswith(e) or e.startswith(hint) for e in existing)
 
     def filter_prefixes(
             self,
-            hints: typing.Iterable[str],
-            existing: typing.Iterable[str]
-    ) -> typing.Iterator[str]:
+            hints: Iterable[str],
+            existing: Iterable[str]
+    ) -> Iterator[str]:
         """Filter hints which don't start with the given prefix."""
         return (h for h in hints if not self.any_prefix(h, existing))
 
     def new_hint_for(self, elem: webelem.AbstractWebElement,
-                     existing: typing.Iterable[str],
-                     fallback: typing.Iterable[str]) -> typing.Optional[str]:
+                     existing: Iterable[str],
+                     fallback: Iterable[str]) -> Optional[str]:
         """Return a hint for elem, not conflicting with the existing."""
         new = self.tag_words_to_hints(self.extract_tag_words(elem))
         new_no_prefixes = self.filter_prefixes(new, existing)
@@ -1135,7 +1163,7 @@ class WordHinter:
         """
         self.ensure_initialized()
         hints = []
-        used_hints = set()  # type: typing.Set[str]
+        used_hints: Set[str] = set()
         words = iter(self.words)
         for elem in elems:
             hint = self.new_hint_for(elem, used_hints, words)

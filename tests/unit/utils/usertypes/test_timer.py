@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for Timer."""
 
@@ -70,13 +70,13 @@ def test_start_overflow():
 def test_timeout_start(qtbot):
     """Make sure the timer works with start()."""
     t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=3000):
+    with qtbot.wait_signal(t.timeout, timeout=3000):
         t.start(200)
 
 
 def test_timeout_set_interval(qtbot):
     """Make sure the timer works with setInterval()."""
     t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=3000):
+    with qtbot.wait_signal(t.timeout, timeout=3000):
         t.setInterval(200)
         t.start()

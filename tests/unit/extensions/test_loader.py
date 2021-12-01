@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import types
 
@@ -35,14 +35,8 @@ def test_on_walk_error():
 
 
 def test_walk_normal():
-    names = [info.name for info in loader._walk_normal()]
+    names = [info.name for info in loader.walk_components()]
     assert 'qutebrowser.components.scrollcommands' in names
-
-
-def test_walk_pyinstaller():
-    # We can't test whether we get something back without being frozen by
-    # PyInstaller, but at least we can test that we don't crash.
-    list(loader._walk_pyinstaller())
 
 
 def test_load_component(monkeypatch):

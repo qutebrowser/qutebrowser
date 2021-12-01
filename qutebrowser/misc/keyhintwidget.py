@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Small window that pops up to show hints for possible keystrings.
 
@@ -31,7 +31,7 @@ import re
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import utils, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
@@ -72,7 +72,7 @@ class KeyHintView(QLabel):
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
         self._show_timer.setSingleShot(True)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
@@ -82,8 +82,8 @@ class KeyHintView(QLabel):
         self.update_geometry.emit()
         super().showEvent(e)
 
-    @pyqtSlot(str)
-    def update_keyhint(self, modename, prefix):
+    @pyqtSlot(usertypes.KeyMode, str)
+    def update_keyhint(self, mode, prefix):
         """Show hints for the given prefix (or hide if prefix is empty).
 
         Args:
@@ -108,7 +108,7 @@ class KeyHintView(QLabel):
             cmd = objects.commands.get(cmdname)
             return cmd and cmd.takes_count()
 
-        bindings_dict = config.key_instance.get_bindings_for(modename)
+        bindings_dict = config.key_instance.get_bindings_for(mode.name)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
                     if keyutils.KeySequence.parse(prefix).matches(k) and
                     not blacklisted(str(k)) and

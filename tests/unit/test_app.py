@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for the qutebrowser.app module."""
 
 from PyQt5.QtCore import QBuffer
 
+from qutebrowser.misc import objects
 from qutebrowser import app
 
 
@@ -30,7 +31,7 @@ def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):
     For some reason, Qt sometimes calls on_focus_changed() with a QBuffer as
     argument. Let's make sure we handle that gracefully.
     """
-    monkeypatch.setattr(app, 'q_app', qapp)
+    monkeypatch.setattr(objects, 'qapp', qapp)
 
     buf = QBuffer()
     app.on_focus_changed(buf, buf)

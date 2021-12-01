@@ -6,7 +6,6 @@ extension-pkg-whitelist=PyQt5,sip
 load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              qute_pylint.openencoding,
-             qute_pylint.settrace,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
              pylint.extensions.broad_try_clause,
@@ -47,12 +46,13 @@ disable=locally-disabled,
         too-many-statements,
         too-few-public-methods,
         import-outside-toplevel,
+        bad-continuation  # This lint disagrees with Black
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
-const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
+const-rgx=[A-Za-z_][A-Za-z0-9_]{0,50}$
 method-rgx=[a-z_][A-Za-z0-9_]{1,50}$
-attr-rgx=[a-z_][a-z0-9_]{0,30}$
+attr-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
 class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{1,30}|(__.*__))$
 argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
@@ -60,8 +60,8 @@ docstring-min-length=3
 no-docstring-rgx=(^_|^main$)
 
 [FORMAT]
-max-line-length=79
-ignore-long-lines=(<?https?://|^# Copyright 201\d|link:)
+max-line-length=88
+ignore-long-lines=(<?https?://|file://|^# Copyright 201\d|link:)
 expected-line-ending-format=LF
 
 [VARIABLES]
@@ -75,7 +75,7 @@ valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
 ignored-modules=PyQt5,PyQt5.QtWebKit
-ignored-classes=DummyBox
+ignored-classes=DummyBox,__cause__
 
 [IMPORTS]
 known-third-party=sip

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test testprocess.Process."""
 
@@ -131,7 +131,7 @@ def test_no_ready_python_process(noready_pyproc):
 
 
 def test_quitting_process(qtbot, quit_pyproc):
-    with qtbot.waitSignal(quit_pyproc.proc.finished):
+    with qtbot.wait_signal(quit_pyproc.proc.finished):
         quit_pyproc.start()
     with pytest.raises(testprocess.ProcessExited):
         quit_pyproc.after_test()
@@ -139,7 +139,7 @@ def test_quitting_process(qtbot, quit_pyproc):
 
 def test_quitting_process_expected(qtbot, quit_pyproc):
     quit_pyproc.exit_expected = True
-    with qtbot.waitSignal(quit_pyproc.proc.finished):
+    with qtbot.wait_signal(quit_pyproc.proc.finished):
         quit_pyproc.start()
     quit_pyproc.after_test()
 

@@ -15,7 +15,7 @@
 #  - It comes in handy if you enable downloads.remove_finished. If you want to
 #    see the recent downloads, just press "sd".
 #
-# Thorsten Wißmann, 2015 (thorsten` on freenode)
+# Thorsten Wißmann, 2015 (thorsten` on Libera Chat)
 # Any feedback is welcome!
 
 set -e

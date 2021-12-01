@@ -1,6 +1,11 @@
 mypy
--e git+https://github.com/qutebrowser/PyQt5-stubs.git@wip#egg=PyQt5-stubs
+lxml  # For HTML reports
+diff-cover
 
-# remove @commit-id for scm installs
-#@ replace: @.*# @wip#
-#@ ignore: PyQt5, PyQt5-sip
+PyQt5-stubs
+types-dataclasses
+types-PyYAML
+
+# So stubs are available even on newer Python versions
+importlib_resources
+importlib_metadata

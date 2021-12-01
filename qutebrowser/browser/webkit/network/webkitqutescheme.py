@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QtWebKit specific qute://* handlers and glue code."""
 
@@ -48,7 +48,7 @@ def handler(request, operation, current_url):
     if ((url.scheme(), url.host(), url.path()) ==
             ('qute', 'settings', '/set')):
         if current_url != QUrl('qute://settings/'):
-            log.webview.warning("Blocking malicious request from {} to {}"
+            log.network.warning("Blocking malicious request from {} to {}"
                                 .format(current_url.toDisplayString(),
                                         url.toDisplayString()))
             return networkreply.ErrorNetworkReply(

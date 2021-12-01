@@ -1,7 +1,7 @@
 # vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
 
 Feature: Prompts
-    Various prompts (javascript, SSL errors, authentification, etc.)
+    Various prompts (javascript, SSL errors, authentication, etc.)
 
     # Javascript
 
@@ -36,10 +36,9 @@ Feature: Prompts
         When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "confirm reply: false" should be logged
 
-    @js_prompt
     Scenario: Javascript prompt
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
@@ -48,7 +47,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: prompt test" should be logged
 
-    @js_prompt
     Scenario: Javascript prompt with default
         When I open data/prompt/jsprompt.html
         And I run :click-element id button-default
@@ -56,13 +54,12 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: default" should be logged
 
-    @js_prompt
     Scenario: Rejected javascript prompt
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "Prompt reply: null" should be logged
 
     # Multiple prompts
@@ -87,7 +84,7 @@ Feature: Prompts
     Scenario: Blocking question interrupted by async one
         Given I have a fresh instance
         When I set content.javascript.alert to true
-        And I set content.notifications to ask
+        And I set content.notifications.enabled to ask
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
@@ -104,7 +101,7 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: Async question interrupted by async one
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -120,7 +117,7 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: Async question interrupted by blocking one
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I set content.javascript.alert to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -137,7 +134,6 @@ Feature: Prompts
 
     # Shift-Insert with prompt (issue 1299)
 
-    @js_prompt
     Scenario: Pasting via shift-insert in prompt mode
         When selection is supported
         And I put "insert test" into the primary selection
@@ -148,7 +144,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: insert test" should be logged
 
-    @js_prompt
     Scenario: Pasting via shift-insert without it being supported
         When selection is not supported
         And I put "insert test" into the primary selection
@@ -160,7 +155,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: clipboard test" should be logged
 
-    @js_prompt
     Scenario: Using content.javascript.prompt
         When I set content.javascript.prompt to false
         And I open data/prompt/jsprompt.html
@@ -169,44 +163,82 @@ Feature: Prompts
 
     # SSL
 
-    Scenario: SSL error with content.ssl_strict = false
+    Scenario: SSL error with content.tls.certificate_errors = load-insecurely
         When I clear SSL errors
-        And I set content.ssl_strict to false
+        And I set content.tls.certificate_errors to load-insecurely
         And I load an SSL page
         And I wait until the SSL page finished loading
         Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
-    Scenario: SSL error with content.ssl_strict = true
+    Scenario: SSL error with content.tls.certificate_errors = block
         When I clear SSL errors
-        And I set content.ssl_strict to true
+        And I set content.tls.certificate_errors to block
         And I load an SSL page
         Then a SSL error page should be shown
 
-    Scenario: SSL error with content.ssl_strict = ask -> yes
+    Scenario: SSL error with content.tls.certificate_errors = ask -> yes
         When I clear SSL errors
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept yes
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
-    Scenario: SSL error with content.ssl_strict = ask -> no
+    Scenario: SSL error with content.tls.certificate_errors = ask -> no
         When I clear SSL errors
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
-    Scenario: SSL error with content.ssl_strict = ask -> abort
+    Scenario: SSL error with content.tls.certificate_errors = ask -> abort
         When I clear SSL errors
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I load an SSL page
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then a SSL error page should be shown
+
+    Scenario: SSL error with content.tls.certificate_errors = ask-block-thirdparty -> yes
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask-block-thirdparty
+        And I load an SSL page
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        And I wait until the SSL page finished loading
+        Then the page should contain the plaintext "Hello World via SSL!"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask -> yes
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask
+        And I load an SSL resource page
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        And I wait until the SSL resource page finished loading
+        Then the javascript message "Script loaded" should be logged
+        And the page should contain the plaintext "Script loaded"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask -> no
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask
+        And I load an SSL resource page
+        And I wait for a prompt
+        And I run :prompt-accept no
+        And I wait until the SSL resource page finished loading
+        Then the javascript message "Script loaded" should not be logged
+        And the page should contain the plaintext "Script not loaded"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask-block-thirdparty
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask-block-thirdparty
+        And I load an SSL resource page
+        And I wait until the SSL resource page finished loading
+        Then "Certificate error in resource load: *" should be logged
+        And the javascript message "Script loaded" should not be logged
+        And the page should contain the plaintext "Script not loaded"
 
     # Geolocation
 
@@ -238,7 +270,7 @@ Feature: Prompts
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "geolocation permission denied" should be logged
 
     # Notifications
@@ -246,7 +278,7 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: Always rejecting notifications
         Given I have a fresh instance
-        When I set content.notifications to false
+        When I set content.notifications.enabled to false
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
@@ -254,7 +286,7 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: Always accepting notifications
         Given I have a fresh instance
-        When I set content.notifications to true
+        When I set content.notifications.enabled to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
@@ -262,7 +294,7 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: notifications with ask -> false
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -272,18 +304,18 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: notifications with ask -> false and save
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept --save no
         Then the javascript message "notification permission denied" should be logged
-        And the per-domain option content.notifications should be set to false for http://localhost:(port)
+        And the per-domain option content.notifications.enabled should be set to false for http://localhost:(port)
 
     @qtwebengine_notifications
     Scenario: notifications with ask -> true
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -293,29 +325,29 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: notifications with ask -> true and save
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept --save yes
         Then the javascript message "notification permission granted" should be logged
-        And the per-domain option content.notifications should be set to true for http://localhost:(port)
+        And the per-domain option content.notifications.enabled should be set to true for http://localhost:(port)
 
     # This actually gives us a denied rather than an aborted
     @xfail_norun
     Scenario: notifications with ask -> abort
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "notification permission aborted" should be logged
 
     @qtwebengine_notifications
     Scenario: answering notification after closing tab
         Given I have a fresh instance
-        When I set content.notifications to ask
+        When I set content.notifications.enabled to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -325,7 +357,7 @@ Feature: Prompts
 
     # Page authentication
 
-    Scenario: Successful webpage authentification
+    Scenario: Successful webpage authentication
         When I open basic-auth/user1/password1 without waiting
         And I wait for a prompt
         And I press the keys "user1"
@@ -378,10 +410,10 @@ Feature: Prompts
             }
 
     @qtwebengine_skip
-    Scenario: Cancellling webpage authentification with QtWebKit
+    Scenario: Cancellling webpage authentication with QtWebKit
         When I open basic-auth/user6/password6 without waiting
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then basic-auth/user6/password6 should be loaded
 
     # :prompt-accept with value argument
@@ -396,7 +428,6 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the error "No value is permitted with alert prompts!" should be shown
 
-    @js_prompt
     Scenario: Javascript prompt with value
         When I set content.javascript.prompt to true
         And I open data/prompt/jsprompt.html
@@ -490,8 +521,8 @@ Feature: Prompts
     @qtwebengine_notifications
     Scenario: Interrupting SSL prompt during a notification prompt
         Given I have a fresh instance
-        When I set content.notifications to ask
-        And I set content.ssl_strict to ask
+        When I set content.notifications.enabled to ask
+        And I set content.tls.certificate_errors to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt

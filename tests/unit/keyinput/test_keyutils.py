@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import operator
 
@@ -268,6 +268,7 @@ class TestKeySequence:
     @pytest.mark.parametrize('orig, normalized', [
         ('<Control+x>', '<Ctrl+x>'),
         ('<Windows+x>', '<Meta+x>'),
+        ('<Super+x>', '<Meta+x>'),
         ('<Mod4+x>', '<Meta+x>'),
         ('<Command+x>', '<Meta+x>'),
         ('<Cmd+x>', '<Meta+x>'),
@@ -458,11 +459,11 @@ class TestKeySequence:
          Qt.ControlModifier | Qt.ShiftModifier),
         (Qt.ShiftModifier, Qt.ShiftModifier),
     ])
-    def test_fake_mac(self, fake_keyevent, modifiers, expected):
+    def test_fake_mac(self, modifiers, expected):
         """Make sure Control/Meta are swapped with a simulated Mac."""
         seq = keyutils.KeySequence()
-        event = fake_keyevent(key=Qt.Key_A, modifiers=modifiers)
-        new = seq.append_event(event)
+        info = keyutils.KeyInfo(key=Qt.Key_A, modifiers=modifiers)
+        new = seq.append_event(info.to_event())
         assert new[0] == keyutils.KeyInfo(Qt.Key_A, expected)
 
     @pytest.mark.parametrize('key', [Qt.Key_unknown, 0x0])
@@ -481,13 +482,18 @@ class TestKeySequence:
                                         Qt.Key_A | Qt.ControlModifier)
         assert seq.strip_modifiers() == expected
 
-    def test_with_mappings(self):
-        seq = keyutils.KeySequence.parse('foobar')
-        mappings = {
-            keyutils.KeySequence.parse('b'): keyutils.KeySequence.parse('t')
-        }
-        seq2 = seq.with_mappings(mappings)
-        assert seq2 == keyutils.KeySequence.parse('footar')
+    @pytest.mark.parametrize('inp, mappings, expected', [
+        ('foobar', {'b': 't'}, 'footar'),
+        ('foo<Ctrl+x>bar', {'<Ctrl+x>': '<Ctrl+y>'}, 'foo<Ctrl+y>bar'),
+        ('foobar', {'b': 'sa'}, 'foosaar'),
+    ])
+    def test_with_mappings(self, inp, mappings, expected):
+        seq = keyutils.KeySequence.parse(inp)
+        seq2 = seq.with_mappings({
+            keyutils.KeySequence.parse(k): keyutils.KeySequence.parse(v)
+            for k, v in mappings.items()
+        })
+        assert seq2 == keyutils.KeySequence.parse(expected)
 
     @pytest.mark.parametrize('keystr, expected', [
         ('<Ctrl-Alt-y>',
@@ -577,28 +583,6 @@ def test_key_info_to_int():
 def test_is_printable(key, printable):
     assert keyutils._is_printable(key) == printable
     assert keyutils.is_special(key, Qt.NoModifier) != printable
-
-
-@pytest.mark.parametrize('key, modifiers, special', [
-    (Qt.Key_Escape, Qt.NoModifier, True),
-    (Qt.Key_Escape, Qt.ShiftModifier, True),
-    (Qt.Key_Escape, Qt.ControlModifier, True),
-    (Qt.Key_X, Qt.ControlModifier, True),
-    (Qt.Key_X, Qt.NoModifier, False),
-    (Qt.Key_2, Qt.NoModifier, False),
-
-    # Keypad should not reset hint keychain - see #3735
-    (Qt.Key_2, Qt.KeypadModifier, False),
-
-    # Modifiers should not reset hint keychain - see #4264
-    (Qt.Key_Shift, Qt.ShiftModifier, False),
-    (Qt.Key_Control, Qt.ControlModifier, False),
-    (Qt.Key_Alt, Qt.AltModifier, False),
-    (Qt.Key_Meta, Qt.MetaModifier, False),
-    (Qt.Key_Mode_switch, Qt.GroupSwitchModifier, False),
-])
-def test_is_special_hint_mode(key, modifiers, special):
-    assert keyutils.is_special_hint_mode(key, modifiers) == special
 
 
 @pytest.mark.parametrize('key, modifiers, special', [

@@ -21,7 +21,7 @@
 #   (comments and video suggestions), i.e. only the videos should disappear
 #   when mpv is started. And that's precisely what the present script does.
 #
-# Thorsten Wißmann, 2015 (thorsten` on freenode)
+# Thorsten Wißmann, 2015 (thorsten` on Libera Chat)
 # Any feedback is welcome!
 
 set -e
@@ -124,7 +124,7 @@ cat <<EOF
     }
 
     /** force repainting the video, thanks to:
-     * http://martinwolf.org/2014/06/10/force-repaint-of-an-element-with-javascript/
+     * http://web.archive.org/web/20151029064649/https://martinwolf.org/2014/06/10/force-repaint-of-an-element-with-javascript/
      */
     var siteHeader = document.getElementById('header');
     siteHeader.style.display='none';

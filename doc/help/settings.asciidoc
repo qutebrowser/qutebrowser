@@ -16,7 +16,8 @@
 |<<backend,backend>>|Backend to use to display websites.
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
-|<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
+|<<bindings.key_mappings,bindings.key_mappings>>|Map keys to other keys, so that they are equivalent in all modes.
+|<<changelog_after_upgrade,changelog_after_upgrade>>|When to show a changelog after qutebrowser was upgraded.
 |<<colors.completion.category.bg,colors.completion.category.bg>>|Background color of the completion widget category headers.
 |<<colors.completion.category.border.bottom,colors.completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
 |<<colors.completion.category.border.top,colors.completion.category.border.top>>|Top border color of the completion widget category headers.
@@ -32,6 +33,12 @@
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
 |<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
 |<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in the completion view.
+|<<colors.contextmenu.disabled.bg,colors.contextmenu.disabled.bg>>|Background color of disabled items in the context menu.
+|<<colors.contextmenu.disabled.fg,colors.contextmenu.disabled.fg>>|Foreground color of disabled items in the context menu.
+|<<colors.contextmenu.menu.bg,colors.contextmenu.menu.bg>>|Background color of the context menu.
+|<<colors.contextmenu.menu.fg,colors.contextmenu.menu.fg>>|Foreground color of the context menu.
+|<<colors.contextmenu.selected.bg,colors.contextmenu.selected.bg>>|Background color of the context menu's selected item.
+|<<colors.contextmenu.selected.fg,colors.contextmenu.selected.fg>>|Foreground color of the context menu's selected item.
 |<<colors.downloads.bar.bg,colors.downloads.bar.bg>>|Background color for the download bar.
 |<<colors.downloads.error.bg,colors.downloads.error.bg>>|Background color for downloads with errors.
 |<<colors.downloads.error.fg,colors.downloads.error.fg>>|Foreground color for downloads with errors.
@@ -60,6 +67,7 @@
 |<<colors.prompts.border,colors.prompts.border>>|Border used around UI elements in prompts.
 |<<colors.prompts.fg,colors.prompts.fg>>|Foreground color for prompts.
 |<<colors.prompts.selected.bg,colors.prompts.selected.bg>>|Background color for the selected item in filename prompts.
+|<<colors.prompts.selected.fg,colors.prompts.selected.fg>>|Foreground color for the selected item in filename prompts.
 |<<colors.statusbar.caret.bg,colors.statusbar.caret.bg>>|Background color of the statusbar in caret mode.
 |<<colors.statusbar.caret.fg,colors.statusbar.caret.fg>>|Foreground color of the statusbar in caret mode.
 |<<colors.statusbar.caret.selection.bg,colors.statusbar.caret.selection.bg>>|Background color of the statusbar in caret mode with a selection.
@@ -105,8 +113,19 @@
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
+|<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
+|<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
+|<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
+|<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
+|<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
+|<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
+|<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
+|<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
+|<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
+|<<colors.webpage.preferred_color_scheme,colors.webpage.preferred_color_scheme>>|Value to use for `prefers-color-scheme:` for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
+|<<completion.favorite_paths,completion.favorite_paths>>|Default filesystem autocomplete suggestions for :open.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
 |<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
 |<<completion.open_categories,completion.open_categories>>|Which categories to show (in which order) in the :open completion.
@@ -121,6 +140,12 @@
 |<<completion.web_history.max_items,completion.web_history.max_items>>|Number of URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
+|<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs to ABP-style adblocking rulesets.
+|<<content.blocking.enabled,content.blocking.enabled>>|Enable the ad/host blocker
+|<<content.blocking.hosts.block_subdomains,content.blocking.hosts.block_subdomains>>|Block subdomains of blocked hosts.
+|<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs to host blocklists for the host blocker.
+|<<content.blocking.method,content.blocking.method>>|Which method of blocking ads should be used.
+|<<content.blocking.whitelist,content.blocking.whitelist>>|A list of patterns that should always be loaded, despite being blocked by the ad-/host-blocker.
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
 |<<content.cache.maximum_pages,content.cache.maximum_pages>>|Maximum number of pages to hold in the global memory page cache.
 |<<content.cache.size,content.cache.size>>|Size (in bytes) of the HTTP network cache. Null to use the default value.
@@ -131,15 +156,14 @@
 |<<content.desktop_capture,content.desktop_capture>>|Allow websites to share screen content.
 |<<content.dns_prefetch,content.dns_prefetch>>|Try to pre-fetch DNS entries to speed up browsing.
 |<<content.frame_flattening,content.frame_flattening>>|Expand each subframe to its contents.
+|<<content.fullscreen.overlay_timeout,content.fullscreen.overlay_timeout>>|Set fullscreen notification overlay timeout in milliseconds.
+|<<content.fullscreen.window,content.fullscreen.window>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.geolocation,content.geolocation>>|Allow websites to request geolocations.
 |<<content.headers.accept_language,content.headers.accept_language>>|Value to send in the `Accept-Language` header.
 |<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
 |<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
-|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
-|<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
-|<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
-|<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
+|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send.
 |<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable hyperlink auditing (`<a ping>`).
 |<<content.images,content.images>>|Load images automatically in web pages.
 |<<content.javascript.alert,content.javascript.alert>>|Show javascript alerts.
@@ -153,24 +177,31 @@
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Allow locally loaded documents to access other local URLs.
 |<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Allow locally loaded documents to access remote URLs.
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
-|<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
+|<<content.media.audio_capture,content.media.audio_capture>>|Allow websites to record audio.
+|<<content.media.audio_video_capture,content.media.audio_video_capture>>|Allow websites to record audio and video.
+|<<content.media.video_capture,content.media.video_capture>>|Allow websites to record video.
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
 |<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
-|<<content.notifications,content.notifications>>|Allow websites to show notifications.
+|<<content.notifications.enabled,content.notifications.enabled>>|Allow websites to show notifications.
+|<<content.notifications.presenter,content.notifications.presenter>>|What notification presenter to use for web notifications.
+|<<content.notifications.show_origin,content.notifications.show_origin>>|Whether to show the origin URL for notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
+|<<content.prefers_reduced_motion,content.prefers_reduced_motion>>|Request websites to minimize non-essentials animations and motion.
 |<<content.print_element_backgrounds,content.print_element_backgrounds>>|Draw the background color and images also when the page is printed.
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
-|<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
+|<<content.site_specific_quirks.enabled,content.site_specific_quirks.enabled>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+|<<content.site_specific_quirks.skip,content.site_specific_quirks.skip>>|Disable a list of named quirks.
+|<<content.tls.certificate_errors,content.tls.certificate_errors>>|How to proceed on TLS certificate errors.
+|<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
 |<<content.webrtc_ip_handling_policy,content.webrtc_ip_handling_policy>>|Which interfaces to expose via WebRTC.
-|<<content.windowed_fullscreen,content.windowed_fullscreen>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
 |<<downloads.location.prompt,downloads.location.prompt>>|Prompt the user for the download location.
@@ -178,22 +209,30 @@
 |<<downloads.location.suggestion,downloads.location.suggestion>>|What to display in the download filename input.
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
+|<<downloads.prevent_mixed_content,downloads.prevent_mixed_content>>|Automatically abort insecure (HTTP) downloads originating from secure (HTTPS) pages.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
-|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
+|<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
+|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+|<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
+|<<fileselect.single_file.command,fileselect.single_file.command>>|Command (and arguments) to use for selecting a single file in forms. The command should write the selected file path to the specified file or stdout.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
+|<<fonts.contextmenu,fonts.contextmenu>>|Font used for the context menu.
 |<<fonts.debug_console,fonts.debug_console>>|Font used for the debugging console.
+|<<fonts.default_family,fonts.default_family>>|Default font families to use.
+|<<fonts.default_size,fonts.default_size>>|Default font size to use.
 |<<fonts.downloads,fonts.downloads>>|Font used for the downloadbar.
 |<<fonts.hints,fonts.hints>>|Font used for the hints.
 |<<fonts.keyhint,fonts.keyhint>>|Font used in the keyhint widget.
 |<<fonts.messages.error,fonts.messages.error>>|Font used for error messages.
 |<<fonts.messages.info,fonts.messages.info>>|Font used for info messages.
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
-|<<fonts.monospace,fonts.monospace>>|Default monospace fonts.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
-|<<fonts.tabs,fonts.tabs>>|Font used in the tab bar.
+|<<fonts.tabs.selected,fonts.tabs.selected>>|Font used for selected tabs.
+|<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used for unselected tabs.
 |<<fonts.web.family.cursive,fonts.web.family.cursive>>|Font family for cursive fonts.
 |<<fonts.web.family.fantasy,fonts.web.family.fantasy>>|Font family for fantasy fonts.
 |<<fonts.web.family.fixed,fonts.web.family.fixed>>|Font family for fixed fonts.
@@ -215,7 +254,9 @@
 |<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
+|<<hints.padding,hints.padding>>|Padding (in pixels) for hints.
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
+|<<hints.radius,hints.radius>>|Rounding radius (in pixels) for the edges of hints.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.selectors,hints.selectors>>|CSS selectors used to determine which elements on a page should have hints.
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
@@ -228,33 +269,43 @@
 |<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
+|<<input.match_counts,input.match_counts>>|Interpret number prefixes as counts for bindings.
+|<<input.media_keys,input.media_keys>>|Whether the underlying Chromium should handle media keys.
+|<<input.mouse.back_forward_buttons,input.mouse.back_forward_buttons>>|Enable back and forward buttons on the mouse.
+|<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
-|<<input.rocker_gestures,input.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable spatial navigation.
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 |<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
+|<<logging.level.console,logging.level.console>>|Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+|<<logging.level.ram,logging.level.ram>>|Level for in-memory logs.
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
-|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
+|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.environ,qt.environ>>|Additional environment variables to set.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
+|<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
-|<<scrolling.bar,scrolling.bar>>|When to show the scrollbar.
+|<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
+|<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
+|<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
+|<<search.wrap,search.wrap>>|Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
-|<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.show,statusbar.show>>|When to show the statusbar.
 |<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
@@ -284,7 +335,7 @@
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
-|<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
+|<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of closed tabs (per window) and closed windows to remember for :undo (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
@@ -296,6 +347,7 @@
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
 |<<window.hide_decoration,window.hide_decoration>>|Hide the window decoration.
 |<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
+|<<window.transparent,window.transparent>>|Set the main window background to transparent.
 |<<zoom.default,zoom.default>>|Default zoom level.
 |<<zoom.levels,zoom.levels>>|Available zoom levels.
 |<<zoom.mouse_divider,zoom.mouse_divider>>|Number of zoom increments to divide the mouse wheel movements to.
@@ -328,6 +380,8 @@ Default: +pass:[15000]+
 [[auto_save.session]]
 === auto_save.session
 Always restore open sites when qutebrowser is reopened.
+Without this option set, `:wq` (`:quit --save`) needs to be used to save open tabs (and restore them), while quitting qutebrowser in any other way will not save/restore the session.
+By default, this will save to the session which was last loaded. This behavior can be customized via the `session.default_name` setting.
 
 Type: <<types,Bool>>
 
@@ -336,17 +390,18 @@ Default: +pass:[false]+
 [[backend]]
 === backend
 Backend to use to display websites.
-qutebrowser supports two different web rendering engines / backends, QtWebKit and QtWebEngine.
-QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
-QtWebEngine is Qt's official successor to QtWebKit. It's slightly more resource hungry than QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
+qutebrowser supports two different web rendering engines / backends, QtWebEngine and QtWebKit (not recommended).
+QtWebEngine is Qt's official successor to QtWebKit, and both the default/recommended backend. It's based on a stripped-down Chromium and regularly updated with security fixes and new features by the Qt project: https://wiki.qt.io/QtWebEngine
+QtWebKit was qutebrowser's original backend when the project was started. However, support for QtWebKit was discontinued by the Qt project with Qt 5.6 in 2016. The development of QtWebKit was picked up in an official fork: https://github.com/qtwebkit/qtwebkit - however, the project seems to have stalled again. The latest release (5.212.0 Alpha 4) from March 2020 is based on a WebKit version from 2016, with many known security vulnerabilities. Additionally, there is no process isolation and sandboxing. Due to all those issues, while support for QtWebKit is still available in qutebrowser for now, using it is strongly discouraged.
+
 This setting requires a restart.
 
 Type: <<types,String>>
 
 Valid values:
 
- * +webengine+: Use QtWebEngine (based on Chromium).
- * +webkit+: Use QtWebKit (based on WebKit, similar to Safari).
+ * +webengine+: Use QtWebEngine (based on Chromium - recommended).
+ * +webkit+: Use QtWebKit (based on WebKit, similar to Safari - many known security issues!).
 
 Default: +pass:[webengine]+
 
@@ -421,28 +476,29 @@ Default:
 
 * +pass:[$]+: +pass:[move-to-end-of-line]+
 * +pass:[0]+: +pass:[move-to-start-of-line]+
-* +pass:[&lt;Ctrl-Space&gt;]+: +pass:[drop-selection]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Ctrl-Space&gt;]+: +pass:[selection-drop]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[yank selection]+
-* +pass:[&lt;Space&gt;]+: +pass:[toggle-selection]+
+* +pass:[&lt;Space&gt;]+: +pass:[selection-toggle]+
 * +pass:[G]+: +pass:[move-to-end-of-document]+
 * +pass:[H]+: +pass:[scroll left]+
 * +pass:[J]+: +pass:[scroll down]+
 * +pass:[K]+: +pass:[scroll up]+
 * +pass:[L]+: +pass:[scroll right]+
+* +pass:[V]+: +pass:[selection-toggle --line]+
 * +pass:[Y]+: +pass:[yank selection -s]+
 * +pass:[[]+: +pass:[move-to-start-of-prev-block]+
-* +pass:[]]+: +pass:[move-to-start-of-next-block]+
+* +pass:[\]]+: +pass:[move-to-start-of-next-block]+
 * +pass:[b]+: +pass:[move-to-prev-word]+
-* +pass:[c]+: +pass:[enter-mode normal]+
+* +pass:[c]+: +pass:[mode-enter normal]+
 * +pass:[e]+: +pass:[move-to-end-of-word]+
 * +pass:[gg]+: +pass:[move-to-start-of-document]+
 * +pass:[h]+: +pass:[move-to-prev-char]+
 * +pass:[j]+: +pass:[move-to-next-line]+
 * +pass:[k]+: +pass:[move-to-prev-line]+
 * +pass:[l]+: +pass:[move-to-next-char]+
-* +pass:[o]+: +pass:[reverse-selection]+
-* +pass:[v]+: +pass:[toggle-selection]+
+* +pass:[o]+: +pass:[selection-reverse]+
+* +pass:[v]+: +pass:[selection-toggle]+
 * +pass:[w]+: +pass:[move-to-next-word]+
 * +pass:[y]+: +pass:[yank selection]+
 * +pass:[{]+: +pass:[move-to-end-of-prev-block]+
@@ -472,7 +528,9 @@ Default:
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
+* +pass:[&lt;PgDown&gt;]+: +pass:[completion-item-focus next-page]+
+* +pass:[&lt;PgUp&gt;]+: +pass:[completion-item-focus prev-page]+
 * +pass:[&lt;Return&gt;]+: +pass:[command-accept]+
 * +pass:[&lt;Shift-Delete&gt;]+: +pass:[completion-item-del]+
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[completion-item-focus prev]+
@@ -483,16 +541,17 @@ Default:
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[hint all tab-bg]+
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[hint links]+
 * +pass:[&lt;Ctrl-R&gt;]+: +pass:[hint --rapid links tab-bg]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
-* +pass:[&lt;Return&gt;]+: +pass:[follow-hint]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
+* +pass:[&lt;Return&gt;]+: +pass:[hint-follow]+
 - +pass:[insert]+:
 
-* +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Ctrl-E&gt;]+: +pass:[edit-text]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[fake-key &lt;Escape&gt;]+
 * +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
-* +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
+* +pass:[&#x27;]+: +pass:[mode-enter jump_mark]+
 * +pass:[+]+: +pass:[zoom-in]+
 * +pass:[-]+: +pass:[zoom-out]+
 * +pass:[.]+: +pass:[repeat-command]+
@@ -531,7 +590,7 @@ Default:
 * +pass:[&lt;Ctrl-PgDown&gt;]+: +pass:[tab-next]+
 * +pass:[&lt;Ctrl-PgUp&gt;]+: +pass:[tab-prev]+
 * +pass:[&lt;Ctrl-Q&gt;]+: +pass:[quit]+
-* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[follow-selected -t]+
+* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[selection-follow -t]+
 * +pass:[&lt;Ctrl-Shift-N&gt;]+: +pass:[open -p]+
 * +pass:[&lt;Ctrl-Shift-T&gt;]+: +pass:[undo]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[nop]+
@@ -539,7 +598,7 @@ Default:
 * +pass:[&lt;Ctrl-T&gt;]+: +pass:[open -t]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[tab-focus last]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[scroll-page 0 -0.5]+
-* +pass:[&lt;Ctrl-V&gt;]+: +pass:[enter-mode passthrough]+
+* +pass:[&lt;Ctrl-V&gt;]+: +pass:[mode-enter passthrough]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[tab-close]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[navigate decrement]+
 * +pass:[&lt;Ctrl-^&gt;]+: +pass:[tab-focus last]+
@@ -549,12 +608,12 @@ Default:
 * +pass:[&lt;Escape&gt;]+: +pass:[clear-keychain ;; search ;; fullscreen --leave]+
 * +pass:[&lt;F11&gt;]+: +pass:[fullscreen]+
 * +pass:[&lt;F5&gt;]+: +pass:[reload]+
-* +pass:[&lt;Return&gt;]+: +pass:[follow-selected]+
+* +pass:[&lt;Return&gt;]+: +pass:[selection-follow]+
 * +pass:[&lt;back&gt;]+: +pass:[back]+
 * +pass:[&lt;forward&gt;]+: +pass:[forward]+
 * +pass:[=]+: +pass:[zoom]+
 * +pass:[?]+: +pass:[set-cmd-text ?]+
-* +pass:[@]+: +pass:[run-macro]+
+* +pass:[@]+: +pass:[macro-run]+
 * +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
 * +pass:[D]+: +pass:[tab-close -o]+
 * +pass:[F]+: +pass:[hint all tab]+
@@ -569,16 +628,18 @@ Default:
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
-* +pass:[Sb]+: +pass:[open qute://bookmarks#bookmarks]+
-* +pass:[Sh]+: +pass:[open qute://history]+
-* +pass:[Sq]+: +pass:[open qute://bookmarks]+
-* +pass:[Ss]+: +pass:[open qute://settings]+
-* +pass:[T]+: +pass:[tab-focus]+
+* +pass:[Sb]+: +pass:[bookmark-list --jump]+
+* +pass:[Sh]+: +pass:[history]+
+* +pass:[Sq]+: +pass:[bookmark-list]+
+* +pass:[Ss]+: +pass:[set]+
+* +pass:[T]+: +pass:[set-cmd-text -sr :tab-focus]+
+* +pass:[U]+: +pass:[undo -w]+
+* +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
 * +pass:[ZZ]+: +pass:[quit --save]+
 * +pass:[[[]+: +pass:[navigate prev]+
-* +pass:[]]]+: +pass:[navigate next]+
-* +pass:[`]+: +pass:[enter-mode set_mark]+
+* +pass:[\]\]]+: +pass:[navigate next]+
+* +pass:[`]+: +pass:[mode-enter set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
 * +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
 * +pass:[cd]+: +pass:[download-clear]+
@@ -590,6 +651,8 @@ Default:
 * +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
 * +pass:[gD]+: +pass:[tab-give]+
+* +pass:[gJ]+: +pass:[tab-move +]+
+* +pass:[gK]+: +pass:[tab-move -]+
 * +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
@@ -599,14 +662,12 @@ Default:
 * +pass:[gf]+: +pass:[view-source]+
 * +pass:[gg]+: +pass:[scroll-to-perc 0]+
 * +pass:[gi]+: +pass:[hint inputs --first]+
-* +pass:[gl]+: +pass:[tab-move -]+
 * +pass:[gm]+: +pass:[tab-move]+
 * +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
-* +pass:[gr]+: +pass:[tab-move +]+
-* +pass:[gt]+: +pass:[set-cmd-text -s :buffer]+
+* +pass:[gt]+: +pass:[set-cmd-text -s :tab-select]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
-* +pass:[i]+: +pass:[enter-mode insert]+
+* +pass:[i]+: +pass:[mode-enter insert]+
 * +pass:[j]+: +pass:[scroll down]+
 * +pass:[k]+: +pass:[scroll up]+
 * +pass:[l]+: +pass:[scroll right]+
@@ -615,12 +676,15 @@ Default:
 * +pass:[o]+: +pass:[set-cmd-text -s :open]+
 * +pass:[pP]+: +pass:[open -- {primary}]+
 * +pass:[pp]+: +pass:[open -- {clipboard}]+
-* +pass:[q]+: +pass:[record-macro]+
+* +pass:[q]+: +pass:[macro-record]+
 * +pass:[r]+: +pass:[reload]+
 * +pass:[sf]+: +pass:[save]+
 * +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
 * +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
 * +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[tCH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tCh]+: +pass:[config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tCu]+: +pass:[config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tIH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.images ;; reload]+
 * +pass:[tIh]+: +pass:[config-cycle -p -u *://{url:host}/* content.images ;; reload]+
 * +pass:[tIu]+: +pass:[config-cycle -p -u {url} content.images ;; reload]+
@@ -630,6 +694,9 @@ Default:
 * +pass:[tSH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSh]+: +pass:[config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSu]+: +pass:[config-cycle -p -u {url} content.javascript.enabled ;; reload]+
+* +pass:[tcH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tch]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tcu]+: +pass:[config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[th]+: +pass:[back -t]+
 * +pass:[tiH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.images ;; reload]+
 * +pass:[tih]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.images ;; reload]+
@@ -642,26 +709,32 @@ Default:
 * +pass:[tsh]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
 * +pass:[u]+: +pass:[undo]+
-* +pass:[v]+: +pass:[enter-mode caret]+
+* +pass:[v]+: +pass:[mode-enter caret]+
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wIf]+: +pass:[devtools-focus]+
+* +pass:[wIh]+: +pass:[devtools left]+
+* +pass:[wIj]+: +pass:[devtools bottom]+
+* +pass:[wIk]+: +pass:[devtools top]+
+* +pass:[wIl]+: +pass:[devtools right]+
+* +pass:[wIw]+: +pass:[devtools window]+
 * +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
 * +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
-* +pass:[wi]+: +pass:[inspector]+
+* +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
-* +pass:[yM]+: +pass:[yank inline [{title}]({url}) -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}\]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
-* +pass:[ym]+: +pass:[yank inline [{title}]({url})]+
+* +pass:[ym]+: +pass:[yank inline [{title}\]({url})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -669,7 +742,7 @@ Default:
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
 
-* +pass:[&lt;Shift-Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[mode-leave]+
 - +pass:[prompt]+:
 
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
@@ -691,19 +764,19 @@ Default:
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[prompt-item-focus prev]+
 * +pass:[&lt;Tab&gt;]+: +pass:[prompt-item-focus next]+
 * +pass:[&lt;Up&gt;]+: +pass:[prompt-item-focus prev]+
 - +pass:[register]+:
 
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 - +pass:[yesno]+:
 
 * +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
 * +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
 * +pass:[N]+: +pass:[prompt-accept --save no]+
 * +pass:[Y]+: +pass:[prompt-accept --save yes]+
@@ -712,9 +785,10 @@ Default:
 
 [[bindings.key_mappings]]
 === bindings.key_mappings
-This setting can be used to map keys to other keys.
+Map keys to other keys, so that they are equivalent in all modes.
 When the key used as dictionary-key is pressed, the binding for the key used as dictionary-value is invoked instead.
-This is useful for global remappings of keys, for example to map Ctrl-[ to Escape.
+This is useful for global remappings of keys, for example to map <Ctrl-[> to <Escape>.
+NOTE: This should only be used if two keys should always be equivalent, i.e. for things like <Enter> (keypad) and <Return> (non-keypad). For normal command bindings, qutebrowser works differently to vim: You always bind keys to commands, usually via `:bind` or `config.bind()`. Instead of using this setting, consider finding the command a key is bound to (e.g. via `:bind gg`) and then binding the same command to the desired key.
 Note that when a key is bound (via `bindings.default` or `bindings.commands`), the mapping is ignored.
 
 Type: <<types,Dict>>
@@ -723,12 +797,28 @@ Default:
 
 - +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
 - +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
+- +pass:[&lt;Ctrl-I&gt;]+: +pass:[&lt;Tab&gt;]+
 - +pass:[&lt;Ctrl-J&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Ctrl-M&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Ctrl-[&gt;]+: +pass:[&lt;Escape&gt;]+
 - +pass:[&lt;Enter&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Shift-Enter&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Shift-Return&gt;]+: +pass:[&lt;Return&gt;]+
+
+[[changelog_after_upgrade]]
+=== changelog_after_upgrade
+When to show a changelog after qutebrowser was upgraded.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +major+: Show changelog for major upgrades (e.g. v2.0.0 -> v3.0.0).
+ * +minor+: Show changelog for major and minor upgrades (e.g. v2.0.0 -> v2.1.0).
+ * +patch+: Show changelog for major, minor and patch upgrades (e.g. v2.0.0 -> v2.0.1).
+ * +never+: Never show changelog after upgrades.
+
+Default: +pass:[minor]+
 
 [[colors.completion.category.bg]]
 === colors.completion.category.bg
@@ -854,6 +944,60 @@ Color of the scrollbar handle in the completion view.
 Type: <<types,QssColor>>
 
 Default: +pass:[white]+
+
+[[colors.contextmenu.disabled.bg]]
+=== colors.contextmenu.disabled.bg
+Background color of disabled items in the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.disabled.fg]]
+=== colors.contextmenu.disabled.fg
+Foreground color of disabled items in the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.menu.bg]]
+=== colors.contextmenu.menu.bg
+Background color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.menu.fg]]
+=== colors.contextmenu.menu.fg
+Foreground color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.bg]]
+=== colors.contextmenu.selected.bg
+Background color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.fg]]
+=== colors.contextmenu.selected.fg
+Foreground color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
 
 [[colors.downloads.bar.bg]]
 === colors.downloads.bar.bg
@@ -1060,7 +1204,7 @@ Foreground color of a warning message.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[white]+
+Default: +pass:[black]+
 
 [[colors.prompts.bg]]
 === colors.prompts.bg
@@ -1093,6 +1237,14 @@ Background color for the selected item in filename prompts.
 Type: <<types,QssColor>>
 
 Default: +pass:[grey]+
+
+[[colors.prompts.selected.fg]]
+=== colors.prompts.selected.fg
+Foreground color for the selected item in filename prompts.
+
+Type: <<types,QssColor>>
+
+Default: +pass:[white]+
 
 [[colors.statusbar.caret.bg]]
 === colors.statusbar.caret.bg
@@ -1148,7 +1300,7 @@ Background color of the statusbar in private browsing + command mode.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[grey]+
+Default: +pass:[darkslategray]+
 
 [[colors.statusbar.command.private.fg]]
 === colors.statusbar.command.private.fg
@@ -1461,6 +1613,184 @@ Type: <<types,QtColor>>
 
 Default: +pass:[white]+
 
+[[colors.webpage.darkmode.algorithm]]
+=== colors.webpage.darkmode.algorithm
+Which algorithm to use for modifying how colors are rendered with darkmode.
+The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated like `lightness-hsl` with older QtWebEngine versions.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +lightness-cielab+: Modify colors by converting them to CIELAB color space and inverting the L value. Not available with Qt < 5.14.
+ * +lightness-hsl+: Modify colors by converting them to the HSL color space and inverting the lightness (i.e. the "L" in HSL).
+ * +brightness-rgb+: Modify colors by subtracting each of r, g, and b from their maximum value.
+
+Default: +pass:[lightness-cielab]+
+
+[[colors.webpage.darkmode.contrast]]
+=== colors.webpage.darkmode.contrast
+Contrast for dark mode.
+This only has an effect when `colors.webpage.darkmode.algorithm` is set to `lightness-hsl` or `brightness-rgb`.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Float>>
+
+Default: +pass:[0.0]+
+
+[[colors.webpage.darkmode.enabled]]
+=== colors.webpage.darkmode.enabled
+Render all web contents using a dark theme.
+Example configurations from Chromium's `chrome://flags`:
+
+- "With simple HSL/CIELAB/RGB-based inversion": Set
+  `colors.webpage.darkmode.algorithm` accordingly.
+
+- "With selective image inversion": Set
+  `colors.webpage.darkmode.policy.images` to `smart`.
+
+- "With selective inversion of non-image elements": Set
+  `colors.webpage.darkmode.threshold.text` to 150 and
+  `colors.webpage.darkmode.threshold.background` to 205.
+
+- "With selective inversion of everything": Combines the two variants
+  above.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[colors.webpage.darkmode.grayscale.all]]
+=== colors.webpage.darkmode.grayscale.all
+Render all colors as grayscale.
+This only has an effect when `colors.webpage.darkmode.algorithm` is set to `lightness-hsl` or `brightness-rgb`.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[colors.webpage.darkmode.grayscale.images]]
+=== colors.webpage.darkmode.grayscale.images
+Desaturation factor for images in dark mode.
+If set to 0, images are left as-is. If set to 1, images are completely grayscale. Values between 0 and 1 desaturate the colors accordingly.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Float>>
+
+Default: +pass:[0.0]+
+
+[[colors.webpage.darkmode.policy.images]]
+=== colors.webpage.darkmode.policy.images
+Which images to apply dark mode to.
+With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Apply dark mode filter to all images.
+ * +never+: Never apply dark mode filter to any images.
+ * +smart+: Apply dark mode based on image content. Not available with Qt 5.15.0.
+
+Default: +pass:[smart]+
+
+[[colors.webpage.darkmode.policy.page]]
+=== colors.webpage.darkmode.policy.page
+Which pages to apply dark mode to.
+The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this setting is ignored there. Instead, every element is now classified individually.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Apply dark mode filter to all frames, regardless of content.
+ * +smart+: Apply dark mode filter to frames based on background color.
+
+Default: +pass:[smart]+
+
+[[colors.webpage.darkmode.threshold.background]]
+=== colors.webpage.darkmode.threshold.background
+Threshold for inverting background elements with dark mode.
+Background elements with brightness above this threshold will be inverted, and below it will be left as in the original, non-dark-mode page. Set to 256 to never invert the color or to 0 to always invert it.
+Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Int>>
+
+Default: +pass:[0]+
+
+[[colors.webpage.darkmode.threshold.text]]
+=== colors.webpage.darkmode.threshold.text
+Threshold for inverting text with dark mode.
+Text colors with brightness below this threshold will be inverted, and above it will be left as in the original, non-dark-mode page. Set to 256 to always invert text color or to 0 to never invert text color.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Int>>
+
+Default: +pass:[256]+
+
+[[colors.webpage.preferred_color_scheme]]
+=== colors.webpage.preferred_color_scheme
+Value to use for `prefers-color-scheme:` for websites.
+The "light" value is only available with QtWebEngine 5.15.2+. On older versions, it is the same as "auto".
+The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will fall back to "light" unconditionally.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +auto+: Use the system-wide color scheme setting.
+ * +light+: Force a light theme.
+ * +dark+: Force a dark theme.
+
+Default: +pass:[auto]+
+
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items
 Number of commands to save in the command history.
@@ -1477,6 +1807,15 @@ Delay (in milliseconds) before updating completions after typing a character.
 Type: <<types,Int>>
 
 Default: +pass:[0]+
+
+[[completion.favorite_paths]]
+=== completion.favorite_paths
+Default filesystem autocomplete suggestions for :open.
+The elements of this list show up in the completion window under the Filesystem category when the command line contains `:open` but no argument.
+
+Type: <<types,List of String>>
+
+Default: empty
 
 [[completion.height]]
 === completion.height
@@ -1506,6 +1845,7 @@ Valid values:
  * +quickmarks+
  * +bookmarks+
  * +history+
+ * +filesystem+
 
 Default: 
 
@@ -1513,6 +1853,7 @@ Default:
 - +pass:[quickmarks]+
 - +pass:[bookmarks]+
 - +pass:[history]+
+- +pass:[filesystem]+
 
 [[completion.quick]]
 === completion.quick
@@ -1563,11 +1904,11 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
-See https://sqlite.org/lang_datefunc.html for allowed substitutions.
+See https://sqlite.org/lang_datefunc.html and https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior for allowed substitutions, qutebrowser uses both sqlite and Python to format its timestamps.
 
 Type: <<types,String>>
 
-Default: +pass:[%Y-%m-%d]+
+Default: +pass:[%Y-%m-%d %H:%M]+
 
 [[completion.use_best_match]]
 === completion.use_best_match
@@ -1580,8 +1921,9 @@ Default: +pass:[false]+
 [[completion.web_history.exclude]]
 === completion.web_history.exclude
 A list of patterns which should not be shown in the history.
-This only affects the completion. Matching URLs are still saved in the history (and visible on the qute://history page), but hidden in the completion.
+This only affects the completion. Matching URLs are still saved in the history (and visible on the `:history` page), but hidden in the completion.
 Changing this setting will cause the completion history to be regenerated on the next start, which will take a short while.
+
 This setting requires a restart.
 
 Type: <<types,List of UrlPattern>>
@@ -1617,230 +1959,59 @@ Default:
 [[content.autoplay]]
 === content.autoplay
 Automatically start playing `<video>` elements.
-Note: On Qt < 5.11, this option needs a restart and does not support URL patterns.
 
-This setting supports URL patterns.
-
-Type: <<types,Bool>>
-
-Default: +pass:[true]+
-
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
-
-[[content.cache.appcache]]
-=== content.cache.appcache
-Enable support for the HTML 5 web application cache feature.
-An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
-
-This setting supports URL patterns.
-
-Type: <<types,Bool>>
-
-Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
-
-[[content.cache.maximum_pages]]
-=== content.cache.maximum_pages
-Maximum number of pages to hold in the global memory page cache.
-The page cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
-For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
-
-Type: <<types,Int>>
-
-Default: +pass:[0]+
-
-This setting is only available with the QtWebKit backend.
-
-[[content.cache.size]]
-=== content.cache.size
-Size (in bytes) of the HTTP network cache. Null to use the default value.
-With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
-
-Type: <<types,Int>>
-
-Default: empty
-
-[[content.canvas_reading]]
-=== content.canvas_reading
-Allow websites to read canvas elements.
-Note this is needed for some websites to work properly.
-This setting requires a restart.
-
-Type: <<types,Bool>>
-
-Default: +pass:[true]+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
-[[content.cookies.accept]]
-=== content.cookies.accept
-Which cookies to accept.
+Type: <<types,Bool>>
 
-Type: <<types,String>>
+Default: +pass:[true]+
 
-Valid values:
+[[content.blocking.adblock.lists]]
+=== content.blocking.adblock.lists
+List of URLs to ABP-style adblocking rulesets.
 
- * +all+: Accept all cookies.
- * +no-3rdparty+: Accept cookies from the same origin only. This is known to break some sites, such as GMail.
- * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain. On QtWebEngine, this is the same as no-3rdparty.
- * +never+: Don't accept cookies at all.
+Only used when Brave's ABP-style adblocker is used (see `content.blocking.method`).
 
-Default: +pass:[all]+
+You can find an overview of available lists here:
+https://adblockplus.org/en/subscriptions - note that the special
+`subscribe.adblockplus.org` links aren't handled by qutebrowser, you will instead
+need to find the link to the raw `.txt` file (e.g. by extracting it from the
+`location` parameter of the subscribe URL and URL-decoding it).
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
 
-[[content.cookies.store]]
-=== content.cookies.store
-Store cookies.
-Note this option needs a restart with QtWebEngine on Qt < 5.9.
+Type: <<types,List of Url>>
+
+Default: 
+
+- +pass:[https://easylist.to/easylist/easylist.txt]+
+- +pass:[https://easylist.to/easylist/easyprivacy.txt]+
+
+[[content.blocking.enabled]]
+=== content.blocking.enabled
+Enable the ad/host blocker
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.default_encoding]]
-=== content.default_encoding
-Default encoding to use for websites.
-The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-1_, etc.
-
-Type: <<types,String>>
-
-Default: +pass:[iso-8859-1]+
-
-[[content.desktop_capture]]
-=== content.desktop_capture
-Allow websites to share screen content.
-On Qt < 5.10, a dialog box is always displayed, even if this is set to "true".
-
-This setting supports URL patterns.
-
-Type: <<types,BoolAsk>>
-
-Valid values:
-
- * +true+
- * +false+
- * +ask+
-
-Default: +pass:[ask]+
-
-[[content.dns_prefetch]]
-=== content.dns_prefetch
-Try to pre-fetch DNS entries to speed up browsing.
-
-This setting supports URL patterns.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-On QtWebEngine, this setting requires Qt 5.12 or newer.
-
-[[content.frame_flattening]]
-=== content.frame_flattening
-Expand each subframe to its contents.
-This will flatten all the frames to become one scrollable page.
-
-This setting supports URL patterns.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-This setting is only available with the QtWebKit backend.
-
-[[content.geolocation]]
-=== content.geolocation
-Allow websites to request geolocations.
-
-This setting supports URL patterns.
-
-Type: <<types,BoolAsk>>
-
-Valid values:
-
- * +true+
- * +false+
- * +ask+
-
-Default: +pass:[ask]+
-
-[[content.headers.accept_language]]
-=== content.headers.accept_language
-Value to send in the `Accept-Language` header.
-Note that the value read from JavaScript is always the global value.
-
-This setting supports URL patterns.
-
-Type: <<types,String>>
-
-Default: +pass:[en-US,en]+
-
-[[content.headers.custom]]
-=== content.headers.custom
-Custom headers for qutebrowser HTTP requests.
-
-This setting supports URL patterns.
-
-Type: <<types,Dict>>
-
-Default: empty
-
-[[content.headers.do_not_track]]
-=== content.headers.do_not_track
-Value to send in the `DNT` header.
-When this is set to true, qutebrowser asks websites to not track your identity. If set to null, the DNT header is not sent at all.
-
-This setting supports URL patterns.
+[[content.blocking.hosts.block_subdomains]]
+=== content.blocking.hosts.block_subdomains
+Block subdomains of blocked hosts.
+Note: If only a single subdomain is blocked but should be allowed, consider using `content.blocking.whitelist` instead.
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.headers.referer]]
-=== content.headers.referer
-When to send the Referer header.
-The Referer header tells websites from which website you were coming from when visiting them.
-No restart is needed with QtWebKit.
-This setting requires a restart.
+[[content.blocking.hosts.lists]]
+=== content.blocking.hosts.lists
+List of URLs to host blocklists for the host blocker.
 
-Type: <<types,String>>
-
-Valid values:
-
- * +always+: Always send the Referer.
- * +never+: Never send the Referer. This is not recommended, as some sites may break.
- * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
-
-Default: +pass:[same-domain]+
-
-[[content.headers.user_agent]]
-=== content.headers.user_agent
-User agent to send. Unset to send the default.
-Note that the value read from JavaScript is always the global value.
-
-This setting supports URL patterns.
-
-Type: <<types,String>>
-
-Default: empty
-
-[[content.host_blocking.enabled]]
-=== content.host_blocking.enabled
-Enable host blocking.
-
-This setting supports URL patterns.
-
-Type: <<types,Bool>>
-
-Default: +pass:[true]+
-
-[[content.host_blocking.lists]]
-=== content.host_blocking.lists
-List of URLs of lists which contain hosts to block.
+Only used when the simple host-blocker is used (see `content.blocking.method`).
 
 The file can be in one of the following formats:
 
@@ -1861,21 +2032,281 @@ Default:
 
 - +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
-[[content.host_blocking.whitelist]]
-=== content.host_blocking.whitelist
-A list of patterns that should always be loaded, despite being ad-blocked.
-Note this whitelists blocked hosts, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelisted host should be `ads.example.org`. If you want to disable the adblocker on a given page, use the `content.host_blocking.enabled` setting with a URL pattern instead.
-Local domains are always exempt from hostblocking.
+[[content.blocking.method]]
+=== content.blocking.method
+Which method of blocking ads should be used.
+
+Support for Adblock Plus (ABP) syntax blocklists using Brave's Rust library requires
+the `adblock` Python package to be installed, which is an optional dependency of
+qutebrowser. It is required when either `adblock` or `both` are selected.
+
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +auto+: Use Brave's ABP-style adblocker if available, host blocking otherwise
+ * +adblock+: Use Brave's ABP-style adblocker
+ * +hosts+: Use hosts blocking
+ * +both+: Use both hosts blocking and Brave's ABP-style adblocker
+
+Default: +pass:[auto]+
+
+[[content.blocking.whitelist]]
+=== content.blocking.whitelist
+A list of patterns that should always be loaded, despite being blocked by the ad-/host-blocker.
+Local domains are always exempt from adblocking.
+Note this whitelists otherwise blocked requests, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelist entry could be `https://ads.example.org/*`. If you want to disable the adblocker on a given page, use the `content.blocking.enabled` setting with a URL pattern instead.
 
 Type: <<types,List of UrlPattern>>
 
 Default: empty
 
+[[content.cache.appcache]]
+=== content.cache.appcache
+Enable support for the HTML 5 web application cache feature.
+An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebKit backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[content.cache.maximum_pages]]
+=== content.cache.maximum_pages
+Maximum number of pages to hold in the global memory page cache.
+The page cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+For more information about the feature, please refer to: https://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+
+This setting is only available with the QtWebKit backend.
+
+Type: <<types,Int>>
+
+Default: +pass:[0]+
+
+[[content.cache.size]]
+=== content.cache.size
+Size (in bytes) of the HTTP network cache. Null to use the default value.
+With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
+
+Type: <<types,Int>>
+
+Default: empty
+
+[[content.canvas_reading]]
+=== content.canvas_reading
+Allow websites to read canvas elements.
+Note this is needed for some websites to work properly.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[content.cookies.accept]]
+=== content.cookies.accept
+Which cookies to accept.
+With QtWebEngine, this setting also controls other features with tracking capabilities similar to those of cookies; including IndexedDB, DOM storage, filesystem API, service workers, and AppCache.
+Note that with QtWebKit, only `all` and `never` are supported as per-domain values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on QtWebKit will have the same effect as `all`.
+If this setting is used with URL patterns, the pattern gets applied to the origin/first party URL of the page making the request, not the request URL.
+With QtWebEngine 5.15.0+, paths will be stripped from URLs, so URL patterns using paths will not match. With QtWebEngine 5.15.2+, subdomains are additionally stripped as well, so you will typically need to set this setting for `example.com` when the cookie is set on `somesubdomain.example.com` for it to work properly.
+To debug issues with this setting, start qutebrowser with `--debug --logfilter network --debug-flag log-cookies` which will show all cookies being set.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +all+: Accept all cookies.
+ * +no-3rdparty+: Accept cookies from the same origin only. This is known to break some sites, such as GMail.
+ * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain. On QtWebEngine, this is the same as no-3rdparty.
+ * +never+: Don't accept cookies at all.
+
+Default: +pass:[all]+
+
+[[content.cookies.store]]
+=== content.cookies.store
+Store cookies.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[content.default_encoding]]
+=== content.default_encoding
+Default encoding to use for websites.
+The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-1_, etc.
+
+Type: <<types,String>>
+
+Default: +pass:[iso-8859-1]+
+
+[[content.desktop_capture]]
+=== content.desktop_capture
+Allow websites to share screen content.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+[[content.dns_prefetch]]
+=== content.dns_prefetch
+Try to pre-fetch DNS entries to speed up browsing.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[content.frame_flattening]]
+=== content.frame_flattening
+Expand each subframe to its contents.
+This will flatten all the frames to become one scrollable page.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebKit backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[content.fullscreen.overlay_timeout]]
+=== content.fullscreen.overlay_timeout
+Set fullscreen notification overlay timeout in milliseconds.
+If set to 0, no overlay will be displayed.
+
+Type: <<types,Int>>
+
+Default: +pass:[3000]+
+
+[[content.fullscreen.window]]
+=== content.fullscreen.window
+Limit fullscreen to the browser window (does not expand to fill the screen).
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[content.geolocation]]
+=== content.geolocation
+Allow websites to request geolocations.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+[[content.headers.accept_language]]
+=== content.headers.accept_language
+Value to send in the `Accept-Language` header.
+Note that the value read from JavaScript is always the global value.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,String>>
+
+Default: +pass:[en-US,en;q=0.9]+
+
+[[content.headers.custom]]
+=== content.headers.custom
+Custom headers for qutebrowser HTTP requests.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Dict>>
+
+Default: empty
+
+[[content.headers.do_not_track]]
+=== content.headers.do_not_track
+Value to send in the `DNT` header.
+When this is set to true, qutebrowser asks websites to not track your identity. If set to null, the DNT header is not sent at all.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[content.headers.referer]]
+=== content.headers.referer
+When to send the Referer header.
+The Referer header tells websites from which website you were coming from when visiting them. Note that with QtWebEngine, websites can override this preference by setting the `Referrer-Policy:` header, so that any websites visited from them get the full referer.
+No restart is needed with QtWebKit.
+
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always send the Referer.
+ * +never+: Never send the Referer. This is not recommended, as some sites may break.
+ * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
+
+Default: +pass:[same-domain]+
+
+[[content.headers.user_agent]]
+=== content.headers.user_agent
+User agent to send.
+
+The following placeholders are defined:
+
+* `{os_info}`: Something like "X11; Linux x86_64".
+* `{webkit_version}`: The underlying WebKit version (set to a fixed value
+  with QtWebEngine).
+* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
+* `{qt_version}`: The underlying Qt version.
+* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
+  QtWebEngine.
+* `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+* `{qutebrowser_version}`: The currently running qutebrowser version.
+
+The default value is equal to the unchanged user agent of
+QtWebKit/QtWebEngine.
+
+Note that the value read from JavaScript is always the global value. With
+QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
+to JavaScript requires a restart.
+
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,FormatString>>
+
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
+
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
 Enable hyperlink auditing (`<a ping>`).
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1885,7 +2316,7 @@ Default: +pass:[false]+
 === content.images
 Load images automatically in web pages.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1904,7 +2335,7 @@ Default: +pass:[true]+
 Allow JavaScript to read from or write to the clipboard.
 With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1914,19 +2345,19 @@ Default: +pass:[false]+
 === content.javascript.can_close_tabs
 Allow JavaScript to close tabs.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebKit backend.
 
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-This setting is only available with the QtWebKit backend.
-
 [[content.javascript.can_open_tabs_automatically]]
 === content.javascript.can_open_tabs_automatically
 Allow JavaScript to open new tabs without user interaction.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1936,7 +2367,7 @@ Default: +pass:[false]+
 === content.javascript.enabled
 Enable JavaScript.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1978,7 +2409,7 @@ Default: +pass:[true]+
 === content.local_content_can_access_file_urls
 Allow locally loaded documents to access other local URLs.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1988,7 +2419,7 @@ Default: +pass:[true]+
 === content.local_content_can_access_remote_urls
 Allow locally loaded documents to access remote URLs.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -1998,17 +2429,19 @@ Default: +pass:[false]+
 === content.local_storage
 Enable support for HTML 5 local storage and Web SQL.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.media_capture]]
-=== content.media_capture
-Allow websites to record audio/video.
+[[content.media.audio_capture]]
+=== content.media.audio_capture
+Allow websites to record audio.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,BoolAsk>>
 
@@ -2020,13 +2453,49 @@ Valid values:
 
 Default: +pass:[ask]+
 
+[[content.media.audio_video_capture]]
+=== content.media.audio_video_capture
+Allow websites to record audio and video.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
 This setting is only available with the QtWebEngine backend.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+[[content.media.video_capture]]
+=== content.media.video_capture
+Allow websites to record video.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
 
 [[content.mouse_lock]]
 === content.mouse_lock
 Allow websites to lock your mouse pointer.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,BoolAsk>>
 
@@ -2037,17 +2506,13 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
-
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
-On QtWebKit, this setting is unavailable.
 
 [[content.mute]]
 === content.mute
 Automatically mute tabs.
 Note that if the `:tab-mute` command is used, the mute status for the affected tab is now controlled manually, and this setting doesn't have any effect.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2062,11 +2527,13 @@ Type: <<types,File>>
 
 Default: empty
 
-[[content.notifications]]
-=== content.notifications
+[[content.notifications.enabled]]
+=== content.notifications.enabled
 Allow websites to show notifications.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+On QtWebEngine, this setting requires Qt 5.13 or newer.
 
 Type: <<types,BoolAsk>>
 
@@ -2078,14 +2545,58 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.13 or newer.
+[[content.notifications.presenter]]
+=== content.notifications.presenter
+What notification presenter to use for web notifications.
+Note that not all implementations support all features of notifications:
+- With PyQt 5.14, any setting other than `qt` does not support  the `click` and
+  `close` events, as well as the `tag` option to replace existing notifications.
+- The `qt` and `systray` options only support showing one notification at the time
+  and ignore the `tag` option to replace existing notifications.
+- The `herbe` option only supports showing one notification at the time and doesn't
+  show icons.
+- The `messages` option doesn't show icons and doesn't support the `click` and
+  `close` events.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +auto+: Tries `libnotify`, `systray` and `messages`, uses the first one available without showing error messages.
+ * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser. Recommended over `systray` on PyQt 5.14.
+ * +libnotify+: Shows messages via DBus in a libnotify-compatible way. If DBus isn't available, falls back to `systray` or `messages`, but shows an error message.
+ * +systray+: Use a notification presenter based on a systray icon. Falls back to `libnotify` or `messages` if not systray is available. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
+ * +messages+: Show notifications as qutebrowser messages. Most notification features aren't available.
+ * +herbe+: (experimental!) Show notifications using herbe (github.com/dudik/herbe). Most notification features aren't available.
+
+Default: +pass:[auto]+
+
+[[content.notifications.show_origin]]
+=== content.notifications.show_origin
+Whether to show the origin URL for notifications.
+Note that URL patterns with this setting only get matched against the origin part of the URL, so e.g. paths in patterns will never match.
+Note that with the `qt` presenter, origins are never shown.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[content.pdfjs]]
 === content.pdfjs
 Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2095,7 +2606,9 @@ Default: +pass:[false]+
 === content.persistent_storage
 Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,BoolAsk>>
 
@@ -2107,15 +2620,27 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
-
 [[content.plugins]]
 === content.plugins
 Enable plugins in Web pages.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[content.prefers_reduced_motion]]
+=== content.prefers_reduced_motion
+Request websites to minimize non-essentials animations and motion.
+This results in the `prefers-reduced-motion` CSS media query to evaluate to `reduce` (rather than `no-preference`).
+On Windows, if this setting is set to False, the system-wide animation setting is considered.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 Type: <<types,Bool>>
 
@@ -2125,13 +2650,13 @@ Default: +pass:[false]+
 === content.print_element_backgrounds
 Draw the background color and images also when the page is printed.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
-
-On QtWebEngine, this setting requires Qt 5.8 or newer.
 
 [[content.private_browsing]]
 === content.private_browsing
@@ -2145,6 +2670,7 @@ Default: +pass:[false]+
 === content.proxy
 Proxy to use.
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
+Note that with QtWebEngine, it will take a couple of seconds until the change is applied, if this value is changed at runtime. Authentication for SOCKS proxies isn't supported due to Chromium limitations.
 
 Type: <<types,Proxy>>
 
@@ -2159,17 +2685,19 @@ Default: +pass:[system]+
 === content.proxy_dns_requests
 Send DNS requests over the configured proxy.
 
+This setting is only available with the QtWebKit backend.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content.register_protocol_handler]]
 === content.register_protocol_handler
 Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,BoolAsk>>
 
@@ -2181,25 +2709,75 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
+[[content.site_specific_quirks.enabled]]
+=== content.site_specific_quirks.enabled
+Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 
-On QtWebKit, this setting is unavailable.
+This setting requires a restart.
 
-[[content.ssl_strict]]
-=== content.ssl_strict
-Validate SSL handshakes.
+Type: <<types,Bool>>
 
-This setting supports URL patterns.
+Default: +pass:[true]+
 
-Type: <<types,BoolAsk>>
+[[content.site_specific_quirks.skip]]
+=== content.site_specific_quirks.skip
+Disable a list of named quirks.
+The js-string-replaceall quirk is needed for Nextcloud Calendar < 2.2.0 with QtWebEngine < 5.15.3. However, the workaround is not fully compliant to the ECMAScript spec and might cause issues on other websites, so it's disabled by default.
+
+Type: <<types,FlagList>>
 
 Valid values:
 
- * +true+
- * +false+
- * +ask+
+ * +ua-whatsapp+
+ * +ua-google+
+ * +ua-slack+
+ * +ua-googledocs+
+ * +js-whatsapp-web+
+ * +js-discord+
+ * +js-string-replaceall+
+ * +js-globalthis+
+ * +js-object-fromentries+
+ * +misc-krunker+
+ * +misc-mathml-darkmode+
+
+Default: 
+
+- +pass:[js-string-replaceall]+
+
+[[content.tls.certificate_errors]]
+=== content.tls.certificate_errors
+How to proceed on TLS certificate errors.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +ask+: Ask how to proceed for every certificate error (unless non-overridable due to HSTS).
+ * +ask-block-thirdparty+: Ask how to proceed for normal page loads, but silently block resource loads.
+ * +block+: Automatically block loading on certificate errors.
+ * +load-insecurely+: Force loading pages despite certificate errors. This is *insecure* and should be avoided. Instead of using this, consider fixing the underlying issue or importing a self-signed certificate via `certutil` (or Chromium) instead.
 
 Default: +pass:[ask]+
+
+[[content.unknown_url_scheme_policy]]
+=== content.unknown_url_scheme_policy
+How navigation requests to URLs with unknown schemes are handled.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +disallow+: Disallows all navigation requests to URLs with unknown schemes.
+ * +allow-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+ * +allow-all+: Allows all navigation requests to URLs with unknown schemes.
+
+Default: +pass:[allow-from-user-interaction]+
 
 [[content.user_stylesheets]]
 === content.user_stylesheets
@@ -2213,7 +2791,7 @@ Default: empty
 === content.webgl
 Enable WebGL.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2222,8 +2800,10 @@ Default: +pass:[true]+
 [[content.webrtc_ip_handling_policy]]
 === content.webrtc_ip_handling_policy
 Which interfaces to expose via WebRTC.
-On Qt 5.10, this option doesn't work because of a Qt bug.
+
 This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -2236,25 +2816,13 @@ Valid values:
 
 Default: +pass:[all-interfaces]+
 
-On QtWebEngine, this setting requires Qt 5.9.2 or newer.
-
-On QtWebKit, this setting is unavailable.
-
-[[content.windowed_fullscreen]]
-=== content.windowed_fullscreen
-Limit fullscreen to the browser window (does not expand to fill the screen).
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Suspicious scripts will be blocked and reported in the devtools JavaScript console.
 Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2323,6 +2891,17 @@ Valid values:
 
 Default: +pass:[top]+
 
+[[downloads.prevent_mixed_content]]
+=== downloads.prevent_mixed_content
+Automatically abort insecure (HTTP) downloads originating from secure (HTTPS) pages.
+For per-domain settings, the relevant URL is the URL initiating the download, not the URL the download itself is coming from. It's not recommended to set this setting to false globally.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[downloads.remove_finished]]
 === downloads.remove_finished
 Duration (in milliseconds) to wait before removing finished downloads.
@@ -2334,8 +2913,15 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
-* `{file}`: Filename of the file to be edited. * `{line}`: Line in which the caret is found in the text. * `{column}`: Column in which the caret is found in the text. * `{line0}`: Same as `{line}`, but starting from index 0. * `{column0}`: Same as `{column}`, but starting from index 0.
+Editor (and arguments) to use for the `edit-*` commands.
+The following placeholders are defined:
+
+* `{file}`: Filename of the file to be edited.
+* `{line}`: Line in which the caret is found in the text.
+* `{column}`: Column in which the caret is found in the text.
+* `{line0}`: Same as `{line}`, but starting from index 0.
+* `{column0}`: Same as `{column}`, but starting from index 0.
+
 
 Type: <<types,ShellCommand>>
 
@@ -2355,13 +2941,74 @@ Type: <<types,Encoding>>
 
 Default: +pass:[utf-8]+
 
+[[fileselect.folder.command]]
+=== fileselect.folder.command
+Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
+The following placeholders are defined:
+* `{}`: Filename of the file to be written to. If not contained in any argument, the
+  standard output of the command is read instead.
+
+Type: <<types,ShellCommand>>
+
+Default: 
+
+- +pass:[xterm]+
+- +pass:[-e]+
+- +pass:[ranger]+
+- +pass:[--choosedir={}]+
+
+[[fileselect.handler]]
+=== fileselect.handler
+Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +default+: Use the default file selector.
+ * +external+: Use an external command.
+
+Default: +pass:[default]+
+
+[[fileselect.multiple_files.command]]
+=== fileselect.multiple_files.command
+Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
+The following placeholders are defined:
+* `{}`: Filename of the file to be written to. If not contained in any argument, the
+  standard output of the command is read instead.
+
+Type: <<types,ShellCommand>>
+
+Default: 
+
+- +pass:[xterm]+
+- +pass:[-e]+
+- +pass:[ranger]+
+- +pass:[--choosefiles={}]+
+
+[[fileselect.single_file.command]]
+=== fileselect.single_file.command
+Command (and arguments) to use for selecting a single file in forms. The command should write the selected file path to the specified file or stdout.
+The following placeholders are defined:
+* `{}`: Filename of the file to be written to. If not contained in any argument, the
+  standard output of the command is read instead.
+
+Type: <<types,ShellCommand>>
+
+Default: 
+
+- +pass:[xterm]+
+- +pass:[-e]+
+- +pass:[ranger]+
+- +pass:[--choosefile={}]+
+
 [[fonts.completion.category]]
 === fonts.completion.category
 Font used in the completion categories.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.completion.entry]]
 === fonts.completion.entry
@@ -2369,15 +3016,44 @@ Font used in the completion widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.contextmenu]]
+=== fonts.contextmenu
+Font used for the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,Font>>
+
+Default: empty
 
 [[fonts.debug_console]]
 === fonts.debug_console
 Font used for the debugging console.
 
-Type: <<types,QtFont>>
+Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.default_family]]
+=== fonts.default_family
+Default font families to use.
+Whenever "default_family" is used in a font setting, it's replaced with the fonts listed here.
+If set to an empty value, a system-specific monospace default is used.
+
+Type: <<types,List of Font&#44; or Font>>
+
+Default: empty
+
+[[fonts.default_size]]
+=== fonts.default_size
+Default font size to use.
+Whenever "default_size" is used in a font setting, it's replaced with the size listed here.
+Valid values are either a float value with a "pt" suffix, or an integer value with a "px" suffix.
+
+Type: <<types,String>>
+
+Default: +pass:[10pt]+
 
 [[fonts.downloads]]
 === fonts.downloads
@@ -2385,7 +3061,7 @@ Font used for the downloadbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.hints]]
 === fonts.hints
@@ -2393,7 +3069,7 @@ Font used for the hints.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.keyhint]]
 === fonts.keyhint
@@ -2401,7 +3077,7 @@ Font used in the keyhint widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.error]]
 === fonts.messages.error
@@ -2409,7 +3085,7 @@ Font used for error messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.info]]
 === fonts.messages.info
@@ -2417,7 +3093,7 @@ Font used for info messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.warning]]
 === fonts.messages.warning
@@ -2425,16 +3101,7 @@ Font used for warning messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
-
-[[fonts.monospace]]
-=== fonts.monospace
-Default monospace fonts.
-Whenever "monospace" is used in a font setting, it's replaced with the fonts listed here.
-
-Type: <<types,Font>>
-
-Default: +pass:[Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.prompts]]
 === fonts.prompts
@@ -2442,7 +3109,7 @@ Font used for prompts.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt sans-serif]+
+Default: +pass:[default_size sans-serif]+
 
 [[fonts.statusbar]]
 === fonts.statusbar
@@ -2450,19 +3117,29 @@ Font used in the statusbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
-[[fonts.tabs]]
-=== fonts.tabs
-Font used in the tab bar.
+[[fonts.tabs.selected]]
+=== fonts.tabs.selected
+Font used for selected tabs.
 
-Type: <<types,QtFont>>
+Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.tabs.unselected]]
+=== fonts.tabs.unselected
+Font used for unselected tabs.
+
+Type: <<types,Font>>
+
+Default: +pass:[default_size default_family]+
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive
 Font family for cursive fonts.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -2472,6 +3149,8 @@ Default: empty
 === fonts.web.family.fantasy
 Font family for fantasy fonts.
 
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -2479,6 +3158,8 @@ Default: empty
 [[fonts.web.family.fixed]]
 === fonts.web.family.fixed
 Font family for fixed fonts.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -2488,6 +3169,8 @@ Default: empty
 === fonts.web.family.sans_serif
 Font family for sans-serif fonts.
 
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -2495,6 +3178,8 @@ Default: empty
 [[fonts.web.family.serif]]
 === fonts.web.family.serif
 Font family for serif fonts.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -2504,6 +3189,8 @@ Default: empty
 === fonts.web.family.standard
 Font family for standard fonts.
 
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -2511,6 +3198,8 @@ Default: empty
 [[fonts.web.size.default]]
 === fonts.web.size.default
 Default font size (in pixels) for regular text.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Int>>
 
@@ -2520,6 +3209,8 @@ Default: +pass:[16]+
 === fonts.web.size.default_fixed
 Default font size (in pixels) for fixed-pitch text.
 
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
 Type: <<types,Int>>
 
 Default: +pass:[13]+
@@ -2528,6 +3219,8 @@ Default: +pass:[13]+
 === fonts.web.size.minimum
 Hard minimum font size (in pixels).
 
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
 Type: <<types,Int>>
 
 Default: +pass:[0]+
@@ -2535,6 +3228,8 @@ Default: +pass:[0]+
 [[fonts.web.size.minimum_logical]]
 === fonts.web.size.minimum_logical
 Minimum logical font size (in pixels) that is applied when zooming out.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Int>>
 
@@ -2591,6 +3286,8 @@ Default: +pass:[/usr/share/dict/words]+
 === hints.find_implementation
 Which implementation to use to find elements to hint.
 
+This setting is only available with the QtWebKit backend.
+
 Type: <<types,String>>
 
 Valid values:
@@ -2599,8 +3296,6 @@ Valid values:
  * +python+: Slightly worse but faster
 
 Default: +pass:[python]+
-
-This setting is only available with the QtWebKit backend.
 
 [[hints.hide_unmatched_rapid_hints]]
 === hints.hide_unmatched_rapid_hints
@@ -2616,7 +3311,7 @@ Leave hint mode when starting a new page load.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 [[hints.min_chars]]
 === hints.min_chars
@@ -2651,9 +3346,22 @@ Default:
 - +pass:[\bnext\b]+
 - +pass:[\bmore\b]+
 - +pass:[\bnewer\b]+
-- +pass:[\b[&gt;→≫]\b]+
+- +pass:[\b[&gt;→≫\]\b]+
 - +pass:[\b(&gt;&gt;|»)\b]+
 - +pass:[\bcontinue\b]+
+
+[[hints.padding]]
+=== hints.padding
+Padding (in pixels) for hints.
+
+Type: <<types,Padding>>
+
+Default: 
+
+- +pass:[bottom]+: +pass:[0]+
+- +pass:[left]+: +pass:[3]+
+- +pass:[right]+: +pass:[3]+
+- +pass:[top]+: +pass:[0]+
 
 [[hints.prev_regexes]]
 === hints.prev_regexes
@@ -2666,8 +3374,16 @@ Default:
 - +pass:[\bprev(ious)?\b]+
 - +pass:[\bback\b]+
 - +pass:[\bolder\b]+
-- +pass:[\b[&lt;←≪]\b]+
+- +pass:[\b[&lt;←≪\]\b]+
 - +pass:[\b(&lt;&lt;|«)\b]+
+
+[[hints.radius]]
+=== hints.radius
+Rounding radius (in pixels) for the edges of hints.
+
+Type: <<types,Int>>
+
+Default: +pass:[3]+
 
 [[hints.scatter]]
 === hints.scatter
@@ -2682,7 +3398,7 @@ Default: +pass:[true]+
 === hints.selectors
 CSS selectors used to determine which elements on a page should have hints.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting can only be set in config.py.
 
@@ -2696,48 +3412,50 @@ Default:
 * +pass:[area]+
 * +pass:[textarea]+
 * +pass:[select]+
-* +pass:[input:not([type=&quot;hidden&quot;])]+
+* +pass:[input:not([type=&quot;hidden&quot;\])]+
 * +pass:[button]+
 * +pass:[frame]+
 * +pass:[iframe]+
 * +pass:[img]+
 * +pass:[link]+
 * +pass:[summary]+
-* +pass:[[onclick]]+
-* +pass:[[onmousedown]]+
-* +pass:[[role=&quot;link&quot;]]+
-* +pass:[[role=&quot;option&quot;]]+
-* +pass:[[role=&quot;button&quot;]]+
-* +pass:[[ng-click]]+
-* +pass:[[ngClick]]+
-* +pass:[[data-ng-click]]+
-* +pass:[[x-ng-click]]+
-* +pass:[[tabindex]]+
+* +pass:[[contenteditable\]:not([contenteditable=&quot;false&quot;\])]+
+* +pass:[[onclick\]]+
+* +pass:[[onmousedown\]]+
+* +pass:[[role=&quot;link&quot;\]]+
+* +pass:[[role=&quot;option&quot;\]]+
+* +pass:[[role=&quot;button&quot;\]]+
+* +pass:[[ng-click\]]+
+* +pass:[[ngClick\]]+
+* +pass:[[data-ng-click\]]+
+* +pass:[[x-ng-click\]]+
+* +pass:[[tabindex\]]+
 - +pass:[images]+:
 
 * +pass:[img]+
 - +pass:[inputs]+:
 
-* +pass:[input[type=&quot;text&quot;]]+
-* +pass:[input[type=&quot;date&quot;]]+
-* +pass:[input[type=&quot;datetime-local&quot;]]+
-* +pass:[input[type=&quot;email&quot;]]+
-* +pass:[input[type=&quot;month&quot;]]+
-* +pass:[input[type=&quot;number&quot;]]+
-* +pass:[input[type=&quot;password&quot;]]+
-* +pass:[input[type=&quot;search&quot;]]+
-* +pass:[input[type=&quot;tel&quot;]]+
-* +pass:[input[type=&quot;time&quot;]]+
-* +pass:[input[type=&quot;url&quot;]]+
-* +pass:[input[type=&quot;week&quot;]]+
-* +pass:[input:not([type])]+
+* +pass:[input[type=&quot;text&quot;\]]+
+* +pass:[input[type=&quot;date&quot;\]]+
+* +pass:[input[type=&quot;datetime-local&quot;\]]+
+* +pass:[input[type=&quot;email&quot;\]]+
+* +pass:[input[type=&quot;month&quot;\]]+
+* +pass:[input[type=&quot;number&quot;\]]+
+* +pass:[input[type=&quot;password&quot;\]]+
+* +pass:[input[type=&quot;search&quot;\]]+
+* +pass:[input[type=&quot;tel&quot;\]]+
+* +pass:[input[type=&quot;time&quot;\]]+
+* +pass:[input[type=&quot;url&quot;\]]+
+* +pass:[input[type=&quot;week&quot;\]]+
+* +pass:[input:not([type\])]+
+* +pass:[[contenteditable\]:not([contenteditable=&quot;false&quot;\])]+
 * +pass:[textarea]+
 - +pass:[links]+:
 
-* +pass:[a[href]]+
-* +pass:[area[href]]+
-* +pass:[link[href]]+
-* +pass:[[role=&quot;link&quot;][href]]+
+* +pass:[a[href\]]+
+* +pass:[area[href\]]+
+* +pass:[link[href\]]+
+* +pass:[[role=&quot;link&quot;\][href\]]+
 - +pass:[media]+:
 
 * +pass:[audio]+
@@ -2745,8 +3463,8 @@ Default:
 * +pass:[video]+
 - +pass:[url]+:
 
-* +pass:[[src]]+
-* +pass:[[href]]+
+* +pass:[[src\]]+
+* +pass:[[href\]]+
 
 [[hints.uppercase]]
 === hints.uppercase
@@ -2816,7 +3534,7 @@ Default: +pass:[false]+
 Leave insert mode when starting a new page load.
 Patterns may be unreliable on this setting, and they may match the url you are navigating to, or the URL you are navigating from.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2834,23 +3552,46 @@ Default: +pass:[false]+
 === input.links_included_in_focus_chain
 Include hyperlinks in the keyboard focus chain when tabbing.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[input.partial_timeout]]
-=== input.partial_timeout
-Timeout (in milliseconds) for partially typed key bindings.
-If the current input forms only partial matches, the keystring will be cleared after this time.
+[[input.match_counts]]
+=== input.match_counts
+Interpret number prefixes as counts for bindings.
+This enables for vi-like bindings that can be prefixed with a number to indicate a count. Disabling it allows for emacs-like bindings where number keys are passed through (according to `input.forward_unbound_keys`) instead.
 
-Type: <<types,Int>>
+Type: <<types,Bool>>
 
-Default: +pass:[5000]+
+Default: +pass:[true]+
 
-[[input.rocker_gestures]]
-=== input.rocker_gestures
+[[input.media_keys]]
+=== input.media_keys
+Whether the underlying Chromium should handle media keys.
+On Linux, disabling this also disables Chromium's MPRIS integration.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[input.mouse.back_forward_buttons]]
+=== input.mouse.back_forward_buttons
+Enable back and forward buttons on the mouse.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[input.mouse.rocker_gestures]]
+=== input.mouse.rocker_gestures
 Enable Opera-like mouse rocker gestures.
 This disables the context menu.
 
@@ -2858,12 +3599,22 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[input.partial_timeout]]
+=== input.partial_timeout
+Timeout (in milliseconds) for partially typed key bindings.
+If the current input forms only partial matches, the keystring will be cleared after this time.
+If set to 0, partially typed bindings are never cleared.
+
+Type: <<types,Int>>
+
+Default: +pass:[0]+
+
 [[input.spatial_navigation]]
 === input.spatial_navigation
 Enable spatial navigation.
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if the user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2894,6 +3645,40 @@ Type: <<types,Int>>
 
 Default: +pass:[6]+
 
+[[logging.level.console]]
+=== logging.level.console
+Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[info]+
+
+[[logging.level.ram]]
+=== logging.level.ram
+Level for in-memory logs.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[debug]+
+
 [[messages.timeout]]
 === messages.timeout
 Duration (in milliseconds) to show messages in the statusbar for.
@@ -2901,7 +3686,7 @@ Set to 0 to never clear messages.
 
 Type: <<types,Int>>
 
-Default: +pass:[2000]+
+Default: +pass:[3000]+
 
 [[new_instance_open_target]]
 === new_instance_open_target
@@ -2918,6 +3703,7 @@ Valid values:
  * +tab-silent+: Open a new tab in the existing window without activating the window.
  * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
  * +window+: Open in a new window.
+ * +private-window+: Open in a new private window.
 
 Default: +pass:[tab]+
 
@@ -2939,7 +3725,7 @@ Default: +pass:[last-focused]+
 
 [[prompt.filebrowser]]
 === prompt.filebrowser
-Show a filebrowser in upload/download prompts.
+Show a filebrowser in download prompts.
 
 Type: <<types,Bool>>
 
@@ -2957,9 +3743,21 @@ Default: +pass:[8]+
 === qt.args
 Additional arguments to pass to Qt, without leading `--`.
 With QtWebEngine, some Chromium arguments (see https://peter.sh/experiments/chromium-command-line-switches/ for a list) will work.
+
 This setting requires a restart.
 
 Type: <<types,List of String>>
+
+Default: empty
+
+[[qt.environ]]
+=== qt.environ
+Additional environment variables to set.
+Setting an environment variable to null/None will unset it.
+
+This setting requires a restart.
+
+Type: <<types,Dict>>
 
 Default: empty
 
@@ -2967,6 +3765,18 @@ Default: empty
 === qt.force_platform
 Force a Qt platform to use.
 This sets the `QT_QPA_PLATFORM` environment variable and is useful to force using the XCB plugin when running QtWebEngine on Wayland.
+
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Default: empty
+
+[[qt.force_platformtheme]]
+=== qt.force_platformtheme
+Force a Qt platformtheme to use.
+This sets the `QT_QPA_PLATFORMTHEME` environment variable which controls dialogs like the filepicker. By default, Qt determines the platform theme based on the desktop environment.
+
 This setting requires a restart.
 
 Type: <<types,String>>
@@ -2977,7 +3787,10 @@ Default: empty
 === qt.force_software_rendering
 Force software rendering for QtWebEngine.
 This is needed for QtWebEngine to work with Nouveau drivers and can be useful in other scenarios related to graphic issues.
+
 This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -2990,13 +3803,12 @@ Valid values:
 
 Default: +pass:[none]+
 
-This setting is only available with the QtWebEngine backend.
-
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
 This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
+
 This setting requires a restart.
 
 Type: <<types,Bool>>
@@ -3007,7 +3819,10 @@ Default: +pass:[false]+
 === qt.low_end_device_mode
 When to use Chromium's low-end device mode.
 This improves the RAM usage of renderer processes, at the expense of performance.
+
 This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -3019,8 +3834,6 @@ Valid values:
 
 Default: +pass:[auto]+
 
-This setting is only available with the QtWebEngine backend.
-
 [[qt.process_model]]
 === qt.process_model
 Which Chromium process model to use.
@@ -3029,7 +3842,10 @@ See the following pages for more details:
 
   - https://www.chromium.org/developers/design-documents/process-models
   - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+
 This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -3041,11 +3857,31 @@ Valid values:
 
 Default: +pass:[process-per-site-instance]+
 
+[[qt.workarounds.locale]]
+=== qt.workarounds.locale
+Work around locale parsing issues in QtWebEngine 5.15.3.
+With some locales, QtWebEngine 5.15.3 is unusable without this workaround. In affected scenarios, QtWebEngine will log "Network service crashed, restarting service." and only display a blank page.
+However, It is expected that distributions shipping QtWebEngine 5.15.3 follow up with a proper fix soon, so it is disabled by default.
+
 This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[qt.workarounds.remove_service_workers]]
+=== qt.workarounds.remove_service_workers
+Delete the QtWebEngine Service Worker directory on every start.
+This workaround can help with certain crashes caused by an unknown QtWebEngine bug related to Service Workers. Those crashes happen seemingly immediately on Windows; after one hour of operation on other systems.
+Note however that enabling this option *can lead to data loss* on some pages (as Service Worker data isn't persisted) and will negatively impact start-up time.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[scrolling.bar]]
 === scrolling.bar
-When to show the scrollbar.
+When/how to show the scrollbar.
 
 Type: <<types,String>>
 
@@ -3054,15 +3890,16 @@ Valid values:
  * +always+: Always show the scrollbar.
  * +never+: Never show the scrollbar.
  * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
+ * +overlay+: Show an overlay scrollbar. On macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
 
-Default: +pass:[when-searching]+
+Default: +pass:[overlay]+
 
 [[scrolling.smooth]]
 === scrolling.smooth
 Enable smooth scrolling for web pages.
 Note smooth scrolling does not work with the `:scroll-px` command.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -3090,6 +3927,16 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[search.wrap]]
+=== search.wrap
+Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[session.default_name]]
 === session.default_name
 Name of the session to save by default.
@@ -3111,6 +3958,8 @@ Default: +pass:[false]+
 === spellcheck.languages
 Languages to use for spell checking.
 You can check for available languages and install dictionaries using scripts/dictcli.py. Run the script with -h/--help for instructions.
+
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,List of String>>
 
@@ -3162,18 +4011,6 @@ Valid values:
 
 Default: empty
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
-On QtWebKit, this setting is unavailable.
-
-[[statusbar.hide]]
-=== statusbar.hide
-Hide the statusbar unless a message is shown.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
 [[statusbar.padding]]
 === statusbar.padding
 Padding (in pixels) for the statusbar.
@@ -3200,11 +4037,25 @@ Valid values:
 
 Default: +pass:[bottom]+
 
+[[statusbar.show]]
+=== statusbar.show
+When to show the statusbar.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always show the statusbar.
+ * +never+: Always hide the statusbar.
+ * +in-mode+: Show the statusbar when in modes other than normal mode.
+
+Default: +pass:[always]+
+
 [[statusbar.widgets]]
 === statusbar.widgets
 List of widgets displayed in the statusbar.
 
-Type: <<types,List of String>>
+Type: <<types,List of StatusbarWidget>>
 
 Valid values:
 
@@ -3215,6 +4066,7 @@ Valid values:
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
+ * +text:foo+: Display the static text after the colon, `foo` in the example.
 
 Default: 
 
@@ -3231,7 +4083,7 @@ Open new tabs (middleclick/ctrl+click) in the background.
 
 Type: <<types,Bool>>
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 [[tabs.close_mouse_button]]
 === tabs.close_mouse_button
@@ -3274,6 +4126,7 @@ Default: +pass:[1.0]+
 [[tabs.favicons.show]]
 === tabs.favicons.show
 When to show favicons in the tab bar.
+When switching this from never to always/pinned, note that favicons might not be loaded yet, thus tabs might require a reload to display them.
 
 Type: <<types,String>>
 
@@ -3317,6 +4170,7 @@ Default: +pass:[3]+
 [[tabs.last_close]]
 === tabs.last_close
 How to behave when the last tab is closed.
+If the `tabs.tabs_are_windows` setting is set, this is ignored and the behavior is always identical to the `close` value.
 
 Type: <<types,String>>
 
@@ -3525,12 +4379,14 @@ The following placeholders are defined:
 * `{perc}`: Percentage as a string like `[10%]`.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
 * `{current_title}`: Title of the current web page.
-* `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
+* `{title_sep}`: The string `" - "` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
+* `{aligned_index}`: Index of this tab padded with spaces to have the same
+  width.
 * `{id}`: Internal tab ID of this tab.
 * `{scroll_pos}`: Page scroll position.
 * `{host}`: Host of the current web page.
-* `{backend}`: Either ''webkit'' or ''webengine''
+* `{backend}`: Either `webkit` or `webengine`
 * `{private}`: Indicates when private mode is enabled.
 * `{current_url}`: URL of the current web page.
 * `{protocol}`: Protocol (http/https/...) of the current web page.
@@ -3560,7 +4416,7 @@ Default: +pass:[true]+
 
 [[tabs.undo_stack_size]]
 === tabs.undo_stack_size
-Number of close tab actions to remember, per window (-1 for no maximum).
+Number of closed tabs (per window) and closed windows to remember for :undo (-1 for no maximum).
 
 Type: <<types,Int>>
 
@@ -3572,7 +4428,7 @@ Width (in pixels or as percentage of the window) of the tab bar if it's vertical
 
 Type: <<types,PercOrInt>>
 
-Default: +pass:[20%]+
+Default: +pass:[15%]+
 
 [[tabs.wrap]]
 === tabs.wrap
@@ -3593,6 +4449,7 @@ Valid values:
  * +naive+: Use simple/naive check.
  * +dns+: Use DNS requests (might be slow!).
  * +never+: Never search automatically.
+ * +schemeless+: Always search automatically unless URL explicitly contains a scheme.
 
 Default: +pass:[naive]+
 
@@ -3635,8 +4492,29 @@ Default: +pass:[false]+
 [[url.searchengines]]
 === url.searchengines
 Search engines which can be used via the address bar.
-Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}` placeholder. The placeholder will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
-The search engine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g.  `:open google qutebrowser`.
+
+Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a
+`{}` placeholder. The placeholder will be replaced by the search term, use
+`{{` and `}}` for literal `{`/`}` braces.
+
+The following further placeholds are defined to configure how special
+characters in the search terms are replaced by safe characters (called
+'quoting'):
+
+* `{}` and `{semiquoted}` quote everything except slashes; this is the most
+  sensible choice for almost all search engines (for the search term
+  `slash/and&amp` this placeholder expands to `slash/and%26amp`).
+* `{quoted}` quotes all characters (for `slash/and&amp` this placeholder
+  expands to `slash%2Fand%26amp`).
+* `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
+  expands to `slash/and&amp`).
+* `{0}` means the same as `{}`, but can be used multiple times.
+
+The search engine named `DEFAULT` is used when `url.auto_search` is turned
+on and something else than a URL was entered to be opened. Other search
+engines can be used by prepending the search engine name to the search
+term, e.g. `:open google qutebrowser`.
+
 
 Type: <<types,Dict>>
 
@@ -3688,6 +4566,22 @@ Type: <<types,FormatString>>
 
 Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
 
+[[window.transparent]]
+=== window.transparent
+Set the main window background to transparent.
+
+This allows having a transparent tab- or statusbar (might require a compositor such
+as picom). However, it breaks some functionality such as dmenu embedding via its
+`-w` option. On some systems, it was additionally reported that main window
+transparency negatively affects performance.
+
+Note this setting only affects windows opened after setting it.
+
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[zoom.default]]
 === zoom.default
 Default zoom level.
@@ -3733,13 +4627,13 @@ Default: +pass:[512]+
 === zoom.text_only
 Apply the zoom factor on a frame only to the text or to all content.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+This setting is only available with the QtWebKit backend.
 
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
-
-This setting is only available with the QtWebKit backend.
 
 == Setting types
 [[types]]
@@ -3776,6 +4670,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |ListOrValue|A list of values, or a single value.
+|LogLevel|A logging level.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.
@@ -3784,13 +4679,10 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |Proxy|A proxy URL, or `system`/`none`.
 |QssColor|A color value supporting gradients.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
-|QtFont|A font family, with optional style/weight/size.
-
-* Style: `normal`/`italic`/`oblique` * Weight: `normal`, `bold`, `100`..`900` * Size: _number_ `px`/`pt`
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
 |Regex|A regular expression.
 
 When setting from `config.py`, both a string or a `re.compile(...)` object are valid.
@@ -3800,6 +4692,9 @@ When setting from `config.py`, both a string or a `re.compile(...)` object are v
 |ShellCommand|A shell command as a list.
 
 See the documentation for `List`.
+|StatusbarWidget|A widget for the status bar.
+
+Allows some predefined widgets and custom text-widgets via text:$CONTENT.
 |String|A string value.
 
 See the setting's valid values for more information on allowed values.

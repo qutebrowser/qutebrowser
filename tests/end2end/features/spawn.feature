@@ -8,18 +8,16 @@ Feature: :spawn
 
     Scenario: Running :spawn with command that does not exist
         When I run :spawn command_does_not_exist127623
-        Then the error "Error while spawning command: *" should be shown
+        Then the error "Command 'command_does_not_exist127623' failed to start: *" should be shown
 
     Scenario: Starting a userscript which doesn't exist
         When I run :spawn -u this_does_not_exist
         Then the error "Userscript 'this_does_not_exist' not found in userscript directories *" should be shown
 
-    Scenario: Starting a userscript with absoloute path which doesn't exist
+    Scenario: Starting a userscript with absolute path which doesn't exist
         When I run :spawn -u /this_does_not_exist
         Then the error "Userscript '/this_does_not_exist' not found" should be shown
 
-    # https://github.com/qutebrowser/qutebrowser/issues/1614
-    @posix
     Scenario: Running :spawn with invalid quoting
         When I run :spawn ""'""
         Then the error "Error while splitting command: No closing quotation" should be shown
@@ -38,8 +36,22 @@ Feature: :spawn
         And I run :spawn (echo-exe) {url:pretty}
         Then "Executing * with args ['http://localhost:(port)/data/title with spaces.html'], userscript=False" should be logged
 
+    Scenario: Running :spawn with -m
+        When I run :spawn -m (echo-exe) Message 1
+        Then the message "Message 1" should be shown
+
+    Scenario: Running :spawn with -u -m
+        When I run :spawn -u -m (echo-exe) Message 2
+        Then the message "Message 2" should be shown
+
+    Scenario: Running :spawn with -u -o
+        When I run :spawn -u -o (echo-exe) Message 3
+        And I wait for "load status for * url='qute://process/*'>: LoadStatus.success" in the log
+        Then the page should contain the plaintext "Message 3"
+
     @posix
     Scenario: Running :spawn with userscript
+        Given I clean up open tabs
         When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url
         And I wait until data/hello.txt is loaded
@@ -60,6 +72,7 @@ Feature: :spawn
 
     @windows
     Scenario: Running :spawn with userscript on Windows
+        Given I clean up open tabs
         When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url.bat
         And I wait until data/hello.txt is loaded

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,40 +15,39 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
 import enum
 import itertools
-import typing
 import functools
+import dataclasses
+from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
+                    Sequence, Set, Type, Union)
 
-import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint)
-from PyQt5.QtGui import QKeyEvent, QIcon
+                          QEvent, QPoint, QRect)
+from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
-if typing.TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
-
-import pygments
-import pygments.lexers
-import pygments.formatters
+if TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
+    from PyQt5.QtWebKitWidgets import QWebPage
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message)
+                               urlutils, message, jinja)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter
+from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 
@@ -71,19 +70,14 @@ def create(win_id: int,
     mode_manager = modeman.instance(win_id)
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
-        tab_class = webenginetab.WebEngineTab
-    else:
+        tab_class: Type[AbstractTab] = webenginetab.WebEngineTab
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
+    else:
+        raise utils.Unreachable(objects.backend)
     return tab_class(win_id=win_id, mode_manager=mode_manager, private=private,
                      parent=parent)
-
-
-def init() -> None:
-    """Initialize backend-specific modules."""
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        from qutebrowser.browser.webengine import webenginetab
-        webenginetab.init()
 
 
 class WebTabError(Exception):
@@ -96,16 +90,26 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
-TerminationStatus = enum.Enum('TerminationStatus', [
-    'normal',
-    'abnormal',  # non-zero exit status
-    'crashed',   # e.g. segfault
-    'killed',
-    'unknown',
-])
+class TerminationStatus(enum.Enum):
+
+    """How a QtWebEngine renderer process terminated.
+
+    Also see QWebEnginePage::RenderProcessTerminationStatus
+    """
+
+    #: Unknown render process status value gotten from Qt.
+    unknown = -1
+    #: The render process terminated normally.
+    normal = 0
+    #: The render process terminated with with a non-zero exit status.
+    abnormal = 1
+    #: The render process crashed, for example because of a segmentation fault.
+    crashed = 2
+    #: The render process was killed, for example by SIGKILL or task manager kill.
+    killed = 3
 
 
-@attr.s
+@dataclasses.dataclass
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -124,20 +128,20 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
         netrc_used: Whether netrc authentication was performed.
         input_mode: current input mode for the tab.
+        splitter: InspectorSplitter used to show inspector inside the tab.
     """
 
-    keep_icon = attr.ib(False)  # type: bool
-    viewing_source = attr.ib(False)  # type: bool
-    inspector = attr.ib(None)  # type: typing.Optional[AbstractWebInspector]
-    open_target = attr.ib(
-        usertypes.ClickTarget.normal)  # type: usertypes.ClickTarget
-    override_target = attr.ib(
-        None)  # type: typing.Optional[usertypes.ClickTarget]
-    pinned = attr.ib(False)  # type: bool
-    fullscreen = attr.ib(False)  # type: bool
-    netrc_used = attr.ib(False)  # type: bool
-    input_mode = attr.ib(usertypes.KeyMode.normal)  # type: usertypes.KeyMode
-    last_navigation = attr.ib(None)  # type: usertypes.NavigationRequest
+    keep_icon: bool = False
+    viewing_source: bool = False
+    inspector: Optional['AbstractWebInspector'] = None
+    open_target: usertypes.ClickTarget = usertypes.ClickTarget.normal
+    override_target: Optional[usertypes.ClickTarget] = None
+    pinned: bool = False
+    fullscreen: bool = False
+    netrc_used: bool = False
+    input_mode: usertypes.KeyMode = usertypes.KeyMode.normal
+    last_navigation: Optional[usertypes.NavigationRequest] = None
+    splitter: Optional[miscwidgets.InspectorSplitter] = None
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
@@ -148,13 +152,11 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    # The class actions are defined on (QWeb{Engine,}Page)
-    action_class = None  # type: type
-    # The type of the actions (QWeb{Engine,}Page.WebAction)
-    action_base = None  # type: type
+    action_class: Type[Union['QWebPage', 'QWebEnginePage']]
+    action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._tab = tab
 
     def exit_fullscreen(self) -> None:
@@ -172,30 +174,52 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(
-            self,
-            pygments: bool = False  # pylint: disable=redefined-outer-name
-    ) -> None:
+    def show_source(self, pygments: bool = False) -> None:
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
+
+    def _show_html_source(self, html: str) -> None:
+        """Show the given HTML as source page."""
+        tb = objreg.get('tabbed-browser', scope='window', window=self._tab.win_id)
+        new_tab = tb.tabopen(background=False, related=True)
+        new_tab.set_html(html, self._tab.url())
+        new_tab.data.viewing_source = True
+
+    def _show_source_fallback(self, source: str) -> None:
+        """Show source with pygments unavailable."""
+        html = jinja.render(
+            'pre.html',
+            title='Source',
+            content=source,
+            preamble="Note: The optional Pygments dependency wasn't found - "
+            "showing unhighlighted source.",
+        )
+        self._show_html_source(html)
 
     def _show_source_pygments(self) -> None:
 
         def show_source_cb(source: str) -> None:
             """Show source as soon as it's ready."""
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
-            # pylint: disable=no-member
-            lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table')
-            # pylint: enable=no-member
-            highlighted = pygments.highlight(source, lexer, formatter)
+            try:
+                import pygments
+                import pygments.lexers
+                import pygments.formatters
+            except ImportError:
+                # Pygments is an optional dependency
+                self._show_source_fallback(source)
+                return
 
-            tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._tab.win_id)
-            new_tab = tb.tabopen(background=False, related=True)
-            new_tab.set_html(highlighted, self._tab.url())
-            new_tab.data.viewing_source = True
+            try:
+                lexer = pygments.lexers.HtmlLexer()
+                formatter = pygments.formatters.HtmlFormatter(
+                    full=True, linenos='table')
+            except AttributeError:
+                # Remaining namespace package from Pygments
+                self._show_source_fallback(source)
+                return
+
+            html = pygments.highlight(source, lexer, formatter)
+            self._show_html_source(html)
 
         self._tab.dump_async(show_source_cb)
 
@@ -205,19 +229,11 @@ class AbstractPrinting:
     """Attribute ``printing`` of AbstractTab for printing the page."""
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._tab = tab
 
     def check_pdf_support(self) -> None:
         """Check whether writing to PDFs is supported.
-
-        If it's not supported (by the current Qt version), a WebTabError is
-        raised.
-        """
-        raise NotImplementedError
-
-    def check_printer_support(self) -> None:
-        """Check whether writing to a printer is supported.
 
         If it's not supported (by the current Qt version), a WebTabError is
         raised.
@@ -237,7 +253,7 @@ class AbstractPrinting:
         raise NotImplementedError
 
     def to_printer(self, printer: QPrinter,
-                   callback: typing.Callable[[bool], None] = None) -> None:
+                   callback: Callable[[bool], None] = None) -> None:
         """Print the tab.
 
         Args:
@@ -249,8 +265,6 @@ class AbstractPrinting:
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        self.check_printer_support()
-
         def print_callback(ok: bool) -> None:
             """Called when printing finished."""
             if not ok:
@@ -264,7 +278,7 @@ class AbstractPrinting:
         diag = QPrintDialog(self._tab)
         if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec_()
+            ret = diag.exec()
             if ret == QDialog.Accepted:
                 do_print()
         else:
@@ -289,13 +303,13 @@ class AbstractSearch(QObject):
     #: Signal emitted when an existing search was cleared.
     cleared = pyqtSignal()
 
-    _Callback = typing.Callable[[bool], None]
+    _Callback = Callable[[bool], None]
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = typing.cast(QWidget, None)
-        self.text = None  # type: typing.Optional[str]
+        self._widget = cast(QWidget, None)
+        self.text: Optional[str] = None
         self.search_displayed = False
 
     def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
@@ -317,6 +331,7 @@ class AbstractSearch(QObject):
     def search(self, text: str, *,
                ignore_case: usertypes.IgnoreCase = usertypes.IgnoreCase.never,
                reverse: bool = False,
+               wrap: bool = True,
                result_cb: _Callback = None) -> None:
         """Find the given text on the page.
 
@@ -324,6 +339,7 @@ class AbstractSearch(QObject):
             text: The text to search for.
             ignore_case: Search case-insensitively.
             reverse: Reverse search direction.
+            wrap: Allow wrapping at the top or bottom of the page.
             result_cb: Called with a bool indicating whether a match was found.
         """
         raise NotImplementedError
@@ -356,7 +372,7 @@ class AbstractZoom(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         # Whether zoom was changed from the default.
         self._default_zoom_changed = False
         self._init_neighborlist()
@@ -376,9 +392,8 @@ class AbstractZoom(QObject):
 
         It is a NeighborList with the zoom levels."""
         levels = config.val.zoom.levels
-        self._neighborlist = usertypes.NeighborList(
-            levels, mode=usertypes.NeighborList.Modes.edge
-        )  # type: usertypes.NeighborList[float]
+        self._neighborlist: usertypes.NeighborList[float] = usertypes.NeighborList(
+            levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.val.zoom.default
 
     def apply_offset(self, offset: int) -> float:
@@ -425,13 +440,24 @@ class AbstractZoom(QObject):
         self._set_factor_internal(self._zoom_factor)
 
 
+class SelectionState(enum.Enum):
+
+    """Possible states of selection in caret mode.
+
+    NOTE: Names need to line up with SelectionState in caret.js!
+    """
+
+    none = enum.auto()
+    normal = enum.auto()
+    line = enum.auto()
+
+
 class AbstractCaret(QObject):
 
     """Attribute ``caret`` of AbstractTab for caret browsing."""
 
     #: Signal emitted when the selection was toggled.
-    #: (argument - whether the selection is now active)
-    selection_toggled = pyqtSignal(bool)
+    selection_toggled = pyqtSignal(SelectionState)
     #: Emitted when a ``follow_selection`` action is done.
     follow_selected_done = pyqtSignal()
 
@@ -440,12 +466,11 @@ class AbstractCaret(QObject):
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._tab = tab
-        self._widget = typing.cast(QWidget, None)
-        self.selection_enabled = False
+        self._widget = cast(QWidget, None)
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
+        self._tab = tab
 
     def _on_mode_entered(self, mode: usertypes.KeyMode) -> None:
         raise NotImplementedError
@@ -498,13 +523,13 @@ class AbstractCaret(QObject):
     def move_to_end_of_document(self) -> None:
         raise NotImplementedError
 
-    def toggle_selection(self) -> None:
+    def toggle_selection(self, line: bool = False) -> None:
         raise NotImplementedError
 
     def drop_selection(self) -> None:
         raise NotImplementedError
 
-    def selection(self, callback: typing.Callable[[str], None]) -> None:
+    def selection(self, callback: Callable[[str], None]) -> None:
         raise NotImplementedError
 
     def reverse_selection(self) -> None:
@@ -534,13 +559,13 @@ class AbstractScroller(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         if 'log-scroll-pos' in objects.debug_flags:
             self.perc_changed.connect(self._log_scroll_pos_change)
 
     @pyqtSlot()
     def _log_scroll_pos_change(self) -> None:
-        log.webview.vdebug(  # type: ignore
+        log.webview.vdebug(  # type: ignore[attr-defined]
             "Scroll position changed to {}".format(self.pos_px()))
 
     def _init_widget(self, widget: QWidget) -> None:
@@ -602,11 +627,6 @@ class AbstractHistoryPrivate:
 
     """Private API related to the history."""
 
-    def __init__(self, tab: 'AbstractTab'):
-        self._tab = tab
-        self._history = typing.cast(
-            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
-
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
         raise NotImplementedError
@@ -615,8 +635,8 @@ class AbstractHistoryPrivate:
         """Deserialize from a format produced by self.serialize."""
         raise NotImplementedError
 
-    def load_items(self, items: typing.Sequence) -> None:
-        """Deserialize from a list of WebHistoryItems."""
+    def load_items(self, items: Sequence[sessions.TabHistoryItem]) -> None:
+        """Deserialize from a list of TabHistoryItems."""
         raise NotImplementedError
 
 
@@ -626,14 +646,13 @@ class AbstractHistory:
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
-        self._history = typing.cast(
-            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
-        self.private_api = AbstractHistoryPrivate(tab)
+        self._history = cast(Union['QWebHistory', 'QWebEngineHistory'], None)
+        self.private_api = AbstractHistoryPrivate()
 
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> typing.Iterable:
+    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
@@ -670,10 +689,16 @@ class AbstractHistory:
     def can_go_forward(self) -> bool:
         raise NotImplementedError
 
-    def _item_at(self, i: int) -> typing.Any:
+    def _item_at(self, i: int) -> Any:
         raise NotImplementedError
 
-    def _go_to_item(self, item: typing.Any) -> None:
+    def _go_to_item(self, item: Any) -> None:
+        raise NotImplementedError
+
+    def back_items(self) -> List[Any]:
+        raise NotImplementedError
+
+    def forward_items(self) -> List[Any]:
         raise NotImplementedError
 
 
@@ -681,21 +706,19 @@ class AbstractElements:
 
     """Finding and handling of elements on the page."""
 
-    _MultiCallback = typing.Callable[
-        [typing.Sequence['webelem.AbstractWebElement']], None]
-    _SingleCallback = typing.Callable[
-        [typing.Optional['webelem.AbstractWebElement']], None]
-    _ErrorCallback = typing.Callable[[Exception], None]
+    _MultiCallback = Callable[[Sequence['webelem.AbstractWebElement']], None]
+    _SingleCallback = Callable[[Optional['webelem.AbstractWebElement']], None]
+    _ErrorCallback = Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._tab = tab
 
     def find_css(self, selector: str,
                  callback: _MultiCallback,
                  error_cb: _ErrorCallback, *,
                  only_visible: bool = False,
-                 special_classes: typing.Sequence[str] = ()) -> None:
+                 special_classes: Sequence[str] = ()) -> None:
         """Find all HTML elements matching a given selector async.
 
         If there's an error, the callback is called with a webelem.Error
@@ -750,7 +773,7 @@ class AbstractAudio(QObject):
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._tab = tab
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
@@ -781,7 +804,7 @@ class AbstractTabPrivate:
 
     def __init__(self, mode_manager: modeman.ModeManager,
                  tab: 'AbstractTab') -> None:
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._tab = tab
         self._mode_manager = mode_manager
 
@@ -799,7 +822,7 @@ class AbstractTabPrivate:
             return
 
         def _auto_insert_mode_cb(
-                elem: typing.Optional['webelem.AbstractWebElement']
+                elem: Optional['webelem.AbstractWebElement']
         ) -> None:
             """Called from JS after finding the focused element."""
             if elem is None:
@@ -814,7 +837,7 @@ class AbstractTabPrivate:
     def clear_ssl_errors(self) -> None:
         raise NotImplementedError
 
-    def networkaccessmanager(self) -> typing.Optional[QNetworkAccessManager]:
+    def networkaccessmanager(self) -> Optional[QNetworkAccessManager]:
         """Get the QNetworkAccessManager for this tab.
 
         This is only implemented for QtWebKit.
@@ -822,15 +845,51 @@ class AbstractTabPrivate:
         """
         raise NotImplementedError
 
-    def user_agent(self) -> typing.Optional[str]:
-        """Get the user agent for this tab.
+    def shutdown(self) -> None:
+        raise NotImplementedError
 
+    def run_js_sync(self, code: str) -> None:
+        """Run javascript sync.
+
+        Result will be returned when running JS is complete.
         This is only implemented for QtWebKit.
-        For QtWebEngine, always returns None.
+        For QtWebEngine, always raises UnsupportedOperationError.
         """
         raise NotImplementedError
 
-    def shutdown(self) -> None:
+    def _recreate_inspector(self) -> None:
+        """Recreate the inspector when detached to a window.
+
+        This is needed to circumvent a QtWebEngine bug (which wasn't
+        investigated further) which sometimes results in the window not
+        appearing anymore.
+        """
+        self._tab.data.inspector = None
+        self.toggle_inspector(inspector.Position.window)
+
+    def toggle_inspector(self, position: inspector.Position) -> None:
+        """Show/hide (and if needed, create) the web inspector for this tab."""
+        tabdata = self._tab.data
+        if tabdata.inspector is None:
+            assert tabdata.splitter is not None
+            tabdata.inspector = self._init_inspector(
+                splitter=tabdata.splitter,
+                win_id=self._tab.win_id)
+            self._tab.shutting_down.connect(tabdata.inspector.shutdown)
+            tabdata.inspector.recreate.connect(self._recreate_inspector)
+            tabdata.inspector.inspect(self._widget.page())
+        tabdata.inspector.set_position(position)
+
+    def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
+           win_id: int,
+           parent: QWidget = None) -> 'AbstractWebInspector':
+        """Get a WebKitInspector/WebEngineInspector.
+
+        Args:
+            splitter: InspectorSplitter where the inspector can be placed.
+            win_id: The window ID this inspector is associated with.
+            parent: The Qt parent to set.
+        """
         raise NotImplementedError
 
 
@@ -852,6 +911,8 @@ class AbstractTab(QWidget):
     icon_changed = pyqtSignal(QIcon)
     #: Signal emitted when a page's title changed (new title as str)
     title_changed = pyqtSignal(str)
+    #: Signal emitted when this tab was pinned/unpinned (new pinned state as bool)
+    pinned_changed = pyqtSignal(bool)
     #: Signal emitted when a new tab should be opened (url as QUrl)
     new_tab_requested = pyqtSignal(QUrl)
     #: Signal emitted when a page's URL changed (url as QUrl)
@@ -876,8 +937,18 @@ class AbstractTab(QWidget):
     # arg 1: The exit code.
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
 
-    def __init__(self, *, win_id: int, private: bool,
+    # Hosts for which a certificate error happened. Shared between all tabs.
+    #
+    # Note that we remember hosts here, without scheme/port:
+    # QtWebEngine/Chromium also only remembers hostnames, and certificates are
+    # for a given hostname anyways.
+    _insecure_hosts: Set[str] = set()
+
+    def __init__(self, *, win_id: int,
+                 mode_manager: 'modeman.ModeManager',
+                 private: bool,
                  parent: QWidget = None) -> None:
+        utils.unused(mode_manager)  # needed for mypy
         self.is_private = private
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
@@ -891,13 +962,12 @@ class AbstractTab(QWidget):
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._progress = 0
-        self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
-        self.backend = None  # type: typing.Optional[usertypes.Backend]
+        self.backend: Optional[usertypes.Backend] = None
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -909,7 +979,9 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
-        self._layout.wrap(self, widget)
+        self.data.splitter = miscwidgets.InspectorSplitter(
+            win_id=self.win_id, main_webview=widget)
+        self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()
         self.scroller._init_widget(widget)
@@ -955,7 +1027,7 @@ class AbstractTab(QWidget):
             log.webview.warning("Unable to find event target!")
             return
 
-        evt.posted = True
+        evt.posted = True  # type: ignore[attr-defined]
         QApplication.postEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:
@@ -980,7 +1052,6 @@ class AbstractTab(QWidget):
     @pyqtSlot()
     def _on_load_started(self) -> None:
         self._progress = 0
-        self._has_ssl_errors = False
         self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
@@ -1001,9 +1072,6 @@ class AbstractTab(QWidget):
             self.data.last_navigation = navigation
 
         if not navigation.url.isValid():
-            # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
-            # https://bugreports.qt.io/browse/QTBUG-60364
-
             if navigation.navigation_type == navigation.Type.link_clicked:
                 msg = urlutils.get_errstring(navigation.url,
                                              "Invalid link clicked")
@@ -1039,15 +1107,19 @@ class AbstractTab(QWidget):
         Needs to be called by subclasses to trigger a load status update, e.g.
         as a response to a loadFinished signal.
         """
-        if ok and not self._has_ssl_errors:
-            if self.url().scheme() == 'https':
-                self._set_load_status(usertypes.LoadStatus.success_https)
-            else:
-                self._set_load_status(usertypes.LoadStatus.success)
-        elif ok:
-            self._set_load_status(usertypes.LoadStatus.warn)
+        url = self.url()
+        is_https = url.scheme() == 'https'
+
+        if not ok:
+            loadstatus = usertypes.LoadStatus.error
+        elif is_https and url.host() in self._insecure_hosts:
+            loadstatus = usertypes.LoadStatus.warn
+        elif is_https:
+            loadstatus = usertypes.LoadStatus.success_https
         else:
-            self._set_load_status(usertypes.LoadStatus.error)
+            loadstatus = usertypes.LoadStatus.success
+
+        self._set_load_status(loadstatus)
 
     @pyqtSlot()
     def _on_history_trigger(self) -> None:
@@ -1068,14 +1140,11 @@ class AbstractTab(QWidget):
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
 
-    def _load_url_prepare(self, url: QUrl, *,
-                          emit_before_load_started: bool = True) -> None:
+    def _load_url_prepare(self, url: QUrl) -> None:
         qtutils.ensure_valid(url)
-        if emit_before_load_started:
-            self.before_load_started.emit(url)
+        self.before_load_started.emit(url)
 
-    def load_url(self, url: QUrl, *,
-                 emit_before_load_started: bool = True) -> None:
+    def load_url(self, url: QUrl) -> None:
         raise NotImplementedError
 
     def reload(self, *, force: bool = False) -> None:
@@ -1095,7 +1164,7 @@ class AbstractTab(QWidget):
         self.send_event(release_evt)
 
     def dump_async(self,
-                   callback: typing.Callable[[str], None], *,
+                   callback: Callable[[str], None], *,
                    plain: bool = False) -> None:
         """Dump the current page's html asynchronously.
 
@@ -1107,8 +1176,8 @@ class AbstractTab(QWidget):
     def run_js_async(
             self,
             code: str,
-            callback: typing.Callable[[typing.Any], None] = None, *,
-            world: typing.Union[usertypes.JsWorld, int] = None
+            callback: Callable[[Any], None] = None, *,
+            world: Union[usertypes.JsWorld, int] = None
     ) -> None:
         """Run javascript async.
 
@@ -1132,10 +1201,39 @@ class AbstractTab(QWidget):
     def set_html(self, html: str, base_url: QUrl = QUrl()) -> None:
         raise NotImplementedError
 
+    def set_pinned(self, pinned: bool) -> None:
+        self.data.pinned = pinned
+        self.pinned_changed.emit(pinned)
+
+    def renderer_process_pid(self) -> Optional[int]:
+        """Get the PID of the underlying renderer process.
+
+        Returns None if the PID can't be determined or if getting the PID isn't
+        supported.
+        """
+        raise NotImplementedError
+
+    def grab_pixmap(self, rect: QRect = None) -> Optional[QPixmap]:
+        """Grab a QPixmap of the displayed page.
+
+        Returns None if we got a null pixmap from Qt.
+        """
+        if rect is None:
+            pic = self._widget.grab()
+        else:
+            qtutils.ensure_valid(rect)
+            pic = self._widget.grab(rect)
+
+        if pic.isNull():
+            return None
+
+        return pic
+
     def __repr__(self) -> str:
         try:
             qurl = self.url()
-            url = qurl.toDisplayString(QUrl.EncodeUnicode)  # type: ignore
+            url = qurl.toDisplayString(
+                QUrl.EncodeUnicode)  # type: ignore[arg-type]
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

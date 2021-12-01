@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Our own fork of shlex.split with some added and removed features."""
 
@@ -138,7 +138,8 @@ def split(s, keep=False):
     out = []
     spaces = ""
 
-    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))  # type: ignore
+    log.shlexer.vdebug(  # type: ignore[attr-defined]
+        "{!r} -> {!r}".format(s, tokens))
 
     for t in tokens:
         if t.isspace():

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,13 +15,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the web history completion category."""
 
 import datetime
 import logging
 
+import hypothesis
+from hypothesis import strategies
 import pytest
 
 from qutebrowser.misc import sql
@@ -30,10 +32,11 @@ from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
-def hist(init_sql, config_stub):
+def hist(data_tmpdir, config_stub):
+    db = sql.Database(str(data_tmpdir / 'test_histcategory.db'))
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
-    return sql.SqlTable('CompletionHistory', ['url', 'title', 'last_atime'])
+    return sql.SqlTable(db, 'CompletionHistory', ['url', 'title', 'last_atime'])
 
 
 @pytest.mark.parametrize('pattern, before, after', [
@@ -97,7 +100,7 @@ def test_set_pattern(pattern, before, after, model_validator, hist):
     """Validate the filtering and sorting results of set_pattern."""
     for row in before:
         hist.insert({'url': row[0], 'title': row[1], 'last_atime': 1})
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     model_validator.set_model(cat)
     cat.set_pattern(pattern)
     model_validator.validate(after)
@@ -108,7 +111,7 @@ def test_set_pattern_repeated(model_validator, hist):
     hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
     hist.insert({'url': 'example.com/bar', 'title': 'title2', 'last_atime': 1})
     hist.insert({'url': 'example.com/baz', 'title': 'title3', 'last_atime': 1})
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     model_validator.set_model(cat)
 
     cat.set_pattern('b')
@@ -135,13 +138,25 @@ def test_set_pattern_repeated(model_validator, hist):
     ])
 
 
-def test_set_pattern_long(hist, message_mock, caplog):
+@pytest.mark.parametrize('pattern', [
+    ' '.join(map(str, range(10000))),
+    'x' * 50000,
+], ids=['numbers', 'characters'])
+def test_set_pattern_long(hist, message_mock, caplog, pattern):
     hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     with caplog.at_level(logging.ERROR):
-        cat.set_pattern(" ".join(map(str, range(10000))))
+        cat.set_pattern(pattern)
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text.startswith("Error with SQL query:")
+
+
+@hypothesis.given(pat=strategies.text())
+def test_set_pattern_hypothesis(hist, pat, caplog):
+    hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
+    cat = histcategory.HistoryCategory(database=hist.database)
+    with caplog.at_level(logging.ERROR):
+        cat.set_pattern(pat)
 
 
 @pytest.mark.parametrize('max_items, before, after', [
@@ -188,7 +203,7 @@ def test_sorting(max_items, before, after, model_validator, hist, config_stub):
     for url, title, atime in before:
         timestamp = datetime.datetime.strptime(atime, '%Y-%m-%d').timestamp()
         hist.insert({'url': url, 'title': title, 'last_atime': timestamp})
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     model_validator.set_model(cat)
     cat.set_pattern('')
     model_validator.validate(after)
@@ -197,7 +212,7 @@ def test_sorting(max_items, before, after, model_validator, hist, config_stub):
 def test_remove_rows(hist, model_validator):
     hist.insert({'url': 'foo', 'title': 'Foo', 'last_atime': 0})
     hist.insert({'url': 'bar', 'title': 'Bar', 'last_atime': 0})
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     model_validator.set_model(cat)
     cat.set_pattern('')
     hist.delete('url', 'foo')
@@ -213,7 +228,7 @@ def test_remove_rows_fetch(hist):
         'title': [str(i) for i in range(300)],
         'last_atime': [0] * 300,
     })
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     cat.set_pattern('')
 
     # sanity check that we didn't fetch everything up front
@@ -231,20 +246,21 @@ def test_remove_rows_fetch(hist):
     ('%m/%d/%Y %H:%M', '02/27/2018 08:30'),
     ('', ''),
 ])
-def test_timestamp_fmt(fmt, expected, model_validator, config_stub, init_sql):
+def test_timestamp_fmt(fmt, expected, model_validator, config_stub, data_tmpdir):
     """Validate the filtering and sorting results of set_pattern."""
     config_stub.val.completion.timestamp_format = fmt
-    hist = sql.SqlTable('CompletionHistory', ['url', 'title', 'last_atime'])
+    db = sql.Database(str(data_tmpdir / 'test_timestamp_fmt.db'))
+    hist = sql.SqlTable(db, 'CompletionHistory', ['url', 'title', 'last_atime'])
     atime = datetime.datetime(2018, 2, 27, 8, 30)
     hist.insert({'url': 'foo', 'title': '', 'last_atime': atime.timestamp()})
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     model_validator.set_model(cat)
     cat.set_pattern('')
     model_validator.validate([('foo', '', expected)])
 
 
 def test_skip_duplicate_set(message_mock, caplog, hist):
-    cat = histcategory.HistoryCategory()
+    cat = histcategory.HistoryCategory(database=hist.database)
     cat.set_pattern('foo')
     cat.set_pattern('foobarbaz')
     msg = caplog.messages[-1]

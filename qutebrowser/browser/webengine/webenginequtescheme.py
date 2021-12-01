@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,18 +15,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
 from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
-                                   QWebEngineUrlRequestJob)
-try:
-    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
-except ImportError:
-    # Added in Qt 5.12
-    QWebEngineUrlScheme = None
+                                   QWebEngineUrlRequestJob,
+                                   QWebEngineUrlScheme)
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -42,11 +38,6 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
 
         profile.installUrlSchemeHandler(b'qute', self)
-        if (qtutils.version_check('5.11', compiled=False) and
-                not qtutils.version_check('5.12', compiled=False)):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            profile.installUrlSchemeHandler(b'chrome-error', self)
-            profile.installUrlSchemeHandler(b'chrome-extension', self)
 
     def _check_initiator(self, job):
         """Check whether the initiator of the job should be allowed.
@@ -60,35 +51,22 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         Return:
             True if the initiator is allowed, False if it was blocked.
         """
-        try:
-            initiator = job.initiator()
-            request_url = job.requestUrl()
-        except AttributeError:
-            # Added in Qt 5.11
-            return True
+        initiator = job.initiator()
+        request_url = job.requestUrl()
 
         # https://codereview.qt-project.org/#/c/234849/
         is_opaque = initiator == QUrl('null')
         target = request_url.scheme(), request_url.host()
 
-        if is_opaque and not qtutils.version_check('5.12'):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70421
-            # When we don't register the qute:// scheme, all requests are
-            # flagged as opaque.
-            return True
-
-        if (target == ('qute', 'testdata') and
-                is_opaque and
-                qtutils.version_check('5.12')):
-            # Allow requests to qute://testdata, as this is needed in Qt 5.12
-            # for all tests to work properly. No qute://testdata handler is
-            # installed outside of tests.
+        if target == ('qute', 'testdata') and is_opaque:
+            # Allow requests to qute://testdata, as this is needed for all tests to work
+            # properly. No qute://testdata handler is installed outside of tests.
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':
-            log.misc.warning("Blocking malicious request from {} to {}".format(
-                initiator.toDisplayString(),
-                request_url.toDisplayString()))
+            log.network.warning("Blocking malicious request from {} to {}"
+                                .format(initiator.toDisplayString(),
+                                        request_url.toDisplayString()))
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
             return False
 
@@ -105,11 +83,6 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         """
         url = job.requestUrl()
 
-        if url.scheme() in ['chrome-error', 'chrome-extension']:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            job.fail(QWebEngineUrlRequestJob.UrlInvalid)
-            return
-
         if not self._check_initiator(job):
             return
 
@@ -119,7 +92,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
         assert url.scheme() == 'qute'
 
-        log.misc.debug("Got request for {}".format(url.toDisplayString()))
+        log.network.debug("Got request for {}".format(url.toDisplayString()))
         try:
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
@@ -136,14 +109,13 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
                     QWebEngineUrlRequestJob.RequestFailed,
             }
             exctype = type(e)
-            log.misc.error("{} while handling qute://* URL".format(
-                exctype.__name__))
+            log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
             job.fail(errors[exctype])
         except qutescheme.Redirect as e:
             qtutils.ensure_valid(e.url)
             job.redirect(e.url)
         else:
-            log.misc.debug("Returning {} data".format(mimetype))
+            log.network.debug("Returning {} data".format(mimetype))
 
             # We can't just use the QBuffer constructor taking a QByteArray,
             # because that somehow segfaults...
@@ -165,6 +137,7 @@ def init():
     if QWebEngineUrlScheme is not None:
         assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QWebEngineUrlScheme(b'qute')
-        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
-                        QWebEngineUrlScheme.LocalAccessAllowed)
+        scheme.setFlags(
+            QWebEngineUrlScheme.LocalScheme |  # type: ignore[arg-type]
+            QWebEngineUrlScheme.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

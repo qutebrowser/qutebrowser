@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.browser.greasemonkey."""
 
@@ -25,8 +25,9 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, version
 from qutebrowser.browser import greasemonkey
+from qutebrowser.misc import objects
 
 test_gm_script = r"""
 // ==UserScript==
@@ -40,12 +41,15 @@ test_gm_script = r"""
 console.log("Script is running.");
 """
 
-pytestmark = pytest.mark.usefixtures('data_tmpdir')
+pytestmark = [
+    pytest.mark.usefixtures('data_tmpdir'),
+    pytest.mark.usefixtures('config_tmpdir')
+]
 
 
 def _save_script(script_text, filename):
     # pylint: disable=no-member
-    file_path = py.path.local(greasemonkey._scripts_dir()) / filename
+    file_path = py.path.local(greasemonkey._scripts_dirs()[0]) / filename
     # pylint: enable=no-member
     file_path.write_text(script_text, encoding='utf-8', ensure=True)
 
@@ -73,8 +77,7 @@ def test_get_scripts_by_url(url, expected_matches):
     gm_manager = greasemonkey.GreasemonkeyManager()
 
     scripts = gm_manager.scripts_for(QUrl(url))
-    assert (len(scripts.start + scripts.end + scripts.idle) ==
-            expected_matches)
+    assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
 @pytest.mark.parametrize("url, expected_matches", [
@@ -98,8 +101,7 @@ def test_regex_includes_scripts_for(url, expected_matches):
     gm_manager = greasemonkey.GreasemonkeyManager()
 
     scripts = gm_manager.scripts_for(QUrl(url))
-    assert (len(scripts.start + scripts.end + scripts.idle) ==
-            expected_matches)
+    assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
 def test_no_metadata(caplog):
@@ -127,6 +129,20 @@ def test_no_name_with_fallback():
         [("something", "else")], "", filename=r"C:\COM1")
     assert script
     assert script.name == r"C:\COM1"
+
+
+@pytest.mark.parametrize('properties, inc_counter, expected', [
+    ([("name", "gorilla")], False, "GM-gorilla"),
+    ([("namespace", "apes"), ("name", "gorilla")], False, "GM-apes/gorilla"),
+
+    ([("name", "gorilla")], True, "GM-gorilla-2"),
+    ([("namespace", "apes"), ("name", "gorilla")], True, "GM-apes/gorilla-2"),
+])
+def test_full_name(properties, inc_counter, expected):
+    script = greasemonkey.GreasemonkeyScript(properties, code="")
+    if inc_counter:
+        script.dedup_suffix += 1
+    assert script.full_name() == expected
 
 
 def test_bad_scheme(caplog):
@@ -168,15 +184,6 @@ def test_utf8_bom():
 
 class TestForceDocumentEnd:
 
-    @pytest.fixture
-    def patch(self, monkeypatch):
-        def _patch(*, backend, qt_512):
-            monkeypatch.setattr(greasemonkey.objects, 'backend', backend)
-            monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
-                                lambda version, exact=False, compiled=True:
-                                qt_512)
-        return _patch
-
     def _get_script(self, *, namespace, name):
         source = textwrap.dedent("""
             // ==UserScript==
@@ -192,31 +199,20 @@ class TestForceDocumentEnd:
         assert len(scripts) == 1
         return scripts[0]
 
-    @pytest.mark.parametrize('backend, qt_512', [
-        (usertypes.Backend.QtWebKit, True),
-        (usertypes.Backend.QtWebEngine, False),
-    ])
-    def test_not_applicable(self, patch, backend, qt_512):
-        """Test backend/Qt version combinations which don't need a fix."""
-        patch(backend=backend, qt_512=qt_512)
-        script = self._get_script(namespace='https://github.com/ParticleCore',
-                                  name='Iridium')
-        assert not script.needs_document_end_workaround()
-
     @pytest.mark.parametrize('namespace, name, force', [
         ('http://userstyles.org', 'foobar', True),
         ('https://github.com/ParticleCore', 'Iridium', True),
         ('https://github.com/ParticleCore', 'Foo', False),
         ('https://example.org', 'Iridium', False),
     ])
-    def test_matching(self, patch, namespace, name, force):
+    def test_matching(self, monkeypatch, namespace, name, force):
         """Test matching based on namespace/name."""
-        patch(backend=usertypes.Backend.QtWebEngine, qt_512=True)
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
         script = self._get_script(namespace=namespace, name=name)
         assert script.needs_document_end_workaround() == force
 
 
-def test_required_scripts_are_included(download_stub, tmpdir):
+def test_required_scripts_are_included(download_stub, tmp_path):
     test_require_script = textwrap.dedent("""
         // ==UserScript==
         // @name qutebrowser test userscript
@@ -230,8 +226,7 @@ def test_required_scripts_are_included(download_stub, tmpdir):
         console.log("Script is running.");
     """)
     _save_script(test_require_script, 'requiring.user.js')
-    with open(str(tmpdir / 'test.js'), 'w', encoding='UTF-8') as f:
-        f.write("REQUIRED SCRIPT")
+    (tmp_path / 'test.js').write_text('REQUIRED SCRIPT', encoding='UTF-8')
 
     gm_manager = greasemonkey.GreasemonkeyManager()
     assert len(gm_manager._in_progress_dls) == 1
@@ -246,72 +241,87 @@ def test_required_scripts_are_included(download_stub, tmpdir):
     assert scripts[0].excludes
 
 
-class TestWindowIsolation:
+def test_window_isolation(js_tester, request):
     """Check that greasemonkey scripts get a shadowed global scope."""
+    # Change something in the global scope
+    setup_script = "window.$ = 'global'"
 
-    @pytest.fixture
-    def setup(self):
-        # pylint: disable=attribute-defined-outside-init
-        class SetupData:
-            pass
-        ret = SetupData()
-
-        # Change something in the global scope
-        ret.setup_script = "window.$ = 'global'"
-
-        # Greasemonkey script to report back on its scope.
-        test_script = greasemonkey.GreasemonkeyScript.parse(
-            textwrap.dedent("""
-                // ==UserScript==
-                // @name scopetest
-                // ==/UserScript==
-                // Check the thing the page set is set to the expected type
-                result.push(window.$);
-                result.push($);
-                // Now overwrite it
-                window.$ = 'shadowed';
-                // And check everything is how the script would expect it to be
-                // after just writing to the "global" scope
-                result.push(window.$);
-                result.push($);
-            """)
-        )
-
-        # The compiled source of that scripts with some additional setup
-        # bookending it.
-        ret.test_script = "\n".join([
-            """
-            const result = [];
-            """,
-            test_script.code(),
-            """
-            // Now check that the actual global scope has
-            // not been overwritten
+    # Greasemonkey script to report back on its scope.
+    test_gm_script = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent("""
+            // ==UserScript==
+            // @name scopetest
+            // ==/UserScript==
+            // Check the thing the page set is set to the expected type
             result.push(window.$);
             result.push($);
-            // And return our findings
-            result;
-            """
-        ])
+            // Now overwrite it
+            window.$ = 'shadowed';
+            // And check everything is how the script would expect it to be
+            // after just writing to the "global" scope
+            result.push(window.$);
+            result.push($);
+        """)
+    )
 
-        # What we expect the script to report back.
-        ret.expected = ["global", "global",
-                        "shadowed", "shadowed",
-                        "global", "global"]
-        return ret
+    # The compiled source of that scripts with some additional setup
+    # bookending it.
+    test_script = "\n".join([
+        """
+        const result = [];
+        """,
+        test_gm_script.code(),
+        """
+        // Now check that the actual global scope has
+        // not been overwritten
+        result.push(window.$);
+        result.push($);
+        // And return our findings
+        result;
+        """
+    ])
 
-    def test_webengine(self, qtbot, webengineview, setup):
-        page = webengineview.page()
-        page.runJavaScript(setup.setup_script)
-
-        with qtbot.wait_callback() as callback:
-            page.runJavaScript(setup.test_script, callback)
-        callback.assert_called_with(setup.expected)
+    # What we expect the script to report back.
+    expected = ["global", "global", "shadowed", "shadowed", "global", "global"]
 
     # The JSCore in 602.1 doesn't fully support Proxy.
-    @pytest.mark.qtwebkit6021_xfail
-    def test_webkit(self, webview, setup):
-        elem = webview.page().mainFrame().documentElement()
-        elem.evaluateJavaScript(setup.setup_script)
-        result = elem.evaluateJavaScript(setup.test_script)
-        assert result == setup.expected
+    xfail = False
+    if (js_tester.tab.backend == usertypes.Backend.QtWebKit and
+            version.qWebKitVersion() == '602.1'):
+        expected[-1] = 'shadowed'
+        expected[-2] = 'shadowed'
+        xfail = True
+
+    js_tester.run(setup_script)
+    js_tester.run(test_script, expected=expected)
+
+    if xfail:
+        pytest.xfail("Broken on WebKit 602.1")
+
+
+def test_shared_window_proxy(js_tester):
+    """Check that all scripts have access to the same window proxy."""
+    # Greasemonkey script to add a property to the window proxy.
+    test_script_a = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent("""
+            // ==UserScript==
+            // @name a
+            // ==/UserScript==
+            // Set a value from script a
+            window.$ = 'test';
+        """)
+    ).code()
+
+    # Greasemonkey script to retrieve a property from the window proxy.
+    test_script_b = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent("""
+            // ==UserScript==
+            // @name b
+            // ==/UserScript==
+            // Check that the value is accessible from script b
+            return [window.$, $];
+        """)
+    ).code()
+
+    js_tester.run(test_script_a)
+    js_tester.run(test_script_b, expected=["test", "test"])

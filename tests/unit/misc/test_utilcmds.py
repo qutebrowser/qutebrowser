@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,9 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.utilcmds."""
-
-import logging
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -40,17 +38,6 @@ def test_repeat_command_initial(mocker, mode_manager):
     with pytest.raises(cmdutils.CommandError,
                        match="You didn't do anything yet."):
         utilcmds.repeat_command(win_id=0)
-
-
-def test_debug_log_level(mocker):
-    """Test interactive log level changing."""
-    formatter_mock = mocker.patch(
-        'qutebrowser.misc.utilcmds.log.change_console_formatter')
-    handler_mock = mocker.patch(
-        'qutebrowser.misc.utilcmds.log.console_handler')
-    utilcmds.debug_log_level(level='debug')
-    formatter_mock.assert_called_with(logging.DEBUG)
-    handler_mock.setLevel.assert_called_with(logging.DEBUG)
 
 
 class FakeWindow:

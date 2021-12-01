@@ -1,27 +1,35 @@
 #!/usr/bin/env node
-// 
+//
 // # Description
-// 
+//
 // Summarize the current page in a new tab, by processing it with the standalone readability
 // library used for Firefox Reader View.
-// 
+//
 // # Prerequisites
-// 
-//   - NODE_PATH might be required to point to your global node libraries:
-//     export NODE_PATH=$NODE_PATH:$(npm root -g)
-//   - Mozilla's readability library (npm install -g https://github.com/mozilla/readability.git)
-//     NOTE: You might have to *login* as root for a system-wide installation to work (e.g. sudo -s)
-//   - jsdom (npm install -g jsdom)
-//   - qutejs (npm install -g qutejs)
-// 
+//
+// - Mozilla's readability library (npm install -g @mozilla/readability)
+//     - Also available in the AUR as nodejs-readability-git
+// - jsdom (npm install -g jsdom)
+// - qutejs (npm install -g qutejs)
+//
+// - Ensure that node knows where to find your globally installed modules by adding
+//   the following to ~/.profile or /etc/profile:
+//     
+//   export NODE_PATH=$NODE_PATH:$(npm root -g)
+//
+// *Note*: On some Linux distros and macOS, it may be easier to set NODE_PATH using qutebrowser's
+// qt.environ setting. For instance, if 'npm root -g' returns /usr/lib/node_modules, then run:
+//
+//   :set qt.environ '{"NODE_PATH": "/usr/lib/node_modules"}'
+//
 // # Usage
-// 
+//
 // :spawn --userscript readability-js
-// 
-// One may wish to define an easy to type command alias in Qutebrowser's configuration file:
+//
+// One may wish to define an easy to type command alias in qutebrowser's configuration file:
 // c.aliases = {"readability" : "spawn --userscript readability-js", ...}
 
-const Readability = require('readability');
+const { Readability } = require('@mozilla/readability');
 const qute = require('qutejs');
 const JSDOM = require('jsdom').JSDOM;
 const fs = require('fs');
@@ -32,8 +40,8 @@ const HEADER = `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, text/html, charset=UTF-8" http-equiv="Content-Type">
-    </meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
     <title>%s</title>
     <style type="text/css">
         body {
@@ -45,20 +53,102 @@ const HEADER = `
         h1, h2, h3 {
             line-height: 1.2;
         }
+        h1.reader-title {
+            font-size: 1.85em;
+            line-height: 1.25em;
+            width: 100%;
+            margin: 0 0;
+        }
+        a.reader-title {
+            color: #FFFFFF !important;
+        }
+        img {
+            max-width:100%;
+            height:auto;
+        }
+        p > img:only-child,
+        p > a:only-child > img:only-child,
+        .wp-caption img,
+        figure img {
+            display: block;
+        }
+        table,
+        th,
+        td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 6px;
+            vertical-align: top;
+        }
+        table {
+            margin: 5px;
+        }
+        pre {
+            padding: 16px;
+            overflow: auto;
+            line-height: 1.45;
+            background-color: #dddddd;
+        }
+        code { 
+            padding: .2em .4em;
+            margin: 0;
+            background-color: #dddddd;
+        }
+        pre > code {
+            padding-right: 0;
+            padding-left: 0;
+        }
+        blockquote {
+            border-inline-start: 2px solid grey !important;
+            padding: 0;
+            padding-inline-start: 16px;
+            margin-inline-start: 24px;
+            border-radius: 5px;
+        }
     </style>
-</head>`;
+    <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
+    The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
+    <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2ZXJzaW9uPSIxLjEiI
+    HZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgZmlsbD0iI2ZmZiI+CjxwYXRoIGQ9Im01MiAwaC00
+    MGMtNC40MiAwLTggMy41OC04IDh2NDhjMCA0LjQyIDMuNTggOCA4IDhoNDBjNC40MiAwIDgtMy41OCA4LTh2LTQ4YzAtNC40Mi0zLjU4LTgtOC04em0wIDU
+    yYzAgMi4yMS0xLjc5IDQtNCA0aC0zMmMtMi4yMSAwLTQtMS43OS00LTR2LTQwYzAtMi4yMSAxLjc5LTQgNC00aDMyYzIuMjEgMCA0IDEuNzkgNCA0em0tMT
+    AtMzZoLTIwYy0xLjExIDAtMiAwLjg5NS0yIDJzMC44OTUgMiAyIDJoMjBjMS4xMSAwIDItMC44OTUgMi0ycy0wLjg5NS0yLTItMnptMCA4aC0yMGMtMS4xM
+    SAwLTIgMC44OTUtMiAyczAuODk1IDIgMiAyaDIwYzEuMTEgMCAyLTAuODk1IDItMnMtMC44OTUtMi0yLTJ6bTAgOGgtMjBjLTEuMTEgMC0yIDAuODk1LTIg
+    MnMwLjg5NSAyIDIgMmgyMGMxLjExIDAgMi0wLjg5NSAyLTJzLTAuODk1LTItMi0yem0tMTIgOGgtOGMtMS4xMSAwLTIgMC44OTUtMiAyczAuODk1IDIgMiA
+    yaDhjMS4xMSAwIDItMC44OTUgMi0ycy0wLjg5NS0yLTItMnoiIGZpbGw9IiNmZmYiLz4KPC9nPgo8L3N2Zz4K"/>
+</head>
+<body class="qute-readability">
+    <h1 class="reader-title">%s</h1>
+    <div>From <a class="reader-title" href="%s">%s</a></div>
+    <hr>
+    %s
+</body>
+</html>
+`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
-const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"}
 
-if (!fs.existsSync(scriptsDir)){
+if (!fs.existsSync(scriptsDir)) {
     fs.mkdirSync(scriptsDir);
 }
 
-JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
+let getDOM, domOpts, target;
+// When hinting, use the selected hint instead of the current page
+if (process.env.QUTE_MODE === 'hints') {
+    getDOM = JSDOM.fromURL;
+    target = process.env.QUTE_URL;
+}
+else {
+    getDOM = JSDOM.fromFile;
+    domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
+    target = process.env.QUTE_HTML;
+}
+
+getDOM(target, domOpts).then(dom => {
     let reader = new Readability(dom.window.document);
     let article = reader.parse();
-    let content = util.format(HEADER, article.title) + article.content;
+    let subtitle = (article.siteName == null) ? new URL(process.env.QUTE_URL).hostname : article.siteName;
+    let content = util.format(HEADER, article.title, article.title, process.env.QUTE_URL, subtitle, article.content);
 
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {
@@ -66,6 +156,6 @@ JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
             return 1;
         }
         // Success
-        qute.open(['-t', tmpFile]);
+        qute.open(['-t', '-r', tmpFile]);
     })
 });

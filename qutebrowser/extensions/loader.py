@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,18 +15,17 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Loader for qutebrowser extensions."""
 
-import importlib.abc
 import pkgutil
 import types
-import typing
-import sys
 import pathlib
-
-import attr
+import importlib
+import argparse
+import dataclasses
+from typing import Callable, Iterator, List, Optional, Tuple
 
 from PyQt5.QtCore import pyqtSlot
 
@@ -35,25 +34,25 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
 
-if typing.TYPE_CHECKING:
-    import argparse
-
 
 # ModuleInfo objects for all loaded plugins
 _module_infos = []
 
+InitHookType = Callable[['InitContext'], None]
+ConfigChangedHookType = Callable[[], None]
 
-@attr.s
+
+@dataclasses.dataclass
 class InitContext:
 
     """Context an extension gets in its init hook."""
 
-    data_dir = attr.ib()  # type: pathlib.Path
-    config_dir = attr.ib()  # type: pathlib.Path
-    args = attr.ib()  # type: argparse.Namespace
+    data_dir: pathlib.Path
+    config_dir: pathlib.Path
+    args: argparse.Namespace
 
 
-@attr.s
+@dataclasses.dataclass
 class ModuleInfo:
 
     """Information attached to an extension module.
@@ -61,29 +60,30 @@ class ModuleInfo:
     This gets used by qutebrowser.api.hook.
     """
 
-    _ConfigChangedHooksType = typing.List[typing.Tuple[typing.Optional[str],
-                                                       typing.Callable]]
+    skip_hooks: bool = False
+    init_hook: Optional[InitHookType] = None
+    config_changed_hooks: List[
+        Tuple[
+            Optional[str],
+            ConfigChangedHookType,
+        ]
+    ] = dataclasses.field(default_factory=list)
 
-    skip_hooks = attr.ib(False)  # type: bool
-    init_hook = attr.ib(None)  # type: typing.Optional[typing.Callable]
-    config_changed_hooks = attr.ib(
-        attr.Factory(list))  # type: _ConfigChangedHooksType
 
-
-@attr.s
+@dataclasses.dataclass
 class ExtensionInfo:
 
     """Information about a qutebrowser extension."""
 
-    name = attr.ib()  # type: str
+    name: str
 
 
 def add_module_info(module: types.ModuleType) -> ModuleInfo:
     """Add ModuleInfo to a module (if not added yet)."""
     # pylint: disable=protected-access
     if not hasattr(module, '__qute_module_info'):
-        module.__qute_module_info = ModuleInfo()  # type: ignore
-    return module.__qute_module_info  # type: ignore
+        module.__qute_module_info = ModuleInfo()  # type: ignore[attr-defined]
+    return module.__qute_module_info  # type: ignore[attr-defined]
 
 
 def load_components(*, skip_hooks: bool = False) -> None:
@@ -92,46 +92,22 @@ def load_components(*, skip_hooks: bool = False) -> None:
         _load_component(info, skip_hooks=skip_hooks)
 
 
-def walk_components() -> typing.Iterator[ExtensionInfo]:
+def walk_components() -> Iterator[ExtensionInfo]:
     """Yield ExtensionInfo objects for all modules."""
-    if hasattr(sys, 'frozen'):
-        yield from _walk_pyinstaller()
-    else:
-        yield from _walk_normal()
-
-
-def _on_walk_error(name: str) -> None:
-    raise ImportError("Failed to import {}".format(name))
-
-
-def _walk_normal() -> typing.Iterator[ExtensionInfo]:
-    """Walk extensions when not using PyInstaller."""
     for _finder, name, ispkg in pkgutil.walk_packages(
             # Only packages have a __path__ attribute,
             # but we're sure this is one.
-            path=components.__path__,  # type: ignore
+            path=components.__path__,  # type: ignore[attr-defined]
             prefix=components.__name__ + '.',
             onerror=_on_walk_error):
         if ispkg:
             continue
+        if name == 'qutebrowser.components.adblock':
+            # WORKAROUND for packaging issues where the old adblock.py file is still
+            # lingering around.
+            log.extensions.debug("Ignoring stale 'adblock' component")
+            continue
         yield ExtensionInfo(name=name)
-
-
-def _walk_pyinstaller() -> typing.Iterator[ExtensionInfo]:
-    """Walk extensions when using PyInstaller.
-
-    See https://github.com/pyinstaller/pyinstaller/issues/1905
-
-    Inspired by:
-    https://github.com/webcomics/dosage/blob/master/dosagelib/loader.py
-    """
-    toc = set()  # type: typing.Set[str]
-    for importer in pkgutil.iter_importers('qutebrowser'):
-        if hasattr(importer, 'toc'):
-            toc |= importer.toc
-    for name in toc:
-        if name.startswith(components.__name__ + '.'):
-            yield ExtensionInfo(name=name)
 
 
 def _get_init_context() -> InitContext:
@@ -184,3 +160,7 @@ def _on_config_changed(changed_name: str) -> None:
 
 def init() -> None:
     config.instance.changed.connect(_on_config_changed)
+
+
+def _on_walk_error(name: str) -> None:
+    raise ImportError("Failed to import {}".format(name))

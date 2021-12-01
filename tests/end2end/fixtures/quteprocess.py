@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
-import os
-import os.path
+import pathlib
 import re
 import sys
 import time
@@ -29,15 +28,17 @@ import logging
 import tempfile
 import contextlib
 import itertools
+import collections
 import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, qVersion
+from PyQt5.QtCore import pyqtSignal, QUrl, QPoint
+from PyQt5.QtGui import QImage, QColor
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript, qtutils
-from helpers import utils as testutils
+from qutebrowser.utils import log, utils, javascript
+from helpers import testutils
 from end2end.fixtures import testprocess
 
 
@@ -60,7 +61,7 @@ def is_ignored_lowlevel_message(message):
         # ???
         'Xlib: sequence lost*',
         # Started appearing with Qt 5.8...
-        # http://patchwork.sourceware.org/patch/10255/
+        # https://patchwork.sourceware.org/patch/10255/
         ("*_dl_allocate_tls_init: Assertion `listp->slotinfo[cnt].gen <= "
          "GL(dl_tls_generation)' failed!*"),
         # ???
@@ -114,6 +115,12 @@ def is_ignored_lowlevel_message(message):
         '*/QtWebEngineProcess: /lib/x86_64-linux-gnu/libdbus-1.so.3: no '
         'version information available (required by '
         '*/libQt5WebEngineCore.so.5)',
+
+        # hunter and Python 3.9
+        # https://github.com/ionelmc/python-hunter/issues/87
+        '<frozen importlib._bootstrap>:*: RuntimeWarning: builtins.type size changed, '
+        'may indicate binary incompatibility. Expected 872 from C header, got 880 from '
+        'PyObject',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -222,6 +229,10 @@ def is_ignored_chromium_message(line):
         # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
         'Lost UI shared context.',
 
+        # [20870:20908:0607/081717.652282:ERROR:block_files.cc(465)] Failed to
+        # open /tmp/qutebrowser-basedir-cg284f_m/data/webengine/GPUCache/data_2
+        'Failed to open *GPUCache*',
+
         # Qt 5.12
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
         # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]
@@ -271,6 +282,90 @@ def is_ignored_chromium_message(line):
         # SurfaceId(FrameSinkId[](5, 2), LocalSurfaceId(8, 1, 7C3A...))
         'Old/orphaned temporary reference to '
         'SurfaceId(FrameSinkId[](*), LocalSurfaceId(*))',
+        # [79680:79705:0111/151113.071008:WARNING:
+        # important_file_writer.cc(97)] temp file failure:
+        # /tmp/qutebrowser-basedir-gwkvqpyp/data/webengine/user_prefs.json :
+        # could not create temporary file: No such file or directory (2)
+        # (Only in debug builds)
+        # https://bugreports.qt.io/browse/QTBUG-78319
+        'temp file failure: * : could not create temporary file: No such file '
+        'or directory (2)',
+
+        # Travis
+        # test_ssl_error_with_contentssl_strict__true
+        # [5306:5324:0417/151739.362362:ERROR:address_tracker_linux.cc(171)]
+        # Could not bind NETLINK socket: Address already in use (98)
+        'Could not bind NETLINK socket: Address already in use (98)',
+
+        # Qt 5.15 with AppVeyor
+        # [2968:3108:0601/123442.125:ERROR:mf_helpers.cc(14)] Error in
+        # dxva_video_decode_accelerator_win.cc on line 517
+        'Error in dxva_video_decode_accelerator_win.cc on line 517',
+
+        # Qt 5.15 and debug build
+        # [134188:134199:0609/132454.797229:WARNING:
+        # simple_synchronous_entry.cc(1389)]
+        # Could not open platform files for entry.
+        # [134151:134187:0609/132456.754321:ERROR:process_posix.cc(333)]
+        # Unable to terminate process 134188: No such process (3)
+        # [134151:134187:0609/132456.754414:WARNING:internal_linux.cc(64)]
+        # Failed to read /proc/134188/stat
+        'Could not open platform files for entry.',
+        'Unable to terminate process *: No such process (3)',
+        'Failed to read /proc/*/stat',
+
+        # Qt 5.15.1 debug build (Chromium 83)
+        # '[314297:7:0929/214605.491958:ERROR:context_provider_command_buffer.cc(145)]
+        # GpuChannelHost failed to create command buffer.'
+        'GpuChannelHost failed to create command buffer.',
+        # [338691:4:0929/220114.488847:WARNING:ipc_message_attachment_set.cc(49)]
+        # MessageAttachmentSet destroyed with unconsumed attachments: 0/1
+        'MessageAttachmentSet destroyed with unconsumed attachments: *',
+
+        # GitHub Actions with Qt 5.15.1
+        ('SharedImageManager::ProduceGLTexture: Trying to produce a '
+         'representation from a non-existent mailbox. *'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoCreateAndTexStorage2DSharedImageINTERNAL: invalid mailbox name'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoBeginSharedImageAccessCHROMIUM: bound texture is not a shared image'),
+        ('[.DisplayCompositor]RENDER WARNING: texture bound to texture unit 0 is '
+         'not renderable. It might be non-power-of-2 or have incompatible texture '
+         'filtering (maybe)?'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
+        'Unable to map Index file',
+
+        # WebRTC with Qt 5.13 / 5.14
+        'Failed to query stereo recording.',
+        'Accepting maxRetransmits = -1 for backwards compatibility',
+        'Accepting maxRetransmitTime = -1 for backwards compatibility',
+
+        # Windows N:
+        # https://github.com/microsoft/playwright/issues/2901
+        ('DXVAVDA fatal error: could not LoadLibrary: *: The specified '
+         'module could not be found. (0x7E)'),
+
+        # Qt 5.15.3 dev build
+        r'Duplicate id found. Reassigning from * to *',
+
+        # Flatpak
+        'mDNS responder manager failed to start.',
+        'The mDNS responder manager is not started yet.',
+
+        # GitHub Actions with Qt 5.15.0
+        # [5387:5407:0713/142608.526916:ERROR:cache_util.cc(135)] Unable to
+        # move cache folder
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/GPUCache to
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/old_GPUCache_000
+        # [5387:5407:0713/142608.526934:ERROR:disk_cache.cc(184)] Unable to
+        # create cache
+        # [5387:5407:0713/142608.526938:ERROR:shader_disk_cache.cc(606)] Shader
+        # Cache Creation failed: -2
+        ('Unable to move cache folder */data/webengine/GPUCache to '
+            '*/data/webengine/old_GPUCache_000'),
+        'Unable to create cache',
+        'Shader Cache Creation failed: -2',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -363,8 +458,6 @@ class QuteProc(testprocess.Process):
         _webengine: Whether to use QtWebEngine
         basedir: The base directory for this instance.
         request: The request object for the current test.
-        _focus_ready: Whether the main window got focused.
-        _load_ready: Whether the about:blank page got loaded.
         _instance_id: A unique ID for this QuteProc instance
         _run_counter: A counter to get a unique ID for each run.
 
@@ -381,75 +474,24 @@ class QuteProc(testprocess.Process):
         super().__init__(request, parent)
         self._ipc_socket = None
         self.basedir = None
-        self._focus_ready = False
-        self._load_ready = False
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
-
-    def _is_ready(self, what):
-        """Called by _parse_line if loading/focusing is done.
-
-        When both are done, emits the 'ready' signal.
-        """
-        if what == 'load':
-            self._load_ready = True
-        elif what == 'focus':
-            self._focus_ready = True
-        else:
-            raise ValueError("Invalid value {!r} for 'what'.".format(what))
-
-        is_qt_5_12 = qtutils.version_check('5.12', compiled=False)
-        if ((self._load_ready and self._focus_ready) or
-                (self._load_ready and is_qt_5_12)):
-            self._load_ready = False
-            self._focus_ready = False
-            self.ready.emit()
+        self._screenshot_counters = collections.defaultdict(itertools.count)
 
     def _process_line(self, log_line):
         """Check if the line matches any initial lines we're interested in."""
-        start_okay_message_load = (
+        start_okay_message = (
             "load status for <qutebrowser.browser.* tab_id=0 "
             "url='about:blank'>: LoadStatus.success")
-        start_okay_messages_focus = [
-            ## QtWebKit
-            "Focus object changed: "
-            "<qutebrowser.browser.* tab_id=0 url='about:blank'>",
-            # when calling QApplication::sync
-            "Focus object changed: "
-            "<qutebrowser.browser.webkit.webview.WebView tab_id=0 url=''>",
-
-            ## QtWebEngine
-            "Focus object changed: "
-            "<PyQt5.QtWidgets.QOpenGLWidget object at *>",
-            # with Qt >= 5.8
-            "Focus object changed: "
-            "<PyQt5.QtGui.QWindow object at *>",
-            # when calling QApplication::sync
-            "Focus object changed: "
-            "<PyQt5.QtWidgets.QWidget object at *>",
-            # Qt >= 5.11
-            "Focus object changed: "
-            "<qutebrowser.browser.webengine.webview.WebEngineView object "
-            "at *>",
-            # Qt >= 5.11 with workarounds
-            "Focus object changed: "
-            "<PyQt5.QtQuickWidgets.QQuickWidget object at *>",
-        ]
 
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
-              testutils.pattern_match(pattern=start_okay_message_load,
+              testutils.pattern_match(pattern=start_okay_message,
                                       value=log_line.message)):
-            if not self._load_ready:
-                log_line.waited_for = True
-            self._is_ready('load')
-        elif (log_line.category == 'misc' and any(
-                testutils.pattern_match(pattern=pattern,
-                                        value=log_line.message)
-                for pattern in start_okay_messages_focus)):
-            self._is_ready('focus')
+            log_line.waited_for = True
+            self.ready.emit()
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and
               log_line.function == 'init' and
@@ -485,24 +527,19 @@ class QuteProc(testprocess.Process):
         if hasattr(sys, 'frozen'):
             if profile:
                 raise Exception("Can't profile with sys.frozen!")
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      'qutebrowser')
+            executable = str(pathlib.Path(sys.executable).parent / 'qutebrowser')
             args = []
         else:
             executable = sys.executable
             if profile:
-                profile_dir = os.path.join(os.getcwd(), 'prof')
+                profile_dir = pathlib.Path.cwd() / 'prof'
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
-                profile_file = os.path.join(profile_dir,
-                                            '{}.pstats'.format(profile_id))
-                try:
-                    os.mkdir(profile_dir)
-                except FileExistsError:
-                    pass
-                args = [os.path.join('scripts', 'dev', 'run_profile.py'),
+                profile_file = profile_dir / '{}.pstats'.format(profile_id)
+                profile_dir.mkdir(exist_ok=True)
+                args = [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
                         '--profile-tool', 'none',
-                        '--profile-file', profile_file]
+                        '--profile-file', str(profile_file)]
             else:
                 args = ['-bb', '-m', 'qutebrowser']
         return executable, args
@@ -512,10 +549,12 @@ class QuteProc(testprocess.Process):
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
-                '--debug-flag', 'werror']
-        if qVersion() == '5.7.1':
-            # https://github.com/qutebrowser/qutebrowser/issues/3163
-            args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
+                '--debug-flag', 'werror', '--debug-flag',
+                'test-notification-service']
+
+        if self.request.config.webengine:
+            args += testutils.seccomp_args(qt_flag=True)
+
         args.append('about:blank')
         return args
 
@@ -626,8 +665,6 @@ class QuteProc(testprocess.Process):
             ('auto_save.interval', '0'),
             ('new_instance_open_target_window', 'last-opened')
         ]
-        if not self.request.config.webengine:
-            settings.append(('content.ssl_strict', 'false'))
 
         for opt, value in settings:
             self.set_setting(opt, value)
@@ -651,13 +688,16 @@ class QuteProc(testprocess.Process):
             if bad_msgs:
                 text = 'Logged unexpected errors:\n\n' + '\n'.join(
                     str(e) for e in bad_msgs)
-                # We'd like to use pytrace=False here but don't as a WORKAROUND
-                # for https://github.com/pytest-dev/pytest/issues/1316
-                pytest.fail(text)
+                pytest.fail(text, pytrace=False)
             else:
                 self._maybe_skip()
         finally:
             super().after_test()
+
+    def _wait_for_ipc(self):
+        """Wait for an IPC message to arrive."""
+        self.wait_for(category='ipc', module='ipc', function='on_ready_read',
+                      message='Read from socket *')
 
     def send_ipc(self, commands, target_arg=''):
         """Send a raw command to the running IPC socket."""
@@ -666,14 +706,31 @@ class QuteProc(testprocess.Process):
 
         assert self._ipc_socket is not None
         ipc.send_to_running_instance(self._ipc_socket, commands, target_arg)
-        self.wait_for(category='ipc', module='ipc', function='on_ready_read',
-                      message='Read from socket *')
 
-    def start(self, *args, wait_focus=True,
-              **kwargs):  # pylint: disable=arguments-differ
-        if not wait_focus:
-            self._focus_ready = True
-        super().start(*args, **kwargs)
+        try:
+            self._wait_for_ipc()
+        except testprocess.WaitForTimeout:
+            # Sometimes IPC messages seem to get lost on Windows CI?
+            # Retry a second time as this shouldn't make tests fail.
+            ipc.send_to_running_instance(self._ipc_socket, commands,
+                                         target_arg)
+            self._wait_for_ipc()
+
+    def start(self, *args, **kwargs):  # pylint: disable=arguments-differ
+        try:
+            super().start(*args, **kwargs)
+        except testprocess.ProcessExited:
+            is_dl_inconsistency = str(self.captured_log[-1]).endswith(
+                "_dl_allocate_tls_init: Assertion "
+                "`listp->slotinfo[cnt].gen <= GL(dl_tls_generation)' failed!")
+            if testutils.ON_CI and is_dl_inconsistency:
+                # WORKAROUND for https://sourceware.org/bugzilla/show_bug.cgi?id=19329
+                self.captured_log = []
+                self._log("NOTE: Restarted after libc DL inconsistency!")
+                self.clear_data()
+                super().start(*args, **kwargs)
+            else:
+                raise
 
     def send_cmd(self, command, count=None, invalid=False, *, escape=True):
         """Send a command to the running qutebrowser instance.
@@ -687,6 +744,7 @@ class QuteProc(testprocess.Process):
         Return:
             The parsed log line with "command called: ..." or None.
         """
+        __tracebackhide__ = lambda e: e.errisinstance(testprocess.WaitForTimeout)
         summary = command
         if count is not None:
             summary += ' (count {})'.format(count)
@@ -783,7 +841,7 @@ class QuteProc(testprocess.Process):
             testprocess.WaitForTimeout))
 
         if timeout is None:
-            if 'CI' in os.environ:
+            if testutils.ON_CI:
                 timeout = 15000
             else:
                 timeout = 5000
@@ -793,24 +851,16 @@ class QuteProc(testprocess.Process):
             raise ValueError("Invalid URL {}: {}".format(url,
                                                          qurl.errorString()))
 
-        if (qurl == QUrl('about:blank') and
-                not qtutils.version_check('5.10', compiled=False)):
-            # For some reason, we don't get a LoadStatus.success for
-            # about:blank sometimes.
-            # However, if we do this for Qt 5.10, we get general testsuite
-            # instability as site loads get reported with about:blank...
-            pattern = "Changing title for idx * to 'about:blank'"
-        else:
-            # We really need the same representation that the webview uses in
-            # its __repr__
-            url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
-            assert url
+        # We really need the same representation that the webview uses in
+        # its __repr__
+        url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
+        assert url
 
-            pattern = re.compile(
-                r"(load status for <qutebrowser\.browser\..* "
-                r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-                r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
-                    load_status=re.escape(load_status), url=re.escape(url)))
+        pattern = re.compile(
+            r"(load status for <qutebrowser\.browser\..* "
+            r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
+            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+                load_status=re.escape(load_status), url=re.escape(url)))
 
         try:
             self.wait_for(message=pattern, timeout=timeout, after=after)
@@ -829,21 +879,20 @@ class QuteProc(testprocess.Process):
 
     def get_session(self):
         """Save the session and get the parsed session data."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            session = os.path.join(tmpdir, 'session.yml')
+        with tempfile.TemporaryDirectory() as tdir:
+            session = pathlib.Path(tdir) / 'session.yml'
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
-            with open(session, encoding='utf-8') as f:
-                data = f.read()
+            data = session.read_text(encoding='utf-8')
 
         self._log('\nCurrent session data:\n' + data)
         return utils.yaml_load(data)
 
     def get_content(self, plain=True):
         """Get the contents of the current page."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, 'page')
+        with tempfile.TemporaryDirectory() as tdir:
+            path = pathlib.Path(tdir) / 'page'
 
             if plain:
                 self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
@@ -853,8 +902,47 @@ class QuteProc(testprocess.Process):
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Dumped page to {}.'.format(path))
 
-            with open(path, 'r', encoding='utf-8') as f:
-                return f.read()
+            return path.read_text(encoding='utf-8')
+
+    def get_screenshot(
+            self,
+            *,
+            probe_pos: QPoint = None,
+            probe_color: QColor = testutils.Color(0, 0, 0),
+    ) -> QImage:
+        """Get a screenshot of the current page.
+
+        Arguments:
+            probe: If given, only continue if the pixel at the given position isn't
+                   black (or whatever is specified by probe_color).
+        """
+        for _ in range(5):
+            tmp_path = self.request.getfixturevalue('tmp_path')
+            counter = self._screenshot_counters[self.request.node.nodeid]
+
+            path = tmp_path / f'screenshot-{next(counter)}.png'
+            self.send_cmd(f':screenshot {path}')
+
+            screenshot_msg = f'Screenshot saved to {path}'
+            self.wait_for(message=screenshot_msg)
+            print(screenshot_msg)
+
+            img = QImage(str(path))
+            assert not img.isNull()
+
+            if probe_pos is None:
+                return img
+
+            probed_color = testutils.Color(img.pixelColor(probe_pos))
+            if probed_color == probe_color:
+                return img
+
+            # Rendering might not be completed yet...
+            time.sleep(0.5)
+
+        # Using assert again for pytest introspection
+        assert probed_color == probe_color, "Color probing failed, values on last try:"
+        raise utils.Unreachable()
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""

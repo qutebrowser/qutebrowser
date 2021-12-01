@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test mhtml downloads based on sample files."""
 
-import os
-import os.path
+import pathlib
 import re
 import collections
 
@@ -28,9 +27,9 @@ import pytest
 
 
 def collect_tests():
-    basedir = os.path.dirname(__file__)
-    datadir = os.path.join(basedir, 'data', 'downloads', 'mhtml')
-    files = os.listdir(datadir)
+    basedir = pathlib.Path(__file__).parent
+    datadir = basedir / 'data' / 'downloads' / 'mhtml'
+    files = [x.name for x in datadir.iterdir()]
     return files
 
 
@@ -58,17 +57,15 @@ class DownloadDir:
 
     """Abstraction over a download directory."""
 
-    def __init__(self, tmpdir, config):
-        self._tmpdir = tmpdir
+    def __init__(self, tmp_path, config):
+        self._tmp_path = tmp_path
         self._config = config
-        self.location = str(tmpdir)
+        self.location = str(tmp_path)
 
     def read_file(self):
-        files = self._tmpdir.listdir()
+        files = list(self._tmp_path.iterdir())
         assert len(files) == 1
-
-        with open(str(files[0]), 'r', encoding='utf-8') as f:
-            return f.readlines()
+        return files[0].read_text(encoding='utf-8').splitlines()
 
     def sanity_check_mhtml(self):
         assert 'Content-Type: multipart/related' in '\n'.join(self.read_file())
@@ -84,12 +81,12 @@ class DownloadDir:
 
 
 @pytest.fixture
-def download_dir(tmpdir, pytestconfig):
-    return DownloadDir(tmpdir, pytestconfig)
+def download_dir(tmp_path, pytestconfig):
+    return DownloadDir(tmp_path, pytestconfig)
 
 
 def _test_mhtml_requests(test_dir, test_path, server):
-    with open(os.path.join(test_dir, 'requests'), encoding='utf-8') as f:
+    with (test_dir / 'requests').open(encoding='utf-8') as f:
         expected_requests = []
         for line in f:
             if line.startswith('#'):
@@ -110,18 +107,18 @@ def test_mhtml(request, test_name, download_dir, quteproc, server):
     quteproc.set_setting('downloads.location.directory', download_dir.location)
     quteproc.set_setting('downloads.location.prompt', 'false')
 
-    test_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            'data', 'downloads', 'mhtml', test_name)
+    test_dir = (pathlib.Path(__file__).parent.resolve()
+                / 'data' / 'downloads' / 'mhtml' / test_name)
     test_path = 'data/downloads/mhtml/{}'.format(test_name)
 
     url_path = '{}/{}.html'.format(test_path, test_name)
     quteproc.open_path(url_path)
 
-    download_dest = os.path.join(download_dir.location,
-                                 '{}-downloaded.mht'.format(test_name))
+    download_dest = (pathlib.Path(download_dir.location)
+                     / '{}-downloaded.mht'.format(test_name))
 
     # Wait for favicon.ico to be loaded if there is one
-    if os.path.exists(os.path.join(test_dir, 'favicon.png')):
+    if (test_dir / 'favicon.png').exists():
         server.wait_for(path='/{}/favicon.png'.format(test_path))
 
     # Discard all requests that were necessary to display the page
@@ -135,7 +132,7 @@ def test_mhtml(request, test_name, download_dir, quteproc, server):
         return
 
     filename = test_name + '.mht'
-    expected_file = os.path.join(test_dir, filename)
+    expected_file = test_dir / filename
 
     download_dir.compare_mhtml(expected_file)
     _test_mhtml_requests(test_dir, test_path, server)

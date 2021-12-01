@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,10 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Configuration files residing on disk."""
 
+import enum
 import pathlib
 import types
 import os.path
@@ -27,23 +28,55 @@ import textwrap
 import traceback
 import configparser
 import contextlib
-import typing
 import re
+from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
+                    MutableMapping, Optional, Tuple, cast)
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, QObject, QSettings, qVersion
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
-from qutebrowser.config import configexc, config, configdata, configutils
+from qutebrowser.config import (configexc, config, configdata, configutils,
+                                configtypes)
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
+from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
 
 
 # The StateConfig instance
-state = typing.cast('StateConfig', None)
+state = cast('StateConfig', None)
+
+
+_SettingsType = Dict[str, Dict[str, Any]]
+
+
+class VersionChange(enum.Enum):
+
+    """The type of version change when comparing two versions."""
+
+    unknown = enum.auto()
+    equal = enum.auto()
+    downgrade = enum.auto()
+
+    patch = enum.auto()
+    minor = enum.auto()
+    major = enum.auto()
+
+    def matches_filter(self, filterstr: str) -> bool:
+        """Whether the change matches a given filter.
+
+        This is intended to use filters like "major" (show major only), "minor" (show
+        major/minor) or "patch" (show all changes).
+        """
+        allowed_values: Dict[str, List[VersionChange]] = {
+            'major': [VersionChange.major],
+            'minor': [VersionChange.major, VersionChange.minor],
+            'patch': [VersionChange.major, VersionChange.minor, VersionChange.patch],
+            'never': [],
+        }
+        return self in allowed_values[filterstr]
 
 
 class StateConfig(configparser.ConfigParser):
@@ -54,28 +87,81 @@ class StateConfig(configparser.ConfigParser):
         super().__init__()
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
-        qt_version = qVersion()
-        # We handle this here, so we can avoid setting qt_version_changed if
-        # the config is brand new, but can still set it when qt_version wasn't
-        # there before...
-        if 'general' in self:
-            old_qt_version = self['general'].get('qt_version', None)
-            self.qt_version_changed = old_qt_version != qt_version
-        else:
-            self.qt_version_changed = False
 
-        for sect in ['general', 'geometry']:
+        self.qt_version_changed = False
+        self.qtwe_version_changed = False
+        self.qutebrowser_version_changed = VersionChange.unknown
+        self._set_changed_attributes()
+
+        for sect in ['general', 'geometry', 'inspector']:
             try:
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
 
-        deleted_keys = ['fooled', 'backend-warning-shown']
-        for key in deleted_keys:
-            self['general'].pop(key, None)
+        deleted_keys = [
+            ('general', 'fooled'),
+            ('general', 'backend-warning-shown'),
+            ('general', 'old-qt-warning-shown'),
+            ('geometry', 'inspector'),
+        ]
+        for sect, key in deleted_keys:
+            self[sect].pop(key, None)
 
-        self['general']['qt_version'] = qt_version
+        self['general']['qt_version'] = qVersion()
+        self['general']['qtwe_version'] = self._qtwe_version_str()
         self['general']['version'] = qutebrowser.__version__
+
+    def _qtwe_version_str(self) -> str:
+        """Get the QtWebEngine version string.
+
+        Note that it's too early to use objects.backend here...
+        """
+        try:
+            import PyQt5.QtWebEngineWidgets  # pylint: disable=unused-import
+        except ImportError:
+            return 'no'
+        return str(version.qtwebengine_versions(avoid_init=True).webengine)
+
+    def _set_changed_attributes(self) -> None:
+        """Set qt_version_changed/qutebrowser_version_changed attributes.
+
+        We handle this here, so we can avoid setting qt_version_changed if
+        the config is brand new, but can still set it when qt_version wasn't
+        there before...
+        """
+        if 'general' not in self:
+            return
+
+        old_qt_version = self['general'].get('qt_version', None)
+        self.qt_version_changed = old_qt_version != qVersion()
+
+        old_qtwe_version = self['general'].get('qtwe_version', None)
+        self.qtwe_version_changed = old_qtwe_version != self._qtwe_version_str()
+
+        old_qutebrowser_version = self['general'].get('version', None)
+        if old_qutebrowser_version is None:
+            # https://github.com/python/typeshed/issues/2093
+            return  # type: ignore[unreachable]
+
+        try:
+            old_version = utils.VersionNumber.parse(old_qutebrowser_version)
+        except ValueError:
+            log.init.warning(f"Unable to parse old version {old_qutebrowser_version}")
+            return
+
+        new_version = utils.VersionNumber.parse(qutebrowser.__version__)
+
+        if old_version == new_version:
+            self.qutebrowser_version_changed = VersionChange.equal
+        elif new_version < old_version:
+            self.qutebrowser_version_changed = VersionChange.downgrade
+        elif old_version.segments[:2] == new_version.segments[:2]:
+            self.qutebrowser_version_changed = VersionChange.patch
+        elif old_version.major == new_version.major:
+            self.qutebrowser_version_changed = VersionChange.minor
+        else:
+            self.qutebrowser_version_changed = VersionChange.major
 
     def init_save_manager(self,
                           save_manager: 'savemanager.SaveManager') -> None:
@@ -103,15 +189,13 @@ class YamlConfig(QObject):
     VERSION = 2
     changed = pyqtSignal()
 
-    _SettingsType = typing.Dict[str, typing.Dict[str, typing.Any]]
-
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
         self._dirty = False
 
-        self._values = {}  # type: typing.Dict[str, configutils.Values]
+        self._values: Dict[str, configutils.Values] = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
@@ -124,10 +208,11 @@ class YamlConfig(QObject):
         """
         save_manager.add_saveable('yaml-config', self._save, self.changed)
 
-    def __iter__(self) -> typing.Iterator[configutils.Values]:
+    def __iter__(self) -> Iterator[configutils.Values]:
         """Iterate over configutils.Values items."""
         yield from self._values.values()
 
+    @pyqtSlot()
     def _mark_changed(self) -> None:
         """Mark the YAML config as changed."""
         self._dirty = True
@@ -138,7 +223,7 @@ class YamlConfig(QObject):
         if not self._dirty:
             return
 
-        settings = {}  # type: YamlConfig._SettingsType
+        settings: _SettingsType = {}
         for name, values in sorted(self._values.items()):
             if not values:
                 continue
@@ -158,12 +243,9 @@ class YamlConfig(QObject):
                 # Instead, create a config.py - see :help for details.
 
             """.lstrip('\n')))
-            utils.yaml_dump(data, f)  # type: ignore
+            utils.yaml_dump(data, f)
 
-    def _pop_object(self,
-                    yaml_data: typing.Any,
-                    key: str,
-                    typ: type) -> typing.Any:
+    def _pop_object(self, yaml_data: Any, key: str, typ: type) -> Any:
         """Get a global object from the given data."""
         if not isinstance(yaml_data, dict):
             desc = configexc.ConfigErrorDesc("While loading data",
@@ -213,23 +295,25 @@ class YamlConfig(QObject):
             settings = self._load_settings_object(yaml_data)
             self._dirty = False
 
-        settings = self._handle_migrations(settings)
-        self._validate(settings)
+        migrations = YamlMigrations(settings, parent=self)
+        migrations.changed.connect(self._mark_changed)
+        migrations.migrate()
+
+        self._validate_names(settings)
         self._build_values(settings)
 
-    def _load_settings_object(self, yaml_data: typing.Any) -> '_SettingsType':
+    def _load_settings_object(self, yaml_data: Any) -> _SettingsType:
         """Load the settings from the settings: key."""
         return self._pop_object(yaml_data, 'settings', dict)
 
-    def _load_legacy_settings_object(self,
-                                     yaml_data: typing.Any) -> '_SettingsType':
+    def _load_legacy_settings_object(self, yaml_data: Any) -> _SettingsType:
         data = self._pop_object(yaml_data, 'global', dict)
         settings = {}
         for name, value in data.items():
             settings[name] = {'global': value}
         return settings
 
-    def _build_values(self, settings: typing.Mapping) -> None:
+    def _build_values(self, settings: Mapping[str, Any]) -> None:
         """Build up self._values from the values in the given dict."""
         errors = []
         for name, yaml_values in settings.items():
@@ -262,90 +346,7 @@ class YamlConfig(QObject):
         if errors:
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def _migrate_bool(self, settings: _SettingsType, name: str,
-                      true_value: str, false_value: str) -> None:
-        """Migrate a boolean in the settings."""
-        if name in settings:
-            for scope, val in settings[name].items():
-                if isinstance(val, bool):
-                    settings[name][scope] = true_value if val else false_value
-                    self._mark_changed()
-
-    def _migrate_string_value(self, settings: _SettingsType, name: str,
-                              source: str, target: str) -> None:
-        if name in settings:
-            for scope, val in settings[name].items():
-                if isinstance(val, str):
-                    new_val = re.sub(source, target, val)
-                    if new_val != val:
-                        settings[name][scope] = new_val
-                        self._mark_changed()
-
-    def _handle_migrations(self, settings: _SettingsType) -> '_SettingsType':
-        """Migrate older configs to the newest format."""
-        # Simple renamed/deleted options
-        for name in list(settings):
-            if name in configdata.MIGRATIONS.renamed:
-                new_name = configdata.MIGRATIONS.renamed[name]
-                log.config.debug("Renaming {} to {}".format(name, new_name))
-                settings[new_name] = settings[name]
-                del settings[name]
-                self._mark_changed()
-            elif name in configdata.MIGRATIONS.deleted:
-                log.config.debug("Removing {}".format(name))
-                del settings[name]
-                self._mark_changed()
-
-        # tabs.persist_mode_on_change got merged into tabs.mode_on_change
-        old = 'tabs.persist_mode_on_change'
-        new = 'tabs.mode_on_change'
-        if old in settings:
-            settings[new] = {}
-            for scope, val in settings[old].items():
-                if val:
-                    settings[new][scope] = 'persist'
-                else:
-                    settings[new][scope] = 'normal'
-
-            del settings[old]
-            self._mark_changed()
-
-        # bindings.default can't be set in autoconfig.yml anymore, so ignore
-        # old values.
-        if 'bindings.default' in settings:
-            del settings['bindings.default']
-            self._mark_changed()
-
-        # content.webrtc_public_interfaces_only got merged into
-        # content.webrtc_ip_handling_policy.
-        old = 'content.webrtc_public_interfaces_only'
-        new = 'content.webrtc_ip_handling_policy'
-        if old in settings:
-            settings[new] = {}
-            for scope, val in settings[old].items():
-                if val:
-                    settings[new][scope] = 'default-public-interface-only'
-                else:
-                    settings[new][scope] = 'all-interfaces'
-
-            del settings[old]
-            self._mark_changed()
-
-        self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
-        self._migrate_bool(settings, 'scrolling.bar',
-                           'always', 'when-searching')
-        self._migrate_bool(settings, 'qt.force_software_rendering',
-                           'software-opengl', 'none')
-
-        for s in ['tabs.title.format',
-                  'tabs.title.format_pinned',
-                  'window.title_format']:
-            self._migrate_string_value(
-                settings, s, r'(?<!{)\{title\}(?!})', r'{current_title}')
-
-        return settings
-
-    def _validate(self, settings: _SettingsType) -> None:
+    def _validate_names(self, settings: _SettingsType) -> None:
         """Make sure all settings exist."""
         unknown = []
         for name in settings:
@@ -358,7 +359,7 @@ class YamlConfig(QObject):
                       for e in sorted(unknown)]
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def set_obj(self, name: str, value: typing.Any, *,
+    def set_obj(self, name: str, value: Any, *,
                 pattern: urlmatch.UrlPattern = None) -> None:
         """Set the given setting to the given value."""
         self._values[name].add(value, pattern)
@@ -377,6 +378,244 @@ class YamlConfig(QObject):
         self._mark_changed()
 
 
+class YamlMigrations(QObject):
+
+    """Automated migrations for autoconfig.yml."""
+
+    changed = pyqtSignal()
+
+    def __init__(self, settings: _SettingsType,
+                 parent: QObject = None) -> None:
+        super().__init__(parent)
+        self._settings = settings
+
+    def migrate(self) -> None:
+        """Migrate older configs to the newest format."""
+        self._migrate_configdata()
+        self._migrate_bindings_default()
+        self._migrate_font_default_family()
+        self._migrate_font_replacements()
+
+        self._migrate_bool('tabs.favicons.show', 'always', 'never')
+        self._migrate_bool('scrolling.bar', 'always', 'overlay')
+        self._migrate_bool('qt.force_software_rendering',
+                           'software-opengl', 'none')
+        self._migrate_renamed_bool(
+            old_name='content.webrtc_public_interfaces_only',
+            new_name='content.webrtc_ip_handling_policy',
+            true_value='default-public-interface-only',
+            false_value='all-interfaces')
+        self._migrate_renamed_bool(
+            old_name='tabs.persist_mode_on_change',
+            new_name='tabs.mode_on_change',
+            true_value='persist',
+            false_value='normal')
+        self._migrate_renamed_bool(
+            old_name='statusbar.hide',
+            new_name='statusbar.show',
+            true_value='never',
+            false_value='always')
+        self._migrate_renamed_bool(
+            old_name='content.ssl_strict',
+            new_name='content.tls.certificate_errors',
+            true_value='block',
+            false_value='load-insecurely',
+            ask_value='ask',
+        )
+
+        for setting in ['colors.webpage.force_dark_color_scheme',
+                        'colors.webpage.prefers_color_scheme_dark']:
+            self._migrate_renamed_bool(
+                old_name=setting,
+                new_name='colors.webpage.preferred_color_scheme',
+                true_value='dark',
+                false_value='auto',
+            )
+
+        for setting in ['tabs.title.format',
+                        'tabs.title.format_pinned',
+                        'window.title_format']:
+            self._migrate_string_value(setting,
+                                       r'(?<!{)\{title\}(?!})',
+                                       r'{current_title}')
+
+        self._migrate_to_multiple('fonts.tabs',
+                                  ('fonts.tabs.selected',
+                                   'fonts.tabs.unselected'))
+
+        self._migrate_to_multiple('content.media_capture',
+                                  ('content.media.audio_capture',
+                                   'content.media.audio_video_capture',
+                                   'content.media.video_capture'))
+
+        # content.headers.user_agent can't be empty to get the default anymore.
+        setting = 'content.headers.user_agent'
+        self._migrate_none(setting, configdata.DATA[setting].default)
+
+        self._remove_empty_patterns()
+
+    def _migrate_configdata(self) -> None:
+        """Migrate simple renamed/deleted options."""
+        for name in list(self._settings):
+            if name in configdata.MIGRATIONS.renamed:
+                new_name = configdata.MIGRATIONS.renamed[name]
+                log.config.debug("Renaming {} to {}".format(name, new_name))
+                self._settings[new_name] = self._settings[name]
+                del self._settings[name]
+                self.changed.emit()
+            elif name in configdata.MIGRATIONS.deleted:
+                log.config.debug("Removing {}".format(name))
+                del self._settings[name]
+                self.changed.emit()
+
+    def _migrate_bindings_default(self) -> None:
+        """bindings.default can't be set in autoconfig.yml anymore.
+
+        => Ignore old values.
+        """
+        if 'bindings.default' not in self._settings:
+            return
+
+        del self._settings['bindings.default']
+        self.changed.emit()
+
+    def _migrate_font_default_family(self) -> None:
+        old_name = 'fonts.monospace'
+        new_name = 'fonts.default_family'
+
+        if old_name not in self._settings:
+            return
+
+        old_default_fonts = (
+            'Monospace, "DejaVu Sans Mono", Monaco, '
+            '"Bitstream Vera Sans Mono", "Andale Mono", "Courier New", '
+            'Courier, "Liberation Mono", monospace, Fixed, Consolas, Terminal'
+        )
+
+        self._settings[new_name] = {}
+
+        for scope, val in self._settings[old_name].items():
+            old_fonts = val.replace(old_default_fonts, '').rstrip(' ,')
+            new_fonts = configutils.FontFamilies.from_str(old_fonts)
+            self._settings[new_name][scope] = list(new_fonts)
+
+        del self._settings[old_name]
+        self.changed.emit()
+
+    def _migrate_font_replacements(self) -> None:
+        """Replace 'monospace' replacements by 'default_family'."""
+        for name, values in self._settings.items():
+            if not isinstance(values, dict):
+                continue
+
+            try:
+                opt = configdata.DATA[name]
+            except KeyError:
+                continue
+
+            if not isinstance(opt.typ, configtypes.FontBase):
+                continue
+
+            for scope, val in values.items():
+                if isinstance(val, str) and val.endswith(' monospace'):
+                    new_val = val.replace('monospace', 'default_family')
+                    self._settings[name][scope] = new_val
+                    self.changed.emit()
+
+    def _migrate_bool(self, name: str,
+                      true_value: str,
+                      false_value: str) -> None:
+        if name not in self._settings:
+            return
+
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
+            if isinstance(val, bool):
+                new_value = true_value if val else false_value
+                self._settings[name][scope] = new_value
+                self.changed.emit()
+
+    def _migrate_renamed_bool(self, old_name: str,
+                              new_name: str,
+                              true_value: str,
+                              false_value: str,
+                              ask_value: str = None) -> None:
+        if old_name not in self._settings:
+            return
+
+        self._settings[new_name] = {}
+
+        for scope, val in self._settings[old_name].items():
+            if val == 'ask':
+                assert ask_value is not None
+                new_value = ask_value
+            elif val:
+                new_value = true_value
+            else:
+                new_value = false_value
+            self._settings[new_name][scope] = new_value
+
+        del self._settings[old_name]
+        self.changed.emit()
+
+    def _migrate_none(self, name: str, value: str) -> None:
+        if name not in self._settings:
+            return
+
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
+            if val is None:
+                self._settings[name][scope] = value
+                self.changed.emit()
+
+    def _migrate_to_multiple(self, old_name: str, new_names: Iterable[str]) -> None:
+        if old_name not in self._settings:
+            return
+
+        for new_name in new_names:
+            self._settings[new_name] = {}
+            for scope, val in self._settings[old_name].items():
+                self._settings[new_name][scope] = val
+
+        del self._settings[old_name]
+        self.changed.emit()
+
+    def _migrate_string_value(self, name: str, source: str, target: str) -> None:
+        if name not in self._settings:
+            return
+
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
+            if isinstance(val, str):
+                new_val = re.sub(source, target, val)
+                if new_val != val:
+                    self._settings[name][scope] = new_val
+                    self.changed.emit()
+
+    def _remove_empty_patterns(self) -> None:
+        """Remove *. host patterns from the config.
+
+        Those used to be valid (and could be accidentally produced by using tSH
+        on about:blank), but aren't anymore.
+        """
+        scope = '*://*./*'
+        for name, values in self._settings.items():
+            if not isinstance(values, dict):
+                continue
+            if scope in values:
+                del self._settings[name][scope]
+                self.changed.emit()
+
+
 class ConfigAPI:
 
     """Object which gets passed to config.py as "config" object.
@@ -388,20 +627,27 @@ class ConfigAPI:
     Attributes:
         _config: The main Config object to use.
         _keyconfig: The KeyConfig object.
+        _warn_autoconfig: Whether to warn if autoconfig.yml wasn't loaded.
         errors: Errors which occurred while setting options.
         configdir: The qutebrowser config directory, as pathlib.Path.
         datadir: The qutebrowser data directory, as pathlib.Path.
     """
 
-    def __init__(self, conf: config.Config, keyconfig: config.KeyConfig):
+    def __init__(
+            self,
+            conf: config.Config,
+            keyconfig: config.KeyConfig,
+            warn_autoconfig: bool,
+    ):
         self._config = conf
         self._keyconfig = keyconfig
-        self.errors = []  # type: typing.List[configexc.ConfigErrorDesc]
+        self.errors: List[configexc.ConfigErrorDesc] = []
         self.configdir = pathlib.Path(standarddir.config())
         self.datadir = pathlib.Path(standarddir.data())
+        self._warn_autoconfig = warn_autoconfig
 
     @contextlib.contextmanager
-    def _handle_error(self, action: str, name: str) -> typing.Iterator[None]:
+    def _handle_error(self, action: str, name: str) -> Iterator[None]:
         """Catch config-related exceptions and save them in self.errors."""
         try:
             yield
@@ -421,40 +667,43 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
+        if self._warn_autoconfig:
+            desc = configexc.ConfigErrorDesc(
+                "autoconfig loading not specified",
+                ("Your config.py should call either `config.load_autoconfig()`"
+                 " (to load settings configured via the GUI) or "
+                 "`config.load_autoconfig(False)` (to not do so)"))
+            self.errors.append(desc)
         self._config.update_mutables()
 
-    def load_autoconfig(self) -> None:
+    def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
-        with self._handle_error('reading', 'autoconfig.yml'):
-            read_autoconfig()
+        self._warn_autoconfig = False
+        if load_config:
+            with self._handle_error('reading', 'autoconfig.yml'):
+                read_autoconfig()
 
-    def get(self, name: str, pattern: str = None) -> typing.Any:
+    def get(self, name: str, pattern: str = None) -> Any:
         """Get a setting value from the config, optionally with a pattern."""
         with self._handle_error('getting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             return self._config.get_mutable_obj(name, pattern=urlpattern)
 
-    def set(self, name: str, value: typing.Any, pattern: str = None) -> None:
+    def set(self, name: str, value: Any, pattern: str = None) -> None:
         """Set a setting value in the config, optionally with a pattern."""
         with self._handle_error('setting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
-    def bind(self, key: str,
-             command: typing.Optional[str],
-             mode: str = 'normal') -> None:
+    def bind(self, key: str, command: Optional[str], mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
             seq = keyutils.KeySequence.parse(key)
             if command is None:
-                text = ("Unbinding commands with config.bind('{key}', None) "
-                        "is deprecated. Use config.unbind('{key}') instead."
-                        .format(key=key))
-                self.errors.append(configexc.ConfigErrorDesc(
-                    "While unbinding '{}'".format(key), text))
-                self._keyconfig.unbind(seq, mode=mode)
-            else:
-                self._keyconfig.bind(seq, command, mode=mode)
+                raise configexc.Error("Can't bind {key} to None (maybe you "
+                                      "want to use config.unbind('{key}') "
+                                      "instead?)".format(key=key))
+            self._keyconfig.bind(seq, command, mode=mode)
 
     def unbind(self, key: str, mode: str = 'normal') -> None:
         """Unbind a key from a command, with an optional key mode."""
@@ -465,7 +714,9 @@ class ConfigAPI:
     def source(self, filename: str) -> None:
         """Read the given config file from disk."""
         if not os.path.isabs(filename):
-            filename = str(self.configdir / filename)
+            # We don't use self.configdir here so we get the proper file when starting
+            # with a --config-py argument given.
+            filename = os.path.join(os.path.dirname(standarddir.config_py()), filename)
 
         try:
             read_config_py(filename)
@@ -473,7 +724,7 @@ class ConfigAPI:
             self.errors += e.errors
 
     @contextlib.contextmanager
-    def pattern(self, pattern: str) -> typing.Iterator[config.ConfigContainer]:
+    def pattern(self, pattern: str) -> Iterator[config.ConfigContainer]:
         """Get a ConfigContainer for the given pattern."""
         # We need to propagate the exception so we don't need to return
         # something.
@@ -489,10 +740,17 @@ class ConfigPyWriter:
 
     def __init__(
             self,
-            options: typing.List,
-            bindings: typing.MutableMapping[
-                str, typing.Mapping[str, typing.Optional[str]]],
-            *, commented: bool) -> None:
+            options: List[
+                Tuple[
+                    Optional[urlmatch.UrlPattern],
+                    configdata.Option,
+                    Any
+                ]
+            ],
+            bindings: MutableMapping[str, Mapping[str, Optional[str]]],
+            *,
+            commented: bool,
+    ) -> None:
         self._options = options
         self._bindings = bindings
         self._commented = commented
@@ -512,7 +770,7 @@ class ConfigPyWriter:
         else:
             return line
 
-    def _gen_lines(self) -> typing.Iterator[str]:
+    def _gen_lines(self) -> Iterator[str]:
         """Generate a config.py with the given settings/bindings.
 
         Yields individual lines.
@@ -521,9 +779,20 @@ class ConfigPyWriter:
         yield from self._gen_options()
         yield from self._gen_bindings()
 
-    def _gen_header(self) -> typing.Iterator[str]:
+    def _gen_header(self) -> Iterator[str]:
         """Generate the initial header of the config."""
         yield self._line("# Autogenerated config.py")
+        yield self._line("#")
+
+        note = ("NOTE: config.py is intended for advanced users who are "
+                "comfortable with manually migrating the config file on "
+                "qutebrowser upgrades. If you prefer, you can also configure "
+                "qutebrowser using the :set/:bind/:config-* commands without "
+                "having to write a config.py file.")
+        for line in textwrap.wrap(note):
+            yield self._line("# {}".format(line))
+
+        yield self._line("#")
         yield self._line("# Documentation:")
         yield self._line("#   qute://help/configuring.html")
         yield self._line("#   qute://help/settings.html")
@@ -535,15 +804,15 @@ class ConfigPyWriter:
                              "still loaded.")
             yield self._line("# Remove it to not load settings done via the "
                              "GUI.")
-            yield self._line("config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(True)")
             yield ''
         else:
-            yield self._line("# Uncomment this to still load settings "
+            yield self._line("# Change the argument to True to still load settings "
                              "configured via autoconfig.yml")
-            yield self._line("# config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(False)")
             yield ''
 
-    def _gen_options(self) -> typing.Iterator[str]:
+    def _gen_options(self) -> Iterator[str]:
         """Generate the options part of the config."""
         for pattern, opt, value in self._options:
             if opt.name in ['bindings.commands', 'bindings.default']:
@@ -571,7 +840,7 @@ class ConfigPyWriter:
                     opt.name, value, str(pattern)))
             yield ''
 
-    def _gen_bindings(self) -> typing.Iterator[str]:
+    def _gen_bindings(self) -> Iterator[str]:
         """Generate the bindings part of the config."""
         normal_bindings = self._bindings.pop('normal', {})
         if normal_bindings:
@@ -597,24 +866,33 @@ class ConfigPyWriter:
             yield ''
 
 
-def read_config_py(filename: str, raising: bool = False) -> None:
+def read_config_py(
+        filename: str,
+        raising: bool = False,
+        warn_autoconfig: bool = False,
+) -> None:
     """Read a config.py file.
 
     Arguments;
         filename: The name of the file to read.
         raising: Raise exceptions happening in config.py.
                  This is needed during tests to use pytest's inspection.
+        warn_autoconfig: Whether to warn if config.load_autoconfig() wasn't specified.
     """
     assert config.instance is not None
     assert config.key_instance is not None
 
-    api = ConfigAPI(config.instance, config.key_instance)
+    api = ConfigAPI(
+        config.instance,
+        config.key_instance,
+        warn_autoconfig=warn_autoconfig,
+    )
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
 
     module = types.ModuleType('config')
-    module.config = api  # type: ignore
-    module.c = container  # type: ignore
+    module.config = api  # type: ignore[attr-defined]
+    module.c = container  # type: ignore[attr-defined]
     module.__file__ = filename
 
     try:
@@ -672,7 +950,7 @@ def read_autoconfig() -> None:
 
 
 @contextlib.contextmanager
-def saved_sys_properties() -> typing.Iterator[None]:
+def saved_sys_properties() -> Iterator[None]:
     """Save various sys properties such as sys.path and sys.modules."""
     old_path = sys.path.copy()
     old_modules = sys.modules.copy()
@@ -691,7 +969,7 @@ def init() -> None:
 
     try:
         state = StateConfig()
-    except configparser.Error as e:
+    except (configparser.Error, UnicodeDecodeError) as e:
         msg = "While loading state file from {}".format(standarddir.data())
         desc = configexc.ConfigErrorDesc(msg, e)
         raise configexc.ConfigFileErrors('state', [desc], fatal=True)

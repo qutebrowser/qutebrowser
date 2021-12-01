@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,13 +15,20 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Keychain string displayed in the statusbar."""
 
+from PyQt5.QtCore import pyqtSlot
+
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.utils import usertypes
 
 
 class KeyString(textbase.TextBase):
 
     """Keychain string displayed in the statusbar."""
+
+    @pyqtSlot(usertypes.KeyMode, str)
+    def on_keystring_updated(self, _mode, keystr):
+        self.setText(keystr)

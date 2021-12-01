@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,22 +15,33 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """URL displayed in the statusbar."""
 
 import enum
 
-from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
+from PyQt5.QtCore import (pyqtSlot, pyqtProperty,  # type: ignore[attr-defined]
+                          QUrl)
 
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.config import config
+from qutebrowser.config import stylesheet
 from qutebrowser.utils import usertypes, urlutils
 
 
-# Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = enum.Enum('UrlType', ['success', 'success_https', 'error', 'warn',
-                                'hover', 'normal'])
+class UrlType(enum.Enum):
+
+    """The type/color of the URL being shown.
+
+    Note this has entries for success/error/warn from widgets.webview:LoadStatus.
+    """
+
+    success = enum.auto()
+    success_https = enum.auto()
+    error = enum.auto()
+    warn = enum.auto()
+    hover = enum.auto()
+    normal = enum.auto()
 
 
 class UrlText(textbase.TextBase):
@@ -76,7 +87,7 @@ class UrlText(textbase.TextBase):
         super().__init__(parent)
         self._urltype = None
         self.setObjectName(self.__class__.__name__)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         self._hover_url = None
         self._normal_url = None
         self._normal_url_type = UrlType.normal

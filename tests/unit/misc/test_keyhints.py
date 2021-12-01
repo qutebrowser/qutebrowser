@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the keyhint widget."""
 
 import pytest
 
+from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 from qutebrowser.misc.keyhintwidget import KeyHintView
 
@@ -54,10 +55,10 @@ def keyhint(qtbot, config_stub, key_config_stub):
 
 
 def test_show_and_hide(qtbot, keyhint):
-    with qtbot.waitSignal(keyhint.update_geometry):
-        with qtbot.waitExposed(keyhint):
+    with qtbot.wait_signal(keyhint.update_geometry):
+        with qtbot.wait_exposed(keyhint):
             keyhint.show()
-    keyhint.update_keyhint('normal', '')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, '')
     assert not keyhint.isVisible()
 
 
@@ -84,7 +85,7 @@ def test_suggestions(keyhint, config_stub):
     config_stub.val.bindings.default = default_bindings
     config_stub.val.bindings.commands = bindings
 
-    keyhint.update_keyhint('normal', 'a')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, 'a')
     assert keyhint.text() == expected_text(
         ('a', 'yellow', 'a', 'message-info cmd-aa'),
         ('a', 'yellow', 'b', 'message-info cmd-ab'),
@@ -109,7 +110,7 @@ def test_suggestions_special(keyhint, config_stub):
     config_stub.val.bindings.default = default_bindings
     config_stub.val.bindings.commands = bindings
 
-    keyhint.update_keyhint('normal', '<Ctrl+c>')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, '<Ctrl+c>')
     assert keyhint.text() == expected_text(
         ('&lt;Ctrl+c&gt;', 'yellow', 'a', 'message-info cmd-Cca'),
         ('&lt;Ctrl+c&gt;', 'yellow', 'c', 'message-info cmd-Ccc'),
@@ -130,7 +131,7 @@ def test_suggestions_with_count(keyhint, config_stub, monkeypatch, stubs):
     config_stub.val.bindings.default = bindings
     config_stub.val.bindings.commands = bindings
 
-    keyhint.update_keyhint('normal', '2a')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, '2a')
     assert keyhint.text() == expected_text(
         ('a', 'yellow', 'b', 'bar'),
     )
@@ -146,7 +147,7 @@ def test_special_bindings(keyhint, config_stub):
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = bindings
 
-    keyhint.update_keyhint('normal', '<')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, '<')
 
     assert keyhint.text() == expected_text(
         ('&lt;', 'yellow', 'a', 'message-info cmd-&lt;a'),
@@ -159,7 +160,7 @@ def test_color_switch(keyhint, config_stub):
     config_stub.val.colors.keyhint.suffix.fg = '#ABCDEF'
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = bindings
-    keyhint.update_keyhint('normal', 'a')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, 'a')
     assert keyhint.text() == expected_text(('a', '#ABCDEF', 'a',
                                             'message-info cmd-aa'))
 
@@ -173,7 +174,7 @@ def test_no_matches(keyhint, config_stub):
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = bindings
 
-    keyhint.update_keyhint('normal', 'z')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, 'z')
     assert not keyhint.text()
     assert not keyhint.isVisible()
 
@@ -196,7 +197,7 @@ def test_blacklist(keyhint, config_stub, blacklist, expected):
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = bindings
 
-    keyhint.update_keyhint('normal', 'a')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, 'a')
     assert keyhint.text() == expected
 
 
@@ -213,6 +214,6 @@ def test_delay(qtbot, stubs, monkeypatch, config_stub, key_config_stub):
     config_stub.val.bindings.commands = bindings
 
     keyhint = KeyHintView(0, None)
-    keyhint.update_keyhint('normal', 'a')
+    keyhint.update_keyhint(usertypes.KeyMode.normal, 'a')
     assert timer.isSingleShot()
     assert timer.interval() == interval

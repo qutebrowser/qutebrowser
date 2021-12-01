@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,9 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-
-from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import shared
 
@@ -46,4 +44,4 @@ def test_custom_headers(config_stub, dnt, accept_language, custom_headers,
     headers.custom = custom_headers
 
     expected_items = sorted(expected.items())
-    assert shared.custom_headers(QUrl()) == expected_items
+    assert shared.custom_headers(url=None) == expected_items
