@@ -42,6 +42,13 @@ Added
 - New `input.match_counts` option which allows to turn off count matching for
   more emacs-like bindings.
 
+Fixed
+~~~~~
+
+- When `search.incremental` is disabled, searching using `/text` followed by a
+  backwards search via `?text` (or vice-versa) now correctly changes the search
+  direction.
+
 [[v2.4.1]]
 v2.4.1 (unreleased)
 -------------------
