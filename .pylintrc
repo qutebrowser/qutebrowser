@@ -44,6 +44,7 @@ disable=locally-disabled,
         too-many-locals,
         too-many-branches,
         too-many-statements,
+        too-many-try-statements,
         too-few-public-methods,
         import-outside-toplevel,
         bad-continuation,  # This lint disagrees with Black
