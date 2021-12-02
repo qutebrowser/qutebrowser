@@ -194,7 +194,7 @@ class Quitter(QObject):
         # Open a new process and immediately shutdown the existing one
         try:
             args = self._get_restart_args(pages, session, override_args)
-            subprocess.Popen(args)
+            subprocess.Popen(args)  # pylint: disable=consider-using-with
         except OSError:
             log.destroy.exception("Failed to restart")
             return False

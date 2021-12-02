@@ -160,11 +160,11 @@ def test_dicts():
         print('Testing dictionary {}... '.format(lang.code), end='')
         lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_filename)
         request = urllib.request.Request(lang_url, method='HEAD')
-        response = urllib.request.urlopen(request)
-        if response.status == 200:
-            print('OK')
-        else:
-            print('ERROR: {}'.format(response.status))
+        with urllib.request.urlopen(request) as response:
+            if response.status == 200:
+                print('OK')
+            else:
+                print('ERROR: {}'.format(response.status))
 
 
 def run(nsis=False, ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,

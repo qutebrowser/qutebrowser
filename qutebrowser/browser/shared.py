@@ -418,12 +418,11 @@ def choose_file(qb_mode: FileSelectionMode) -> List[str]:
     }[qb_mode]
     use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
-        handle = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix='qutebrowser-fileselect-',
             delete=False,
-        )
-        handle.close()
-        tmpfilename = handle.name
+        ) as handle:
+            tmpfilename = handle.name
         with utils.cleanup_file(tmpfilename):
             command = (
                 command[:1] +

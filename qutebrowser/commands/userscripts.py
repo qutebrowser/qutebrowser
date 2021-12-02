@@ -342,9 +342,8 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self._kwargs = kwargs
 
         try:
-            handle = tempfile.NamedTemporaryFile(delete=False)
-            handle.close()
-            self._filepath = handle.name
+            with tempfile.NamedTemporaryFile(delete=False) as handle:
+                self._filepath = handle.name
         except OSError as e:
             message.error("Error while creating tempfile: {}".format(e))
             return

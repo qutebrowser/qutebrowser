@@ -559,7 +559,8 @@ if test_file is not None:
             qiodev.mode = mode
             # Create empty TESTFN file because the Python tests try to unlink
             # it.after the test.
-            open(test_file.TESTFN, 'w', encoding='utf-8').close()
+            with open(test_file.TESTFN, 'w', encoding='utf-8'):
+                pass
             return qiodev
 
     class PyAutoFileTests(PyIODeviceTestMixin, test_file.AutoFileTests,

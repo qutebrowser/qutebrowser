@@ -489,15 +489,15 @@ def build_sdist():
     dist_file = os.path.join('dist', dist_files[0])
     subprocess.run(['gpg', '--detach-sign', '-a', dist_file], check=True)
 
-    tar = tarfile.open(dist_file)
     by_ext = collections.defaultdict(list)
 
-    for tarinfo in tar.getmembers():
-        if not tarinfo.isfile():
-            continue
-        name = os.sep.join(tarinfo.name.split(os.sep)[1:])
-        _base, ext = os.path.splitext(name)
-        by_ext[ext].append(name)
+    with tarfile.open(dist_file) as tar:
+        for tarinfo in tar.getmembers():
+            if not tarinfo.isfile():
+                continue
+            name = os.sep.join(tarinfo.name.split(os.sep)[1:])
+            _base, ext = os.path.splitext(name)
+            by_ext[ext].append(name)
 
     assert '.pyc' not in by_ext
 

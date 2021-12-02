@@ -41,8 +41,8 @@ def main():
 
     for url in configdata.DATA['content.blocking.hosts.lists'].default:
         print("checking {}...".format(url))
-        raw_file = urllib.request.urlopen(url)
-        byte_io = io.BytesIO(raw_file.read())
+        with urllib.request.urlopen(url) as raw_file:
+            byte_io = io.BytesIO(raw_file.read())
         f = hostblock.get_fileobj(byte_io)
         for line in f:
             line = line.decode('utf-8')

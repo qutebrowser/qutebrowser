@@ -110,6 +110,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """Create a file object using the internal filename."""
         assert self._filename is not None
         try:
+            # pylint: disable=consider-using-with
             fileobj = open(self._filename, 'wb')
         except OSError as e:
             self._die(e.strerror)

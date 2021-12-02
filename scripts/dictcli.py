@@ -142,11 +142,11 @@ def parse_entry(entry):
 def language_list_from_api():
     """Return a JSON with a list of available languages from Google API."""
     listurl = API_URL + '?format=JSON'
-    response = urllib.request.urlopen(listurl)
-    # A special 5-byte prefix must be stripped from the response content
-    # See: https://github.com/google/gitiles/issues/22
-    #      https://github.com/google/gitiles/issues/82
-    json_content = response.read()[5:]
+    with urllib.request.urlopen(listurl) as response:
+        # A special 5-byte prefix must be stripped from the response content
+        # See: https://github.com/google/gitiles/issues/22
+        #      https://github.com/google/gitiles/issues/82
+        json_content = response.read()[5:]
     entries = json.loads(json_content.decode('utf-8'))['entries']
     parsed_entries = [parse_entry(entry) for entry in entries]
     return [entry for entry in parsed_entries if entry is not None]
@@ -176,8 +176,8 @@ def available_languages():
 
 def download_dictionary(url, dest):
     """Download a decoded dictionary file."""
-    response = urllib.request.urlopen(url)
-    decoded = base64.decodebytes(response.read())
+    with urllib.request.urlopen(url) as response:
+        decoded = base64.decodebytes(response.read())
     with open(dest, 'bw') as dict_file:
         dict_file.write(decoded)
 

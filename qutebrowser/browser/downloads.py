@@ -1352,6 +1352,7 @@ class TempDownloadManager:
             The tempfile.TemporaryDirectory that is used.
         """
         if self._tmpdir is None:
+            # pylint: disable=consider-using-with
             self._tmpdir = tempfile.TemporaryDirectory(
                 prefix='qutebrowser-downloads-')
         return self._tmpdir
@@ -1373,6 +1374,7 @@ class TempDownloadManager:
         suggested_name = utils.sanitize_filename(suggested_name)
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
+        # pylint: disable=consider-using-with
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix='_' + suggested_name)
         self.files.append(fobj)

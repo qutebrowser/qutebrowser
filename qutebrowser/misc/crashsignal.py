@@ -150,6 +150,7 @@ class CrashHandler(QObject):
         """Start a new logfile and redirect faulthandler to it."""
         logname = os.path.join(standarddir.data(), 'crash.log')
         try:
+            # pylint: disable=consider-using-with
             self._crash_log_file = open(logname, 'w', encoding='ascii')
         except OSError:
             log.init.exception("Error while opening crash log file!")
