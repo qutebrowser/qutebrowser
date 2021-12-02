@@ -48,7 +48,8 @@ disable=locally-disabled,
         import-outside-toplevel,
         bad-continuation,  # This lint disagrees with Black
         consider-using-f-string,
-        logging-fstring-interpolation
+        logging-fstring-interpolation,
+        raise-missing-from
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
