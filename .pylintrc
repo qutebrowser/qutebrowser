@@ -60,6 +60,7 @@ argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
 docstring-min-length=3
 no-docstring-rgx=(^_|^main$)
+class-const-naming-style = snake_case
 
 [FORMAT]
 max-line-length=88
