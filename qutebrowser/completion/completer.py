@@ -39,7 +39,7 @@ class CompletionInfo:
     """Context passed into all completion functions."""
 
     config: config.Config
-    keyconf: config.KeyConfig
+    keyconf: config.KeyConfig  # pylint: disable=undefined-variable
     win_id: int
     cur_tab: 'browsertab.AbstractTab'
 
