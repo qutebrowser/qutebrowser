@@ -51,7 +51,6 @@ else:
     test_file = None
 
 
-# pylint: disable=bad-continuation
 @pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
                           'expected'], [
     # equal versions
@@ -75,7 +74,6 @@ else:
     # dev suffix
     ('5.15.1', '5.15.1', '5.15.2.dev2009281246', '5.15.0', False, True),
 ])
-# pylint: enable=bad-continuation
 def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
                        expected):
     """Test for version_check().

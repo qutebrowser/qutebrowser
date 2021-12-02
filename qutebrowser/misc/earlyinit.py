@@ -211,7 +211,6 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # pylint: disable=bad-continuation
             with log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'invalid escape sequence'
@@ -226,7 +225,6 @@ def _check_modules(modules):
                 category=DeprecationWarning,
                 message=r'Creating a LegacyVersion has been deprecated',
             ):
-                # pylint: enable=bad-continuation
                 importlib.import_module(name)
         except ImportError as e:
             _die(text, e)
