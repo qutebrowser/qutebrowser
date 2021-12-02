@@ -61,6 +61,8 @@ def main():
         'pointless-statement',
         # directories without __init__.py...
         'import-error',
+        # tests/helpers imports
+        'wrong-import-order',
     ]
 
     toxinidir = sys.argv[1]
