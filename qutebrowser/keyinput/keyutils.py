@@ -656,7 +656,6 @@ class KeySequence:
     @classmethod
     def parse(cls, keystr: str) -> 'KeySequence':
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
-        # pylint: disable=protected-access
         new = cls()
         strings = list(_parse_keystring(keystr))
         for sub in utils.chunk(strings, cls._MAX_LEN):
@@ -666,6 +665,5 @@ class KeySequence:
         if keystr:
             assert new, keystr
 
-        # pylint: disable=protected-access
         new._validate(keystr)
         return new

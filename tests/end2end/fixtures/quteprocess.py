@@ -609,8 +609,7 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
-    def wait_for(self, timeout=None,  # pylint: disable=arguments-differ
-                 **kwargs):
+    def wait_for(self, timeout=None, **kwargs):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
@@ -716,7 +715,7 @@ class QuteProc(testprocess.Process):
                                          target_arg)
             self._wait_for_ipc()
 
-    def start(self, *args, **kwargs):  # pylint: disable=arguments-differ
+    def start(self, *args, **kwargs):
         try:
             super().start(*args, **kwargs)
         except testprocess.ProcessExited:
