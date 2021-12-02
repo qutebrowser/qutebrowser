@@ -262,7 +262,7 @@ class GUIProcess(QObject):
             QProcess.Crashed: f"{what.capitalize()} crashed",
             QProcess.Timedout: f"{what.capitalize()} timed out",
             QProcess.WriteError: f"Write error for {what}",
-            QProcess.WriteError: f"Read error for {what}",
+            QProcess.ReadError: f"Read error for {what}",
         }
         error_string = self._proc.errorString()
         msg = ': '.join([error_descriptions[error], error_string])

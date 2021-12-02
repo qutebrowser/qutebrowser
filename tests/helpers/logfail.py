@@ -39,8 +39,7 @@ class LogFailHandler(logging.Handler):
         if logger.name == 'messagemock':
             return
 
-        if (logger.level == record.levelno or
-                root_logger.level == record.levelno):
+        if record.levelno in (logger.level, root_logger.level):
             # caplog.at_level(...) was used with the level of this message,
             # i.e.  it was expected.
             return

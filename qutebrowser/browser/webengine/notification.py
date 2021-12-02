@@ -722,7 +722,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     }
 
     def __init__(self, parent: QObject = None) -> None:
-        super().__init__(bridge)
+        super().__init__(parent)
         assert _notifications_supported()
 
         if utils.is_windows:
