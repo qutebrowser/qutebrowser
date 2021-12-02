@@ -245,7 +245,7 @@ class CrashHandler(QObject):
 
         if 'pdb-postmortem' in objects.debug_flags:
             if tb is None:
-                pdb.set_trace()  # noqa: T100
+                pdb.set_trace()  # noqa: T100 pylint: disable=forgotten-debug-statement
             else:
                 pdb.post_mortem(tb)
 
