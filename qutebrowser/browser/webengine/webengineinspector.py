@@ -62,13 +62,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                  parent: QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
-
-        view = WebEngineInspectorView()
-        self._settings = webenginesettings.WebEngineSettings(view.settings())
-        self._set_widget(view)
-        page = view.page()
-        page.windowCloseRequested.connect(  # type: ignore[attr-defined]
-            self._on_window_close_requested)
+        self._settings = None
 
     def _on_window_close_requested(self) -> None:
         """Called when the 'x' was clicked in the devtools."""
@@ -98,7 +92,21 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                                   "Fedora package.")
 
     def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
+        if not self._widget:
+            view = WebEngineInspectorView()
+            inspector_page = QWebEnginePage(
+                page.profile(),
+                self
+            )
+            inspector_page.windowCloseRequested.connect(  # type: ignore[attr-defined]
+                self._on_window_close_requested)
+            view.setPage(inspector_page)
+            self._settings = webenginesettings.WebEngineSettings(view.settings())
+            self._set_widget(view)
+
         inspector_page = self._widget.page()
+        assert inspector_page.profile() == page.profile()
+
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
 
