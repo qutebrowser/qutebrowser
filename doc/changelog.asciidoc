@@ -52,6 +52,8 @@ Fixed
   direction.
 - Elements getting a hint due to a `tabindex` now are skipped if it's set to
   `-1`, reducing some false-positives.
+- The audible indicator (`[A]`) now uses a 2s cooldown when the audio goes
+  silent, equivalent with the behavior of older QtWebEngine versions.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
