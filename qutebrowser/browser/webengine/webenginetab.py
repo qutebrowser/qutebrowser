@@ -26,7 +26,8 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
+                          QObject)
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -802,12 +803,37 @@ class WebEngineAudio(browsertab.AbstractAudio):
         super().__init__(tab, parent)
         self._overridden = False
 
+        # Implements the intended two-second delay specified at
+        # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
+        delay_ms = 2000
+        self._audio_muted_timer = QTimer(self)
+        self._audio_muted_timer.setSingleShot(True)
+        self._audio_muted_timer.setInterval(delay_ms)
+
     def _connect_signals(self):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
-        page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+        page.recentlyAudibleChanged.connect(self._delayed_recently_audible_changed)
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
+
+    # WORKAROUND for recentlyAudibleChanged being emitted without delay from the moment
+    # that audio is dropped.
+    def _delayed_recently_audible_changed(self, recently_audible):
+        timer = self._audio_muted_timer
+        # Stop any active timer and immediately display [A] if tab is audible,
+        # otherwise start a timer to update audio field
+        if recently_audible:
+            if timer.isActive():
+                timer.stop()
+            self.recently_audible_changed.emit(recently_audible)
+        else:
+            # Ignore all subsequent calls while the tab is muted with an active timer
+            if timer.isActive():
+                return
+            timer.timeout.connect(
+                functools.partial(self.recently_audible_changed.emit, recently_audible))
+            timer.start()
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
         was_muted = self.is_muted()
