@@ -806,9 +806,9 @@ class WebEngineAudio(browsertab.AbstractAudio):
         # Implements the intended two-second delay specified at
         # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
         delay_ms = 2000
-        self._audio_muted_timer = QTimer(self)
-        self._audio_muted_timer.setSingleShot(True)
-        self._audio_muted_timer.setInterval(delay_ms)
+        self._silence_timer = QTimer(self)
+        self._silence_timer.setSingleShot(True)
+        self._silence_timer.setInterval(delay_ms)
 
     def _connect_signals(self):
         page = self._widget.page()
@@ -820,7 +820,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
     # WORKAROUND for recentlyAudibleChanged being emitted without delay from the moment
     # that audio is dropped.
     def _delayed_recently_audible_changed(self, recently_audible):
-        timer = self._audio_muted_timer
+        timer = self._silence_timer
         # Stop any active timer and immediately display [A] if tab is audible,
         # otherwise start a timer to update audio field
         if recently_audible:
