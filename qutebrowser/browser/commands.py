@@ -1521,6 +1521,7 @@ class CommandDispatcher:
         Callback for GUIProcess when the edited text was updated.
 
         Args:
+            ed: The editor.ExternalEditor instance
             elem: The WebElementWrapper which was modified.
             text: The new text to insert.
         """

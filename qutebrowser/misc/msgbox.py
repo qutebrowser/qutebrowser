@@ -42,6 +42,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         parent: The parent to set for the message box.
         title: The title to set.
         text: The text to set.
+        icon: The QIcon to show in the box.
         buttons: The buttons to set (QMessageBox::StandardButtons)
         on_finished: A slot to connect to the 'finished' signal.
         plain_text: Whether to force plain text (True) or rich text (False).

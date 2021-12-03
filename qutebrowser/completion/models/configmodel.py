@@ -137,6 +137,7 @@ def bind(key, *, info):
 
     Args:
         key: the key being bound.
+        info: A CompletionInfo instance.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     data = _bind_current_default(key, info)

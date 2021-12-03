@@ -550,6 +550,7 @@ def github_upload(artifacts, tag, gh_token):
     Args:
         artifacts: A list of (filename, mimetype, description) tuples
         tag: The name of the release tag
+        gh_token: The GitHub token to use
     """
     import github3
     import github3.exceptions

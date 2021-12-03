@@ -128,6 +128,7 @@ def split(s, keep=False):
     """Split a string via ShellLexer.
 
     Args:
+        s: The string to split.
         keep: Whether to keep special chars in the split output.
     """
     lexer = ShellLexer(s)

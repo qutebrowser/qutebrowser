@@ -381,8 +381,8 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     """Qt message handler to redirect qWarning etc. to the logging system.
 
     Args:
-        QtMsgType msg_type: The level of the message.
-        QMessageLogContext context: The source code location of the message.
+        msg_type: The level of the message.
+        context: The source code location of the message.
         msg: The message text.
     """
     # Mapping from Qt logging levels to the matching logging module levels.

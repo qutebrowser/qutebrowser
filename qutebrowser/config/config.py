@@ -387,6 +387,8 @@ class Config(QObject):
         """Get the given setting converted for Python code.
 
         Args:
+            name: The name of the setting to get.
+            url: The URL to get the value for.
             fallback: Use the global value if there's no URL-specific one.
         """
         opt = self.get_opt(name)

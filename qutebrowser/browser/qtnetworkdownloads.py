@@ -503,6 +503,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         Args:
             request: The QNetworkRequest to download.
             target: Where to save the download as downloads.DownloadTarget.
+            suggested_fn: The filename to use for the file.
             **kwargs: Passed to _fetch_request.
 
         Return:
@@ -547,6 +548,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
             target: Where to save the download as downloads.DownloadTarget.
             auto_remove: Whether to remove the download even if
                          downloads.remove_finished is set to -1.
+            suggested_filename: The filename to use for the file.
+            prompt_download_directory: Whether to prompt for a location to
+                                       download the file to.
 
         Return:
             The created DownloadItem.

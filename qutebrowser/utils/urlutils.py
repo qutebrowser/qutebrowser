@@ -329,6 +329,7 @@ def invalid_url_error(url: QUrl, action: str) -> None:
     """Display an error message for a URL.
 
     Args:
+        url: The URL to display a message for.
         action: The action which was interrupted by the error.
     """
     if url.isValid():

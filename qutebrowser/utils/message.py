@@ -140,7 +140,7 @@ def ask_async(title: str,
     """Ask an async question in the statusbar.
 
     Args:
-        message: The message to display to the user.
+        title: The message to display to the user.
         mode: A PromptMode.
         handler: The function to get called with the answer as argument.
         default: The default value to display.

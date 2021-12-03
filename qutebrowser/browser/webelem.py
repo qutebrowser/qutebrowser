@@ -132,6 +132,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Dispatch an event to the element.
 
         Args:
+            event: The name of the event.
             bubbles: Whether this event should bubble.
             cancelable: Whether this event can be cancelled.
             composed: Whether the event will trigger listeners outside of a

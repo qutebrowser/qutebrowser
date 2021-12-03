@@ -779,6 +779,7 @@ class AbstractAudio(QObject):
         """Set this tab as muted or not.
 
         Arguments:
+            muted: Whether the tab is currently muted.
             override: If set to True, muting/unmuting was done manually and
                       overrides future automatic mute/unmute changes based on
                       the URL.
