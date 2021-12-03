@@ -26,6 +26,7 @@ import os.path
 import sys
 import time
 import shutil
+import pathlib
 import plistlib
 import subprocess
 import argparse
@@ -480,14 +481,17 @@ def build_sdist():
     """Build an sdist and list the contents."""
     utils.print_title("Building sdist")
 
-    _maybe_remove('dist')
+    dist_path = pathlib.Path('dist')
+    _maybe_remove(dist_path)
 
-    subprocess.run([sys.executable, 'setup.py', 'sdist'], check=True)
-    dist_files = os.listdir(os.path.abspath('dist'))
-    assert len(dist_files) == 1
+    subprocess.run([sys.executable, '-m', 'build'], check=True)
 
-    dist_file = os.path.join('dist', dist_files[0])
-    subprocess.run(['gpg', '--detach-sign', '-a', dist_file], check=True)
+    dist_files = list(dist_path.glob('*.tar.gz'))
+    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
+    assert dist_files == [dist_path / filename], dist_files
+    dist_file = dist_files[0]
+
+    subprocess.run(['gpg', '--detach-sign', '-a', str(dist_file)], check=True)
 
     by_ext = collections.defaultdict(list)
 
@@ -507,11 +511,13 @@ def build_sdist():
         utils.print_subtitle(ext)
         print('\n'.join(files))
 
-    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
     artifacts = [
-        (os.path.join('dist', filename), 'application/gzip', 'Source release'),
-        (os.path.join('dist', filename + '.asc'), 'application/pgp-signature',
-         'Source release - PGP signature'),
+        (str(dist_file), 'application/gzip', 'Source release'),
+        (
+            str(dist_file.with_suffix(dist_file.suffix + '.asc')),
+            'application/pgp-signature',
+            'Source release - PGP signature',
+        ),
     ]
 
     return artifacts
