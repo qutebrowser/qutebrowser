@@ -4,6 +4,8 @@ github3.py
 bump2version
 requests
 pyqt-builder
+build
+twine
 
 # Already included via test requirements
 #@ ignore: urllib3

@@ -188,6 +188,17 @@ CHANGELOG_URLS = {
     'future': 'https://python-future.org/whatsnew.html',
     'pefile': 'https://github.com/erocarrera/pefile/commits/master',
     'Deprecated': 'https://github.com/tantale/deprecated/blob/master/CHANGELOG.rst',
+    'SecretStorage': 'https://github.com/mitya57/secretstorage/blob/master/changelog',
+    'bleach': 'https://github.com/mozilla/bleach/blob/main/CHANGES',
+    'jeepney': 'https://gitlab.com/takluyver/jeepney/-/blob/master/docs/release-notes.rst',
+    'keyring': 'https://github.com/jaraco/keyring/blob/main/CHANGES.rst',
+    'pkginfo': 'https://bazaar.launchpad.net/~tseaver/pkginfo/trunk/view/head:/CHANGES.txt',
+    'readme-renderer': 'https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst',
+    'requests-toolbelt': 'https://github.com/requests/toolbelt/blob/master/HISTORY.rst',
+    'rfc3986': 'https://rfc3986.readthedocs.io/en/latest/release-notes/index.html',
+    'tqdm': 'https://tqdm.github.io/releases/',
+    'twine': 'https://twine.readthedocs.io/en/stable/changelog.html',
+    'webencodings': 'https://github.com/gsnedders/python-webencodings/commits/master',
 }
 
 
