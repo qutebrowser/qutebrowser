@@ -7,7 +7,8 @@ load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
-             pylint.extensions.overlapping_exceptions
+             pylint.extensions.overlapping_exceptions,
+             pylint.extensions.code_style,
 persistent=n
 py-version=3.6
 
@@ -45,7 +46,9 @@ disable=locally-disabled,
         bad-continuation,  # This lint disagrees with Black
         consider-using-f-string,
         logging-fstring-interpolation,
-        raise-missing-from
+        raise-missing-from,
+        consider-using-tuple,
+        consider-using-namedtuple-or-dataclass,
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
