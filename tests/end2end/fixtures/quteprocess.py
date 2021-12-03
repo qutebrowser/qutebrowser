@@ -48,10 +48,7 @@ instance_counter = itertools.count()
 def is_ignored_qt_message(pytestconfig, message):
     """Check if the message is listed in qt_log_ignore."""
     regexes = pytestconfig.getini('qt_log_ignore')
-    for regex in regexes:
-        if re.search(regex, message):
-            return True
-    return False
+    return any(re.search(regex, message) for regex in regexes)
 
 
 def is_ignored_lowlevel_message(message):

@@ -233,6 +233,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
             'span': ['cm-'],  # Jupyter Notebook
         }
         relevant_classes = classes[self.tag_name()]
+        # pylint: disable=consider-using-any-or-all
         for klass in self.classes():
             if any(klass.strip().startswith(e) for e in relevant_classes):
                 return True
