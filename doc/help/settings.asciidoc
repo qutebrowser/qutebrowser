@@ -3425,6 +3425,11 @@ Default:
 * +pass:[[role=&quot;link&quot;\]]+
 * +pass:[[role=&quot;option&quot;\]]+
 * +pass:[[role=&quot;button&quot;\]]+
+* +pass:[[role=&quot;tab&quot;\]]+
+* +pass:[[role=&quot;checkbox&quot;\]]+
+* +pass:[[role=&quot;menuitem&quot;\]]+
+* +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
+* +pass:[[role=&quot;menuitemradio&quot;\]]+
 * +pass:[[ng-click\]]+
 * +pass:[[ngClick\]]+
 * +pass:[[data-ng-click\]]+
