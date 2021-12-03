@@ -13,7 +13,7 @@ filelock==3.4.0
 Flask==2.0.2
 glob2==0.7
 hunter==3.3.8
-hypothesis==6.28.1
+hypothesis==6.30.0
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1
