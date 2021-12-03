@@ -54,6 +54,10 @@ Fixed
   `-1`, reducing some false-positives.
 - The audible indicator (`[A]`) now uses a 2s cooldown when the audio goes
   silent, equivalent with the behavior of older QtWebEngine versions.
+- With `confirm_quit` set to `downloads`, the confirmation dialog is now only
+  shown when closing the last window (rather than closing any window, which
+  would continue running that window's downloads). Unfortunately, more issues
+  with `confirm_quit` and multiple windows remain.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
