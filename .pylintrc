@@ -12,6 +12,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.comparison_placement,
              pylint.extensions.for_any_all,
              pylint.extensions.docstyle,
+             pylint.extensions.check_elif,
              pylint.extensions.typing,
 
 persistent=n

@@ -266,14 +266,13 @@ class BraveAdBlocker:
             except DeserializationError:
                 message.error("Reading adblock filter data failed (corrupted data?). "
                               "Please run :adblock-update.")
-        else:
-            if (
-                config.val.content.blocking.adblock.lists
-                and not self._has_basedir
-                and config.val.content.blocking.enabled
-                and self.enabled
-            ):
-                message.info("Run :adblock-update to get adblock lists.")
+        elif (
+            config.val.content.blocking.adblock.lists
+            and not self._has_basedir
+            and config.val.content.blocking.enabled
+            and self.enabled
+        ):
+            message.info("Run :adblock-update to get adblock lists.")
 
     def adblock_update(self) -> blockutils.BlocklistDownloads:
         """Update the adblock block lists."""

@@ -508,6 +508,7 @@ def _validated_selected_files(
                 )
                 continue
         else:
+            # pylint: disable=else-if-used
             if not os.path.isfile(selected_file):
                 message.warning(
                     f"Expected file but got folder, ignoring '{selected_file}'"

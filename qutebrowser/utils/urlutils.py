@@ -95,6 +95,7 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
             engine = None
             term = s
     else:
+        # pylint: disable=else-if-used
         if config.val.url.open_base_url and s in config.val.url.searchengines:
             engine = s
             term = None

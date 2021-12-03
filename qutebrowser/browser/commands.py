@@ -1034,6 +1034,7 @@ class CommandDispatcher:
             if config.val.tabs.wrap:
                 new_idx %= self._count()
         else:
+            # pylint: disable=else-if-used
             # absolute moving
             if index == "start":
                 new_idx = 0

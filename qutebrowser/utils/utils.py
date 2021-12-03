@@ -391,11 +391,10 @@ def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
         parts.append('{}={!r}'.format(name, val))
     if constructor:
         return '{}({})'.format(cls, ', '.join(parts))
+    elif parts:
+        return '<{} {}>'.format(cls, ' '.join(parts))
     else:
-        if parts:
-            return '<{} {}>'.format(cls, ' '.join(parts))
-        else:
-            return '<{}>'.format(cls)
+        return '<{}>'.format(cls)
 
 
 def qualname(obj: Any) -> str:

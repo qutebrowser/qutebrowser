@@ -698,10 +698,9 @@ class TabbedBrowser(QWidget):
         """
         if tab.data.keep_icon:
             tab.data.keep_icon = False
-        else:
-            if (config.cache['tabs.tabs_are_windows'] and
-                    tab.data.should_show_icon()):
-                self.widget.window().setWindowIcon(self.default_window_icon)
+        elif (config.cache['tabs.tabs_are_windows'] and
+              tab.data.should_show_icon()):
+            self.widget.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def _on_load_status_changed(self, tab):

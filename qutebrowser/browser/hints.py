@@ -596,6 +596,7 @@ class HintManager(QObject):
                     "'args' is required with target userscript/spawn/run/"
                     "fill.")
         else:
+            # pylint: disable=else-if-used
             if args:
                 raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
@@ -870,12 +871,11 @@ class HintManager(QObject):
                     label.update_text(matched, rest)
                     # Show label again if it was hidden before
                     label.show()
-                else:
+                elif (not self._context.rapid or
+                      config.val.hints.hide_unmatched_rapid_hints):
                     # element doesn't match anymore -> hide it, unless in rapid
                     # mode and hide_unmatched_rapid_hints is false (see #1799)
-                    if (not self._context.rapid or
-                            config.val.hints.hide_unmatched_rapid_hints):
-                        label.hide()
+                    label.hide()
             except webelem.Error:
                 pass
         self._handle_auto_follow(keystr=keystr)
