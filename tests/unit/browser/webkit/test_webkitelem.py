@@ -181,13 +181,30 @@ class SelectionAndFilterTests:
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
 
+        ('<img src="bar">', ['all', 'images', 'url']),
+        ('<summary>bar</summary>', ['all']),
+        ('<link />', ['all']),
+
+        ('<p contenteditable />', ['all', 'inputs']),
+        ('<p contenteditable="false" />', []),
         ('<p onclick="foo" foo="bar"/>', ['all']),
         ('<p onmousedown="foo" foo="bar"/>', ['all']),
         ('<p role="option" foo="bar"/>', ['all']),
+        ('<p role="tab" foo="bar"/>', ['all']),
+        ('<p role="checkbox" foo="bar"/>', ['all']),
+        ('<p role="menuitem" foo="bar"/>', ['all']),
+        ('<p role="menuitemcheckbox" foo="bar"/>', ['all']),
+        ('<p role="menuitemradio" foo="bar"/>', ['all']),
         ('<p role="button" foo="bar"/>', ['all']),
         ('<p role="button" href="bar"/>', ['all', 'url']),
 
-        ('<span tabindex=0 />', ['all']),
+        ('<span tabindex="0" />', ['all']),
+        ('<span tabindex="-1" />', []),
+
+        ('<span ng-click=""></span>', ['all']),
+        ('<span ngClick=""></span>', ['all']),
+        ('<span data-ng-click=""></span>', ['all']),
+        ('<span x-ng-click=""></span>', ['all']),
     ]
 
     GROUPS = ['all', 'links', 'images', 'url', 'inputs']
