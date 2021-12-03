@@ -7,8 +7,9 @@ load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
-             pylint.extensions.overlapping_exceptions,
+             pylint.extensions.overlapping_exceptions
 persistent=n
+py-version=3.6
 
 [MESSAGES CONTROL]
 enable=all
