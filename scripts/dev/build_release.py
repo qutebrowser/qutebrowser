@@ -605,12 +605,6 @@ def pypi_upload(artifacts):
                    check=True)
 
 
-def upgrade_sdist_dependencies():
-    """Make sure we have the latest tools for an sdist release."""
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '-U', 'twine',
-                    'pip', 'wheel', 'setuptools'], check=True)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--skip-docs', action='store_true',
@@ -668,7 +662,6 @@ def main():
     elif sys.platform == 'darwin':
         artifacts = build_mac(gh_token=gh_token, debug=args.debug)
     else:
-        upgrade_sdist_dependencies()
         test_makefile()
         artifacts = build_sdist()
         upload_to_pypi = True
