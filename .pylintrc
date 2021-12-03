@@ -8,12 +8,8 @@ load-plugins=qute_pylint.config,
              qute_pylint.openencoding,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
-             pylint.extensions.broad_try_clause,
              pylint.extensions.overlapping_exceptions,
 persistent=n
-
-[broad_try_clause]
-max-try-statements=7
 
 [MESSAGES CONTROL]
 enable=all
@@ -44,7 +40,6 @@ disable=locally-disabled,
         too-many-locals,
         too-many-branches,
         too-many-statements,
-        too-many-try-statements,
         too-few-public-methods,
         import-outside-toplevel,
         bad-continuation,  # This lint disagrees with Black
