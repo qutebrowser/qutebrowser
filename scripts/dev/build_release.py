@@ -600,8 +600,18 @@ def github_upload(artifacts, tag, gh_token):
 def pypi_upload(artifacts):
     """Upload the given artifacts to PyPI using twine."""
     utils.print_title("Uploading to PyPI...")
+    run_twine('upload', artifacts)
+
+
+def twine_check(artifacts):
+    """Check packages using 'twine check'."""
+    utils.print_title("Running twine check...")
+    run_twine('check', artifacts, '--strict')
+
+
+def run_twine(command, artifacts, *args):
     filenames = [a[0] for a in artifacts]
-    subprocess.run([sys.executable, '-m', 'twine', 'upload'] + filenames,
+    subprocess.run([sys.executable, '-m', 'twine', command] + list(args) + filenames,
                    check=True)
 
 
@@ -664,6 +674,7 @@ def main():
     else:
         test_makefile()
         artifacts = build_sdist()
+        twine_check(artifacts)
         upload_to_pypi = True
 
     if args.upload:
