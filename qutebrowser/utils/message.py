@@ -18,7 +18,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # Because every method needs to have a log_stack argument
-# pylint: disable=unused-argument
+# and because we use *args a lot
+# pylint: disable=unused-argument,differing-param-doc
 
 """Message singleton so we don't have to define unneeded signals."""
 

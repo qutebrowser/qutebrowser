@@ -204,7 +204,7 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            values: The values to cycle through.
+            *values: The values to cycle through.
             pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.

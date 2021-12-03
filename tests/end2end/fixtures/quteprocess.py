@@ -909,8 +909,8 @@ class QuteProc(testprocess.Process):
         """Get a screenshot of the current page.
 
         Arguments:
-            probe: If given, only continue if the pixel at the given position isn't
-                   black (or whatever is specified by probe_color).
+            probe_pos: If given, only continue if the pixel at the given
+                       position isn't black (or whatever is specified by probe_color).
         """
         for _ in range(5):
             tmp_path = self.request.getfixturevalue('tmp_path')

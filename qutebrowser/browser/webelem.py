@@ -160,9 +160,6 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
     def is_content_editable(self) -> bool:
         """Check if an element has a contenteditable attribute.
 
-        Args:
-            elem: The QWebElement to check.
-
         Return:
             True if the element has a contenteditable attribute,
             False otherwise.

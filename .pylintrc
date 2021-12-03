@@ -14,6 +14,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.docstyle,
              pylint.extensions.check_elif,
              pylint.extensions.typing,
+             pylint.extensions.docparams,
 
 persistent=n
 py-version=3.6
@@ -55,6 +56,10 @@ disable=locally-disabled,
         raise-missing-from,
         consider-using-tuple,
         consider-using-namedtuple-or-dataclass,
+        missing-raises-doc,
+        missing-type-doc,
+        missing-param-doc,
+        useless-param-doc,
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

@@ -109,7 +109,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
     when sys.stderr got replaced, e.g. by "Python Tools for Visual Studio".
 
     Args:
-        fobj: An opened file object to write the traceback to.
+        fileobj: An opened file object to write the traceback to.
     """
     try:
         faulthandler.enable(fileobj)

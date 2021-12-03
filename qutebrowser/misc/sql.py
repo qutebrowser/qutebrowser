@@ -479,9 +479,6 @@ class SqlTable(QObject):
         Args:
             field: Field to use as the key.
             value: Key value to delete.
-
-        Return:
-            The number of rows deleted.
         """
         q = self.database.query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)

@@ -721,7 +721,7 @@ class TestModuleVersions:
 
         Args:
             attribute: The name of the version attribute.
-            expected: The expected return value.
+            expected_modules: The expected modules with that attribute.
         """
         import_fake.version_attribute = attribute
 

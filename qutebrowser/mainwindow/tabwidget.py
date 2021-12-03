@@ -486,7 +486,6 @@ class TabBar(QTabBar):
 
         Args:
             idx: The tab index to get the title for.
-            handle_unset: Whether to return an empty string on KeyError.
         """
         try:
             return self.tab_data(idx, 'page-title')

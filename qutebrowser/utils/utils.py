@@ -382,7 +382,7 @@ def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
         obj: The object to get a repr for.
         constructor: If True, show the Foo(one=1, two=2) form instead of
                      <Foo one=1 two=2>.
-        attrs: The attributes to add.
+        **attrs: The attributes to add.
     """
     cls = qualname(obj.__class__)
     parts = []

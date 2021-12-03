@@ -152,9 +152,6 @@ class WebView(QWebView):
 
         Args:
             e: The QPaintEvent.
-
-        Return:
-            The superclass event return value.
         """
         frame = self.page().mainFrame()
         new_pos = (frame.scrollBarValue(Qt.Horizontal),
@@ -186,9 +183,6 @@ class WebView(QWebView):
 
         Args:
             e: The QShowEvent.
-
-        Return:
-            The superclass event return value.
         """
         super().showEvent(e)
         self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
@@ -198,9 +192,6 @@ class WebView(QWebView):
 
         Args:
             e: The QHideEvent.
-
-        Return:
-            The superclass event return value.
         """
         super().hideEvent(e)
         self.page().setVisibilityState(QWebPage.VisibilityStateHidden)

@@ -299,7 +299,7 @@ class HintActions:
 
         Args:
             elem: The QWebElement to download.
-            _context: The HintContext to use.
+            context: The HintContext to use.
         """
         url = elem.resolve_url(context.baseurl)
         if url is None:
@@ -1154,7 +1154,6 @@ class WordHinter:
         from the words arg as fallback.
 
         Args:
-            words: Words to use as fallback when no link text can be used.
             elems: The elements to get hint strings for.
 
         Return:
