@@ -9,6 +9,10 @@ load-plugins=qute_pylint.config,
              pylint.extensions.emptystring,
              pylint.extensions.overlapping_exceptions,
              pylint.extensions.code_style,
+             pylint.extensions.comparison_placement,
+             pylint.extensions.docstyle,
+             pylint.extensions.typing,
+
 persistent=n
 py-version=3.6
 
