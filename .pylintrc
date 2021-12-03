@@ -5,7 +5,6 @@ ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip
 load-plugins=qute_pylint.config,
              qute_pylint.modeline,
-             qute_pylint.openencoding,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
              pylint.extensions.overlapping_exceptions,
