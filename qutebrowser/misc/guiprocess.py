@@ -27,7 +27,7 @@ from typing import Mapping, Sequence, Dict, Optional
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl, Qt)
 
-from qutebrowser.utils import message, log, utils, usertypes
+from qutebrowser.utils import message, log, utils, usertypes, version
 from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
 
@@ -262,7 +262,7 @@ class GUIProcess(QObject):
             QProcess.Crashed: f"{what.capitalize()} crashed",
             QProcess.Timedout: f"{what.capitalize()} timed out",
             QProcess.WriteError: f"Write error for {what}",
-            QProcess.WriteError: f"Read error for {what}",
+            QProcess.ReadError: f"Read error for {what}",
         }
         error_string = self._proc.errorString()
         msg = ': '.join([error_descriptions[error], error_string])
@@ -273,7 +273,9 @@ class GUIProcess(QObject):
         known_errors = ['No such file or directory', 'Permission denied']
         if (': ' in error_string and  # pragma: no branch
                 error_string.split(': ', maxsplit=1)[1] in known_errors):
-            msg += f'\n(Hint: Make sure {self.cmd!r} exists and is executable)'
+            msg += f'\nHint: Make sure {self.cmd!r} exists and is executable'
+            if version.is_flatpak():
+                msg += ' inside the Flatpak container'
 
         message.error(msg)
 

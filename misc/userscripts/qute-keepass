@@ -178,6 +178,7 @@ def find_candidates(args, host):
         kp = pykeepass.PyKeePass(file_path, password=pw, keyfile=kf)
     except Exception as e:
         stderr("There was an error opening the DB: {}".format(str(e)))
+        sys.exit(ExitCodes.DB_OPEN_FAIL)
 
     return kp.find_entries(url="{}{}{}".format(".*", host, ".*"), regex=True)
 

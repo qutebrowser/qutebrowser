@@ -272,11 +272,10 @@ class Command:
 
         if is_bool:
             kwargs['action'] = 'store_true'
+        elif arg_info.metavar is not None:
+            kwargs['metavar'] = arg_info.metavar
         else:
-            if arg_info.metavar is not None:
-                kwargs['metavar'] = arg_info.metavar
-            else:
-                kwargs['metavar'] = argparser.arg_name(param.name)
+            kwargs['metavar'] = argparser.arg_name(param.name)
 
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
             kwargs['nargs'] = '*' if self._star_args_optional else '+'
@@ -320,9 +319,8 @@ class Command:
             self.opt_args[param.name] = long_flag, short_flag
             if not is_bool:
                 self.flags_with_args += [short_flag, long_flag]
-        else:
-            if not arg_info.hide:
-                self.pos_args.append((param.name, name))
+        elif not arg_info.hide:
+            self.pos_args.append((param.name, name))
         return args
 
     def _get_type(self, param):

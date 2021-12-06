@@ -54,7 +54,7 @@ class Quitter(QObject):
 
     Attributes:
         quit_status: The current quitting status.
-        _is_shutting_down: Whether we're currently shutting down.
+        is_shutting_down: Whether we're currently shutting down.
         _args: The argparse namespace.
     """
 
@@ -69,7 +69,7 @@ class Quitter(QObject):
             'tabs': False,
             'main': False,
         }
-        self._is_shutting_down = False
+        self.is_shutting_down = False
         self._args = args
 
     def on_last_window_closed(self) -> None:
@@ -194,7 +194,7 @@ class Quitter(QObject):
         # Open a new process and immediately shutdown the existing one
         try:
             args = self._get_restart_args(pages, session, override_args)
-            subprocess.Popen(args)
+            subprocess.Popen(args)  # pylint: disable=consider-using-with
         except OSError:
             log.destroy.exception("Failed to restart")
             return False
@@ -214,9 +214,9 @@ class Quitter(QObject):
                             closing.
             is_restart: If we're planning to restart.
         """
-        if self._is_shutting_down:
+        if self.is_shutting_down:
             return
-        self._is_shutting_down = True
+        self.is_shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
 

@@ -53,9 +53,9 @@ def main():
     else:
         request = urllib.request.Request(URL)
         print(f"Downloading {URL} ...")
-        response = urllib.request.urlopen(request)
-        assert response.status == 200
-        data_str = response.read().decode("utf-8")
+        with urllib.request.urlopen(request) as response:
+            assert response.status == 200
+            data_str = response.read().decode("utf-8")
         print(f"Saving to cache file {CACHE_PATH} ...")
         CACHE_PATH.write_text(data_str, encoding="utf-8")
         data = io.StringIO(data_str)

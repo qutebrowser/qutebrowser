@@ -214,18 +214,72 @@ def pytest_addoption(parser):
                      help="Delay between qutebrowser commands.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
-    parser.addoption('--qute-bdd-webengine', action='store_true',
-                     help='Use QtWebEngine for BDD tests')
+    parser.addoption('--qute-backend', action='store',
+                     choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
 
 def pytest_configure(config):
-    webengine_arg = config.getoption('--qute-bdd-webengine')
-    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
-    config.webengine = webengine_arg or webengine_env == 'true'
-    # Fail early if QtWebEngine is not available
-    if config.webengine:
-        import PyQt5.QtWebEngineWidgets
+    backend = _select_backend(config)
+    config.webengine = backend == 'webengine'
+
     earlyinit.configure_pyqt()
+
+
+def _select_backend(config):
+    """Select the backend for running tests.
+
+    The backend is auto-selected in the following manner:
+    1. Use QtWebKit if available
+    2. Otherwise use QtWebEngine as a fallback
+
+    Auto-selection is overridden by either passing a backend via
+    `--qute-backend=<backend>` or setting the environment variable
+    `QUTE_TESTS_BACKEND=<backend>`.
+
+    Args:
+        config: pytest config
+
+    Raises:
+        ImportError if the selected backend is not available.
+
+    Returns:
+        The selected backend as a string (e.g. 'webkit').
+    """
+    backend_arg = config.getoption('--qute-backend')
+    backend_env = os.environ.get('QUTE_TESTS_BACKEND')
+
+    backend = backend_arg or backend_env or _auto_select_backend()
+
+    # Fail early if selected backend is not available
+    if backend == 'webkit':
+        import PyQt5.QtWebKitWidgets
+    elif backend == 'webengine':
+        import PyQt5.QtWebEngineWidgets
+    else:
+        raise utils.Unreachable(backend)
+
+    return backend
+
+
+def _auto_select_backend():
+    try:
+        # Try to use QtWebKit as the default backend
+        import PyQt5.QtWebKitWidgets
+        return 'webkit'
+    except ImportError:
+        # Try to use QtWebEngine as a fallback and fail early
+        # if that's also not available
+        import PyQt5.QtWebEngineWidgets
+        return 'webengine'
+
+
+def pytest_report_header(config):
+    if config.webengine:
+        backend_version = version.qtwebengine_versions(avoid_init=True)
+    else:
+        backend_version = version.qWebKitVersion()
+
+    return f'backend: {backend_version}'
 
 
 @pytest.fixture(scope='session', autouse=True)

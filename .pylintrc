@@ -5,15 +5,19 @@ ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip
 load-plugins=qute_pylint.config,
              qute_pylint.modeline,
-             qute_pylint.openencoding,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
-             pylint.extensions.broad_try_clause,
              pylint.extensions.overlapping_exceptions,
-persistent=n
+             pylint.extensions.code_style,
+             pylint.extensions.comparison_placement,
+             pylint.extensions.for_any_all,
+             pylint.extensions.docstyle,
+             pylint.extensions.check_elif,
+             pylint.extensions.typing,
+             pylint.extensions.docparams,
 
-[broad_try_clause]
-max-try-statements=7
+persistent=n
+py-version=3.6
 
 [MESSAGES CONTROL]
 enable=all
@@ -46,7 +50,16 @@ disable=locally-disabled,
         too-many-statements,
         too-few-public-methods,
         import-outside-toplevel,
-        bad-continuation  # This lint disagrees with Black
+        bad-continuation,  # This lint disagrees with Black
+        consider-using-f-string,
+        logging-fstring-interpolation,
+        raise-missing-from,
+        consider-using-tuple,
+        consider-using-namedtuple-or-dataclass,
+        missing-raises-doc,
+        missing-type-doc,
+        missing-param-doc,
+        useless-param-doc,
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
@@ -58,6 +71,7 @@ argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
 docstring-min-length=3
 no-docstring-rgx=(^_|^main$)
+class-const-naming-style = snake_case
 
 [FORMAT]
 max-line-length=88

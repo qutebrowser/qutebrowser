@@ -213,7 +213,7 @@ class _FoldArrow(QWidget):
         """Paint the arrow.
 
         Args:
-            _paint: The QPaintEvent (unused).
+            _event: The QPaintEvent (unused).
         """
         opt = QStyleOption()
         opt.initFrom(self)

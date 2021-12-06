@@ -22,6 +22,19 @@ exists, the `autoconfig.yml` file **is not read anymore** by default. You need
 to <<configpy-autoconfig,load it from `config.py`>> if you want settings changed via
 `:set`/`:bind` to persist between restarts.
 
+[[patterns]]
+URL pattern support
+-------------------
+
+Many settings are customizable depending on the page being visited by using URL
+patterns. The link:settings{outfilesuffix}[settings documentation] marks such
+settings with "This setting supports URL patterns.
+
+The syntax is based on Chromium's
+https://developer.chrome.com/docs/extensions/mv3/match_patterns/[URL pattern syntax].
+As an extension, the scheme and path can be left off as a short-hand syntax, so
+`example.com` is equivalent to `*://example.com/*`.
+
 [[autoconfig]]
 Configuring qutebrowser via the user interface
 ----------------------------------------------
@@ -45,9 +58,10 @@ customizable.
 Using the link:commands{outfilesuffix}#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
 
-Some settings are also customizable for a given
-https://developer.chrome.com/apps/match_patterns[URL pattern] by doing e.g.
-`:set --pattern=*://example.com/ content.images false`.
+<<patterns,URL patterns>> can be used via
+`:set --pattern *://example.com/* content.images false`, or with shorthand
+syntax for both argument and pattern, `:set -u example.com content.images
+false`.
 
 To get more help about a setting, use e.g. `:help tabs.position`.
 
@@ -160,8 +174,8 @@ color = config.get('colors.completion.fg')
 Per-domain settings
 ~~~~~~~~~~~~~~~~~~~
 
-Using `config.set`, some settings are also customizable for a given
-https://developer.chrome.com/apps/match_patterns[URL pattern]:
+Using `config.set` instead of the `c.` shorthand, many settings are also
+customizable for a given <<patterns,URL patterns>>.
 
 [source,python]
 ----
@@ -392,11 +406,13 @@ Pre-built colorschemes
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - A collection of https://github.com/chriskempson/base16[base16] color-schemes can be found in https://github.com/theova/base16-qutebrowser[base16-qutebrowser] and used with https://github.com/AuditeMarlow/base16-manager[base16-manager].
+- Another collection: https://github.com/leosolid/qutebrowser-themes[qutebrowser-themes]
 - https://gitlab.com/jjzmajic/qutewal[Pywal integration]
 - https://github.com/arcticicestudio/nord[Nord]: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
 - https://github.com/dracula/qutebrowser-dracula-theme[Dracula]
 - https://gitlab.com/lovetocode999/selenized-qutebrowser[Selenized]
 - https://github.com/morhetz/gruvbox[gruvbox]: https://github.com/The-Compiler/dotfiles/blob/master/qutebrowser/gruvbox.py[The-Compiler], https://gitlab.com/shaneyost/dots-popos-september-2020/-/blob/master/qutebrowser/config.py[Shane Yost]
+- https://www.opencode.net/wakellor957/qb-breath/-/blob/main/qb-breath.py[Manjaro Breath-like]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -437,3 +453,9 @@ Various emacs/conkeror-like keybinding configs exist:
 It's also mostly possible to get rid of modal keybindings by setting
 `input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to
 `all`.
+
+Other resources
+^^^^^^^^^^^^^^^
+
+- https://www.ii.com/qutebrowser-tips-fragments/[Infinite Ink: qutebrowser Tips and Fragments]
+- https://www.ii.com/qutebrowser-configpy/[Infinite Ink: qutebrowser’s Template config.py]

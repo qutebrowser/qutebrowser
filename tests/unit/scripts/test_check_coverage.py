@@ -98,7 +98,12 @@ def covtest(testdir, monkeypatch):
     # Check if coverage plugin is available
     res = testdir.runpytest('--version', '--version')
     assert res.ret == 0
+
     output = res.stderr.str()
+    if not output:
+        # pytest >= 7.0: https://github.com/pytest-dev/pytest/pull/8247
+        output = res.stdout.str()
+
     assert 'This is pytest version' in output
     if 'pytest-cov' not in output:
         pytest.skip("cov plugin not available")

@@ -58,7 +58,8 @@ def css_selector(group: str, url: QUrl) -> str:
     return ','.join(selectors[group])
 
 
-class AbstractWebElement(collections.abc.MutableMapping):
+# MutableMapping is only generic in Python 3.9+
+class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-arg]
 
     """A wrapper around QtWebKit/QtWebEngine web element."""
 
@@ -131,6 +132,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Dispatch an event to the element.
 
         Args:
+            event: The name of the event.
             bubbles: Whether this event should bubble.
             cancelable: Whether this event can be cancelled.
             composed: Whether the event will trigger listeners outside of a
@@ -158,9 +160,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def is_content_editable(self) -> bool:
         """Check if an element has a contenteditable attribute.
-
-        Args:
-            elem: The QWebElement to check.
 
         Return:
             True if the element has a contenteditable attribute,
@@ -232,6 +231,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             'span': ['cm-'],  # Jupyter Notebook
         }
         relevant_classes = classes[self.tag_name()]
+        # pylint: disable=consider-using-any-or-all
         for klass in self.classes():
             if any(klass.strip().startswith(e) for e in relevant_classes):
                 return True

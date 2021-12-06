@@ -30,7 +30,7 @@ import configparser
 import contextlib
 import re
 from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
-                    MutableMapping, Optional, cast)
+                    MutableMapping, Optional, Tuple, cast)
 
 import yaml
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
@@ -39,7 +39,7 @@ import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
+from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
@@ -70,7 +70,7 @@ class VersionChange(enum.Enum):
         This is intended to use filters like "major" (show major only), "minor" (show
         major/minor) or "patch" (show all changes).
         """
-        allowed_values: Dict[str, List[VersionChange]] = {
+        allowed_values: Dict[str, List["VersionChange"]] = {
             'major': [VersionChange.major],
             'minor': [VersionChange.major, VersionChange.minor],
             'patch': [VersionChange.major, VersionChange.minor, VersionChange.patch],
@@ -89,6 +89,7 @@ class StateConfig(configparser.ConfigParser):
         self.read(self._filename, encoding='utf-8')
 
         self.qt_version_changed = False
+        self.qtwe_version_changed = False
         self.qutebrowser_version_changed = VersionChange.unknown
         self._set_changed_attributes()
 
@@ -108,7 +109,19 @@ class StateConfig(configparser.ConfigParser):
             self[sect].pop(key, None)
 
         self['general']['qt_version'] = qVersion()
+        self['general']['qtwe_version'] = self._qtwe_version_str()
         self['general']['version'] = qutebrowser.__version__
+
+    def _qtwe_version_str(self) -> str:
+        """Get the QtWebEngine version string.
+
+        Note that it's too early to use objects.backend here...
+        """
+        try:
+            import PyQt5.QtWebEngineWidgets  # pylint: disable=unused-import
+        except ImportError:
+            return 'no'
+        return str(version.qtwebengine_versions(avoid_init=True).webengine)
 
     def _set_changed_attributes(self) -> None:
         """Set qt_version_changed/qutebrowser_version_changed attributes.
@@ -122,6 +135,9 @@ class StateConfig(configparser.ConfigParser):
 
         old_qt_version = self['general'].get('qt_version', None)
         self.qt_version_changed = old_qt_version != qVersion()
+
+        old_qtwe_version = self['general'].get('qtwe_version', None)
+        self.qtwe_version_changed = old_qtwe_version != self._qtwe_version_str()
 
         old_qutebrowser_version = self['general'].get('version', None)
         if old_qutebrowser_version is None:
@@ -286,18 +302,18 @@ class YamlConfig(QObject):
         self._validate_names(settings)
         self._build_values(settings)
 
-    def _load_settings_object(self, yaml_data: Any) -> '_SettingsType':
+    def _load_settings_object(self, yaml_data: Any) -> _SettingsType:
         """Load the settings from the settings: key."""
         return self._pop_object(yaml_data, 'settings', dict)
 
-    def _load_legacy_settings_object(self, yaml_data: Any) -> '_SettingsType':
+    def _load_legacy_settings_object(self, yaml_data: Any) -> _SettingsType:
         data = self._pop_object(yaml_data, 'global', dict)
         settings = {}
         for name, value in data.items():
             settings[name] = {'global': value}
         return settings
 
-    def _build_values(self, settings: Mapping) -> None:
+    def _build_values(self, settings: Mapping[str, Any]) -> None:
         """Build up self._values from the values in the given dict."""
         errors = []
         for name, yaml_values in settings.items():
@@ -724,9 +740,17 @@ class ConfigPyWriter:
 
     def __init__(
             self,
-            options: List,
+            options: List[
+                Tuple[
+                    Optional[urlmatch.UrlPattern],
+                    configdata.Option,
+                    Any
+                ]
+            ],
             bindings: MutableMapping[str, Mapping[str, Optional[str]]],
-            *, commented: bool) -> None:
+            *,
+            commented: bool,
+    ) -> None:
         self._options = options
         self._bindings = bindings
         self._commented = commented

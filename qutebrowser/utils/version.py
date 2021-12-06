@@ -773,8 +773,6 @@ def _backend() -> str:
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
-        webengine = usertypes.Backend.QtWebEngine
-        assert objects.backend == webengine, objects.backend
         return str(qtwebengine_versions(
             avoid_init='avoid-chromium-init' in objects.debug_flags))
     raise utils.Unreachable(objects.backend)

@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+# To allow count being documented
+# pylint: disable=differing-param-doc
+
 """Various commands."""
 
 import os
@@ -183,7 +186,10 @@ def screenshot(
         raise cmdutils.CommandError(
             f"File {filename} already exists (use --force to overwrite)")
 
-    qrect = None if rect is None else utils.parse_rect(rect)
+    try:
+        qrect = None if rect is None else utils.parse_rect(rect)
+    except ValueError as e:
+        raise cmdutils.CommandError(str(e))
 
     pic = tab.grab_pixmap(qrect)
     if pic is None:

@@ -40,7 +40,7 @@ def collect_tests():
 @dataclasses.dataclass
 class ParsedFile:
 
-    target: str
+    target: Optional[str]
     qtwebengine_todo: Optional[str]
 
 
@@ -107,11 +107,18 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
         quteproc.set_setting('zoom.text_only', str(zoom_text_only))
         quteproc.set_setting('hints.find_implementation', find_implementation)
     quteproc.send_cmd(':zoom {}'.format(zoom_level))
+
     # follow hint
     quteproc.send_cmd(':hint all normal')
-    quteproc.wait_for(message='hints: a', category='hints')
-    quteproc.send_cmd(':hint-follow a')
-    quteproc.wait_for_load_finished('data/' + parsed.target)
+
+    if parsed.target is None:
+        msg = quteproc.wait_for(message='No elements found.', category='message')
+        msg.expected = True
+    else:
+        quteproc.wait_for(message='hints: a', category='hints')
+        quteproc.send_cmd(':hint-follow a')
+        quteproc.wait_for_load_finished('data/' + parsed.target)
+
     # reset
     quteproc.send_cmd(':zoom 100')
     if not request.config.webengine:

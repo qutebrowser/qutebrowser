@@ -88,6 +88,7 @@ class SignalFilter(QObject):
                     debug.dbg_signal(signal, args), tabidx))
             signal.emit(*args)
         else:
+            # pylint: disable=else-if-used
             if log_signal:
                 log.signals.debug("ignoring: {} (tab {})".format(
                     debug.dbg_signal(signal, args), tabidx))

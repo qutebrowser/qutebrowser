@@ -41,7 +41,7 @@ from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                resources, objreg, standarddir)
-from qutebrowser.misc import guiprocess
+from qutebrowser.misc import guiprocess, quitter
 from qutebrowser.qt import sip
 
 
@@ -92,7 +92,8 @@ class Redirect(Exception):
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
 _HandlerRet = Tuple[str, Union[str, bytes]]
-_Handler = TypeVar('_Handler', bound=Callable[[QUrl], _HandlerRet])
+_HandlerCallable = Callable[[QUrl], _HandlerRet]
+_Handler = TypeVar('_Handler', bound=_HandlerCallable)
 
 
 class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -105,7 +106,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self._function: Optional[Callable] = None
+        self._function: Optional[_HandlerCallable] = None
 
     def __call__(self, function: _Handler) -> _Handler:
         self._function = function
@@ -451,6 +452,9 @@ def qute_settings(url: QUrl) -> _HandlerRet:
         if url.password() != csrf_token:
             message.error("Invalid CSRF token for qute://settings!")
             raise RequestDeniedError("Invalid CSRF token!")
+        if quitter.instance.is_shutting_down:
+            log.config.debug("Ignoring /set request during shutdown")
+            return 'text/html', b'error: ignored'
         return _qute_settings_set(url)
 
     # Requests to qute://settings/set should only be allowed from

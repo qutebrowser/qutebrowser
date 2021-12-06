@@ -163,16 +163,7 @@ def test_completion_item_focus_no_model(which, completionview, model, qtbot):
 
 @pytest.mark.skip("Seems to disagree with reality, see #5897")
 def test_completion_item_focus_fetch(completionview, model, qtbot):
-    """Test that on_next_prev_item moves the selection properly.
-
-    Args:
-        which: the direction in which to move the selection.
-        tree: Each list represents a completion category, with each string
-              being an item under that category.
-        expected: expected argument from on_selection_changed for each
-                  successive movement. None implies no signal should be
-                  emitted.
-    """
+    """Test that on_next_prev_item moves the selection properly."""
     cat = mock.Mock(spec=[
         'layoutChanged', 'layoutAboutToBeChanged', 'canFetchMore',
         'fetchMore', 'rowCount', 'index', 'data'])

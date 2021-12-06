@@ -75,7 +75,7 @@ class BindingTrie:
     __slots__ = 'children', 'command'
 
     def __init__(self) -> None:
-        self.children: MutableMapping[keyutils.KeyInfo, BindingTrie] = {}
+        self.children: MutableMapping[keyutils.KeyInfo, "BindingTrie"] = {}
         self.command: Optional[str] = None
 
     def __setitem__(self, sequence: keyutils.KeySequence,
@@ -112,7 +112,7 @@ class BindingTrie:
 
         return lines
 
-    def update(self, mapping: Mapping) -> None:
+    def update(self, mapping: Mapping[keyutils.KeySequence, str]) -> None:
         """Add data from the given mapping to the trie."""
         for key in mapping:
             self[key] = mapping[key]
@@ -254,6 +254,9 @@ class BaseKeyParser(QObject):
     def _match_count(self, sequence: keyutils.KeySequence,
                      dry_run: bool) -> bool:
         """Try to match a key as count."""
+        if not config.val.input.match_counts:
+            return False
+
         txt = str(sequence[-1])  # To account for sequences changed above.
         if (txt in string.digits and self._supports_count and
                 not (not self._count and txt == '0')):

@@ -34,9 +34,10 @@ from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEnginePage
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -634,8 +635,8 @@ class AbstractHistoryPrivate:
         """Deserialize from a format produced by self.serialize."""
         raise NotImplementedError
 
-    def load_items(self, items: Sequence) -> None:
-        """Deserialize from a list of WebHistoryItems."""
+    def load_items(self, items: Sequence[sessions.TabHistoryItem]) -> None:
+        """Deserialize from a list of TabHistoryItems."""
         raise NotImplementedError
 
 
@@ -651,7 +652,7 @@ class AbstractHistory:
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
@@ -778,6 +779,7 @@ class AbstractAudio(QObject):
         """Set this tab as muted or not.
 
         Arguments:
+            muted: Whether the tab is currently muted.
             override: If set to True, muting/unmuting was done manually and
                       overrides future automatic mute/unmute changes based on
                       the URL.
@@ -1003,7 +1005,7 @@ class AbstractTab(QWidget):
         """Setter for load_status."""
         if not isinstance(val, usertypes.LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
-        log.webview.debug(f"load status for {self!r}: {utils.pyenum_str(val)}")
+        log.webview.debug("load status for {}: {}".format(repr(self), val))
         self._load_status = val
         self.load_status_changed.emit(val)
 
@@ -1063,7 +1065,7 @@ class AbstractTab(QWidget):
         url = utils.elide(navigation.url.toDisplayString(), 100)
         log.webview.debug("navigation request: url {}, type {}, is_main_frame "
                           "{}".format(url,
-                                      utils.pyenum_str(navigation.navigation_type),
+                                      navigation.navigation_type,
                                       navigation.is_main_frame))
 
         if navigation.is_main_frame:

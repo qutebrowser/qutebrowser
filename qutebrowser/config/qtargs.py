@@ -260,9 +260,8 @@ def _qtwebengine_args(
             # Only actually available in Qt 5.12.5, but let's save another
             # check, as passing the option won't hurt.
             yield '--enable-in-process-stack-traces'
-    else:
-        if 'stack' not in namespace.debug_flags:
-            yield '--disable-in-process-stack-traces'
+    elif 'stack' not in namespace.debug_flags:
+        yield '--disable-in-process-stack-traces'
 
     lang_override = _get_lang_override(
         webengine_version=versions.webengine,
@@ -334,7 +333,11 @@ def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[
         },
         'content.headers.referer': {
             'always': None,
-        }
+        },
+        'content.prefers_reduced_motion': {
+            True: '--force-prefers-reduced-motion',
+            False: None,
+        },
     }
     qt_514_ver = utils.VersionNumber(5, 14)
 

@@ -406,15 +406,16 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True, new_undo=True):
+    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
+            transfer: Whether the tab is closing because it is moving to a new window.
         """
-        if config.val.tabs.tabs_are_windows:
+        if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
         else:
             last_close = config.val.tabs.last_close
@@ -697,10 +698,9 @@ class TabbedBrowser(QWidget):
         """
         if tab.data.keep_icon:
             tab.data.keep_icon = False
-        else:
-            if (config.cache['tabs.tabs_are_windows'] and
-                    tab.data.should_show_icon()):
-                self.widget.window().setWindowIcon(self.default_window_icon)
+        elif (config.cache['tabs.tabs_are_windows'] and
+              tab.data.should_show_icon()):
+            self.widget.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def _on_load_status_changed(self, tab):

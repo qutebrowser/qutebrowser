@@ -97,7 +97,10 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         else:
             return False
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(
+        self,
+        func: Callable[..., None],
+    ) -> Callable[..., None]:
         """Filter calls to the decorated function.
 
         Gets called when a function should be decorated.
@@ -105,7 +108,9 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         Adds a filter which returns if we're not interested in the change-event
         and calls the wrapped function if we are.
 
-        We assume the function passed doesn't take any parameters.
+        We assume the function passed doesn't take any parameters. However, it
+        could take a "self" argument, so we can't cleary express this in the
+        type above.
 
         Args:
             func: The function to be decorated.
@@ -173,6 +178,8 @@ class KeyConfig:
         result = results[0]
         if result.cmd.name != "set-cmd-text":
             return cmdline
+        if not result.args:
+            return None  # doesn't look like this sets a command
         *flags, cmd = result.args
         if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
             return None  # doesn't look like this sets a command
@@ -188,7 +195,7 @@ class KeyConfig:
 
         See #5942.
         """
-        cmd_to_keys: KeyConfig._ReverseBindings = {}
+        cmd_to_keys: "KeyConfig._ReverseBindings" = {}
         bindings = self.get_bindings_for(mode)
         for seq, full_cmd in sorted(bindings.items()):
             for cmdtext in full_cmd.split(';;'):
@@ -307,7 +314,7 @@ class Config(QObject):
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
-        self._values: Mapping = {}
+        self._values: Mapping[str, configutils.Values] = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
@@ -380,6 +387,8 @@ class Config(QObject):
         """Get the given setting converted for Python code.
 
         Args:
+            name: The name of the setting to get.
+            url: The URL to get the value for.
             fallback: Use the global value if there's no URL-specific one.
         """
         opt = self.get_opt(name)

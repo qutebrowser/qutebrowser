@@ -90,7 +90,8 @@ def url(*, info):
 
     history_disabled = info.config.get('completion.web_history.max_items') == 0
     if not history_disabled and 'history' in categories:
-        hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
+        hist_cat = histcategory.HistoryCategory(database=history.web_history.database,
+                                                delete_func=_delete_history)
         models['history'] = hist_cat
 
     if 'filesystem' in categories:

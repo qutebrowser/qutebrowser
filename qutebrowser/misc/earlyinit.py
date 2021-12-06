@@ -109,19 +109,25 @@ def init_faulthandler(fileobj=sys.__stderr__):
     when sys.stderr got replaced, e.g. by "Python Tools for Visual Studio".
 
     Args:
-        fobj: An opened file object to write the traceback to.
+        fileobj: An opened file object to write the traceback to.
     """
-    if fileobj is None:
+    try:
+        faulthandler.enable(fileobj)
+    except (RuntimeError, AttributeError):
         # When run with pythonw.exe, sys.__stderr__ can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
-        # If we'd enable faulthandler in that case, we just get a weird
-        # exception, so we don't enable faulthandler if we have no stdout.
+        #
+        # With PyInstaller, it can be a NullWriter raising AttributeError on
+        # fileno: https://github.com/pyinstaller/pyinstaller/issues/4481
         #
         # Later when we have our data dir available we re-enable faulthandler
         # to write to a file so we can display a crash to the user at the next
         # start.
+        #
+        # Note that we don't have any logging initialized yet at this point, so
+        # this is a silent error.
         return
-    faulthandler.enable(fileobj)
+
     if (hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1') and
             sys.stderr is not None):
         # If available, we also want a traceback on SIGUSR1.
@@ -205,7 +211,6 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # pylint: disable=bad-continuation
             with log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'invalid escape sequence'
@@ -220,7 +225,6 @@ def _check_modules(modules):
                 category=DeprecationWarning,
                 message=r'Creating a LegacyVersion has been deprecated',
             ):
-                # pylint: enable=bad-continuation
                 importlib.import_module(name)
         except ImportError as e:
             _die(text, e)

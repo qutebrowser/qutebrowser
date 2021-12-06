@@ -30,8 +30,8 @@ def expected_text(*args):
     """Helper to format text we expect the KeyHintView to generate.
 
     Args:
-        args: One tuple for each row in the expected output.
-              Tuples are of the form: (prefix, color, suffix, command).
+        *args: One tuple for each row in the expected output.
+               Tuples are of the form: (prefix, color, suffix, command).
     """
     text = '<table>'
     for group in args:

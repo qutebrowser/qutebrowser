@@ -389,6 +389,7 @@ class _BackendProblemChecker:
         WORKAROUND for:
         https://bugreports.qt.io/browse/QTBUG-72532
         https://bugreports.qt.io/browse/QTBUG-82105
+        https://bugreports.qt.io/browse/QTBUG-93744
         """
         if ('serviceworker_workaround' not in configfiles.state['general'] and
                 qtutils.version_check('5.14', compiled=False)):
@@ -398,6 +399,8 @@ class _BackendProblemChecker:
             reason = 'Qt 5.14'
         elif configfiles.state.qt_version_changed:
             reason = 'Qt version changed'
+        elif configfiles.state.qtwe_version_changed:
+            reason = 'QtWebEngine version changed'
         elif config.val.qt.workarounds.remove_service_workers:
             reason = 'Explicitly enabled'
         else:

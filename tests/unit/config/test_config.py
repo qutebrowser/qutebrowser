@@ -211,6 +211,7 @@ class TestKeyConfig:
                 "a": "set-cmd-text no_leading_colon",
                 "b": "set-cmd-text -s -a :skip_cuz_append",
                 "c": "set-cmd-text --append :skip_cuz_append",
+                "x": "set-cmd-text",
             },
             {
                 "open": ["o"],

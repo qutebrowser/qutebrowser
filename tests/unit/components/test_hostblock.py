@@ -279,7 +279,7 @@ def test_disabled_blocking_per_url(config_stub, host_blocker_factory):
     pattern = urlmatch.UrlPattern(example_com)
     config_stub.set_obj("content.blocking.enabled", False, pattern=pattern)
 
-    url = QUrl("blocked.example.com")
+    url = QUrl("https://blocked.example.com")
 
     host_blocker = host_blocker_factory()
     host_blocker._blocked_hosts.add(url.host())
@@ -427,7 +427,7 @@ def test_invalid_utf8(config_stub, tmp_path, caplog, host_blocker_factory, locat
         with caplog.at_level(logging.ERROR):
             current_download.successful = True
             current_download.finished.emit()
-        expected = r"Failed to decode: " r"b'https://www.example.org/\xa0localhost"
+        expected = r"Failed to decode: b'https://www.example.org/\xa0localhost"
         assert caplog.messages[-2].startswith(expected)
     else:
         current_download.successful = True
@@ -563,3 +563,15 @@ def test_adblock_benchmark(data_tmpdir, benchmark, host_blocker_factory):
     assert blocker._blocked_hosts
 
     benchmark(lambda: blocker._is_blocked(url))
+
+
+@pytest.mark.parametrize("block_subdomains", [True, False])
+def test_subdomain_blocking(config_stub, host_blocker_factory, block_subdomains):
+    config_stub.val.content.blocking.method = "hosts"
+    config_stub.val.content.blocking.hosts.lists = None
+    config_stub.val.content.blocking.hosts.block_subdomains = block_subdomains
+    host_blocker = host_blocker_factory()
+    host_blocker._blocked_hosts.add("example.com")
+    is_blocked = host_blocker._is_blocked(QUrl("https://subdomain.example.com"))
+    # block_subdomains is also expected result of is_blocked
+    assert is_blocked == block_subdomains

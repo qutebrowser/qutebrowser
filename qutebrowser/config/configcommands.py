@@ -21,7 +21,7 @@
 
 import os.path
 import contextlib
-from typing import TYPE_CHECKING, Iterator, List, Optional
+from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
 from PyQt5.QtCore import QUrl
 
@@ -101,7 +101,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             value: The value to set.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -204,8 +204,8 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            values: The values to cycle through.
-            pattern: The URL pattern to use.
+            *values: The values to cycle through.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -259,7 +259,7 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
         """
         parsed_pattern = self._parse_pattern(pattern)
@@ -475,7 +475,7 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options: List = []
+        options: List[Tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]

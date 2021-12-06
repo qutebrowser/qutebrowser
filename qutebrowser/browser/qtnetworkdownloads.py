@@ -110,6 +110,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """Create a file object using the internal filename."""
         assert self._filename is not None
         try:
+            # pylint: disable=consider-using-with
             fileobj = open(self._filename, 'wb')
         except OSError as e:
             self._die(e.strerror)
@@ -201,6 +202,17 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def url(self) -> QUrl:
         # Note: self._reply is deleted when the download finishes
         return self._url
+
+    def origin(self) -> QUrl:
+        if self._reply is None:
+            return QUrl()
+        origin = self._reply.request().originatingObject()
+        try:
+            return origin.url()
+        except AttributeError:
+            # Raised either if origin is None or some object that doesn't
+            # have its own url.
+            return QUrl()
 
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover
@@ -491,6 +503,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         Args:
             request: The QNetworkRequest to download.
             target: Where to save the download as downloads.DownloadTarget.
+            suggested_fn: The filename to use for the file.
             **kwargs: Passed to _fetch_request.
 
         Return:
@@ -535,6 +548,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
             target: Where to save the download as downloads.DownloadTarget.
             auto_remove: Whether to remove the download even if
                          downloads.remove_finished is set to -1.
+            suggested_filename: The filename to use for the file.
+            prompt_download_directory: Whether to prompt for a location to
+                                       download the file to.
 
         Return:
             The created DownloadItem.
@@ -548,6 +564,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
                                                      suggested_filename))
         download = DownloadItem(reply, manager=self)
         self._init_item(download, auto_remove, suggested_filename)
+
+        if download.cancel_for_origin():
+            return download
 
         if target is not None:
             download.set_target(target)

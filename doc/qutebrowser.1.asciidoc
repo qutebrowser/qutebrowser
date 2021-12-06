@@ -65,6 +65,9 @@ show it.
 *--desktop-file-name* 'DESKTOP_FILE_NAME'::
     Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop
 
+*--untrusted-args*::
+    Mark all following arguments as untrusted, which enforces that they are URLs/search terms (and not flags or commands)
+
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
     Override the configured console loglevel
@@ -120,7 +123,7 @@ environment, the directories configured there are used instead of the above
 defaults.
 
 == BUGS
-Bugs are tracked in the Github issue tracker at 
+Bugs are tracked in the Github issue tracker at
 https://github.com/qutebrowser/qutebrowser/issues.
 
 If you found a bug, use the built-in ':report' command to create a bug report
@@ -152,8 +155,9 @@ this program.  If not, see <https://www.gnu.org/licenses/>.
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
 * Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
-* IRC: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-https://freenode.net/[Freenode]
+* IRC: link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
+https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat],
+https://matrix.to/#qutebrowser:libera.chat[via Matrix])
 * Github: https://github.com/qutebrowser/qutebrowser
 
 == AUTHOR

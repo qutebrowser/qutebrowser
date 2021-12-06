@@ -37,7 +37,8 @@ def test_server(server, qtbot, path, content, expected):
     with qtbot.wait_signal(server.new_request, timeout=100):
         url = 'http://localhost:{}{}'.format(server.port, path)
         try:
-            response = urllib.request.urlopen(url)
+            with urllib.request.urlopen(url) as response:
+                data = response.read().decode('utf-8')
         except urllib.error.HTTPError as e:
             # "Though being an exception (a subclass of URLError), an HTTPError
             # can also function as a non-exceptional file-like return value
@@ -45,8 +46,6 @@ def test_server(server, qtbot, path, content, expected):
             # ...wat
             print(e.read().decode('utf-8'))
             raise
-
-    data = response.read().decode('utf-8')
 
     assert server.get_requests() == [server.ExpectedRequest('GET', path)]
     assert (content in data) == expected

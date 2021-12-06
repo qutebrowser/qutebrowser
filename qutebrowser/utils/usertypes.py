@@ -301,6 +301,7 @@ class Backend(enum.Enum):
 
     """The backend being used (usertypes.backend)."""
 
+    # pylint: disable=invalid-name
     QtWebKit = enum.auto()
     QtWebEngine = enum.auto()
 

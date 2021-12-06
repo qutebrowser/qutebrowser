@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-variable
-
 """Tests for qutebrowser.api.cmdutils."""
 
 import sys
@@ -292,7 +290,6 @@ class TestRegister:
 
     class Enum(enum.Enum):
 
-        # pylint: disable=invalid-name
         x = enum.auto()
         y = enum.auto()
 

@@ -48,10 +48,7 @@ instance_counter = itertools.count()
 def is_ignored_qt_message(pytestconfig, message):
     """Check if the message is listed in qt_log_ignore."""
     regexes = pytestconfig.getini('qt_log_ignore')
-    for regex in regexes:
-        if re.search(regex, message):
-            return True
-    return False
+    return any(re.search(regex, message) for regex in regexes)
 
 
 def is_ignored_lowlevel_message(message):
@@ -229,6 +226,10 @@ def is_ignored_chromium_message(line):
         # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
         'Lost UI shared context.',
 
+        # [20870:20908:0607/081717.652282:ERROR:block_files.cc(465)] Failed to
+        # open /tmp/qutebrowser-basedir-cg284f_m/data/webengine/GPUCache/data_2
+        'Failed to open *GPUCache*',
+
         # Qt 5.12
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
         # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]
@@ -330,6 +331,7 @@ def is_ignored_chromium_message(line):
          'filtering (maybe)?'),
         ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
          'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
+        'Unable to map Index file',
 
         # WebRTC with Qt 5.13 / 5.14
         'Failed to query stereo recording.',
@@ -347,6 +349,20 @@ def is_ignored_chromium_message(line):
         # Flatpak
         'mDNS responder manager failed to start.',
         'The mDNS responder manager is not started yet.',
+
+        # GitHub Actions with Qt 5.15.0
+        # [5387:5407:0713/142608.526916:ERROR:cache_util.cc(135)] Unable to
+        # move cache folder
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/GPUCache to
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/old_GPUCache_000
+        # [5387:5407:0713/142608.526934:ERROR:disk_cache.cc(184)] Unable to
+        # create cache
+        # [5387:5407:0713/142608.526938:ERROR:shader_disk_cache.cc(606)] Shader
+        # Cache Creation failed: -2
+        ('Unable to move cache folder */data/webengine/GPUCache to '
+            '*/data/webengine/old_GPUCache_000'),
+        'Unable to create cache',
+        'Shader Cache Creation failed: -2',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -590,8 +606,7 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
-    def wait_for(self, timeout=None,  # pylint: disable=arguments-differ
-                 **kwargs):
+    def wait_for(self, timeout=None, **kwargs):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
@@ -697,7 +712,7 @@ class QuteProc(testprocess.Process):
                                          target_arg)
             self._wait_for_ipc()
 
-    def start(self, *args, **kwargs):  # pylint: disable=arguments-differ
+    def start(self, *args, **kwargs):
         try:
             super().start(*args, **kwargs)
         except testprocess.ProcessExited:
@@ -894,8 +909,8 @@ class QuteProc(testprocess.Process):
         """Get a screenshot of the current page.
 
         Arguments:
-            probe: If given, only continue if the pixel at the given position isn't
-                   black (or whatever is specified by probe_color).
+            probe_pos: If given, only continue if the pixel at the given
+                       position isn't black (or whatever is specified by probe_color).
         """
         for _ in range(5):
             tmp_path = self.request.getfixturevalue('tmp_path')

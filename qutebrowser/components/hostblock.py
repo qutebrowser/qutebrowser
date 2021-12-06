@@ -37,7 +37,10 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
-from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
+from qutebrowser.utils import (  # FIXME: Move needed parts into api namespace?
+    urlutils,
+    version
+)
 
 
 logger = logging.getLogger("network")
@@ -61,9 +64,10 @@ def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
     byte_io.seek(0)  # rewind downloaded file
     if zipfile.is_zipfile(byte_io):
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
-        zf = zipfile.ZipFile(byte_io)
-        filename = _guess_zip_filename(zf)
-        byte_io = zf.open(filename, mode="r")
+        with zipfile.ZipFile(byte_io) as zf:
+            filename = _guess_zip_filename(zf)
+            # pylint: disable=consider-using-with
+            byte_io = zf.open(filename, mode="r")
     else:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
     return byte_io
@@ -124,10 +128,21 @@ class HostBlocker:
         if not config.get("content.blocking.enabled", url=first_party_url):
             return False
 
+        if blockutils.is_whitelisted_url(request_url):
+            return False
+
         host = request_url.host()
-        return (
-            host in self._blocked_hosts or host in self._config_blocked_hosts
-        ) and not blockutils.is_whitelisted_url(request_url)
+
+        if config.get("content.blocking.hosts.block_subdomains"):
+            return any(
+                hostname in self._blocked_hosts
+                or hostname in self._config_blocked_hosts
+                for hostname in urlutils.widened_hostnames(host)
+            )
+        else:
+            return (
+                host in self._blocked_hosts or host in self._config_blocked_hosts
+            )
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""

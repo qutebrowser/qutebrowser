@@ -26,7 +26,7 @@ import pytest
 from PyQt5.QtCore import QProcess, QUrl
 
 from qutebrowser.misc import guiprocess
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes, utils, version
 from qutebrowser.api import cmdutils
 from qutebrowser.qt import sip
 
@@ -394,8 +394,11 @@ def test_running(qtbot, proc, py_proc):
         proc.outcome.was_successful()
 
 
-def test_failing_to_start(qtbot, proc, caplog, message_mock):
+@pytest.mark.parametrize('is_flatpak', [True, False])
+def test_failing_to_start(qtbot, proc, caplog, message_mock, monkeypatch, is_flatpak):
     """Test the process failing to start."""
+    monkeypatch.setattr(version, 'is_flatpak', lambda: is_flatpak)
+
     with caplog.at_level(logging.ERROR, 'message'):
         with qtbot.wait_signal(proc.error, timeout=5000):
             proc.start('this_does_not_exist_either', [])
@@ -405,8 +408,11 @@ def test_failing_to_start(qtbot, proc, caplog, message_mock):
         "Testprocess 'this_does_not_exist_either' failed to start:")
 
     if not utils.is_windows:
-        assert msg.text.endswith(
-            "(Hint: Make sure 'this_does_not_exist_either' exists and is executable)")
+        expected_msg = (
+            "Hint: Make sure 'this_does_not_exist_either' exists and is executable")
+        if is_flatpak:
+            expected_msg += ' inside the Flatpak container'
+        assert msg.text.endswith(expected_msg)
 
     assert not proc.outcome.running
     assert proc.outcome.status is None

@@ -26,7 +26,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Iterable
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
@@ -95,6 +95,7 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
             engine = None
             term = s
     else:
+        # pylint: disable=else-if-used
         if config.val.url.open_base_url and s in config.val.url.searchengines:
             engine = s
             term = None
@@ -328,6 +329,7 @@ def invalid_url_error(url: QUrl, action: str) -> None:
     """Display an error message for a URL.
 
     Args:
+        url: The URL to display a message for.
         action: The action which was interrupted by the error.
     """
     if url.isValid():
@@ -619,3 +621,12 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("Resulted in empty JavaScript code")
 
     return code
+
+
+def widened_hostnames(hostname: str) -> Iterable[str]:
+    """A generator for widening string hostnames.
+
+    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
+    while hostname:
+        yield hostname
+        hostname = hostname.partition(".")[-1]

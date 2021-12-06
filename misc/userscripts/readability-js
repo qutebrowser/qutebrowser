@@ -8,6 +8,7 @@
 // # Prerequisites
 //
 // - Mozilla's readability library (npm install -g @mozilla/readability)
+//     - Also available in the AUR as nodejs-readability-git
 // - jsdom (npm install -g jsdom)
 // - qutejs (npm install -g qutejs)
 //

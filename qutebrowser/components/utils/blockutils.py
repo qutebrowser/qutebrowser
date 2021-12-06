@@ -125,7 +125,7 @@ class BlocklistDownloads(QObject):
             filename: path to a local file to import.
         """
         try:
-            fileobj = open(filename, "rb")
+            fileobj = open(filename, "rb")  # pylint: disable=consider-using-with
         except OSError as e:
             message.error(
                 "blockutils: Error while reading {}: {}".format(filename, e.strerror)

@@ -299,7 +299,7 @@ class HintActions:
 
         Args:
             elem: The QWebElement to download.
-            _context: The HintContext to use.
+            context: The HintContext to use.
         """
         url = elem.resolve_url(context.baseurl)
         if url is None:
@@ -325,14 +325,18 @@ class HintActions:
 
         cmd = context.args[0]
         args = context.args[1:]
+        flags = QUrl.FullyEncoded
+
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
+            'QUTE_CURRENT_URL':
+                context.baseurl.toString(flags),  # type: ignore[arg-type]
         }
+
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            flags = QUrl.FullyEncoded
             env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
 
         try:
@@ -592,6 +596,7 @@ class HintManager(QObject):
                     "'args' is required with target userscript/spawn/run/"
                     "fill.")
         else:
+            # pylint: disable=else-if-used
             if args:
                 raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
@@ -680,9 +685,8 @@ class HintManager(QObject):
         Args:
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
-                   open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background=true`), `tab-bg`,
-                   `window`, `run`, `hover`, `userscript` and `spawn`.
+                   open multiple links. Note this won't work with targets
+                   `tab-fg`, `fill`, `delete` and `right-click`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
             first: Click the first hinted element without prompting.
@@ -750,18 +754,16 @@ class HintManager(QObject):
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
-        if rapid:
-            if target in [Target.tab_bg, Target.window, Target.run,
-                          Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current,
-                          Target.yank, Target.yank_primary]:
-                pass
-            elif target == Target.tab and config.val.tabs.background:
-                pass
-            else:
-                name = target.name.replace('_', '-')
-                raise cmdutils.CommandError("Rapid hinting makes no sense "
-                                            "with target {}!".format(name))
+        no_rapid_targets = [
+            Target.tab_fg,  # opens new tab
+            Target.fill,  # exits hint mode
+            Target.right_click,  # opens multiple context menus
+            Target.delete,  # deleting elements shifts them
+        ]
+        if rapid and target in no_rapid_targets:
+            name = target.name.replace('_', '-')
+            raise cmdutils.CommandError(
+                f"Rapid hinting makes no sense with target {name}!")
 
         self._check_args(target, *args)
 
@@ -869,12 +871,11 @@ class HintManager(QObject):
                     label.update_text(matched, rest)
                     # Show label again if it was hidden before
                     label.show()
-                else:
+                elif (not self._context.rapid or
+                      config.val.hints.hide_unmatched_rapid_hints):
                     # element doesn't match anymore -> hide it, unless in rapid
                     # mode and hide_unmatched_rapid_hints is false (see #1799)
-                    if (not self._context.rapid or
-                            config.val.hints.hide_unmatched_rapid_hints):
-                        label.hide()
+                    label.hide()
             except webelem.Error:
                 pass
         self._handle_auto_follow(keystr=keystr)
@@ -1153,7 +1154,6 @@ class WordHinter:
         from the words arg as fallback.
 
         Args:
-            words: Words to use as fallback when no link text can be used.
             elems: The elements to get hint strings for.
 
         Return:

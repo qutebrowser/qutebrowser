@@ -64,10 +64,10 @@ def _serialize_item(item):
 
 
 def serialize(items):
-    """Serialize a list of WebHistoryItems to a data stream.
+    """Serialize a list of TabHistoryItems to a data stream.
 
     Args:
-        items: An iterable of WebHistoryItems.
+        items: An iterable of TabHistoryItems.
 
     Return:
         A (stream, data, user_data) tuple.

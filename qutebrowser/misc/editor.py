@@ -131,7 +131,7 @@ class ExternalEditor(QObject):
             raise ValueError("Already editing a file!")
         try:
             self._filename = self._create_tempfile(text, 'qutebrowser-editor-')
-        except OSError as e:
+        except (OSError, UnicodeEncodeError) as e:
             message.error("Failed to create initial file: {}".format(e))
             return
 

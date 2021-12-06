@@ -431,11 +431,7 @@ def _init_site_specific_quirks():
                      "AppleWebKit/537.36 (KHTML, like Gecko) "
                      "Chrome/99 "
                      "Safari/537.36")
-    edge_ua = ("Mozilla/5.0 ({os_info}) "
-               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
-               "{upstream_browser_key}/{upstream_browser_version} "
-               "Safari/{webkit_version} "
-               "Edg/{upstream_browser_version}")
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"
 
     user_agents = [
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
@@ -447,7 +443,7 @@ def _init_site_specific_quirks():
         # Needed to avoid a "you're using a browser [...] that doesn't allow us
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182
-        ("ua-google", 'https://accounts.google.com/*', edge_ua),
+        ("ua-google", 'https://accounts.google.com/*', firefox_ua),
 
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
