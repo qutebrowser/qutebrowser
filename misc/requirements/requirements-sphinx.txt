@@ -3,7 +3,7 @@
 alabaster==0.7.12
 Babel==2.9.1
 certifi==2021.10.8
-charset-normalizer==2.0.8
+charset-normalizer==2.0.9
 docutils==0.17.1
 idna==3.3
 imagesize==1.3.0

@@ -5,7 +5,7 @@ build==0.7.0
 bump2version==1.0.1
 certifi==2021.10.8
 cffi==1.15.0
-charset-normalizer==2.0.8
+charset-normalizer==2.0.9
 colorama==0.4.4
 cryptography==36.0.0
 Deprecated==1.2.13
