@@ -92,7 +92,7 @@ class Values:
                  values: Sequence[ScopedValue] = ()) -> None:
         self.opt = opt
         self._vmap: MutableMapping[
-            "Values._VmapKeyType", ScopedValue] = collections.OrderedDict()
+            Values._VmapKeyType, ScopedValue] = collections.OrderedDict()
         # A map from domain parts to rules that fall under them.
         self._domain_map: Dict[
             Optional[str], Set[ScopedValue]] = collections.defaultdict(set)

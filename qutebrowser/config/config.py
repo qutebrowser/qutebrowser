@@ -195,7 +195,7 @@ class KeyConfig:
 
         See #5942.
         """
-        cmd_to_keys: "KeyConfig._ReverseBindings" = {}
+        cmd_to_keys: KeyConfig._ReverseBindings = {}
         bindings = self.get_bindings_for(mode)
         for seq, full_cmd in sorted(bindings.items()):
             for cmdtext in full_cmd.split(';;'):

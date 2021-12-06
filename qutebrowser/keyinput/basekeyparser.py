@@ -75,7 +75,7 @@ class BindingTrie:
     __slots__ = 'children', 'command'
 
     def __init__(self) -> None:
-        self.children: MutableMapping[keyutils.KeyInfo, "BindingTrie"] = {}
+        self.children: MutableMapping[keyutils.KeyInfo, BindingTrie] = {}
         self.command: Optional[str] = None
 
     def __setitem__(self, sequence: keyutils.KeySequence,
