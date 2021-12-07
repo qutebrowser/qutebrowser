@@ -3,7 +3,7 @@
 astroid==2.9.0
 certifi==2021.10.8
 cffi==1.15.0
-charset-normalizer==2.0.8
+charset-normalizer==2.0.9
 cryptography==36.0.0
 Deprecated==1.2.13
 future==0.18.2
@@ -16,13 +16,13 @@ mccabe==0.6.1
 pefile==2021.9.3
 platformdirs==2.4.0
 pycparser==2.21
-pylint==2.12.1
+pylint==2.12.2
 python-dateutil==2.8.2
 ./scripts/dev/pylint_checkers
 requests==2.26.0
 six==1.16.0
 toml==0.10.2
-typed-ast==1.5.0 ; python_version<"3.8"
+typed-ast==1.5.1 ; python_version<"3.8"
 typing_extensions==4.0.1
 uritemplate==4.1.1
 # urllib3==1.26.7

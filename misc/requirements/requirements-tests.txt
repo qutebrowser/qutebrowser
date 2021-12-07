@@ -3,7 +3,7 @@
 attrs==21.2.0
 beautifulsoup4==4.10.0
 certifi==2021.10.8
-charset-normalizer==2.0.8
+charset-normalizer==2.0.9
 cheroot==8.5.2
 click==8.0.3
 coverage==6.2
@@ -13,7 +13,7 @@ filelock==3.4.0
 Flask==2.0.2
 glob2==0.7
 hunter==3.3.8
-hypothesis==6.30.0
+hypothesis==6.30.1
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1

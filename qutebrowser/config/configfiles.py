@@ -70,7 +70,7 @@ class VersionChange(enum.Enum):
         This is intended to use filters like "major" (show major only), "minor" (show
         major/minor) or "patch" (show all changes).
         """
-        allowed_values: Dict[str, List["VersionChange"]] = {
+        allowed_values: Dict[str, List[VersionChange]] = {
             'major': [VersionChange.major],
             'minor': [VersionChange.major, VersionChange.minor],
             'patch': [VersionChange.major, VersionChange.minor, VersionChange.patch],
