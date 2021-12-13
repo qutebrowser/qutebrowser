@@ -5,7 +5,7 @@ diff-cover==6.4.4
 importlib-metadata==4.8.2
 importlib-resources==5.4.0
 Jinja2==3.0.3
-lxml==4.6.4
+lxml==4.6.5
 MarkupSafe==2.0.1
 mypy==0.910
 mypy-extensions==0.4.3
