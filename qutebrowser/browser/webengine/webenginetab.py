@@ -270,8 +270,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebEnginePage.FindFlags(
-            int(self._flags))  # type: ignore[call-overload]
+        flags = QWebEnginePage.FindFlag(
+            self._flags)  # type: ignore[call-overload]
         if flags & QWebEnginePage.FindFlag.FindBackward:
             if self._wrap_handler.prevent_wrapping(going_up=False):
                 return
