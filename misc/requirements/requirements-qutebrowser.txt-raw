@@ -15,6 +15,9 @@ importlib-metadata  # Determining PyQt version
 typing_extensions  # from importlib-metadata
 
 #@ markers: importlib-resources python_version<"3.9"
-#@ markers: importlib-metadata python_version<"3.8"
+#@ markers: importlib-metadata python_version=="3.7.*"
 #@ markers: typing_extensions python_version<"3.8"
 #@ markers: dataclasses python_version<"3.7"
+
+# Python 3.6
+#@ add: importlib-metadata<4.9 ; python_version=="3.6.*"

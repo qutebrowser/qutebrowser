@@ -1,2 +1,5 @@
 tox
 wheel
+
+#@ markers: setuptools python_version>="3.7"
+#@ add: setuptools<60 ; python_version=="3.6.*"
