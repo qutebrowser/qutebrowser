@@ -399,8 +399,14 @@ def parse_versioned_line(line):
     line = line.rsplit('#', maxsplit=1)[0]
     line = line.split(';')[0].strip()
 
-    if '==' in line:
-        name, version = line.split('==')
+    ops = ["==", "~=", "!=", ">", "<", ">=", "<="]
+
+    if any(op in line for op in ops):
+        # strictly speaking, this version isn't necessarily correct, but it's
+        # enough for the table.
+        for op in ops:
+            if op in line:
+                name, version = line.split(op)
     elif line.startswith('-e'):
         rest, name = line.split('#egg=')
         version = rest.split('@')[1][:7]
