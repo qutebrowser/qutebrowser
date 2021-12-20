@@ -35,3 +35,9 @@ pytest-icdiff
 tldextract
 
 #@ ignore: Jinja2, MarkupSafe, colorama
+
+# Python 3.6
+#@ markers: jaraco.functools python_version>="3.7"
+#@ add: jaraco.functools<3.5 ; python_version=="3.6.*"
+#@ markers: tomli python_version>="3.7"
+#@ add: tomli<2 ; python_version=="3.6.*"
