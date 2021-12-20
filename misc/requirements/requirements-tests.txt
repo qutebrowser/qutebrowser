@@ -12,13 +12,13 @@ execnet==1.9.0
 filelock==3.4.0
 Flask==2.0.2
 glob2==0.7
-hunter==3.3.8
-hypothesis==6.31.4
+hunter==3.4.3
+hypothesis==6.31.6
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1
 itsdangerous==2.0.1
-jaraco.functools==3.4.0
+jaraco.functools==3.5.0
 # Jinja2==3.0.3
 Mako==1.1.6
 manhole==1.8.0
@@ -54,7 +54,7 @@ sortedcontainers==2.4.0
 soupsieve==2.3.1
 tldextract==3.1.2
 toml==0.10.2
-tomli==1.2.2
+tomli==2.0.0
 urllib3==1.26.7
 vulture==2.3
 Werkzeug==2.0.2

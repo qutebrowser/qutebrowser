@@ -4,14 +4,14 @@ astroid==2.9.0
 certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.9
-cryptography==36.0.0
+cryptography==36.0.1
 Deprecated==1.2.13
 future==0.18.2
 github3.py==3.0.0
 idna==3.3
 isort==5.10.1
 jwcrypto==1.0
-lazy-object-proxy==1.6.0
+lazy-object-proxy==1.7.1
 mccabe==0.6.1
 pefile==2021.9.3
 platformdirs==2.4.0
