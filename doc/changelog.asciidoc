@@ -37,6 +37,8 @@ Changed
   fixed values.
 - The default `hint.selectors` now match more ARIA roles (`tab`, `checkbox`,
   `menuitem`, `menuitemcheckbox` and `menuitemradio`).
+- Using e.g. `:bind --mode=passthrough` now scrolls to the passthrough section
+  on the `qute://bindings` page.
 
 Added
 ~~~~~

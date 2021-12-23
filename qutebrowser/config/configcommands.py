@@ -151,9 +151,12 @@ class ConfigCommands:
             default: If given, restore a default binding.
         """
         if key is None:
+            url = QUrl('qute://bindings')
+            if mode != "normal":
+                url.setFragment(mode)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.load_url(QUrl('qute://bindings'), newtab=True)
+            tabbed_browser.load_url(url, newtab=True)
             return
 
         seq = self._parse_key(key)
