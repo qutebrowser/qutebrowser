@@ -9,11 +9,11 @@ click==8.0.3
 coverage==6.2
 EasyProcess==0.3
 execnet==1.9.0
-filelock==3.4.0
+filelock==3.4.2
 Flask==2.0.2
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.31.6
+hypothesis==6.32.1
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1

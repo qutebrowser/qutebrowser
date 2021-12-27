@@ -14,7 +14,7 @@ jwcrypto==1.0
 lazy-object-proxy==1.7.1
 mccabe==0.6.1
 pefile==2021.9.3
-platformdirs==2.4.0
+platformdirs==2.4.1
 pycparser==2.21
 pylint==2.12.2
 python-dateutil==2.8.2
