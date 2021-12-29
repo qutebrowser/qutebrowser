@@ -23,7 +23,7 @@ pep517==0.12.0
 pkginfo==1.8.2
 pycparser==2.21
 Pygments==2.10.0
-Pympler==1.0
+Pympler==1.0.1
 pyparsing==3.0.6
 PyQt-builder==1.12.2
 python-dateutil==2.8.2
