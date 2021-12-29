@@ -392,15 +392,21 @@ def _get_changed_files():
 
 def parse_versioned_line(line):
     """Parse a requirements.txt line into name/version."""
-    if '==' in line:
-        if line[0] == '#':  # ignored dependency
-            line = line[1:].strip()
+    if line[0] == '#':  # ignored dependency
+        line = line[1:].strip()
 
-        # Strip comments and pip environment markers
-        line = line.rsplit('#', maxsplit=1)[0]
-        line = line.split(';')[0].strip()
+    # Strip comments and pip environment markers
+    line = line.rsplit('#', maxsplit=1)[0]
+    line = line.split(';')[0].strip()
 
-        name, version = line.split('==')
+    ops = ["==", "~=", "!=", ">", "<", ">=", "<="]
+
+    if any(op in line for op in ops):
+        # strictly speaking, this version isn't necessarily correct, but it's
+        # enough for the table.
+        for op in ops:
+            if op in line:
+                name, version = line.split(op)
     elif line.startswith('-e'):
         rest, name = line.split('#egg=')
         version = rest.split('@')[1][:7]

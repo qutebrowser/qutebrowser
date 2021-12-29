@@ -10,7 +10,7 @@ th { text-align:left; }
 {% block content %}
 <header><h1>{{ title }}</h1></header>
 {% for mode, binding in bindings.items() %}
-<h2>{{ mode | capitalize }} mode</h2>
+<h2 id="{{ mode }}">{{ mode | capitalize }} mode</h2>
 <table>
     <tr>
         <th>Key</th>

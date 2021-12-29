@@ -43,7 +43,9 @@ except ImportError:
     colorama = None
 
 if TYPE_CHECKING:
+    # pylint: disable=unused-import
     from qutebrowser.config import config as configmodule
+    from typing import TextIO
 
 _log_inited = False
 _args = None
@@ -245,7 +247,9 @@ def disable_qt_msghandler() -> Iterator[None]:
 @contextlib.contextmanager
 def py_warning_filter(action: str = 'ignore', **kwargs: Any) -> Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
-    warnings.filterwarnings(action, **kwargs)
+    # FIXME Use Literal['default', 'error', 'ignore', 'always', 'module', 'once']
+    # once we use Python 3.8 or typing_extensions
+    warnings.filterwarnings(action, **kwargs)  # type: ignore[arg-type]
     yield
     if _log_inited:
         _init_py_warnings()
@@ -257,7 +261,7 @@ def _init_handlers(
         force_color: bool,
         json_logging: bool,
         ram_capacity: int
-) -> Tuple[logging.StreamHandler, Optional['RAMHandler']]:
+) -> Tuple["logging.StreamHandler[TextIO]", Optional['RAMHandler']]:
     """Init log handlers.
 
     Args:
@@ -727,7 +731,8 @@ class ColoredFormatter(logging.Formatter):
                  datefmt: str,
                  style: str, *,
                  use_colors: bool) -> None:
-        super().__init__(fmt, datefmt, style)
+        # FIXME Use Literal["%", "{", "$"] once we use Python 3.8 or typing_extensions
+        super().__init__(fmt, datefmt, style)  # type: ignore[arg-type]
         self.use_colors = use_colors
 
     def format(self, record: logging.LogRecord) -> str:

@@ -725,15 +725,19 @@ class TestBind:
         """Get a dict with no bindings."""
         return {'normal': {}}
 
+    @pytest.mark.parametrize("mode, url", [
+        ("normal", QUrl("qute://bindings")),
+        ("passthrough", QUrl("qute://bindings#passthrough")),
+    ])
     def test_bind_no_args(self, commands, config_stub, no_bindings,
-                          tabbed_browser_stubs):
+                          tabbed_browser_stubs, mode, url):
         """Run ':bind'.
 
         Should open qute://bindings."""
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
-        commands.bind(win_id=0)
-        assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://bindings')
+        commands.bind(win_id=0, mode=mode)
+        assert tabbed_browser_stubs[0].loaded_url == url
 
     @pytest.mark.parametrize('command', ['nop', 'nope'])
     def test_bind(self, commands, config_stub, no_bindings, key_config_stub,

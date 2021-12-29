@@ -300,7 +300,8 @@ def fake_io(write_func: Callable[[str], int]) -> Iterator[None]:
 def disabled_excepthook() -> Iterator[None]:
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
-    sys.excepthook = sys.__excepthook__
+    # https://github.com/python/typeshed/pull/6678
+    sys.excepthook = sys.__excepthook__  # type: ignore[assignment]
     try:
         yield
     finally:
