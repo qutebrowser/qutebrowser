@@ -14,7 +14,7 @@ jwcrypto==1.0
 lazy-object-proxy==1.7.1
 mccabe==0.6.1
 pefile==2021.9.3
-platformdirs==2.4.1
+platformdirs==2.4.1 ; python_version>="3.7"
 pycparser==2.21
 pylint==2.12.2
 python-dateutil==2.8.2
@@ -27,3 +27,4 @@ typing_extensions==4.0.1
 uritemplate==4.1.1
 # urllib3==1.26.7
 wrapt==1.13.3
+platformdirs==2.4.0 ; python_version=="3.6.*"

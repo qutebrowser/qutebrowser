@@ -41,3 +41,7 @@ tldextract
 #@ add: jaraco.functools<3.5 ; python_version=="3.6.*"
 #@ markers: tomli python_version>="3.7"
 #@ add: tomli<2 ; python_version=="3.6.*"
+#@ markers: filelock python_version>="3.7"
+#@ add: filelock==3.4.1 ; python_version=="3.6.*"
+#@ markers: hypothesis python_version>="3.7"
+#@ add: hypothesis<6.32 ; python_version=="3.6.*"

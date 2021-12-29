@@ -13,3 +13,7 @@ pefile
 
 # For pylint_checkers
 #@ pip_args: --use-feature=in-tree-build
+
+# Python 3.6
+#@ markers: platformdirs python_version>="3.7"
+#@ add: platformdirs==2.4.0 ; python_version=="3.6.*"
