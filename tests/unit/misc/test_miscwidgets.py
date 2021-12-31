@@ -110,6 +110,21 @@ class TestWrapperLayout:
 
 class TestFullscreenNotification:
 
+    @pytest.fixture
+    def widget_factory(self, qtbot, key_config_stub, blue_widget):
+        # We need to pass a visible parent widget, so that
+        # FullscreenNotification.__init__ can access
+        # self.window().windowHandle() to get the screen.
+        with qtbot.wait_exposed(blue_widget):
+            blue_widget.show()
+
+        def create():
+            w = miscwidgets.FullscreenNotification(blue_widget)
+            qtbot.add_widget(w)
+            return w
+
+        return create
+
     @pytest.mark.parametrize('bindings, text', [
         ({'<escape>': 'fullscreen --leave'},
          "Press <Escape> to exit fullscreen."),
@@ -117,18 +132,16 @@ class TestFullscreenNotification:
         ({'a': 'fullscreen --leave'}, "Press a to exit fullscreen."),
         ({}, "Page is now fullscreen."),
     ])
-    def test_text(self, qtbot, config_stub, key_config_stub, bindings, text):
+    def test_text(self, widget_factory, config_stub, bindings, text):
         config_stub.val.bindings.default = {}
         config_stub.val.bindings.commands = {'normal': bindings}
-        w = miscwidgets.FullscreenNotification()
-        qtbot.add_widget(w)
-        assert w.text() == text
+        widget = widget_factory()
+        assert widget.text() == text
 
-    def test_timeout(self, qtbot, key_config_stub):
-        w = miscwidgets.FullscreenNotification()
-        qtbot.add_widget(w)
-        with qtbot.wait_signal(w.destroyed):
-            w.set_timeout(1)
+    def test_timeout(self, qtbot, widget_factory):
+        widget = widget_factory()
+        with qtbot.wait_signal(widget.destroyed):
+            widget.set_timeout(1)
 
 
 @pytest.mark.usefixtures('state_config')
