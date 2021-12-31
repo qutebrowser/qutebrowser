@@ -309,7 +309,7 @@ class FullscreenNotification(QLabel):
         if config.val.content.fullscreen.window:
             geom = self.parentWidget().geometry()
         else:
-            geom = QApplication.desktop().screenGeometry(self)
+            geom = self.window().windowHandle().screen().geometry()
         self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
