@@ -299,6 +299,7 @@ class Query:
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
+        self.placeholders = []
 
     def __iter__(self) -> Iterator[Any]:
         if not self.query.isActive():
@@ -320,6 +321,7 @@ class Query:
             raise_sqlite_error(msg, error)
 
     def _bind_values(self, values: Mapping[str, Any]) -> Dict[str, Any]:
+        self.placeholders = list(values)
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
 
@@ -378,7 +380,12 @@ class Query:
         return rows
 
     def bound_values(self) -> Dict[str, Any]:
-        return self.query.boundValues()
+        binds = {}
+        for key in self.placeholders:
+            key_s = f":{key}"
+            val = self.query.boundValue(key_s)
+            binds[key_s] = val
+        return binds
 
 
 class SqlTable(QObject):
