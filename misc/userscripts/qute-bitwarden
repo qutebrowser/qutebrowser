@@ -62,6 +62,8 @@ argument_parser = argparse.ArgumentParser(
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
 argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu -i -p Bitwarden',
                              help='Invocation used to execute a dmenu-provider')
+argument_parser.add_argument('--password-prompt-invocation', '-p', default='rofi -dmenu -p "Master Password" -password -lines 0',
+                             help='Invocation used to prompt the user for their Bitwarden password')
 argument_parser.add_argument('--no-insert-mode', '-n', dest='insert_mode', action='store_false',
                              help="Don't automatically enter insert mode")
 argument_parser.add_argument('--totp', '-t', action='store_true',
@@ -98,16 +100,12 @@ def qute_command(command):
         fifo.flush()
 
 
-def ask_password():
-    process = subprocess.run([
-        'rofi',
-        '-dmenu',
-        '-p',
-        'Master Password',
-        '-password',
-        '-lines',
-        '0',
-    ], universal_newlines=True, stdout=subprocess.PIPE)
+def ask_password(password_prompt_invocation):
+    process = subprocess.run(
+        shlex.split(password_prompt_invocation),
+        universal_newlines=True,
+        stdout=subprocess.PIPE,
+    )
     if process.returncode > 0:
         raise Exception('Could not unlock vault')
     master_pass = process.stdout.strip()
@@ -117,10 +115,10 @@ def ask_password():
     ).strip()
 
 
-def get_session_key(auto_lock):
+def get_session_key(auto_lock, password_prompt_invocation):
     if auto_lock == 0:
         subprocess.call(['keyctl', 'purge', 'user', 'bw_session'])
-        return ask_password()
+        return ask_password(password_prompt_invocation)
     else:
         process = subprocess.run(
             ['keyctl', 'request', 'user', 'bw_session'],
@@ -129,7 +127,7 @@ def get_session_key(auto_lock):
         )
         key_id = process.stdout.strip()
         if process.returncode > 0:
-            session = ask_password()
+            session = ask_password(password_prompt_invocation)
             if not session:
                 raise Exception('Could not unlock vault')
             key_id = subprocess.check_output(
@@ -145,8 +143,8 @@ def get_session_key(auto_lock):
         ).strip()
 
 
-def pass_(domain, encoding, auto_lock):
-    session_key = get_session_key(auto_lock)
+def pass_(domain, encoding, auto_lock, password_prompt_invocation):
+    session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
         ['bw', 'list', 'items', '--session', session_key, '--url', domain],
         stdout=subprocess.PIPE,
@@ -166,8 +164,8 @@ def pass_(domain, encoding, auto_lock):
     return out
 
 
-def get_totp_code(selection_id, domain_name, encoding, auto_lock):
-    session_key = get_session_key(auto_lock)
+def get_totp_code(selection_id, domain_name, encoding, auto_lock, password_prompt_invocation):
+    session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
         ['bw', 'get', 'totp', '--session', session_key, selection_id],
         stdout=subprocess.PIPE,
@@ -224,6 +222,7 @@ def main(arguments):
                 target,
                 arguments.io_encoding,
                 arguments.auto_lock,
+                arguments.password_prompt_invocation,
             )
         )
         if not target_candidates:
@@ -270,7 +269,8 @@ def main(arguments):
                 selection['id'],
                 selection['name'],
                 arguments.io_encoding,
-                arguments.auto_lock
+                arguments.auto_lock,
+                arguments.password_prompt_invocation,
             )
         )
     else:
@@ -294,7 +294,8 @@ def main(arguments):
                 selection['id'],
                 selection['name'],
                 arguments.io_encoding,
-                arguments.auto_lock
+                arguments.auto_lock,
+                arguments.password_prompt_invocation,
             )
         )
 
