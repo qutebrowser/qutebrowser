@@ -21,3 +21,5 @@ typing_extensions  # from importlib-metadata
 
 # Python 3.6
 #@ add: importlib-metadata<4.9 ; python_version=="3.6.*"
+#@ markers: zipp python_version>="3.7"
+#@ add: zipp<3.7 ; python_version=="3.6.*"
