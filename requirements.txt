@@ -10,5 +10,6 @@ MarkupSafe==2.0.1
 Pygments==2.11.1
 PyYAML==6.0
 typing_extensions==4.0.1 ; python_version<"3.8"
-zipp==3.7.0
+zipp==3.7.0 ; python_version>="3.7"
 importlib-metadata<4.9 ; python_version=="3.6.*"
+zipp<3.7 ; python_version=="3.6.*"
