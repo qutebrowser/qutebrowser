@@ -76,7 +76,7 @@ def _check_completions(model, expected):
     assert sum(model.column_widths) == 100
 
 
-@pytest.fixture()
+@pytest.fixture
 def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
     return monkeypatch.setattr(objects, 'commands', {
@@ -93,7 +93,7 @@ def cmdutils_stub(monkeypatch, stubs):
     })
 
 
-@pytest.fixture()
+@pytest.fixture
 def configdata_stub(config_stub, monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
     monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([

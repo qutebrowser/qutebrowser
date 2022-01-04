@@ -95,6 +95,8 @@ CHANGELOG_URLS = {
     'flake8-mock': 'https://github.com/aleGpereira/flake8-mock#changes',
     'flake8-polyfill': 'https://gitlab.com/pycqa/flake8-polyfill/-/blob/master/CHANGELOG.rst',
     'flake8-string-format': 'https://github.com/xZise/flake8-string-format#changes',
+    'flake8-plugin-utils': 'https://github.com/afonasev/flake8-plugin-utils#change-log',
+    'flake8-pytest-style': 'https://github.com/m-burst/flake8-pytest-style#change-log',
     'pep8-naming': 'https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst',
     'pycodestyle': 'https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt',
     'pyflakes': 'https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst',

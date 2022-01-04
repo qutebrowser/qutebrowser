@@ -866,8 +866,6 @@ class TestIsEditable:
 
     @pytest.mark.parametrize('setting, tagname, attributes, editable', [
         (True, 'embed', {}, True),
-        (True, 'embed', {}, True),
-        (False, 'applet', {}, False),
         (False, 'applet', {}, False),
         (True, 'object', {'type': 'application/foo'}, True),
         (False, 'object', {'type': 'application/foo'}, False),

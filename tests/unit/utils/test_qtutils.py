@@ -51,8 +51,7 @@ else:
     test_file = None
 
 
-@pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
-                          'expected'], [
+@pytest.mark.parametrize('qversion, compiled, pyqt, version, exact, expected', [
     # equal versions
     ('5.14.0', None, None, '5.14.0', False, True),
     ('5.14.0', None, None, '5.14.0', True, True),  # exact=True
@@ -741,7 +740,7 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
 
-    @pytest.mark.flaky()
+    @pytest.mark.flaky
     def test_qprocess(self, py_proc):
         """Test PyQIODevice with a QProcess which is non-sequential.
 

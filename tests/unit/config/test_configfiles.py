@@ -1481,7 +1481,6 @@ class TestConfigPyWriter:
 def init_patch(qapp, fake_save_manager, config_tmpdir, data_tmpdir,
                config_stub, monkeypatch):
     monkeypatch.setattr(configfiles, 'state', None)
-    yield
 
 
 def test_init(init_patch, config_tmpdir):
