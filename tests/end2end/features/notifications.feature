@@ -4,7 +4,8 @@ Feature: Notifications
     HTML5 notification API interaction
 
     Background:
-        Given I open data/javascript/notifications.html
+        Given I clean up open tabs
+        And I open data/javascript/notifications.html
         And I set content.notifications.enabled to true
         And I run :click-element id button
         And I clean up the notification server
@@ -120,8 +121,13 @@ Feature: Notifications
     Scenario: User clicks presented notification
         When I run :click-element id show-button
         And I wait for the javascript message "notification shown"
+        And I open about:blank in a new tab
         And I click the notification
         Then the javascript message "notification clicked" should be logged
+        And the following tabs should be open:
+         - about:blank
+         - data/javascript/notifications.html (active)
+         - about:blank
 
     @pyqtwebengine<5.15.0
     Scenario: User clicks presented notification (old Qt)
