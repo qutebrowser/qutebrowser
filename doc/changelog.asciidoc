@@ -45,6 +45,8 @@ Added
 
 - New `input.match_counts` option which allows to turn off count matching for
   more emacs-like bindings.
+- New `{relative_index}` field for `tabs.title.format` (and `.pinned_format`)
+  which shows relative tab numbers.
 
 Fixed
 ~~~~~
