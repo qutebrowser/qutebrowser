@@ -39,6 +39,9 @@ Changed
   `menuitem`, `menuitemcheckbox` and `menuitemradio`).
 - Using e.g. `:bind --mode=passthrough` now scrolls to the passthrough section
   on the `qute://bindings` page.
+- Clicking on a notification now tries to focus the tab where the notification
+  is coming from. Note this might not work properly if there is more than one
+  tab from the same host open.
 
 Added
 ~~~~~
