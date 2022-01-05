@@ -136,11 +136,11 @@ class TabWidget(QTabWidget):
                 (fmt is None or ('{' + field + '}') not in fmt)):
             return
 
-        def right_align(text):
-            return str(text).rjust(len(str(self.count())))
+        def right_align(num):
+            return str(num).rjust(len(str(self.count())))
 
-        def left_align(text):
-            return str(text).ljust(len(str(self.count())))
+        def left_align(num):
+            return str(num).ljust(len(str(self.count())))
 
         bar = self.tabBar()
         cur_idx = bar.currentIndex()
