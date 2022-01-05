@@ -41,6 +41,9 @@ exclude = .*,__pycache__,resources.py
 # W503: like break before binary operator
 # W504: line break after binary operator
 # FI15: __future__ import "generator_stop" missing
+# PT004: fixture '{name}' does not return anything, add leading underscore
+# PT011: pytest.raises(ValueError) is too broad, set the match parameter or use a more specific exception
+# PT012: pytest.raises() block should contain a single simple statement
 ignore =
     B001,B008,B305,
     E128,E226,E265,E501,E402,E266,E722,E731,
@@ -49,8 +52,11 @@ ignore =
     P101,P102,P103,
     D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D412,D413,
     A003,
-    W503, W504
-    FI15
+    W503, W504,
+    FI15,
+    PT004,
+    PT011,
+    PT012
 min-version = 3.6.1
 max-complexity = 12
 per-file-ignores =
@@ -62,3 +68,6 @@ per-file-ignores =
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*
 copyright-min-file-size = 110
+pytest-fixture-no-parentheses = True
+pytest-mark-no-parentheses = True
+pytest-parametrize-names-type = csv

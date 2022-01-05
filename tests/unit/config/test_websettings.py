@@ -24,7 +24,7 @@ from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
 
 
-@pytest.mark.parametrize([
+@pytest.mark.parametrize([  # noqa: PT006
     'user_agent', 'os_info', 'webkit_version',
     'upstream_browser_key', 'upstream_browser_version', 'qt_key'
 ], [

@@ -348,7 +348,7 @@ class TestHideQtWarning:
 
     """Tests for hide_qt_warning/QtWarningFilter."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def qt_logger(self):
         return logging.getLogger('qt-tests')
 

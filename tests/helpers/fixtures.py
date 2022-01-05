@@ -632,7 +632,7 @@ def redirect_webengine_data(data_tmpdir, monkeypatch):
     monkeypatch.setenv('HOME', str(data_tmpdir))
 
 
-@pytest.fixture()
+@pytest.fixture
 def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:

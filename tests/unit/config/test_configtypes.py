@@ -1876,7 +1876,6 @@ class TestShellCommand:
     @pytest.mark.parametrize('kwargs, val', [
         ({'placeholder': True}, '[foo, bar]'),
         ({'placeholder': True}, '[foo, "{", "}", bar'),
-        ({'placeholder': True}, '[foo, bar]'),
         ({'placeholder': True}, '[foo, "{fi", "le}", bar'),
 
         # Like valid ones but with wrong placeholder

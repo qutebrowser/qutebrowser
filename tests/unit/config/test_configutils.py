@@ -318,13 +318,11 @@ class TestFontFamilies:
     @pytest.mark.parametrize('families, quote, expected', [
         (['family'], True, 'family'),
         (['family1', 'family2'], True, 'family1, family2'),
-        (['family'], True, 'family'),
         (['space family', 'alien'], True, '"space family", alien'),
         (['comma,family', 'period'], True, '"comma,family", period'),
 
         (['family'], False, 'family'),
         (['family1', 'family2'], False, 'family1, family2'),
-        (['family'], False, 'family'),
         (['space family', 'alien'], False, 'space family, alien'),
         (['comma,family', 'period'], False, 'comma,family, period'),
     ])

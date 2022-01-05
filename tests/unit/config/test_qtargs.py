@@ -324,7 +324,6 @@ class TestWebEngineArgs:
         ("light", "5.15.0", False),
         ("light", "5.15.1", False),
         ("light", "5.15.2", False),
-        ("light", "5.15.2", False),
         ("light", "5.15.3", False),
         ("light", "6.0.0", False),
 
@@ -332,7 +331,6 @@ class TestWebEngineArgs:
         ("auto", "5.14", False),
         ("auto", "5.15.0", False),
         ("auto", "5.15.1", False),
-        ("auto", "5.15.2", False),
         ("auto", "5.15.2", False),
         ("auto", "5.15.3", False),
         ("auto", "6.0.0", False),

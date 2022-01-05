@@ -27,7 +27,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configcommands
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, urlmatch
+from qutebrowser.utils import usertypes, urlmatch, utils
 from qutebrowser.keyinput import keyutils
 from qutebrowser.misc import objects
 
@@ -529,7 +529,7 @@ class TestSource:
             pyfile = config_tmpdir / 'sourced.py'
             arg = 'sourced.py'
         else:
-            assert False, location
+            raise utils.Unreachable(location)
 
         pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
                                      'c.content.javascript.enabled = False']),

@@ -11,6 +11,7 @@ flake8-mock
 flake8-string-format
 flake8-tidy-imports
 flake8-tuple
+flake8-pytest-style
 pep8-naming
 pydocstyle
 pyflakes
