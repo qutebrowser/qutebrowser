@@ -2171,6 +2171,7 @@ tabs.title.format:
       - title_sep
       - index
       - aligned_index
+      - relative_index
       - id
       - scroll_pos
       - host
@@ -2190,6 +2191,7 @@ tabs.title.format:
     * `{index}`: Index of this tab.
     * `{aligned_index}`: Index of this tab padded with spaces to have the same
       width.
+    * `{relative_index}`: Index of this tab relative to the current tab.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
@@ -2210,6 +2212,7 @@ tabs.title.format_pinned:
       - title_sep
       - index
       - aligned_index
+      - relative_index
       - id
       - scroll_pos
       - host
