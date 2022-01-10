@@ -111,7 +111,7 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
         utils.print_col(f"Extra changelog URLs: {req_str}", 'red')
 
     if not ok:
-        print("Hint: Changelog URLs are in scripts/dev/recompile_requirements.py")
+        print("Hint: Changelog URLs are in scripts/dev/changelog_urls.json")
 
     return ok
 
