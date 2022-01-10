@@ -154,7 +154,7 @@ CHANGELOG_URLS = {
     'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
     'distlib': 'https://github.com/pypa/distlib/blob/master/CHANGES.rst',
     'py-cpuinfo': 'https://github.com/workhorsy/py-cpuinfo/blob/master/ChangeLog',
-    'cheroot': 'https://cheroot.cherrypy.org/en/latest/history.html',
+    'cheroot': 'https://cheroot.cherrypy.dev/en/latest/history.html',
     'certifi': 'https://ccadb-public.secure.force.com/mozilla/IncludedCACertificateReport',
     'chardet': 'https://github.com/chardet/chardet/releases',
     'charset-normalizer': 'https://github.com/Ousret/charset_normalizer/blob/master/CHANGELOG.md',
