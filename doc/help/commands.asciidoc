@@ -539,7 +539,7 @@ Syntax: +:fake-key [*--global*] 'keystring'+
 
 Send a fake keypress or key string to the website or qutebrowser.
 
-:fake-key xy - sends the keychain 'xy' :fake-key <Ctrl-x> - sends Ctrl-x :fake-key <Escape> - sends the escape key
+:fake-key xy - sends the keychain 'xy' :fake-key <Ctrl-x> - sends Ctrl-x :fake-key <Escape> - sends the escape key :fake-key <Space> - sends the space key
 
 ==== positional arguments
 * +'keystring'+: The keystring to send.
