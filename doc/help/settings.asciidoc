@@ -4388,6 +4388,7 @@ The following placeholders are defined:
 * `{index}`: Index of this tab.
 * `{aligned_index}`: Index of this tab padded with spaces to have the same
   width.
+* `{relative_index}`: Index of this tab relative to the current tab.
 * `{id}`: Internal tab ID of this tab.
 * `{scroll_pos}`: Page scroll position.
 * `{host}`: Host of the current web page.

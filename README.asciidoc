@@ -202,22 +202,17 @@ Active
 ~~~~~~
 
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
-* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebEngine or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution in 2019] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * Chrome/Chromium addons:
-  https://vimium.github.io/[Vimium],
-  https://github.com/dcchambers/vb4c[vb4c] (fork of cVim)
+  https://vimium.github.io/[Vimium]
 * Firefox addons (based on WebExtensions):
-  https://github.com/tridactyl/tridactyl[Tridactyl],
-  https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
-  https://github.com/ueokande/vim-vixen[Vim Vixen],
-  https://github.com/amedama41/vvimpulation[VVimpulation]
+  https://tridactyl.xyz/[Tridactyl],
+  https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF]
 * Addons for Firefox and Chrome:
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  https://krabby.netlify.com/[Krabby],
   https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
 * Addons for Safari:
   https://televator.net/vimari/[Vimari]
@@ -232,23 +227,27 @@ main inspiration for qutebrowser)
   QtWebEngine, https://github.com/parkouss/webmacs/issues/137[unmaintained])
 * https://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
-* https://wiki.archlinux.org/index.php?title=Jumanji[jumanji] (C, GTK+ with WebKit1,
-original site is gone but the Arch Linux wiki has some data)
+* https://pwmt.org/projects/jumanji/[jumanji] (C, GTK+ with WebKit1)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
 * https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
+* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
   https://github.com/akhodakivskiy/VimFx[VimFx] (seems to offer a
   https://gir.st/blog/legacyfox.htm[hack] to run on modern Firefox releases),
-  https://github.com/shinglyu/QuantumVim[QuantumVim]
+  https://github.com/shinglyu/QuantumVim[QuantumVim],
+  https://github.com/ueokande/vim-vixen[Vim Vixen] (ESR only),
+  https://github.com/amedama41/vvimpulation[VVimpulation],
+  https://krabby.netlify.com/[Krabby]
 * Chrome/Chromium addons:
   https://github.com/k2nr/ViChrome/[ViChrome],
   https://github.com/jinzhu/vrome[Vrome],
   https://github.com/lusakasa/saka-key[Saka Key] (https://github.com/lusakasa/saka-key/issues/171[unmaintained]),
   https://github.com/1995eaton/chromium-vim[cVim],
+  https://github.com/dcchambers/vb4c[vb4c] (fork of cVim, https://github.com/dcchambers/vb4c/issues/23#issuecomment-810694017[unmaintained]),
   https://glee.github.io/[GleeBox]
 
 License
