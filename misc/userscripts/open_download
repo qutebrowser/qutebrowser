@@ -103,13 +103,22 @@ fi
 file="${entries[$line]}"
 file="${file%%$'\t'*}"
 path="$DOWNLOAD_DIR/$file"
-filetype=$(xdg-mime query filetype "$path")
-application=$(xdg-mime query default "$filetype")
 
-if [ -z "$application" ] ; then
-    die "Do not know how to open »$file« of type $filetype"
+if [ -f /.flatpak-info ]; then
+    # with the help of the appchooser portal, flatpak let the user select the
+    # app associated with a mime type after executing xdg-open.
+    # we can't know ahead of time which app will be launched, and the sandbox
+    # doesn't have access to mime types known to the host.
+    msg info "Opening »$file« with XDG Desktop Portal"
+else
+    filetype=$(xdg-mime query filetype "$path")
+    application=$(xdg-mime query default "$filetype")
+
+    if [ -z "$application" ] ; then
+        die "Do not know how to open »$file« of type $filetype"
+    fi
+
+    msg info "Opening »$file« (of type $filetype) with ${application%.desktop}"
 fi
-
-msg info "Opening »$file« (of type $filetype) with ${application%.desktop}"
 
 xdg-open "$path" &
