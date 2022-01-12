@@ -121,4 +121,4 @@ else
     msg info "Opening »$file« (of type $filetype) with ${application%.desktop}"
 fi
 
-xdg-open "$path" &
+xdg-open "$path"
