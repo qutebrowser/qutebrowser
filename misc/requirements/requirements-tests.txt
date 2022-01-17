@@ -7,13 +7,13 @@ charset-normalizer==2.0.10
 cheroot==8.6.0
 click==8.0.3
 coverage==6.2
-EasyProcess==0.3
+EasyProcess==1.1
 execnet==1.9.0
 filelock==3.4.2 ; python_version>="3.7"
 Flask==2.0.2
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.35.0 ; python_version>="3.7"
+hypothesis==6.35.1 ; python_version>="3.7"
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1

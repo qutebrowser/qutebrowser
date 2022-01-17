@@ -13,7 +13,7 @@ docutils==0.18.1
 github3.py==3.0.0
 hunter==3.4.3
 idna==3.3
-importlib-metadata==4.10.0
+importlib-metadata==4.10.1
 jeepney==0.7.1
 jwcrypto==1.0
 keyring==23.5.0
