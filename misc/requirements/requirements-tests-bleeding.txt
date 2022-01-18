@@ -34,6 +34,7 @@ adblock
 ## qutebrowser dependencies
 
 git+https://github.com/pallets/jinja.git
-git+https://github.com/yaml/pyyaml.git
+# Problematic: https://github.com/yaml/pyyaml/issues/601
+PyYAML
 git+https://github.com/tartley/colorama.git
 git+https://github.com/pyparsing/pyparsing.git
