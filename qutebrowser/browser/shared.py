@@ -51,7 +51,9 @@ def custom_headers(url):
 
     conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
-        headers[header.encode('ascii')] = value.encode('ascii')
+        encoded_header = header.encode('ascii')
+        encoded_value = b"" if value is None else value.encode('ascii')
+        headers[encoded_header] = encoded_value
 
     accept_language = config.instance.get('content.headers.accept_language',
                                           url=url)
