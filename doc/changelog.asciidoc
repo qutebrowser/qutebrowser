@@ -45,6 +45,8 @@ Changed
 - The `qute-bitwarden` userscript understands a new
   `--password-prompt-invocation`, which can be used to specify a tool other
   than `rofi` to ask for a password.
+- The `content.headers.custom` setting now accepts empty strings as values,
+  resulting in an empty header being sent.
 
 Added
 ~~~~~

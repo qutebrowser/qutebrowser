@@ -616,6 +616,7 @@ content.headers.custom:
     valtype:
       name: String
       encoding: ascii
+      none_ok: true
     none_ok: true
   supports_pattern: true
   desc: Custom headers for qutebrowser HTTP requests.
