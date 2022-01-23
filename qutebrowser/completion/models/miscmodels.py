@@ -103,7 +103,7 @@ def session(*, info=None):
     return model
 
 
-def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, current_win_id):
+def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, current_win_id=0):
     """Helper to get the completion model for tabs/other_tabs.
 
     Args:
@@ -114,7 +114,6 @@ def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, current_win_id
     """
     def delete_tab(data):
         """Close the selected tab."""
-        
         win_id = current_win_id
         tab_index = data[0].split('/')[-1]      # data[0] can be 'tabInd' or 'winID/tabInd'
 
