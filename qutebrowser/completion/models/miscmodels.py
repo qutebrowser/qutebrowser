@@ -181,8 +181,9 @@ def other_tabs(*, info):
 
     Used for the tab-take command.
     """
-    return _tabs(win_id_filter=lambda win_id: win_id != info.win_id,
-                  cur_win_id=info.win_id)
+    return _tabs(
+        win_id_filter=lambda win_id: win_id != info.win_id,
+        cur_win_id=info.win_id)
 
 
 def tab_focus(*, info):
