@@ -103,19 +103,20 @@ def session(*, info=None):
     return model
 
 
-def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, current_win_id=0):
+def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, cur_win_id=0):
     """Helper to get the completion model for tabs/other_tabs.
 
     Args:
         win_id_filter: A filter function for window IDs to include.
                        Should return True for all included windows.
         add_win_id: Whether to add the window ID to the completion items.
-        current_win_id: Window ID to be passed from info.win_id
+        cur_win_id: Window ID to be passed from info.win_id
     """
     def delete_tab(data):
         """Close the selected tab."""
-        win_id = current_win_id
-        tab_index = data[0].split('/')[-1]      # data[0] can be 'tabInd' or 'winID/tabInd'
+        win_id = cur_win_id
+        # data[0] can be 'tabInd' or 'winID/tabInd'
+        tab_index = data[0].split('/')[-1]
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=int(win_id))
@@ -180,13 +181,14 @@ def other_tabs(*, info):
 
     Used for the tab-take command.
     """
-    return _tabs(win_id_filter=lambda win_id: win_id != info.win_id, current_win_id=info.win_id)
+    return _tabs(win_id_filter=lambda win_id: win_id != info.win_id,
+                  cur_win_id=info.win_id)
 
 
 def tab_focus(*, info):
     """A model to complete on open tabs in the current window."""
     model = _tabs(win_id_filter=lambda win_id: win_id == info.win_id,
-                  add_win_id=False, current_win_id=info.win_id)
+                  add_win_id=False, cur_win_id=info.win_id)
 
     special = [
         ("last", "Focus the last-focused tab"),
