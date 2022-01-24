@@ -13,7 +13,7 @@ filelock==3.4.2 ; python_version>="3.7"
 Flask==2.0.2
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.35.1 ; python_version>="3.7"
+hypothesis==6.36.0 ; python_version>="3.7"
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1
@@ -26,13 +26,13 @@ manhole==1.8.0
 more-itertools==8.12.0
 packaging==21.3
 parse==1.19.0
-parse-type==0.5.2
+parse-type==0.6.0
 pluggy==1.0.0
 pprintpp==0.4.0
 py==1.11.0
 py-cpuinfo==8.0.0
 Pygments==2.11.2
-pyparsing==3.0.6
+pyparsing==3.0.7
 pytest==6.2.5
 pytest-bdd==4.1.0
 pytest-benchmark==3.4.1
