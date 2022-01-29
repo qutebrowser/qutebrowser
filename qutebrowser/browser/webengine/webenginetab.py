@@ -1522,15 +1522,14 @@ class WebEngineTab(browsertab.AbstractTab):
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
-    def _error_page_workaround(self, js_enabled, html):
+    def _error_page_workaround(self, html):
         """Check if we're displaying a Chromium error page.
 
-        This gets called if we got a loadFinished(False), so we can display at
-        least some error page in situations where Chromium's can't be
+        This gets called if we got a loadFinished(False) without JavaScript, so
+        we can display at least some error page, since Chromium's can't be
         displayed.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
-        WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=882805
         """
         match = re.search(r'"errorCode":"([^"]*)"', html)
         if match is None:
@@ -1538,11 +1537,6 @@ class WebEngineTab(browsertab.AbstractTab):
 
         error = match.group(1)
         log.webview.error("Load error: {}".format(error))
-
-        missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
-        if js_enabled and not missing_jst:
-            return
-
         self._show_error_page(self.url(), error=error)
 
     @pyqtSlot(int)
@@ -1565,9 +1559,8 @@ class WebEngineTab(browsertab.AbstractTab):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
             self._update_load_status(ok)
 
-            self.dump_async(functools.partial(
-                self._error_page_workaround,
-                self.settings.test_attribute('content.javascript.enabled')))
+            if not self.settings.test_attribute('content.javascript.enabled'):
+                self.dump_async(self._error_page_workaround)
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):

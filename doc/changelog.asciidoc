@@ -72,6 +72,9 @@ Fixed
   with `confirm_quit` and multiple windows remain.
 - Crash when a previous crash-log file contains non-ASCII characters (which
   should never happen unless it was edited manually)
+- Due to changes in Debian, an old workaround (for broken QtWebEngine patching
+  on Debian) caused the inferior qutebrowser error page to be displayed, when
+  Chromium's would have worked fine. The workaround was now dropped.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
