@@ -1522,11 +1522,11 @@ class WebEngineTab(browsertab.AbstractTab):
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
-    def _error_page_workaround(self, html):
+    def _error_page_workaround(self, js_enabled, html):
         """Check if we're displaying a Chromium error page.
 
-        This gets called if we got a loadFinished(False) without JavaScript, so
-        we can display at least some error page, since Chromium's can't be
+        This gets called if we got a loadFinished(False), so we can display at
+        least some error page in situations where Chromium's can't be
         displayed.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
@@ -1537,6 +1537,10 @@ class WebEngineTab(browsertab.AbstractTab):
 
         error = match.group(1)
         log.webview.error("Load error: {}".format(error))
+
+        if js_enabled:
+            return
+
         self._show_error_page(self.url(), error=error)
 
     @pyqtSlot(int)
@@ -1559,8 +1563,9 @@ class WebEngineTab(browsertab.AbstractTab):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
             self._update_load_status(ok)
 
-            if not self.settings.test_attribute('content.javascript.enabled'):
-                self.dump_async(self._error_page_workaround)
+            self.dump_async(functools.partial(
+                self._error_page_workaround,
+                self.settings.test_attribute('content.javascript.enabled')))
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
