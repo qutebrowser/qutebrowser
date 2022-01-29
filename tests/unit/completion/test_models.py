@@ -885,7 +885,7 @@ def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
     parent = model.index(0, 0)
     idx = model.index(1, 0, parent)
 
-    # # sanity checks
+    # sanity checks
     assert model.data(parent) == "Tabs"
     assert model.data(idx) == '2'
 

@@ -75,6 +75,8 @@ Fixed
 - Due to changes in Debian, an old workaround (for broken QtWebEngine patching
   on Debian) caused the inferior qutebrowser error page to be displayed, when
   Chromium's would have worked fine. The workaround was now dropped.
+- Crash when using `<Ctrl-D>` (`:completion-item-del`) in the `:tab-focus`
+  list, rather than `:tab-select`.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
