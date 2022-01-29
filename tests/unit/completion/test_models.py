@@ -867,6 +867,34 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
                       QUrl('https://duckduckgo.com')]
 
 
+def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
+                              tabbed_browser_stubs, info):
+    """Verify closing a tab by deleting it from the completion widget."""
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    model = miscmodels.tab_focus(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(1, 0, parent)
+
+    # # sanity checks
+    assert model.data(parent) == "Tabs"
+    assert model.data(idx) == '2'
+
+    model.delete_cur_item(idx)
+    actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
+    assert actual == [QUrl('https://github.com'),
+                      QUrl('https://duckduckgo.com')]
+
+
 def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
                                    tabbed_browser_stubs):
     """Ensure that the completion row order is the same as tab index order.
