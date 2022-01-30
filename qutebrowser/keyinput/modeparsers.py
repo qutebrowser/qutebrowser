@@ -216,18 +216,19 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
         assert not dry_run
 
-        if (self._command_parser.handle(e, dry_run=True) ==
-                QKeySequence.ExactMatch):
+        command_match = self._command_parser.handle(e)
+        match = super().handle(e)
+
+        if command_match == QKeySequence.ExactMatch:
             log.keyboard.debug("Handling key via command parser")
             self.clear_keystring()
-            return self._command_parser.handle(e)
-
-        match = super().handle(e)
+            return command_match
 
         if match == QKeySequence.PartialMatch:
             self._last_press = LastPress.keystring
         elif match == QKeySequence.ExactMatch:
             self._last_press = LastPress.none
+            self._command_parser.clear_keystring()
         elif match == QKeySequence.NoMatch:
             # We couldn't find a keychain so we check if it's a special key.
             return self._handle_filter_key(e)
