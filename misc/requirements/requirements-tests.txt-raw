@@ -45,3 +45,7 @@ tldextract
 #@ add: filelock==3.4.1 ; python_version=="3.6.*"
 #@ markers: hypothesis python_version>="3.7"
 #@ add: hypothesis<6.32 ; python_version=="3.6.*"
+#@ markers: coverage python_version>="3.7"
+#@ add: coverage<6.3 ; python_version=="3.6.*"
+#@ markers: pytest-mock python_version>="3.7"
+#@ add: pytest-mock<3.7 ; python_version=="3.6.*"
