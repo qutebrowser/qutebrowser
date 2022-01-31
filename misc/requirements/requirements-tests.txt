@@ -3,10 +3,10 @@
 attrs==21.4.0
 beautifulsoup4==4.10.0
 certifi==2021.10.8
-charset-normalizer==2.0.10
+charset-normalizer==2.0.11
 cheroot==8.6.0
 click==8.0.3
-coverage==6.2
+coverage==6.3
 EasyProcess==1.1
 execnet==1.9.0
 filelock==3.4.2 ; python_version>="3.7"
@@ -40,7 +40,7 @@ pytest-cov==3.0.0
 pytest-forked==1.4.0
 pytest-icdiff==0.5
 pytest-instafail==0.4.2
-pytest-mock==3.6.1
+pytest-mock==3.7.0
 pytest-qt==4.0.2
 pytest-repeat==0.9.1
 pytest-rerunfailures==10.2
