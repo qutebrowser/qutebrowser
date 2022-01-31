@@ -10,6 +10,22 @@ var cset = function(option, value) {
   xhr.open("GET", url);
   xhr.send();
 }
+
+let displayDesc = (index) => {
+  let idDesc = `long-desc-${index}`
+  let longDesc = document.getElementById(idDesc)
+  let idButton = `show-more-${index}`
+  let button = document.getElementById(idButton)
+  let display = longDesc.style.display
+
+  if (display === "block") {
+    longDesc.style.display = "none";
+    button.innerHTML = "Show more";
+  } else {
+    longDesc.style.display = "block";
+    button.innerHTML = "Show less";
+  }
+}
 {% endblock %}
 
 {% block style %}
@@ -115,6 +131,10 @@ input[type="radio"]:checked + label {
     display: inline-flex;
     margin: 3px 1px;
 }
+
+.long-desc {
+    display: none;
+}
 {% endblock %}
 
 {% block content %}
@@ -126,23 +146,29 @@ input[type="radio"]:checked + label {
     </tr>
   {% for option in configdata.DATA.values()|sort(attribute='name') if not option.no_autoconfig %}
     <tr>
+      {% set loopIndex = loop.index0 %}
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }}
         {% if option.description %}
-          <p class="option-description">{{ option.description|e }}</p>
+	  <p class="option-description" id="description-{{ loopIndex }}">{{ option.description.split('\n', 1)[0]|e }}
+	    {% if option.description.split('\n', 1)|length > 1 %}
+	      <span class="long-desc" id="long-desc-{{ loopIndex }}">{{ option.description.split('\n',1)[1]|e }}</span>
+	      <button id="show-more-{{ loopIndex }}" onclick="displayDesc('{{ loopIndex }}')">Show more</button>
+            {% endif %}
+          </p>
         {% endif %}
       </td>
       {% if option.typ.valid_values is not none %}
         <td class="valid-value">
           {% for value in option.typ.valid_values.values %}
 	    <div class="radio-button">
-	      <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
+	      <input type="radio" id="input-{{ option.name }}-{{ loopIndex }}"
 	        name="{{ option.name }}" value="{{ value }}"
 	        onclick="cset('{{ option.name }}', this.value)"
 	        {% if confget(option.name) == value %}
 		  checked
 		{% endif %}>
-	      <label for="input-{{ option.name }}-{{ loop.index0 }}">
+	      <label for="input-{{ option.name }}-{{ loopIndex }}">
 	        {{ value }}
 	      </label>
 	      </div>
