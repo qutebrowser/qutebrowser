@@ -123,7 +123,6 @@ input[type="radio"]:checked + label {
     color: #635d5dcf;
     font-size: 80%;
     font-style: italic;
-    white-space: pre-line;
 }
 
 .radio-button {
@@ -132,8 +131,24 @@ input[type="radio"]:checked + label {
     margin: 3px 1px;
 }
 
+.short-desc {
+   margin: 0;
+   display: inline;
+}
 .long-desc {
     display: none;
+    white-space: pre-line;
+}
+
+.show-more {
+    all: inherit;
+    display: inline;
+    color: #681982;
+    font-size: 105%;
+}
+
+.show-more:focus {
+    outline: none;
 }
 {% endblock %}
 
@@ -150,12 +165,14 @@ input[type="radio"]:checked + label {
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }}
         {% if option.description %}
-	  <p class="option-description" id="description-{{ loopIndex }}">{{ option.description.split('\n', 1)[0]|e }}
-	    {% if option.description.split('\n', 1)|length > 1 %}
-	      <span class="long-desc" id="long-desc-{{ loopIndex }}">{{ option.description.split('\n',1)[1]|e }}</span>
-	      <button id="show-more-{{ loopIndex }}" onclick="displayDesc('{{ loopIndex }}')">Show more</button>
+	  {% set description = option.description.split('\n', 1) %}
+	  <div class="option-description">
+            <p class="short-desc">{{ description[0]|e }}</p>
+	    {% if description|length > 1 %}
+	      <span class="long-desc" id="long-desc-{{ loopIndex }}">{{ description[1]|e }}</span>
+	      <button class="show-more" id="show-more-{{ loopIndex }}" onclick="displayDesc('{{ loopIndex }}')">Show more</button>
             {% endif %}
-          </p>
+          </div>
         {% endif %}
       </td>
       {% if option.typ.valid_values is not none %}
