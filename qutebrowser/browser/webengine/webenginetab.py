@@ -1530,7 +1530,6 @@ class WebEngineTab(browsertab.AbstractTab):
         displayed.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
-        WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=882805
         """
         match = re.search(r'"errorCode":"([^"]*)"', html)
         if match is None:
@@ -1539,8 +1538,7 @@ class WebEngineTab(browsertab.AbstractTab):
         error = match.group(1)
         log.webview.error("Load error: {}".format(error))
 
-        missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
-        if js_enabled and not missing_jst:
+        if js_enabled:
             return
 
         self._show_error_page(self.url(), error=error)

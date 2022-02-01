@@ -162,7 +162,7 @@ class WebserverProcess(testprocess.Process):
 
     def _parse_line(self, line):
         self._log(line)
-        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/ '
+        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/? '
                                 r'\(Press CTRL\+C to quit\)'.format(self.port))
         if started_re.fullmatch(line):
             self.ready.emit()
