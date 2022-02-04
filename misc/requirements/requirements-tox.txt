@@ -3,12 +3,12 @@
 distlib==0.3.4
 filelock==3.4.2 ; python_version>="3.7"
 packaging==21.3
-pip==22.0.2 ; python_version>="3.7"
+pip==22.0.3 ; python_version>="3.7"
 platformdirs==2.4.1 ; python_version>="3.7"
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.7
-setuptools==60.6.0 ; python_version>="3.7"
+setuptools==60.7.1 ; python_version>="3.7"
 six==1.16.0
 toml==0.10.2
 tox==3.24.5
