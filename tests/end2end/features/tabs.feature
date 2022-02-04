@@ -1741,3 +1741,22 @@ Feature: Tab management
         And I run :undo
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown
+
+    Scenario: Passthrough mode override
+        When I run :set -u localhost:*/data/numbers/1.txt input.mode_override 'passthrough'
+        And I open data/numbers/1.txt
+        Then "Entering mode KeyMode.passthrough (reason: mode_override)" should be logged
+
+    Scenario: Insert mode override
+        When I run :set -u localhost:*/data/numbers/1.txt  input.mode_override 'insert'
+        And I open data/numbers/1.txt
+        Then "Entering mode KeyMode.insert (reason: mode_override)" should be logged
+
+    Scenario: Mode override on tab switch
+        When I run :set -u localhost:*/data/numbers/1.txt input.mode_override 'insert'
+        And I open data/numbers/1.txt
+        And I wait for "Entering mode KeyMode.insert (reason: mode_override)" in the log
+        And I run :fake-key -g <esc>
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-prev
+        Then "Entering mode KeyMode.insert (reason: mode_override)" should be logged

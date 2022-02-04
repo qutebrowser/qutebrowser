@@ -1811,6 +1811,18 @@ input.match_counts:
     Disabling it allows for emacs-like bindings where number keys are passed
     through (according to `input.forward_unbound_keys`) instead.
 
+input.mode_override:
+  default: null
+  type:
+    name: String
+    none_ok: true
+    valid_values:
+      - normal
+      - insert
+      - passthrough
+  supports_pattern: true
+  desc: Mode to change to when focusing on a tab/URL changes.
+
 ## keyhint
 
 keyhint.blacklist:
