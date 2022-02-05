@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
 
-from qutebrowser.browser import downloads
+from qutebrowser.browser import downloads, shared
 from qutebrowser.config import config, configtypes, configexc, stylesheet
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
@@ -467,6 +467,27 @@ class PromptContainer(QWidget):
         utils.set_clipboard(question.url, sel)
         message.info("Yanked to {}: {}".format(target, question.url))
 
+    @cmdutils.register(
+        instance='prompt-container', scope='window',
+        modes=[usertypes.KeyMode.prompt])
+    def prompt_external_picker(self):
+        """Choose a location using a configured external picker."""
+        picker = config.val.fileselect.folder.command
+        if not picker:
+            log.webview.warning(
+                "No external location picker (fileselect.folder.command) configured."
+            )
+            return
+        folders = shared.choose_file(shared.FileSelectionMode.folder)
+        if not folders:
+            message.info("No folder chosen.")
+            return
+        assert self._prompt is not None
+        question = self._prompt.question
+        # choose_file already checks that this is max one folder
+        question.default = folders[0]
+        self._prompt._lineedit.setText(question.default)
+
 
 class LineEdit(QLineEdit):
 
@@ -834,6 +855,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
+            ('prompt-external-picker', "External location picker"),
         ]
         return cmds
 

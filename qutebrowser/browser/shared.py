@@ -404,7 +404,7 @@ class FileSelectionMode(enum.Enum):
 
 
 def choose_file(qb_mode: FileSelectionMode) -> List[str]:
-    """Select file(s)/folder for uploading, using external command defined in config.
+    """Select file(s)/folder for uploading/downloading, using external command defined in config.
 
     Args:
         qb_mode: File selection mode
@@ -450,7 +450,7 @@ def _execute_fileselect_command(
     """Execute external command to choose file.
 
     Args:
-        multiple: Should selecting multiple files be allowed.
+        qb_mode: Should selecting multiple files be allowed.
         tmpfilename: Path to the temporary file if used, otherwise None.
 
     Return:
