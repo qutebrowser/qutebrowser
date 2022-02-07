@@ -58,7 +58,7 @@ class ExternalEditor(QObject):
         super().__init__(parent)
         self._filename = None
         self._proc = None
-        self._remove_file = None
+        self._remove_file = config.val.editor.remove_file
         self._watcher = QFileSystemWatcher(parent=self) if watch else None
         self._content = None
 
@@ -78,7 +78,7 @@ class ExternalEditor(QObject):
                 log.procs.error("Failed to unwatch paths: {}".format(failed))
 
         if self._filename is None or not self._remove_file:
-            # Could not create initial file.
+            # Could not create initial file or it shouldn't be removed.
             return
 
         assert self._proc is not None
@@ -96,7 +96,7 @@ class ExternalEditor(QObject):
 
     @pyqtSlot(int, QProcess.ExitStatus)
     def _on_proc_closed(self, _exitcode, exitstatus):
-        """Write the editor text into the form field and clean up tempfile.
+        """Write the editor text into the form field and clean up tempfile if required.
 
         Callback for QProcess when the editor was closed.
         """
@@ -134,8 +134,6 @@ class ExternalEditor(QObject):
         except (OSError, UnicodeEncodeError) as e:
             message.error("Failed to create initial file: {}".format(e))
             return
-
-        self._remove_file = True
 
         line, column = self._calc_line_and_column(text, caret_position)
         self._start_editor(line=line, column=column)
@@ -185,7 +183,6 @@ class ExternalEditor(QObject):
             with open(filename, 'w', encoding='utf-8'):
                 pass
         self._filename = filename
-        self._remove_file = False
         self._start_editor()
 
     def _start_editor(self, line=1, column=1):
