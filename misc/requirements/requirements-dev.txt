@@ -32,12 +32,12 @@ requests==2.27.1
 requests-toolbelt==0.9.1
 rfc3986==2.0.0
 SecretStorage==3.3.1
-sip==6.5.0
+sip==6.5.1
 six==1.16.0
 toml==0.10.2
 tomli==2.0.0
 tqdm==4.62.3
-twine==3.7.1
+twine==3.8.0
 uritemplate==4.1.1
 # urllib3==1.26.8
 webencodings==0.5.1
