@@ -1404,7 +1404,7 @@ editor.encoding:
 editor.remove_file:
   default: true
   type: Bool
-  desc: Whether to delete the temporary file upon closing the editor.
+  desc: Delete the temporary file upon closing the editor.
 
 ## fileselect
 

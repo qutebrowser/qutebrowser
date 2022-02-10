@@ -81,8 +81,7 @@ class TestFileHandling:
         assert filename.exists()
         assert filename.name.startswith('qutebrowser-editor-')
         editor._proc._proc.finished.emit(0, QProcess.NormalExit)
-        if config_stub.val.editor.remove_file:
-            assert filename.exists() != config_stub.val.editor.remove_file
+        assert filename.exists() != config_stub.val.editor.remove_file
 
     @pytest.mark.parametrize('touch', [True, False])
     def test_with_filename(self, editor, tmp_path, touch):
