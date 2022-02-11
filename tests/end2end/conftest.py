@@ -17,12 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-import
-
 """Things needed for end2end testing."""
 
 import re
-import os
 import pathlib
 import sys
 import shutil
@@ -34,13 +31,14 @@ from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
+# pylint: disable=unused-import
 from end2end.fixtures.notificationserver import notification_server
 from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
+# pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
-from qutebrowser.browser.webengine import spell
 
 
 def pytest_configure(config):
