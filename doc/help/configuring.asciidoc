@@ -411,7 +411,7 @@ Pre-built colorschemes
 - https://github.com/arcticicestudio/nord[Nord]: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
 - https://github.com/dracula/qutebrowser-dracula-theme[Dracula]
 - https://gitlab.com/lovetocode999/selenized-qutebrowser[Selenized]
-- https://github.com/morhetz/gruvbox[gruvbox]: https://github.com/The-Compiler/dotfiles/blob/master/qutebrowser/gruvbox.py[The-Compiler], https://gitlab.com/shaneyost/dots-popos-september-2020/-/blob/master/qutebrowser/config.py[Shane Yost]
+- https://github.com/The-Compiler/dotfiles/blob/master/qutebrowser/gruvbox.py[gruvbox]
 - https://www.opencode.net/wakellor957/qb-breath/-/blob/main/qb-breath.py[Manjaro Breath-like]
 
 Avoiding flake8 errors
