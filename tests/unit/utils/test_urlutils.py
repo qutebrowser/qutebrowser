@@ -280,16 +280,17 @@ def test_special_urls(url, special):
 @pytest.mark.parametrize('url, host, query', [
     ('testfoo', 'www.example.com', 'q=testfoo'),
     ('test testfoo', 'www.qutebrowser.org', 'q=testfoo'),
-    ('test testfoo bar foo', 'www.qutebrowser.org', 'q=testfoo bar foo'),
+    ('test testfoo bar foo', 'www.qutebrowser.org', 'q=testfoo+bar+foo'),
     ('test testfoo ', 'www.qutebrowser.org', 'q=testfoo'),
-    ('!python testfoo', 'www.example.com', 'q=%21python testfoo'),
-    ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
+    ('!python testfoo', 'www.example.com', 'q=%21python+testfoo'),
+    ('blub testfoo', 'www.example.com', 'q=blub+testfoo'),
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
     ('test/with/slashes', 'www.example.com', 'q=test/with/slashes'),
     ('test path-search', 'www.qutebrowser.org', 'q=path-search'),
     ('slash/and&amp', 'www.example.com', 'q=slash/and%26amp'),
     ('unquoted one=1&two=2', 'www.example.org', 'one=1&two=2'),
+    ('unquoted one two', 'www.example.org', 'one two'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
@@ -308,7 +309,9 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
 @pytest.mark.parametrize('open_base_url', [True, False])
 @pytest.mark.parametrize('url, host, path', [
     ('path-search t/w/s', 'www.example.org', 't/w/s'),
+    ('path-search t w s', 'www.example.org', 't+w+s'),
     ('quoted-path t/w/s', 'www.example.org', 't%2Fw%2Fs'),
+    ('quoted-path t w s', 'www.example.org', 't+w+s'),
 ])
 def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_url):
     """Test _get_search_url_for_path_search().

@@ -186,10 +186,10 @@ Feature: Yanking and pasting.
             http://qutebrowser.org
             should not open
         And I run :open -t {clipboard}
-        And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
+        And I wait until data/hello.txt?q=this+url%3A%0Ahttp%3A//qutebrowser.org%0Ashould+not+open is loaded
         Then the following tabs should be open:
             - about:blank
-            - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
+            - data/hello.txt?q=this+url%3A%0Ahttp%3A//qutebrowser.org%0Ashould+not+open (active)
 
     Scenario: Pasting multiline whose first line looks like a URI
         When I set url.auto_search to naive
@@ -199,10 +199,10 @@ Feature: Yanking and pasting.
             should open
             as search
         And I run :open -t {clipboard}
-        And I wait until data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search is loaded
+        And I wait until data/hello.txt?q=text%3A%0Ashould+open%0Aas+search is loaded
         Then the following tabs should be open:
             - about:blank
-            - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
+            - data/hello.txt?q=text%3A%0Ashould+open%0Aas+search (active)
 
     # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941726
     @qtwebengine_flaky
