@@ -5,7 +5,7 @@ build==0.7.0
 bump2version==1.0.1
 certifi==2021.10.8
 cffi==1.15.0
-charset-normalizer==2.0.11
+charset-normalizer==2.0.12
 colorama==0.4.4
 cryptography==36.0.1
 Deprecated==1.2.13
@@ -13,7 +13,7 @@ docutils==0.18.1
 github3.py==3.0.0
 hunter==3.4.3
 idna==3.3
-importlib-metadata==4.10.1
+importlib-metadata==4.11.0
 jeepney==0.7.1
 jwcrypto==1.0
 keyring==23.5.0
@@ -35,7 +35,7 @@ SecretStorage==3.3.1
 sip==6.5.1
 six==1.16.0
 toml==0.10.2
-tomli==2.0.0
+tomli==2.0.1
 tqdm==4.62.3
 twine==3.8.0
 uritemplate==4.1.1
