@@ -43,7 +43,6 @@ except ImportError:
     colorama = None
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from qutebrowser.config import config as configmodule
     from typing import TextIO
 
