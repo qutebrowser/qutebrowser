@@ -8,7 +8,6 @@
   "pytest-xdist": "https://github.com/pytest-dev/pytest-xdist/blob/master/CHANGELOG.rst",
   "pytest-forked": "https://github.com/pytest-dev/pytest-forked/blob/master/CHANGELOG.rst",
   "pytest-xvfb": "https://github.com/The-Compiler/pytest-xvfb/blob/master/CHANGELOG.rst",
-  "EasyProcess": "https://github.com/ponty/EasyProcess/commits/master",
   "PyVirtualDisplay": "https://github.com/ponty/PyVirtualDisplay/commits/master",
   "execnet": "https://execnet.readthedocs.io/en/latest/changelog.html",
   "pytest-rerunfailures": "https://github.com/pytest-dev/pytest-rerunfailures/blob/master/CHANGES.rst",
