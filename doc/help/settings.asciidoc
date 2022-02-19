@@ -271,6 +271,7 @@
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.match_counts,input.match_counts>>|Interpret number prefixes as counts for bindings.
 |<<input.media_keys,input.media_keys>>|Whether the underlying Chromium should handle media keys.
+|<<input.mode_override,input.mode_override>>|Mode to change to when focusing on a tab/URL changes.
 |<<input.mouse.back_forward_buttons,input.mouse.back_forward_buttons>>|Enable back and forward buttons on the mouse.
 |<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
@@ -3586,6 +3587,22 @@ On QtWebKit, this setting is unavailable.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[input.mode_override]]
+=== input.mode_override
+Mode to change to when focusing on a tab/URL changes.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +normal+
+ * +insert+
+ * +passthrough+
+
+Default: empty
 
 [[input.mouse.back_forward_buttons]]
 === input.mouse.back_forward_buttons

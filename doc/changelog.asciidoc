@@ -55,6 +55,8 @@ Added
   more emacs-like bindings.
 - New `{relative_index}` field for `tabs.title.format` (and `.pinned_format`)
   which shows relative tab numbers.
+- New `input.mode_override` option which allows overriding the current mode
+  based on the new URL when navigating or switching tabs.
 
 Fixed
 ~~~~~
