@@ -16,7 +16,7 @@ hypothesis==6.37.0 ; python_version>="3.7"
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1
-itsdangerous==2.1.0
+itsdangerous==2.1.0 ; python_version>="3.7"
 jaraco.functools==3.5.0 ; python_version>="3.7"
 # Jinja2==3.0.3
 Mako==1.1.6
@@ -63,3 +63,4 @@ filelock==3.4.1 ; python_version=="3.6.*"
 hypothesis<6.32 ; python_version=="3.6.*"
 coverage<6.3 ; python_version=="3.6.*"
 pytest-mock<3.7 ; python_version=="3.6.*"
+itsdangerous<2.1.0 ; python_version=="3.6.*"

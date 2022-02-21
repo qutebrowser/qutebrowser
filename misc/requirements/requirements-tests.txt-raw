@@ -49,3 +49,5 @@ tldextract
 #@ add: coverage<6.3 ; python_version=="3.6.*"
 #@ markers: pytest-mock python_version>="3.7"
 #@ add: pytest-mock<3.7 ; python_version=="3.6.*"
+#@ markers: itsdangerous python_version>="3.7"
+#@ add: itsdangerous<2.1.0 ; python_version=="3.6.*"
