@@ -5,23 +5,23 @@ beautifulsoup4==4.10.0
 certifi==2021.10.8
 charset-normalizer==2.0.12
 cheroot==8.6.0
-click==8.0.3
-coverage==6.3.1 ; python_version>="3.7"
+click==8.0.4
+coverage==6.3.2 ; python_version>="3.7"
 execnet==1.9.0
-filelock==3.4.2 ; python_version>="3.7"
-Flask==2.0.2
+filelock==3.6.0 ; python_version>="3.7"
+Flask==2.0.3
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.36.2 ; python_version>="3.7"
+hypothesis==6.37.0 ; python_version>="3.7"
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1
-itsdangerous==2.0.1
+itsdangerous==2.1.0
 jaraco.functools==3.5.0 ; python_version>="3.7"
 # Jinja2==3.0.3
 Mako==1.1.6
 manhole==1.8.0
-# MarkupSafe==2.0.1
+# MarkupSafe==2.1.0
 more-itertools==8.12.0
 packaging==21.3
 parse==1.19.0
@@ -51,7 +51,7 @@ requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.3.1
-tldextract==3.1.2
+tldextract==3.2.0
 toml==0.10.2
 tomli==2.0.1 ; python_version>="3.7"
 urllib3==1.26.8
