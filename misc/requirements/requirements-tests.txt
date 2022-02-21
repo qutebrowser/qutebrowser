@@ -51,7 +51,7 @@ requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.3.1
-tldextract==3.2.0
+tldextract==3.2.0 ; python_version>="3.7"
 toml==0.10.2
 tomli==2.0.1 ; python_version>="3.7"
 urllib3==1.26.8
@@ -64,3 +64,4 @@ hypothesis<6.32 ; python_version=="3.6.*"
 coverage<6.3 ; python_version=="3.6.*"
 pytest-mock<3.7 ; python_version=="3.6.*"
 itsdangerous<2.1.0 ; python_version=="3.6.*"
+tldextract<3.2.0 ; python_version=="3.6.*"
