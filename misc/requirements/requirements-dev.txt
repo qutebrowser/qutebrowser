@@ -8,14 +8,12 @@ cffi==1.15.0
 charset-normalizer==2.0.12
 colorama==0.4.4
 cryptography==36.0.1
-Deprecated==1.2.13
 docutils==0.18.1
-github3.py==3.0.0
+github3.py==3.1.0
 hunter==3.4.3
 idna==3.3
-importlib-metadata==4.11.0
+importlib-metadata==4.11.1
 jeepney==0.7.1
-jwcrypto==1.0
 keyring==23.5.0
 manhole==1.8.0
 packaging==21.3
@@ -23,6 +21,7 @@ pep517==0.12.0
 pkginfo==1.8.2
 pycparser==2.21
 Pygments==2.11.2
+PyJWT==2.3.0
 Pympler==1.0.1
 pyparsing==3.0.7
 PyQt-builder==1.12.2
@@ -41,5 +40,4 @@ twine==3.8.0
 uritemplate==4.1.1
 # urllib3==1.26.8
 webencodings==0.5.1
-wrapt==1.13.3
 zipp==3.7.0

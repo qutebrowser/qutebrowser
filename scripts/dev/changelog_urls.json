@@ -94,7 +94,6 @@
   "altgraph": "https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst",
   "urllib3": "https://github.com/urllib3/urllib3/blob/master/CHANGES.rst",
   "lxml": "https://github.com/lxml/lxml/blob/master/CHANGES.txt",
-  "jwcrypto": "https://github.com/latchset/jwcrypto/commits/master",
   "wrapt": "https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst",
   "pep517": "https://github.com/pypa/pep517/blob/master/doc/changelog.rst",
   "cryptography": "https://cryptography.io/en/latest/changelog.html",
@@ -128,7 +127,7 @@
   "yamllint": "https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst",
   "pathspec": "https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst",
   "filelock": "https://github.com/tox-dev/py-filelock/blob/main/docs/changelog.rst",
-  "github3.py": "https://github3py.readthedocs.io/en/master/release-notes/index.html",
+  "github3.py": "https://github3.readthedocs.io/en/latest/release-notes/index.html",
   "manhole": "https://github.com/ionelmc/python-manhole/blob/master/CHANGELOG.rst",
   "pycparser": "https://github.com/eliben/pycparser/blob/master/CHANGES",
   "python-dateutil": "https://dateutil.readthedocs.io/en/stable/changelog.html",
@@ -146,7 +145,6 @@
   "setuptools": "https://setuptools.readthedocs.io/en/latest/history.html",
   "future": "https://python-future.org/whatsnew.html",
   "pefile": "https://github.com/erocarrera/pefile/commits/master",
-  "Deprecated": "https://github.com/tantale/deprecated/blob/master/CHANGELOG.rst",
   "SecretStorage": "https://github.com/mitya57/secretstorage/blob/master/changelog",
   "bleach": "https://github.com/mozilla/bleach/blob/main/CHANGES",
   "jeepney": "https://gitlab.com/takluyver/jeepney/-/blob/master/docs/release-notes.rst",
@@ -157,5 +155,6 @@
   "rfc3986": "https://rfc3986.readthedocs.io/en/latest/release-notes/index.html",
   "tqdm": "https://tqdm.github.io/releases/",
   "twine": "https://twine.readthedocs.io/en/stable/changelog.html",
-  "webencodings": "https://github.com/gsnedders/python-webencodings/commits/master"
+  "webencodings": "https://github.com/gsnedders/python-webencodings/commits/master",
+  "PyJWT": "https://github.com/jpadilla/pyjwt/blob/master/CHANGELOG.rst"
 }
