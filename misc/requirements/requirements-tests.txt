@@ -12,7 +12,7 @@ filelock==3.6.0 ; python_version>="3.7"
 Flask==2.0.3
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.37.0 ; python_version>="3.7"
+hypothesis==6.38.0 ; python_version>="3.7"
 icdiff==2.0.4
 idna==3.3
 iniconfig==1.1.1

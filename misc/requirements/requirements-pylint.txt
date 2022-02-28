@@ -2,15 +2,18 @@
 
 astroid==2.9.3
 certifi==2021.10.8
+cffi==1.15.0
 charset-normalizer==2.0.12
+cryptography==36.0.1
 future==0.18.2
-github3.py==3.1.0
+github3.py==3.1.2
 idna==3.3
 isort==5.10.1
 lazy-object-proxy==1.7.1
 mccabe==0.6.1
 pefile==2021.9.3
 platformdirs==2.5.1 ; python_version>="3.7"
+pycparser==2.21
 PyJWT==2.3.0
 pylint==2.12.2
 python-dateutil==2.8.2
