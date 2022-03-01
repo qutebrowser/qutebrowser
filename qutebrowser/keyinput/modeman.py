@@ -60,7 +60,7 @@ class KeyEvent:
     @classmethod
     def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
         """Initialize a KeyEvent from a QKeyEvent."""
-        return cls(Qt.Key(event.key()), event.text())
+        return cls(event.key(), event.text())
 
 
 class NotInModeError(Exception):

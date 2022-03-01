@@ -281,7 +281,11 @@ class BaseKeyParser(QObject):
         Return:
             A QKeySequence match.
         """
-        key = Qt.Key(e.key())
+        try:
+            key = Qt.Key(e.key())
+        except ValueError:
+            return QKeySequence.SequenceMatch.NoMatch
+
         txt = str(keyutils.KeyInfo.from_event(e))
         self._debug_log("Got key: 0x{:x} / modifiers: {} / text: '{}' / "
                         "dry_run {}".format(key, e.modifiers(), txt, dry_run))
