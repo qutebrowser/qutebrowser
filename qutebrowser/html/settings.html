@@ -145,6 +145,7 @@ input[type="radio"]:checked + label {
     display: inline;
     color: #1a98de;
     font-size: 105%;
+    cursor: pointer;
 }
 
 .show-more:focus {
@@ -165,12 +166,12 @@ input[type="radio"]:checked + label {
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }}
         {% if option.description %}
-	  {% set description = option.description.split('\n', 1) %}
-	  <div class="option-description">
+          {% set description = option.description.split('\n', 1) %}
+          <div class="option-description">
             <p class="short-desc">{{ description[0]|e }}</p>
-	    {% if description|length > 1 %}
-	      <span class="long-desc" id="long-desc-{{ loopIndex }}">{{ description[1]|e }}</span>
-	      <button class="show-more" id="show-more-{{ loopIndex }}" onclick="displayDesc('{{ loopIndex }}')">Show more</button>
+            {% if description|length > 1 %}
+              <span class="long-desc" id="long-desc-{{ loopIndex }}">{{ description[1]|e }}</span>
+              <button class="show-more" id="show-more-{{ loopIndex }}" onclick="displayDesc('{{ loopIndex }}')">Show more</button>
             {% endif %}
           </div>
         {% endif %}
@@ -178,26 +179,26 @@ input[type="radio"]:checked + label {
       {% if option.typ.valid_values is not none %}
         <td class="valid-value">
           {% for value in option.typ.valid_values.values %}
-	    <div class="radio-button">
-	      <input type="radio" id="input-{{ option.name }}-{{ loopIndex }}"
-	        name="{{ option.name }}" value="{{ value }}"
-	        onclick="cset('{{ option.name }}', this.value)"
-	        {% if confget(option.name) == value %}
-		  checked
-		{% endif %}>
-	      <label for="input-{{ option.name }}-{{ loopIndex }}">
-	        {{ value }}
-	      </label>
-	      </div>
-	  {% endfor %}
-	</td>
+            <div class="radio-button">
+              <input type="radio" id="input-{{ option.name }}-{{ loopIndex }}"
+                name="{{ option.name }}" value="{{ value }}"
+                onclick="cset('{{ option.name }}', this.value)"
+                {% if confget(option.name) == value %}
+                  checked
+                {% endif %}>
+              <label for="input-{{ option.name }}-{{ loopIndex }}">
+                {{ value }}
+              </label>
+              </div>
+          {% endfor %}
+        </td>
       {% else %}
         <td class="value">
-	  <input type="text"
-	    id="input-{{ option.name }}"
-	    onblur="cset('{{ option.name }}', this.value)"
-	    value="{{ confget(option.name) }}">
-	  </input>
+          <input type="text"
+            id="input-{{ option.name }}"
+            onblur="cset('{{ option.name }}', this.value)"
+            value="{{ confget(option.name) }}">
+          </input>
         </td>
       {% endif %}
     </tr>
