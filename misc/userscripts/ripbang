@@ -25,11 +25,12 @@ for argument in sys.argv[1:]:
 
     searchengine = unquote(re.search("url=[^']+", r.text).group(0))
     searchengine = searchengine.replace('url=', '')
-    searchengine = searchengine.replace('/l/?kh=-1&uddg=', '')
+    searchengine = searchengine.replace('/l/?uddg=', '')
     searchengine = searchengine.replace('SEARCHTEXT', '{}')
+    searchengine = searchengine[0:searchengine.find("&rut")]
 
     if os.getenv('QUTE_FIFO'):
         with open(os.environ['QUTE_FIFO'], 'w') as fifo:
-            fifo.write('set searchengines %s %s' % (bang, searchengine))
+            fifo.write('config-dict-add url.searchengines %s %s' % (bang, searchengine))
     else:
         print('%s %s' % (bang, searchengine))
