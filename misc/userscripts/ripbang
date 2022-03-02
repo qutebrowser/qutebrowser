@@ -18,11 +18,10 @@ for argument in sys.argv[1:]:
                      params={'q': bang + ' SEARCHTEXT'},
                      headers={'user-agent': 'qutebrowser ripbang'})
 
-    searchengine = unquote(re.search("url=[^']+", r.text).group(0))
-    searchengine = searchengine.replace('url=', '')
-    searchengine = searchengine.replace('/l/?uddg=', '')
+    searchengine = re.search("url=([^']+)", r.text).group(1)
+    searchengine = urlparse(searchengine).query
+    searchengine = parse_qs(searchengine)['uddg'][0]
     searchengine = searchengine.replace('SEARCHTEXT', '{}')
-    searchengine = searchengine[0:searchengine.find("&rut")]
 
     if os.getenv('QUTE_FIFO'):
         with open(os.environ['QUTE_FIFO'], 'w') as fifo:
