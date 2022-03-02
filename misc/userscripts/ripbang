@@ -20,7 +20,8 @@ except ImportError:
 for argument in sys.argv[1:]:
     bang = '!' + argument
     r = requests.get('https://duckduckgo.com/',
-                     params={'q': bang + ' SEARCHTEXT'})
+                     params={'q': bang + ' SEARCHTEXT'},
+                     headers={'user-agent': 'test/0.0.1'})
 
     searchengine = unquote(re.search("url=[^']+", r.text).group(0))
     searchengine = searchengine.replace('url=', '')
