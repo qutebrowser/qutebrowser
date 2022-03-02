@@ -81,6 +81,7 @@ input[type="radio"] {
     width: min-content;
     margin: 0;
     border: none;
+    cursor: pointer;
 }
 
 label {
@@ -135,6 +136,7 @@ input[type="radio"]:checked + label {
    margin: 0;
    display: inline;
 }
+
 .long-desc {
     display: none;
     white-space: pre-line;
@@ -180,13 +182,13 @@ input[type="radio"]:checked + label {
         <td class="valid-value">
           {% for value in option.typ.valid_values.values %}
             <div class="radio-button">
-              <input type="radio" id="input-{{ option.name }}-{{ loopIndex }}"
+              <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
                 name="{{ option.name }}" value="{{ value }}"
                 onclick="cset('{{ option.name }}', this.value)"
                 {% if confget(option.name) == value %}
                   checked
                 {% endif %}>
-              <label for="input-{{ option.name }}-{{ loopIndex }}">
+              <label for="input-{{ option.name }}-{{ loop.index0 }}">
                 {{ value }}
               </label>
               </div>
