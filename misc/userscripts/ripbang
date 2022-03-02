@@ -9,13 +9,8 @@
 #   :spawn --userscript ripbang amazon maps
 #
 
-from __future__ import print_function
 import os, re, requests, sys
-
-try:
-    from urllib.parse import unquote
-except ImportError:
-    from urllib import unquote
+from urllib.parse import urlparse, parse_qs
 
 for argument in sys.argv[1:]:
     bang = '!' + argument
