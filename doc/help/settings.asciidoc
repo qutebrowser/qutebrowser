@@ -289,6 +289,7 @@
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.chromium.process_model,qt.chromium.process_model>>|Which Chromium process model to use.
+|<<qt.chromium.sandboxing,qt.chromium.sandboxing>>|What sandboxing mechanisms in Chromium to use.
 |<<qt.environ,qt.environ>>|Additional environment variables to set.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
@@ -3813,6 +3814,30 @@ Valid values:
  * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
 
 Default: +pass:[process-per-site-instance]+
+
+[[qt.chromium.sandboxing]]
+=== qt.chromium.sandboxing
+What sandboxing mechanisms in Chromium to use.
+Chromium has various sandboxing layers, which should be enabled for normal browser usage. Mainly for testing and development, it's possible to disable individual sandboxing layers via this setting.
+Open `chrome://sandbox` to see the current sandbox status.
+Changing this setting is only recommended if you know what you're doing, as it **disables one of Chromium's security layers**. To avoid sandboxing being accidentally disabled persistently, this setting can only be set via `config.py`, not via `:set`.
+See the Chromium documentation for more details: - Linux: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md - Windows: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md - FAQ (Windows-centric): https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md
+
+This setting requires a restart.
+
+This setting can only be set in config.py.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +enable-all+: Enable all available sandboxing mechanisms.
+ * +disable-seccomp-bpf+: Disable the Seccomp BPF filter sandbox (Linux only).
+ * +disable-all+: Disable all sandboxing (**not recommended!**).
+
+Default: +pass:[enable-all]+
 
 [[qt.environ]]
 === qt.environ

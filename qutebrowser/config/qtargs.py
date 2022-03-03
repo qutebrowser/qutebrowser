@@ -338,6 +338,11 @@ def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[
             True: '--force-prefers-reduced-motion',
             False: None,
         },
+        'qt.chromium.sandboxing': {
+            'enable-all': None,
+            'disable-seccomp-bpf': '--disable-seccomp-filter-sandbox',
+            'disable-all': '--no-sandbox',
+        }
     }
     qt_514_ver = utils.VersionNumber(5, 14)
 

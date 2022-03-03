@@ -290,6 +290,36 @@ qt.chromium.low_end_device_mode:
     This improves the RAM usage of renderer processes, at the expense of
     performance.
 
+qt.chromium.sandboxing:
+  type:
+    name: String
+    valid_values:
+      - enable-all: Enable all available sandboxing mechanisms.
+      - disable-seccomp-bpf: Disable the Seccomp BPF filter sandbox (Linux only).
+      - disable-all: Disable all sandboxing (**not recommended!**).
+  default: enable-all
+  backend: QtWebEngine
+  restart: true
+  no_autoconfig: true  # due to it being dangerous
+  desc: >-
+    What sandboxing mechanisms in Chromium to use.
+
+    Chromium has various sandboxing layers, which should be enabled for normal
+    browser usage. Mainly for testing and development, it's possible to disable
+    individual sandboxing layers via this setting.
+
+    Open `chrome://sandbox` to see the current sandbox status.
+
+    Changing this setting is only recommended if you know what you're doing, as
+    it **disables one of Chromium's security layers**. To avoid sandboxing being
+    accidentally disabled persistently, this setting can only be set via
+    `config.py`, not via `:set`.
+
+    See the Chromium documentation for more details:
+    - Linux: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md
+    - Windows: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md
+    - FAQ (Windows-centric): https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md
+
 qt.highdpi:
   type: Bool
   default: false

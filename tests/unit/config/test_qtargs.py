@@ -277,6 +277,28 @@ class TestWebEngineArgs:
         else:
             assert arg in args
 
+    @pytest.mark.parametrize('sandboxing, arg', [
+        ('enable-all', None),
+        ('disable-seccomp-bpf', '--disable-seccomp-filter-sandbox'),
+        ('disable-all', '--no-sandbox'),
+    ])
+    def test_sandboxing(self, config_stub, parser, sandboxing, arg):
+        config_stub.val.qt.chromium.sandboxing = sandboxing
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+
+        remaining_flags = {
+            '--no-sandbox',
+            '--disable-seccomp-filter-sandbox',
+        }
+        if arg is not None:
+            remaining_flags.remove(arg)
+
+        if arg is not None:
+            assert arg in args
+
+        assert not set(args) & remaining_flags
+
     @pytest.mark.parametrize('qt_version, referer, arg', [
         # 'always' -> no arguments
         ('5.15.0', 'always', None),

@@ -826,3 +826,48 @@ def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
     quteproc_new.exit_expected = True
     quteproc_new.start(args, env={'XDG_RUNTIME_DIR': str(runtime_tmpdir)})
     assert not quteproc_new.is_running()
+
+
+@pytest.mark.qtwebkit_skip
+@pytest.mark.parametrize('sandboxing, has_namespaces, has_seccomp, has_yama, expected_result', [
+    ('enable-all', True, True, True, "You are adequately sandboxed."),
+    ('disable-seccomp-bpf', True, False, True, "You are NOT adequately sandboxed."),
+    ('disable-all', False, False, False, "You are NOT adequately sandboxed."),
+])
+def test_sandboxing(
+        request, quteproc_new, sandboxing,
+        has_namespaces, has_seccomp, has_yama, expected_result,
+):
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'qt.chromium.sandboxing', sandboxing,
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_url('chrome://sandbox')
+    text = quteproc_new.get_content()
+    print(text)
+    header, *lines, empty, result = text.split("\n")
+
+    assert header == "Sandbox Status"
+    assert not empty
+
+    status = dict(line.split("\t") for line in lines)
+
+    bpf_text = "Seccomp-BPF sandbox"
+    yama_text = "Ptrace Protection with Yama LSM"
+    expected_status = {
+        "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
+
+        "PID namespaces": "Yes" if has_namespaces else "No",
+        "Network namespaces": "Yes" if has_namespaces else "No",
+
+        bpf_text: "Yes" if has_seccomp else "No",
+        f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+
+        f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+        f"{yama_text} (Non-broker)": "No",
+    }
+
+    assert status == expected_status
+    assert result == expected_result

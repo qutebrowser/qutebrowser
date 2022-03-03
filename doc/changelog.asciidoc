@@ -60,6 +60,7 @@ Added
   which shows relative tab numbers.
 - New `input.mode_override` option which allows overriding the current mode
   based on the new URL when navigating or switching tabs.
+- New `qt.chromium.sandboxing` setting which allows to disable Chromium's sandboxing (mainly intended for development and testing)
 
 Fixed
 ~~~~~
