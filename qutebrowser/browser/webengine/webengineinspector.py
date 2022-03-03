@@ -50,7 +50,8 @@ class WebEngineInspectorView(QWebEngineView):
 
         See WebEngineView.createWindow for details.
         """
-        return self.page().inspectedPage().view().createWindow(wintype)
+        newpage = self.page().inspectedPage().createWindow(wintype)
+        return self.forPage(newpage)
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):
