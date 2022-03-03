@@ -249,7 +249,7 @@ class TestWebEngineArgs:
         ('single-process', True),
     ])
     def test_process_model(self, config_stub, parser, process_model, added):
-        config_stub.val.qt.process_model = process_model
+        config_stub.val.qt.chromium.process_model = process_model
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
@@ -267,7 +267,7 @@ class TestWebEngineArgs:
         ('never', '--disable-low-end-device-mode'),
     ])
     def test_low_end_device_mode(self, config_stub, parser, low_end_device_mode, arg):
-        config_stub.val.qt.low_end_device_mode = low_end_device_mode
+        config_stub.val.qt.chromium.low_end_device_mode = low_end_device_mode
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 

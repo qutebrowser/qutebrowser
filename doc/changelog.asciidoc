@@ -47,6 +47,9 @@ Changed
   than `rofi` to ask for a password.
 - The `content.headers.custom` setting now accepts empty strings as values,
   resulting in an empty header being sent.
+- Renamed settings:
+  * `qt.low_end_device_mode` -> `qt.chromium.low_end_device_mode`
+  * `qt.process_model` -> `qt.chromium.process_model`
 
 Added
 ~~~~~

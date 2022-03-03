@@ -321,12 +321,12 @@ def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[
                 '--force-webrtc-ip-handling-policy='
                 'disable_non_proxied_udp',
         },
-        'qt.process_model': {
+        'qt.chromium.process_model': {
             'process-per-site-instance': None,
             'process-per-site': '--process-per-site',
             'single-process': '--single-process',
         },
-        'qt.low_end_device_mode': {
+        'qt.chromium.low_end_device_mode': {
             'auto': None,
             'always': '--enable-low-end-device-mode',
             'never': '--disable-low-end-device-mode',

@@ -287,13 +287,13 @@
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
+|<<qt.chromium.process_model,qt.chromium.process_model>>|Which Chromium process model to use.
 |<<qt.environ,qt.environ>>|Additional environment variables to set.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
-|<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
-|<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
@@ -3772,6 +3772,48 @@ Type: <<types,List of String>>
 
 Default: empty
 
+[[qt.chromium.low_end_device_mode]]
+=== qt.chromium.low_end_device_mode
+When to use Chromium's low-end device mode.
+This improves the RAM usage of renderer processes, at the expense of performance.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always use low-end device mode.
+ * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
+ * +never+: Never use low-end device mode.
+
+Default: +pass:[auto]+
+
+[[qt.chromium.process_model]]
+=== qt.chromium.process_model
+Which Chromium process model to use.
+Alternative process models use less resources, but decrease security and robustness.
+See the following pages for more details:
+
+  - https://www.chromium.org/developers/design-documents/process-models
+  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
+ * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
+ * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
+
+Default: +pass:[process-per-site-instance]+
+
 [[qt.environ]]
 === qt.environ
 Additional environment variables to set.
@@ -3836,48 +3878,6 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
-
-[[qt.low_end_device_mode]]
-=== qt.low_end_device_mode
-When to use Chromium's low-end device mode.
-This improves the RAM usage of renderer processes, at the expense of performance.
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,String>>
-
-Valid values:
-
- * +always+: Always use low-end device mode.
- * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
- * +never+: Never use low-end device mode.
-
-Default: +pass:[auto]+
-
-[[qt.process_model]]
-=== qt.process_model
-Which Chromium process model to use.
-Alternative process models use less resources, but decrease security and robustness.
-See the following pages for more details:
-
-  - https://www.chromium.org/developers/design-documents/process-models
-  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,String>>
-
-Valid values:
-
- * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
- * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
- * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
-
-Default: +pass:[process-per-site-instance]+
 
 [[qt.workarounds.locale]]
 === qt.workarounds.locale

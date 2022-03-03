@@ -239,6 +239,9 @@ qt.force_platformtheme:
     based on the desktop environment.
 
 qt.process_model:
+  renamed: qt.chromium.process_model
+
+qt.chromium.process_model:
   type:
     name: String
     valid_values:
@@ -268,6 +271,9 @@ qt.process_model:
       - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
 
 qt.low_end_device_mode:
+  renamed: qt.chromium.low_end_device_mode
+
+qt.chromium.low_end_device_mode:
   type:
     name: String
     valid_values:
