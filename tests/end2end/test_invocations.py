@@ -56,8 +56,8 @@ def _base_args(config):
     else:
         args += ['--backend', 'webkit']
 
-    if config.webengine:
-        args += testutils.seccomp_args(qt_flag=True)
+    if config.webengine and testutils.disable_seccomp_bpf_sandbox():
+        args += testutils.DISABLE_SECCOMP_BPF_ARGS
 
     args.append('about:blank')
     return args

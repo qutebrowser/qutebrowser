@@ -549,8 +549,8 @@ class QuteProc(testprocess.Process):
                 '--debug-flag', 'werror', '--debug-flag',
                 'test-notification-service']
 
-        if self.request.config.webengine:
-            args += testutils.seccomp_args(qt_flag=True)
+        if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
+            args += testutils.DISABLE_SECCOMP_BPF_ARGS
 
         args.append('about:blank')
         return args

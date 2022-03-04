@@ -267,14 +267,15 @@ def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
 
 
-def seccomp_args(qt_flag):
-    """Get necessary flags to disable the seccomp BPF sandbox.
+DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
+DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
+
+
+def disable_seccomp_bpf_sandbox():
+    """Check whether we need to disable the seccomp BPF sandbox.
 
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
-
-    Args:
-        qt_flag: Add a '--qt-flag' argument.
     """
     affected_versions = set()
     for base, patch_range in [
@@ -291,11 +292,8 @@ def seccomp_args(qt_flag):
     version = (PYQT_WEBENGINE_VERSION_STR
                if PYQT_WEBENGINE_VERSION_STR is not None
                else qVersion())
-    if version in affected_versions:
-        disable_arg = 'disable-seccomp-filter-sandbox'
-        return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
 
-    return []
+    return version in affected_versions
 
 
 def import_userscript(name):
