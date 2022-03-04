@@ -301,6 +301,7 @@ qt.chromium.sandboxing:
   backend: QtWebEngine
   restart: true
   no_autoconfig: true  # due to it being dangerous
+  # yamllint disable rule:line-length
   desc: >-
     What sandboxing mechanisms in Chromium to use.
 
@@ -316,12 +317,11 @@ qt.chromium.sandboxing:
     `config.py`, not via `:set`.
 
     See the Chromium documentation for more details:
-    - Linux:
-      https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md
-    - Windows:
-      https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md
-    - FAQ (Windows-centric):
-      https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md
+
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
+  # yamllint enable rule:line-length
 
 qt.highdpi:
   type: Bool

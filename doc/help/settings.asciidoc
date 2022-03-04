@@ -3821,7 +3821,8 @@ What sandboxing mechanisms in Chromium to use.
 Chromium has various sandboxing layers, which should be enabled for normal browser usage. Mainly for testing and development, it's possible to disable individual sandboxing layers via this setting.
 Open `chrome://sandbox` to see the current sandbox status.
 Changing this setting is only recommended if you know what you're doing, as it **disables one of Chromium's security layers**. To avoid sandboxing being accidentally disabled persistently, this setting can only be set via `config.py`, not via `:set`.
-See the Chromium documentation for more details: - Linux: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md - Windows: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md - FAQ (Windows-centric): https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md
+See the Chromium documentation for more details:
+- https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
 
 This setting requires a restart.
 
