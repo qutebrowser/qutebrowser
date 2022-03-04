@@ -10,22 +10,6 @@ var cset = function(option, value) {
   xhr.open("GET", url);
   xhr.send();
 }
-
-let displayDesc = (index) => {
-  let idDesc = `long-desc-${index}`
-  let longDesc = document.getElementById(idDesc)
-  let idButton = `show-more-${index}`
-  let button = document.getElementById(idButton)
-  let display = longDesc.style.display
-
-  if (display === "block") {
-    longDesc.style.display = "none";
-    button.innerHTML = "Show more";
-  } else {
-    longDesc.style.display = "block";
-    button.innerHTML = "Show less";
-  }
-}
 {% endblock %}
 
 {% block style %}
@@ -98,6 +82,12 @@ input[type="radio"]:checked + label {
     color: #084c88;
 }
 
+.radio-button {
+    position: relative; /* The absolutely positioned element inside this tag (the radio button) gets positioned relative to it. */
+    display: inline-flex;
+    margin: 3px 1px;
+}
+
 .setting {
     width: 60%;
 }
@@ -126,32 +116,25 @@ input[type="radio"]:checked + label {
     font-style: italic;
 }
 
-.radio-button {
-    position: relative; /* The absolutely positioned element inside this tag (the radio button) gets positioned relative to it. */
-    display: inline-flex;
-    margin: 3px 1px;
+.option-description p {
+    margin: 0;
 }
 
-.short-desc {
-   margin: 0;
-   display: inline;
-}
-
-.long-desc {
-    display: none;
+.long-description {
     white-space: pre-line;
 }
 
-.show-more {
-    all: inherit;
-    display: inline;
-    color: #1a98de;
+summary {
+    margin: .5ex 0;
+    width: fit-content;
+    outline: none;
+    color: #1887c5;
     font-size: 105%;
     cursor: pointer;
 }
 
-.show-more:focus {
-    outline: none;
+summary::selection {
+    background-color: inherit;
 }
 {% endblock %}
 
@@ -170,10 +153,12 @@ input[type="radio"]:checked + label {
         {% if option.description %}
           {% set description = option.description.split('\n', 1) %}
           <div class="option-description">
-            <p class="short-desc">{{ description[0]|e }}</p>
+            <p>{{ description[0]|e }}</p>
             {% if description|length > 1 %}
-              <span class="long-desc" id="long-desc-{{ loopIndex }}">{{ description[1]|e }}</span>
-              <button class="show-more" id="show-more-{{ loopIndex }}" onclick="displayDesc('{{ loopIndex }}')">Show more</button>
+              <details>
+                <summary>Details</summary>
+                <p class="long-description">{{ description[1] }}</p>
+              </details>
             {% endif %}
           </div>
         {% endif %}
