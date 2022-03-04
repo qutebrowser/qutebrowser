@@ -830,7 +830,15 @@ def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
 
 @pytest.mark.qtwebkit_skip
 @pytest.mark.parametrize('sandboxing, has_namespaces, has_seccomp, has_yama, expected_result', [
-    ('enable-all', True, True, True, "You are adequately sandboxed."),
+    pytest.param(
+        'enable-all',
+        True, True, True,
+        "You are adequately sandboxed.",
+        marks=pytest.mark.skipif(
+            testutils.disable_seccomp_bpf_sandbox(),
+            reason="Full sandboxing not supported",
+        ),
+    ),
     ('disable-seccomp-bpf', True, False, True, "You are NOT adequately sandboxed."),
     ('disable-all', False, False, False, "You are NOT adequately sandboxed."),
 ])
@@ -847,6 +855,12 @@ def test_sandboxing(
     quteproc_new.open_url('chrome://sandbox')
     text = quteproc_new.get_content()
     print(text)
+
+    not_found_msg = ("The webpage at chrome://sandbox/ might be temporarily down or "
+                     "it may have moved permanently to a new web address.")
+    if text.split()[-1] == not_found_msg:
+        pytest.skip("chrome://sandbox/ not supported")
+
     header, *lines, empty, result = text.split("\n")
 
     assert header == "Sandbox Status"
