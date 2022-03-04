@@ -831,15 +831,7 @@ def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
 @pytest.mark.qtwebkit_skip
 @pytest.mark.parametrize(
     'sandboxing, has_namespaces, has_seccomp, has_yama, expected_result', [
-        pytest.param(
-            'enable-all',
-            True, True, True,
-            "You are adequately sandboxed.",
-            marks=pytest.mark.skipif(
-                testutils.disable_seccomp_bpf_sandbox(),
-                reason="Full sandboxing not supported",
-            ),
-        ),
+        ('enable-all', True, True, True, "You are adequately sandboxed."),
         ('disable-seccomp-bpf', True, False, True, "You are NOT adequately sandboxed."),
         ('disable-all', False, False, False, "You are NOT adequately sandboxed."),
     ]
@@ -848,6 +840,11 @@ def test_sandboxing(
         request, quteproc_new, sandboxing,
         has_namespaces, has_seccomp, has_yama, expected_result,
 ):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+    elif sandboxing == "enable-all" and testutils.disable_seccomp_bpf_sandbox():
+        pytest.skip("Full sandboxing not supported")
+
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'qt.chromium.sandboxing', sandboxing,
@@ -860,30 +857,48 @@ def test_sandboxing(
 
     not_found_msg = ("The webpage at chrome://sandbox/ might be temporarily down or "
                      "it may have moved permanently to a new web address.")
-    if text.split()[-1] == not_found_msg:
+    if not_found_msg in text.split("\n"):
         pytest.skip("chrome://sandbox/ not supported")
-
-    header, *lines, empty, result = text.split("\n")
-
-    assert header == "Sandbox Status"
-    assert not empty
-
-    status = dict(line.split("\t") for line in lines)
 
     bpf_text = "Seccomp-BPF sandbox"
     yama_text = "Ptrace Protection with Yama LSM"
-    expected_status = {
-        "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
 
-        "PID namespaces": "Yes" if has_namespaces else "No",
-        "Network namespaces": "Yes" if has_namespaces else "No",
+    if "\n\n\n" in text:
+        # Qt 5.12
+        header, rest = text.split("\n", maxsplit=1)
+        rest, result = rest.rsplit("\n\n", maxsplit=1)
+        lines = rest.replace("\t\n", "\t").split("\n\n\n")
 
-        bpf_text: "Yes" if has_seccomp else "No",
-        f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+        expected_status = {
+            "Namespace Sandbox": "Yes" if has_namespaces else "No",
+            "Network namespaces": "Yes" if has_namespaces else "No",
+            "PID namespaces": "Yes" if has_namespaces else "No",
+            "SUID Sandbox": "No",
 
-        f"{yama_text} (Broker)": "Yes" if has_yama else "No",
-        f"{yama_text} (Non-broker)": "No",
-    }
+            bpf_text: "Yes" if has_seccomp else "No",
+            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
-    assert status == expected_status
+            "Yama LSM Enforcing": "Yes" if has_yama else "No",
+        }
+    else:
+        header, *lines, empty, result = text.split("\n")
+        assert not empty
+
+        expected_status = {
+            "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
+
+            "PID namespaces": "Yes" if has_namespaces else "No",
+            "Network namespaces": "Yes" if has_namespaces else "No",
+
+            bpf_text: "Yes" if has_seccomp else "No",
+            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+
+            f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+            f"{yama_text} (Non-broker)": "No",
+        }
+
+    assert header == "Sandbox Status"
     assert result == expected_result
+
+    status = dict(line.split("\t") for line in lines)
+    assert status == expected_status

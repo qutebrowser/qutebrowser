@@ -272,6 +272,12 @@ def disable_seccomp_bpf_sandbox():
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
     """
+    try:
+        from PyQt5 import QtWebEngine  # pylint: disable=unused-import
+    except ImportError:
+        # no QtWebEngine available
+        return False
+
     affected_versions = set()
     for base, patch_range in [
             # 5.12.0 to 5.12.10 (inclusive)
