@@ -316,9 +316,12 @@ qt.chromium.sandboxing:
     `config.py`, not via `:set`.
 
     See the Chromium documentation for more details:
-    - Linux: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md
-    - Windows: https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md
-    - FAQ (Windows-centric): https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md
+    - Linux:
+      https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md
+    - Windows:
+      https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md
+    - FAQ (Windows-centric):
+      https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md
 
 qt.highdpi:
   type: Bool

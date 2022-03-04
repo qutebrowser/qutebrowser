@@ -829,19 +829,21 @@ def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
 
 
 @pytest.mark.qtwebkit_skip
-@pytest.mark.parametrize('sandboxing, has_namespaces, has_seccomp, has_yama, expected_result', [
-    pytest.param(
-        'enable-all',
-        True, True, True,
-        "You are adequately sandboxed.",
-        marks=pytest.mark.skipif(
-            testutils.disable_seccomp_bpf_sandbox(),
-            reason="Full sandboxing not supported",
+@pytest.mark.parametrize(
+    'sandboxing, has_namespaces, has_seccomp, has_yama, expected_result', [
+        pytest.param(
+            'enable-all',
+            True, True, True,
+            "You are adequately sandboxed.",
+            marks=pytest.mark.skipif(
+                testutils.disable_seccomp_bpf_sandbox(),
+                reason="Full sandboxing not supported",
+            ),
         ),
-    ),
-    ('disable-seccomp-bpf', True, False, True, "You are NOT adequately sandboxed."),
-    ('disable-all', False, False, False, "You are NOT adequately sandboxed."),
-])
+        ('disable-seccomp-bpf', True, False, True, "You are NOT adequately sandboxed."),
+        ('disable-all', False, False, False, "You are NOT adequately sandboxed."),
+    ]
+)
 def test_sandboxing(
         request, quteproc_new, sandboxing,
         has_namespaces, has_seccomp, has_yama, expected_result,
