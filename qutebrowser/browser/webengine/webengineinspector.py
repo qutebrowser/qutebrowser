@@ -27,7 +27,7 @@ from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
-from qutebrowser.browser.webengine import webenginesettings
+from qutebrowser.browser.webengine import webenginesettings, webview
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import version, usertypes
 from qutebrowser.keyinput import modeman
@@ -51,7 +51,7 @@ class WebEngineInspectorView(QWebEngineView):
         See WebEngineView.createWindow for details.
         """
         newpage = self.page().inspectedPage().createWindow(wintype)
-        return self.forPage(newpage)
+        return webview.WebEngineView.forPage(newpage)
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):
