@@ -858,6 +858,8 @@ def test_sandboxing(
     not_found_msg = ("The webpage at chrome://sandbox/ might be temporarily down or "
                      "it may have moved permanently to a new web address.")
     if not_found_msg in text.split("\n"):
+        line = quteproc_new.wait_for(message='Load error: ERR_INVALID_URL')
+        line.expected = True
         pytest.skip("chrome://sandbox/ not supported")
 
     bpf_text = "Seccomp-BPF sandbox"
