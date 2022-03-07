@@ -6,7 +6,7 @@ cffi==1.15.0
 charset-normalizer==2.0.12
 cryptography==36.0.1
 future==0.18.2
-github3.py==3.1.2
+github3.py==3.2.0
 idna==3.3
 isort==5.10.1
 lazy-object-proxy==1.7.1
