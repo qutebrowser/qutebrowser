@@ -536,7 +536,9 @@ def regenerate_manpage(filename):
     # pylint: disable=protected-access
     for group in parser._action_groups:
         groupdata = []
-        groupdata.append('=== {}'.format(group.title))
+        # https://bugs.python.org/issue9694 backport
+        title = "options" if group.title == "optional arguments" else group.title
+        groupdata.append('=== {}'.format(title))
         if group.description is not None:
             groupdata.append(group.description)
         for action in group._group_actions:
