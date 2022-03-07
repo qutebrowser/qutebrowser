@@ -9,7 +9,7 @@ charset-normalizer==2.0.12
 colorama==0.4.4
 cryptography==36.0.1
 docutils==0.18.1
-github3.py==3.1.2
+github3.py==3.2.0
 hunter==3.4.3
 idna==3.3
 importlib-metadata==4.11.2
@@ -26,7 +26,7 @@ Pympler==1.0.1
 pyparsing==3.0.7
 PyQt-builder==1.12.2
 python-dateutil==2.8.2
-readme-renderer==32.0
+readme-renderer==33.0
 requests==2.27.1
 requests-toolbelt==0.9.1
 rfc3986==2.0.0
