@@ -41,8 +41,8 @@ hopefully help.</p>
 notification support was added for Qt 5.13.0.</p>
 
 <p><b>Resource usage</b>: qutebrowser v1.5.0 added the <span
-class="mono">qt.process_model</span> and <span
-class="mono">qt.low_end_device_mode</span> settings which can be used to
+class="mono">qt.chromium.process_model</span> and <span
+class="mono">qt.chromium.low_end_device_mode</span> settings which can be used to
 decrease the resource usage of QtWebEngine (but come with other drawbacks).</p>
 
 <p><b>Not trusting Google</b>: Various people have checked the connections made
@@ -78,7 +78,7 @@ security fixes took months to arrive there). You might be better off choosing an
 method</a>.</p>
 
 <p><b>White flashing between loads with a custom stylesheet</b>: This doesn't
-seem to happen with <span class="mono">qt.process_model = single-process</span>
+seem to happen with <span class="mono">qt.chromium.process_model = single-process</span>
 set. However, note that that setting comes with decreased security and
 stability, but QtWebKit doesn't have any process isolation at all.</p>
 {% endblock %}

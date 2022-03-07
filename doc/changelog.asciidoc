@@ -47,6 +47,9 @@ Changed
   than `rofi` to ask for a password.
 - The `content.headers.custom` setting now accepts empty strings as values,
   resulting in an empty header being sent.
+- Renamed settings:
+  * `qt.low_end_device_mode` -> `qt.chromium.low_end_device_mode`
+  * `qt.process_model` -> `qt.chromium.process_model`
 
 Added
 ~~~~~
@@ -57,6 +60,7 @@ Added
   which shows relative tab numbers.
 - New `input.mode_override` option which allows overriding the current mode
   based on the new URL when navigating or switching tabs.
+- New `qt.chromium.sandboxing` setting which allows to disable Chromium's sandboxing (mainly intended for development and testing)
 
 Fixed
 ~~~~~
