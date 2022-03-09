@@ -66,7 +66,11 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
 
 class NormalKeyParser(CommandKeyParser):
 
-    """KeyParser for normal mode with added STARTCHARS detection and more."""
+    """KeyParser for normal mode with added STARTCHARS detection and more.
+
+    Attributes:
+        _partial_timer: Timer to clear partial keypresses.
+    """
 
     _sequence: keyutils.KeySequence
 
@@ -212,19 +216,7 @@ class PassthroughKeyParser(CommandKeyParser):
         self._orig_sequence = keyutils.KeySequence()
 
 
-class PromptKeyParser(CommandKeyParser):
-
-    """KeyParser for yes/no prompts."""
-
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False)
-        self._read_config('yesno')
-
-    def __repr__(self):
-        return utils.get_repr(self)
-
-
-class HintKeyParser(CommandKeyParser):
+class HintKeyParser(basekeyparser.BaseKeyParser):
 
     """KeyChainParser for hints.
 
@@ -332,19 +324,6 @@ class HintKeyParser(CommandKeyParser):
     def execute(self, cmdstr: str, count: int = None) -> None:
         assert count is None
         self._hintmanager.handle_partial_key(cmdstr)
-
-    @pyqtSlot()
-    def clear_partial_match(self):
-        """Override to avoid clearing filter text after a timeout."""
-        if self._last_press != LastPress.filtertext:
-            super().clear_partial_match()
-
-    @pyqtSlot(str)
-    def on_keystring_updated(self, keystr):
-        """Update hintmanager when the keystring was updated."""
-        hintmanager = objreg.get('hintmanager', scope='tab',
-                                 window=self._win_id, tab='current')
-        hintmanager.handle_partial_key(keystr)
 
 
 class RegisterKeyParser(CommandKeyParser):
