@@ -56,8 +56,8 @@ def _base_args(config):
     else:
         args += ['--backend', 'webkit']
 
-    if config.webengine:
-        args += testutils.seccomp_args(qt_flag=True)
+    if config.webengine and testutils.disable_seccomp_bpf_sandbox():
+        args += testutils.DISABLE_SECCOMP_BPF_ARGS
 
     args.append('about:blank')
     return args
@@ -826,3 +826,81 @@ def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
     quteproc_new.exit_expected = True
     quteproc_new.start(args, env={'XDG_RUNTIME_DIR': str(runtime_tmpdir)})
     assert not quteproc_new.is_running()
+
+
+@pytest.mark.qtwebkit_skip
+@pytest.mark.parametrize(
+    'sandboxing, has_namespaces, has_seccomp, has_yama, expected_result', [
+        ('enable-all', True, True, True, "You are adequately sandboxed."),
+        ('disable-seccomp-bpf', True, False, True, "You are NOT adequately sandboxed."),
+        ('disable-all', False, False, False, "You are NOT adequately sandboxed."),
+    ]
+)
+def test_sandboxing(
+        request, quteproc_new, sandboxing,
+        has_namespaces, has_seccomp, has_yama, expected_result,
+):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+    elif sandboxing == "enable-all" and testutils.disable_seccomp_bpf_sandbox():
+        pytest.skip("Full sandboxing not supported")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'qt.chromium.sandboxing', sandboxing,
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_url('chrome://sandbox')
+    text = quteproc_new.get_content()
+    print(text)
+
+    not_found_msg = ("The webpage at chrome://sandbox/ might be temporarily down or "
+                     "it may have moved permanently to a new web address.")
+    if not_found_msg in text.split("\n"):
+        line = quteproc_new.wait_for(message='Load error: ERR_INVALID_URL')
+        line.expected = True
+        pytest.skip("chrome://sandbox/ not supported")
+
+    bpf_text = "Seccomp-BPF sandbox"
+    yama_text = "Ptrace Protection with Yama LSM"
+
+    if "\n\n\n" in text:
+        # Qt 5.12
+        header, rest = text.split("\n", maxsplit=1)
+        rest, result = rest.rsplit("\n\n", maxsplit=1)
+        lines = rest.replace("\t\n", "\t").split("\n\n\n")
+
+        expected_status = {
+            "Namespace Sandbox": "Yes" if has_namespaces else "No",
+            "Network namespaces": "Yes" if has_namespaces else "No",
+            "PID namespaces": "Yes" if has_namespaces else "No",
+            "SUID Sandbox": "No",
+
+            bpf_text: "Yes" if has_seccomp else "No",
+            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+
+            "Yama LSM Enforcing": "Yes" if has_yama else "No",
+        }
+    else:
+        header, *lines, empty, result = text.split("\n")
+        assert not empty
+
+        expected_status = {
+            "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
+
+            "PID namespaces": "Yes" if has_namespaces else "No",
+            "Network namespaces": "Yes" if has_namespaces else "No",
+
+            bpf_text: "Yes" if has_seccomp else "No",
+            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+
+            f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+            f"{yama_text} (Non-broker)": "No",
+        }
+
+    assert header == "Sandbox Status"
+    assert result == expected_result
+
+    status = dict(line.split("\t") for line in lines)
+    assert status == expected_status

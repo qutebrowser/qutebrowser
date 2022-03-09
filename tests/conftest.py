@@ -194,9 +194,8 @@ def pytest_ignore_collect(path):
 @pytest.fixture(scope='session')
 def qapp_args():
     """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
-    seccomp_args = testutils.seccomp_args(qt_flag=False)
-    if seccomp_args:
-        return [sys.argv[0]] + seccomp_args
+    if testutils.disable_seccomp_bpf_sandbox():
+        return [sys.argv[0], testutils.DISABLE_SECCOMP_BPF_FLAG]
     return []
 
 

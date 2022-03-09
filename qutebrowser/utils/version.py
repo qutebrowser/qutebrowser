@@ -724,7 +724,7 @@ class WebEngineVersions:
         )
 
 
-def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
+def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     """Get the QtWebEngine and Chromium version numbers.
 
     If we have a parsed user agent, we use it here. If not, we avoid initializing

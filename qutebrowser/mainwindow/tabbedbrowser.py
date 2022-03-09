@@ -223,6 +223,10 @@ class TabbedBrowser(QWidget):
         # https://bugreports.qt.io/browse/QTBUG-65223
         self.cur_load_finished.connect(self._leave_modes_on_load)
 
+        # handle mode_override
+        self.current_tab_changed.connect(lambda tab: self._mode_override(tab.url()))
+        self.cur_url_changed.connect(self._mode_override)
+
         # This init is never used, it is immediately thrown away in the next
         # line.
         self.undo_stack: UndoStackType = collections.deque()
@@ -776,6 +780,23 @@ class TabbedBrowser(QWidget):
 
         if not self.widget.page_title(idx):
             self.widget.set_page_title(idx, url.toDisplayString())
+
+    def _mode_override(self, url: QUrl) -> None:
+        """Override mode if url matches pattern.
+
+        Args:
+            url: The QUrl to match for
+        """
+        if not url.isValid():
+            return
+        mode = config.instance.get('input.mode_override', url=url)
+        if mode:
+            log.modes.debug(f"Mode change to {mode} triggered for url {url}")
+            modeman.enter(
+                self._win_id,
+                usertypes.KeyMode[mode],
+                reason='mode_override',
+            )
 
     @pyqtSlot(browsertab.AbstractTab)
     def _on_icon_changed(self, tab):

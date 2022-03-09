@@ -34,7 +34,7 @@ show it.
 *'URL'*::
     URLs to open on startup (empty as a window separator).
 
-=== optional arguments
+=== options
 *-h*, *--help*::
     show this help message and exit
 
