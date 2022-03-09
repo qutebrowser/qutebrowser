@@ -367,16 +367,16 @@ class BaseKeyParser(QObject):
         """
         raise NotImplementedError
 
-    def _set_partial_timeout(self):
+    def _set_partial_timeout(self) -> None:
         """Set a timeout to clear a partial keystring."""
         timeout = config.val.input.partial_timeout
         if timeout != 0:
             self._partial_timer.setInterval(timeout)
-            self._partial_timer.timeout.connect(self.clear_partial_match)
+            self._partial_timer.timeout.connect(self._clear_partial_match)
             self._partial_timer.start()
 
     @pyqtSlot()
-    def clear_partial_match(self):
+    def _clear_partial_match(self) -> None:
         """Clear a partial keystring after a timeout."""
         self._debug_log("Clearing partial keystring {}".format(
             self._sequence))
@@ -395,7 +395,7 @@ class BaseKeyParser(QObject):
             self.keystring_updated.emit('')
         self._partial_timer.stop()
         try:
-            self._partial_timer.timeout.disconnect(self.clear_partial_match)
+            self._partial_timer.timeout.disconnect(self._clear_partial_match)
         except TypeError:
             # no connections
             pass
