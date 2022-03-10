@@ -124,13 +124,25 @@ input[type="radio"]:checked + label {
     white-space: pre-line;
 }
 
+details summary > * {
+    display: inline;
+}
+
+details[open] .details {
+    display: none;
+}
+
 summary {
     margin: .5ex 0;
     width: fit-content;
-    outline: none;
     color: #1887c5;
+    outline: none;
     font-size: 105%;
     cursor: pointer;
+}
+
+summary .short-description {
+    color: #635d5dcf;
 }
 
 summary::selection {
@@ -153,12 +165,16 @@ summary::selection {
         {% if option.description %}
           {% set description = option.description.split('\n', 1) %}
           <div class="option-description">
-            <p>{{ description[0]|e }}</p>
             {% if description|length > 1 %}
               <details>
-                <summary>Details</summary>
-                <p class="long-description">{{ description[1] }}</p>
+                <summary>
+                  <p class="short-description">{{ description[0]|e }}</p>
+                  <span class="details">Details</span>
+                </summary>
+                <p class="long-description">{{ description[1]|e }}</p>
               </details>
+            {% else %}
+              <p>{{ description[0]|e }}</p>
             {% endif %}
           </div>
         {% endif %}
