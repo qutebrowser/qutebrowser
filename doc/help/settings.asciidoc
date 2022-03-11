@@ -440,9 +440,7 @@ The following modes are available:
   that single keys can't be bound in this mode.
 
 * passthrough: Similar to insert mode, but passes through all keypresses
-  except `<Escape>` to leave the mode. It might be useful to bind
-  `<Escape>` to some other key in this mode if you want to be able to send
-  an Escape key to the website as well. Note that single keys can't be
+  except `<Shift+Escape>` to leave the mode. Note that single keys can't be
   bound in this mode.
 
 * command: Entered when pressing the `:` key in order to enter a command.
