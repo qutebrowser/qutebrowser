@@ -199,11 +199,6 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
         ),
         (
-            re.compile(r'# type: ignore[^\[]'),
-            ("Don't use a blanket 'type: ignore', use something like "
-             "'type: ignore[error-code]' instead."),
-        ),
-        (
             re.compile(r'# type: (?!ignore(\[|$))'),
             "Don't use type comments, use type annotations instead.",
         ),
