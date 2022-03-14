@@ -2,12 +2,12 @@
 
 chardet==4.0.0
 diff-cover==6.4.4
-importlib-metadata==4.11.2
+importlib-metadata==4.11.3
 importlib-resources==5.4.0
 Jinja2==3.0.3
 lxml==4.8.0
 MarkupSafe==2.1.0
-mypy==0.931
+mypy==0.940
 mypy-extensions==0.4.3
 pluggy==1.0.0
 Pygments==2.11.2
