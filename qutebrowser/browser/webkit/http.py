@@ -101,8 +101,15 @@ class ContentDisposition:
             if defects != [cls._IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
                 raise ContentDispositionError(defects)
 
-        assert isinstance(parsed, email.headerregistry.ContentDispositionHeader), parsed
-        return cls(disposition=parsed.content_disposition, params=parsed.params)
+        # https://github.com/python/mypy/issues/12314
+        assert isinstance(
+            parsed,  # type: ignore[unreachable]
+            email.headerregistry.ContentDispositionHeader,
+        ), parsed
+        return cls(  # type: ignore[unreachable]
+            disposition=parsed.content_disposition,
+            params=parsed.params,
+        )
 
     def filename(self):
         """The filename from the Content-Disposition header or None.

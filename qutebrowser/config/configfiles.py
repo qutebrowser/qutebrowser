@@ -384,8 +384,8 @@ class YamlMigrations(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, settings: _SettingsType,
-                 parent: QObject = None) -> None:
+    # Note: settings is Any because it's not validated yet.
+    def __init__(self, settings: Any, parent: QObject = None) -> None:
         super().__init__(parent)
         self._settings = settings
 
