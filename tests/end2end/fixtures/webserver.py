@@ -149,11 +149,9 @@ class WebserverProcess(testprocess.Process):
 
     def _random_port(self) -> int:
         """Get a random free port."""
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('localhost', 0))
-        port = sock.getsockname()[1]
-        sock.close()
-        return port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(('localhost', 0))
+            return sock.getsockname()[1]
 
     def get_requests(self):
         """Get the requests to the server during this test."""
