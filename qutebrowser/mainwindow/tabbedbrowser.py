@@ -513,8 +513,7 @@ class TabbedBrowser(QWidget):
             last_close_urlstr = urls[last_close].toString().rstrip('/')
             first_tab_urlstr = first_tab_url.toString().rstrip('/')
             last_close_url_used = first_tab_urlstr == last_close_urlstr
-            use_current_tab = (only_one_tab_open and no_history and
-                               last_close_url_used)
+            use_current_tab = no_history and last_close_url_used
 
         entries = self.undo_stack[-depth]
         del self.undo_stack[-depth]
