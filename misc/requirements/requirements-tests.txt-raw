@@ -53,3 +53,7 @@ tldextract
 #@ add: itsdangerous<2.1.0 ; python_version=="3.6.*"
 #@ markers: tldextract python_version>="3.7"
 #@ add: tldextract<3.2.0 ; python_version=="3.6.*"
+#@ markers: Mako python_version>="3.7"
+#@ add: Mako<1.2.0 ; python_version=="3.6.*"
+#@ markers: pytest python_version>="3.7"
+#@ add: pytest<7.1.0 ; python_version=="3.6.*"

@@ -19,7 +19,7 @@ iniconfig==1.1.1
 itsdangerous==2.1.1 ; python_version>="3.7"
 jaraco.functools==3.5.0 ; python_version>="3.7"
 # Jinja2==3.0.3
-Mako==1.2.0
+Mako==1.2.0 ; python_version>="3.7"
 manhole==1.8.0
 # MarkupSafe==2.1.0
 more-itertools==8.12.0
@@ -32,7 +32,7 @@ py==1.11.0
 py-cpuinfo==8.0.0
 Pygments==2.11.2
 pyparsing==3.0.7
-pytest==7.1.0
+pytest==7.1.0 ; python_version>="3.7"
 pytest-bdd==4.1.0
 pytest-benchmark==3.4.1
 pytest-cov==3.0.0
@@ -65,3 +65,5 @@ coverage<6.3 ; python_version=="3.6.*"
 pytest-mock<3.7 ; python_version=="3.6.*"
 itsdangerous<2.1.0 ; python_version=="3.6.*"
 tldextract<3.2.0 ; python_version=="3.6.*"
+Mako<1.2.0 ; python_version=="3.6.*"
+pytest<7.1.0 ; python_version=="3.6.*"
