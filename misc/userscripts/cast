@@ -150,6 +150,7 @@ cast_program=$(command -v castnow)
 QUTE_CONFIG_DIR=${QUTE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/qutebrowser/}
 QUTE_CAST_CONFIG=${QUTE_CAST_CONFIG:-${QUTE_CONFIG_DIR}/cast_rc}
 if [ -f "$QUTE_CAST_CONFIG" ] ; then
+    # shellcheck source=/dev/null
     source "$QUTE_CAST_CONFIG"
 fi
 
