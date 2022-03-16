@@ -144,7 +144,7 @@ fi
 pkill -f "${program_}"
 
 # start youtube download in stream mode (-o -) into temporary file
-youtube-dl -qo - "$1" > "${file_to_cast}" &
+yt-dlp -qo - "$1" > "${file_to_cast}" &
 ytdl_pid=$!
 
 msg info "Casting $1" >> "$QUTE_FIFO"
