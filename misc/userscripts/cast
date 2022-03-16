@@ -20,6 +20,17 @@
 #
 # Dependencies
 #   - castnow, https://github.com/xat/castnow
+#   - youtube-dl (https://youtube-dl.org/) or a drop-in replacement such as
+#     yt-dlp (https://github.com/yt-dlp/yt-dlp).
+#
+# Configuration:
+#   This script loads the bash script ~/.config/qutebrowser/cast_rc (if
+#   it exists) or whatever file is specified in QUTE_CAST_CONFIG, so you can
+#   override the program used for downloading videos.
+#
+#   For example:
+#
+#     ytdl_program=yt-dlp
 #
 # Author
 #   Simon Désaulniers <sim.desaulniers@gmail.com>
@@ -133,23 +144,40 @@ echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
 
 tmpdir=$(mktemp -d)
 file_to_cast=${tmpdir}/qutecast
-program_=$(command -v castnow)
+cast_program=$(command -v castnow)
 
-if [[ "${program_}" == "" ]]; then
+# load optional config
+QUTE_CONFIG_DIR=${QUTE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/qutebrowser/}
+QUTE_CAST_CONFIG=${QUTE_CAST_CONFIG:-${QUTE_CONFIG_DIR}/cast_rc}
+if [ -f "$QUTE_CAST_CONFIG" ] ; then
+    source "$QUTE_CAST_CONFIG"
+fi
+
+# if ytdl_program wasn't specified in config, use a fallback
+for p in "$ytdl_program" yt-dlp youtube-dl; do
+  ytdl_program=$(command -v "$p")
+  [ "$ytdl_program" == "" ] || break
+done
+
+if [[ "${cast_program}" == "" ]]; then
     msg error "castnow can't be found..."
+    exit 1
+fi
+if [[ "${ytdl_program}" == "" ]]; then
+    msg error "youtube-dl (or a drop-in replacement) can't be found..."
     exit 1
 fi
 
 # kill any running instance of castnow
-pkill -f "${program_}"
+pkill -f "${cast_program}"
 
 # start youtube download in stream mode (-o -) into temporary file
-yt-dlp -qo - "$1" > "${file_to_cast}" &
+${ytdl_program} -qo - "$1" > "${file_to_cast}" &
 ytdl_pid=$!
 
 msg info "Casting $1" >> "$QUTE_FIFO"
 # start castnow in stream mode to cast on ChromeCast
-tail -F "${file_to_cast}" | ${program_} -
+tail -F "${file_to_cast}" | ${cast_program} -
 
 # cleanup remaining background process and file on disk
 kill ${ytdl_pid}
