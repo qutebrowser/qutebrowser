@@ -65,6 +65,7 @@ input[type="radio"] {
     width: min-content;
     margin: 0;
     border: none;
+    cursor: pointer;
 }
 
 label {
@@ -79,6 +80,12 @@ label {
 input[type="radio"]:checked + label {
     background-color: #a6dfff;
     color: #084c88;
+}
+
+.radio-button {
+    position: relative; /* The absolutely positioned element inside this tag (the radio button) gets positioned relative to it. */
+    display: inline-flex;
+    margin: 3px 1px;
 }
 
 .setting {
@@ -107,13 +114,39 @@ input[type="radio"]:checked + label {
     color: #635d5dcf;
     font-size: 80%;
     font-style: italic;
+}
+
+.option-description p {
+    margin: 0;
+}
+
+.long-description {
     white-space: pre-line;
 }
 
-.radio-button {
-    position: relative; /* The absolutely positioned element inside this tag (the radio button) gets positioned relative to it. */
-    display: inline-flex;
-    margin: 3px 1px;
+details summary > * {
+    display: inline;
+}
+
+details[open] .details {
+    display: none;
+}
+
+summary {
+    margin: .5ex 0;
+    width: fit-content;
+    color: #1887c5;
+    outline: none;
+    font-size: 105%;
+    cursor: pointer;
+}
+
+summary .short-description {
+    color: #635d5dcf;
+}
+
+summary::selection {
+    background-color: inherit;
 }
 {% endblock %}
 
@@ -126,35 +159,49 @@ input[type="radio"]:checked + label {
     </tr>
   {% for option in configdata.DATA.values()|sort(attribute='name') if not option.no_autoconfig %}
     <tr>
+      {% set loopIndex = loop.index0 %}
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }}
         {% if option.description %}
-          <p class="option-description">{{ option.description|e }}</p>
+          {% set description = option.description.split('\n', 1) %}
+          <div class="option-description">
+            {% if description|length > 1 %}
+              <details>
+                <summary>
+                  <p class="short-description">{{ description[0]|e }}</p>
+                  <span class="details">Details</span>
+                </summary>
+                <p class="long-description">{{ description[1]|e }}</p>
+              </details>
+            {% else %}
+              <p>{{ description[0]|e }}</p>
+            {% endif %}
+          </div>
         {% endif %}
       </td>
       {% if option.typ.valid_values is not none %}
         <td class="valid-value">
           {% for value in option.typ.valid_values.values %}
-	    <div class="radio-button">
-	      <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
-	        name="{{ option.name }}" value="{{ value }}"
-	        onclick="cset('{{ option.name }}', this.value)"
-	        {% if confget(option.name) == value %}
-		  checked
-		{% endif %}>
-	      <label for="input-{{ option.name }}-{{ loop.index0 }}">
-	        {{ value }}
-	      </label>
-	      </div>
-	  {% endfor %}
-	</td>
+            <div class="radio-button">
+              <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
+                name="{{ option.name }}" value="{{ value }}"
+                onclick="cset('{{ option.name }}', this.value)"
+                {% if confget(option.name) == value %}
+                  checked
+                {% endif %}>
+              <label for="input-{{ option.name }}-{{ loop.index0 }}">
+                {{ value }}
+              </label>
+              </div>
+          {% endfor %}
+        </td>
       {% else %}
         <td class="value">
-	  <input type="text"
-	    id="input-{{ option.name }}"
-	    onblur="cset('{{ option.name }}', this.value)"
-	    value="{{ confget(option.name) }}">
-	  </input>
+          <input type="text"
+            id="input-{{ option.name }}"
+            onblur="cset('{{ option.name }}', this.value)"
+            value="{{ confget(option.name) }}">
+          </input>
         </td>
       {% endif %}
     </tr>
