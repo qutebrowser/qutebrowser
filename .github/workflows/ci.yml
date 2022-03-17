@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get install --no-install-recommends asciidoc
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
