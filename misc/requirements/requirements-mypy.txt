@@ -6,14 +6,14 @@ importlib-metadata==4.11.3
 importlib-resources==5.4.0
 Jinja2==3.0.3
 lxml==4.8.0
-MarkupSafe==2.1.0
-mypy==0.940
+MarkupSafe==2.1.1
+mypy==0.941
 mypy-extensions==0.4.3
 pluggy==1.0.0
 Pygments==2.11.2
 PyQt5-stubs==5.15.2.0
 tomli==2.0.1
 types-dataclasses==0.6.4
-types-PyYAML==6.0.4
+types-PyYAML==6.0.5
 typing_extensions==4.1.1
 zipp==3.7.0

@@ -7,7 +7,7 @@ certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.12
 colorama==0.4.4
-cryptography==36.0.1
+cryptography==36.0.2
 docutils==0.18.1
 github3.py==3.2.0
 hunter==3.4.3
@@ -38,6 +38,6 @@ tomli==2.0.1
 tqdm==4.63.0
 twine==3.8.0
 uritemplate==4.1.1
-# urllib3==1.26.8
+# urllib3==1.26.9
 webencodings==0.5.1
 zipp==3.7.0
