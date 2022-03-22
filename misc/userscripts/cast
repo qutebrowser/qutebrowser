@@ -145,8 +145,8 @@ cast_program=$(command -v castnow)
 
 # pick a ytdl program
 for p in "$QUTE_CAST_YTDL_PROGRAM" yt-dlp youtube-dl; do
-  ytdl_program=$(command -v -- "$p")
-  [ "$ytdl_program" == "" ] || break
+    ytdl_program=$(command -v -- "$p")
+    [ "$ytdl_program" == "" ] || break
 done
 
 if [[ "${cast_program}" == "" ]]; then
@@ -154,7 +154,7 @@ if [[ "${cast_program}" == "" ]]; then
     exit 1
 fi
 if [[ "${ytdl_program}" == "" ]]; then
-  msg error "youtube-dl or a drop-in replacement can't be found in PATH, and no installed program "\
+    msg error "youtube-dl or a drop-in replacement can't be found in PATH, and no installed program "\
 "specified in QUTE_CAST_YTDL_PROGRAM (currently \\\"$QUTE_CAST_YTDL_PROGRAM\\\")"
     exit 1
 fi
