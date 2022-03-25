@@ -23,6 +23,7 @@ Because many modules depend on this command, this needs to have as few
 dependencies as possible to avoid cyclic dependencies.
 """
 
+import weakref
 from typing import Any, Callable, List, Optional, Tuple, TypeVar
 
 
@@ -36,7 +37,8 @@ _T = TypeVar('_T', bound=Callable[..., Any])
 def register(name: Optional[str] = None) -> Callable[[_T], _T]:
     """Register a lru_cache wrapped function for debug_cache_stats."""
     def wrapper(fn: _T) -> _T:
-        _CACHE_FUNCTIONS.append((fn.__name__ if name is None else name, fn))
+        fn_ref = weakref.ref(fn)
+        _CACHE_FUNCTIONS.append((fn.__name__ if name is None else name, fn_ref))
         return fn
     return wrapper
 
@@ -44,5 +46,9 @@ def register(name: Optional[str] = None) -> Callable[[_T], _T]:
 def debug_cache_stats() -> None:
     """Print LRU cache stats."""
     from qutebrowser.utils import log
-    for name, fn in _CACHE_FUNCTIONS:
+    for idx, (name, fn_ref) in reversed(list(enumerate(_CACHE_FUNCTIONS))):
+        fn = fn_ref()
+        if not fn:
+            _CACHE_FUNCTIONS.pop(idx)
+            continue
         log.misc.info('{}: {}'.format(name, fn.cache_info()))
