@@ -410,6 +410,15 @@ class TabBar(QTabBar):
         config.instance.changed.connect(self._on_config_changed)
         self._set_icon_size()
         QTimer.singleShot(0, self.maybe_hide)
+        self._minimum_tab_size_hint_helper = functools.lru_cache(maxsize=2**9)(
+            self._minimum_tab_size_hint_helper_uncached
+        )
+        debugcachestats.register(name=f'tab width cache (win_id={win_id})')(
+            self._minimum_tab_size_hint_helper
+        )
+        self._minimum_tab_height = functools.lru_cache(maxsize=1)(
+            self._minimum_tab_height_uncached
+        )
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -575,11 +584,9 @@ class TabBar(QTabBar):
                                                   icon_width, ellipsis,
                                                   pinned)
 
-    @debugcachestats.register(name='tab width cache')
-    @functools.lru_cache(maxsize=2**9)
-    def _minimum_tab_size_hint_helper(self, tab_text: str,
-                                      icon_width: int,
-                                      ellipsis: bool, pinned: bool) -> QSize:
+    def _minimum_tab_size_hint_helper_uncached(self, tab_text: str,
+                                               icon_width: int,
+                                               ellipsis: bool, pinned: bool) -> QSize:
         """Helper function to cache tab results.
 
         Config values accessed in here should be added to _on_config_changed to
@@ -610,8 +617,7 @@ class TabBar(QTabBar):
             width = max(min_width, width)
         return QSize(width, height)
 
-    @functools.lru_cache(maxsize=1)
-    def _minimum_tab_height(self):
+    def _minimum_tab_height_uncached(self):
         padding = config.cache['tabs.padding']
         return self.fontMetrics().height() + padding.top + padding.bottom
 
