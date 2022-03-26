@@ -128,7 +128,7 @@ def debug_cache_stats() -> None:
     """Print LRU cache stats."""
     if sys.version_info < (3, 9):
         raise cmdutils.CommandError('debugcachestats not supported on python < 3.9')
-    debugcachestats.debug_cache_stats()
+    debugcachestats.debug_cache_stats()  # type: ignore[unreachable]
 
 
 @cmdutils.register(debug=True)
