@@ -163,28 +163,33 @@ class BaseKeyParser(QObject):
                        arg 1: Reason for leaving.
                        arg 2: Ignore the request if we're not in that mode
     """
+    #TODO: partial docs
 
     keystring_updated = pyqtSignal(str)
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
+    forward_partial_key = pyqtSignal(str)
+    clear_partial_keys = pyqtSignal()
 
     def __init__(self, *, mode: usertypes.KeyMode,
                  win_id: int,
                  parent: QObject = None,
                  do_log: bool = True,
                  passthrough: bool = False,
-                 supports_count: bool = True) -> None:
+                 supports_count: bool = True,
+                 allow_partial_timeout: bool = False) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._sequence = keyutils.KeySequence()
+        self._pure_sequence = keyutils.KeySequence()
         self._count = ''
+        self._count_keyposs = []
         self._mode = mode
         self._do_log = do_log
         self.passthrough = passthrough
         self._supports_count = supports_count
+        self.allow_partial_timeout = allow_partial_timeout
         self.bindings = BindingTrie()
         self._read_config()
-        self._partial_timer = usertypes.Timer(self, 'partial-match')
-        self._partial_timer.setSingleShot(True)
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self) -> str:
@@ -192,7 +197,8 @@ class BaseKeyParser(QObject):
                               win_id=self._win_id,
                               do_log=self._do_log,
                               passthrough=self.passthrough,
-                              supports_count=self._supports_count)
+                              supports_count=self._supports_count,
+                              allow_partial_timeout=self.allow_partial_timeout)
 
     def _debug_log(self, msg: str) -> None:
         """Log a message to the debug log if logging is active.
@@ -241,19 +247,20 @@ class BaseKeyParser(QObject):
                            command=None,
                            sequence=sequence)
 
-    def _match_count(self, sequence: keyutils.KeySequence,
-                     dry_run: bool) -> bool:
+    def _match_count(self, sequence: keyutils.KeySequence, count: str,
+                     keypos: int, dry_run: bool) -> bool:
         """Try to match a key as count."""
         if not config.val.input.match_counts:
             return False
 
         txt = str(sequence[-1])  # To account for sequences changed above.
         if (txt in string.digits and self._supports_count and
-                not (not self._count and txt == '0')):
+                not (not count and txt == '0')):
             self._debug_log("Trying match as count")
             assert len(txt) == 1, txt
             if not dry_run:
                 self._count += txt
+                self._count_keyposs.append(keypos)
                 self.keystring_updated.emit(self._count + str(self._sequence))
             return True
         return False
@@ -288,55 +295,111 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring, only modifier")
             return QKeySequence.SequenceMatch.NoMatch
 
+        had_empty_queue = (not self._pure_sequence) and (not self._count)
+
         try:
-            sequence = self._sequence.append_event(e)
+            pure_sequence = self._pure_sequence.append_event(e)
         except keyutils.KeyParseError as ex:
             self._debug_log("{} Aborting keychain.".format(ex))
             self.clear_keystring()
             return QKeySequence.SequenceMatch.NoMatch
 
-        result = self._match_key(sequence)
-        del sequence  # Enforce code below to use the modified result.sequence
-
-        if result.match_type == QKeySequence.SequenceMatch.NoMatch:
-            result = self._match_without_modifiers(result.sequence)
-        if result.match_type == QKeySequence.SequenceMatch.NoMatch:
-            result = self._match_key_mapping(result.sequence)
-        if result.match_type == QKeySequence.SequenceMatch.NoMatch:
-            was_count = self._match_count(result.sequence, dry_run)
-            if was_count:
-                self._set_partial_timeout()
-                return QKeySequence.SequenceMatch.ExactMatch
+        # Have these shadow variables to have replicable behavior when doing a
+        # dry_run
+        count = self._count
+        count_keyposs = self._count_keyposs.copy()
+        while pure_sequence:
+            result = self._match_key(pure_sequence)
+            # Enforce code below to use the modified result.sequence
+            if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+                self._debug_log("No match for '{}'. Attempting without "
+                                "modifiers.".format(result.sequence))
+                result = self._match_without_modifiers(result.sequence)
+            if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+                self._debug_log("No match for '{}'. Attempting with key "
+                                "mappings.".format(result.sequence))
+                seq_len = len(result.sequence)
+                result = self._match_key_mapping(result.sequence)
+            if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+                # this length check is to ensure that key mappings from the
+                # _match_key_mapping call that directly convert a single key to
+                # a numeral character are allowed to be recognized as counts.
+                # The case where a mapping from a single key to multiple keys
+                # (including a count) is present is unlikely, and the handling
+                # of such an event is not obvious, so for now we do not support
+                # it at all.
+                if len(result.sequence) == seq_len:
+                    self._debug_log("No match for '{}'. Attempting count "
+                                    "match.".format(result.sequence))
+                    was_count = self._match_count(result.sequence, count,
+                        len(self._pure_sequence), dry_run)
+                    if was_count:
+                        self._debug_log("Was a count match.")
+                        return QKeySequence.SequenceMatch.PartialMatch
+                else:
+                    self._debug_log("No match for '{}'. Mappings expanded "
+                                    "the length of the sequence, so no count "
+                                    "matching will be attempted.".format(
+                                        result.sequence))
+            if not dry_run:
+                self._sequence = result.sequence
+                self._pure_sequence = pure_sequence
+            # TODO: forwarding debug log message
+            if result.match_type:
+                break
+            else:
+                # TODO ensure all actual values are shadowed properly for dry_run
+                if not had_empty_queue:
+                    self._debug_log("No match for '{}'. Will forward first "
+                                    "key in the sequence and retry.".format(
+                                        result.sequence))
+                    # TODO: empty handling (and find all others and fix)
+                    while count_keyposs and (0 == count_keyposs[0]):
+                        self._debug_log("Hit a queued count key ('{}'). "
+                                        "Forwarding.".format(count[0]))
+                        count = count[1:]
+                        count_keyposs.pop(0)
+                        if not dry_run:
+                            self.forward_partial_key.emit(self._count[0])
+                            # TODO: remove all = [1:] and so on with pops instead for non-strings
+                            # TODO: check that matching is unaffected by count changing, e.g. for dry_runs
+                            self._count = self._count[1:]
+                            self._count_keyposs.pop(0)
+                            # TODO: TODO ensure the keystring is updated after this
+                    self._debug_log("Forwarding first key in sequence "
+                                    "('{}').".format(str(pure_sequence[0])))
+                    count_keyposs = [x - 1 for x in count_keyposs]
+                    if not dry_run:
+                        self._count_keyposs = [x - 1 for x in self._count_keyposs]
+                        # TODO: TODO ensure there's always a 0th element here
+                        self.forward_partial_key.emit(str(self._pure_sequence[0]))
+                else:
+                    self._debug_log("No partial keys in queue. Continuing.")
+                pure_sequence = pure_sequence[1:]
+                # TODO: TODO check if on next loop a count could've slipped in somehow
 
         if dry_run:
             return result.match_type
 
-        self._sequence = result.sequence
-        self._handle_result(info, result)
-        return result.match_type
-
-    def _handle_result(self, info: keyutils.KeyInfo, result: MatchResult) -> None:
-        """Handle a final MatchResult from handle()."""
         if result.match_type == QKeySequence.SequenceMatch.ExactMatch:
             assert result.command is not None
             self._debug_log("Definitive match for '{}'.".format(
                 result.sequence))
-
             try:
                 count = int(self._count) if self._count else None
+                flag_do_execute = True
             except ValueError as err:
                 message.error(f"Failed to parse count: {err}",
                               stack=traceback.format_exc())
-                self.clear_keystring()
-                return
-
+                flag_do_execute = False
+            self.clear_partial_keys.emit()
             self.clear_keystring()
-            self.execute(result.command, count)
+            if flag_do_execute:
+                self.execute(result.command, count)
         elif result.match_type == QKeySequence.SequenceMatch.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 result.sequence, info))
             self.keystring_updated.emit(self._count + str(result.sequence))
-            self._set_partial_timeout()
         elif result.match_type == QKeySequence.SequenceMatch.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 result.sequence))
@@ -367,35 +430,18 @@ class BaseKeyParser(QObject):
         """
         raise NotImplementedError
 
-    def _set_partial_timeout(self) -> None:
-        """Set a timeout to clear a partial keystring."""
-        timeout = config.val.input.partial_timeout
-        if timeout != 0:
-            self._partial_timer.setInterval(timeout)
-            self._partial_timer.timeout.connect(self._clear_partial_match)
-            self._partial_timer.start()
-
-    @pyqtSlot()
-    def _clear_partial_match(self) -> None:
-        """Clear a partial keystring after a timeout."""
-        self._debug_log("Clearing partial keystring {}".format(
-            self._sequence))
-        if self._count:
-            self._count = ''
-        self._sequence = keyutils.KeySequence()
-        self.keystring_updated.emit(str(self._sequence))
-
     def clear_keystring(self) -> None:
         """Clear the currently entered key sequence."""
+        if self._count:
+            self._debug_log("Clearing keystring count (was: {}).".format(
+                self._count))
+            self._count = ''
+            self._count_keyposs = []
+        # TODO: better handling of clearing managing _pure_sequence length
+        if self._pure_sequence:
+            self._pure_sequence = keyutils.KeySequence()
         if self._sequence:
             self._debug_log("Clearing keystring (was: {}).".format(
                 self._sequence))
             self._sequence = keyutils.KeySequence()
-            self._count = ''
             self.keystring_updated.emit('')
-        self._partial_timer.stop()
-        try:
-            self._partial_timer.timeout.disconnect(self._clear_partial_match)
-        except TypeError:
-            # no connections
-            pass

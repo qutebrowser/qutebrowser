@@ -20,12 +20,17 @@ BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
                        '1': 'message-info 1'},
             'command': {'foo': 'message-info bar',
                         '<Ctrl+X>': 'message-info ctrlx'},
-            'normal': {'a': 'message-info a', 'ba': 'message-info ba'}}
+            'normal': {'a': 'message-info a',
+                       'ba': 'message-info ba',
+                       'ccc': 'message-info ccc'}
+}
 MAPPINGS = {
     'x': 'a',
     'b': 'a',
+    'e': 'd',
 }
 
+# TODO: ensure multiple-length mappings are safe
 
 @pytest.fixture
 def keyinput_bindings(config_stub, key_config_stub):
