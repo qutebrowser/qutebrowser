@@ -59,7 +59,7 @@ def pytest_unconfigure(config):
         stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
 
 
-def _check_hex_version(op_str, running_version, version):
+def _check_version(op_str, running_version, version_str, as_hex=False):
     operators = {
         '==': operator.eq,
         '!=': operator.ne,
@@ -69,9 +69,12 @@ def _check_hex_version(op_str, running_version, version):
         '<': operator.lt,
     }
     op = operators[op_str]
-    major, minor, patch = [int(e) for e in version.split('.')]
-    hex_version = (major << 16) | (minor << 8) | patch
-    return op(running_version, hex_version)
+    major, minor, patch = [int(e) for e in version_str.split('.')]
+    if as_hex:
+        version = (major << 16) | (minor << 8) | patch
+    else:
+        version = (major, minor, patch)
+    return op(running_version, version)
 
 
 def _get_version_tag(tag):
@@ -82,7 +85,7 @@ def _get_version_tag(tag):
     casesinto an appropriate @pytest.mark.skip marker, and falls back to
     """
     version_re = re.compile(r"""
-        (?P<package>qt|pyqt|pyqtwebengine)
+        (?P<package>qt|pyqt|pyqtwebengine|python)
         (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
@@ -106,10 +109,11 @@ def _get_version_tag(tag):
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
         return pytest.mark.skipif(
-            not _check_hex_version(
+            not _check_version(
                 op_str=match.group('operator'),
                 running_version=PYQT_VERSION,
-                version=version
+                version_str=version,
+                as_hex=True,
             ),
             reason='Needs ' + tag,
         )
@@ -121,10 +125,21 @@ def _get_version_tag(tag):
         else:
             running_version = PYQT_WEBENGINE_VERSION
         return pytest.mark.skipif(
-            not _check_hex_version(
+            not _check_version(
                 op_str=match.group('operator'),
                 running_version=running_version,
-                version=version
+                version_str=version,
+                as_hex=True,
+            ),
+            reason='Needs ' + tag,
+        )
+    elif package == 'python':
+        running_version = sys.version_info
+        return pytest.mark.skipif(
+            not _check_version(
+                op_str=match.group('operator'),
+                running_version=running_version,
+                version_str=version,
             ),
             reason='Needs ' + tag,
         )
