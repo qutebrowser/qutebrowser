@@ -42,31 +42,6 @@ class TestsNormalKeyParser:
         assert commandrunner.commands == [('message-info ba', None)]
         assert not keyparser._sequence
 
-    def test_partial_keychain_timeout(self, keyparser, config_stub,
-                                      qtbot, commandrunner):
-        """Test partial keychain timeout."""
-        config_stub.val.input.partial_timeout = 100
-        timer = keyparser._partial_timer
-        assert not timer.isActive()
-
-        # Press 'b' for a partial match.
-        # Then we check if the timer has been set up correctly
-        keyparser.handle(keyutils.KeyInfo(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier).to_event())
-        assert timer.isSingleShot()
-        assert timer.interval() == 100
-        assert timer.isActive()
-
-        assert not commandrunner.commands
-        assert keyparser._sequence == keyutils.KeySequence.parse('b')
-
-        # Now simulate a timeout and check the keystring has been cleared.
-        with qtbot.wait_signal(keyparser.keystring_updated) as blocker:
-            timer.timeout.emit()
-
-        assert not commandrunner.commands
-        assert not keyparser._sequence
-        assert blocker.args == ['']
-
 
 class TestHintKeyParser:
 

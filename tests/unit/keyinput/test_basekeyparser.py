@@ -10,6 +10,7 @@ import sys
 from unittest import mock
 
 from qutebrowser.qt.core import Qt
+from qutebrowser.qt.gui import QKeySequence
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
@@ -82,6 +83,38 @@ def test_split_count(config_stub, key_config_stub,
     assert kp._sequence == keyseq(command)
 
 
+# NOTE: One may want to change this behavior in the future.
+@pytest.mark.parametrize('input_key, final_count, final_match_state', [
+    ('2b1a', 21, QKeySequence.SequenceMatch.ExactMatch),
+    ('1b1a', 11, QKeySequence.SequenceMatch.ExactMatch),
+    ('1b0a', 10, QKeySequence.SequenceMatch.ExactMatch),
+    ('32b1a', 321, QKeySequence.SequenceMatch.ExactMatch),
+    ('3b21a', 321, QKeySequence.SequenceMatch.ExactMatch),
+    ('2c1c', 21, QKeySequence.SequenceMatch.PartialMatch),
+    ('1c1c', 11, QKeySequence.SequenceMatch.PartialMatch),
+    ('1c0c', 10, QKeySequence.SequenceMatch.PartialMatch),
+    ('32c1c', 321, QKeySequence.SequenceMatch.PartialMatch),
+    ('3c21c', 321, QKeySequence.SequenceMatch.PartialMatch),
+    ('2c1cc', 21, QKeySequence.SequenceMatch.ExactMatch),
+    ('2cc1c', 21, QKeySequence.SequenceMatch.ExactMatch),
+    ('c2c1c', 21, QKeySequence.SequenceMatch.ExactMatch),
+    ('3c2c1c', 321, QKeySequence.SequenceMatch.ExactMatch),
+])
+def test_mixed_count(keyparser, config_stub, input_key, final_count, final_match_state):
+    for i, info in enumerate(keyseq(input_key)):
+        result = keyparser.handle(info.to_event())
+        if (len(input_key) - 1) != i:
+            assert result == QKeySequence.SequenceMatch.PartialMatch
+        else:
+            assert result == final_match_state
+            if result == QKeySequence.SequenceMatch.ExactMatch:
+                keyparser.execute.assert_called_once_with(mock.ANY, final_count)
+            elif result == QKeySequence.SequenceMatch.PartialMatch:
+                assert keyparser._count == str(final_count)
+            else:
+                assert False, 'Not Implemented'
+
+
 def test_empty_binding(keyparser, config_stub):
     """Make sure setting an empty binding doesn't crash."""
     config_stub.val.bindings.commands = {'normal': {'co': ''}}
@@ -133,7 +166,7 @@ class TestHandle:
             'message-info ctrla', 5)
 
     @pytest.mark.parametrize('keys', [
-        [(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier), (Qt.Key.Key_C, Qt.KeyboardModifier.NoModifier)],
+        [(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier), (Qt.Key.Key_D, Qt.KeyboardModifier.NoModifier)],
         [(Qt.Key.Key_A, Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)],
         # Only modifier
         [(Qt.Key.Key_Shift, Qt.KeyboardModifier.ShiftModifier)],
@@ -256,6 +289,118 @@ class TestHandle:
         keyparser.handle(info.to_event())
         keyparser.execute.assert_called_once_with('message-info foo', None)
 
+    def test_partial_no_execute(self, keyparser, config_stub):
+        """Make sure partial matches do not call execute."""
+        config_stub.val.bindings.commands = {
+            'normal': {
+                'abc': 'message-info foo',
+            }
+        }
+        info = keyutils.KeyInfo(Qt.Key.Key_A, Qt.KeyboardModifier.NoModifier)
+        result = keyparser.handle(info.to_event())
+        assert result == QKeySequence.SequenceMatch.PartialMatch
+        assert not keyparser.execute.called
+        info = keyutils.KeyInfo(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier)
+        result = keyparser.handle(info.to_event())
+        assert result == QKeySequence.SequenceMatch.PartialMatch
+        assert not keyparser.execute.called
+        info = keyutils.KeyInfo(Qt.Key.Key_C, Qt.KeyboardModifier.NoModifier)
+        result = keyparser.handle(info.to_event())
+        assert result == QKeySequence.SequenceMatch.ExactMatch
+        assert keyparser.execute.called
+
+    def test_partial_retains_sequence(self, keyparser, config_stub):
+        """Make sure partial matches retain the sequence."""
+        config_stub.val.bindings.commands = {
+            'normal': {
+                'abc': 'message-info foo',
+            }
+        }
+        info = keyutils.KeyInfo(Qt.Key.Key_A, Qt.KeyboardModifier.NoModifier)
+        result = keyparser.handle(info.to_event())
+        assert result == QKeySequence.SequenceMatch.PartialMatch
+        assert keyparser._sequence == keyseq('a')
+        info = keyutils.KeyInfo(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier)
+        result = keyparser.handle(info.to_event())
+        assert result == QKeySequence.SequenceMatch.PartialMatch
+        assert keyparser._sequence == keyseq('ab')
+        info = keyutils.KeyInfo(Qt.Key.Key_C, Qt.KeyboardModifier.NoModifier)
+        result = keyparser.handle(info.to_event())
+        assert result == QKeySequence.SequenceMatch.ExactMatch
+        assert keyparser._sequence == keyseq('')
+
+    @pytest.mark.parametrize('seq', [
+        (Qt.Key.Key_F,),
+        (Qt.Key.Key_F, Qt.Key.Key_G),
+        (Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H),
+        (Qt.Key.Key_2, Qt.Key.Key_F,),
+        (Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G),
+        (Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H),
+    ])
+    def test_forward_keys(self, config_stub, handle_text, keyparser, seq,
+                          qtbot):
+        config_stub.val.bindings.commands = {
+            'normal': {
+                'fy': 'message-info fy',
+                'fgy': 'message-info fgy',
+                'fghy': 'message-info fghy',
+            }
+        }
+        forward_partial_key = mock.Mock()
+        keyparser.forward_partial_key.connect(forward_partial_key)
+        handle_text(keyparser, *seq)
+        keyparser.execute.assert_not_called()
+        seq = list(seq) + [Qt.Key.Key_Z]
+        signals = [keyparser.forward_partial_key] * len(seq)
+        with qtbot.wait_signals(signals) as blocker:
+            handle_text(keyparser, seq[-1])
+        assert forward_partial_key.call_args_list == [
+            ((str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)),),) for key in seq
+        ]
+
+    @pytest.mark.parametrize('seq, count_seq', [
+        ((Qt.Key.Key_F,), ()),
+        ((Qt.Key.Key_F,), (Qt.Key.Key_2,)),
+        ((Qt.Key.Key_F,), (Qt.Key.Key_2, Qt.Key.Key_1)),
+        ((Qt.Key.Key_F, Qt.Key.Key_G), ()),
+        ((Qt.Key.Key_F, Qt.Key.Key_G), (Qt.Key.Key_2,)),
+        ((Qt.Key.Key_F, Qt.Key.Key_G), (Qt.Key.Key_2, Qt.Key.Key_1)),
+        ((Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H), ()),
+        ((Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H), (Qt.Key.Key_2,)),
+        ((Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H), (Qt.Key.Key_2, Qt.Key.Key_1)),
+        ((Qt.Key.Key_2, Qt.Key.Key_F), ()),
+        ((Qt.Key.Key_2, Qt.Key.Key_F), (Qt.Key.Key_2,)),
+        ((Qt.Key.Key_2, Qt.Key.Key_F), (Qt.Key.Key_2, Qt.Key.Key_1)),
+        ((Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G), ()),
+        ((Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G), (Qt.Key.Key_2,)),
+        ((Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G), (Qt.Key.Key_2, Qt.Key.Key_1)),
+        ((Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H), ()),
+        ((Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H), (Qt.Key.Key_2,)),
+        ((Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H), (Qt.Key.Key_2, Qt.Key.Key_1)),
+    ])
+    def test_forward_keys_partial(self, config_stub, handle_text, keyparser,
+                                  seq, count_seq, qtbot):
+        config_stub.val.bindings.commands = {
+            'normal': {
+                'fy': 'message-info fy',
+                'fgy': 'message-info fgy',
+                'fghy': 'message-info fghy',
+            }
+        }
+        forward_partial_key = mock.Mock()
+        keyparser.forward_partial_key.connect(forward_partial_key)
+        handle_text(keyparser, *seq)
+        keyparser.execute.assert_not_called()
+        signals = [keyparser.forward_partial_key] * len(seq)
+        with qtbot.wait_signals(signals) as blocker:
+            handle_text(keyparser, *count_seq, Qt.Key.Key_F)
+        assert forward_partial_key.call_args_list == [
+            ((str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)),),) for key in seq
+        ]
+        assert keyparser._count == ''.join(
+            str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)) for key in count_seq
+        )
+
 
 class TestCount:
 
@@ -283,7 +428,7 @@ class TestCount:
     def test_count_42_invalid(self, handle_text, prompt_keyparser):
         # Invalid call with ccx gets ignored
         handle_text(prompt_keyparser,
-                    Qt.Key.Key_4, Qt.Key.Key_2, Qt.Key.Key_C, Qt.Key.Key_C, Qt.Key.Key_X)
+                    Qt.Key.Key_4, Qt.Key.Key_2, Qt.Key.Key_C, Qt.Key.Key_C, Qt.Key.Key_E)
         assert not prompt_keyparser.execute.called
         assert not prompt_keyparser._sequence
         # Valid call with ccc gets the correct count
