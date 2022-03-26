@@ -24,7 +24,10 @@ dependencies as possible to avoid cyclic dependencies.
 """
 
 import weakref
+import sys
 from typing import Any, Callable, List, Optional, Tuple, TypeVar
+
+from qutebrowser.utils import log
 
 
 # The second element of each tuple should be a lru_cache wrapped function
@@ -37,15 +40,23 @@ _T = TypeVar('_T', bound=Callable[..., Any])
 def register(name: Optional[str] = None) -> Callable[[_T], _T]:
     """Register a lru_cache wrapped function for debug_cache_stats."""
     def wrapper(fn: _T) -> _T:
-        fn_ref = weakref.ref(fn)
-        _CACHE_FUNCTIONS.append((fn.__name__ if name is None else name, fn_ref))
-        return fn
+        fn_name = fn.__name__ if name is None else name
+        if sys.version_info < (3, 9):
+            log.misc.vdebug(  # type: ignore[attr-defined]
+                'debugcachestats not supported on python < 3.9, not adding \'%s\'',
+                fn_name,
+            )
+            return fn
+
+        else:
+            fn_ref = weakref.ref(fn)
+            _CACHE_FUNCTIONS.append((fn_name, fn_ref))
+            return fn
     return wrapper
 
 
 def debug_cache_stats() -> None:
     """Print LRU cache stats."""
-    from qutebrowser.utils import log
     for idx, (name, fn_ref) in reversed(list(enumerate(_CACHE_FUNCTIONS))):
         fn = fn_ref()
         if not fn:

@@ -23,6 +23,7 @@
 
 import functools
 import os
+import sys
 import traceback
 from typing import Optional
 
@@ -125,7 +126,10 @@ def debug_all_objects() -> None:
 @cmdutils.register(debug=True)
 def debug_cache_stats() -> None:
     """Print LRU cache stats."""
-    debugcachestats.debug_cache_stats()
+    if sys.version_info < (3, 9):
+        message.error('debugcachestats not supported on python < 3.9')
+    else:
+        debugcachestats.debug_cache_stats()
 
 
 @cmdutils.register(debug=True)
