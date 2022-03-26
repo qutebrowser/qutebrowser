@@ -25,13 +25,13 @@ dependencies as possible to avoid cyclic dependencies.
 
 import weakref
 import sys
-from typing import Any, Callable, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, Optional, TypeVar, Mapping
 
 from qutebrowser.utils import log
 
 
-# The second element of each tuple should be a lru_cache wrapped function
-_CACHE_FUNCTIONS: List[Tuple[str, Any]] = []
+# The callable should be a lru_cache wrapped function
+_CACHE_FUNCTIONS: Mapping[str, Any] = weakref.WeakValueDictionary()
 
 
 _T = TypeVar('_T', bound=Callable[..., Any])
@@ -49,17 +49,12 @@ def register(name: Optional[str] = None) -> Callable[[_T], _T]:
             return fn
 
         else:
-            fn_ref = weakref.ref(fn)
-            _CACHE_FUNCTIONS.append((fn_name, fn_ref))
+            _CACHE_FUNCTIONS[fn_name] = fn
             return fn
     return wrapper
 
 
 def debug_cache_stats() -> None:
     """Print LRU cache stats."""
-    for idx, (name, fn_ref) in reversed(list(enumerate(_CACHE_FUNCTIONS))):
-        fn = fn_ref()
-        if not fn:
-            _CACHE_FUNCTIONS.pop(idx)
-            continue
+    for name, fn in _CACHE_FUNCTIONS.items():
         log.misc.info('{}: {}'.format(name, fn.cache_info()))
