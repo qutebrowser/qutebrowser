@@ -43,7 +43,7 @@ def register(name: Optional[str] = None) -> Callable[[_T], _T]:
         fn_name = fn.__name__ if name is None else name
         if sys.version_info < (3, 9):
             log.misc.vdebug(  # type: ignore[attr-defined]
-                'debugcachestats not supported on python < 3.9, not adding \'%s\'',
+                "debugcachestats not supported on python < 3.9, not adding '%s'",
                 fn_name,
             )
             return fn
