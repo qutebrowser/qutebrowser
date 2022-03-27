@@ -483,7 +483,7 @@ class SessionManager(QObject):
             tabs_to_load.insert(0, tab_to_focus)
 
         for i, tab in enumerate(tabs_to_load):
-            new_tab = tabbed_browser.tabopen(background=True)
+            new_tab = tabbed_browser.tabopen(background=True, related=False, idx=i)
             self._load_tab(new_tab, tab)
             # WORKAROUND to get widget and page visibility state in sync
             # for background tabs after page load on Qt < 5.12 and
