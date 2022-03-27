@@ -1,3 +1,5 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
 import logging
 
 import pytest
@@ -13,7 +15,7 @@ not_finished_statuses = [
 ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def browser(caplog, qtbot, real_tabbed_browser):
     real_tabbed_browser.container.expose()
 
@@ -41,7 +43,7 @@ def browser(caplog, qtbot, real_tabbed_browser):
         for tab in real_tabbed_browser.widgets()
         if tab.load_status() in not_finished_statuses
     ]
-    with qtbot.waitSignals(signals):
+    with qtbot.wait_signals(signals):
         pass
 
     return real_tabbed_browser
@@ -50,7 +52,7 @@ def browser(caplog, qtbot, real_tabbed_browser):
 def test_background_tabs_webcontent_hidden(qtbot, browser):
     visibility_states = {}
     for idx, tab in enumerate(browser.widgets()):
-        with qtbot.waitCallback() as callback:
+        with qtbot.wait_callback() as callback:
             tab.run_js_async(
                 "document.hidden",
                 callback,
@@ -75,12 +77,12 @@ def test_session_load_backround_tabs_webcontent_hidden(qtbot, browser):
         for tab in new_browser.widgets()
         if tab.load_status() in not_finished_statuses
     ]
-    with qtbot.waitSignals(signals):
+    with qtbot.wait_signals(signals):
         pass
 
     visibility_states = {}
     for idx, tab in enumerate(new_browser.widgets()):
-        with qtbot.waitCallback() as callback:
+        with qtbot.wait_callback() as callback:
             tab.run_js_async(
                 "document.hidden",
                 callback,
