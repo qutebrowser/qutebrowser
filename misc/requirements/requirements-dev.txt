@@ -35,7 +35,7 @@ sip==6.5.1
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
-tqdm==4.63.0
+tqdm==4.63.1
 twine==3.8.0
 uritemplate==4.1.1
 # urllib3==1.26.9

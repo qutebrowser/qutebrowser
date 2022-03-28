@@ -8,11 +8,11 @@ platformdirs==2.5.1 ; python_version>="3.7"
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.7
-setuptools==60.10.0 ; python_version>="3.7"
+setuptools==61.2.0 ; python_version>="3.7"
 six==1.16.0
 toml==0.10.2
 tox==3.24.5
-virtualenv==20.13.4
+virtualenv==20.14.0
 wheel==0.37.1
 setuptools<60 ; python_version=="3.6.*"
 filelock==3.4.1 ; python_version=="3.6.*"
