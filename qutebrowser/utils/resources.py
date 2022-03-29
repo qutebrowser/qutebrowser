@@ -86,6 +86,7 @@ def _glob(
     glob_path = resource_path / subdir
 
     if isinstance(resource_path, pathlib.Path):
+        assert isinstance(glob_path, pathlib.Path)
         for full_path in glob_path.glob(f'*{ext}'):  # . is contained in ext
             yield full_path.relative_to(resource_path).as_posix()
     else:  # zipfile.Path or importlib_resources.abc.Traversable
