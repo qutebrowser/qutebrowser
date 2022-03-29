@@ -64,6 +64,9 @@ def main():
         'import-error',
         # tests/helpers imports
         'wrong-import-order',
+        # https://github.com/PyCQA/pylint/issues/6036
+        # https://github.com/PyCQA/pylint/issues/6037
+        'unnecessary-ellipsis',
     ]
 
     toxinidir = sys.argv[1]
