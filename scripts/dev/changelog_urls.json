@@ -1,6 +1,7 @@
 {
   "pyparsing": "https://github.com/pyparsing/pyparsing/blob/master/CHANGES",
   "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/changelog.html",
+  "dill": "https://github.com/uqfoundation/dill/commits/master",
   "isort": "https://pycqa.github.io/isort/CHANGELOG/",
   "lazy-object-proxy": "https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst",
   "mccabe": "https://github.com/PyCQA/mccabe#changes",
