@@ -43,7 +43,7 @@ jobs:
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('scripts/dev/pylint_checkers/qute_pylint/*.py') }}"
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '12.x'
