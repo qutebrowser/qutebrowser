@@ -273,7 +273,7 @@ class GUIProcess(QObject):
         # https://bugreports.qt.io/browse/QTBUG-44769
         # but we pre-resolve the executable in Python, which also checks if it's
         # runnable.
-        if self.resolved_cmd is None:
+        if self.resolved_cmd is None:  # pragma: no branch
             msg += f'\nHint: Make sure {self.cmd!r} exists and is executable'
             if version.is_flatpak():
                 msg += ' inside the Flatpak container'
