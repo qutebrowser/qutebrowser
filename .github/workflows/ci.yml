@@ -6,7 +6,7 @@ on:
       - 'dependabot/*'
   pull_request:
 env:
-  PY_COLORS: "1"
+  FORCE_COLOR: "1"
   MYPY_FORCE_TERMINAL_WIDTH: "180"
 
 jobs:
