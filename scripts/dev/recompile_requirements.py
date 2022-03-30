@@ -200,6 +200,9 @@ class Change:
             self.url = '(no changelog)'
             self.link = self.name
 
+    def __lt__(self, other):
+        return (self.base, self.name.lower()) < (other.base, other.name.lower())
+
     def __str__(self):
         prefix = f"- [{self.base}] {self.name}"
         suffix = f"   {self.url}"
@@ -306,7 +309,7 @@ def _get_changes(diff):
         elif line.startswith('+'):
             changes_dict[name].new = version
 
-    return [change for _name, change in sorted(changes_dict.items())]
+    return sorted(changes_dict.values())
 
 
 def print_changed_files():
