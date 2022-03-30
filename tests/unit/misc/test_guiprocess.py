@@ -319,8 +319,8 @@ def test_start_env(monkeypatch, qtbot, py_proc):
 
 def test_start_detached(fake_proc):
     """Test starting a detached process."""
-    cmd = 'foo'
-    args = ['bar']
+    cmd = sys.executable
+    args = ['--version']
     fake_proc._proc.startDetached.return_value = (True, 0)
     fake_proc.start_detached(cmd, args)
     fake_proc._proc.startDetached.assert_called_with(cmd, args, None)

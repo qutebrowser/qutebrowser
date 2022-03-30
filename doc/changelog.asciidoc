@@ -83,6 +83,15 @@ Fixed
   Chromium's would have worked fine. The workaround was now dropped.
 - Crash when using `<Ctrl-D>` (`:completion-item-del`) in the `:tab-focus`
   list, rather than `:tab-select`.
+- Work around a Qt issue causing `:spawn` to run executables from the current
+  directory if no system-wide executable was found. The underlying Qt bug is
+  tracked as [CVE-2022-25255](https://lists.qt-project.org/pipermail/announce/2022-February/000333.html),
+  though the impact with typical qutebrowser usage is low: Normally,
+  qutebrowser is run from a fixed location (usually the users home directory),
+  and `:spawn` is not typically used with executables that don't exist. The main
+  security impact of this bug is in tools like text editors, which are often
+  executed in untrusted directories and might attempt to run auxillary tools
+  automatically.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)

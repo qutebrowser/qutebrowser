@@ -22,6 +22,7 @@
 import dataclasses
 import locale
 import shlex
+import shutil
 from typing import Mapping, Sequence, Dict, Optional
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
@@ -168,6 +169,7 @@ class GUIProcess(QObject):
         self._output_messages = output_messages
         self.outcome = ProcessOutcome(what=what)
         self.cmd: Optional[str] = None
+        self.resolved_cmd: Optional[str] = None
         self.args: Optional[Sequence[str]] = None
         self.pid: Optional[int] = None
 
@@ -269,10 +271,9 @@ class GUIProcess(QObject):
 
         # We can't get some kind of error code from Qt...
         # https://bugreports.qt.io/browse/QTBUG-44769
-        # However, it looks like those strings aren't actually translated?
-        known_errors = ['No such file or directory', 'Permission denied']
-        if (': ' in error_string and  # pragma: no branch
-                error_string.split(': ', maxsplit=1)[1] in known_errors):
+        # but we pre-resolve the executable in Python, which also checks if it's
+        # runnable.
+        if self.resolved_cmd is None:
             msg += f'\nHint: Make sure {self.cmd!r} exists and is executable'
             if version.is_flatpak():
                 msg += ' inside the Flatpak container'
@@ -334,10 +335,23 @@ class GUIProcess(QObject):
         self.outcome.running = True
 
     def _pre_start(self, cmd: str, args: Sequence[str]) -> None:
-        """Prepare starting of a QProcess."""
+        """Resolve the given command and prepare starting of a QProcess.
+
+        Doing the resolving in Python here instead of letting Qt do it serves
+        two purposes:
+
+        - Being able to show a nicer error message without having to parse the
+          string we get from Qt: https://bugreports.qt.io/browse/QTBUG-44769
+        - Not running the file from the current directory on Unix with
+          Qt < 5.15.? and 6.2.4, as a WORKAROUND for CVE-2022-25255:
+          https://invent.kde.org/qt/qt/qtbase/-/merge_requests/139
+          https://www.qt.io/blog/security-advisory-qprocess
+          https://lists.qt-project.org/pipermail/announce/2022-February/000333.html
+        """
         if self.outcome.running:
             raise ValueError("Trying to start a running QProcess!")
         self.cmd = cmd
+        self.resolved_cmd = shutil.which(cmd)
         self.args = args
         log.procs.debug(f"Executing: {self}")
         if self.verbose:
@@ -347,7 +361,10 @@ class GUIProcess(QObject):
         """Convenience wrapper around QProcess::start."""
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
-        self._proc.start(cmd, args)
+        self._proc.start(
+            self.resolved_cmd,  # type: ignore[arg-type]
+            args,
+        )
         self._post_start()
         self._proc.closeWriteChannel()
 
@@ -356,7 +373,10 @@ class GUIProcess(QObject):
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
         ok, self.pid = self._proc.startDetached(
-            cmd, args, None)  # type: ignore[call-arg]
+            self.resolved_cmd,
+            args,
+            None,  # workingDirectory
+        )  # type: ignore[call-arg]
 
         if not ok:
             message.error("Error while spawning {}".format(self.what))
