@@ -596,9 +596,9 @@ def github_upload(artifacts, tag, gh_token):
                 assets = [asset for asset in release.assets()
                           if asset.name == basename]
                 if assets:
-                    asset = assets[0]
-                    print("Deleting stray asset {}".format(asset.name))
-                    asset.delete()
+                    stray_asset = assets[0]
+                    print("Deleting stray asset {}".format(stray_asset.name))
+                    stray_asset.delete()
             else:
                 break
 

@@ -1,6 +1,7 @@
 {
   "pyparsing": "https://github.com/pyparsing/pyparsing/blob/master/CHANGES",
   "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/changelog.html",
+  "dill": "https://github.com/uqfoundation/dill/commits/master",
   "isort": "https://pycqa.github.io/isort/CHANGELOG/",
   "lazy-object-proxy": "https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst",
   "mccabe": "https://github.com/PyCQA/mccabe#changes",
@@ -134,7 +135,7 @@
   "platformdirs": "https://github.com/platformdirs/platformdirs/blob/main/CHANGES.rst",
   "pluggy": "https://github.com/pytest-dev/pluggy/blob/master/CHANGELOG.rst",
   "mypy-extensions": "https://github.com/python/mypy_extensions/commits/master",
-  "pyroma": "https://github.com/regebro/pyroma/blob/master/HISTORY.txt",
+  "pyroma": "https://github.com/regebro/pyroma/blob/master/CHANGES.txt",
   "adblock": "https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md",
   "importlib-resources": "https://importlib-resources.readthedocs.io/en/latest/history.html",
   "importlib-metadata": "https://github.com/python/importlib_metadata/blob/main/CHANGES.rst",

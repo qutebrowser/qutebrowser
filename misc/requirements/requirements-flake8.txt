@@ -2,7 +2,7 @@
 
 attrs==21.4.0
 flake8==4.0.1
-flake8-bugbear==22.3.20
+flake8-bugbear==22.3.23
 flake8-builtins==1.5.3
 flake8-comprehensions==3.8.0
 flake8-copyright==0.2.2

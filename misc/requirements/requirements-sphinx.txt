@@ -8,7 +8,7 @@ docutils==0.17.1
 idna==3.3
 imagesize==1.3.0
 importlib-metadata==4.11.3
-Jinja2==3.0.3
+Jinja2==3.1.1
 MarkupSafe==2.1.1
 packaging==21.3
 Pygments==2.11.2
@@ -16,7 +16,7 @@ pyparsing==3.0.7
 pytz==2022.1
 requests==2.27.1
 snowballstemmer==2.2.0
-Sphinx==4.4.0
+Sphinx==4.5.0
 sphinxcontrib-applehelp==1.0.2
 sphinxcontrib-devhelp==1.0.2
 sphinxcontrib-htmlhelp==2.0.0

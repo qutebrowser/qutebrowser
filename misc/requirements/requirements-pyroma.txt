@@ -5,6 +5,6 @@ charset-normalizer==2.0.12
 docutils==0.18.1
 idna==3.3
 Pygments==2.11.2
-pyroma==3.2
+pyroma==3.2.1
 requests==2.27.1
 urllib3==1.26.9
