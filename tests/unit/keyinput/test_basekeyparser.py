@@ -337,8 +337,8 @@ class TestHandle:
         (Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G),
         (Qt.Key.Key_2, Qt.Key.Key_F, Qt.Key.Key_G, Qt.Key.Key_H),
     ])
-    def test_forward_keys(self, config_stub, handle_text, keyparser, seq,
-                          qtbot):
+    def test_forward_keys(self, config_stub, handle_text, keyparser, qtbot,
+                          seq):
         config_stub.val.bindings.commands = {
             'normal': {
                 'fy': 'message-info fy',
@@ -400,6 +400,7 @@ class TestHandle:
         assert keyparser._count == ''.join(
             str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)) for key in count_seq
         )
+        assert keyparser._sequence == keyseq('f')
 
 
 class TestCount:
