@@ -511,11 +511,10 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
     give us an accurate answer.
     """
     try:
-        import importlib_metadata
+        import importlib.metadata as importlib_metadata  # type: ignore[import]
     except ImportError:
         try:
-            # pylint: disable=line-too-long
-            import importlib.metadata as importlib_metadata  # type: ignore[import, no-redef]
+            import importlib_metadata  # type: ignore[no-redef]
         except ImportError:
             log.misc.debug("Neither importlib.metadata nor backport available")
             return None
