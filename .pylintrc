@@ -15,6 +15,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.check_elif,
              pylint.extensions.typing,
              pylint.extensions.docparams,
+             pylint.extensions.private_import,
 
 persistent=n
 py-version=3.6
