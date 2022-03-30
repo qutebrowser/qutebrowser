@@ -18,7 +18,7 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Optional, Union, overload, cast
+from typing import Optional, Union, overload, cast, Tuple
 from collections.abc import Iterator, Iterable, Mapping
 
 from qutebrowser.qt import machinery
@@ -502,6 +502,72 @@ class KeyInfo:
         which would interrupt a key chain like "yY" when handled.
         """
         return self.key in _MODIFIER_MAP
+
+
+@dataclasses.dataclass(frozen=True)
+class KeyEvent:
+
+    """A small wrapper over a QKeyEvent storing its data.
+
+    This is needed because Qt apparently mutates existing events with new data.
+    It doesn't store the modifiers because they can be different for a key
+    press/release.
+
+    Attributes:
+        key: A Qt.Key member (QKeyEvent::key).
+        text: A string (QKeyEvent::text).
+    """
+
+    key: Qt.Key
+    text: str
+
+    @classmethod
+    def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
+        """Initialize a KeyEvent from a QKeyEvent."""
+        return cls(Qt.Key(event.key()), event.text())
+
+
+@dataclasses.dataclass(frozen=False)
+class QueuedKeyEventPair:
+
+    # TODO: docs
+    """A wrapper over a QKeyEvent capable of recreating the event.
+
+    This is needed to recreate any queued events when either a timeout occurs
+    or a match is not completed.
+
+    Attributes:
+        key_event: A KeyEvent member for comparison.
+        key_info: A keyutils.KeyInfo member for complete event reconstruction
+                  (e.g. with modifiers).
+        typ: QEvent.KeyPress or QEvent.KeyRelease.
+    """
+
+    key_event: KeyEvent
+    key_info_press: KeyInfo
+    key_info_release: KeyInfo
+
+    @classmethod
+    def from_event_press(cls, event: QKeyEvent) -> 'QueuedKeyEventPair':
+        """Initialize a QueuedKeyEventPair from a QKeyEvent and QKeyEvent."""
+        return cls(KeyEvent.from_event(event), KeyInfo.from_event(event), None)
+
+    def add_event_release(self, event: QKeyEvent) -> bool:
+        if self.key_event == KeyEvent.from_event(event):
+            self.key_info_release = KeyInfo.from_event(event)
+            return True
+        return False
+
+    def is_released(self):
+        return self.key_info_release is not None
+
+    def to_events(self) -> Tuple[QKeyEvent]:
+        """Get a QKeyEvent from this QueuedEvent."""
+        if self.key_info_release is None:
+            return (self.key_info_press.to_event(QEvent.KeyPress),)
+        else:
+            return (self.key_info_press.to_event(QEvent.KeyPress),
+                    self.key_info_release.to_event(QEvent.KeyRelease))
 
 
 class KeySequence:
