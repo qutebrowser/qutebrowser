@@ -39,9 +39,6 @@ import qutebrowser
 _cache = {}
 
 
-# Unfortunately, we can't tell mypy about this also possibly being a
-# zipfile.Path because we set "python_version = 3.6" in .mypy.ini, but the
-# zipfile stubs (correctly) only declare zipfile.Path with Python 3.8...
 _ResourceType = Union[Traversable, pathlib.Path]
 
 
@@ -89,7 +86,7 @@ def _glob(
         assert isinstance(glob_path, pathlib.Path)
         for full_path in glob_path.glob(f'*{ext}'):  # . is contained in ext
             yield full_path.relative_to(resource_path).as_posix()
-    else:  # zipfile.Path or importlib_resources.abc.Traversable
+    else:  # zipfile.Path or other importlib_resources.abc.Traversable
         assert glob_path.is_dir(), glob_path
         for subpath in glob_path.iterdir():
             if subpath.name.endswith(ext):
