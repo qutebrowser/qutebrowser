@@ -188,10 +188,11 @@ class Change:
 
     """A single requirements change from a git diff output."""
 
-    def __init__(self, name):
+    def __init__(self, name: str, base_path: pathlib.Path) -> None:
         self.name = name
         self.old = None
         self.new = None
+        self.base = extract_requirement_name(base_path)
         if CHANGELOG_URLS.get(name):
             self.url = CHANGELOG_URLS[name]
             self.link = '[{}]({})'.format(self.name, self.url)
@@ -200,23 +201,23 @@ class Change:
             self.link = self.name
 
     def __str__(self):
+        prefix = f"- [{self.base}] {self.name}"
+        suffix = f"   {self.url}"
         if self.old is None:
-            return '- {} new: {}    {}'.format(self.name, self.new, self.url)
+            return f"{prefix} new: {self.new} {suffix}"
         elif self.new is None:
-            return '- {} removed: {}    {}'.format(self.name, self.old,
-                                                   self.url)
+            return f"{prefix} removed: {self.old} {suffix}"
         else:
-            return '- {} {} -> {}    {}'.format(self.name, self.old, self.new,
-                                                self.url)
+            return f"{prefix} {self.old} -> {self.new} {suffix}"
 
     def table_str(self):
         """Generate a markdown table."""
         if self.old is None:
-            return '| {} | -- | {} |'.format(self.link, self.new)
+            return f'| {self.base} | {self.link} | -- | {self.new} |'
         elif self.new is None:
-            return '| {} | {} | -- |'.format(self.link, self.old)
+            return f'| {self.base} | {self.link} | {self.old} | -- |'
         else:
-            return '| {} | {} | {} |'.format(self.link, self.old, self.new)
+            return f'| {self.base} | {self.link} | {self.old} | {self.new} |'
 
 
 def _get_changed_files():
@@ -224,12 +225,17 @@ def _get_changed_files():
     changed_files = set()
     filenames = git_diff('--name-only')
     for filename in filenames:
-        filename = filename.strip()
-        filename = filename.replace('misc/requirements/requirements-', '')
-        filename = filename.replace('.txt', '')
-        changed_files.add(filename)
+        requirement_name = extract_requirement_name(pathlib.Path(filename))
+        changed_files.add(requirement_name)
 
     return sorted(changed_files)
+
+
+def extract_requirement_name(path: pathlib.Path) -> str:
+    prefix = "requirements-"
+    assert path.suffix == ".txt", path
+    assert path.stem.startswith(prefix), path
+    return path.stem[len(prefix):]
 
 
 def parse_versioned_line(line):
@@ -265,10 +271,19 @@ def parse_versioned_line(line):
 def _get_changes(diff):
     """Get a list of changed versions from git."""
     changes_dict = {}
+    current_path = None
+
     for line in diff:
         if not line.startswith('-') and not line.startswith('+'):
             continue
-        elif line.startswith('+++ ') or line.startswith('--- '):
+        elif line.startswith('--- '):
+            prefix = '--- a/'
+            current_path = pathlib.Path(line[len(prefix):])
+            continue
+        elif line.startswith('+++ '):
+            prefix = '+++ b/'
+            new_path = pathlib.Path(line[len(prefix):])
+            assert current_path == new_path, (current_path, new_path)
             continue
         elif not line.strip():
             # Could be newline changes on Windows
@@ -280,7 +295,7 @@ def _get_changes(diff):
         name, version = parse_versioned_line(line[1:])
 
         if name not in changes_dict:
-            changes_dict[name] = Change(name)
+            changes_dict[name] = Change(name, base_path=current_path)
 
         if line.startswith('-'):
             changes_dict[name].old = version
@@ -314,8 +329,8 @@ def print_changed_files():
         print('::set-output name=changed::' +
               files_text.replace('\n', '%0A'))
         table_header = [
-            '| Requirement | old | new |',
-            '|-------------|-----|-----|',
+            '| File | Requirement | old | new |',
+            '|------|-------------|-----|-----|',
         ]
         diff_table = '%0A'.join(table_header +
                                 [change.table_str() for change in changes])
