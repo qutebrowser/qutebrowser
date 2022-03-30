@@ -63,3 +63,7 @@ tldextract
 #@ add: Flask<2.1.0 ; python_version=="3.6.*"
 #@ markers: Werkzeug python_version>="3.7"
 #@ add: Werkzeug<2.1.0 ; python_version=="3.6.*"
+#@ markers: zipp python_version>="3.7"
+#@ add: zipp<3.7 ; python_version=="3.6.*"
+#@ markers: importlib-metadata python_version=="3.7.*"
+#@ add: importlib-metadata<4.9 ; python_version=="3.6.*"

@@ -15,7 +15,7 @@ hunter==3.4.3
 hypothesis==6.40.0 ; python_version>="3.7"
 icdiff==2.0.4
 idna==3.3
-importlib-metadata==4.11.3
+importlib-metadata==4.11.3 ; python_version=="3.7.*"
 iniconfig==1.1.1
 itsdangerous==2.1.2 ; python_version>="3.7"
 jaraco.functools==3.5.0 ; python_version>="3.7"
@@ -58,7 +58,7 @@ tomli==2.0.1 ; python_version>="3.7"
 urllib3==1.26.9
 vulture==2.3
 Werkzeug==2.1.0 ; python_version>="3.7"
-zipp==3.7.0
+zipp==3.7.0 ; python_version>="3.7"
 jaraco.functools<3.5 ; python_version=="3.6.*"
 tomli<2 ; python_version=="3.6.*"
 filelock==3.4.1 ; python_version=="3.6.*"
@@ -72,3 +72,5 @@ pytest<7.1.0 ; python_version=="3.6.*"
 click<8.1.0 ; python_version=="3.6.*"
 Flask<2.1.0 ; python_version=="3.6.*"
 Werkzeug<2.1.0 ; python_version=="3.6.*"
+zipp<3.7 ; python_version=="3.6.*"
+importlib-metadata<4.9 ; python_version=="3.6.*"
