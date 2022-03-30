@@ -232,6 +232,10 @@ def _get_changed_files():
 
 
 def extract_requirement_name(path: pathlib.Path) -> str:
+    """Get a requirement name from a file path.
+
+    e.g. "pylint" from "misc/requirements/requirements-pylint.txt"
+    """
     prefix = "requirements-"
     assert path.suffix == ".txt", path
     assert path.stem.startswith(prefix), path
