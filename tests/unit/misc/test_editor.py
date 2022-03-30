@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.misc.editor."""
 
+import sys
 import time
 import pathlib
 import os
@@ -55,17 +56,17 @@ class TestArg:
 
     def test_placeholder(self, config_stub, editor):
         """Test starting editor with placeholder argument."""
-        config_stub.val.editor.command = ['bin', 'foo', '{}', 'bar']
+        config_stub.val.editor.command = [sys.executable, 'foo', '{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
-            "bin", ["foo", editor._filename, "bar"])
+            sys.executable, ["foo", editor._filename, "bar"])
 
     def test_placeholder_inline(self, config_stub, editor):
         """Test starting editor with placeholder arg inside of another arg."""
-        config_stub.val.editor.command = ['bin', 'foo{}', 'bar']
+        config_stub.val.editor.command = [sys.executable, 'foo{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
-            "bin", ["foo" + editor._filename, "bar"])
+            sys.executable, ["foo" + editor._filename, "bar"])
 
 
 class TestFileHandling:
