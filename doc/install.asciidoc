@@ -278,7 +278,7 @@ https://github.com/qutebrowser/qutebrowser/releases[are built] for every
 release.
 
 Note that you'll need to upgrade to new versions manually (subscribe to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser-announce[qutebrowser-announce
 mailinglist] to get notified on new releases). You can install a newer version
 without uninstalling the older one.
 
@@ -335,7 +335,7 @@ files from the
 https://github.com/qutebrowser/qutebrowser/releases[release page].
 
 Note that you'll need to upgrade to new versions manually (subscribe to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser-announce[qutebrowser-announce
 mailinglist] to get notified on new releases).
 
 The binary release ships with a QtWebEngine built without proprietary codec

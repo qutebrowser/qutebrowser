@@ -24,7 +24,7 @@ several ways:
 
 * Send a mail to the mailing list at mailto:qutebrowser@lists.qutebrowser.org[]
 (optionally
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe]
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[subscribe]
 first).
 * Join the IRC channel link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
 https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat],

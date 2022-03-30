@@ -63,7 +63,7 @@ ways:
 * Use the built-in `:report` command or the automatic crash dialog.
 * Open an issue in the Github issue tracker.
 * Write a mail to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID

@@ -130,7 +130,7 @@ If you found a bug, use the built-in ':report' command to create a bug report
 with all information needed.
 
 If you prefer, you can also write to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
 For security bugs, please contact me directly at me@the-compiler.org, GPG ID
@@ -152,9 +152,9 @@ this program.  If not, see <https://www.gnu.org/licenses/>.
 == RESOURCES
 * Website: https://www.qutebrowser.org/
 * Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] /
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser
 * Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser-announce
 * IRC: link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
 https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat],
 https://matrix.to/#qutebrowser:libera.chat[via Matrix])

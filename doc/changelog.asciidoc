@@ -4259,7 +4259,7 @@ v0.1.4 (2015-03-19)
 Changed
 ~~~~~~~
 
-* The Windows builds come with Qt 5.4.1 which has some https://lists.schokokeks.org/pipermail/qutebrowser/2015-March/000054.html[related bugfixes].
+* The Windows builds come with Qt 5.4.1 which has some https://listi.jpberlin.de/pipermail/qutebrowser/2015-March/000054.html[related bugfixes].
 * Improvements to CPU usage when idle.
 * Ensure there's no size for `font-family` settings.
 * Handle URLs with double-colon as search strings.
