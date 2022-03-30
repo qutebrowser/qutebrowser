@@ -60,7 +60,8 @@ Added
   which shows relative tab numbers.
 - New `input.mode_override` option which allows overriding the current mode
   based on the new URL when navigating or switching tabs.
-- New `qt.chromium.sandboxing` setting which allows to disable Chromium's sandboxing (mainly intended for development and testing)
+- New `qt.chromium.sandboxing` setting which allows to disable Chromium's
+  sandboxing (mainly intended for development and testing)
 
 Fixed
 ~~~~~
@@ -90,7 +91,7 @@ Fixed
   qutebrowser is run from a fixed location (usually the users home directory),
   and `:spawn` is not typically used with executables that don't exist. The main
   security impact of this bug is in tools like text editors, which are often
-  executed in untrusted directories and might attempt to run auxillary tools
+  executed in untrusted directories and might attempt to run auxiliary tools
   automatically.
 
 [[v2.4.1]]
