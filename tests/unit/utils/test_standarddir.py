@@ -31,7 +31,7 @@ import subprocess
 from PyQt5.QtCore import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir, utils, qtutils
+from qutebrowser.utils import standarddir, utils, qtutils, version
 
 
 # Use a different application name for tests to make sure we don't change real
@@ -399,12 +399,18 @@ class TestSystemData:
     """Test system data path."""
 
     @pytest.mark.linux
-    def test_system_datadir_exist_linux(self, monkeypatch, tmpdir):
+    @pytest.mark.parametrize("is_flatpak, expected", [
+        (True, "/app/share/qute_test"),
+        (False, "/usr/share/qute_test"),
+    ])
+    def test_system_datadir_exist_linux(self, monkeypatch, tmpdir,
+                                        is_flatpak, expected):
         """Test that /usr/share/qute_test is used if path exists."""
         monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
         monkeypatch.setattr(os.path, 'exists', lambda path: True)
+        monkeypatch.setattr(version, 'is_flatpak', lambda: is_flatpak)
         standarddir._init_data(args=None)
-        assert standarddir.data(system=True) == "/usr/share/qute_test"
+        assert standarddir.data(system=True) == expected
 
     @pytest.mark.linux
     def test_system_datadir_not_exist_linux(self, monkeypatch, tmpdir,
