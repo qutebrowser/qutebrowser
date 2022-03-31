@@ -684,3 +684,16 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to false
         And I open 500-inline
         Then the error "Download error: *INTERNAL SERVER ERROR" should be shown
+
+    ## External download path fileselector
+
+    Scenario: Select download path
+        When I set downloads.location.prompt to true
+        And I set fileselect.handler to external
+        And I setup a fake folder fileselector selecting "tests/end2end/data/backforward/" and writes to a temporary file
+        And I open data/downloads/downloads.html
+        And I run :click-element id download
+        And I wait for the download prompt for "*/download.bin"
+        And I run :prompt-external-picker
+        # TODO what should the check be?
+        Then the javascript message "Files: 1.txt" should be logged
