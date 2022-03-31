@@ -284,7 +284,14 @@ class BaseKeyParser(QObject):
         Return:
             A QKeySequence match.
         """
-        key = Qt.Key(e.key())
+        try:
+            key = Qt.Key(e.key())
+        except ValueError:
+            # FIXME:qt6 What should we do in this case?
+            # See https://github.com/qutebrowser/qutebrowser/issues/7047
+            log.keyboard.exception("Got invalid key")
+            return QKeySequence.SequenceMatch.NoMatch
+
         txt = str(keyutils.KeyInfo.from_event(e))
         self._debug_log(
             f"Got key: {debug.qenum_key(Qt.Key, key)} / "
