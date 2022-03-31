@@ -285,7 +285,8 @@
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
-|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
+|<<prompt.filebrowser.enabled,prompt.filebrowser.enabled>>|Show a filebrowser in download prompts.
+|<<prompt.filebrowser.history_max_items,prompt.filebrowser.history_max_items>>|Number of file paths to save in the file prompt history.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
@@ -759,7 +760,8 @@ Default:
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
-* +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-open-download --pdfjs]+
+* +pass:[&lt;Ctrl-N&gt;]+: +pass:[prompt-history prev]+
+* +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-history next]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
@@ -3753,13 +3755,22 @@ Valid values:
 
 Default: +pass:[last-focused]+
 
-[[prompt.filebrowser]]
-=== prompt.filebrowser
+[[prompt.filebrowser.enabled]]
+=== prompt.filebrowser.enabled
 Show a filebrowser in download prompts.
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[prompt.filebrowser.history_max_items]]
+=== prompt.filebrowser.history_max_items
+Number of file paths to save in the file prompt history.
+0: no history / -1: unlimited
+
+Type: <<types,Int>>
+
+Default: +pass:[100]+
 
 [[prompt.radius]]
 === prompt.radius

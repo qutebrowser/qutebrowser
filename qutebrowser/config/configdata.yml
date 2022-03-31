@@ -1916,9 +1916,22 @@ messages.unfocused:
 ## prompt
 
 prompt.filebrowser:
+    renamed: prompt.filebrowser.enabled
+
+prompt.filebrowser.enabled:
   type: Bool
   default: true
   desc: Show a filebrowser in download prompts.
+
+prompt.filebrowser.history_max_items:
+  default: 100
+  type:
+    name: Int
+    minval: -1
+  desc: >-
+    Number of file paths to save in the file prompt history.
+
+    0: no history / -1: unlimited
 
 prompt.radius:
   type:
@@ -3775,6 +3788,8 @@ bindings.default:
       <Ctrl-X>: prompt-open-download
       <Ctrl-P>: prompt-open-download --pdfjs
       <Shift-Tab>: prompt-item-focus prev
+      <Ctrl-N>: prompt-history prev
+      <Ctrl-P>: prompt-history next
       <Up>: prompt-item-focus prev
       <Tab>: prompt-item-focus next
       <Down>: prompt-item-focus next

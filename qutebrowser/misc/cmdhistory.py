@@ -145,3 +145,12 @@ def init():
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
                               command_history.changed)
+
+    save_manager = objreg.get('save-manager')
+    filename_prompt_history = lineparser.LimitLineParser(
+        standarddir.data(), 'filename-prompt-history',
+        limit='prompt.filebrowser.history_max_items')
+    objreg.register('filename-prompt-history', filename_prompt_history)
+    save_manager.add_saveable('filename-prompt-history',
+                              filename_prompt_history.save,
+                              filename_prompt_history.changed)

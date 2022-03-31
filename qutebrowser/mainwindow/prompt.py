@@ -38,6 +38,7 @@ from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
+from qutebrowser.misc import cmdhistory
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -445,6 +446,29 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
+    @cmdutils.register(instance='prompt-container', scope='window',
+                       modes=[usertypes.KeyMode.prompt])
+    @cmdutils.argument('which', choices=['next', 'prev'])
+    def prompt_history(self, which):
+        """Shift the focus of the prompt file completion menu to another item.
+
+        Args:
+            which: 'next', 'prev'
+        """
+        assert self._prompt is not None
+        if which == 'prev':
+            try:
+                self._prompt.history_prev()
+            except UnsupportedOperationError:
+                pass
+        elif which == 'next':
+            try:
+                self._prompt.history_next()
+            except UnsupportedOperationError:
+                pass
+        else:
+            raise utils.Unreachable(which)
+
     @cmdutils.register(
         instance='prompt-container', scope='window',
         modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
@@ -640,11 +664,38 @@ class FilenamePrompt(_BasePrompt):
         self._init_fileview()
         self._set_fileview_root(question.default)
 
-        if config.val.prompt.filebrowser:
+        if config.val.prompt.filebrowser.enabled:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self._to_complete = ''
         self._root_index = QModelIndex()
+
+        self._history = cmdhistory.History(parent=self)
+        filename_prompt_history = objreg.get('filename-prompt-history')
+        self._history.history = filename_prompt_history.data
+        self._history.changed.connect(filename_prompt_history.changed)
+
+    def history_prev(self):
+        """Go back in the history."""
+        try:
+            if not self._history.is_browsing():
+                item = self._history.start(text="")
+            else:
+                item = self._history.previtem()
+        except (cmdhistory.HistoryEmptyError,
+                cmdhistory.HistoryEndReachedError):
+            return
+        self._lineedit.setText(item)
+
+    def history_next(self):
+        """Go forward in the history."""
+        if not self._history.is_browsing():
+            return
+        try:
+            item = self._history.nextitem()
+        except cmdhistory.HistoryEndReachedError:
+            return
+        self._lineedit.setText(item)
 
     def _directories_hide_show_model(self):
         """Get rid of non-matching directories."""
@@ -724,7 +775,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
-        if config.val.prompt.filebrowser:
+        if config.val.prompt.filebrowser.enabled:
             self._vbox.addWidget(self._file_view)
         else:
             self._file_view.hide()
@@ -746,6 +797,9 @@ class FilenamePrompt(_BasePrompt):
         if text is None:
             message.error("Invalid filename")
             return False
+
+        self._history.stop()
+        self._history.append(text)
         self.question.answer = text
         return True
 
