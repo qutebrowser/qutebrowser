@@ -60,6 +60,8 @@ Changed
 - Renamed settings:
   * `qt.low_end_device_mode` -> `qt.chromium.low_end_device_mode`
   * `qt.process_model` -> `qt.chromium.process_model`
+- System-wide userscripts are now discovered from the correct location when
+  running via Flatpak (`/app/share` rather than `/usr/share`).
 
 Added
 ~~~~~
