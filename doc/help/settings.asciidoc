@@ -213,6 +213,7 @@
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
 |<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
+|<<editor.remove_file,editor.remove_file>>|Delete the temporary file upon closing the editor.
 |<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
 |<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
@@ -2940,6 +2941,14 @@ Encoding to use for the editor.
 Type: <<types,Encoding>>
 
 Default: +pass:[utf-8]+
+
+[[editor.remove_file]]
+=== editor.remove_file
+Delete the temporary file upon closing the editor.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[fileselect.folder.command]]
 === fileselect.folder.command

@@ -69,7 +69,10 @@ Added
   based on the new URL when navigating or switching tabs.
 - New `qt.chromium.sandboxing` setting which allows to disable Chromium's
   sandboxing (mainly intended for development and testing)
-- New `QUTE_TAB_INDEX` variable for userscripts, containing the index of the current tab.
+- New `QUTE_TAB_INDEX` variable for userscripts, containing the index of the
+  current tab.
+- New `editor.remove_file` setting which can be set to `False` to keep all
+  temporary editor files after closing the external editor.
 
 Fixed
 ~~~~~
