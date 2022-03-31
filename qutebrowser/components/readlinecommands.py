@@ -295,7 +295,7 @@ def rl_rubout(delim: str) -> None:
     With " ", this acts like readline's `unix-word-rubout`.
 
     With " /", this acts like readline's `unix-filename-rubout`, but consider
-    using `:rl-filename-rubout` instead: It uses the OS path seperator (i.e. `\`
+    using `:rl-filename-rubout` instead: It uses the OS path separator (i.e. `\`
     on Windows) and ignores spaces.
 
     Args:
@@ -310,7 +310,7 @@ def rl_filename_rubout() -> None:
     r"""Delete backwards using the OS path separator as boundary.
 
     For behavior that matches readline's `unix-filename-rubout` exactly, use
-    `:rl-rubout "/ "` instead. This command uses the OS path seperator (i.e.
+    `:rl-rubout "/ "` instead. This command uses the OS path separator (i.e.
     `\` on Windows) and ignores spaces.
     """
     bridge.rubout(os.sep)
