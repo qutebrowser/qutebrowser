@@ -59,8 +59,6 @@ Changed
     environment variable.
   * `qute-pass` now understands a new `--prefix` argument if used in gopass
     mode, which gets passed as subfolder prefix to `gopass`.
-  * `ripbang` now works again (it got blocked due to a missing user agent and
-    used outdated qutebrowser commands before)
   * `open_download` now supports Flatpak by using its XDG Desktop Portal.
   * `open_download` now waits for the exit status of `xdg-open`, causing
     qutebrowser to report any issues with it.
@@ -129,6 +127,10 @@ Fixed
 - When `:rl-rubout` or `:rl-filename-rubout` (formerly `:rl-unix-word-rubout`
   and `:rl-unix-filename-rubout`) were used on a string not starting with the
   given delimiter, they failed to delete the first character, which is now fixed.
+- Fixes in userscripts:
+  * `ripbang` now works again (it got blocked due to a missing user agent and
+    used outdated qutebrowser commands before)
+  * `keepassxc` now has a properly working `--insecure` flag
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
