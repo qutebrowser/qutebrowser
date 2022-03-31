@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
 
-from qutebrowser.browser import downloads, shared
+from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
@@ -470,23 +470,27 @@ class PromptContainer(QWidget):
     @cmdutils.register(
         instance='prompt-container', scope='window',
         modes=[usertypes.KeyMode.prompt])
-    def prompt_external_picker(self):
+    def prompt_fileselect_external(self):
         """Choose a location using a configured external picker."""
+        if not (self._prompt and isinstance(self._prompt, FilenamePrompt)):
+            raise cmdutils.CommandError(
+                f"Can only launch external fileselect for FilenamePrompt, not {self._prompt}"
+            )
         picker = config.val.fileselect.folder.command
         if not picker:
-            log.webview.warning(
+            raise cmdutils.CommandError(
                 "No external location picker (fileselect.folder.command) configured."
             )
-            return
+        # TODO fix cyclic import
+        from qutebrowser.browser import shared
         folders = shared.choose_file(shared.FileSelectionMode.folder)
         if not folders:
             message.info("No folder chosen.")
             return
-        assert self._prompt is not None
-        question = self._prompt.question
         # choose_file already checks that this is max one folder
-        question.default = folders[0]
-        self._prompt._lineedit.setText(question.default)
+        assert len(folders) == 1
+        folder = folders[0]
+        self._prompt.accept(folder)
 
 
 class LineEdit(QLineEdit):
@@ -855,7 +859,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
-            ('prompt-external-picker', "External location picker"),
+            ('prompt-fileselect-external', "Launch external fileselect"),
         ]
         return cmds
 

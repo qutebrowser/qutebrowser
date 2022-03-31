@@ -3780,7 +3780,7 @@ bindings.default:
       <Down>: prompt-item-focus next
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
-      <Alt-E>: prompt-external-picker
+      <Alt-E>: prompt-fileselect-external
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
       <Alt-B>: rl-backward-word
