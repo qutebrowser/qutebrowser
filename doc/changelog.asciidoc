@@ -123,6 +123,9 @@ Fixed
   security impact of this bug is in tools like text editors, which are often
   executed in untrusted directories and might attempt to run auxiliary tools
   automatically.
+- When `:rl-rubout` or `:rl-filename-rubout` (formerly `:rl-unix-word-rubout`
+  and `:rl-unix-filename-rubout`) were used on a string not starting with the
+  given delimiter, they failed to delete the first character, which is now fixed.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
