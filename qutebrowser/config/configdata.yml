@@ -1435,11 +1435,15 @@ editor.command:
     * `{line0}`: Same as `{line}`, but starting from index 0.
     * `{column0}`: Same as `{column}`, but starting from index 0.
 
-
 editor.encoding:
   type: Encoding
   default: utf-8
   desc: Encoding to use for the editor.
+
+editor.remove_file:
+  default: true
+  type: Bool
+  desc: Delete the temporary file upon closing the editor.
 
 ## fileselect
 

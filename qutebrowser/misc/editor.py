@@ -135,7 +135,7 @@ class ExternalEditor(QObject):
             message.error("Failed to create initial file: {}".format(e))
             return
 
-        self._remove_file = True
+        self._remove_file = config.val.editor.remove_file
 
         line, column = self._calc_line_and_column(text, caret_position)
         self._start_editor(line=line, column=column)

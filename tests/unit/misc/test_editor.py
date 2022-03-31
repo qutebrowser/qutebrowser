@@ -73,14 +73,16 @@ class TestFileHandling:
 
     """Test creation/deletion of tempfile."""
 
-    def test_ok(self, editor):
+    @pytest.mark.parametrize('remove_file', [True, False])
+    def test_ok(self, editor, remove_file, config_stub):
         """Test file handling when closing with an exit status == 0."""
+        config_stub.val.editor.remove_file = remove_file
         editor.edit("")
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
         assert filename.name.startswith('qutebrowser-editor-')
         editor._proc._proc.finished.emit(0, QProcess.NormalExit)
-        assert not filename.exists()
+        assert filename.exists() != config_stub.val.editor.remove_file
 
     @pytest.mark.parametrize('touch', [True, False])
     def test_with_filename(self, editor, tmp_path, touch):
