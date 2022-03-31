@@ -808,7 +808,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore[arg-type]
+            QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
