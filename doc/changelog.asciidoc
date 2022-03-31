@@ -42,9 +42,12 @@ Changed
 - Clicking on a notification now tries to focus the tab where the notification
   is coming from. Note this might not work properly if there is more than one
   tab from the same host open.
-- The `qute-bitwarden` userscript understands a new
-  `--password-prompt-invocation`, which can be used to specify a tool other
-  than `rofi` to ask for a password.
+- Improvements to userscripts:
+  * `qute-bitwarden` understands a new `--password-prompt-invocation`, which can
+    be used to specify a tool other than `rofi` to ask for a password.
+  * `cast` now uses `yt-dlp` if available (falling back to `youtube-dl` if not).
+    It also lets users override the tool to use via a `QUTE_CAST_YTDL_PROGRAM`
+    environment variable.
 - The `content.headers.custom` setting now accepts empty strings as values,
   resulting in an empty header being sent.
 - Renamed settings:
