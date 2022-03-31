@@ -624,6 +624,8 @@ class FilenamePrompt(_BasePrompt):
 
     """A prompt for a filename."""
 
+    files_hidden = pyqtSignal()
+
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._init_texts(question)
@@ -640,6 +642,9 @@ class FilenamePrompt(_BasePrompt):
         self._init_fileview()
         self._set_fileview_root(question.default)
 
+        self._file_model.rowsInserted.connect(      # type: ignore[attr-defined]
+            self._directories_hide_show_model)
+
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
@@ -649,11 +654,20 @@ class FilenamePrompt(_BasePrompt):
     def _directories_hide_show_model(self):
         """Get rid of non-matching directories."""
         num_rows = self._file_model.rowCount(self._root_index)
+        show_hidden_files = bool(self._to_complete and self._to_complete[0] == '.')
         for row in range(num_rows):
             index = self._file_model.index(row, 0, self._root_index)
             filename = index.data()
             hidden = self._to_complete not in filename and filename != '..'
+            is_file_hidden = self._file_model.fileInfo(index).isHidden()
+            hidden = filename != '..' and (
+                self._to_complete not in filename
+                or (is_file_hidden
+                and not show_hidden_files)
+            )
             self._file_view.setRowHidden(index.row(), index.parent(), hidden)
+
+        self.files_hidden.emit()
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -808,7 +822,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore[arg-type]
+            QDir.AllDirs | QDir.Drives |
+            QDir.NoDot | QDir.Hidden)  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)

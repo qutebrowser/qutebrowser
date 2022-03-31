@@ -17,13 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import ctypes
 import os
+import platform
 
 import pytest
 from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
+
+
+FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
 class TestFileCompletion:
@@ -103,23 +108,34 @@ class TestFileCompletion:
         ([], ['..', 'bar', 'bat', 'foo']),
         ([Qt.Key_F], ['..', 'foo']),
         ([Qt.Key_A], ['..', 'bar', 'bat']),
+        ([Qt.Key_Period], ['..', '.bar']),
     ])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'
 
-        for directory in ['bar', 'foo', 'bat']:
+        for directory in ['.bar', 'bar', 'foo', 'bat']:
             (testdir / directory).mkdir(parents=True)
 
+        if platform.system() == 'Windows':
+            ret = ctypes.windll.kernel32.SetFileAttributesW(str(testdir / '.bar'),
+                                                            FILE_ATTRIBUTE_HIDDEN)
+            if not ret:
+                raise ctypes.WinError()
+
         prompt = get_prompt(str(testdir) + os.sep)
-        for key in keys:
-            qtbot.keyPress(prompt._lineedit, key)
-        prompt._set_fileview_root(prompt._lineedit.text())
+        with qtbot.wait_signal(prompt.files_hidden):
+            for key in keys:
+                qtbot.keyPress(prompt._lineedit, key)
+
+            # If there are no keys manually get the signal to emit
+            if not keys:
+                prompt._set_fileview_root(prompt._lineedit.text())
 
         num_rows = prompt._file_model.rowCount(prompt._file_view.rootIndex())
         visible = []
+        parent = prompt._file_model.index(
+            os.path.dirname(prompt._lineedit.text()))
         for row in range(num_rows):
-            parent = prompt._file_model.index(
-                os.path.dirname(prompt._lineedit.text()))
             index = prompt._file_model.index(row, 0, parent)
             if not prompt._file_view.isRowHidden(index.row(), index.parent()):
                 visible.append(index.data())
