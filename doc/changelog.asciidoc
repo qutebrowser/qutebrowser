@@ -50,6 +50,8 @@ Changed
     environment variable.
   * `qute-pass` now understands a new `--prefix` argument if used in gopass
     mode, which gets passed as subfolder prefix to `gopass`.
+  * `ripbang` now works again (it got blocked due to a missing user agent and
+    used outdated qutebrowser commands before)
 - The `content.headers.custom` setting now accepts empty strings as values,
   resulting in an empty header being sent.
 - Renamed settings:
