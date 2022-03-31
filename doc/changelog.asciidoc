@@ -48,6 +48,8 @@ Changed
   * `cast` now uses `yt-dlp` if available (falling back to `youtube-dl` if not).
     It also lets users override the tool to use via a `QUTE_CAST_YTDL_PROGRAM`
     environment variable.
+  * `qute-pass` now understands a new `--prefix` argument if used in gopass
+    mode, which gets passed as subfolder prefix to `gopass`.
 - The `content.headers.custom` setting now accepts empty strings as values,
   resulting in an empty header being sent.
 - Renamed settings:
