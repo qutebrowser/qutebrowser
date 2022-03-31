@@ -49,6 +49,7 @@ class TestFileCompletion:
 
     @pytest.mark.parametrize('steps, where, subfolder', [
         (1, 'next', 'a'),
+        (1, 'prev', 'c'),
         (2, 'next', 'b'),
         (2, 'prev', 'b'),
     ])
