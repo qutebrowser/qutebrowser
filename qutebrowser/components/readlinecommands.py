@@ -19,6 +19,7 @@
 
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
+import os
 from typing import Iterable, Optional, MutableMapping
 
 from PyQt5.QtWidgets import QApplication, QLineEdit
@@ -90,8 +91,13 @@ class _ReadlineBridge:
     def kill_line(self) -> None:
         self._dispatch('end', mark=True, delete=True)
 
-    def _rubout(self, delim: Iterable[str]) -> None:
-        """Delete backwards using the characters in delim as boundaries."""
+    def rubout(self, delim: Iterable[str]) -> None:
+        """Delete backwards using the characters in delim as boundaries.
+
+        With delim=[' '], this acts like unix-word-rubout.
+        With delim=[' ', '/'], this acts like unix-filename-rubout.
+        With delim=[os.sep], this serves as a more useful filename-rubout.
+        """
         widget = self._widget()
         if widget is None:
             return
@@ -114,12 +120,6 @@ class _ReadlineBridge:
         widget.cursorBackward(True, moveby)
         self._deleted[widget] = widget.selectedText()
         widget.del_()
-
-    def unix_word_rubout(self) -> None:
-        self._rubout([' '])
-
-    def unix_filename_rubout(self) -> None:
-        self._rubout([' ', '/'])
 
     def backward_kill_word(self) -> None:
         self._dispatch('cursorWordBackward', mark=True, delete=True)
@@ -221,23 +221,54 @@ def rl_kill_line() -> None:
     bridge.kill_line()
 
 
-@_register()
+@_register(deprecated="Use :rl-rubout ' ' instead.")
 def rl_unix_word_rubout() -> None:
     """Remove chars from the cursor to the beginning of the word.
 
     This acts like readline's unix-word-rubout. Whitespace is used as a
     word delimiter.
     """
-    bridge.unix_word_rubout()
+    bridge.rubout([" "])
 
 
-@_register()
+@_register(
+    deprecated='Use :rl-filename-rubout or :rl-rubout " /" instead '
+               '(see their `:help` for details).'
+)
 def rl_unix_filename_rubout() -> None:
     """Remove chars from the cursor to the previous path separator.
 
     This acts like readline's unix-filename-rubout.
     """
-    bridge.unix_filename_rubout()
+    bridge.rubout([" ", "/"])
+
+
+@_register()
+def rl_rubout(delim: str) -> None:
+    """Delete backwards using the given characters as boundaries.
+
+    With " ", this acts like readline's `unix-word-rubout`.
+
+    With " /", this acts like readline's `unix-filename-rubout`, but consider
+    using `:rl-filename-rubout` instead: It uses the OS path seperator (i.e. `\\`
+    on Windows) and ignores spaces.
+
+    Args:
+        delim: A string of characters (or a single character) until which text
+               will be deleted.
+    """
+    bridge.rubout(list(delim))
+
+
+@_register()
+def rl_filename_rubout() -> None:
+    """Delete backwards using the OS path separator as boundary.
+
+    For behavior that matches readline's `unix-filename-rubout` exactly, use
+    `:rl-rubout "/ "` instead. This command uses the OS path seperator (i.e.
+    `\\` on Windows) and ignores spaces.
+    """
+    bridge.rubout(os.sep)
 
 
 @_register()

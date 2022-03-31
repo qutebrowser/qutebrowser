@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import re
 import inspect
 
@@ -94,18 +95,19 @@ class LineEdit(QLineEdit):
         return ''.join(chars)
 
 
-def _validate_deletion(lineedit, method, text, deleted, rest):
+def _validate_deletion(lineedit, method, args, text, deleted, rest):
     """Run and validate a text deletion method on the ReadLine bridge.
 
     Args:
         lineedit: The LineEdit instance.
         method: Reference to the method on the bridge to test.
+        args: Arguments to pass to the method.
         text: The starting 'augmented' text (see LineEdit.set_aug_text)
         deleted: The text that should be deleted when the method is invoked.
         rest: The augmented text that should remain after method is invoked.
     """
     lineedit.set_aug_text(text)
-    method()
+    method(*args)
     assert readlinecommands.bridge._deleted[lineedit] == deleted
     assert lineedit.aug_text() == rest
     lineedit.clear()
@@ -127,7 +129,9 @@ def test_none(qtbot):
     assert QApplication.instance().focusWidget() is None
     for name, method in inspect.getmembers(readlinecommands,
                                            inspect.isfunction):
-        if name.startswith('rl_'):
+        if name == "rl_rubout":
+            method(delim=" ")
+        elif name.startswith('rl_'):
             method()
 
 
@@ -218,7 +222,8 @@ def test_rl_backward_delete_char(text, expected, lineedit):
 ])
 def test_rl_unix_line_discard(lineedit, text, deleted, rest):
     """Delete from the cursor to the beginning of the line and yank back."""
-    _validate_deletion(lineedit, readlinecommands.rl_unix_line_discard,
+    _validate_deletion(lineedit,
+                       readlinecommands.rl_unix_line_discard, [],
                        text, deleted, rest)
 
 
@@ -230,7 +235,8 @@ def test_rl_unix_line_discard(lineedit, text, deleted, rest):
 ])
 def test_rl_kill_line(lineedit, text, deleted, rest):
     """Delete from the cursor to the end of line and yank back."""
-    _validate_deletion(lineedit, readlinecommands.rl_kill_line,
+    _validate_deletion(lineedit,
+                       readlinecommands.rl_kill_line, [],
                        text, deleted, rest)
 
 
@@ -243,9 +249,14 @@ def test_rl_kill_line(lineedit, text, deleted, rest):
                  marks=fixme),
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
 ])
-def test_rl_unix_word_rubout(lineedit, text, deleted, rest):
+@pytest.mark.parametrize("method, args", [
+    (readlinecommands.rl_unix_word_rubout, []),  # deprecated
+    (readlinecommands.rl_rubout, [" "]),  # equivalent
+])
+def test_rl_unix_word_rubout(lineedit, text, deleted, rest, method, args):
     """Delete to word beginning and see if it comes back with yank."""
-    _validate_deletion(lineedit, readlinecommands.rl_unix_word_rubout,
+    _validate_deletion(lineedit,
+                       method, args,
                        text, deleted, rest)
 
 
@@ -256,9 +267,37 @@ def test_rl_unix_word_rubout(lineedit, text, deleted, rest):
     ('open -t |github.com/foo/bar', '-t ', 'open |github.com/foo/bar'),
     ('open foo/bar.baz|', 'bar.baz', 'open foo/|'),
 ])
-def test_rl_unix_filename_rubout(lineedit, text, deleted, rest):
+@pytest.mark.parametrize("method, args", [
+    (readlinecommands.rl_unix_filename_rubout, []),  # deprecated
+    (readlinecommands.rl_rubout, [" /"]),  # equivalent
+])
+def test_rl_unix_filename_rubout(lineedit, text, deleted, rest, method, args):
     """Delete filename segment and see if it comes back with yank."""
-    _validate_deletion(lineedit, readlinecommands.rl_unix_filename_rubout,
+    _validate_deletion(lineedit,
+                       method, args,
+                       text, deleted, rest)
+
+
+@pytest.mark.parametrize('os_sep, text, deleted, rest', [
+    pytest.param('/', 'path|', 'path', '|', marks=fixme),
+    ('/', 'path|', 'ath', 'p|'),  # wrong
+    ('/', '/path|', 'path', '/|'),
+    ('/', '/path/sub|', 'sub', '/path/|'),
+    ('/', '/path/trailing/|', 'trailing/', '/path/|'),
+    ('/', '/test/path with spaces|', 'path with spaces', '/test/|'),
+    ('/', r'/test/path\backslashes\eww|', r'path\backslashes\eww', '/test/|'),
+    pytest.param('\\', 'path|', 'path', '|', marks=fixme),
+    ('\\', 'path|', 'ath', 'p|'),  # wrong
+    ('\\', r'C:\path|', 'path', r'C:\|'),
+    ('\\', r'C:\path\sub|', 'sub', r'C:\path\|'),
+    ('\\', r'C:\test\path with spaces|', 'path with spaces', r'C:\test\|'),
+    ('\\', r'C:\path\trailing\|', 'trailing\\', r'C:\path\|'),
+])
+def test_filename_rubout(os_sep, monkeypatch, lineedit, text, deleted, rest):
+    """Delete filename segment and see if it comes back with yank."""
+    monkeypatch.setattr(os, "sep", os_sep)
+    _validate_deletion(lineedit,
+                       readlinecommands.rl_filename_rubout, [],
                        text, deleted, rest)
 
 
@@ -275,7 +314,8 @@ def test_rl_unix_filename_rubout(lineedit, text, deleted, rest):
 ])
 def test_rl_kill_word(lineedit, text, deleted, rest):
     """Delete to word end and see if it comes back with yank."""
-    _validate_deletion(lineedit, readlinecommands.rl_kill_word,
+    _validate_deletion(lineedit,
+                       readlinecommands.rl_kill_word, [],
                        text, deleted, rest)
 
 
@@ -290,7 +330,8 @@ def test_rl_kill_word(lineedit, text, deleted, rest):
 ])
 def test_rl_backward_kill_word(lineedit, text, deleted, rest):
     """Delete to word beginning and see if it comes back with yank."""
-    _validate_deletion(lineedit, readlinecommands.rl_backward_kill_word,
+    _validate_deletion(lineedit,
+                       readlinecommands.rl_backward_kill_word, [],
                        text, deleted, rest)
 
 

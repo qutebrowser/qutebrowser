@@ -3764,7 +3764,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
@@ -3789,7 +3790,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char

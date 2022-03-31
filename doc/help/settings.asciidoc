@@ -524,9 +524,10 @@ Default:
 * +pass:[&lt;Ctrl-Return&gt;]+: +pass:[command-accept --rapid]+
 * +pass:[&lt;Ctrl-Shift-C&gt;]+: +pass:[completion-item-yank --sel]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[rl-filename-rubout]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
-* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-rubout &quot; &quot;]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
@@ -760,8 +761,9 @@ Default:
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
 * +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-open-download --pdfjs]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[rl-filename-rubout]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
-* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-rubout &quot; &quot;]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+

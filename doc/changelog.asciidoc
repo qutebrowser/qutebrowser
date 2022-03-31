@@ -19,6 +19,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.5.0 (unreleased)
 -------------------
 
+Deprecated
+~~~~~~~~~~
+
+- The `:rl-unix-word-rubout` command (`<Ctrl-W>` in command/prompt modes) has
+  been deprecated. Use `:rl-rubout " "` instead.
+- The `:rl-unix-filename-rubout` command has been deprecated. Use either
+  `:rl-rubout "/ "` (classic readline behavior) or `:rl-filename-rubout` (using
+  OS path separator and ignoring spaces) instead.
+
 Changed
 ~~~~~~~
 
@@ -78,6 +87,11 @@ Added
   current tab.
 - New `editor.remove_file` setting which can be set to `False` to keep all
   temporary editor files after closing the external editor.
+- New `:rl-rubout` command replacing `:rl-unix-word-rubout` (and optionally
+  `:rl-unix-filename-rubout`), taking a delimiter as argument.
+- New `:rl-filename-rubout` command, using the OS path separator and ignoring
+  spaces. The command also gets shown in the suggested commands for a download
+  filename prompt now.
 
 Fixed
 ~~~~~

@@ -831,6 +831,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
         cmds = [
             ('prompt-accept', 'Accept'),
             ('mode-leave', 'Abort'),
+            ('rl-filename-rubout', "Go to parent directory"),
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
