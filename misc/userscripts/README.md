@@ -89,7 +89,7 @@ The following userscripts can be found on their own repositories.
   for looking up readings and definitions of currently selected words, kanji
   and names
 - [~palb91/qutescripts](https://git.sr.ht/~palb91/qutescripts): A list of
-  personal userscripts for qutebrowser (`domcycle`:settings per domain,
+  personal userscripts for qutebrowser (`domcycle`: settings per domain,
   `gitclone`, `jsdownload`: smart download, and `substiqute`: bash-like url
   substitution)
   
