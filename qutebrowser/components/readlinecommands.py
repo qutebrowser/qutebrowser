@@ -20,7 +20,7 @@
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
 import os
-from typing import Iterable, Optional, MutableMapping
+from typing import Iterable, Optional, MutableMapping, Any, Callable
 
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
@@ -187,7 +187,8 @@ class _ReadlineBridge:
 
 bridge = _ReadlineBridge()
 
-def _register(**kwargs):
+
+def _register(**kwargs: Any) -> Callable[..., Any]:
     return cmdutils.register(
         modes=[cmdutils.KeyMode.command, cmdutils.KeyMode.prompt],
         **kwargs)
@@ -289,12 +290,12 @@ def rl_unix_filename_rubout() -> None:
 
 @_register()
 def rl_rubout(delim: str) -> None:
-    """Delete backwards using the given characters as boundaries.
+    r"""Delete backwards using the given characters as boundaries.
 
     With " ", this acts like readline's `unix-word-rubout`.
 
     With " /", this acts like readline's `unix-filename-rubout`, but consider
-    using `:rl-filename-rubout` instead: It uses the OS path seperator (i.e. `\\`
+    using `:rl-filename-rubout` instead: It uses the OS path seperator (i.e. `\`
     on Windows) and ignores spaces.
 
     Args:
@@ -306,11 +307,11 @@ def rl_rubout(delim: str) -> None:
 
 @_register()
 def rl_filename_rubout() -> None:
-    """Delete backwards using the OS path separator as boundary.
+    r"""Delete backwards using the OS path separator as boundary.
 
     For behavior that matches readline's `unix-filename-rubout` exactly, use
     `:rl-rubout "/ "` instead. This command uses the OS path seperator (i.e.
-    `\\` on Windows) and ignores spaces.
+    `\` on Windows) and ignores spaces.
     """
     bridge.rubout(os.sep)
 

@@ -71,6 +71,9 @@ Changed
   * `qt.process_model` -> `qt.chromium.process_model`
 - System-wide userscripts are now discovered from the correct location when
   running via Flatpak (`/app/share` rather than `/usr/share`).
+- Filename prompts now don't display a `..` entry in the list of files anymore.
+  To get back to the parent directory, either type `../` manually, or use the new
+  `:rl-filename-rubout` command, bound to `<Ctrl-Shift-W>` by default.
 
 Added
 ~~~~~
