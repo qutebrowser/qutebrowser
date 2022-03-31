@@ -142,11 +142,14 @@ class _ReadlineBridge:
 
 
 bridge = _ReadlineBridge()
-_register = cmdutils.register(
-    modes=[cmdutils.KeyMode.command, cmdutils.KeyMode.prompt])
+
+def _register(**kwargs):
+    return cmdutils.register(
+        modes=[cmdutils.KeyMode.command, cmdutils.KeyMode.prompt],
+        **kwargs)
 
 
-@_register
+@_register()
 def rl_backward_char() -> None:
     """Move back a character.
 
@@ -155,7 +158,7 @@ def rl_backward_char() -> None:
     bridge.backward_char()
 
 
-@_register
+@_register()
 def rl_forward_char() -> None:
     """Move forward a character.
 
@@ -164,7 +167,7 @@ def rl_forward_char() -> None:
     bridge.forward_char()
 
 
-@_register
+@_register()
 def rl_backward_word() -> None:
     """Move back to the start of the current or previous word.
 
@@ -173,7 +176,7 @@ def rl_backward_word() -> None:
     bridge.backward_word()
 
 
-@_register
+@_register()
 def rl_forward_word() -> None:
     """Move forward to the end of the next word.
 
@@ -182,7 +185,7 @@ def rl_forward_word() -> None:
     bridge.forward_word()
 
 
-@_register
+@_register()
 def rl_beginning_of_line() -> None:
     """Move to the start of the line.
 
@@ -191,7 +194,7 @@ def rl_beginning_of_line() -> None:
     bridge.beginning_of_line()
 
 
-@_register
+@_register()
 def rl_end_of_line() -> None:
     """Move to the end of the line.
 
@@ -200,7 +203,7 @@ def rl_end_of_line() -> None:
     bridge.end_of_line()
 
 
-@_register
+@_register()
 def rl_unix_line_discard() -> None:
     """Remove chars backward from the cursor to the beginning of the line.
 
@@ -209,7 +212,7 @@ def rl_unix_line_discard() -> None:
     bridge.unix_line_discard()
 
 
-@_register
+@_register()
 def rl_kill_line() -> None:
     """Remove chars from the cursor to the end of the line.
 
@@ -218,7 +221,7 @@ def rl_kill_line() -> None:
     bridge.kill_line()
 
 
-@_register
+@_register()
 def rl_unix_word_rubout() -> None:
     """Remove chars from the cursor to the beginning of the word.
 
@@ -228,7 +231,7 @@ def rl_unix_word_rubout() -> None:
     bridge.unix_word_rubout()
 
 
-@_register
+@_register()
 def rl_unix_filename_rubout() -> None:
     """Remove chars from the cursor to the previous path separator.
 
@@ -237,7 +240,7 @@ def rl_unix_filename_rubout() -> None:
     bridge.unix_filename_rubout()
 
 
-@_register
+@_register()
 def rl_backward_kill_word() -> None:
     """Remove chars from the cursor to the beginning of the word.
 
@@ -247,7 +250,7 @@ def rl_backward_kill_word() -> None:
     bridge.backward_kill_word()
 
 
-@_register
+@_register()
 def rl_kill_word() -> None:
     """Remove chars from the cursor to the end of the current word.
 
@@ -256,7 +259,7 @@ def rl_kill_word() -> None:
     bridge.kill_word()
 
 
-@_register
+@_register()
 def rl_yank() -> None:
     """Paste the most recently deleted text.
 
@@ -265,7 +268,7 @@ def rl_yank() -> None:
     bridge.yank()
 
 
-@_register
+@_register()
 def rl_delete_char() -> None:
     """Delete the character after the cursor.
 
@@ -274,7 +277,7 @@ def rl_delete_char() -> None:
     bridge.delete_char()
 
 
-@_register
+@_register()
 def rl_backward_delete_char() -> None:
     """Delete the character before the cursor.
 
