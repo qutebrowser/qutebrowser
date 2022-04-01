@@ -28,6 +28,7 @@ Deprecated
   * Qt before 5.15 LTS (plus adding support for Qt 6.2+)
   * Python 3.6
   * The QtWebKit backend
+  * macOS 10.14 (via Homebrew)
   * 32-bit Windows (via Qt)
   * Windows 8 (via Qt)
   * Windows 10 before 1809 (via Qt)
