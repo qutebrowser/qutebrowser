@@ -22,6 +22,16 @@ v2.5.0 (unreleased)
 Deprecated
 ~~~~~~~~~~
 
+- v2.5.x will be the last release of qutebrowser 2.
+  **For the upcoming 3.0.0 release**, it's planned to drop support for various
+  legacy platforms and libraries which are unsupported upstream, such as:
+  * Qt before 5.15 LTS (plus adding support for Qt 6.2+)
+  * Python 3.6
+  * The QtWebKit backend
+  * 32-bit Windows (via Qt)
+  * Windows 8 (via Qt)
+  * Windows 10 before 1809 (via Qt)
+  * Possibly other more minor dependency changes
 - The `:rl-unix-word-rubout` command (`<Ctrl-W>` in command/prompt modes) has
   been deprecated. Use `:rl-rubout " "` instead.
 - The `:rl-unix-filename-rubout` command has been deprecated. Use either
@@ -83,7 +93,7 @@ Added
 - New `input.mode_override` option which allows overriding the current mode
   based on the new URL when navigating or switching tabs.
 - New `qt.chromium.sandboxing` setting which allows to disable Chromium's
-  sandboxing (mainly intended for development and testing)
+  sandboxing (mainly intended for development and testing).
 - New `QUTE_TAB_INDEX` variable for userscripts, containing the index of the
   current tab.
 - New `editor.remove_file` setting which can be set to `False` to keep all
@@ -131,14 +141,6 @@ Fixed
   * `ripbang` now works again (it got blocked due to a missing user agent and
     used outdated qutebrowser commands before)
   * `keepassxc` now has a properly working `--insecure` flag
-
-[[v2.4.1]]
-v2.4.1 (unreleased)
--------------------
-
-Fixed
-~~~~~
-
 - Speculative fix for an immediate crash at start with the macOS/Windows
   binaries (in certain rare environments).
 - Speculative fix for a qutebrowser crash when the notification daemon crashes
