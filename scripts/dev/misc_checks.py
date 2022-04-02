@@ -337,13 +337,17 @@ def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
 
 
 def check_userscript_shebangs(_args: argparse.Namespace) -> bool:
-    """Check that we're using /usr/bin/env in shebangs."""
+    """Check that we're using /usr/bin/env in shebangs and scripts are executable."""
     ok = True
     folder = pathlib.Path('misc/userscripts')
 
     for sub in folder.iterdir():
         if sub.is_dir() or sub.name == 'README.md':
             continue
+
+        if not os.access(sub, os.X_OK):
+            print(f"{sub} is not marked as executable")
+            ok = False
 
         with sub.open('r', encoding='utf-8') as f:
             shebang = f.readline().rstrip('\n')
