@@ -15,6 +15,33 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.0.0]]
+v3.0.0 (unreleased)
+-------------------
+
+Removed
+~~~~~~~
+
+- It's planned to drop support for various legacy platforms and libraries which
+  are unsupported upstream, such as:
+  * Qt before 5.15 LTS (plus adding support for Qt 6.2+)
+  * Python 3.6
+  * The QtWebKit backend
+  * macOS 10.14 (via Homebrew)
+  * 32-bit Windows (via Qt)
+  * Windows 8 (via Qt)
+  * Windows 10 before 1809 (via Qt)
+  * Possibly other more minor dependency changes
+
+[[v2.5.1]]
+v2.5.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- The `qute-pass` userscript is marked as executable again.
+
 [[v2.5.0]]
 v2.5.0 (2022-04-01)
 -------------------
@@ -128,7 +155,7 @@ Fixed
   list, rather than `:tab-select`.
 - Work around a Qt issue causing `:spawn` to run executables from the current
   directory if no system-wide executable was found. The underlying Qt bug is
-  tracked as [CVE-2022-25255](https://lists.qt-project.org/pipermail/announce/2022-February/000333.html),
+  tracked as https://lists.qt-project.org/pipermail/announce/2022-February/000333.html[CVE-2022-25255],
   though the impact with typical qutebrowser usage is low: Normally,
   qutebrowser is run from a fixed location (usually the users home directory),
   and `:spawn` is not typically used with executables that don't exist. The main
