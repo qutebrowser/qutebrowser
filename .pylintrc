@@ -18,7 +18,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.private_import,
 
 persistent=n
-py-version=3.6
+py-version=3.7
 
 [MESSAGES CONTROL]
 enable=all

@@ -38,7 +38,7 @@ version (Qt 5.7, based on a Chromium from March 2016). Furthermore, it packages 
 Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
 QtWebEngine) and also comes with Python 3.5.
 
-You should be able to install a newer Python (3.6+) using the
+You should be able to install a newer Python (3.7+) using the
 https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or
 https://github.com/pyenv/pyenv[pyenv], and then proceed to
 <<tox,install qutebrowser in a virtualenv>>. However, this is currently untested. If you
@@ -447,7 +447,7 @@ This installs all needed Python dependencies in a `.venv` subfolder
 This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
 binary, but has a few caveats:
 
-- Make sure your `python3` is Python 3.6 or newer, otherwise you'll get a "No
+- Make sure your `python3` is Python 3.7 or newer, otherwise you'll get a "No
   matching distribution found" error and/or qutebrowser will not run.
 - It only works on 64-bit x86 systems, with other architectures you'll get the
   same error.
