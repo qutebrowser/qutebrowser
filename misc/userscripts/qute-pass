@@ -188,7 +188,7 @@ def dmenu(items, invocation):
 def fake_key_raw(text):
     for character in text:
         # Escape all characters by default, space requires special handling
-        sequence = '" "' if character == ' ' else '\{}'.format(character)
+        sequence = '" "' if character == ' ' else r'\{}'.format(character)
         qute_command('fake-key {}'.format(sequence))
 
 
