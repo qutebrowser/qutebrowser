@@ -1,12 +1,2 @@
 tox
 wheel
-
-# Python 3.6
-#@ markers: setuptools python_version>="3.7"
-#@ add: setuptools<60 ; python_version=="3.6.*"
-#@ markers: filelock python_version>="3.7"
-#@ add: filelock==3.4.1 ; python_version=="3.6.*"
-#@ markers: platformdirs python_version>="3.7"
-#@ add: platformdirs==2.4.0 ; python_version=="3.6.*"
-#@ markers: pip python_version>="3.7"
-#@ add: pip==21.3.1 ; python_version=="3.6.*"
