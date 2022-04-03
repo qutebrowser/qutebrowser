@@ -447,7 +447,7 @@ Various emacs/conkeror-like keybinding configs exist:
 
 - https://gitlab.com/jgkamat/qutemacs/blob/master/qutemacs.py[jgkamat]
 - https://gitlab.com/Kaligule/qutebrowser-emacs-config/blob/master/config.py[Kaligule]
-- https://me0w.net/pit/1540882719[nm0i]
+- https://web.archive.org/web/20210512185023/https://me0w.net/pit/1540882719[nm0i]
 - https://www.reddit.com/r/qutebrowser/comments/eh10i7/config_share_qute_with_emacs_keybindings/[jasonsun0310]
 
 It's also mostly possible to get rid of modal keybindings by setting
