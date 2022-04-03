@@ -150,7 +150,7 @@ def parse_content_disposition(reply):
     """
     is_inline = True
     filename = None
-    content_disposition_header = 'Content-Disposition'.encode('iso-8859-1')
+    content_disposition_header = b'Content-Disposition'
     # First check if the Content-Disposition header has a filename
     # attribute.
     if reply.hasRawHeader(content_disposition_header):

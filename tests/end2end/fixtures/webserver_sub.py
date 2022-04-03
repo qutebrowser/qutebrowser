@@ -231,7 +231,7 @@ def drip():
 
     def generate_bytes():
         for _ in range(numbytes):
-            yield "*".encode('utf-8')
+            yield b"*"
             time.sleep(pause)
 
     response = flask.Response(generate_bytes(), headers={

@@ -379,10 +379,10 @@ class NetworkManager(QNetworkAccessManager):
             if referer_header_conf == 'never':
                 # Note: using ''.encode('ascii') sends a header with no value,
                 # instead of no header at all
-                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+                req.setRawHeader(b'Referer', QByteArray())
             elif (referer_header_conf == 'same-domain' and
                   not urlutils.same_domain(req.url(), current_url)):
-                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+                req.setRawHeader(b'Referer', QByteArray())
             # If refer_header_conf is set to 'always', we leave the header
             # alone as QtWebKit did set it.
         except urlutils.InvalidUrlError:
