@@ -239,6 +239,9 @@ def extract_requirement_name(path: pathlib.Path) -> str:
 
     e.g. "pylint" from "misc/requirements/requirements-pylint.txt"
     """
+    if path == pathlib.Path("requirements.txt"):
+        return "qutebrowser"
+
     prefix = "requirements-"
     assert path.suffix == ".txt", path
     assert path.stem.startswith(prefix), path
