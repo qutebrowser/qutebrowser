@@ -103,7 +103,7 @@ def qute_command(command):
 def ask_password(password_prompt_invocation):
     process = subprocess.run(
         shlex.split(password_prompt_invocation),
-        universal_newlines=True,
+        text=True,
         stdout=subprocess.PIPE,
     )
     if process.returncode > 0:
@@ -111,7 +111,7 @@ def ask_password(password_prompt_invocation):
     master_pass = process.stdout.strip()
     return subprocess.check_output(
         ['bw', 'unlock', '--raw', master_pass],
-        universal_newlines=True,
+        text=True,
     ).strip()
 
 
@@ -122,7 +122,7 @@ def get_session_key(auto_lock, password_prompt_invocation):
     else:
         process = subprocess.run(
             ['keyctl', 'request', 'user', 'bw_session'],
-            universal_newlines=True,
+            text=True,
             stdout=subprocess.PIPE,
         )
         key_id = process.stdout.strip()
@@ -132,14 +132,14 @@ def get_session_key(auto_lock, password_prompt_invocation):
                 raise Exception('Could not unlock vault')
             key_id = subprocess.check_output(
                 ['keyctl', 'add', 'user', 'bw_session', session, '@u'],
-                universal_newlines=True,
+                text=True,
             ).strip()
 
         if auto_lock > 0:
             subprocess.call(['keyctl', 'timeout', str(key_id), str(auto_lock)])
         return subprocess.check_output(
             ['keyctl', 'pipe', str(key_id)],
-            universal_newlines=True,
+            text=True,
         ).strip()
 
 
@@ -147,8 +147,7 @@ def pass_(domain, encoding, auto_lock, password_prompt_invocation):
     session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
         ['bw', 'list', 'items', '--session', session_key, '--url', domain],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
 
     err = process.stderr.decode(encoding).strip()
@@ -168,8 +167,7 @@ def get_totp_code(selection_id, domain_name, encoding, auto_lock, password_promp
     session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
         ['bw', 'get', 'totp', '--session', session_key, selection_id],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
 
     err = process.stderr.decode(encoding).strip()

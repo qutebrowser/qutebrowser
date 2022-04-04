@@ -175,11 +175,12 @@ class BraveAdBlocker:
                     hasattr(adblock, "__file__")):
                 proc = subprocess.run(
                     ['pacman', '-Qo', adblock.__file__],
-                    stdout=subprocess.PIPE,
-                    universal_newlines=True,
+                    capture_output=True,
+                    text=True,
                     check=False,
                 )
                 logger.debug(proc.stdout)
+                logger.debug(proc.stderr)
             raise
 
     def _is_blocked(

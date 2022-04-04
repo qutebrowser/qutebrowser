@@ -422,7 +422,7 @@ def test_tox():
         list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
                                    check=True,
                                    stdout=subprocess.PIPE,
-                                   universal_newlines=True)
+                                   text=True)
         environments = list_proc.stdout.strip().split('\n')
         for env in environments:
             with utils.gha_group('tox for {}'.format(env)):

@@ -391,8 +391,8 @@ import subprocess
 
 def read_xresources(prefix):
     props = {}
-    x = subprocess.run(['xrdb', '-query'], stdout=subprocess.PIPE)
-    lines = x.stdout.decode().split('\n')
+    x = subprocess.run(['xrdb', '-query'], capture_output=True, check=True, text=True)
+    lines = x.stdout.split('\n')
     for line in filter(lambda l : l.startswith(prefix), lines):
         prop, _, value = line.partition(':\t')
         props[prop] = value

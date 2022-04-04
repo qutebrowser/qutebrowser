@@ -498,7 +498,7 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
     monkeypatch.setenv('HOME', str(home_dir))
 
     proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
-                          universal_newlines=True,
+                          text=True,
                           check=True,
                           stdout=subprocess.PIPE)
     sub_locations = json.loads(proc.stdout)

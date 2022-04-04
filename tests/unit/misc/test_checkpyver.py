@@ -39,8 +39,7 @@ def test_old_python(python):
     try:
         proc = subprocess.run(
             [python, checkpyver.__file__, '--no-err-windows'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False)
     except FileNotFoundError:
         pytest.skip(f"{python} not found")

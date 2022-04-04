@@ -50,7 +50,7 @@ def _get_files(
     filenames = subprocess.run(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
         stdout=subprocess.PIPE,
-        universal_newlines=True,
+        text=True,
         check=True,
     )
     all_ignored = ignored or []
