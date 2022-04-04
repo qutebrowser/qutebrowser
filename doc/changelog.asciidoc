@@ -22,10 +22,12 @@ v3.0.0 (unreleased)
 Removed
 ~~~~~~~
 
+- Support for Python 3.6 is dropped, as it's been
+  https://discuss.python.org/t/python-3-6-rides-into-the-sunset/12964[end-of-life upstream]
+  since December 2021. Python 3.7.0 or newer is now required.
 - It's planned to drop support for various legacy platforms and libraries which
   are unsupported upstream, such as:
   * Qt before 5.15 LTS (plus adding support for Qt 6.2+)
-  * Python 3.6
   * The QtWebKit backend
   * macOS 10.14 (via Homebrew)
   * 32-bit Windows (via Qt)
