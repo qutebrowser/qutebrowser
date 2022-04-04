@@ -40,7 +40,7 @@ exclude = .*,__pycache__,resources.py
 # A003: Builtin name for class attribute (needed for overridden methods)
 # W503: like break before binary operator
 # W504: line break after binary operator
-# FI15: __future__ import "generator_stop" missing
+# FI18: __future__ import "annotations" missing
 # PT004: fixture '{name}' does not return anything, add leading underscore
 # PT011: pytest.raises(ValueError) is too broad, set the match parameter or use a more specific exception
 # PT012: pytest.raises() block should contain a single simple statement
@@ -53,7 +53,7 @@ ignore =
     D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D412,D413,
     A003,
     W503, W504,
-    FI15,
+    FI18,
     PT004,
     PT011,
     PT012
