@@ -26,7 +26,7 @@ install: man
 		"$(DESTDIR)$(DATADIR)/applications/org.qutebrowser.qutebrowser.desktop"
 	$(foreach i,$(ICONSIZES),install -Dm644 "qutebrowser/icons/qutebrowser-$(i)x$(i).png" \
 			"$(DESTDIR)$(DATADIR)/icons/hicolor/$(i)x$(i)/apps/qutebrowser.png";)
-	install -Dm644 icons/qutebrowser.svg \
+	install -Dm644 qutebrowser/icons/qutebrowser.svg \
 		"$(DESTDIR)$(DATADIR)/icons/hicolor/scalable/apps/qutebrowser.svg"
 	install -Dm755 -t "$(DESTDIR)$(DATADIR)/qutebrowser/userscripts/" \
 		$(filter-out misc/userscripts/__pycache__,$(wildcard misc/userscripts/*))
