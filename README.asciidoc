@@ -98,7 +98,7 @@ websites and using it for transmission of sensitive data._
 
 On older Python versions (3.7/3.8), the following backports are also required:
 
-* https://importlib-resources.readthedocs.io/[importlib_resources] (Python 3.8 or older)
+* https://importlib-resources.readthedocs.io/[importlib_resources]
 
 The following libraries are optional:
 
@@ -108,8 +108,8 @@ The following libraries are optional:
   QtWebEngine backend.
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
-* https://importlib-metadata.readthedocs.io/[importlib_resources] on Python 3.7
-  or older, to improve QtWebEngine version detection when PyQtWebEngine is
+* https://importlib-metadata.readthedocs.io/[importlib_metadata] on Python 3.7,
+  to improve QtWebEngine version detection when PyQtWebEngine is
   installed via pip (thus, this dependency usually isn't relevant for
   packagers).
 * https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`

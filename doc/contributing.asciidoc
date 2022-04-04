@@ -546,9 +546,6 @@ Setting up a Windows Development Environment
 
 * Install https://www.python.org/downloads/release/python-3911/[Python 3.9].
 * Install PyQt via `pip install PyQt5`.
-* Create a file at `C:\Windows\system32\python3.bat` with the following content (adjust the path as necessary):
-  `@C:\Python36\python %*`.
-  This will make the Python 3.9 interpreter available as `python3`, which is used by various development scripts.
 * Install git from the https://git-scm.com/download/win[git-scm downloads page].
   Try not to enable `core.autocrlf`, since that will cause `flake8` to complain a lot. Use an editor that can deal with plain line feeds instead.
 * Clone your favourite qutebrowser repository.
