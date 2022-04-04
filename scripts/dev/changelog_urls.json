@@ -27,7 +27,6 @@
   "hypothesis": "https://hypothesis.readthedocs.io/en/latest/changes.html",
   "mypy": "https://mypy-lang.blogspot.com/",
   "types-PyYAML": "https://github.com/python/typeshed/commits/master/stubs/PyYAML",
-  "types-dataclasses": "https://github.com/python/typeshed/commits/master/stubs/dataclasses",
   "pytest": "https://docs.pytest.org/en/latest/changelog.html",
   "iniconfig": "https://github.com/RonnyPfannschmidt/iniconfig/blob/master/CHANGELOG",
   "tox": "https://tox.readthedocs.io/en/latest/changelog.html",
@@ -153,8 +152,9 @@
   "readme-renderer": "https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst",
   "requests-toolbelt": "https://github.com/requests/toolbelt/blob/master/HISTORY.rst",
   "rfc3986": "https://rfc3986.readthedocs.io/en/latest/release-notes/index.html",
-  "tqdm": "https://tqdm.github.io/releases/",
   "twine": "https://twine.readthedocs.io/en/stable/changelog.html",
   "webencodings": "https://github.com/gsnedders/python-webencodings/commits/master",
-  "PyJWT": "https://github.com/jpadilla/pyjwt/blob/master/CHANGELOG.rst"
+  "PyJWT": "https://github.com/jpadilla/pyjwt/blob/master/CHANGELOG.rst",
+  "commonmark": "https://github.com/readthedocs/commonmark.py/blob/master/CHANGELOG.md",
+  "rich": "https://github.com/Textualize/rich/blob/master/CHANGELOG.md"
 }

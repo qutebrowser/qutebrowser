@@ -6,14 +6,14 @@ bump2version==1.0.1
 certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.12
-colorama==0.4.4
+commonmark==0.9.1
 cryptography==36.0.2
 docutils==0.18.1
 github3.py==3.2.0
 hunter==3.4.3
 idna==3.3
 importlib-metadata==4.11.3
-jeepney==0.7.1
+jeepney==0.8.0
 keyring==23.5.0
 manhole==1.8.0
 packaging==21.3
@@ -30,14 +30,15 @@ readme-renderer==34.0
 requests==2.27.1
 requests-toolbelt==0.9.1
 rfc3986==2.0.0
+rich==12.1.0
 SecretStorage==3.3.1
 sip==6.5.1
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
-tqdm==4.63.1
-twine==3.8.0
+twine==4.0.0
+typing_extensions==4.1.1
 uritemplate==4.1.1
 # urllib3==1.26.9
 webencodings==0.5.1
-zipp==3.7.0
+zipp==3.8.0
