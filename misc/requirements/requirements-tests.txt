@@ -5,22 +5,22 @@ beautifulsoup4==4.10.0
 certifi==2021.10.8
 charset-normalizer==2.0.12
 cheroot==8.6.0
-click==8.1.0 ; python_version>="3.7"
-coverage==6.3.2 ; python_version>="3.7"
+click==8.1.0
+coverage==6.3.2
 execnet==1.9.0
-filelock==3.6.0 ; python_version>="3.7"
-Flask==2.1.0 ; python_version>="3.7"
+filelock==3.6.0
+Flask==2.1.0
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.40.0 ; python_version>="3.7"
+hypothesis==6.40.0
 icdiff==2.0.4
 idna==3.3
-importlib-metadata==4.11.3 ; python_version=="3.7.*"
+importlib-metadata==4.11.3
 iniconfig==1.1.1
-itsdangerous==2.1.2 ; python_version>="3.7"
-jaraco.functools==3.5.0 ; python_version>="3.7"
+itsdangerous==2.1.2
+jaraco.functools==3.5.0
 # Jinja2==3.1.1
-Mako==1.2.0 ; python_version>="3.7"
+Mako==1.2.0
 manhole==1.8.0
 # MarkupSafe==2.1.1
 more-itertools==8.12.0
@@ -33,14 +33,14 @@ py==1.11.0
 py-cpuinfo==8.0.0
 Pygments==2.11.2
 pyparsing==3.0.7
-pytest==7.1.1 ; python_version>="3.7"
+pytest==7.1.1
 pytest-bdd==4.1.0
 pytest-benchmark==3.4.1
 pytest-cov==3.0.0
 pytest-forked==1.4.0
 pytest-icdiff==0.5
 pytest-instafail==0.4.2
-pytest-mock==3.7.0 ; python_version>="3.7"
+pytest-mock==3.7.0
 pytest-qt==4.0.2
 pytest-repeat==0.9.1
 pytest-rerunfailures==10.2
@@ -52,25 +52,10 @@ requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.3.1
-tldextract==3.2.0 ; python_version>="3.7"
+tldextract==3.2.0
 toml==0.10.2
-tomli==2.0.1 ; python_version>="3.7"
+tomli==2.0.1
 urllib3==1.26.9
 vulture==2.3
-Werkzeug==2.1.0 ; python_version>="3.7"
-zipp==3.7.0 ; python_version>="3.7"
-jaraco.functools<3.5 ; python_version=="3.6.*"
-tomli<2 ; python_version=="3.6.*"
-filelock==3.4.1 ; python_version=="3.6.*"
-hypothesis<6.32 ; python_version=="3.6.*"
-coverage<6.3 ; python_version=="3.6.*"
-pytest-mock<3.7 ; python_version=="3.6.*"
-itsdangerous<2.1.0 ; python_version=="3.6.*"
-tldextract<3.2.0 ; python_version=="3.6.*"
-Mako<1.2.0 ; python_version=="3.6.*"
-pytest<7.1.0 ; python_version=="3.6.*"
-click<8.1.0 ; python_version=="3.6.*"
-Flask<2.1.0 ; python_version=="3.6.*"
-Werkzeug<2.1.0 ; python_version=="3.6.*"
-zipp<3.7 ; python_version=="3.6.*"
-importlib-metadata<4.9 ; python_version=="3.6.*"
+Werkzeug==2.1.0
+zipp==3.7.0

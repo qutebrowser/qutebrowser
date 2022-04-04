@@ -57,7 +57,7 @@ ignore =
     PT004,
     PT011,
     PT012
-min-version = 3.6.1
+min-version = 3.7.0
 max-complexity = 12
 per-file-ignores =
     qutebrowser/api/hook.py : N801

@@ -28,12 +28,12 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.6.1 is required to run qutebrowser, but it's "
+TEXT = (r"At least Python 3.7 is required to run qutebrowser, but it's "
         r"running with \d+\.\d+\.\d+.")
 
 
 @pytest.mark.not_frozen
-@pytest.mark.parametrize('python', ['python2', 'python3.5'])
+@pytest.mark.parametrize('python', ['python2', 'python3.6'])
 def test_old_python(python):
     """Run checkpyver with old python versions."""
     try:

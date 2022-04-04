@@ -3,7 +3,6 @@ PyYAML
 
 ## stdlib backports
 importlib-resources
-dataclasses
 
 ## Optional dependencies
 Pygments  # For :view-source --pygments or on QtWebKit
@@ -17,15 +16,3 @@ typing_extensions  # from importlib-metadata
 #@ markers: importlib-resources python_version=="3.7.*" or python_version=="3.8.*"
 #@ markers: importlib-metadata python_version=="3.7.*"
 #@ markers: typing_extensions python_version<"3.8"
-#@ markers: dataclasses python_version<"3.7"
-
-# Python 3.6
-#@ add: importlib-resources<5.6.0 ; python_version=="3.6.*"
-#@ add: importlib-metadata<4.9 ; python_version=="3.6.*"
-#
-#@ markers: zipp python_version>="3.7"
-#@ add: zipp<3.7 ; python_version=="3.6.*"
-#@ markers: MarkupSafe python_version>="3.7"
-#@ add: MarkupSafe<2.1.0 ; python_version=="3.6.*"
-#@ markers: Jinja2 python_version>="3.7"
-#@ add: Jinja2<3.1.0 ; python_version=="3.6.*"

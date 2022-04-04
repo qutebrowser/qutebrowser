@@ -13,7 +13,7 @@ isort==5.10.1
 lazy-object-proxy==1.7.1
 mccabe==0.7.0
 pefile==2021.9.3
-platformdirs==2.5.1 ; python_version>="3.7"
+platformdirs==2.5.1
 pycparser==2.21
 PyJWT==2.3.0
 pylint==2.13.3
@@ -27,4 +27,3 @@ typing_extensions==4.1.1
 uritemplate==4.1.1
 # urllib3==1.26.9
 wrapt==1.14.0
-platformdirs==2.4.0 ; python_version=="3.6.*"
