@@ -24,7 +24,7 @@ install: man
 		"$(DESTDIR)$(MANDIR)/man1/qutebrowser.1"
 	install -Dm644 misc/org.qutebrowser.qutebrowser.desktop \
 		"$(DESTDIR)$(DATADIR)/applications/org.qutebrowser.qutebrowser.desktop"
-	$(foreach i,$(ICONSIZES),install -Dm644 "icons/qutebrowser-$(i)x$(i).png" \
+	$(foreach i,$(ICONSIZES),install -Dm644 "qutebrowser/icons/qutebrowser-$(i)x$(i).png" \
 			"$(DESTDIR)$(DATADIR)/icons/hicolor/$(i)x$(i)/apps/qutebrowser.png";)
 	install -Dm644 icons/qutebrowser.svg \
 		"$(DESTDIR)$(DATADIR)/icons/hicolor/scalable/apps/qutebrowser.svg"

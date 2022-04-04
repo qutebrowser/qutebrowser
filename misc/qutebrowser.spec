@@ -40,9 +40,9 @@ setupcommon.write_git_file()
 
 
 if os.name == 'nt':
-    icon = '../icons/qutebrowser.ico'
+    icon = '../qutebrowser/icons/qutebrowser.ico'
 elif sys.platform == 'darwin':
-    icon = '../icons/qutebrowser.icns'
+    icon = '../qutebrowser/icons/qutebrowser.icns'
 else:
     icon = None
 

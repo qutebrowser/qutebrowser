@@ -65,7 +65,9 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug, message, version, objreg
+from qutebrowser.utils import (
+    qtutils, log, utils, debug, message, version, objreg, resources,
+)
 from qutebrowser.qt import sip
 
 
@@ -965,8 +967,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         icon = qt_notification.icon()
         if icon.isNull():
-            filename = ':/icons/qutebrowser-64x64.png'
-            icon = QImage(filename)
+            filename = 'icons/qutebrowser-64x64.png'
+            icon = QImage.fromData(resources.read_file_binary(filename))
 
         key = self._quirks.icon_key or "image-data"
         data = self._convert_image(icon)
