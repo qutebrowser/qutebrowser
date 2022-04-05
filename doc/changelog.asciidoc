@@ -35,6 +35,15 @@ Removed
   * Windows 10 before 1809 (via Qt)
   * Possibly other more minor dependency changes
 
+Changed
+~~~~~~~
+
+- The qutebrowser icons got moved from `icons/` to `qutebrowser/icons` in the
+  repository, so that it's possible for qutebrowser to load them using Python's
+  resource system (rather than compiling them into a Qt resource file).
+  Packagers are advised to use `misc/Makefile` if possible, which has been
+  updated with the new paths.
+
 [[v2.5.1]]
 v2.5.1 (unreleased)
 -------------------
@@ -43,6 +52,7 @@ Fixed
 ~~~~~
 
 - The `qute-pass` userscript is marked as executable again.
+- PDF.js now works properly again with the macOS and Windows releases.
 
 [[v2.5.0]]
 v2.5.0 (2022-04-01)
