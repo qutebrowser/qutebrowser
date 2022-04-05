@@ -15,6 +15,7 @@ def get_data_files():
     data_files = [
         ('../qutebrowser/html', 'html'),
         ('../qutebrowser/img', 'img'),
+        ('../qutebrowser/icons', 'icons'),
         ('../qutebrowser/javascript', 'javascript'),
         ('../qutebrowser/html/doc', 'html/doc'),
         ('../qutebrowser/git-commit-id', '.'),
