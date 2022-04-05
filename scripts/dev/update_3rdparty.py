@@ -64,7 +64,20 @@ def download_nsis_plugins():
     urllib.request.urlcleanup()
 
 
-def get_latest_pdfjs_url(gh_token):
+def find_pdfjs_asset(assets, legacy):
+    """Find the PDF.js asset to use."""
+    for asset in assets:
+        name = asset["name"]
+        if (
+            name.startswith("pdfjs-") and
+            name.endswith("-dist.zip") and
+            name.endswith("-legacy-dist.zip") == legacy
+        ):
+            return asset
+    raise Exception(f"No pdfjs found in {assets}")
+
+
+def get_latest_pdfjs_url(gh_token, legacy):
     """Get the URL of the latest pdf.js prebuilt package.
 
     Returns a (version, url)-tuple.
@@ -83,22 +96,25 @@ def get_latest_pdfjs_url(gh_token):
     with urllib.request.urlopen(request) as fp:
         data = json.loads(fp.read().decode('utf-8'))
 
-    download_url = data['assets'][0]['browser_download_url']
+    asset = find_pdfjs_asset(data["assets"], legacy=legacy)
+
+    download_url = asset['browser_download_url']
     version_name = data['name']
     return (version_name, download_url)
 
 
-def update_pdfjs(target_version=None, gh_token=None):
+def update_pdfjs(target_version=None, legacy=False, gh_token=None):
     """Download and extract the latest pdf.js version.
 
     If target_version is not None, download the given version instead.
 
     Args:
         target_version: None or version string ('x.y.z')
+        legacy: Whether to download the legacy build for 83-based.
         gh_token: GitHub token to use for the API. Optional except on CI.
     """
     if target_version is None:
-        version, url = get_latest_pdfjs_url(gh_token)
+        version, url = get_latest_pdfjs_url(gh_token, legacy=legacy)
     else:
         # We need target_version as x.y.z, without the 'v' prefix, though the
         # user might give it on the command line
@@ -107,13 +123,14 @@ def update_pdfjs(target_version=None, gh_token=None):
         # version should have the prefix to be consistent with the return value
         # of get_latest_pdfjs_url()
         version = 'v' + target_version
+        suffix = "-legacy" if legacy else ""
         url = ('https://github.com/mozilla/pdf.js/releases/download/'
-               'v{0}/pdfjs-{0}-dist.zip').format(target_version)
+               f'{version}/pdfjs-{target_version}{suffix}-dist.zip')
 
     os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           '..', '..'))
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
-    print("=> Downloading pdf.js {}".format(version))
+    print(f"=> Downloading pdf.js {version}{' (legacy)' if legacy else ''}")
     try:
         (archive_path, _headers) = urllib.request.urlretrieve(url)
     except urllib.error.HTTPError as error:
@@ -167,13 +184,13 @@ def test_dicts():
                 print('ERROR: {}'.format(response.status))
 
 
-def run(nsis=False, ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
-        dicts=False, gh_token=None):
+def run(nsis=False, ace=False, pdfjs=True, legacy_pdfjs=False, fancy_dmg=False,
+        pdfjs_version=None, dicts=False, gh_token=None):
     """Update components based on the given arguments."""
     if nsis:
         download_nsis_plugins()
     if pdfjs:
-        update_pdfjs(pdfjs_version, gh_token=gh_token)
+        update_pdfjs(pdfjs_version, legacy=legacy_pdfjs, gh_token=gh_token)
     if ace:
         update_ace()
     if fancy_dmg:
@@ -191,6 +208,9 @@ def main():
         help='Specify pdfjs version. If not given, '
         'the latest version is used.',
         required=False, metavar='VERSION')
+    parser.add_argument("--legacy-pdfjs",
+                        help="Use legacy PDF.js build (for 83-based)",
+                        action='store_true')
     parser.add_argument('--fancy-dmg', help="Update fancy-dmg Makefile",
                         action='store_true')
     parser.add_argument(
@@ -202,7 +222,8 @@ def main():
         '--gh-token', help="GitHub token to use.", nargs='?')
     args = parser.parse_args()
     run(nsis=False, ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
-        pdfjs_version=args.pdfjs, dicts=args.dicts, gh_token=args.gh_token)
+        pdfjs_version=args.pdfjs, legacy_pdfjs=args.legacy_pdfjs,
+        dicts=args.dicts, gh_token=args.gh_token)
 
 
 if __name__ == '__main__':
