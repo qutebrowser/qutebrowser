@@ -290,13 +290,12 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
                                     "optional with filter 'focused'!")
 
     handlers = {
-        'id': (tab.elements.find_id, value, single_cb),
-        'css': (tab.elements.find_css, value, multiple_cb, message.error),
-        'position': (_wrap_find_at_pos, value, tab, single_cb),
-        'focused': (tab.elements.find_focused, single_cb),
+        'id': lambda: tab.elements.find_id(elem_id=value, callback=single_cb),
+        'css': lambda: tab.elements.find_css(selector=value, callback=multiple_cb, error_cb=message.error),
+        'position': lambda: _wrap_find_at_pos(value=value, tab=tab, callback=single_cb),
+        'focused': lambda: tab.elements.find_focused(callback=single_cb),
     }
-    handler, *arguments = handlers[filter_]
-    handler(*arguments)
+    handlers[filter_]()
 
 
 @cmdutils.register(debug=True)
