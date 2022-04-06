@@ -266,7 +266,7 @@ The given filter needs to result in exactly one element, otherwise, an error is 
  - id: Get an element based on its ID.
  - css: Filter by a CSS selector.
  - position: Click the element at specified position.
- Write value as 'x,y'.
+ Specify `value` as 'x,y'.
  - focused: Click the currently focused element.
 
 * +'value'+: The value to filter for. Optional for 'focused' filter.
