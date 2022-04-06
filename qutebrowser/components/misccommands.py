@@ -27,7 +27,7 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, cast
 
 try:
     import hunter
@@ -291,8 +291,10 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
 
     handlers = {
         'id': lambda: tab.elements.find_id(elem_id=value, callback=single_cb),
-        'css': lambda: tab.elements.find_css(selector=value, callback=multiple_cb, error_cb=message.error),
-        'position': lambda: _wrap_find_at_pos(value=value, tab=tab, callback=single_cb),
+        'css': lambda:
+        tab.elements.find_css(value, callback=multiple_cb, error_cb=message.error),
+        'position': lambda:
+        _wrap_find_at_pos(cast(str, value), tab=tab, callback=single_cb),
         'focused': lambda: tab.elements.find_focused(callback=single_cb),
     }
     handlers[filter_]()
