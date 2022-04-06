@@ -472,9 +472,10 @@ class PromptContainer(QWidget):
         modes=[usertypes.KeyMode.prompt])
     def prompt_fileselect_external(self):
         """Choose a location using a configured external picker."""
-        if not (self._prompt and isinstance(self._prompt, FilenamePrompt)):
+        assert self._prompt is not None
+        if not isinstance(self._prompt, FilenamePrompt):
             raise cmdutils.CommandError(
-                f"Can only launch external fileselect for FilenamePrompt, not {self._prompt}"
+                f"Can only launch external fileselect for FilenamePrompt, not {self._prompt.__class__.__name__}"
             )
         picker = config.val.fileselect.folder.command
         if not picker:
@@ -489,8 +490,7 @@ class PromptContainer(QWidget):
             return
         # choose_file already checks that this is max one folder
         assert len(folders) == 1
-        folder = folders[0]
-        self._prompt.accept(folder)
+        self._prompt.accept(folders[0])
 
 
 class LineEdit(QLineEdit):
@@ -859,7 +859,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
-            ('prompt-fileselect-external', "Launch external fileselect"),
+            ('prompt-fileselect-external', "Launch external file selector"),
         ]
         return cmds
 

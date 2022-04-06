@@ -404,7 +404,7 @@ class FileSelectionMode(enum.Enum):
 
 
 def choose_file(qb_mode: FileSelectionMode) -> List[str]:
-    """Select file(s)/folder for uploading/downloading, using external command defined in config.
+    """Select file(s)/folder for up-/downloading, using an external command.
 
     Args:
         qb_mode: File selection mode

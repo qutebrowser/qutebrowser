@@ -690,10 +690,11 @@ Feature: Downloading things from a website.
     Scenario: Select download path
         When I set downloads.location.prompt to true
         And I set fileselect.handler to external
-        And I setup a fake folder fileselector selecting "tests/end2end/data/backforward/" and writes to a temporary file
+        And I setup a fake folder fileselector selecting "(tmpdir)(dirsep)downloads(dirsep)subdir" and writes to a temporary file
         And I open data/downloads/downloads.html
         And I run :click-element id download
-        And I wait for the download prompt for "*/download.bin"
-        And I run :prompt-external-picker
+        And I wait for the download prompt for "*"
+        And I run :prompt-fileselect-external
         # TODO what should the check be?
-        Then the javascript message "Files: 1.txt" should be logged
+        And I wait until the download is finished
+        Then the downloaded file subdir/download.bin should exist
