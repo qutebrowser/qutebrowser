@@ -253,7 +253,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
             - id: Get an element based on its ID.
             - css: Filter by a CSS selector.
             - position: Click the element at specified position.
-                Write value as 'x,y'.
+               Specify `value` as 'x,y'.
             - focused: Click the currently focused element.
         value: The value to filter for. Optional for 'focused' filter.
         target: How to open the clicked element (normal/tab/tab-bg/window).
