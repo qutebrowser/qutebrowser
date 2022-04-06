@@ -475,7 +475,8 @@ class PromptContainer(QWidget):
         assert self._prompt is not None
         if not isinstance(self._prompt, FilenamePrompt):
             raise cmdutils.CommandError(
-                f"Can only launch external fileselect for FilenamePrompt, not {self._prompt.__class__.__name__}"
+                "Can only launch external fileselect for FilenamePrompt, "
+                f"not {self._prompt.__class__.__name__}"
             )
         picker = config.val.fileselect.folder.command
         if not picker:

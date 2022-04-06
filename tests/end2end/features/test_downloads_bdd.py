@@ -19,7 +19,6 @@
 
 import os
 import sys
-import json
 import shlex
 
 import pytest
