@@ -859,7 +859,7 @@ def parse_rect(s: str) -> QRect:
 
 
 def parse_point(s: str) -> QPoint:
-    """Parse a point string like 13,-42"""
+    """Parse a point string like 13,-42."""
     try:
         x, y = map(int, s.split(',', maxsplit=1))
     except ValueError:
