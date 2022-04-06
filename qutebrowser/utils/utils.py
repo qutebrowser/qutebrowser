@@ -44,7 +44,7 @@ except ImportError:  # pragma: no cover
 
             """Empty stub at runtime."""
 
-from PyQt5.QtCore import QUrl, QVersionNumber, QRect
+from PyQt5.QtCore import QUrl, QVersionNumber, QRect, QPoint
 from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 
@@ -856,3 +856,18 @@ def parse_rect(s: str) -> QRect:
         raise ValueError("Invalid rectangle")
 
     return rect
+
+
+def parse_point(s: str) -> QPoint:
+    """Parse a point string like 13,-42"""
+    try:
+        x, y = map(int, s.split(',', maxsplit=1))
+    except ValueError as e:
+        raise ValueError(f"String {s} does not match X,Y")
+
+    try:
+        point = QPoint(x, y)
+    except OverflowError as e:
+        raise ValueError(e)
+
+    return point
