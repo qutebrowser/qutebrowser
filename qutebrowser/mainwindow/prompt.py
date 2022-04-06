@@ -490,7 +490,7 @@ class PromptContainer(QWidget):
             return
         # choose_file already checks that this is max one folder
         assert len(folders) == 1
-        self._prompt.accept(folders[0])
+        self.prompt_accept(folders[0])
 
 
 class LineEdit(QLineEdit):
