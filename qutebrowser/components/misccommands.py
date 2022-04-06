@@ -227,11 +227,11 @@ def _wrap_find_at_pos(value: str, tab: apitypes.Tab,
                       callback: Callable[[Optional[apitypes.WebElement]], None]
                       ) -> None:
     try:
-        x, y = map(int, value.split(',', maxsplit=1))
-    except ValueError:
-        message.error(f"'{value}' is not a valid point!")
+        point = utils.parse_point(value)
+    except ValueError as e:
+        message.error(f"'{value}' is not a valid point: {e}")
         return
-    tab.elements.find_at_pos(QPoint(x, y), callback)
+    tab.elements.find_at_pos(point, callback)
 
 
 @cmdutils.register()
