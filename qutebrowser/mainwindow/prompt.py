@@ -482,7 +482,7 @@ class PromptContainer(QWidget):
             raise cmdutils.CommandError(
                 "No external location picker (fileselect.folder.command) configured."
             )
-        # TODO fix cyclic import
+        # XXX to avoid current cyclic import
         from qutebrowser.browser import shared
         folders = shared.choose_file(shared.FileSelectionMode.folder)
         if not folders:

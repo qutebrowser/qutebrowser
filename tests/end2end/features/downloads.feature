@@ -695,6 +695,5 @@ Feature: Downloading things from a website.
         And I run :click-element id download
         And I wait for the download prompt for "*"
         And I run :prompt-fileselect-external
-        # TODO what should the check be?
         And I wait until the download is finished
         Then the downloaded file subdir/download.bin should exist
