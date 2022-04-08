@@ -1059,7 +1059,7 @@ class TestParsePoint:
     @hypothesis.given(strategies.tuples(
         strategies.integers(),
         strategies.integers(),
-    ).map(lambda tpl: f'{tpl[0]},{tpl[1]}'))
+    ).map(",".join)
     def test_hypothesis_sophisticated(self, s):
         try:
             utils.parse_point(s)
