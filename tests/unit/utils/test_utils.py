@@ -1043,6 +1043,8 @@ class TestParsePoint:
         ('1e0,1', "String 1e0,1 does not match X,Y"),
         ('a,1', "String a,1 does not match X,Y"),
         ('¹,1', "String ¹,1 does not match X,Y"),
+        ('1,,1', "String 1,,1 does not match X,Y"),
+        ('1', "String 1 does not match X,Y"),
     ])
     def test_invalid(self, value, message):
         with pytest.raises(ValueError) as excinfo:
