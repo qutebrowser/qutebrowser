@@ -229,7 +229,7 @@ def _wrap_find_at_pos(value: str, tab: apitypes.Tab,
     try:
         point = utils.parse_point(value)
     except ValueError as e:
-        message.error(f"'{value}' is not a valid point: {e}")
+        message.error(str(e))
         return
     tab.elements.find_at_pos(point, callback)
 

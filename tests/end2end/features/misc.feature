@@ -480,12 +480,12 @@ Feature: Various utility commands.
     Scenario: Clicking an element with invalid position
         When I open data/click_element.html
         And I run :click-element position 20.42
-        Then the error "'20.42' is not a valid point: String 20.42 does not match X,Y" should be shown
+        Then the error "String 20.42 does not match X,Y" should be shown
 
     Scenario: Clicking an element with non-integer position
         When I open data/click_element.html
         And I run :click-element position 20,42.001
-        Then the error "'20,42.001' is not a valid point: String 20,42.001 does not match X,Y" should be shown
+        Then the error "String 20,42.001 does not match X,Y" should be shown
 
     Scenario: Clicking on focused element when there is none
         When I open data/click_element.html
