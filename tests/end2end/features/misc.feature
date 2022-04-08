@@ -436,7 +436,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element with unknown ID
         When I open data/click_element.html
         And I run :click-element id blah
-        Then the error "No element found matching id=blah!" should be shown
+        Then the error "No element found with ID "blah"!" should be shown
 
     Scenario: Clicking an element by ID
         When I open data/click_element.html
@@ -465,7 +465,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element with non-unique filter
         When I open data/click_element.html
         And I run :click-element css span
-        Then the error "Multiple elements found matching css=span!" should be shown
+        Then the error "Multiple elements found matching CSS selector "span"!" should be shown
 
     Scenario: Clicking first element matching a selector
         When I open data/click_element.html
@@ -493,7 +493,7 @@ Feature: Various utility commands.
         And I run :click-element position 20,42
         And I wait for the javascript message "click_element position"
         And I run :click-element focused
-        Then the error "No element found matching focused=None!" should be shown
+        Then the error "No element found with focus!" should be shown
 
     Scenario: Clicking on focused element
         When I open data/click_element.html

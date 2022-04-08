@@ -234,6 +234,14 @@ def _wrap_find_at_pos(value: str, tab: apitypes.Tab,
     tab.elements.find_at_pos(point, callback)
 
 
+_FILTER_ERRORS = {
+    'id': lambda x: f'with ID "{x}"',
+    'css': lambda x: f'matching CSS selector "{x}"',
+    'focused': lambda _: 'with focus',
+    'position': lambda x: 'at position {x}',
+}
+
+
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
@@ -269,18 +277,18 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
     def single_cb(elem: Optional[apitypes.WebElement]) -> None:
         """Click a single element."""
         if elem is None:
-            message.error(f"No element found matching {filter_}={value}!")
+            message.error(f"No element found {_FILTER_ERRORS[filter_](value)}!")
             return
 
         do_click(elem)
 
     def multiple_cb(elems: List[apitypes.WebElement]) -> None:
         if not elems:
-            message.error(f"No element found matching {filter_}={value}!")
+            message.error(f"No element found {_FILTER_ERRORS[filter_](value)}!")
             return
 
         if not select_first and len(elems) > 1:
-            message.error(f"Multiple elements found matching {filter_}={value}!")
+            message.error(f"Multiple elements found {_FILTER_ERRORS[filter_](value)}!")
             return
 
         do_click(elems[0])
