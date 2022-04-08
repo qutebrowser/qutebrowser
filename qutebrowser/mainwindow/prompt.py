@@ -478,11 +478,6 @@ class PromptContainer(QWidget):
                 "Can only launch external fileselect for FilenamePrompt, "
                 f"not {self._prompt.__class__.__name__}"
             )
-        picker = config.val.fileselect.folder.command
-        if not picker:
-            raise cmdutils.CommandError(
-                "No external location picker (fileselect.folder.command) configured."
-            )
         # XXX to avoid current cyclic import
         from qutebrowser.browser import shared
         folders = shared.choose_file(shared.FileSelectionMode.folder)
