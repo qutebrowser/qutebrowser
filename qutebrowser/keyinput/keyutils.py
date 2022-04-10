@@ -51,7 +51,7 @@ _MODIFIER_MAP = {
     Qt.Key.Key_Mode_switch: Qt.KeyboardModifier.GroupSwitchModifier,
 }
 
-_NIL_KEY = Qt.Key(0)
+_NIL_KEY = 0
 
 _ModifierType = Qt.KeyboardModifier
 
