@@ -265,7 +265,12 @@ def configure_pyqt():
         pass
 
     from qutebrowser.qt import sip
-    sip.enableoverflowchecking(True)
+    try:
+        sip.enableoverflowchecking(True)
+    except AttributeError:
+        # default in PyQt6
+        # FIXME:qt6 solve this in qutebrowser/qt/sip.py equivalent
+        pass
 
 
 def init_log(args):
