@@ -38,7 +38,7 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
 
-from qutebrowser.qt.core import PYQT_VERSION_STR, QLibraryInfo, qVersion
+from qutebrowser.qt.core import PYQT_VERSION_STR, qVersion
 from qutebrowser.qt.network import QSslSocket
 from qutebrowser.qt.gui import QOpenGLContext, QOffscreenSurface
 from qutebrowser.qt.opengl import QOpenGLVersionProfile
@@ -56,7 +56,8 @@ except ImportError:  # pragma: no cover
 
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
+from qutebrowser.utils import (log, utils, standarddir, usertypes, message, resources,
+                               qtutils)
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config
@@ -849,8 +850,8 @@ def version_info() -> str:
         "Imported from {}".format(importpath),
         "Using Python from {}".format(sys.executable),
         "Qt library executable path: {}, data path: {}".format(
-            QLibraryInfo.location(QLibraryInfo.LibraryLocation.LibraryExecutablesPath),
-            QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath)
+            qtutils.library_path(qtutils.LibraryPath.library_executables),
+            qtutils.library_path(qtutils.LibraryPath.data),
         )
     ]
 

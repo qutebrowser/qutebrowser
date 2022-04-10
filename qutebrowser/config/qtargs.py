@@ -25,7 +25,7 @@ import argparse
 import pathlib
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from qutebrowser.qt.core import QLibraryInfo, QLocale
+from qutebrowser.qt.core import QLocale
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -199,7 +199,7 @@ def _webengine_locales_path() -> pathlib.Path:
         # not QtWebEngine.
         base = pathlib.Path('/app/translations')
     else:
-        base = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibraryLocation.TranslationsPath))
+        base = qtutils.library_path(qtutils.LibraryPath.translations)
     return base / 'qtwebengine_locales'
 
 

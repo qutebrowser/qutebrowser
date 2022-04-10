@@ -29,7 +29,7 @@ import unittest.mock
 
 import pytest
 from qutebrowser.qt.core import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess, QFileDevice)
+                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo)
 from qutebrowser.qt.gui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
@@ -1030,3 +1030,22 @@ class TestInterpolateColor:
             testutils.Color(0, 0, 0), testutils.Color(255, 255, 255), percentage, None)
         assert isinstance(color, QColor)
         assert testutils.Color(color) == testutils.Color(*expected)
+
+
+class TestLibraryPath:
+
+    def test_simple(self):
+        try:
+            # Qt 6
+            path = QLibraryInfo.path(QLibraryInfo.LibraryPath.DataLocation)
+        except AttributeError:
+            # Qt 5
+            path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataLocation)
+
+        assert path
+        assert str(qtutils.library_path(qtutils.LibraryPath.data)) == path
+
+    @pytest.mark.parametrize("which", list(qtutils.LibraryPath))
+    def test_all(self, which):
+        path = qtutils.library_path(which)
+        assert path.exists()

@@ -29,6 +29,8 @@ Module attributes:
 
 
 import io
+import enum
+import pathlib
 import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
@@ -36,7 +38,7 @@ from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
 
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QObject, QUrl)
+                          PYQT_VERSION_STR, QObject, QUrl, QLibraryInfo)
 from qutebrowser.qt.gui import QColor
 try:
     from qutebrowser.qt.webkit import qWebKitVersion
@@ -548,3 +550,40 @@ def interpolate_color(
     out = out.convertTo(start.spec())
     ensure_valid(out)
     return out
+
+
+class LibraryPath(enum.Enum):
+
+    """A path to be passed to QLibraryInfo.
+
+    Should mirror QLibraryPath (Qt 5) and QLibraryLocation (Qt 6).
+    Values are the respective Qt names.
+    """
+
+    prefix = "PrefixPath"
+    documentation = "DocumentationPath"
+    headers = "HeadersPath"
+    libraries = "LibrariesPath"
+    library_executables = "LibraryExecutablesPath"
+    binaries = "BinariesPath"
+    plugins = "PluginsPath"
+    qml2_imports = "Qml2ImportsPath"
+    arch_data = "ArchDataPath"
+    data = "DataPath"
+    translations = "TranslationsPath"
+    examples = "ExamplesPath"
+    tests = "TestsPath"
+    settings = "SettingsPath"
+
+
+def library_path(which: LibraryPath) -> pathlib.Path:
+    if hasattr(QLibraryInfo, "path"):
+        # Qt 6
+        val = getattr(QLibraryInfo.LibraryPath, which.value)
+        ret = QLibraryInfo.path(val)
+    else:
+        # Qt 5
+        val = getattr(QLibraryInfo.LibraryLocation, which.value)
+        ret = QLibraryInfo.location(val)
+    assert ret
+    return pathlib.Path(ret)

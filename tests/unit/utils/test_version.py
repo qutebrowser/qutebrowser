@@ -1237,7 +1237,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'objects.qapp': (stubs.FakeQApplication(style='STYLE', platform_name='PLATFORM')
                          if params.qapp else None),
-        'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'qtutils.library_path': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
         'config.instance.yaml_loaded': params.autoconfig_loaded,

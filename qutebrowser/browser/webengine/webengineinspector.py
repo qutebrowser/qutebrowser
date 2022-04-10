@@ -19,16 +19,13 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
-import pathlib
-
-from qutebrowser.qt.core import QLibraryInfo
 from qutebrowser.qt.webenginewidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import version, usertypes
+from qutebrowser.utils import version, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 
 
@@ -92,7 +89,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         if dist is None or dist.parsed != version.Distribution.fedora:
             return
 
-        data_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath))
+        data_path = qtutils.library_path(qtutils.LibraryPath.data)
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
             raise inspector.Error("QtWebEngine devtools resources not found, "
