@@ -30,7 +30,7 @@ from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from qutebrowser.qt.gui import QFont
 from qutebrowser.qt.widgets import QApplication
-from qutebrowser.qt.webenginewidgets import QWebEngineSettings, QWebEngineProfile
+from qutebrowser.qt.webenginecore import QWebEngineSettings, QWebEngineProfile
 
 from qutebrowser.browser import history
 from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,

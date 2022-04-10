@@ -24,7 +24,7 @@ from typing import (
 
 from qutebrowser.qt.core import QRect, QEventLoop
 from qutebrowser.qt.widgets import QApplication
-from qutebrowser.qt.webenginewidgets import QWebEngineSettings
+from qutebrowser.qt.webenginecore import QWebEngineSettings
 
 from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem
