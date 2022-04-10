@@ -302,7 +302,7 @@ class PyQIODevice(io.BufferedIOBase):
     # contextlib.closing is only generic in Python 3.9+
     def open(
         self,
-        mode: QIODevice.OpenMode,
+        mode: QIODevice.OpenModeFlag,
     ) -> contextlib.closing:  # type: ignore[type-arg]
         """Open the underlying device and ensure opening succeeded.
 
@@ -463,8 +463,8 @@ class EventLoop(QEventLoop):
 
     def exec(
             self,
-            flags: QEventLoop.ProcessEventsFlags =
-            cast(QEventLoop.ProcessEventsFlags, QEventLoop.ProcessEventsFlag.AllEvents)
+            flags: QEventLoop.ProcessEventsFlag =
+            QEventLoop.ProcessEventsFlag.AllEvents
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:

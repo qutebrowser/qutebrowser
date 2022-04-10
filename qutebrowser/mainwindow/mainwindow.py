@@ -564,7 +564,7 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags = cast(Qt.WindowFlags, Qt.WindowType.Window)
+        window_flags = Qt.WindowType.Window
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.WindowType.CustomizeWindowHint | Qt.WindowType.NoDropShadowWindowHint
