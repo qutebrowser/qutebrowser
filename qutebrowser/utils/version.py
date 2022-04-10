@@ -40,8 +40,8 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
 
 from qutebrowser.qt.core import PYQT_VERSION_STR, QLibraryInfo, qVersion
 from qutebrowser.qt.network import QSslSocket
-from qutebrowser.qt.gui import (QOpenGLContext, QOpenGLVersionProfile,
-                         QOffscreenSurface)
+from qutebrowser.qt.gui import QOpenGLContext, QOffscreenSurface
+from qutebrowser.qt.opengl import QOpenGLVersionProfile
 from qutebrowser.qt.widgets import QApplication
 
 try:
