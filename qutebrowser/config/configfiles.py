@@ -990,5 +990,5 @@ def init() -> None:
     # https://github.com/qutebrowser/qutebrowser/issues/515
 
     path = os.path.join(standarddir.config(auto=True), 'qsettings')
-    for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:
-        QSettings.setPath(fmt, QSettings.UserScope, path)
+    for fmt in [QSettings.Format.NativeFormat, QSettings.Format.IniFormat]:
+        QSettings.setPath(fmt, QSettings.Scope.UserScope, path)

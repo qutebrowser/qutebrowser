@@ -82,8 +82,8 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected, caplog):
             qtbot.add_widget(w)
             if not utils.is_mac:
                 assert w.windowTitle() == 'title'
-            assert w.icon() == QMessageBox.Critical
-            assert w.standardButtons() == QMessageBox.Ok
+            assert w.icon() == QMessageBox.Icon.Critical
+            assert w.standardButtons() == QMessageBox.StandardButton.Ok
             assert w.text() == expected
         finally:
             w.close()

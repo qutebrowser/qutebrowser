@@ -44,10 +44,10 @@ class _Result(enum.IntEnum):
 
     """The result code returned by the backend problem dialog."""
 
-    quit = QDialog.Accepted + 1
-    restart = QDialog.Accepted + 2
-    restart_webkit = QDialog.Accepted + 3
-    restart_webengine = QDialog.Accepted + 4
+    quit = QDialog.DialogCode.Accepted + 1
+    restart = QDialog.DialogCode.Accepted + 2
+    restart_webkit = QDialog.DialogCode.Accepted + 3
+    restart_webengine = QDialog.DialogCode.Accepted + 4
 
 
 @dataclasses.dataclass
@@ -111,7 +111,7 @@ class _Dialog(QDialog):
 
         label = QLabel(text)
         label.setWordWrap(True)
-        label.setTextFormat(Qt.RichText)
+        label.setTextFormat(Qt.TextFormat.RichText)
         vbox.addWidget(label)
 
         hbox = QHBoxLayout()
@@ -181,7 +181,7 @@ class _BackendProblemChecker:
         status = dialog.exec()
         self._save_manager.save_all(is_exit=True)
 
-        if status in [_Result.quit, QDialog.Rejected]:
+        if status in [_Result.quit, QDialog.DialogCode.Rejected]:
             pass
         elif status == _Result.restart_webkit:
             quitter.instance.restart(override_args={'backend': 'webkit'})
@@ -312,7 +312,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="SSL error",
                                    text="Could not initialize SSL support.",
-                                   icon=QMessageBox.Critical,
+                                   icon=QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
@@ -338,7 +338,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="No backend library found!",
                                    text=text,
-                                   icon=QMessageBox.Critical,
+                                   icon=QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)

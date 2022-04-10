@@ -88,12 +88,12 @@ def get_window(*, via_ipc: bool,
 
 def raise_window(window, alert=True):
     """Raise the given MainWindow object."""
-    window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
-    window.setWindowState(window.windowState() | Qt.WindowActive)
+    window.setWindowState(window.windowState() & ~Qt.WindowState.WindowMinimized)
+    window.setWindowState(window.windowState() | Qt.WindowState.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
     QCoreApplication.processEvents(
-        QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
+        QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents | QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
 
     if not sip.isdeleted(window):
         # Could be deleted by the events run above
@@ -202,10 +202,10 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow import tabbedbrowser
         from qutebrowser.mainwindow.statusbar import bar
 
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         if config.val.window.transparent:
-            self.setAttribute(Qt.WA_TranslucentBackground)
-            self.palette().setColor(QPalette.Window, Qt.transparent)
+            self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+            self.palette().setColor(QPalette.ColorRole.Window, Qt.GlobalColor.transparent)
 
         self._overlays: MutableSequence[_OverlayInfoType] = []
         self.win_id = next(win_id_gen)
@@ -305,7 +305,7 @@ class MainWindow(QWidget):
         if not widget.isVisible():
             return
 
-        if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
+        if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Policy.Expanding:
             width = self.width() - 2 * padding
             if widget.hasHeightForWidth():
                 height = widget.heightForWidth(width)
@@ -564,10 +564,10 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags = cast(Qt.WindowFlags, Qt.Window)
+        window_flags = cast(Qt.WindowFlags, Qt.WindowType.Window)
         refresh_window = self.isVisible()
         if hidden:
-            window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
+            window_flags |= Qt.WindowType.CustomizeWindowHint | Qt.WindowType.NoDropShadowWindowHint
         self.setWindowFlags(window_flags)
 
         if utils.is_mac and hidden:
@@ -586,7 +586,7 @@ class MainWindow(QWidget):
         if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(Qt.WindowFullScreen | self.state_before_fullscreen)
+                self.setWindowState(Qt.WindowState.WindowFullScreen | self.state_before_fullscreen)
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(

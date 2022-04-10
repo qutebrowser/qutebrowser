@@ -676,7 +676,7 @@ class TestGetSetClipboard:
     def test_set(self, clipboard_mock, caplog):
         utils.set_clipboard('Hello World')
         clipboard_mock.setText.assert_called_with('Hello World',
-                                                  mode=QClipboard.Clipboard)
+                                                  mode=QClipboard.Mode.Clipboard)
         assert not caplog.records
 
     def test_set_unsupported_selection(self, clipboard_mock):

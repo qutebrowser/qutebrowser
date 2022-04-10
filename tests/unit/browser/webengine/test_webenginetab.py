@@ -131,17 +131,17 @@ class TestWebengineScripts:
         scripts_helper.inject(scripts)
 
         script = scripts_helper.get_script()
-        assert script.injectionPoint() == QWebEngineScript.DocumentReady
+        assert script.injectionPoint() == QWebEngineScript.InjectionPoint.DocumentReady
 
     @pytest.mark.parametrize('run_at, expected', [
         # UserScript::DocumentElementCreation
-        ('document-start', QWebEngineScript.DocumentCreation),
+        ('document-start', QWebEngineScript.InjectionPoint.DocumentCreation),
         # UserScript::DocumentLoadFinished
-        ('document-end', QWebEngineScript.DocumentReady),
+        ('document-end', QWebEngineScript.InjectionPoint.DocumentReady),
         # UserScript::AfterLoad
-        ('document-idle', QWebEngineScript.Deferred),
+        ('document-idle', QWebEngineScript.InjectionPoint.Deferred),
         # default according to https://wiki.greasespot.net/Metadata_Block#.40run-at
-        (None, QWebEngineScript.DocumentReady),
+        (None, QWebEngineScript.InjectionPoint.DocumentReady),
     ])
     def test_greasemonkey_run_at_values(self, scripts_helper, run_at, expected):
         if run_at is None:
@@ -207,7 +207,7 @@ class TestWebengineScripts:
 def test_notification_permission_workaround():
     """Make sure the value for QWebEnginePage::Notifications is correct."""
     try:
-        notifications = QWebEnginePage.Notifications
+        notifications = QWebEnginePage.Feature.Notifications
     except AttributeError:
         pytest.skip("No Notifications member")
 

@@ -262,7 +262,7 @@ def test_version(request):
     # can't use quteproc_new here because it's confused by
     # early process termination
     proc = QProcess()
-    proc.setProcessChannelMode(QProcess.SeparateChannels)
+    proc.setProcessChannelMode(QProcess.ProcessChannelMode.SeparateChannels)
 
     proc.start(sys.executable, args)
     ok = proc.waitForStarted(2000)
@@ -275,7 +275,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    assert proc.exitStatus() == QProcess.NormalExit
+    assert proc.exitStatus() == QProcess.ExitStatus.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None

@@ -242,7 +242,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         view = self._tab._widget
         assert view is not None
         # pylint: enable=protected-access
-        attribute = QWebEngineSettings.JavascriptCanOpenWindows
+        attribute = QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
         could_open_windows = view.settings().testAttribute(attribute)
         view.settings().setAttribute(attribute, True)
 
@@ -251,8 +251,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
         QApplication.processEvents(
-            QEventLoop.ExcludeSocketNotifiers |
-            QEventLoop.ExcludeUserInputEvents)
+            QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers |
+            QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
         def reset_setting(_arg: Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""

@@ -270,7 +270,7 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(QUrl.FullyEncoded)
+        self._url_string = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):

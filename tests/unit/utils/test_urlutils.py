@@ -321,7 +321,7 @@ def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
     assert url.host() == host
-    assert url.path(options=QUrl.PrettyDecoded) == '/' + path
+    assert url.path(options=QUrl.ComponentFormattingOption.PrettyDecoded) == '/' + path
 
 
 @pytest.mark.parametrize('url, host', [
@@ -703,20 +703,20 @@ class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
         ('socks://example.com/',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://example.com',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://example.com:2342',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2342)),
         ('socks5://foo@example.com',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo')),
         ('socks5://foo:bar@example.com',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo',
                        'bar')),
         ('socks5://foo:bar@example.com:2323',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
                        'foo', 'bar')),
-        ('direct://', QNetworkProxy(QNetworkProxy.NoProxy)),
+        ('direct://', QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
     ])
     def test_proxy_from_url_valid(self, url, expected):
         assert urlutils.proxy_from_url(QUrl(url)) == expected

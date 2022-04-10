@@ -126,7 +126,7 @@ class FakeStatusBar(QWidget):
         self.hbox = QHBoxLayout(self)
         self.hbox.addStretch()
         self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet('background-color: red;')
 
     def minimumSizeHint(self):
@@ -434,7 +434,7 @@ def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
     from qutebrowser.qt.network import QNetworkAccessManager
     nam = QNetworkAccessManager()
-    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    nam.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
     return nam
 
 

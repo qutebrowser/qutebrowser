@@ -276,7 +276,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def _is_hidden_css(self) -> bool:
         """Check if the given element is hidden via CSS."""
         attr_values = {
-            attr: self._elem.styleProperty(attr, QWebElement.ComputedStyle)
+            attr: self._elem.styleProperty(attr, QWebElement.StyleResolveStrategy.ComputedStyle)
             for attr in ['visibility', 'display', 'opacity']
         }
         invisible = attr_values['visibility'] == 'hidden'
@@ -362,7 +362,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
     def _click_js(self, click_target: usertypes.ClickTarget) -> None:
         settings = QWebSettings.globalSettings()
-        attribute = QWebSettings.JavascriptCanOpenWindows
+        attribute = QWebSettings.WebAttribute.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)
         ok = self._elem.evaluateJavaScript('this.click(); true;')
@@ -372,7 +372,7 @@ class WebKitElement(webelem.AbstractWebElement):
             self._click_fake_event(click_target)
 
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: Qt.MouseButton = Qt.LeftButton) -> None:
+                          button: Qt.MouseButton = Qt.MouseButton.LeftButton) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 

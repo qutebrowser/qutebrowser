@@ -64,9 +64,9 @@ class KeyHintView(QLabel):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(Qt.TextFormat.RichText)
         self._win_id = win_id
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)

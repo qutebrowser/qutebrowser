@@ -1376,46 +1376,46 @@ class TestFont:
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
         '"Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
         'inconsolatazi4':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, -1, -1,
                      'inconsolatazi4'),
         'Terminus (TTF)':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, -1, -1,
                      'Terminus (TTF)'),
         '10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, 10, None, 'Foobar Neue'),
         '10px "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, None, 10, 'Foobar Neue'),
         '10PX "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, None, 10, 'Foobar Neue'),
         'bold "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
         'italic "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
         'oblique "Foobar Neue"':
-            FontDesc(QFont.StyleOblique, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleOblique, QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
         'normal bold "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
         'bold italic "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
         'bold 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, 10, None, 'Foobar Neue'),
         'italic 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Normal, 10, None, 'Foobar Neue'),
         'oblique 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleOblique, QFont.Normal, 10, None,
+            FontDesc(QFont.Style.StyleOblique, QFont.Weight.Normal, 10, None,
                      'Foobar Neue'),
         'normal bold 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, 10, None, 'Foobar Neue'),
         'bold italic 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Bold, 10, None, 'Foobar Neue'),
         'normal 300 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 37, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, 37, 10, None, 'Foobar Neue'),
         'normal 800 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 99, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, 99, 10, None, 'Foobar Neue'),
     }
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
@@ -1892,11 +1892,11 @@ class TestProxy:
 
     @pytest.mark.parametrize('val, expected', [
         ('system', configtypes.SYSTEM_PROXY),
-        ('none', QNetworkProxy(QNetworkProxy.NoProxy)),
+        ('none', QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
         ('socks://example.com/',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://foo:bar@example.com:2323',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
                        'foo', 'bar')),
         ('pac+http://example.com/proxy.pac',
          pac.PACFetcher(QUrl('pac+http://example.com/proxy.pac'))),

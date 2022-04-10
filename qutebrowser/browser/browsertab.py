@@ -281,7 +281,7 @@ class AbstractPrinting:
         if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
             ret = diag.exec()
-            if ret == QDialog.Accepted:
+            if ret == QDialog.DialogCode.Accepted:
                 do_print()
         else:
             diag.open(do_print)
@@ -603,9 +603,9 @@ class AbstractCaret(QObject):
     def _follow_enter(self, tab: bool) -> None:
         """Follow a link by faking an enter press."""
         if tab:
-            self._tab.fake_key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            self._tab.fake_key_press(Qt.Key.Key_Enter, modifier=Qt.KeyboardModifier.ControlModifier)
         else:
-            self._tab.fake_key_press(Qt.Key_Enter)
+            self._tab.fake_key_press(Qt.Key.Key_Enter)
 
     def follow_selected(self, *, tab: bool = False) -> None:
         raise NotImplementedError
@@ -1238,10 +1238,10 @@ class AbstractTab(QWidget):
 
     def fake_key_press(self,
                        key: Qt.Key,
-                       modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
+                       modifier: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> None:
         """Send a fake key event to this tab."""
-        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+        press_evt = QKeyEvent(QEvent.Type.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.Type.KeyRelease, key, modifier,
                                 0, 0, 0)
         self.send_event(press_evt)
         self.send_event(release_evt)
@@ -1316,7 +1316,7 @@ class AbstractTab(QWidget):
         try:
             qurl = self.url()
             url = qurl.toDisplayString(
-                QUrl.EncodeUnicode)  # type: ignore[arg-type]
+                QUrl.ComponentFormattingOption.EncodeUnicode)  # type: ignore[arg-type]
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

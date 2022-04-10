@@ -241,7 +241,7 @@ class GlobalMessageBridge(QObject):
                       arg 1: Whether to block (True) or ask async (False).
 
                       IMPORTANT: Slots need to be connected to this signal via
-                                 a Qt.DirectConnection!
+                                 a Qt.ConnectionType.DirectConnection!
         mode_left: Emitted when a keymode was left in any window.
     """
 

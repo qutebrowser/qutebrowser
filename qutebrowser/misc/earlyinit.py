@@ -91,9 +91,9 @@ def _die(message, exception=None):
     else:
         if exception is not None:
             message = message.replace('%ERROR%', str(exception))
-        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+        msgbox = QMessageBox(QMessageBox.Icon.Critical, "qutebrowser: Fatal error!",
                              message)
-        msgbox.setTextFormat(Qt.RichText)
+        msgbox.setTextFormat(Qt.TextFormat.RichText)
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec()
     app.quit()

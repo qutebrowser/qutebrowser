@@ -34,7 +34,7 @@ class DummyBox:
         pass
 
 
-def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
+def msgbox(parent, title, text, *, icon, buttons=QMessageBox.StandardButton.Ok,
            on_finished=None, plain_text=None):
     """Display a QMessageBox with the given icon.
 
@@ -56,15 +56,15 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         return DummyBox()
 
     box = QMessageBox(parent)
-    box.setAttribute(Qt.WA_DeleteOnClose)
+    box.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:
         box.finished.connect(on_finished)
     if plain_text:
-        box.setTextFormat(Qt.PlainText)
+        box.setTextFormat(Qt.TextFormat.PlainText)
     elif plain_text is not None:
-        box.setTextFormat(Qt.RichText)
+        box.setTextFormat(Qt.TextFormat.RichText)
     box.setWindowTitle(title)
     box.setText(text)
     box.show()
@@ -81,4 +81,4 @@ def information(*args, **kwargs):
     Return:
         A new QMessageBox.
     """
-    return msgbox(*args, icon=QMessageBox.Information, **kwargs)
+    return msgbox(*args, icon=QMessageBox.Icon.Information, **kwargs)

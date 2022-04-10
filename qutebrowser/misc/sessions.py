@@ -225,7 +225,7 @@ class SessionManager(QObject):
             # QtWebEngine
             user_data = None
 
-        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
+        data['last_visited'] = item.lastVisited().toString(Qt.DateFormat.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -450,7 +450,7 @@ class SessionManager(QObject):
             if histentry.get("last_visited"):
                 last_visited: Optional[QDateTime] = QDateTime.fromString(
                     histentry.get("last_visited"),
-                    Qt.ISODate,
+                    Qt.DateFormat.ISODate,
                 )
             else:
                 last_visited = None

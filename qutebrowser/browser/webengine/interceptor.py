@@ -71,43 +71,43 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         # extension ResourceTypes. If a ResourceType is added to Qt, this table
         # should be updated too.
         self._resource_types = {
-            QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame:
                 interceptors.ResourceType.main_frame,
-            QWebEngineUrlRequestInfo.ResourceTypeSubFrame:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubFrame:
                 interceptors.ResourceType.sub_frame,
-            QWebEngineUrlRequestInfo.ResourceTypeStylesheet:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeStylesheet:
                 interceptors.ResourceType.stylesheet,
-            QWebEngineUrlRequestInfo.ResourceTypeScript:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeScript:
                 interceptors.ResourceType.script,
-            QWebEngineUrlRequestInfo.ResourceTypeImage:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeImage:
                 interceptors.ResourceType.image,
-            QWebEngineUrlRequestInfo.ResourceTypeFontResource:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFontResource:
                 interceptors.ResourceType.font_resource,
-            QWebEngineUrlRequestInfo.ResourceTypeSubResource:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubResource:
                 interceptors.ResourceType.sub_resource,
-            QWebEngineUrlRequestInfo.ResourceTypeObject:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeObject:
                 interceptors.ResourceType.object,
-            QWebEngineUrlRequestInfo.ResourceTypeMedia:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMedia:
                 interceptors.ResourceType.media,
-            QWebEngineUrlRequestInfo.ResourceTypeWorker:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeWorker:
                 interceptors.ResourceType.worker,
-            QWebEngineUrlRequestInfo.ResourceTypeSharedWorker:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSharedWorker:
                 interceptors.ResourceType.shared_worker,
-            QWebEngineUrlRequestInfo.ResourceTypePrefetch:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypePrefetch:
                 interceptors.ResourceType.prefetch,
-            QWebEngineUrlRequestInfo.ResourceTypeFavicon:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFavicon:
                 interceptors.ResourceType.favicon,
-            QWebEngineUrlRequestInfo.ResourceTypeXhr:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr:
                 interceptors.ResourceType.xhr,
-            QWebEngineUrlRequestInfo.ResourceTypePing:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypePing:
                 interceptors.ResourceType.ping,
-            QWebEngineUrlRequestInfo.ResourceTypeServiceWorker:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeServiceWorker:
                 interceptors.ResourceType.service_worker,
-            QWebEngineUrlRequestInfo.ResourceTypeCspReport:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeCspReport:
                 interceptors.ResourceType.csp_report,
-            QWebEngineUrlRequestInfo.ResourceTypePluginResource:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypePluginResource:
                 interceptors.ResourceType.plugin_resource,
-            QWebEngineUrlRequestInfo.ResourceTypeUnknown:
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown:
                 interceptors.ResourceType.unknown,
         }
 
@@ -181,7 +181,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                         info.resourceType())))
             resource_type = interceptors.ResourceType.unknown
 
-        is_xhr = info.resourceType() == QWebEngineUrlRequestInfo.ResourceTypeXhr
+        is_xhr = info.resourceType() == QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):

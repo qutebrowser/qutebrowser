@@ -47,8 +47,8 @@ class Result(enum.IntEnum):
 
     """The result code returned by the crash dialog."""
 
-    restore = QDialog.Accepted + 1
-    no_restore = QDialog.Accepted + 2
+    restore = QDialog.DialogCode.Accepted + 1
+    no_restore = QDialog.DialogCode.Accepted + 2
 
 
 def parse_fatal_stacktrace(text):
@@ -149,7 +149,7 @@ class _CrashDialog(QDialog):
         self._debug_log = QTextEdit()
         self._debug_log.setTabChangesFocus(True)
         self._debug_log.setAcceptRichText(False)
-        self._debug_log.setLineWrapMode(QTextEdit.NoWrap)
+        self._debug_log.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self._debug_log.hide()
         self._fold = miscwidgets.DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
@@ -165,7 +165,7 @@ class _CrashDialog(QDialog):
 
     def keyPressEvent(self, e):
         """Prevent closing :report dialogs when pressing <Escape>."""
-        if config.val.input.escape_quits_reporter or e.key() != Qt.Key_Escape:
+        if config.val.input.escape_quits_reporter or e.key() != Qt.Key.Key_Escape:
             super().keyPressEvent(e)
 
     def __repr__(self):
@@ -201,7 +201,7 @@ class _CrashDialog(QDialog):
         self._lbl = QLabel()
         self._lbl.setWordWrap(True)
         self._lbl.setOpenExternalLinks(True)
-        self._lbl.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
+        self._lbl.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
 
     def _init_checkboxes(self):
@@ -215,12 +215,12 @@ class _CrashDialog(QDialog):
         self._btn_report = QPushButton("Report")
         self._btn_report.setDefault(True)
         self._btn_report.clicked.connect(self.on_report_clicked)
-        self._btn_box.addButton(self._btn_report, QDialogButtonBox.AcceptRole)
+        self._btn_box.addButton(self._btn_report, QDialogButtonBox.ButtonRole.AcceptRole)
 
         self._btn_cancel = QPushButton("Don't report")
         self._btn_cancel.setAutoDefault(False)
         self._btn_cancel.clicked.connect(self.finish)
-        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.RejectRole)
+        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.ButtonRole.RejectRole)
 
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
@@ -492,7 +492,7 @@ class FatalCrashDialog(_CrashDialog):
     def __init__(self, debug, text, parent=None):
         super().__init__(debug, parent)
         self._log = text
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._set_crash_info()
         self._type, self._func = parse_fatal_stacktrace(self._log)
 
@@ -557,7 +557,7 @@ class FatalCrashDialog(_CrashDialog):
                           "spend on developing qutebrowser instead.\n\nPlease "
                           "help making qutebrowser better by providing more "
                           "information, or don't report this.",
-                          icon=QMessageBox.Critical)
+                          icon=QMessageBox.Icon.Critical)
         else:
             super().on_report_clicked()
 
@@ -574,7 +574,7 @@ class ReportDialog(_CrashDialog):
 
     def __init__(self, pages, cmdhist, qobjects, parent=None):
         super().__init__(False, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._pages = pages
         self._cmdhist = cmdhist
         self._qobjects = qobjects

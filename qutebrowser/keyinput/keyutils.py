@@ -43,12 +43,12 @@ from qutebrowser.utils import utils
 
 # Map Qt::Key values to their Qt::KeyboardModifier value.
 _MODIFIER_MAP = {
-    Qt.Key_Shift: Qt.ShiftModifier,
-    Qt.Key_Control: Qt.ControlModifier,
-    Qt.Key_Alt: Qt.AltModifier,
-    Qt.Key_Meta: Qt.MetaModifier,
-    Qt.Key_AltGr: Qt.GroupSwitchModifier,
-    Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
+    Qt.Key.Key_Shift: Qt.KeyboardModifier.ShiftModifier,
+    Qt.Key.Key_Control: Qt.KeyboardModifier.ControlModifier,
+    Qt.Key.Key_Alt: Qt.KeyboardModifier.AltModifier,
+    Qt.Key.Key_Meta: Qt.KeyboardModifier.MetaModifier,
+    Qt.Key.Key_AltGr: Qt.KeyboardModifier.GroupSwitchModifier,
+    Qt.Key.Key_Mode_switch: Qt.KeyboardModifier.GroupSwitchModifier,
 }
 
 _NIL_KEY = Qt.Key(0)
@@ -63,86 +63,86 @@ _SPECIAL_NAMES = {
     # For dead/combining keys, we return the corresponding non-combining
     # key, as that's easier to add to the config.
 
-    Qt.Key_Super_L: 'Super L',
-    Qt.Key_Super_R: 'Super R',
-    Qt.Key_Hyper_L: 'Hyper L',
-    Qt.Key_Hyper_R: 'Hyper R',
-    Qt.Key_Direction_L: 'Direction L',
-    Qt.Key_Direction_R: 'Direction R',
+    Qt.Key.Key_Super_L: 'Super L',
+    Qt.Key.Key_Super_R: 'Super R',
+    Qt.Key.Key_Hyper_L: 'Hyper L',
+    Qt.Key.Key_Hyper_R: 'Hyper R',
+    Qt.Key.Key_Direction_L: 'Direction L',
+    Qt.Key.Key_Direction_R: 'Direction R',
 
-    Qt.Key_Shift: 'Shift',
-    Qt.Key_Control: 'Control',
-    Qt.Key_Meta: 'Meta',
-    Qt.Key_Alt: 'Alt',
+    Qt.Key.Key_Shift: 'Shift',
+    Qt.Key.Key_Control: 'Control',
+    Qt.Key.Key_Meta: 'Meta',
+    Qt.Key.Key_Alt: 'Alt',
 
-    Qt.Key_AltGr: 'AltGr',
-    Qt.Key_Multi_key: 'Multi key',
-    Qt.Key_SingleCandidate: 'Single Candidate',
-    Qt.Key_Mode_switch: 'Mode switch',
-    Qt.Key_Dead_Grave: '`',
-    Qt.Key_Dead_Acute: '´',
-    Qt.Key_Dead_Circumflex: '^',
-    Qt.Key_Dead_Tilde: '~',
-    Qt.Key_Dead_Macron: '¯',
-    Qt.Key_Dead_Breve: '˘',
-    Qt.Key_Dead_Abovedot: '˙',
-    Qt.Key_Dead_Diaeresis: '¨',
-    Qt.Key_Dead_Abovering: '˚',
-    Qt.Key_Dead_Doubleacute: '˝',
-    Qt.Key_Dead_Caron: 'ˇ',
-    Qt.Key_Dead_Cedilla: '¸',
-    Qt.Key_Dead_Ogonek: '˛',
-    Qt.Key_Dead_Iota: 'Iota',
-    Qt.Key_Dead_Voiced_Sound: 'Voiced Sound',
-    Qt.Key_Dead_Semivoiced_Sound: 'Semivoiced Sound',
-    Qt.Key_Dead_Belowdot: 'Belowdot',
-    Qt.Key_Dead_Hook: 'Hook',
-    Qt.Key_Dead_Horn: 'Horn',
+    Qt.Key.Key_AltGr: 'AltGr',
+    Qt.Key.Key_Multi_key: 'Multi key',
+    Qt.Key.Key_SingleCandidate: 'Single Candidate',
+    Qt.Key.Key_Mode_switch: 'Mode switch',
+    Qt.Key.Key_Dead_Grave: '`',
+    Qt.Key.Key_Dead_Acute: '´',
+    Qt.Key.Key_Dead_Circumflex: '^',
+    Qt.Key.Key_Dead_Tilde: '~',
+    Qt.Key.Key_Dead_Macron: '¯',
+    Qt.Key.Key_Dead_Breve: '˘',
+    Qt.Key.Key_Dead_Abovedot: '˙',
+    Qt.Key.Key_Dead_Diaeresis: '¨',
+    Qt.Key.Key_Dead_Abovering: '˚',
+    Qt.Key.Key_Dead_Doubleacute: '˝',
+    Qt.Key.Key_Dead_Caron: 'ˇ',
+    Qt.Key.Key_Dead_Cedilla: '¸',
+    Qt.Key.Key_Dead_Ogonek: '˛',
+    Qt.Key.Key_Dead_Iota: 'Iota',
+    Qt.Key.Key_Dead_Voiced_Sound: 'Voiced Sound',
+    Qt.Key.Key_Dead_Semivoiced_Sound: 'Semivoiced Sound',
+    Qt.Key.Key_Dead_Belowdot: 'Belowdot',
+    Qt.Key.Key_Dead_Hook: 'Hook',
+    Qt.Key.Key_Dead_Horn: 'Horn',
 
-    Qt.Key_Dead_Stroke: '\u0335',  # '̵'
-    Qt.Key_Dead_Abovecomma: '\u0313',  # '̓'
-    Qt.Key_Dead_Abovereversedcomma: '\u0314',  # '̔'
-    Qt.Key_Dead_Doublegrave: '\u030f',  # '̏'
-    Qt.Key_Dead_Belowring: '\u0325',  # '̥'
-    Qt.Key_Dead_Belowmacron: '\u0331',  # '̱'
-    Qt.Key_Dead_Belowcircumflex: '\u032d',  # '̭'
-    Qt.Key_Dead_Belowtilde: '\u0330',  # '̰'
-    Qt.Key_Dead_Belowbreve: '\u032e',  # '̮'
-    Qt.Key_Dead_Belowdiaeresis: '\u0324',  # '̤'
-    Qt.Key_Dead_Invertedbreve: '\u0311',  # '̑'
-    Qt.Key_Dead_Belowcomma: '\u0326',  # '̦'
-    Qt.Key_Dead_Currency: '¤',
-    Qt.Key_Dead_a: 'a',
-    Qt.Key_Dead_A: 'A',
-    Qt.Key_Dead_e: 'e',
-    Qt.Key_Dead_E: 'E',
-    Qt.Key_Dead_i: 'i',
-    Qt.Key_Dead_I: 'I',
-    Qt.Key_Dead_o: 'o',
-    Qt.Key_Dead_O: 'O',
-    Qt.Key_Dead_u: 'u',
-    Qt.Key_Dead_U: 'U',
-    Qt.Key_Dead_Small_Schwa: 'ə',
-    Qt.Key_Dead_Capital_Schwa: 'Ə',
-    Qt.Key_Dead_Greek: 'Greek',
-    Qt.Key_Dead_Lowline: '\u0332',  # '̲'
-    Qt.Key_Dead_Aboveverticalline: '\u030d',  # '̍'
-    Qt.Key_Dead_Belowverticalline: '\u0329',
-    Qt.Key_Dead_Longsolidusoverlay: '\u0338',  # '̸'
+    Qt.Key.Key_Dead_Stroke: '\u0335',  # '̵'
+    Qt.Key.Key_Dead_Abovecomma: '\u0313',  # '̓'
+    Qt.Key.Key_Dead_Abovereversedcomma: '\u0314',  # '̔'
+    Qt.Key.Key_Dead_Doublegrave: '\u030f',  # '̏'
+    Qt.Key.Key_Dead_Belowring: '\u0325',  # '̥'
+    Qt.Key.Key_Dead_Belowmacron: '\u0331',  # '̱'
+    Qt.Key.Key_Dead_Belowcircumflex: '\u032d',  # '̭'
+    Qt.Key.Key_Dead_Belowtilde: '\u0330',  # '̰'
+    Qt.Key.Key_Dead_Belowbreve: '\u032e',  # '̮'
+    Qt.Key.Key_Dead_Belowdiaeresis: '\u0324',  # '̤'
+    Qt.Key.Key_Dead_Invertedbreve: '\u0311',  # '̑'
+    Qt.Key.Key_Dead_Belowcomma: '\u0326',  # '̦'
+    Qt.Key.Key_Dead_Currency: '¤',
+    Qt.Key.Key_Dead_a: 'a',
+    Qt.Key.Key_Dead_A: 'A',
+    Qt.Key.Key_Dead_e: 'e',
+    Qt.Key.Key_Dead_E: 'E',
+    Qt.Key.Key_Dead_i: 'i',
+    Qt.Key.Key_Dead_I: 'I',
+    Qt.Key.Key_Dead_o: 'o',
+    Qt.Key.Key_Dead_O: 'O',
+    Qt.Key.Key_Dead_u: 'u',
+    Qt.Key.Key_Dead_U: 'U',
+    Qt.Key.Key_Dead_Small_Schwa: 'ə',
+    Qt.Key.Key_Dead_Capital_Schwa: 'Ə',
+    Qt.Key.Key_Dead_Greek: 'Greek',
+    Qt.Key.Key_Dead_Lowline: '\u0332',  # '̲'
+    Qt.Key.Key_Dead_Aboveverticalline: '\u030d',  # '̍'
+    Qt.Key.Key_Dead_Belowverticalline: '\u0329',
+    Qt.Key.Key_Dead_Longsolidusoverlay: '\u0338',  # '̸'
 
-    Qt.Key_Memo: 'Memo',
-    Qt.Key_ToDoList: 'To Do List',
-    Qt.Key_Calendar: 'Calendar',
-    Qt.Key_ContrastAdjust: 'Contrast Adjust',
-    Qt.Key_LaunchG: 'Launch (G)',
-    Qt.Key_LaunchH: 'Launch (H)',
+    Qt.Key.Key_Memo: 'Memo',
+    Qt.Key.Key_ToDoList: 'To Do List',
+    Qt.Key.Key_Calendar: 'Calendar',
+    Qt.Key.Key_ContrastAdjust: 'Contrast Adjust',
+    Qt.Key.Key_LaunchG: 'Launch (G)',
+    Qt.Key.Key_LaunchH: 'Launch (H)',
 
-    Qt.Key_MediaLast: 'Media Last',
+    Qt.Key.Key_MediaLast: 'Media Last',
 
-    Qt.Key_unknown: 'Unknown',
+    Qt.Key.Key_unknown: 'Unknown',
 
     # For some keys, we just want a different name
-    Qt.Key_Escape: 'Escape',
+    Qt.Key.Key_Escape: 'Escape',
 
     _NIL_KEY: 'nil',
 }
@@ -150,18 +150,18 @@ _SPECIAL_NAMES = {
 
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
-    assert not key & Qt.KeyboardModifierMask, hex(key)
+    assert not key & Qt.KeyboardModifier.KeyboardModifierMask, hex(key)
 
 
 def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    mask = Qt.KeyboardModifierMask
+    mask = Qt.KeyboardModifier.KeyboardModifierMask
     assert not key & ~mask, hex(key)
 
 
 def _is_printable(key: Qt.Key) -> bool:
     _assert_plain_key(key)
-    return key <= 0xff and key not in [Qt.Key_Space, _NIL_KEY]
+    return key <= 0xff and key not in [Qt.Key.Key_Space, _NIL_KEY]
 
 
 def is_special(key: Qt.Key, modifiers: _ModifierType) -> bool:
@@ -169,7 +169,7 @@ def is_special(key: Qt.Key, modifiers: _ModifierType) -> bool:
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
     return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier])
+                modifiers in [Qt.KeyboardModifier.ShiftModifier, Qt.KeyboardModifier.NoModifier])
 
 
 def is_modifier_key(key: Qt.Key) -> bool:
@@ -250,11 +250,11 @@ def _key_to_string(key: Qt.Key) -> str:
 def _modifiers_to_string(modifiers: _ModifierType) -> str:
     """Convert the given Qt::KeyboardModifiers to a string.
 
-    Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
+    Handles Qt.KeyboardModifier.GroupSwitchModifier because Qt doesn't handle that as a
     modifier.
     """
     _assert_plain_modifier(modifiers)
-    altgr = cast(Qt.KeyboardModifiers, Qt.GroupSwitchModifier)
+    altgr = Qt.KeyboardModifier.GroupSwitchModifier
     if modifiers & altgr:
         modifiers &= ~altgr
         result = 'AltGr+'
@@ -382,10 +382,10 @@ class KeyInfo:
                                  .format(self.key))
 
             assert len(key_string) == 1, key_string
-            if self.modifiers == Qt.ShiftModifier:
+            if self.modifiers == Qt.KeyboardModifier.ShiftModifier:
                 assert not is_special(self.key, self.modifiers)
                 return key_string.upper()
-            elif self.modifiers == Qt.NoModifier:
+            elif self.modifiers == Qt.KeyboardModifier.NoModifier:
                 assert not is_special(self.key, self.modifiers)
                 return key_string.lower()
             else:
@@ -402,12 +402,12 @@ class KeyInfo:
     def text(self) -> str:
         """Get the text which would be displayed when pressing this key."""
         control = {
-            Qt.Key_Space: ' ',
-            Qt.Key_Tab: '\t',
-            Qt.Key_Backspace: '\b',
-            Qt.Key_Return: '\r',
-            Qt.Key_Enter: '\r',
-            Qt.Key_Escape: '\x1b',
+            Qt.Key.Key_Space: ' ',
+            Qt.Key.Key_Tab: '\t',
+            Qt.Key.Key_Backspace: '\b',
+            Qt.Key.Key_Return: '\r',
+            Qt.Key.Key_Enter: '\r',
+            Qt.Key.Key_Escape: '\x1b',
         }
 
         if self.key in control:
@@ -416,11 +416,11 @@ class KeyInfo:
             return ''
 
         text = QKeySequence(self.key).toString()
-        if not self.modifiers & Qt.ShiftModifier:
+        if not self.modifiers & Qt.KeyboardModifier.ShiftModifier:
             text = text.lower()
         return text
 
-    def to_event(self, typ: QEvent.Type = QEvent.KeyPress) -> QKeyEvent:
+    def to_event(self, typ: QEvent.Type = QEvent.Type.KeyPress) -> QKeyEvent:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
@@ -472,9 +472,9 @@ class KeySequence:
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
-            key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifierMask)
+            key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifier.KeyboardModifierMask)
             modifiers = Qt.KeyboardModifiers(
-                int(key_and_modifiers) & Qt.KeyboardModifierMask)
+                int(key_and_modifiers) & Qt.KeyboardModifier.KeyboardModifierMask)
             yield KeyInfo(key=key, modifiers=modifiers)
 
     def __repr__(self) -> str:
@@ -533,7 +533,7 @@ class KeySequence:
 
     def _validate(self, keystr: str = None) -> None:
         for info in self:
-            if info.key < Qt.Key_Space or info.key >= Qt.Key_unknown:
+            if info.key < Qt.Key.Key_Space or info.key >= Qt.Key.Key_unknown:
                 raise KeyParseError(keystr, "Got invalid key!")
 
         for seq in self._sequences:
@@ -552,12 +552,12 @@ class KeySequence:
         if len(self._sequences) > len(other._sequences):
             # If we entered more sequences than there are in the config,
             # there's no way there can be a match.
-            return QKeySequence.NoMatch
+            return QKeySequence.SequenceMatch.NoMatch
 
         for entered, configured in zip(self._sequences, other._sequences):
             # If we get NoMatch/PartialMatch in a sequence, we can abort there.
             match = entered.matches(configured)
-            if match != QKeySequence.ExactMatch:
+            if match != QKeySequence.SequenceMatch.ExactMatch:
                 return match
 
         # We checked all common sequences and they had an ExactMatch.
@@ -569,9 +569,9 @@ class KeySequence:
         # If there's the same amount of sequences configured and entered,
         # that's an EqualMatch.
         if len(self._sequences) == len(other._sequences):
-            return QKeySequence.ExactMatch
+            return QKeySequence.SequenceMatch.ExactMatch
         elif len(self._sequences) < len(other._sequences):
-            return QKeySequence.PartialMatch
+            return QKeySequence.SequenceMatch.PartialMatch
         else:
             raise utils.Unreachable("self={!r} other={!r}".format(self, other))
 
@@ -588,14 +588,14 @@ class KeySequence:
         if key == _NIL_KEY:
             raise KeyParseError(None, "Got nil key!")
 
-        # We always remove Qt.GroupSwitchModifier because QKeySequence has no
+        # We always remove Qt.KeyboardModifier.GroupSwitchModifier because QKeySequence has no
         # way to mention that in a binding anyways...
-        modifiers &= ~Qt.GroupSwitchModifier
+        modifiers &= ~Qt.KeyboardModifier.GroupSwitchModifier
 
-        # We change Qt.Key_Backtab to Key_Tab here because nobody would
+        # We change Qt.Key.Key_Backtab to Key_Tab here because nobody would
         # configure "Shift-Backtab" in their config.
-        if modifiers & Qt.ShiftModifier and key == Qt.Key_Backtab:
-            key = Qt.Key_Tab
+        if modifiers & Qt.KeyboardModifier.ShiftModifier and key == Qt.Key.Key_Backtab:
+            key = Qt.Key.Key_Tab
 
         # We don't care about a shift modifier with symbols (Shift-: should
         # match a : binding even though we typed it with a shift on an
@@ -607,27 +607,26 @@ class KeySequence:
         #
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
-        if (modifiers == Qt.ShiftModifier and
+        if (modifiers == Qt.KeyboardModifier.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         #
-        # We don't use Qt.AA_MacDontSwapCtrlAndMeta because that also affects
+        # We don't use Qt.ApplicationAttribute.AA_MacDontSwapCtrlAndMeta because that also affects
         # Qt/QtWebEngine's own shortcuts. However, we do want "Ctrl" and "Meta"
         # (or "Cmd") in a key binding name to actually represent what's on the
         # keyboard.
         if utils.is_mac:
-            # FIXME:qt6 Reevaluate the type ignores below
-            if modifiers & Qt.ControlModifier and modifiers & Qt.MetaModifier:
+            if modifiers & Qt.KeyboardModifier.ControlModifier and modifiers & Qt.KeyboardModifier.MetaModifier:
                 pass
-            elif modifiers & Qt.ControlModifier:
-                modifiers &= ~Qt.ControlModifier
-                modifiers |= Qt.MetaModifier  # type: ignore[assignment]
-            elif modifiers & Qt.MetaModifier:
-                modifiers &= ~Qt.MetaModifier
-                modifiers |= Qt.ControlModifier  # type: ignore[assignment]
+            elif modifiers & Qt.KeyboardModifier.ControlModifier:
+                modifiers &= ~Qt.KeyboardModifier.ControlModifier
+                modifiers |= Qt.KeyboardModifier.MetaModifier
+            elif modifiers & Qt.KeyboardModifier.MetaModifier:
+                modifiers &= ~Qt.KeyboardModifier.MetaModifier
+                modifiers |= Qt.KeyboardModifier.ControlModifier
 
         keys = list(self._iter_keys())
         keys.append(key | int(modifiers))
@@ -636,7 +635,7 @@ class KeySequence:
 
     def strip_modifiers(self) -> 'KeySequence':
         """Strip optional modifiers from keys."""
-        modifiers = Qt.KeypadModifier
+        modifiers = Qt.KeyboardModifier.KeypadModifier
         keys = [key & ~modifiers for key in self._iter_keys()]
         return self.__class__(*keys)
 

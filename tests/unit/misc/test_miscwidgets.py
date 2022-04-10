@@ -48,9 +48,9 @@ class TestCommandLineEdit:
 
         cmd_edit.home(True)
         assert cmd_edit.cursorPosition() == len(':')
-        qtbot.keyClick(cmd_edit, Qt.Key_Delete)
+        qtbot.keyClick(cmd_edit, Qt.Key.Key_Delete)
         assert cmd_edit.text() == ':'
-        qtbot.keyClick(cmd_edit, Qt.Key_Backspace)
+        qtbot.keyClick(cmd_edit, Qt.Key.Key_Backspace)
         assert cmd_edit.text() == ':'
 
         qtbot.keyClicks(cmd_edit, 'hey again')
@@ -76,7 +76,7 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ':hello'
         assert cmd_edit.cursorPosition() == len(':hello')
         for _ in ':hello':
-            qtbot.keyClick(cmd_edit, Qt.Key_Left, modifier=Qt.ShiftModifier)
+            qtbot.keyClick(cmd_edit, Qt.Key.Key_Left, modifier=Qt.KeyboardModifier.ShiftModifier)
         assert cmd_edit.cursorPosition() == len(':')
         assert cmd_edit.selectionStart() == len(':')
 
@@ -165,10 +165,10 @@ class TestInspectorSplitter:
 
     @pytest.mark.parametrize(
         'position, orientation, inspector_idx, webview_idx', [
-            (inspector.Position.left, Qt.Horizontal, 0, 1),
-            (inspector.Position.right, Qt.Horizontal, 1, 0),
-            (inspector.Position.top, Qt.Vertical, 0, 1),
-            (inspector.Position.bottom, Qt.Vertical, 1, 0),
+            (inspector.Position.left, Qt.Orientation.Horizontal, 0, 1),
+            (inspector.Position.right, Qt.Orientation.Horizontal, 1, 0),
+            (inspector.Position.top, Qt.Orientation.Vertical, 0, 1),
+            (inspector.Position.bottom, Qt.Orientation.Vertical, 1, 0),
         ]
     )
     def test_set_inspector(self, position, orientation,
@@ -260,7 +260,7 @@ class TestInspectorSplitter:
                          new_window_size, exp_inspector_size,
                          position, splitter, fake_inspector, qtbot):
         def resize(dim):
-            size = (QSize(dim, 666) if splitter.orientation() == Qt.Horizontal
+            size = (QSize(dim, 666) if splitter.orientation() == Qt.Orientation.Horizontal
                     else QSize(666, dim))
             splitter.resize(size)
             if splitter.size() != size:

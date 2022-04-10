@@ -38,11 +38,11 @@ class TestFixedDataNetworkReply:
         reply = networkreply.FixedDataNetworkReply(req, b'', 'test/foo')
         assert reply.request() == req
         assert reply.url() == req.url()
-        assert reply.openMode() == QIODevice.ReadOnly
-        assert reply.header(QNetworkRequest.ContentTypeHeader) == 'test/foo'
-        http_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+        assert reply.openMode() == QIODevice.OpenModeFlag.ReadOnly
+        assert reply.header(QNetworkRequest.KnownHeaders.ContentTypeHeader) == 'test/foo'
+        http_code = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
         http_reason = reply.attribute(
-            QNetworkRequest.HttpReasonPhraseAttribute)
+            QNetworkRequest.Attribute.HttpReasonPhraseAttribute)
         assert http_code == 200
         assert http_reason == 'OK'
         assert reply.isFinished()
@@ -76,7 +76,7 @@ class TestFixedDataNetworkReply:
 
 def test_error_network_reply(qtbot, req):
     reply = networkreply.ErrorNetworkReply(
-        req, "This is an error", QNetworkReply.UnknownNetworkError)
+        req, "This is an error", QNetworkReply.NetworkError.UnknownNetworkError)
 
     with qtbot.wait_signals([reply.error, reply.finished], order='strict'):
         pass
@@ -84,12 +84,12 @@ def test_error_network_reply(qtbot, req):
     reply.abort()  # shouldn't do anything
     assert reply.request() == req
     assert reply.url() == req.url()
-    assert reply.openMode() == QIODevice.ReadOnly
+    assert reply.openMode() == QIODevice.OpenModeFlag.ReadOnly
     assert reply.isFinished()
     assert not reply.isRunning()
     assert reply.bytesAvailable() == 0
     assert reply.readData(1) == b''
-    assert reply.error() == QNetworkReply.UnknownNetworkError
+    assert reply.error() == QNetworkReply.NetworkError.UnknownNetworkError
     assert reply.errorString() == "This is an error"
 
 
@@ -97,5 +97,5 @@ def test_redirect_network_reply():
     url = QUrl('https://www.example.com/')
     reply = networkreply.RedirectNetworkReply(url)
     assert reply.readData(1) == b''
-    assert reply.attribute(QNetworkRequest.RedirectionTargetAttribute) == url
+    assert reply.attribute(QNetworkRequest.Attribute.RedirectionTargetAttribute) == url
     reply.abort()  # shouldn't do anything

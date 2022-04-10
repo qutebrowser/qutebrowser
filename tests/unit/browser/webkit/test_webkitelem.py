@@ -124,7 +124,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
 
     def _style_property(name, strategy):
         """Helper function to act as styleProperty method."""
-        if strategy != QWebElement.ComputedStyle:
+        if strategy != QWebElement.StyleResolveStrategy.ComputedStyle:
             raise ValueError("styleProperty called with strategy != "
                              "ComputedStyle ({})!".format(strategy))
         return style_dict[name]

@@ -124,7 +124,7 @@ def serialize(items):
         segfault!
     """
     data = QByteArray()
-    stream = QDataStream(data, QIODevice.ReadWrite)
+    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
     cur_user_data = None
 
     current_idx = None

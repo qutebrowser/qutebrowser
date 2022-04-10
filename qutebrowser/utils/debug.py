@@ -70,7 +70,7 @@ def log_signals(obj: QObject) -> QObject:
         for i in range(metaobj.methodCount()):
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)
-            if meta_method.methodType() == QMetaMethod.Signal:
+            if meta_method.methodType() == QMetaMethod.MethodType.Signal:
                 name = meta_method.name().data().decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
@@ -149,8 +149,8 @@ def qflags_key(base: Type[_EnumValueType],
                klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
-    Note: Passing a combined value (such as Qt.AlignCenter) will get the names
-    for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
+    Note: Passing a combined value (such as Qt.AlignmentFlag.AlignCenter) will get the names
+    for the individual bits (e.g. Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter). FIXME
 
     https://github.com/qutebrowser/qutebrowser/issues/42
 
@@ -327,7 +327,7 @@ def _get_pyqt_objects(lines: MutableSequence[str],
                       obj: QObject,
                       depth: int = 0) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(QObject, '', Qt.FindDirectChildrenOnly):
+    for kid in obj.findChildren(QObject, '', Qt.FindChildOption.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 

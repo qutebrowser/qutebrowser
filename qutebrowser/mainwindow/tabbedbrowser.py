@@ -223,9 +223,9 @@ class TabbedBrowser(QWidget):
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
         self.widget.currentChanged.connect(self._on_current_changed)
-        self.cur_fullscreen_requested.connect(self.widget.tab_bar().maybe_hide)
+        self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
 
-        self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
@@ -1051,7 +1051,7 @@ class TabbedBrowser(QWidget):
         """
         # strip the fragment as it may interfere with scrolling
         try:
-            url = self.current_url().adjusted(QUrl.RemoveFragment)
+            url = self.current_url().adjusted(QUrl.UrlFormattingOption.RemoveFragment)
         except qtutils.QtValueError:
             # show an error only if the mark is not automatically set
             if key != "'":
@@ -1074,7 +1074,7 @@ class TabbedBrowser(QWidget):
         """
         try:
             # consider urls that differ only in fragment to be identical
-            urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+            urlkey = self.current_url().adjusted(QUrl.UrlFormattingOption.RemoveFragment)
         except qtutils.QtValueError:
             urlkey = None
 

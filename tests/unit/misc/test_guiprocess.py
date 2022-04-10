@@ -36,7 +36,7 @@ def proc(qtbot, caplog):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess('testprocess')
     yield p
-    if not sip.isdeleted(p._proc) and p._proc.state() != QProcess.NotRunning:
+    if not sip.isdeleted(p._proc) and p._proc.state() != QProcess.ProcessState.NotRunning:
         with caplog.at_level(logging.ERROR):
             with qtbot.wait_signal(p.finished, timeout=10000,
                                   raising=False) as blocker:
@@ -126,7 +126,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
     assert not message_mock.messages
 
     assert not proc.outcome.running
-    assert proc.outcome.status == QProcess.NormalExit
+    assert proc.outcome.status == QProcess.ExitStatus.NormalExit
     assert proc.outcome.code == 0
     assert str(proc.outcome) == 'Testprocess exited successfully.'
     assert proc.outcome.state_str() == 'successful'
@@ -434,7 +434,7 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     assert msg.text == expected
 
     assert not proc.outcome.running
-    assert proc.outcome.status == QProcess.NormalExit
+    assert proc.outcome.status == QProcess.ExitStatus.NormalExit
     assert proc.outcome.code == 1
     assert str(proc.outcome) == 'Testprocess exited with status 1.'
     assert proc.outcome.state_str() == 'unsuccessful'
@@ -454,7 +454,7 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
     assert msg.text == "Testprocess crashed. See :process for details."
 
     assert not proc.outcome.running
-    assert proc.outcome.status == QProcess.CrashExit
+    assert proc.outcome.status == QProcess.ExitStatus.CrashExit
     assert str(proc.outcome) == 'Testprocess crashed.'
     assert proc.outcome.state_str() == 'crashed'
     assert not proc.outcome.was_successful()

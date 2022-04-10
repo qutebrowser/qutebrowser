@@ -40,7 +40,7 @@ class EventObject(QObject):
 
 def test_log_events(qapp, caplog):
     obj = EventObject()
-    qapp.sendEvent(obj, QEvent(QEvent.User))
+    qapp.sendEvent(obj, QEvent(QEvent.Type.User))
     qapp.processEvents()
     assert caplog.messages == ['Event in test_debug.EventObject: User']
 
@@ -133,19 +133,19 @@ class TestQEnumKey:
         assert hasattr(QFrame, 'staticMetaObject')
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (QStyle, QStyle.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
-        (QFrame, QFrame.Sunken, None, 'Sunken'),
+        (QStyle, QStyle.PrimitiveElement.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
+        (QFrame, QFrame.Shadow.Sunken, None, 'Sunken'),
         (QFrame, 0x0030, QFrame.Shadow, 'Sunken'),
         (QFrame, 0x1337, QFrame.Shadow, '0x1337'),
-        (Qt, Qt.AnchorLeft, None, 'AnchorLeft'),
+        (Qt, Qt.AnchorPoint.AnchorLeft, None, 'AnchorLeft'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
         assert key == expected
 
     def test_add_base(self):
-        key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
-        assert key == 'QFrame.Sunken'
+        key = debug.qenum_key(QFrame, QFrame.Shadow.Sunken, add_base=True)
+        assert key == 'QFrame.Shadow.Sunken'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
@@ -163,10 +163,10 @@ class TestQFlagsKey:
     fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (Qt, Qt.AlignTop, None, 'AlignTop'),
-        pytest.param(Qt, Qt.AlignLeft | Qt.AlignTop, None,
+        (Qt, Qt.AlignmentFlag.AlignTop, None, 'AlignTop'),
+        pytest.param(Qt, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, None,
                      'AlignLeft|AlignTop', marks=fixme),
-        (Qt, Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
+        (Qt, Qt.AlignmentFlag.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
         pytest.param(Qt, 0x0021, Qt.Alignment, 'AlignLeft|AlignTop',
                      marks=fixme),
         (Qt, 0x1100, Qt.Alignment, '0x0100|0x1000'),
@@ -199,8 +199,8 @@ class TestQFlagsKey:
 
     def test_add_base(self):
         """Test with add_base=True."""
-        flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
-        assert flags == 'Qt.AlignTop'
+        flags = debug.qflags_key(Qt, Qt.AlignmentFlag.AlignTop, add_base=True)
+        assert flags == 'Qt.AlignmentFlag.AlignTop'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""

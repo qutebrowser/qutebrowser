@@ -136,7 +136,7 @@ class DBusError(Error):
     }
 
     def __init__(self, msg: QDBusMessage) -> None:
-        assert msg.type() == QDBusMessage.ErrorMessage
+        assert msg.type() == QDBusMessage.MessageType.ErrorMessage
         self.error = msg.errorName()
         self.error_message = msg.errorMessage()
         self.is_fatal = self.error not in self._NON_FATAL_ERRORS
@@ -415,7 +415,7 @@ class NotificationBridgePresenter(QObject):
         for win_id in objreg.window_registry:
             tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
             for idx, tab in enumerate(tabbedbrowser.widgets()):
-                if tab.url().matches(notification.origin(), QUrl.RemovePath):
+                if tab.url().matches(notification.origin(), QUrl.UrlFormattingOption.RemovePath):
                     tabbedbrowser.widget.setCurrentIndex(idx)
                     return
         log.misc.debug(f"No matching tab found for {notification.origin()}")
@@ -510,7 +510,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         """Convert a QImage to a QIcon."""
         if image.isNull():
             return QIcon()
-        pixmap = QPixmap.fromImage(image, Qt.NoFormatConversion)
+        pixmap = QPixmap.fromImage(image, Qt.ImageConversionFlag.NoFormatConversion)
         assert not pixmap.isNull()
         icon = QIcon(pixmap)
         assert not icon.isNull()
@@ -661,7 +661,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         signals, we can't do much - emitting self.error would just go use herbe again,
         so there's no point.
         """
-        if status == QProcess.CrashExit:
+        if status == QProcess.ExitStatus.CrashExit:
             pass
         elif code == 0:
             self.click_id.emit(pid)
@@ -677,7 +677,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
-        if error == QProcess.Crashed:
+        if error == QProcess.ProcessError.Crashed:
             return
         name = debug.qenum_key(QProcess.ProcessError, error)
         raise Error(f'herbe process error: {name}')
@@ -733,7 +733,7 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    successful = variant.convert(QVariant.UInt)
+    successful = variant.convert(QVariant.Type.UInt)
     assert successful
     return variant
 
@@ -777,7 +777,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self._watcher = QDBusServiceWatcher(
             self.SERVICE,
             bus,
-            QDBusServiceWatcher.WatchForUnregistration,
+            QDBusServiceWatcher.WatchModeFlag.WatchForUnregistration,
             self,
         )
         self._watcher.serviceUnregistered.connect(self._on_service_unregistered)
@@ -896,8 +896,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def _get_server_info(self) -> None:
         """Query notification server information and set quirks."""
-        reply = self.interface.call(QDBus.BlockWithGui, "GetServerInformation")
-        self._verify_message(reply, "ssss", QDBusMessage.ReplyMessage)
+        reply = self.interface.call(QDBus.CallMode.BlockWithGui, "GetServerInformation")
+        self._verify_message(reply, "ssss", QDBusMessage.MessageType.ReplyMessage)
         name, vendor, ver, spec_version = reply.arguments()
 
         log.misc.debug(
@@ -941,11 +941,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         Raises DBusError if the signature doesn't match.
         """
         assert expected_type not in [
-            QDBusMessage.ErrorMessage,
-            QDBusMessage.InvalidMessage,
+            QDBusMessage.MessageType.ErrorMessage,
+            QDBusMessage.MessageType.InvalidMessage,
         ], expected_type
 
-        if msg.type() == QDBusMessage.ErrorMessage:
+        if msg.type() == QDBusMessage.MessageType.ErrorMessage:
             raise DBusError(msg)
 
         signature = msg.signature()
@@ -993,7 +993,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         actions = []
         if self._capabilities.actions:
             actions = ['default', 'Activate']  # key, name
-        return QDBusArgument(actions, QMetaType.QStringList)
+        return QDBusArgument(actions, QMetaType.Type.QStringList)
 
     def _get_hints_arg(self, *, origin_url: QUrl, icon: QImage) -> Dict[str, Any]:
         """Get the hints argument for present()."""
@@ -1033,7 +1033,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     ) -> Any:
         """Wrapper around DBus call to use keyword args."""
         return self.interface.call(
-            QDBus.BlockWithGui,
+            QDBus.CallMode.BlockWithGui,
             "Notify",
             appname,
             replaces_id,
@@ -1073,7 +1073,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         )
 
         try:
-            self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
+            self._verify_message(reply, "u", QDBusMessage.MessageType.ReplyMessage)
         except DBusError as e:
             if e.is_fatal:
                 raise
@@ -1093,10 +1093,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         bits_per_color = 8
         has_alpha = qimage.hasAlphaChannel()
         if has_alpha:
-            image_format = QImage.Format_RGBA8888
+            image_format = QImage.Format.Format_RGBA8888
             channel_count = 4
         else:
-            image_format = QImage.Format_RGB888
+            image_format = QImage.Format.Format_RGB888
             channel_count = 3
 
         qimage.convertTo(image_format)
@@ -1162,11 +1162,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     def _handle_close(self, msg: QDBusMessage) -> None:
         """Handle NotificationClosed from DBus."""
         try:
-            self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
+            self._verify_message(msg, "uu", QDBusMessage.MessageType.SignalMessage)
         except Error:
             if not self._quirks.wrong_closes_type:
                 raise
-            self._verify_message(msg, "ui", QDBusMessage.SignalMessage)
+            self._verify_message(msg, "ui", QDBusMessage.MessageType.SignalMessage)
 
         notification_id, _close_reason = msg.arguments()
         self.close_id.emit(notification_id)
@@ -1174,7 +1174,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     @pyqtSlot(QDBusMessage)
     def _handle_action(self, msg: QDBusMessage) -> None:
         """Handle ActionInvoked from DBus."""
-        self._verify_message(msg, "us", QDBusMessage.SignalMessage)
+        self._verify_message(msg, "us", QDBusMessage.MessageType.SignalMessage)
         notification_id, action_key = msg.arguments()
         if action_key == "default":
             self.click_id.emit(notification_id)
@@ -1183,7 +1183,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, notification_id: int) -> None:
         """Send CloseNotification if a notification was closed from JS."""
         self.interface.call(
-            QDBus.NoBlock,
+            QDBus.CallMode.NoBlock,
             "CloseNotification",
             _as_uint32(notification_id),
         )
@@ -1191,10 +1191,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""
         reply = self.interface.call(
-            QDBus.BlockWithGui,
+            QDBus.CallMode.BlockWithGui,
             "GetCapabilities",
         )
-        self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
+        self._verify_message(reply, "as", QDBusMessage.MessageType.ReplyMessage)
 
         caplist = reply.arguments()[0]
         self._capabilities = _ServerCapabilities.from_list(caplist)
@@ -1221,7 +1221,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             prefix = None
         elif self._capabilities.body_markup and self._capabilities.body_hyperlinks:
             href = html.escape(
-                origin_url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+                origin_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
             )
             text = html.escape(urlstr, quote=False)
             prefix = f'<a href="{href}">{text}</a>'

@@ -294,7 +294,7 @@ class FontFamilies:
     @classmethod
     def from_system_default(
             cls,
-            font_type: QFontDatabase.SystemFont = QFontDatabase.FixedFont,
+            font_type: QFontDatabase.SystemFont = QFontDatabase.SystemFont.FixedFont,
     ) -> 'FontFamilies':
         """Get a FontFamilies object for the default system font.
 
@@ -305,19 +305,19 @@ class FontFamilies:
         exist:
 
         1) f = QFont()
-           f.setStyleHint(QFont.Monospace)
+           f.setStyleHint(QFont.StyleHint.Monospace)
            print(f.defaultFamily())
 
         2) f = QFont()
-           f.setStyleHint(QFont.TypeWriter)
+           f.setStyleHint(QFont.StyleHint.TypeWriter)
            print(f.defaultFamily())
 
-        3) f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        3) f = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
            print(f.family())
 
         They yield different results depending on the OS:
 
-                   QFont.Monospace  | QFont.TypeWriter    | QFontDatabase
+                   QFont.StyleHint.Monospace  | QFont.StyleHint.TypeWriter    | QFontDatabase
                    ------------------------------------------------------
         Windows:   Courier New      | Courier New         | Courier New
         Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace

@@ -34,13 +34,13 @@ class FakeError:
 
 @pytest.mark.parametrize('errors, expected', [
     (
-        [QSslError(QSslError.UnableToGetIssuerCertificate)],
+        [QSslError(QSslError.SslError.UnableToGetIssuerCertificate)],
         ['<p>The issuer certificate could not be found</p>'],
     ),
     (
         [
-            QSslError(QSslError.UnableToGetIssuerCertificate),
-            QSslError(QSslError.UnableToDecryptCertificateSignature),
+            QSslError(QSslError.SslError.UnableToGetIssuerCertificate),
+            QSslError(QSslError.SslError.UnableToDecryptCertificateSignature),
         ],
         [
             '<ul>',

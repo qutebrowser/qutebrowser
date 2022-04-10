@@ -32,7 +32,7 @@ class Clock(textbase.TextBase):
     UPDATE_DELAY = 500  # ms
 
     def __init__(self, parent=None):
-        super().__init__(parent, elidemode=Qt.ElideNone)
+        super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
         self.format = ""
 
         self.timer = QTimer(self)

@@ -49,11 +49,11 @@ class MinimalLineEditMixin:
             """
         )
         self.setAttribute(  # type: ignore[attr-defined]
-            Qt.WA_MacShowFocusRect, False)
+            Qt.WidgetAttribute.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+        if e.key() == Qt.Key.Key_Insert and e.modifiers() == Qt.KeyboardModifier.ShiftModifier:
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:
@@ -137,9 +137,9 @@ class _CommandValidator(QValidator):
             A tuple (status, string, pos) as a QValidator should.
         """
         if self.prompt is None or string.startswith(self.prompt):
-            return (QValidator.Acceptable, string, pos)
+            return (QValidator.State.Acceptable, string, pos)
         else:
-            return (QValidator.Invalid, string, pos)
+            return (QValidator.State.Invalid, string, pos)
 
 
 class DetailFold(QWidget):
@@ -181,7 +181,7 @@ class DetailFold(QWidget):
         Args:
             e: The QMouseEvent.
         """
-        if e.button() == Qt.LeftButton:
+        if e.button() == Qt.MouseButton.LeftButton:
             e.accept()
             self.toggle()
         else:
@@ -219,9 +219,9 @@ class _FoldArrow(QWidget):
         opt.initFrom(self)
         painter = QPainter(self)
         if self._folded:
-            elem = QStyle.PE_IndicatorArrowRight
+            elem = QStyle.PrimitiveElement.PE_IndicatorArrowRight
         else:
-            elem = QStyle.PE_IndicatorArrowDown
+            elem = QStyle.PrimitiveElement.PE_IndicatorArrowDown
         self.style().drawPrimitive(elem, opt, painter, self)
 
     def minimumSizeHint(self):
@@ -387,10 +387,10 @@ class InspectorSplitter(QSplitter):
             self._inspector_idx = 0
             self._main_idx = 1
 
-        self.setOrientation(Qt.Horizontal
+        self.setOrientation(Qt.Orientation.Horizontal
                             if position in [inspector.Position.left,
                                             inspector.Position.right]
-                            else Qt.Vertical)
+                            else Qt.Orientation.Vertical)
         self.insertWidget(self._inspector_idx, inspector_widget)
         self._position = position
         self._load_preferred_size()
@@ -405,7 +405,7 @@ class InspectorSplitter(QSplitter):
     def _load_preferred_size(self) -> None:
         """Load the preferred size of the inspector widget."""
         assert self._position is not None
-        full = (self.width() if self.orientation() == Qt.Horizontal
+        full = (self.width() if self.orientation() == Qt.Orientation.Horizontal
                 else self.height())
 
         # If we first open the inspector with a window size of < 300px
@@ -489,7 +489,7 @@ class KeyTesterWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._layout = QHBoxLayout(self)
         self._label = QLabel(text="Waiting for keypress...")
         self._layout.addWidget(self._label)

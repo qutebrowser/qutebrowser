@@ -79,7 +79,7 @@ def _is_secure_cipher(cipher):
         return False
     # OpenSSL should already protect against this in a better way
     # elif (('CBC3' in tokens or 'CBC' in tokens) and (cipher.protocol() not in
-    #         [QSsl.TlsV1_0, QSsl.TlsV1_1, QSsl.TlsV1_2])):
+    #         [QSsl.SslProtocol.TlsV1_0, QSsl.SslProtocol.TlsV1_1, QSsl.SslProtocol.TlsV1_2])):
     #     # https://en.wikipedia.org/wiki/POODLE
     #     return False
     ### These things should never happen as those are already filtered out by
@@ -239,7 +239,7 @@ class NetworkManager(QNetworkAccessManager):
 
     def shutdown(self):
         """Abort all running requests."""
-        self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+        self.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
         self.shutting_down.emit()
 
     # No @pyqtSlot here, see
@@ -406,14 +406,14 @@ class NetworkManager(QNetworkAccessManager):
             proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
-                    req, proxy_error, QNetworkReply.UnknownProxyError,
+                    req, proxy_error, QNetworkReply.NetworkError.UnknownProxyError,
                     self)
 
         if not req.url().isValid():
             log.network.debug("Ignoring invalid requested URL: {}".format(
                 req.url().errorString()))
             return networkreply.ErrorNetworkReply(
-                req, "Invalid request URL", QNetworkReply.HostNotFoundError,
+                req, "Invalid request URL", QNetworkReply.NetworkError.HostNotFoundError,
                 self)
 
         for header, value in shared.custom_headers(url=req.url()):
@@ -433,7 +433,7 @@ class NetworkManager(QNetworkAccessManager):
         interceptors.run(request)
         if request.is_blocked:
             return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.NetworkError.ContentAccessDenied,
                 self)
 
         if 'log-requests' in objects.debug_flags:
