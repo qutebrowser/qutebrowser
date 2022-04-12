@@ -696,8 +696,10 @@ class WebKitElements(browsertab.AbstractElements):
 
     _tab: 'WebKitTab'
 
-    def find_css(self, selector, callback, error_cb, *, only_visible=False):
+    def find_css(self, selector, callback, error_cb, *,
+                 only_visible=False, special_classes=()):
         utils.unused(error_cb)
+        utils.unused(special_classes)
         mainframe = self._widget.page().mainFrame()
         if mainframe is None:
             raise browsertab.WebTabError("No frame focused!")

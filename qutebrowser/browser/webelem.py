@@ -19,7 +19,7 @@
 
 """Generic web element related code."""
 
-from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
+from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union, Tuple, List
 import collections.abc
 
 from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
@@ -46,8 +46,13 @@ class OrphanedError(Error):
     """Raised when a webelement's parent has vanished."""
 
 
-def css_selector(group: str, url: QUrl) -> str:
-    """Get a CSS selector for the given group/URL."""
+SPECIAL_SELECTOR_MAP = {
+    "__qute_scrollable": "scrollable"
+}
+
+
+def css_selector(group: str, url: QUrl) -> Tuple[str, List[str]]:
+    """Get CSS and special selectors for the given group/URL."""
     selectors = config.instance.get('hints.selectors', url)
     if group not in selectors:
         selectors = config.val.hints.selectors
@@ -55,7 +60,16 @@ def css_selector(group: str, url: QUrl) -> str:
         if group not in selectors:
             raise Error("Undefined hinting group {!r}".format(group))
 
-    return ','.join(selectors[group])
+    selectors = selectors[group]
+    css_selectors: List[str] = []
+    special_selectors: List[str] = []
+    for s in selectors:
+        special_selector = SPECIAL_SELECTOR_MAP.get(s)
+        if special_selector is not None:
+            special_selectors.append(special_selector)
+        else:
+            css_selectors.append(s)
+    return ','.join(css_selectors), special_selectors
 
 
 # MutableMapping is only generic in Python 3.9+
@@ -124,6 +138,20 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
     def set_value(self, value: JsValueType) -> None:
         """Set the element value."""
         raise NotImplementedError
+
+    def hint_reason(self) -> Optional[str]:
+        """Get the hint reason for this element. None if unknown."""
+        # Needs to be overridden in subclasses.
+        return None
+
+    def special_click_handler(self) -> bool:
+        """Called when a click is triggered.
+
+        Handles special actions during a click.
+
+        If returns true, the rest of the handling will be cancelled.
+        """
+        return False
 
     def dispatch_event(self, event: str,
                        bubbles: bool = False,
@@ -418,6 +446,8 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
 
         if force_event:
             self._click_fake_event(click_target)
+            return
+        if self.special_click_handler():
             return
 
         if click_target == usertypes.ClickTarget.normal:

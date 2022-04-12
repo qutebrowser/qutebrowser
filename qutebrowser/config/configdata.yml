@@ -1713,6 +1713,8 @@ hints.selectors:
       - 'input:not([type])'
       - '[contenteditable]:not([contenteditable="false"])'
       - 'textarea'
+    scrollable:
+      - '__qute_scrollable'
   type:
     name: Dict
     keytype: String
@@ -1951,7 +1953,7 @@ scrolling.smooth:
   desc: >-
     Enable smooth scrolling for web pages.
 
-    Note smooth scrolling does not work with the `:scroll-px` command.
+    Note smooth scrolling does not work with the `:scroll-*` commands on webkit or webengine<5.10.
 
 ## spellcheck
 
@@ -3577,6 +3579,7 @@ bindings.default:
       ;h: hint all hover
       ;i: hint images
       ;I: hint images tab
+      ;s: hint scrollable
       ;o: hint links fill :open {hint-url}
       ;O: hint links fill :open -t -r {hint-url}
       ;y: hint links yank

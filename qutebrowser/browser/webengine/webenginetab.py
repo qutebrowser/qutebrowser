@@ -576,10 +576,13 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.load_url(url)
 
     def delta(self, x=0, y=0):
-        self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
+        js_code = javascript.assemble('scroll', 'delta_px', x, y,
+                                      config.val.scrolling.smooth)
+        self._tab.run_js_async(js_code)
 
     def delta_page(self, x=0, y=0):
-        js_code = javascript.assemble('scroll', 'delta_page', x, y)
+        js_code = javascript.assemble('scroll', 'delta_page', x, y,
+                                      config.val.scrolling.smooth)
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
@@ -764,9 +767,9 @@ class WebEngineElements(browsertab.AbstractElements):
             callback(elem)
 
     def find_css(self, selector, callback, error_cb, *,
-                 only_visible=False):
+                 only_visible=False, special_classes=()):
         js_code = javascript.assemble('webelem', 'find_css', selector,
-                                      only_visible)
+                                      only_visible, special_classes)
         js_cb = functools.partial(self._js_cb_multiple, callback, error_cb)
         self._tab.run_js_async(js_code, js_cb)
 
@@ -1084,6 +1087,7 @@ class _WebEngineScripts(QObject):
         """Initialize global qutebrowser JavaScript."""
         js_code = javascript.wrap_global(
             'scripts',
+            resources.read_file('javascript/utils.js'),
             resources.read_file('javascript/scroll.js'),
             resources.read_file('javascript/webelem.js'),
             resources.read_file('javascript/caret.js'),
