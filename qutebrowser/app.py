@@ -51,7 +51,6 @@ from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
 
 import qutebrowser
-import qutebrowser.resources
 from qutebrowser.commands import runners
 from qutebrowser.config import (config, websettings, configfiles, configinit,
                                 qtargs)
