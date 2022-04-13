@@ -25,7 +25,7 @@ import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
                              QNetworkProxy)
 
 from qutebrowser.config import config
@@ -103,7 +103,8 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    default_ciphers = QSslSocket.defaultCiphers()
+    config = QSslConfiguration.defaultConfiguration()
+    default_ciphers = config.ciphers()
     log.init.vdebug(  # type: ignore[attr-defined]
         "Default Qt ciphers: {}".format(
             ', '.join(c.name() for c in default_ciphers)))
@@ -119,7 +120,7 @@ def init():
     if bad_ciphers:
         log.init.debug("Disabling bad ciphers: {}".format(
             ', '.join(c.name() for c in bad_ciphers)))
-        QSslSocket.setDefaultCiphers(good_ciphers)
+        config.setCiphers(good_ciphers)
 
 
 _SavedErrorsType = MutableMapping[
