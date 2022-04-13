@@ -113,8 +113,10 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
         try:
             preload_main_frame = (QWebEngineUrlRequestInfo.
+                                  ResourceType.
                                   ResourceTypeNavigationPreloadMainFrame)
             preload_sub_frame = (QWebEngineUrlRequestInfo.
+                                 ResourceType.
                                  ResourceTypeNavigationPreloadSubFrame)
         except AttributeError:
             # Added in Qt 5.14

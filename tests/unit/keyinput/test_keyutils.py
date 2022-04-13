@@ -211,7 +211,7 @@ def test_surrogate_sequences(keys, expected):
 
 # This shouldn't happen, but if it does we should handle it well
 def test_surrogate_error():
-    evt = QKeyEvent(QKeyEvent.KeyPress, 0xd83e, Qt.KeyboardModifier.NoModifier, '🤞🏻')
+    evt = QKeyEvent(QEvent.Type.KeyPress, 0xd83e, Qt.KeyboardModifier.NoModifier, '🤞🏻')
     with pytest.raises(keyutils.KeyParseError):
         keyutils.KeyInfo.from_event(evt)
 
@@ -441,7 +441,7 @@ class TestKeySequence:
     ])
     def test_append_event(self, old, key, modifiers, text, expected):
         seq = keyutils.KeySequence.parse(old)
-        event = QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
+        event = QKeyEvent(QEvent.Type.KeyPress, key, modifiers, text)
         new = seq.append_event(event)
         assert new == keyutils.KeySequence.parse(expected)
 
@@ -469,7 +469,7 @@ class TestKeySequence:
     @pytest.mark.parametrize('key', [Qt.Key.Key_unknown, 0x0])
     def test_append_event_invalid(self, key):
         seq = keyutils.KeySequence()
-        event = QKeyEvent(QKeyEvent.KeyPress, key, Qt.KeyboardModifier.NoModifier, '')
+        event = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier, '')
         with pytest.raises(keyutils.KeyParseError):
             seq.append_event(event)
 

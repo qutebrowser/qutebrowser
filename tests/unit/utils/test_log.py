@@ -429,5 +429,5 @@ class TestQtMessageHandler:
 
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""
-        log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
+        log.qt_message_handler(QtCore.QtMsgType.QtDebugMsg, self.Context(), "")
         assert caplog.messages == ["Logged empty message!"]
