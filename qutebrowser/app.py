@@ -563,7 +563,12 @@ class Application(QApplication):
 
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)
-        self.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+
+        try:
+            self.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+        except AttributeError:
+            # default and removed in Qt 6
+            pass
 
         self.new_window.connect(self._on_new_window)
 
