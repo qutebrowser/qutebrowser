@@ -103,8 +103,8 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    config = QSslConfiguration.defaultConfiguration()
-    default_ciphers = config.ciphers()
+    sslconfig = QSslConfiguration.defaultConfiguration()
+    default_ciphers = sslconfig.ciphers()
     log.init.vdebug(  # type: ignore[attr-defined]
         "Default Qt ciphers: {}".format(
             ', '.join(c.name() for c in default_ciphers)))
@@ -120,7 +120,7 @@ def init():
     if bad_ciphers:
         log.init.debug("Disabling bad ciphers: {}".format(
             ', '.join(c.name() for c in bad_ciphers)))
-        config.setCiphers(good_ciphers)
+        sslconfig.setCiphers(good_ciphers)
 
 
 _SavedErrorsType = MutableMapping[
