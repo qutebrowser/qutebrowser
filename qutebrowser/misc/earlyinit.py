@@ -138,7 +138,10 @@ def init_faulthandler(fileobj=sys.__stderr__):
 
 def check_pyqt():
     """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
-    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+    from qutebrowser.qt import machinery
+
+    packages = [f'{machinery.package}.QtCore', f'{machinery.package}.QtWidgets']
+    for name in packages:
         try:
             importlib.import_module(name)
         except ImportError as e:
@@ -232,14 +235,14 @@ def _check_modules(modules):
 
 def check_libraries():
     """Check if all needed Python libraries are installed."""
+    from qutebrowser.qt import machinery
     modules = {
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
-        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
-        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
-        'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
-        'PyQt5.QtDBus': _missing_str("PyQt5.QtDBus"),
     }
+    for subpkg in ['QtQml', 'QtOpenGL', 'QtDBus']:
+        package = f'{machinery.package}.{subpkg}'
+        modules[package] = _missing_str(package)
     if sys.version_info < (3, 9):
         # Backport required
         modules['importlib_resources'] = _missing_str("importlib_resources")
