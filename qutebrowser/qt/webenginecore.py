@@ -8,6 +8,8 @@ if machinery.use_pyqt5:
         QWebEngineProfile,
         QWebEngineDownloadItem as QWebEngineDownloadRequest,
     )
+    # FIXME:qt6 is there a PySide2 equivalent to those?
+    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION, PYQT_WEBENGINE_VERSION_STR
 elif machinery.use_pyqt6:
     from PyQt6.QtWebEngineCore import *
 elif machinery.use_pyside2:

@@ -49,7 +49,7 @@ try:
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 try:
-    from qutebrowser.qt.webengine import PYQT_WEBENGINE_VERSION_STR
+    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
 except ImportError:  # pragma: no cover
     # Added in PyQt 5.13
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]

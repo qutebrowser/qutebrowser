@@ -167,7 +167,7 @@ def state_writer(data_tmpdir):
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
     try:
-        from qutebrowser.qt import webengine as QtWebEngineWidgets  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginecore  # pylint: disable=unused-import
     except ImportError:
         pytest.skip("QtWebEngine not available")
 

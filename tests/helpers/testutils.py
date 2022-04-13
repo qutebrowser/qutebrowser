@@ -273,7 +273,7 @@ def disable_seccomp_bpf_sandbox():
     newer kernels.
     """
     try:
-        from qutebrowser.qt import webengine as QtWebEngine  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
     except ImportError:
         # no QtWebEngine available
         return False

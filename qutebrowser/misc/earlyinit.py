@@ -305,7 +305,7 @@ def webengine_early_import():
     error messages in backendproblem.py are accurate.
     """
     try:
-        from qutebrowser.qt import webengine as QtWebEngineWidgets  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginewidgets  # pylint: disable=unused-import
     except ImportError:
         pass
 

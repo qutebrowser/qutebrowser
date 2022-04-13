@@ -119,7 +119,7 @@ def _get_version_tag(tag):
         )
     elif package == 'pyqtwebengine':
         try:
-            from qutebrowser.qt.webengine import PYQT_WEBENGINE_VERSION
+            from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
         except ImportError:
             running_version = PYQT_VERSION
         else:

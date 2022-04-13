@@ -1009,7 +1009,7 @@ class TestWebEngineVersions:
                 pytest.skip("dev version of PyQt5")
 
             try:
-                from qutebrowser.qt.webengine import (
+                from qutebrowser.qt.webenginecore import (
                     PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
             except ImportError as e:
                 # QtWebKit or QtWebEngine < 5.13
