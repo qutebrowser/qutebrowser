@@ -276,7 +276,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         text = self.text()
         if not text:
             text = 'x'
-        width = self.fontMetrics().width(text)
+        width = self.fontMetrics().boundingRect(text).width()
         return QSize(width, height)
 
     @pyqtSlot()
