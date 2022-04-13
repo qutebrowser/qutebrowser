@@ -212,7 +212,7 @@ def main(arguments):
     for target in filter(None, [
                 extract_result.fqdn,
                 extract_result.registered_domain,
-                extract_result.subdomain + extract_result.domain,
+                extract_result.subdomain + '.' + extract_result.domain,
                 extract_result.domain,
                 extract_result.ipv4]):
         target_candidates = json.loads(
