@@ -46,9 +46,9 @@ import datetime
 import argparse
 from typing import Iterable, Optional
 
-from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
+from qutebrowser.qt.widgets import QApplication, QWidget
+from qutebrowser.qt.gui import QDesktopServices, QPixmap, QIcon
+from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
 
 import qutebrowser
 from qutebrowser.commands import runners

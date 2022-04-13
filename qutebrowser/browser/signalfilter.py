@@ -21,7 +21,7 @@
 
 import functools
 
-from PyQt5.QtCore import QObject
+from qutebrowser.qt.core import QObject
 
 from qutebrowser.utils import debug, log, objreg
 

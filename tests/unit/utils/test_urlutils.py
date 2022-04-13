@@ -24,8 +24,8 @@ import logging
 import dataclasses
 import urllib.parse
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkProxy
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QNetworkProxy
 import pytest
 import hypothesis
 import hypothesis.strategies

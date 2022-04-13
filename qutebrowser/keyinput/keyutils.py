@@ -35,8 +35,8 @@ import itertools
 import dataclasses
 from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
 
-from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from qutebrowser.qt.core import Qt, QEvent
+from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.utils import utils
 

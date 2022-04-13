@@ -22,7 +22,7 @@
 import logging
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import history
 from qutebrowser.utils import urlutils, usertypes
@@ -304,7 +304,7 @@ class TestInit:
             history.web_history.setParent(None)
             history.web_history = None
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            from qutebrowser.qt.webkit import QWebHistoryInterface
             QWebHistoryInterface.setDefaultInterface(None)
         except ImportError:
             pass
@@ -322,7 +322,7 @@ class TestInit:
         assert history.web_history.parent() is qapp
 
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            from qutebrowser.qt.webkit import QWebHistoryInterface
         except ImportError:
             QWebHistoryInterface = None
 

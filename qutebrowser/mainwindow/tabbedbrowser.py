@@ -27,8 +27,8 @@ import dataclasses
 from typing import (
     Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
-from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
+from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman

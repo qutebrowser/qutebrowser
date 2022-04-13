@@ -20,7 +20,7 @@
 import os
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes

@@ -21,7 +21,7 @@ import logging
 import os.path
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import pdfjs
 from qutebrowser.utils import urlmatch

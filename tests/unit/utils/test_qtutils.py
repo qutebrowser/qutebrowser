@@ -28,9 +28,9 @@ import unittest
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
+from qutebrowser.qt.core import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.gui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases

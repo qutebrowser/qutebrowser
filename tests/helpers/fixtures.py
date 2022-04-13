@@ -37,9 +37,9 @@ import dataclasses
 
 import pytest
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtNetwork import QNetworkCookieJar
+from qutebrowser.qt.core import QSize, Qt
+from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QVBoxLayout
+from qutebrowser.qt.network import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import qutebrowser
@@ -177,7 +177,7 @@ def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
-        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        from qutebrowser.qt.webengineWidgets import QWebEngineProfile
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
@@ -432,7 +432,7 @@ def unicode_encode_err():
 @pytest.fixture(scope='session')
 def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
-    from PyQt5.QtNetwork import QNetworkAccessManager
+    from qutebrowser.qt.network import QNetworkAccessManager
     nam = QNetworkAccessManager()
     nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
     return nam

@@ -20,7 +20,7 @@
 import contextlib
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes, message

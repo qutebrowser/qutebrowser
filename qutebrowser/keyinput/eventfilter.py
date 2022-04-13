@@ -21,8 +21,8 @@
 
 from typing import cast
 
-from PyQt5.QtCore import pyqtSlot, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent, QWindow
+from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
+from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects

@@ -26,7 +26,7 @@ the native functionality exists.
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 from qutebrowser.utils import usertypes
 
 

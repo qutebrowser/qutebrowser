@@ -22,7 +22,7 @@
 import unittest.mock
 
 import pytest
-from PyQt5.QtGui import QStandardItemModel
+from qutebrowser.qt.gui import QStandardItemModel
 
 from qutebrowser.completion import completer, completionwidget
 from qutebrowser.commands import command

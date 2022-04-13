@@ -25,7 +25,7 @@ import shlex
 import shutil
 from typing import Mapping, Sequence, Dict, Optional
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
+from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl, Qt)
 
 from qutebrowser.utils import message, log, utils, usertypes, version

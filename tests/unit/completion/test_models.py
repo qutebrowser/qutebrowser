@@ -31,9 +31,9 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies as hst
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime, QProcess
+from qutebrowser.qt.core import QUrl, QDateTime, QProcess
 try:
-    from PyQt5.QtWebEngineWidgets import (
+    from qutebrowser.qt.webengineWidgets import (
         QWebEngineHistory, QWebEngineHistoryItem
     )
 except ImportError:

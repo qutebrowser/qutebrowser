@@ -25,8 +25,8 @@ import enum
 import dataclasses
 from typing import Optional, Sequence, TypeVar, Union
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import log, qtutils, utils
 

@@ -26,8 +26,8 @@
 
 """Special network replies.."""
 
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtCore import pyqtSlot, QIODevice, QByteArray, QTimer
+from qutebrowser.qt.network import QNetworkReply, QNetworkRequest
+from qutebrowser.qt.core import pyqtSlot, QIODevice, QByteArray, QTimer
 
 
 class FixedDataNetworkReply(QNetworkReply):

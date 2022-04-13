@@ -29,7 +29,7 @@ import json
 import platform
 
 import pytest
-from PyQt5.QtCore import QProcess, QPoint
+from qutebrowser.qt.core import QProcess, QPoint
 
 from helpers import testutils
 from qutebrowser.utils import qtutils, utils

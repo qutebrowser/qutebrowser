@@ -21,8 +21,8 @@
 
 import pytest
 
-from PyQt5.QtCore import QUrl, QIODevice
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+from qutebrowser.qt.core import QUrl, QIODevice
+from qutebrowser.qt.network import QNetworkRequest, QNetworkReply
 
 from qutebrowser.browser.webkit.network import networkreply
 

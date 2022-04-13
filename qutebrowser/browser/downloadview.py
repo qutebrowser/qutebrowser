@@ -22,8 +22,8 @@
 import functools
 from typing import Callable, MutableSequence, Tuple, Union
 
-from PyQt5.QtCore import pyqtSlot, QSize, Qt
-from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
+from qutebrowser.qt.core import pyqtSlot, QSize, Qt
+from qutebrowser.qt.widgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import stylesheet

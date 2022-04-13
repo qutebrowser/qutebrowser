@@ -30,8 +30,8 @@ import datetime
 import enum
 from typing import List, Tuple
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize
-from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
+from qutebrowser.qt.core import pyqtSlot, Qt, QSize
+from qutebrowser.qt.widgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
                              QDialogButtonBox, QMessageBox)
 

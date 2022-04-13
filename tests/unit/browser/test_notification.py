@@ -25,12 +25,12 @@ import inspect
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
-from PyQt5.QtGui import QImage
-from PyQt5.QtDBus import QDBusMessage, QDBus, QDBusConnection
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject
+from qutebrowser.qt.gui import QImage
+from qutebrowser.qt.dbus import QDBusMessage, QDBus, QDBusConnection
 pytest.importorskip("PyQt5.QtWebEngineCore")
 if TYPE_CHECKING:
-    from PyQt5.QtWebEngineCore import QWebEngineNotification
+    from qutebrowser.qt.webenginecore import QWebEngineNotification
 
 from qutebrowser.config import configdata
 from qutebrowser.misc import objects

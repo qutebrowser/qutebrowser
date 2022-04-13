@@ -19,7 +19,7 @@
 
 """QWebHistory serializer for QtWebEngine."""
 
-from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
+from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
 
 from qutebrowser.utils import qtutils
 

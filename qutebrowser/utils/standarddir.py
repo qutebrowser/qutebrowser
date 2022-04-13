@@ -27,8 +27,8 @@ import enum
 import argparse
 from typing import Iterator, Optional
 
-from PyQt5.QtCore import QStandardPaths
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QStandardPaths
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.utils import log, debug, utils, version
 

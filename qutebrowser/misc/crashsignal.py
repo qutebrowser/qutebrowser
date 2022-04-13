@@ -32,9 +32,9 @@ import faulthandler
 import dataclasses
 from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
-from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
+from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects

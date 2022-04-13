@@ -23,7 +23,7 @@ import argparse
 import os.path
 import sys
 
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt.widgets import QMessageBox
 
 from qutebrowser.api import config as configapi
 from qutebrowser.config import (config, configdata, configfiles, configtypes,

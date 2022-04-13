@@ -22,7 +22,7 @@ import logging
 import csv
 from typing import Iterable, Tuple
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 import pytest
 

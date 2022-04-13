@@ -28,7 +28,7 @@ def test_simple_js_webkit(webview, js_enabled, expected):
     """With QtWebKit, evaluateJavaScript works when JS is on."""
     # If we get there (because of the webview fixture) we can be certain
     # QtWebKit is available
-    from PyQt5.QtWebKit import QWebSettings
+    from qutebrowser.qt.webkit import QWebSettings
     webview.settings().setAttribute(QWebSettings.JavascriptEnabled, js_enabled)
     result = webview.page().mainFrame().evaluateJavaScript('1 + 1')
     assert result == expected
@@ -39,7 +39,7 @@ def test_element_js_webkit(webview, js_enabled, expected):
     """With QtWebKit, evaluateJavaScript on an element works with JS off."""
     # If we get there (because of the webview fixture) we can be certain
     # QtWebKit is available
-    from PyQt5.QtWebKit import QWebSettings
+    from qutebrowser.qt.webkit import QWebSettings
     webview.settings().setAttribute(QWebSettings.JavascriptEnabled, js_enabled)
     elem = webview.page().mainFrame().documentElement()
     result = elem.evaluateJavaScript('1 + 1')
@@ -63,7 +63,7 @@ def test_simple_js_webengine(qtbot, webengineview, qapp,
     """With QtWebEngine, runJavaScript works even when JS is off."""
     # If we get there (because of the webengineview fixture) we can be certain
     # QtWebEngine is available
-    from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineScript
+    from qutebrowser.qt.webengineWidgets import QWebEngineSettings, QWebEngineScript
 
     assert world in [QWebEngineScript.MainWorld,
                      QWebEngineScript.ApplicationWorld,

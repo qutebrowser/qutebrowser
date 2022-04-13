@@ -20,7 +20,7 @@ import os
 import pathlib
 
 import pytest
-from PyQt5.QtCore import QLocale
+from qutebrowser.qt.core import QLocale
 
 from qutebrowser.utils import utils
 from qutebrowser.config import qtargs

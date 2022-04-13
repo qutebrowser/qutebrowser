@@ -20,7 +20,7 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
-from PyQt5.QtCore import Qt, QTimer
+from qutebrowser.qt.core import Qt, QTimer
 
 from qutebrowser.mainwindow.statusbar import textbase
 

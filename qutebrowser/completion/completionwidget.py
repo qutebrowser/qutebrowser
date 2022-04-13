@@ -25,8 +25,8 @@ subclasses to provide completions.
 
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
+from qutebrowser.qt.widgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate

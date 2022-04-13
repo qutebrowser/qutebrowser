@@ -33,7 +33,7 @@ from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
                     MutableMapping, Optional, Tuple, cast)
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,

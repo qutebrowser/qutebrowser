@@ -67,7 +67,7 @@ import mmap
 import pathlib
 from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
 
-from PyQt5.QtCore import QLibraryInfo
+from qutebrowser.qt.core import QLibraryInfo
 
 from qutebrowser.utils import log, version
 

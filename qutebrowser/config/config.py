@@ -25,7 +25,7 @@ import functools
 from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
                     MutableMapping, MutableSequence, Optional, Tuple, cast)
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
 from qutebrowser.commands import cmdexc, parser
 from qutebrowser.config import configdata, configexc, configutils

@@ -19,7 +19,7 @@
 
 
 """Test TextBase widget."""
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 import pytest
 
 from qutebrowser.mainwindow.statusbar.textbase import TextBase

@@ -45,9 +45,9 @@ except ImportError:  # pragma: no cover
 
             """Empty stub at runtime."""
 
-from PyQt5.QtCore import QUrl, QVersionNumber, QRect, QPoint
-from PyQt5.QtGui import QClipboard, QDesktopServices
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
+from qutebrowser.qt.gui import QClipboard, QDesktopServices
+from qutebrowser.qt.widgets import QApplication
 
 import yaml
 try:

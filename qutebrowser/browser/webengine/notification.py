@@ -50,18 +50,18 @@ import functools
 import subprocess
 from typing import Any, List, Dict, Optional, Iterator, Type, TYPE_CHECKING
 
-from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
+from qutebrowser.qt.core import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           pyqtSignal, QTimer, QProcess, QUrl)
-from PyQt5.QtGui import QImage, QIcon, QPixmap
-from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
+from qutebrowser.qt.gui import QImage, QIcon, QPixmap
+from qutebrowser.qt.dbus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
                           QDBusArgument, QDBusMessage, QDBusError)
-from PyQt5.QtWidgets import QSystemTrayIcon
+from qutebrowser.qt.widgets import QSystemTrayIcon
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
     # on installs that don't have these
-    from PyQt5.QtWebEngineCore import QWebEngineNotification
-    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+    from qutebrowser.qt.webenginecore import QWebEngineNotification
+    from qutebrowser.qt.webenginewidgets import QWebEngineProfile
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -281,7 +281,7 @@ class NotificationBridgePresenter(QObject):
         # Fixed in PyQtWebEngine 5.15.0
         # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
         # we already did a version check above.
-        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        from qutebrowser.qt.webengine import PYQT_WEBENGINE_VERSION
         if PYQT_WEBENGINE_VERSION < 0x050F00:
             # PyQtWebEngine unrefs the callback after it's called, for some
             # reason.  So we call setNotificationPresenter again to *increase*

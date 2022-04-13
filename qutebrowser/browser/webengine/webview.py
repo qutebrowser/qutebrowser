@@ -21,9 +21,9 @@
 
 from typing import List, Iterable
 
-from PyQt5.QtCore import pyqtSignal, QUrl
-from PyQt5.QtGui import QPalette
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from qutebrowser.qt.core import pyqtSignal, QUrl
+from qutebrowser.qt.gui import QPalette
+from qutebrowser.qt.webenginewidgets import QWebEngineView, QWebEnginePage
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror

@@ -25,8 +25,8 @@ import contextlib
 import pathlib
 from typing import cast, Mapping, MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog, QApplication
+from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, pyqtSignal
+from qutebrowser.qt.widgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils

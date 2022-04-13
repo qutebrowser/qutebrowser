@@ -30,8 +30,8 @@ import shlex
 import math
 import operator
 
-from PyQt5.QtCore import QUrl, QRect, QPoint
-from PyQt5.QtGui import QClipboard
+from qutebrowser.qt.core import QUrl, QRect, QPoint
+from qutebrowser.qt.gui import QClipboard
 import pytest
 import hypothesis
 from hypothesis import strategies

@@ -24,7 +24,7 @@ import logging
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.components import hostblock
 from qutebrowser.utils import urlmatch

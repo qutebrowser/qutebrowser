@@ -22,7 +22,7 @@
 
 import os
 
-from PyQt5.QtCore import QUrl, QUrlQuery
+from qutebrowser.qt.core import QUrl, QUrlQuery
 
 from qutebrowser.utils import resources, javascript, jinja, standarddir, log
 from qutebrowser.config import config

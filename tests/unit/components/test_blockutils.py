@@ -21,7 +21,7 @@
 import io
 from typing import IO
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 import pytest
 

@@ -32,7 +32,7 @@ import functools
 import collections
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from qutebrowser.qt.core import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)

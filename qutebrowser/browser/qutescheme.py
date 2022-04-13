@@ -34,7 +34,7 @@ import collections
 import secrets
 from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple
 
-from PyQt5.QtCore import QUrlQuery, QUrl
+from qutebrowser.qt.core import QUrlQuery, QUrl
 
 import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history

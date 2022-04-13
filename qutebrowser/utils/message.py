@@ -27,7 +27,7 @@ import dataclasses
 import traceback
 from typing import Any, Callable, Iterable, List, Union, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
+from qutebrowser.qt.core import pyqtSignal, pyqtBoundSignal, QObject
 
 from qutebrowser.utils import usertypes, log
 

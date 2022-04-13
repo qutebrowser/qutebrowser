@@ -31,7 +31,7 @@ import os
 import os.path
 from typing import List, Optional, Iterable
 
-from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
+from qutebrowser.qt.core import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import log

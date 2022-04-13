@@ -23,7 +23,7 @@ import enum
 import dataclasses
 from typing import Callable, List, Optional
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 
 class ResourceType(enum.Enum):

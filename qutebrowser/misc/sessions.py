@@ -27,7 +27,7 @@ import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
-from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
+from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,

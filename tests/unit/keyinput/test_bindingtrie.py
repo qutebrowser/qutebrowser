@@ -25,7 +25,7 @@ import textwrap
 
 import pytest
 
-from PyQt5.QtGui import QKeySequence
+from qutebrowser.qt.gui import QKeySequence
 
 from qutebrowser.keyinput import basekeyparser
 from qutebrowser.keyinput import keyutils

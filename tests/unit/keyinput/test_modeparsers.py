@@ -19,8 +19,8 @@
 
 """Tests for mode parsers."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.gui import QKeySequence
 
 import pytest
 

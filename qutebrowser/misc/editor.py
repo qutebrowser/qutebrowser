@@ -22,7 +22,7 @@
 import os
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QObject, QProcess,
                           QFileSystemWatcher)
 
 from qutebrowser.config import config

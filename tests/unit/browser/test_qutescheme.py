@@ -24,7 +24,7 @@ import time
 import logging
 
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QUrl, QUrlQuery
+from qutebrowser.qt.core import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads

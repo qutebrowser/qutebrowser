@@ -23,8 +23,8 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QColor
 
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch

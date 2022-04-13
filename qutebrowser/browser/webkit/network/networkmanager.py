@@ -24,8 +24,8 @@ import html
 import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray
+from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
                              QNetworkProxy)
 
 from qutebrowser.config import config

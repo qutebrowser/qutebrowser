@@ -27,8 +27,8 @@ import traceback
 import enum
 from typing import TYPE_CHECKING, Sequence
 
-from PyQt5.QtCore import pyqtSlot, Qt, QObject
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from qutebrowser.qt.core import pyqtSlot, Qt, QObject
+from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.browser import hints
 from qutebrowser.commands import cmdexc

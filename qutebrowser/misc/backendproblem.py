@@ -29,10 +29,10 @@ import argparse
 import dataclasses
 from typing import Any, List, Sequence, Tuple, Optional
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.widgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
                              QMessageBox, QWidget)
-from PyQt5.QtNetwork import QSslSocket
+from qutebrowser.qt.network import QSslSocket
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
@@ -270,9 +270,9 @@ class _BackendProblemChecker:
         results = _BackendImports()
 
         try:
-            from PyQt5 import QtWebKit
-            from PyQt5.QtWebKit import qWebKitVersion
-            from PyQt5 import QtWebKitWidgets
+            from qutebrowser.qt import webkit as QtWebKit
+            from qutebrowser.qt.webkit import qWebKitVersion
+            from qutebrowser.qt import webkit as QtWebKitWidgets
         except (ImportError, ValueError) as e:
             results.webkit_error = str(e)
         else:
@@ -280,7 +280,7 @@ class _BackendProblemChecker:
                 results.webkit_error = "Unsupported legacy QtWebKit found"
 
         try:
-            from PyQt5 import QtWebEngineWidgets
+            from qutebrowser.qt import webengine as QtWebEngineWidgets
         except (ImportError, ValueError) as e:
             results.webengine_error = str(e)
 

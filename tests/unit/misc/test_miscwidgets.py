@@ -19,8 +19,8 @@
 
 import logging
 
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.core import Qt, QSize
+from qutebrowser.qt.widgets import QWidget
 import pytest
 
 from qutebrowser.misc import miscwidgets

@@ -25,8 +25,8 @@ import functools
 import dataclasses
 from typing import Any, Callable, Dict, Optional, Union
 
-from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
-from PyQt5.QtGui import QFont
+from qutebrowser.qt.core import QUrl, pyqtSlot, qVersion
+from qutebrowser.qt.gui import QFont
 
 import qutebrowser
 from qutebrowser.config import config

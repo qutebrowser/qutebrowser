@@ -28,9 +28,9 @@ from typing import (
     TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
     MutableMapping)
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QFontDatabase
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.utils import utils, urlmatch, urlutils, usertypes, qtutils
 from qutebrowser.config import configexc

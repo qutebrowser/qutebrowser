@@ -28,8 +28,8 @@ import urllib.parse
 import mimetypes
 from typing import Optional, Tuple, Union, Iterable
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config

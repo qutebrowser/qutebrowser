@@ -27,7 +27,7 @@ import netrc
 import tempfile
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
-from PyQt5.QtCore import QUrl, pyqtBoundSignal
+from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,

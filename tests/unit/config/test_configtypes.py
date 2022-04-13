@@ -29,9 +29,9 @@ import dataclasses
 import pytest
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtNetwork import QNetworkProxy
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QColor, QFont
+from qutebrowser.qt.network import QNetworkProxy
 
 from qutebrowser.misc import objects
 from qutebrowser.config import configtypes, configexc

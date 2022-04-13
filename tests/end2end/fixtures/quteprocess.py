@@ -33,8 +33,8 @@ import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, QPoint
-from PyQt5.QtGui import QImage, QColor
+from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
+from qutebrowser.qt.gui import QImage, QColor
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript

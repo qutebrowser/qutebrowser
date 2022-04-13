@@ -25,9 +25,9 @@ We use this to be able to highlight parts of the text.
 import re
 import html
 
-from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
-from PyQt5.QtCore import QRectF, QRegularExpression, QSize, Qt
-from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
+from qutebrowser.qt.widgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
+from qutebrowser.qt.core import QRectF, QRegularExpression, QSize, Qt
+from qutebrowser.qt.gui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout, QSyntaxHighlighter,
                          QTextCharFormat)
 

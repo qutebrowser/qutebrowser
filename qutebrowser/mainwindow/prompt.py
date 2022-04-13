@@ -26,9 +26,9 @@ import functools
 import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
+from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
+from qutebrowser.qt.widgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
 

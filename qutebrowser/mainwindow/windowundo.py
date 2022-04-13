@@ -23,7 +23,7 @@ import collections
 import dataclasses
 from typing import MutableSequence, cast, TYPE_CHECKING
 
-from PyQt5.QtCore import QObject, QByteArray
+from qutebrowser.qt.core import QObject, QByteArray
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow import mainwindow

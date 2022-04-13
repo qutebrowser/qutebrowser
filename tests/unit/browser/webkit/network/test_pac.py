@@ -22,8 +22,8 @@ import threading
 import logging
 import pytest
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
                              QHostAddress)
 
 from qutebrowser.browser.network import pac

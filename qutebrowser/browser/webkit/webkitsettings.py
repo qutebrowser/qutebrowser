@@ -27,10 +27,10 @@ Module attributes:
 from typing import cast
 import os.path
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QFont
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebPage
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QFont
+from qutebrowser.qt.webkit import QWebSettings
+from qutebrowser.qt.webkitwidgets import QWebPage
 
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr

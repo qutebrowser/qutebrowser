@@ -38,18 +38,18 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
 
-from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
-from PyQt5.QtNetwork import QSslSocket
-from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+from qutebrowser.qt.core import PYQT_VERSION_STR, QLibraryInfo, qVersion
+from qutebrowser.qt.network import QSslSocket
+from qutebrowser.qt.gui import (QOpenGLContext, QOpenGLVersionProfile,
                          QOffscreenSurface)
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.widgets import QApplication
 
 try:
-    from PyQt5.QtWebKit import qWebKitVersion
+    from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+    from qutebrowser.qt.webengine import PYQT_WEBENGINE_VERSION_STR
 except ImportError:  # pragma: no cover
     # Added in PyQt 5.13
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]

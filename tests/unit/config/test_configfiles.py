@@ -25,7 +25,7 @@ import textwrap
 import logging
 
 import pytest
-from PyQt5.QtCore import QSettings
+from qutebrowser.qt.core import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
@@ -167,7 +167,7 @@ def state_writer(data_tmpdir):
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
     try:
-        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+        from qutebrowser.qt import webengine as QtWebEngineWidgets  # pylint: disable=unused-import
     except ImportError:
         pytest.skip("QtWebEngine not available")
 

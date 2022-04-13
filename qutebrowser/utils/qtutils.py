@@ -34,17 +34,17 @@ import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
 
-from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
+from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.gui import QColor
 try:
-    from PyQt5.QtWebKit import qWebKitVersion
+    from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+    from qutebrowser.qt.webkit import QWebHistory
+    from qutebrowser.qt.webenginewidgets import QWebEngineHistory
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils

@@ -21,11 +21,11 @@
 
 from typing import Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
+from qutebrowser.qt.widgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
                              QStyleOption, QStyle, QLayout, QApplication,
                              QSplitter)
-from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
+from qutebrowser.qt.gui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import utils, log, usertypes
