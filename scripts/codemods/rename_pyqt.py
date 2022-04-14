@@ -8,7 +8,6 @@
 """libCST codemod to rename imports and references to them."""
 
 import argparse
-from fnmatch import fnmatch
 from typing import Callable, Optional, Sequence, Set, Tuple, Union
 
 import libcst as cst
@@ -16,6 +15,21 @@ from libcst.codemod import CodemodContext, VisitorBasedCodemodCommand
 from libcst.codemod.visitors import AddImportsVisitor, RemoveImportsVisitor
 from libcst.helpers import get_full_name_for_node
 from libcst.metadata import QualifiedNameProvider
+
+
+def fnmatch(name, pat):
+    ret = False
+    if pat == "*" and name:
+        ret = True
+    elif not pat.endswith(".*"):
+        ret = name == pat
+    elif "." not in name:
+        ret = False
+    else:
+        remaining_name, _, _ = name.rpartition(".")
+        remaining_pat, _, _ = pat.rpartition(".")
+        ret = remaining_name == remaining_pat
+    return ret
 
 
 def leave_import_decorator(
@@ -131,10 +145,12 @@ class RenameCommand(VisitorBasedCodemodCommand):
                 # Might, be in use elsewhere in the code, so schedule a potential removal, and add another alias.
                 new_names.append(import_alias)
                 self.scheduled_removals.add(original_node)
+                print(f"leave_Import {import_alias_full_name=} -> {self.gen_replacement_module(import_alias_full_name)=} {self.old_name=} {import_alias=} {updated_node=} {import_alias=}")
+                replacement_name = self.gen_replacement_module(import_alias_full_name)
                 new_names.append(
                     cst.ImportAlias(
                         name=cst.Name(
-                            value=self.gen_replacement_module(import_alias_full_name)
+                            value=replacement_name,
                         )
                     )
                 )
@@ -196,7 +212,7 @@ class RenameCommand(VisitorBasedCodemodCommand):
                             imported_module_name
                         )
                         replacement_obj = self.gen_replacement(alias_name)
-                        if not replacement_obj:
+                        if not replacement_obj or replacement_obj == "*":
                             # The user has requested an `import` statement rather than an `from ... import`.
                             # This will be taken care of in `leave_Module`, in the meantime, schedule for potential removal.
                             new_names.append(import_alias)
@@ -208,12 +224,11 @@ class RenameCommand(VisitorBasedCodemodCommand):
                         ] = self.gen_name_or_attr_node(replacement_obj)
                         # Rename on the spot only if this is the only imported name under the module.
                         if len(names) == 1:
-                            print(f"just one {new_import_alias_name}")
-                            self.bypass_import = True
-                            return updated_node.with_changes(
+                            updated_node = updated_node.with_changes(
                                 module=cst.parse_expression(replacement_module),
-                                names=(cst.ImportAlias(name=new_import_alias_name),),
                             )
+                            self.scheduled_removals.add(updated_node)
+                            new_names.append(import_alias)
                         # Or if the module name is to stay the same.
                         elif replacement_module == imported_module_name:
                             self.bypass_import = True
@@ -226,6 +241,8 @@ class RenameCommand(VisitorBasedCodemodCommand):
                             self.scheduled_removals.add(original_node)
                         new_names.append(import_alias)
 
+            if not new_names:
+                return updated_node
             return updated_node.with_changes(names=new_names)
         return updated_node
 
@@ -234,7 +251,7 @@ class RenameCommand(VisitorBasedCodemodCommand):
         if isinstance(old_name, str):
             return any(fnmatch(qn.name, old_name) for qn in qualified_names)
         else:
-            return any(fnmatch(qn == old_name) for qn in qualified_names)
+            return any(fnmatch(qn, old_name) for qn in qualified_names)
 
     def leave_Name(
         self, original_node: cst.Name, updated_node: cst.Name
@@ -246,28 +263,21 @@ class RenameCommand(VisitorBasedCodemodCommand):
         inside_import_statement: bool = not self.get_metadata(
             QualifiedNameProvider, original_node, set()
         )
-        #qns = self.get_metadata(
-        #    QualifiedNameProvider, original_node, set()
-        #)
-        #print(original_node)
-        #print(f"{full_name_for_node} vs {self.old_name} and {qns}")
         if self.has_name_wildcard(original_node, self.old_name) or (
             inside_import_statement and full_replacement_name == self.new_name
-        ) or (
-            fnmatch(self.old_name, full_name_for_node)
         ):
             if not full_replacement_name:
-                full_replacement_name = self.new_mod_or_obj
+                full_replacement_name = self.new_name
             if not inside_import_statement:
                 self.scheduled_removals.add(original_node)
             if full_replacement_name.endswith('.*'):
                 full_replacement_name, _, _ = full_replacement_name.rpartition('.')
-                full_replacement_name = ".".join((full_replacement_name, full_name_for_node))
-            #print(f'yes a {full_replacement_name} from {self.new_mod_or_obj}')
+                _, _, original_attr = full_name_for_node.rpartition(".")
+                full_replacement_name = ".".join((full_replacement_name, original_attr))
+            elif full_replacement_name == '*':
+                _, _, original_attr = full_name_for_node.rpartition(".")
+                full_replacement_name = original_attr
             return self.gen_name_or_attr_node(full_replacement_name)
-        else:
-            #print('no')
-            pass
 
         return updated_node
 
@@ -290,20 +300,19 @@ class RenameCommand(VisitorBasedCodemodCommand):
             new_value, new_attr = self.new_module, self.new_mod_or_obj
             if not inside_import_statement:
                 self.scheduled_removals.add(original_node.value)
-            print(f"{full_replacement_name} vs {self.new_name}")
-            print(f"{new_value} and {new_attr}")
-            print(f"old {self.old_name} {original_node} {original_node.value}")
-            qualified_names = self.get_metadata(QualifiedNameProvider, original_node, set())
-            print(f"qns {qualified_names}")
             if full_replacement_name == self.new_name:
                 return updated_node.with_changes(
                     value=cst.parse_expression(new_value),
                     attr=cst.Name(value=new_attr.rstrip(".")),
                 )
 
-            if new_attr.endswith('.*'):
+            if new_attr and new_attr.endswith('.*'):
                 new_attr, _, _ = new_attr.rpartition('.')
-                new_attr = ".".join((new_attr, full_name_for_node))
+                _, _, original_attr = full_name_for_node.rpartition(".")
+                new_attr = ".".join((new_attr, original_attr))
+            elif not new_attr or new_attr and new_attr == '*':
+                _, _, original_attr = full_name_for_node.rpartition(".")
+                new_attr = ".".join((new_value, original_attr))
             return self.gen_name_or_attr_node(new_attr)
 
         return updated_node
@@ -337,27 +346,27 @@ class RenameCommand(VisitorBasedCodemodCommand):
                     module_as_name[0] + ".", module_as_name[1] + ".", 1
                 )
 
-        if False and self.old_mod_or_obj == "*":
-            print(f"wildcard to {original_name}")
-            #return original_name  # QIcon
-            #return self.new_mod_or_obj  # QtGui.*
-            return self.new_name
-        elif original_name == self.old_mod_or_obj:
-            #print(f"orig = old {self.new_mod_or_obj}")
-            return self.new_mod_or_obj
-        elif original_name == ".".join([self.old_module, self.old_mod_or_obj]):
-            #print(f"orig = full.old {self.old_module}.{self.new_mod_or_obj}")
-            return self.new_name
+        if fnmatch(original_name, self.old_mod_or_obj):
+            new = self.new_mod_or_obj
+        elif fnmatch(original_name, ".".join([self.old_module,
+                                              self.old_mod_or_obj])):
+            new = self.new_name
         elif original_name.endswith("." + self.old_mod_or_obj):
-            #print(f"orig.endswith(old) {self.new_mod_or_obj}")
-            return self.new_mod_or_obj
+            new = self.new_mod_or_obj
         else:
             new = self.gen_replacement_module(original_name)
-            #print(f"{original_name} -> {new}")
-            return new
+        if new.endswith('.*'):
+            new, _, _ = new.rpartition('.')
+            _, _, original_attr = original_name.rpartition(".")
+            new = ".".join((new, original_attr))
+        return new
 
     def gen_replacement_module(self, original_module: str) -> str:
-        return self.new_module if fnmatch(original_module, self.old_module) else ""
+        #print(f"gen_rm {self.new_module=} {original_module=} {self.old_module=}")
+        old_module = self.old_module
+        if old_module.endswith(".*") and "." not in original_module:
+            old_module, _, _ = old_module.rpartition(".")
+        return self.new_module if fnmatch(original_module, old_module) else ""
 
     def gen_name_or_attr_node(
         self, dotted_expression: str
@@ -394,7 +403,6 @@ class RenameCommand(VisitorBasedCodemodCommand):
                     as_name_node = (
                         as_name_optional.name if as_name_optional is not None else None
                     )
-                    #print(f"{qual_name} as {as_name_node}")
                     if as_name_node is not None and isinstance(
                         as_name_node, (cst.Name, cst.Attribute)
                     ):
