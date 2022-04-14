@@ -140,7 +140,7 @@ def check_pyqt():
     """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
     from qutebrowser.qt import machinery
 
-    packages = [f'{machinery.package}.QtCore', f'{machinery.package}.QtWidgets']
+    packages = [f'{machinery.PACKAGE}.QtCore', f'{machinery.PACKAGE}.QtWidgets']
     for name in packages:
         try:
             importlib.import_module(name)
@@ -241,7 +241,7 @@ def check_libraries():
         'yaml': _missing_str("PyYAML"),
     }
     for subpkg in ['QtQml', 'QtOpenGL', 'QtDBus']:
-        package = f'{machinery.package}.{subpkg}'
+        package = f'{machinery.PACKAGE}.{subpkg}'
         modules[package] = _missing_str(package)
     if sys.version_info < (3, 9):
         # Backport required

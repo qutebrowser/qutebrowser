@@ -1,13 +1,13 @@
 from qutebrowser.qt import machinery
 
 
-if machinery.use_pyqt5:
+if machinery.USE_PYQT5:
     from PyQt5.QtWebKit import *
-elif machinery.use_pyqt6:
+elif machinery.USE_PYQT6:
     raise machinery.Unavailable()
-elif machinery.use_pyside2:
+elif machinery.USE_PYSIDE2:
     raise machinery.Unavailable()
-elif machinery.use_pyside6:
+elif machinery.USE_PYSIDE6:
     raise machinery.Unavailable()
 else:
     raise machinery.UnknownWrapper()
