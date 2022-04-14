@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""A keyboard-driven, vim-like browser based on PyQt5."""
+"""A keyboard-driven, vim-like browser based on Python and Qt."""
 
 import os.path
 
@@ -28,6 +28,6 @@ __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
 __version__ = "2.5.0"
 __version_info__ = tuple(int(part) for part in __version__.split('.'))
-__description__ = "A keyboard-driven, vim-like browser based on PyQt5."
+__description__ = "A keyboard-driven, vim-like browser based on Python and Qt."
 
 basedir = os.path.dirname(os.path.realpath(__file__))
