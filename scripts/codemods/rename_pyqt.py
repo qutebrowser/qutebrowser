@@ -139,33 +139,31 @@ class RenameCommand(VisitorBasedCodemodCommand):
             if import_alias_full_name is None:
                 raise Exception("Could not parse full name for ImportAlias.name node.")
 
+            replacement_module = self.gen_replacement_module(import_alias_full_name)
             if isinstance(import_alias_name, cst.Name) and self.old_name.startswith(
                 import_alias_full_name + "."
-            ):
+            ) and replacement_module:
                 # Might, be in use elsewhere in the code, so schedule a potential removal, and add another alias.
                 new_names.append(import_alias)
                 self.scheduled_removals.add(original_node)
-                print(f"leave_Import {import_alias_full_name=} -> {self.gen_replacement_module(import_alias_full_name)=} {self.old_name=} {import_alias=} {updated_node=} {import_alias=}")
-                replacement_name = self.gen_replacement_module(import_alias_full_name)
+                print(f"leave_Import down {original_node=} {import_alias_full_name=} -> {self.gen_replacement_module(import_alias_full_name)=} {self.old_name=} {import_alias=} {updated_node=} {import_alias=}")
                 new_names.append(
                     cst.ImportAlias(
                         name=cst.Name(
-                            value=replacement_name,
+                            value=replacement_module,
                         )
                     )
                 )
                 self.bypass_import = True
             elif isinstance(
                 import_alias_name, cst.Attribute
-            ) and self.old_name.startswith(import_alias_full_name + "."):
+            ) and self.old_name.startswith(import_alias_full_name + ".") and replacement_module:
                 # Same idea as above.
                 new_names.append(import_alias)
                 self.scheduled_removals.add(original_node)
                 new_name_node: Union[
                     cst.Attribute, cst.Name
-                ] = self.gen_name_or_attr_node(
-                    self.gen_replacement_module(import_alias_full_name)
-                )
+                ] = self.gen_name_or_attr_node(replacement_module)
                 new_names.append(cst.ImportAlias(name=new_name_node))
                 self.bypass_import = True
             else:
