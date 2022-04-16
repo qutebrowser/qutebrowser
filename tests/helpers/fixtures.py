@@ -438,7 +438,7 @@ def qnam(qapp):
 @pytest.fixture
 def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
-    QtWebEngineWidgets = testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
+    QtWebEngineWidgets = testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
@@ -449,7 +449,7 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 @pytest.fixture
 def webpage(qnam, monkeypatch):
     """Get a new QWebPage object."""
-    QtWebKitWidgets = testutils.importorskip_ifnull('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = testutils.importorskip_ifnull('qutebrowser.qt.QtWebKitWidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     class WebPageStub(QtWebKitWidgets.QWebPage):
@@ -474,7 +474,7 @@ def webpage(qnam, monkeypatch):
 @pytest.fixture
 def webview(qtbot, webpage):
     """Get a new QWebView object."""
-    QtWebKitWidgets = testutils.importorskip_ifnull('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = testutils.importorskip_ifnull('qutebrowser.qt.QtWebKitWidgets')
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
@@ -731,7 +731,7 @@ def webengine_versions(testdata_scheme):
     Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
     testdata_scheme here, to make sure that happens before.
     """
-    testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
+    testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
     return version.qtwebengine_versions()
 
 

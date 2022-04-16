@@ -22,7 +22,7 @@ import logging
 import pytest
 
 from helpers import testutils
-QtWebEngineWidgets = testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
+QtWebEngineWidgets = testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes

@@ -19,7 +19,7 @@
 
 from helpers import testutils
 
-testutils.importorskip_ifnull('PyQt5.QtWebKitWidgets')
+testutils.importorskip_ifnull('qutebrowser.qt.QtWebKitWidgets')
 
 from qutebrowser.browser.webkit import webkitsettings
 

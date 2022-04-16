@@ -786,8 +786,8 @@ def test_unavailable_backend(request, quteproc_new):
     that the chosen backend is actually available - i.e., that the error message is
     properly printed, rather than an unhandled exception.
     """
-    qtwe_module = "PyQt5.QtWebEngineWidgets"
-    qtwk_module = "PyQt5.QtWebKitWidgets"
+    qtwe_module = "qutebrowser.qt.QtWebEngineWidgets"
+    qtwk_module = "qutebrowser.qt.QtWebKitWidgets"
     # Note we want to try the *opposite* backend here.
     if request.config.webengine:
         testutils.importorskip_ifnull(qtwe_module)

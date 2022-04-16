@@ -126,7 +126,7 @@ class TestWebEngineArgs:
     @pytest.fixture(autouse=True)
     def ensure_webengine(self, monkeypatch):
         """Skip all tests if QtWebEngine is unavailable."""
-        testutils.importorskip_ifnull("PyQt5.QtWebEngine")
+        testutils.importorskip_ifnull("qutebrowser.qt.QtWebEngine")
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
     @pytest.mark.parametrize('backend, qt_version, expected', [

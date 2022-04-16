@@ -24,7 +24,7 @@ from typing import Any
 
 import pytest
 from helpers import testutils
-testutils.importorskip_ifnull('PyQt5.QtWebKit')
+testutils.importorskip_ifnull('qutebrowser.qt.QtWebKit')
 
 from qutebrowser.qt import QtWebKit
 from qutebrowser.browser.webkit import tabhistory
