@@ -28,7 +28,7 @@ from qutebrowser.qt.widgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
 from qutebrowser.qt.gui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import utils, log, usertypes
+from qutebrowser.utils import utils, log, usertypes, debug
 from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
 from qutebrowser.keyinput import keyutils, modeman
@@ -499,8 +499,8 @@ class KeyTesterWidget(QWidget):
         lines = [
             str(keyutils.KeyInfo.from_event(e)),
             '',
-            'key: 0x{:x}'.format(int(e.key())),
-            'modifiers: 0x{:x}'.format(int(e.modifiers())),
+            f"key: {debug.qenum_key(Qt.Key, e.key(), klass=Qt.Key)}",
+            f"modifiers: {debug.qflags_key(Qt.KeyboardModifier, e.modifiers())}",
             'text: {!r}'.format(e.text()),
         ]
         self._label.setText('\n'.join(lines))

@@ -395,7 +395,7 @@ class KeyInfo:
             A name of the key (combination) as a string.
         """
         key_string = _key_to_string(self.key)
-        modifiers = int(self.modifiers)
+        modifiers = self.modifiers
 
         if self.key in _MODIFIER_MAP:
             # Don't return e.g. <Shift+Shift>
@@ -605,7 +605,7 @@ class KeySequence:
         _assert_plain_modifier(ev.modifiers())
 
         key = _remap_unicode(key, ev.text())
-        modifiers = int(ev.modifiers())
+        modifiers = ev.modifiers()
 
         if key == _NIL_KEY:
             raise KeyParseError(None, "Got nil key!")

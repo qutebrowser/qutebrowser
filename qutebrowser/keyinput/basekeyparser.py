@@ -28,7 +28,7 @@ from qutebrowser.qt.core import pyqtSignal, QObject, Qt
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, utils, debug
 from qutebrowser.keyinput import keyutils
 
 
@@ -286,9 +286,10 @@ class BaseKeyParser(QObject):
         """
         key = Qt.Key(e.key())
         txt = str(keyutils.KeyInfo.from_event(e))
-        self._debug_log("Got key: 0x{:x} / modifiers: 0x{:x} / text: '{}' / "
-                        "dry_run {}".format(key, int(e.modifiers()), txt,
-                                            dry_run))
+        self._debug_log(
+            f"Got key: {debug.qenum_key(Qt.Key, key)} / "
+            f"modifiers: {debug.qflags_key(Qt.KeyboardModifier, e.modifiers())} / "
+            f"text: '{txt}' / dry_run {dry_run}")
 
         if keyutils.is_modifier_key(key):
             self._debug_log("Ignoring, only modifier")
