@@ -22,40 +22,65 @@
 # pylint: disable=unused-import,import-error
 import importlib
 
+PyQt5 = PyQt6 = False
 try:
     import PyQt5 as pyqt  # noqa: N813
+    PyQt5 = True
 except ImportError:
     import PyQt6 as pyqt  # type: ignore[import, no-redef] # noqa: N813
+    PyQt6 = True
 
 # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some distributions
 # still package later versions of PyQt5 with a top-level "sip" rather than "PyQt5.sip".
-# pylint: disable=ungrouped-imports
 try:
-    sip = importlib.import_module(f"{pyqt.__name__}.sip")
+    if PyQt5:
+        from PyQt5 import sip
+    elif PyQt6:
+        from PyQt6 import sip  # type: ignore[no-redef]
 except ImportError:
     import sip  # type: ignore[import, no-redef]
 
-QtCore = importlib.import_module(f"{pyqt.__name__}.QtCore")
-QtDBus = importlib.import_module(f"{pyqt.__name__}.QtDBus")
-QtGui = importlib.import_module(f"{pyqt.__name__}.QtGui")
-QtNetwork = importlib.import_module(f"{pyqt.__name__}.QtNetwork")
-QtPrintSupport = importlib.import_module(f"{pyqt.__name__}.QtPrintSupport")
-QtQml = importlib.import_module(f"{pyqt.__name__}.QtQml")
-QtSql = importlib.import_module(f"{pyqt.__name__}.QtSql")
-QtWidgets = importlib.import_module(f"{pyqt.__name__}.QtWidgets")
+# pylint: disable=ungrouped-imports
+if PyQt5:
+    from PyQt5 import QtCore
+    from PyQt5 import QtDBus
+    from PyQt5 import QtGui
+    from PyQt5 import QtNetwork
+    from PyQt5 import QtPrintSupport
+    from PyQt5 import QtQml
+    from PyQt5 import QtSql
+    from PyQt5 import QtWidgets
+elif PyQt6:
+    from PyQt6 import QtCore  # type: ignore[no-redef]
+    from PyQt6 import QtDBus  # type: ignore[no-redef]
+    from PyQt6 import QtGui  # type: ignore[no-redef]
+    from PyQt6 import QtNetwork  # type: ignore[no-redef]
+    from PyQt6 import QtPrintSupport  # type: ignore[no-redef]
+    from PyQt6 import QtQml  # type: ignore[no-redef]
+    from PyQt6 import QtSql  # type: ignore[no-redef]
+    from PyQt6 import QtWidgets  # type: ignore[no-redef]
 
 try:
-    QtWebEngine = importlib.import_module(f"{pyqt.__name__}.QtWebEngine")
-    QtWebEngineCore = importlib.import_module(f"{pyqt.__name__}.QtWebEngineCore")
-    QtWebEngineWidgets = importlib.import_module(f"{pyqt.__name__}.QtWebEngineWidgets")
+    if PyQt5:
+        from PyQt5 import QtWebEngine
+        from PyQt5 import QtWebEngineCore
+        from PyQt5 import QtWebEngineWidgets
+    elif PyQt6:
+        from PyQt6 import QtWebEngine  # type: ignore[no-redef]
+        from PyQt6 import QtWebEngineCore  # type: ignore[no-redef]
+        from PyQt6 import QtWebEngineWidgets  # type: ignore[no-redef]
 except ImportError:
-    QtWebEngine = None
-    QtWebEngineCore = None
-    QtWebEngineWidgets = None
+    QtWebEngine = None  # type: ignore[assignment]
+    QtWebEngineCore = None  # type: ignore[assignment]
+    QtWebEngineWidgets = None  # type: ignore[assignment]
 
 try:
-    QtWebKit = importlib.import_module(f"{pyqt.__name__}.QtWebKit")
-    QtWebKitWidgets = importlib.import_module(f"{pyqt.__name__}.QtWebKitWidgets")
+    if PyQt5:
+        from PyQt5 import QtWebKit
+        from PyQt5 import QtWebKitWidgets
+    elif PyQt6:
+        from PyQt6 import QtWebKit  # type: ignore[no-redef]
+        from PyQt6 import QtWebKitWidgets  # type: ignore[no-redef]
 except ImportError:
-    QtWebKit = None
-    QtWebKitWidgets = None
+    QtWebKit = None  # type: ignore[assignment]
+    QtWebKitWidgets = None  # type: ignore[assignment]

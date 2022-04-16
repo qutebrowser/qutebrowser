@@ -39,7 +39,7 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
 from qutebrowser.qt import QtWidgets, QtWebKit, QtWebEngine, QtNetwork
 
 if not QtWebKit:
-    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
+    qWebKitVersion = None
 if QtWebEngine:
     PYQT_WEBENGINE_VERSION_STR = QtWebEngine.PYQT_WEBENGINE_VERSION_STR
 else:
