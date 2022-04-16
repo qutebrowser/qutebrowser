@@ -20,6 +20,7 @@
 """Utilities used for debugging."""
 
 import re
+import enum
 import inspect
 import logging
 import functools
@@ -116,6 +117,10 @@ def qenum_key(base: Type[_EnumValueType],
         The key associated with the value as a string if it could be found.
         The original value as a string if not.
     """
+    if isinstance(value, enum.Enum):
+        # New-style PyQt 6
+        return value.name
+
     if klass is None:
         klass = value.__class__
         if klass == int:
@@ -165,6 +170,13 @@ def qflags_key(base: Type[_EnumValueType],
         The keys associated with the flags as a '|' separated string if they
         could be found. Hex values as a string if not.
     """
+    if isinstance(value, enum.Flag):
+        # New-style PyQt 6
+        if value.name is None:
+            # FIXME:qt6 can we do something better here?
+            return repr(value)
+        return value.name
+
     if klass is None:
         # We have to store klass here because it will be lost when iterating
         # over the bits.
