@@ -29,7 +29,7 @@ import unittest.mock
 
 import pytest
 from qutebrowser.qt.core import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo)
+                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo, Qt)
 from qutebrowser.qt.gui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
@@ -1049,3 +1049,8 @@ class TestLibraryPath:
     def test_all(self, which):
         path = qtutils.library_path(which)
         assert path.exists()
+
+
+def test_extract_enum_val():
+    value = qtutils.extract_enum_val(Qt.KeyboardModifiers.ShiftModifier)
+    assert value == 0x02000000 

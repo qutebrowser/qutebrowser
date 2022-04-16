@@ -31,7 +31,6 @@ Because of that, _assert_plain_key() and _assert_plain_modifier() make sure we
 handle what we actually think we do.
 """
 
-import enum
 import itertools
 import dataclasses
 from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
@@ -43,7 +42,7 @@ try:
 except ImportError:
     QKeyCombination = None  # Qt 6 only
 
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, qtutils
 
 
 # Map Qt::Key values to their Qt::KeyboardModifier value.
@@ -153,16 +152,9 @@ _SPECIAL_NAMES = {
 }
 
 
-def _extract_enum_val(val: Union[int, enum.Enum]) -> int:
-    """Extract an int value from a Qt enum value."""
-    if isinstance(val, enum.Enum):
-        return val.value
-    return int(val)
-
-
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
-    mask = _extract_enum_val(Qt.KeyboardModifier.KeyboardModifierMask)
+    mask = qtutils.extract_enum_val(Qt.KeyboardModifier.KeyboardModifierMask)
     assert not int(key) & mask, hex(key)
 
 
@@ -274,7 +266,7 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     else:
         result = ''
 
-    result += QKeySequence(_extract_enum_val(modifiers)).toString()
+    result += QKeySequence(qtutils.extract_enum_val(modifiers)).toString()
 
     _check_valid_utf8(result, modifiers)
     return result

@@ -587,3 +587,15 @@ def library_path(which: LibraryPath) -> pathlib.Path:
         ret = QLibraryInfo.location(val)
     assert ret
     return pathlib.Path(ret)
+
+
+def extract_enum_val(val: Union[int, enum.Enum]) -> int:
+    """Extract an int value from a Qt enum value.
+
+    For Qt 5, enum values are basically Python integers.
+    For Qt 6, they are usually enum.Enum instances, with the value set to the
+    integer.
+    """
+    if isinstance(val, enum.Enum):
+        return val.value
+    return int(val)
