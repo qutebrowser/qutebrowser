@@ -39,7 +39,7 @@ from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtWebEngineWidgets, QtCore
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
@@ -117,9 +117,7 @@ class StateConfig(configparser.ConfigParser):
 
         Note that it's too early to use objects.backend here...
         """
-        try:
-            import qutebrowser.qt  # pylint: disable=unused-import
-        except ImportError:
+        if not QtWebEngineWidgets:
             return 'no'
         return str(version.qtwebengine_versions(avoid_init=True).webengine)
 
