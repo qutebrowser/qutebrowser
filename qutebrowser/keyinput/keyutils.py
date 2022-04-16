@@ -31,6 +31,7 @@ Because of that, _assert_plain_key() and _assert_plain_modifier() make sure we
 handle what we actually think we do.
 """
 
+import enum
 import itertools
 import dataclasses
 from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
@@ -154,7 +155,10 @@ _SPECIAL_NAMES = {
 
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
-    assert not key & Qt.KeyboardModifier.KeyboardModifierMask, hex(key)
+    mask = Qt.KeyboardModifier.KeyboardModifierMask
+    if isinstance(mask, enum.Enum):  # PyQt6
+        mask = mask.value
+    assert not int(key) & mask, hex(key)
 
 
 def _assert_plain_modifier(key: _ModifierType) -> None:
