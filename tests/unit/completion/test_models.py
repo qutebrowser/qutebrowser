@@ -31,11 +31,8 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies as hst
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime, QProcess
 try:
-    from PyQt5.QtWebEngineWidgets import (
-        QWebEngineHistory, QWebEngineHistoryItem
-    )
+    pass
 except ImportError:
     pass
 
@@ -46,6 +43,7 @@ from qutebrowser.completion.models import (
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import tabbedbrowser
+from qutebrowser.qt import QtWebEngineWidgets, QtCore
 
 
 def _check_completions(model, expected):
@@ -211,17 +209,17 @@ def local_files_path(tmp_path):
 def web_history_populated(web_history):
     """Pre-populate the web-history database."""
     web_history.add_url(
-        url=QUrl('http://qutebrowser.org'),
+        url=QtCore.QUrl('http://qutebrowser.org'),
         title='qutebrowser',
         atime=datetime(2015, 9, 5).timestamp()
     )
     web_history.add_url(
-        url=QUrl('https://python.org'),
+        url=QtCore.QUrl('https://python.org'),
         title='Welcome to Python.org',
         atime=datetime(2016, 3, 8).timestamp()
     )
     web_history.add_url(
-        url=QUrl('https://github.com'),
+        url=QtCore.QUrl('https://github.com'),
         title='https://github.com',
         atime=datetime(2016, 5, 1).timestamp()
     )
@@ -711,7 +709,7 @@ def test_url_completion_pattern(web_history, quickmark_manager_stub,
                                 bookmark_manager_stub, info,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
-    web_history.add_url(QUrl(url), title)
+    web_history.add_url(QtCore.QUrl(url), title)
     model = urlmodel.url(info=info)
     model.set_pattern(pattern)
     # 2, 0 is History
@@ -816,12 +814,12 @@ def test_session_completion(qtmodeltester, session_manager_stub):
 def test_tab_completion(qtmodeltester, fake_web_tab, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.tabs()
     model.set_pattern('')
@@ -843,12 +841,12 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
                                tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.tabs()
     model.set_pattern('')
@@ -863,20 +861,20 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
 
     model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
-    assert actual == [QUrl('https://github.com'),
-                      QUrl('https://duckduckgo.com')]
+    assert actual == [QtCore.QUrl('https://github.com'),
+                      QtCore.QUrl('https://duckduckgo.com')]
 
 
 def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
                               tabbed_browser_stubs, info):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.tab_focus(info=info)
     model.set_pattern('')
@@ -891,8 +889,8 @@ def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
 
     model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
-    assert actual == [QUrl('https://github.com'),
-                      QUrl('https://duckduckgo.com')]
+    assert actual == [QtCore.QUrl('https://github.com'),
+                      QtCore.QUrl('https://duckduckgo.com')]
 
 
 def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
@@ -909,7 +907,7 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
         expected.append(("0/{}".format(idx), url, title))
 
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl(tab[1]), tab[2], idx)
+        fake_web_tab(QtCore.QUrl(tab[1]), tab[2], idx)
         for idx, tab in enumerate(expected)
     ]
     model = miscmodels.tabs()
@@ -927,12 +925,12 @@ def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
                                          config_stub):
     """Verify tabs across all windows are listed under a single category."""
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
 
     config_stub.val.tabs.tabs_are_windows = True
@@ -953,12 +951,12 @@ def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
 def test_other_tabs_completion(qtmodeltester, fake_web_tab, win_registry,
                                tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 1
     model = miscmodels.other_tabs(info=info)
@@ -977,12 +975,12 @@ def test_other_tabs_completion(qtmodeltester, fake_web_tab, win_registry,
 def test_other_tabs_completion_id0(qtmodeltester, fake_web_tab,
                                    win_registry, tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 0
     model = miscmodels.other_tabs(info=info)
@@ -999,12 +997,12 @@ def test_other_tabs_completion_id0(qtmodeltester, fake_web_tab,
 def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
                               tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 1
     model = miscmodels.tab_focus(info=info)
@@ -1034,12 +1032,12 @@ def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
 def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
                            info):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
     tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
+        fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
     ]
 
     info.win_id = 1
@@ -1349,7 +1347,7 @@ def test_url_completion_benchmark(benchmark, info,
 def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
-    tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
+    tab = fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0)
     current_idx = 2
     monkeypatch.setattr(
         tab.history, 'current_idx',
@@ -1365,13 +1363,13 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
             ("http://example.com/thing3", "thing3 detail", now+15),
             ("http://example.com/thing4", "thing4 detail", now+20),
     ]:
-        entry = mock.Mock(spec=QWebEngineHistoryItem)
-        entry.url.return_value = QUrl(url)
+        entry = mock.Mock(spec=QtWebEngineWidgets.QWebEngineHistoryItem)
+        entry.url.return_value = QtCore.QUrl(url)
         entry.title.return_value = title
-        dt = QDateTime.fromMSecsSinceEpoch(int(ts * 1000))
+        dt = QtCore.QDateTime.fromMSecsSinceEpoch(int(ts * 1000))
         entry.lastVisited.return_value = dt
         history.append(entry)
-    tab.history._history = mock.Mock(spec=QWebEngineHistory)
+    tab.history._history = mock.Mock(spec=QtWebEngineWidgets.QWebEngineHistory)
     tab.history._history.items.return_value = history
     monkeypatch.setattr(
         tab.history, 'back_items',
@@ -1423,13 +1421,13 @@ def test_forward_completion(tab_with_history, info):
 
 def test_undo_completion(tabbed_browser_stubs, info):
     """Test :undo completion."""
-    entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
+    entry1 = tabbedbrowser._UndoEntry(url=QtCore.QUrl('https://example.org/'),
                                       history=None, index=None, pinned=None,
                                       created_at=datetime(2020, 1, 1))
-    entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
+    entry2 = tabbedbrowser._UndoEntry(url=QtCore.QUrl('https://example.com/'),
                                       history=None, index=None, pinned=None,
                                       created_at=datetime(2020, 1, 2))
-    entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
+    entry3 = tabbedbrowser._UndoEntry(url=QtCore.QUrl('https://example.net/'),
                                       history=None, index=None, pinned=None,
                                       created_at=datetime(2020, 1, 2))
 
@@ -1463,7 +1461,7 @@ def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
 
     tabbed_browser_stubs[0].undo_stack = [
         tabbedbrowser._UndoEntry(
-            url=QUrl(f'https://example.org/{idx}'),
+            url=QtCore.QUrl(f'https://example.org/{idx}'),
             history=None, index=None, pinned=None,
             created_at=created_dt,
         )
@@ -1490,7 +1488,7 @@ def test_process_completion(monkeypatch, stubs, info):
     p1.cmd = 'cmd1'
     p1.args = []
     p1.outcome.running = False
-    p1.outcome.status = QProcess.NormalExit
+    p1.outcome.status = QtCore.QProcess.NormalExit
     p1.outcome.code = 0
 
     p2.pid = 1002
@@ -1502,7 +1500,7 @@ def test_process_completion(monkeypatch, stubs, info):
     p3.cmd = 'cmd3'
     p3.args = []
     p3.outcome.running = False
-    p3.outcome.status = QProcess.NormalExit
+    p3.outcome.status = QtCore.QProcess.NormalExit
     p3.outcome.code = 1
 
     monkeypatch.setattr(guiprocess, 'all_processes', {

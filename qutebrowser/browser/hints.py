@@ -29,9 +29,7 @@ import dataclasses
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
-
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
-from PyQt5.QtWidgets import QLabel
+from qutebrowser.qt import QtWidgets
 
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
@@ -39,6 +37,8 @@ from qutebrowser.browser import webelem, history
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
+from qutebrowser.qt import QtCore
+
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -77,7 +77,7 @@ def on_mode_entered(mode: usertypes.KeyMode, win_id: int) -> None:
                       maybe=True)
 
 
-class HintLabel(QLabel):
+class HintLabel(QtWidgets.QLabel):
 
     """A label for a link.
 
@@ -92,12 +92,12 @@ class HintLabel(QLabel):
         self._context = context
         self.elem = elem
 
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(QtCore.Qt.RichText)
 
         # Make sure we can style the background via a style sheet, and we don't
         # get any extra text indent from Qt.
         # The real stylesheet lives in mainwindow.py for performance reasons..
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(QtCore.Qt.WA_StyledBackground, True)
         self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
@@ -134,7 +134,7 @@ class HintLabel(QLabel):
             self.setText(unmatched)
         self.adjustSize()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _move_to_elem(self) -> None:
         """Reposition the label to its element."""
         if not self.elem.has_frame():
@@ -189,7 +189,7 @@ class HintContext:
     hint_mode: str
     add_history: bool
     first: bool
-    baseurl: QUrl
+    baseurl: QtCore.QUrl
     args: List[str]
     group: str
 
@@ -247,14 +247,14 @@ class HintActions:
         except webelem.Error as e:
             raise HintingError(str(e))
 
-    def yank(self, url: QUrl, context: HintContext) -> None:
+    def yank(self, url: QtCore.QUrl, context: HintContext) -> None:
         """Yank an element to the clipboard or primary selection."""
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        flags = QUrl.FullyEncoded | QUrl.RemovePassword
+        flags = QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword
         if url.scheme() == 'mailto':
-            flags |= QUrl.RemoveScheme
+            flags |= QtCore.QUrl.RemoveScheme
         urlstr = url.toString(flags)  # type: ignore[arg-type]
 
         new_content = urlstr
@@ -274,16 +274,16 @@ class HintActions:
             urlstr)
         message.info(msg, replace='rapid-hints' if context.rapid else None)
 
-    def run_cmd(self, url: QUrl, context: HintContext) -> None:
+    def run_cmd(self, url: QtCore.QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(QtCore.QUrl.FullyEncoded)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
-    def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
+    def preset_cmd_text(self, url: QtCore.QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        flags = QUrl.FullyEncoded
+        flags = QtCore.QUrl.FullyEncoded
         urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         text = ' '.join(args)
@@ -325,7 +325,7 @@ class HintActions:
 
         cmd = context.args[0]
         args = context.args[1:]
-        flags = QUrl.FullyEncoded
+        flags = QtCore.QUrl.FullyEncoded
 
         env = {
             'QUTE_MODE': 'hints',
@@ -349,7 +349,7 @@ class HintActions:
                _context: HintContext) -> None:
         elem.delete()
 
-    def spawn(self, url: QUrl, context: HintContext) -> None:
+    def spawn(self, url: QtCore.QUrl, context: HintContext) -> None:
         """Spawn a simple command from a hint.
 
         Args:
@@ -357,7 +357,7 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
+            QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
@@ -367,7 +367,7 @@ _ElemsType = Sequence[webelem.AbstractWebElement]
 _HintStringsType = MutableSequence[str]
 
 
-class HintManager(QObject):
+class HintManager(QtCore.QObject):
 
     """Manage drawing hints over links or other elements.
 
@@ -402,9 +402,9 @@ class HintManager(QObject):
         Target.delete: "Delete an element",
     }
 
-    set_text = pyqtSignal(str)
+    set_text = QtCore.pyqtSignal(str)
 
-    def __init__(self, win_id: int, parent: QObject = None) -> None:
+    def __init__(self, win_id: int, parent: QtCore.QObject = None) -> None:
         """Constructor."""
         super().__init__(parent)
         self._win_id = win_id
@@ -856,7 +856,7 @@ class HintManager(QObject):
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def handle_partial_key(self, keystr: str) -> None:
         """Handle a new partial keypress."""
         if self._context is None:
@@ -1029,7 +1029,7 @@ class HintManager(QObject):
         else:
             self._fire(keystring)
 
-    @pyqtSlot(usertypes.KeyMode)
+    @QtCore.pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode: usertypes.KeyMode) -> None:
         """Stop hinting when hinting mode was left."""
         if mode != usertypes.KeyMode.hint or self._context is None:

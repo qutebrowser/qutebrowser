@@ -24,7 +24,7 @@ import logging
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.components import hostblock
 from qutebrowser.utils import urlmatch
@@ -130,7 +130,7 @@ def assert_urls(
     """
     whitelisted = list(whitelisted) + ["localhost"]
     for str_url in urls_to_check:
-        url = QUrl(str_url)
+        url = QtCore.QUrl(str_url)
         host = url.host()
         if host in blocked and host not in whitelisted:
             assert host_blocker._is_blocked(url)
@@ -141,7 +141,7 @@ def assert_urls(
 def blocklist_to_url(path):
     """Get an example.com-URL with the given filename as path."""
     assert not path.is_absolute(), path
-    url = QUrl("http://example.com/")
+    url = QtCore.QUrl("http://example.com/")
     url.setPath("/" + str(path))
     assert url.isValid(), url.errorString()
     return url
@@ -204,7 +204,7 @@ def generic_blocklists(directory):
     blocklist3 = blocklist_to_url(create_zipfile(directory, [file1], "block3"))
 
     # local text file with valid hosts
-    blocklist4 = QUrl.fromLocalFile(
+    blocklist4 = QtCore.QUrl.fromLocalFile(
         str(
             directory
             / create_blocklist(
@@ -268,7 +268,7 @@ def test_disabled_blocking_update(
             current_download.finished.emit()
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
-        assert not host_blocker._is_blocked(QUrl(str_url))
+        assert not host_blocker._is_blocked(QtCore.QUrl(str_url))
 
 
 def test_disabled_blocking_per_url(config_stub, host_blocker_factory):
@@ -279,13 +279,13 @@ def test_disabled_blocking_per_url(config_stub, host_blocker_factory):
     pattern = urlmatch.UrlPattern(example_com)
     config_stub.set_obj("content.blocking.enabled", False, pattern=pattern)
 
-    url = QUrl("https://blocked.example.com")
+    url = QtCore.QUrl("https://blocked.example.com")
 
     host_blocker = host_blocker_factory()
     host_blocker._blocked_hosts.add(url.host())
 
     assert host_blocker._is_blocked(url)
-    assert not host_blocker._is_blocked(url, first_party_url=QUrl(example_com))
+    assert not host_blocker._is_blocked(url, first_party_url=QtCore.QUrl(example_com))
 
 
 def test_no_blocklist_update(config_stub, download_stub, host_blocker_factory):
@@ -300,7 +300,7 @@ def test_no_blocklist_update(config_stub, download_stub, host_blocker_factory):
     for dl in download_stub.downloads:
         dl.successful = True
     for str_url in URLS_TO_CHECK:
-        assert not host_blocker._is_blocked(QUrl(str_url))
+        assert not host_blocker._is_blocked(QtCore.QUrl(str_url))
 
 
 def test_successful_update(config_stub, tmp_path, caplog, host_blocker_factory):
@@ -499,7 +499,7 @@ def test_config_change_initial(config_stub, tmp_path, host_blocker_factory):
     host_blocker = host_blocker_factory()
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
-        assert not host_blocker._is_blocked(QUrl(str_url))
+        assert not host_blocker._is_blocked(QtCore.QUrl(str_url))
 
 
 def test_config_change(config_stub, tmp_path, host_blocker_factory):
@@ -523,7 +523,7 @@ def test_config_change(config_stub, tmp_path, host_blocker_factory):
     config_stub.val.content.blocking.hosts.lists = None
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
-        assert not host_blocker._is_blocked(QUrl(str_url))
+        assert not host_blocker._is_blocked(QtCore.QUrl(str_url))
 
 
 def test_add_directory(config_stub, tmp_path, host_blocker_factory):
@@ -557,7 +557,7 @@ def test_adblock_benchmark(data_tmpdir, benchmark, host_blocker_factory):
     blocked_hosts = data_tmpdir / "blocked-hosts"
     blocked_hosts.write_text("\n".join(testutils.blocked_hosts()), encoding="utf-8")
 
-    url = QUrl("https://www.example.org/")
+    url = QtCore.QUrl("https://www.example.org/")
     blocker = host_blocker_factory()
     blocker.read_hosts()
     assert blocker._blocked_hosts
@@ -572,6 +572,6 @@ def test_subdomain_blocking(config_stub, host_blocker_factory, block_subdomains)
     config_stub.val.content.blocking.hosts.block_subdomains = block_subdomains
     host_blocker = host_blocker_factory()
     host_blocker._blocked_hosts.add("example.com")
-    is_blocked = host_blocker._is_blocked(QUrl("https://subdomain.example.com"))
+    is_blocked = host_blocker._is_blocked(QtCore.QUrl("https://subdomain.example.com"))
     # block_subdomains is also expected result of is_blocked
     assert is_blocked == block_subdomains

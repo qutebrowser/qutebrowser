@@ -22,10 +22,6 @@
 import enum
 import dataclasses
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
-                          pyqtProperty, Qt, QSize, QTimer)
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
-
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
@@ -33,6 +29,7 @@ from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
                                               tabindex, textbase)
+from qutebrowser.qt import QtWidgets, QtCore
 
 
 @dataclasses.dataclass
@@ -133,7 +130,7 @@ def _generate_stylesheet():
     return qss
 
 
-class StatusBar(QWidget):
+class StatusBar(QtWidgets.QWidget):
 
     """The statusbar at the bottom of the mainwindow.
 
@@ -157,28 +154,28 @@ class StatusBar(QWidget):
                arg: The new position.
     """
 
-    resized = pyqtSignal('QRect')
-    moved = pyqtSignal('QPoint')
+    resized = QtCore.pyqtSignal('QRect')
+    moved = QtCore.pyqtSignal('QPoint')
 
     STYLESHEET = _generate_stylesheet()
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.setAttribute(Qt.WA_StyledBackground)
+        self.setAttribute(QtCore.Qt.WA_StyledBackground)
         stylesheet.set_register(self)
 
-        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Fixed)
 
         self._win_id = win_id
         self._color_flags = ColorFlags()
         self._color_flags.private = private
 
-        self._hbox = QHBoxLayout(self)
+        self._hbox = QtWidgets.QHBoxLayout(self)
         self._set_hbox_padding()
         self._hbox.setSpacing(5)
 
-        self._stack = QStackedLayout()
+        self._stack = QtWidgets.QStackedLayout()
         self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
@@ -204,12 +201,12 @@ class StatusBar(QWidget):
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
-        QTimer.singleShot(0, self.maybe_hide)
+        QtCore.QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def _on_config_changed(self, option):
         if option == 'statusbar.show':
             self.maybe_hide()
@@ -267,12 +264,12 @@ class StatusBar(QWidget):
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
                        self.keystring, self.prog, *self._text_widgets]:
-            assert isinstance(widget, QWidget)
+            assert isinstance(widget, QtWidgets.QWidget)
             widget.hide()
             self._hbox.removeWidget(widget)
         self._text_widgets.clear()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
         strategy = config.val.statusbar.show
@@ -300,7 +297,7 @@ class StatusBar(QWidget):
         padding = config.val.statusbar.padding
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
-    @pyqtProperty('QStringList')
+    @QtCore.pyqtProperty('QStringList')
     def color_flags(self):
         """Getter for self.color_flags, so it can be used as Qt property."""
         return self._color_flags.to_stringlist()
@@ -362,13 +359,13 @@ class StatusBar(QWidget):
         self._stack.setCurrentWidget(self.txt)
         self.maybe_hide()
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def set_text(self, text):
         """Set a normal (persistent) text in the status bar."""
         log.message.debug(text)
         self.txt.setText(text)
 
-    @pyqtSlot(usertypes.KeyMode)
+    @QtCore.pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         mode_manager = modeman.instance(self._win_id)
@@ -384,7 +381,7 @@ class StatusBar(QWidget):
                     usertypes.KeyMode.passthrough]:
             self.set_mode_active(mode, True)
 
-    @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
+    @QtCore.pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = modeman.instance(self._win_id)
@@ -403,7 +400,7 @@ class StatusBar(QWidget):
                         usertypes.KeyMode.passthrough]:
             self.set_mode_active(old_mode, False)
 
-    @pyqtSlot(browsertab.AbstractTab)
+    @QtCore.pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
         self.url.on_tab_changed(tab)
@@ -413,7 +410,7 @@ class StatusBar(QWidget):
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
-    @pyqtSlot(browsertab.SelectionState)
+    @QtCore.pyqtSlot(browsertab.SelectionState)
     def on_caret_selection_toggled(self, selection_state):
         """Update the statusbar when entering/leaving caret selection mode."""
         log.statusbar.debug("Setting caret selection {}"
@@ -452,4 +449,4 @@ class StatusBar(QWidget):
         padding = config.cache['statusbar.padding']
         width = super().minimumSizeHint().width()
         height = self.fontMetrics().height() + padding.top + padding.bottom
-        return QSize(width, height)
+        return QtCore.QSize(width, height)

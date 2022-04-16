@@ -20,7 +20,7 @@
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import navigate
 from qutebrowser.utils import urlutils
@@ -69,23 +69,23 @@ class TestIncDec:
         else:
             expected_value = value.format(19)
 
-        base_url = QUrl(url.format(base_value))
-        expected_url = QUrl(url.format(expected_value))
+        base_url = QtCore.QUrl(url.format(base_value))
+        expected_url = QtCore.QUrl(url.format(expected_value))
 
         assert navigate.incdec(base_url, 1, incdec) == expected_url
 
     def test_port(self, config_stub):
         config_stub.val.url.incdec_segments = ['port']
-        base_url = QUrl('http://localhost:8000')
+        base_url = QtCore.QUrl('http://localhost:8000')
         new_url = navigate.incdec(base_url, 1, 'increment')
-        assert new_url == QUrl('http://localhost:8001')
+        assert new_url == QtCore.QUrl('http://localhost:8001')
         new_url = navigate.incdec(base_url, 1, 'decrement')
-        assert new_url == QUrl('http://localhost:7999')
+        assert new_url == QtCore.QUrl('http://localhost:7999')
 
     def test_port_default(self, config_stub):
         """Test that a default port (with url.port() == -1) is not touched."""
         config_stub.val.url.incdec_segments = ['port']
-        base_url = QUrl('http://localhost')
+        base_url = QtCore.QUrl('http://localhost')
         with pytest.raises(navigate.Error):
             navigate.incdec(base_url, 1, 'increment')
 
@@ -112,8 +112,8 @@ class TestIncDec:
                 return
             expected_value = value.format(20 - count)
 
-        base_url = QUrl(url.format(base_value))
-        expected_url = QUrl(url.format(expected_value))
+        base_url = QtCore.QUrl(url.format(base_value))
+        expected_url = QtCore.QUrl(url.format(expected_value))
         new_url = navigate.incdec(base_url, count, inc_or_dec)
 
         assert new_url == expected_url
@@ -129,8 +129,8 @@ class TestIncDec:
     def test_leading_zeroes(self, number, expected, inc_or_dec, config_stub):
         config_stub.val.url.incdec_segments = ['path']
         url = 'http://example.com/{}'
-        base_url = QUrl(url.format(number))
-        expected_url = QUrl(url.format(expected))
+        base_url = QtCore.QUrl(url.format(number))
+        expected_url = QtCore.QUrl(url.format(expected))
         new_url = navigate.incdec(base_url, 1, inc_or_dec)
         assert new_url == expected_url
 
@@ -144,8 +144,8 @@ class TestIncDec:
     ])
     def test_segment_ignored(self, url, segments, expected, config_stub):
         config_stub.val.url.incdec_segments = segments
-        new_url = navigate.incdec(QUrl(url), 1, 'increment')
-        assert new_url == QUrl(expected)
+        new_url = navigate.incdec(QtCore.QUrl(url), 1, 'increment')
+        assert new_url == QtCore.QUrl(expected)
 
     @pytest.mark.parametrize('url', [
         "http://example.com/long/path/but/no/number",
@@ -160,7 +160,7 @@ class TestIncDec:
     ])
     def test_no_number(self, url):
         with pytest.raises(navigate.Error):
-            navigate.incdec(QUrl(url), 1, "increment")
+            navigate.incdec(QtCore.QUrl(url), 1, "increment")
 
     @pytest.mark.parametrize('url, count', [
         ('http://example.com/page_0.html', 1),
@@ -168,15 +168,15 @@ class TestIncDec:
     ])
     def test_number_below_0(self, url, count):
         with pytest.raises(navigate.Error):
-            navigate.incdec(QUrl(url), count, 'decrement')
+            navigate.incdec(QtCore.QUrl(url), count, 'decrement')
 
     def test_invalid_url(self):
         with pytest.raises(urlutils.InvalidUrlError):
-            navigate.incdec(QUrl(), 1, "increment")
+            navigate.incdec(QtCore.QUrl(), 1, "increment")
 
     def test_wrong_mode(self):
         """Test if incdec rejects a wrong parameter for inc_or_dec."""
-        valid_url = QUrl("http://example.com/0")
+        valid_url = QtCore.QUrl("http://example.com/0")
         with pytest.raises(ValueError):
             navigate.incdec(valid_url, 1, "foobar")
 
@@ -192,15 +192,15 @@ class TestUp:
     ])
     def test_up(self, url_suffix, count, expected_suffix):
         url_base = 'https://example.com'
-        url = QUrl(url_base + url_suffix)
+        url = QtCore.QUrl(url_base + url_suffix)
         assert url.isValid()
 
         new = navigate.path_up(url, count)
-        assert new == QUrl(url_base + expected_suffix)
+        assert new == QtCore.QUrl(url_base + expected_suffix)
 
     def test_invalid_url(self):
         with pytest.raises(urlutils.InvalidUrlError):
-            navigate.path_up(QUrl(), count=1)
+            navigate.path_up(QtCore.QUrl(), count=1)
 
 
 class TestStrip:
@@ -212,17 +212,17 @@ class TestStrip:
     ])
     def test_strip(self, url_suffix):
         url_base = 'https://example.com/test'
-        url = QUrl(url_base + url_suffix)
+        url = QtCore.QUrl(url_base + url_suffix)
         assert url.isValid()
 
         stripped = navigate.strip(url, count=1)
         assert stripped.isValid()
-        assert stripped == QUrl(url_base)
+        assert stripped == QtCore.QUrl(url_base)
 
     def test_count(self):
         with pytest.raises(navigate.Error, match='Count is not supported'):
-            navigate.strip(QUrl('https://example.com/'), count=2)
+            navigate.strip(QtCore.QUrl('https://example.com/'), count=2)
 
     def test_invalid_url(self):
         with pytest.raises(urlutils.InvalidUrlError):
-            navigate.strip(QUrl(), count=1)
+            navigate.strip(QtCore.QUrl(), count=1)

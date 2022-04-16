@@ -19,14 +19,12 @@
 
 """The progress bar in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, QSize
-from PyQt5.QtWidgets import QProgressBar, QSizePolicy
-
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
+from qutebrowser.qt import QtWidgets, QtCore
 
 
-class Progress(QProgressBar):
+class Progress(QtWidgets.QProgressBar):
 
     """The progress bar part of the status bar."""
 
@@ -47,20 +45,20 @@ class Progress(QProgressBar):
         super().__init__(parent)
         stylesheet.set_register(self)
         self.enabled = False
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.setTextVisible(False)
         self.hide()
 
     def __repr__(self):
         return utils.get_repr(self, value=self.value())
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_load_started(self):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
         self.setVisible(self.enabled)
 
-    @pyqtSlot(int)
+    @QtCore.pyqtSlot(int)
     def on_load_progress(self, value):
         """Hide the statusbar when loading finished.
 
@@ -85,7 +83,7 @@ class Progress(QProgressBar):
         """Set the height to the text height."""
         width = super().sizeHint().width()
         height = self.fontMetrics().height()
-        return QSize(width, height)
+        return QtCore.QSize(width, height)
 
     def minimumSizeHint(self):
         return self.sizeHint()

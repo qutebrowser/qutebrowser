@@ -21,14 +21,12 @@
 
 from typing import MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
-
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import usertypes
+from qutebrowser.qt import QtWidgets, QtCore
 
 
-class Message(QLabel):
+class Message(QtWidgets.QLabel):
 
     """A single error/warning/info message."""
 
@@ -37,12 +35,12 @@ class Message(QLabel):
             level: usertypes.MessageLevel,
             text: str,
             replace: Optional[str],
-            parent: QWidget = None,
+            parent: QtWidgets.QWidget = None,
     ) -> None:
         super().__init__(text, parent)
         self.replace = replace
         self.level = level
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(QtCore.Qt.WA_StyledBackground, True)
         self.setWordWrap(True)
         qss = """
             padding-top: 2px;
@@ -75,21 +73,21 @@ class Message(QLabel):
         stylesheet.set_register(self, qss, update=False)
 
 
-class MessageView(QWidget):
+class MessageView(QtWidgets.QWidget):
 
     """Widget which stacks error/warning/info messages."""
 
-    update_geometry = pyqtSignal()
+    update_geometry = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._messages: MutableSequence[Message] = []
-        self._vbox = QVBoxLayout(self)
+        self._vbox = QtWidgets.QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
 
-        self._clear_timer = QTimer()
+        self._clear_timer = QtCore.QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
         config.instance.changed.connect(self._set_clear_timer_interval)
 
@@ -109,7 +107,7 @@ class MessageView(QWidget):
         widget.hide()
         widget.deleteLater()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def clear_messages(self):
         """Hide and delete all messages."""
         for widget in self._messages:
@@ -119,7 +117,7 @@ class MessageView(QWidget):
         self.hide()
         self._clear_timer.stop()
 
-    @pyqtSlot(usertypes.MessageLevel, str, str)
+    @QtCore.pyqtSlot(usertypes.MessageLevel, str, str)
     def show_message(
             self,
             level: usertypes.MessageLevel,
@@ -152,5 +150,5 @@ class MessageView(QWidget):
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""
-        if e.button() in [Qt.LeftButton, Qt.MiddleButton, Qt.RightButton]:
+        if e.button() in [QtCore.Qt.LeftButton, QtCore.Qt.MiddleButton, QtCore.Qt.RightButton]:
             self.clear_messages()

@@ -32,12 +32,11 @@ import functools
 import collections
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
-
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import lineparser
+from qutebrowser.qt import QtCore
 
 
 class Error(Exception):
@@ -60,7 +59,7 @@ class AlreadyExistsError(Error):
     """Exception emitted when a given URL does already exist."""
 
 
-class UrlMarkManager(QObject):
+class UrlMarkManager(QtCore.QObject):
 
     """Base class for BookmarkManager and QuickmarkManager.
 
@@ -72,7 +71,7 @@ class UrlMarkManager(QObject):
         changed: Emitted when anything changed.
     """
 
-    changed = pyqtSignal()
+    changed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """Initialize and read quickmarks."""
@@ -149,7 +148,7 @@ class QuickmarkManager(UrlMarkManager):
         if not url.isValid():
             urlutils.invalid_url_error(url, "save quickmark")
             return
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
         message.ask_async(
             "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, urlstr),
@@ -196,7 +195,7 @@ class QuickmarkManager(UrlMarkManager):
         Use a name instead where possible.
         """
         qtutils.ensure_valid(url)
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
 
         try:
             index = list(self.marks.values()).index(urlstr)
@@ -268,7 +267,7 @@ class BookmarkManager(UrlMarkManager):
             errstr = urlutils.get_errstring(url)
             raise InvalidUrlError(errstr)
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
 
         if urlstr in self.marks:
             if toggle:

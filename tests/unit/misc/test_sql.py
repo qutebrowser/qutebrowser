@@ -23,9 +23,9 @@ import pytest
 
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.misc import sql
+from qutebrowser.qt import QtSql
 
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
@@ -95,13 +95,13 @@ class TestSqlError:
         (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
     ])
     def test_known(self, error_code, exception):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
+        sql_err = QtSql.QSqlError("driver text", "db text", QtSql.QSqlError.UnknownError,
                             error_code)
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
     def test_logging(self, caplog):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError, '23')
+        sql_err = QtSql.QSqlError("driver text", "db text", QtSql.QSqlError.UnknownError, '23')
         with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 
@@ -115,7 +115,7 @@ class TestSqlError:
 
     @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
     def test_text(self, klass):
-        sql_err = QSqlError("driver text", "db text")
+        sql_err = QtSql.QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
         assert err.text() == "db text"
 
@@ -391,10 +391,10 @@ class TestTransaction:
             my_table.insert({'column': 1})
             my_table.insert({'column': 2})
 
-            db2 = QSqlDatabase.addDatabase('QSQLITE', 'db2')
+            db2 = QtSql.QSqlDatabase.addDatabase('QSQLITE', 'db2')
             db2.setDatabaseName(database.qt_database().databaseName())
             db2.open()
-            query = QSqlQuery(db2)
+            query = QtSql.QSqlQuery(db2)
             query.exec('select count(*) from my_table')
             query.next()
             assert query.record().value(0) == 0

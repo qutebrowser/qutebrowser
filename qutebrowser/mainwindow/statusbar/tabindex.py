@@ -19,7 +19,7 @@
 
 """TabIndex displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
+from qutebrowser.qt import QtCore
 
 from qutebrowser.mainwindow.statusbar import textbase
 
@@ -28,7 +28,7 @@ class TabIndex(textbase.TextBase):
 
     """Shows current tab index and number of tabs in the statusbar."""
 
-    @pyqtSlot(int, int)
+    @QtCore.pyqtSlot(int, int)
     def on_tab_index_changed(self, current, count):
         """Update tab index when tab changed."""
         self.setText('[{}/{}]'.format(current + 1, count))

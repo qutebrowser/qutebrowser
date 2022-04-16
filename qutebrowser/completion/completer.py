@@ -22,13 +22,13 @@
 import dataclasses
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
-
 from qutebrowser.config import config
 from qutebrowser.commands import parser, cmdexc
 from qutebrowser.misc import objects, split
 from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.qt import QtCore
+
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -44,7 +44,7 @@ class CompletionInfo:
     cur_tab: 'browsertab.AbstractTab'
 
 
-class Completer(QObject):
+class Completer(QtCore.QObject):
 
     """Completer which manages completions in a CompletionView.
 
@@ -62,7 +62,7 @@ class Completer(QObject):
         super().__init__(parent)
         self._cmd = cmd
         self._win_id = win_id
-        self._timer = QTimer()
+        self._timer = QtCore.QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
         self._timer.timeout.connect(self._update_completion)
@@ -166,7 +166,7 @@ class Completer(QObject):
 
         raise utils.Unreachable(f"Not all parts consumed: {parts}")
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def on_selection_changed(self, text):
         """Change the completed part if a new item was selected.
 
@@ -199,7 +199,7 @@ class Completer(QObject):
         else:
             self._change_completed_part(text, before, after)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def schedule_completion_update(self):
         """Schedule updating/enabling completion.
 
@@ -227,7 +227,7 @@ class Completer(QObject):
         self._last_cursor_pos = self._cmd.cursorPosition()
         self._last_text = self._cmd.text()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _update_completion(self):
         """Check if completions are available and activate them."""
         completion = self.parent()

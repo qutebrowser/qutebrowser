@@ -26,13 +26,12 @@ import dataclasses
 
 import pytest
 import pytestqt.wait_signal
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
-                          QElapsedTimer, QProcessEnvironment)
 from PyQt5.QtTest import QSignalSpy
 
 from helpers import testutils
 
 from qutebrowser.utils import utils as quteutils
+from qutebrowser.qt import QtCore
 
 
 class InvalidLine(Exception):
@@ -120,7 +119,7 @@ def pytest_runtest_makereport(item, call):
             f"{name} output", _render_log(content, verbose=verbose))
 
 
-class Process(QObject):
+class Process(QtCore.QObject):
 
     """Abstraction over a running test subprocess process.
 
@@ -139,8 +138,8 @@ class Process(QObject):
         new_data: Emitted when a new line was parsed.
     """
 
-    ready = pyqtSignal()
-    new_data = pyqtSignal(object)
+    ready = QtCore.pyqtSignal()
+    new_data = QtCore.pyqtSignal(object)
     KEYS = ['data']
 
     def __init__(self, request, parent=None):
@@ -150,8 +149,8 @@ class Process(QObject):
         self._started = False
         self._invalid = []
         self._data = []
-        self.proc = QProcess()
-        self.proc.setReadChannel(QProcess.StandardError)
+        self.proc = QtCore.QProcess()
+        self.proc.setReadChannel(QtCore.QProcess.StandardError)
         self.exit_expected = None  # Not started at all yet
 
     def _log(self, line):
@@ -202,7 +201,7 @@ class Process(QObject):
         blocker.connect(signal)
         return blocker
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def read_log(self):
         """Read the log from the process' stdout."""
         if not hasattr(self, 'proc'):
@@ -259,7 +258,7 @@ class Process(QObject):
         if args is None:
             args = self._default_args()
 
-        procenv = QProcessEnvironment.systemEnvironment()
+        procenv = QtCore.QProcessEnvironment.systemEnvironment()
         if env is not None:
             for k, v in env.items():
                 procenv.insert(k, v)
@@ -325,7 +324,7 @@ class Process(QObject):
 
     def is_running(self):
         """Check if the process is currently running."""
-        return self.proc.state() == QProcess.Running
+        return self.proc.state() == QtCore.QProcess.Running
 
     def _match_data(self, value, expected):
         """Helper for wait_for to match a given value.
@@ -395,7 +394,7 @@ class Process(QObject):
             self._log("\n----> Waiting for {} in the log".format(elided))
 
         spy = QSignalSpy(self.new_data)
-        elapsed_timer = QElapsedTimer()
+        elapsed_timer = QtCore.QElapsedTimer()
         elapsed_timer.start()
 
         while True:

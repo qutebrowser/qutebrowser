@@ -21,7 +21,7 @@ import logging
 import os.path
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import pdfjs
 from qutebrowser.utils import urlmatch
@@ -47,7 +47,7 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
     else:
         monkeypatch.setattr(pdfjs, 'is_available', lambda: False)
 
-    content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
+    content = pdfjs.generate_pdfjs_page('example.pdf', QtCore.QUrl())
     print(content)
     assert snippet in content
 
@@ -137,7 +137,7 @@ class TestResources:
 
         (data_tmpdir / 'pdfjs' / 'pdf.js').ensure()  # But no viewer.html
 
-        content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
+        content = pdfjs.generate_pdfjs_page('example.pdf', QtCore.QUrl())
         assert '<h1>No pdf.js installation found</h1>' in content
 
 
@@ -221,7 +221,7 @@ def test_is_available(available, mocker):
 ])
 def test_should_use_pdfjs(mimetype, url, enabled, expected, config_stub):
     config_stub.val.content.pdfjs = enabled
-    assert pdfjs.should_use_pdfjs(mimetype, QUrl(url)) == expected
+    assert pdfjs.should_use_pdfjs(mimetype, QtCore.QUrl(url)) == expected
 
 
 @pytest.mark.parametrize('url, expected', [
@@ -232,11 +232,11 @@ def test_should_use_pdfjs_url_pattern(config_stub, url, expected):
     config_stub.val.content.pdfjs = False
     pattern = urlmatch.UrlPattern('http://example.com')
     config_stub.set_obj('content.pdfjs', True, pattern=pattern)
-    assert pdfjs.should_use_pdfjs('application/pdf', QUrl(url)) == expected
+    assert pdfjs.should_use_pdfjs('application/pdf', QtCore.QUrl(url)) == expected
 
 
 def test_get_main_url():
-    expected = QUrl('qute://pdfjs/web/viewer.html?filename=hello?world.pdf&'
+    expected = QtCore.QUrl('qute://pdfjs/web/viewer.html?filename=hello?world.pdf&'
                     'file=&source=http://a.com/hello?world.pdf')
-    original_url = QUrl('http://a.com/hello?world.pdf')
+    original_url = QtCore.QUrl('http://a.com/hello?world.pdf')
     assert pdfjs.get_main_url('hello?world.pdf', original_url) == expected

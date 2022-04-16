@@ -22,13 +22,12 @@
 import re
 import os.path
 import functools
-
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
-from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
+from qutebrowser.qt import QtWebEngineWidgets
 
 from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
                                utils, version)
+from qutebrowser.qt import QtCore
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -39,9 +38,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
         _qt_item: The wrapped item.
     """
 
-    def __init__(self, qt_item: QWebEngineDownloadItem,
+    def __init__(self, qt_item: QtWebEngineWidgets.QWebEngineDownloadItem,
                  manager: downloads.AbstractDownloadManager,
-                 parent: QObject = None) -> None:
+                 parent: QtCore.QObject = None) -> None:
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
         qt_item.downloadProgress.connect(  # type: ignore[attr-defined]
@@ -56,19 +55,19 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
         return (self._qt_item.savePageFormat() !=
-                QWebEngineDownloadItem.UnknownSaveFormat)
+                QtWebEngineWidgets.QWebEngineDownloadItem.UnknownSaveFormat)
 
-    @pyqtSlot(QWebEngineDownloadItem.DownloadState)
+    @QtCore.pyqtSlot(QtWebEngineWidgets.QWebEngineDownloadItem.DownloadState)
     def _on_state_changed(self, state):
-        state_name = debug.qenum_key(QWebEngineDownloadItem, state)
+        state_name = debug.qenum_key(QtWebEngineWidgets.QWebEngineDownloadItem, state)
         log.downloads.debug("State for {!r} changed to {}".format(
             self, state_name))
 
-        if state == QWebEngineDownloadItem.DownloadRequested:
+        if state == QtWebEngineWidgets.QWebEngineDownloadItem.DownloadRequested:
             pass
-        elif state == QWebEngineDownloadItem.DownloadInProgress:
+        elif state == QtWebEngineWidgets.QWebEngineDownloadItem.DownloadInProgress:
             pass
-        elif state == QWebEngineDownloadItem.DownloadCompleted:
+        elif state == QtWebEngineWidgets.QWebEngineDownloadItem.DownloadCompleted:
             log.downloads.debug("Download {} finished".format(self.basename))
             if self._is_page_download():
                 # Same logging as QtWebKit mhtml downloads.
@@ -77,12 +76,12 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.done = True
             self.finished.emit()
             self.stats.finish()
-        elif state == QWebEngineDownloadItem.DownloadCancelled:
+        elif state == QtWebEngineWidgets.QWebEngineDownloadItem.DownloadCancelled:
             self.successful = False
             self.done = True
             self.cancelled.emit()
             self.stats.finish()
-        elif state == QWebEngineDownloadItem.DownloadInterrupted:
+        elif state == QtWebEngineWidgets.QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
             reason = self._qt_item.interruptReasonString()
             self._die(reason)
@@ -93,22 +92,22 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _do_die(self):
         progress_signal = self._qt_item.downloadProgress
         progress_signal.disconnect()  # type: ignore[attr-defined]
-        if self._qt_item.state() != QWebEngineDownloadItem.DownloadInterrupted:
+        if self._qt_item.state() != QtWebEngineWidgets.QWebEngineDownloadItem.DownloadInterrupted:
             self._qt_item.cancel()
 
     def _do_cancel(self):
         state = self._qt_item.state()
-        state_name = debug.qenum_key(QWebEngineDownloadItem, state)
-        assert state not in [QWebEngineDownloadItem.DownloadCompleted,
-                             QWebEngineDownloadItem.DownloadCancelled], state_name
+        state_name = debug.qenum_key(QtWebEngineWidgets.QWebEngineDownloadItem, state)
+        assert state not in [QtWebEngineWidgets.QWebEngineDownloadItem.DownloadCompleted,
+                             QtWebEngineWidgets.QWebEngineDownloadItem.DownloadCancelled], state_name
         self._qt_item.cancel()
 
     def retry(self):
         state = self._qt_item.state()
-        if state != QWebEngineDownloadItem.DownloadInterrupted:
+        if state != QtWebEngineWidgets.QWebEngineDownloadItem.DownloadInterrupted:
             log.downloads.warning(
                 "Refusing to retry download in state {}".format(
-                    debug.qenum_key(QWebEngineDownloadItem, state)))
+                    debug.qenum_key(QtWebEngineWidgets.QWebEngineDownloadItem, state)))
             return
 
         self._qt_item.resume()
@@ -116,12 +115,12 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _get_open_filename(self):
         return self._filename
 
-    def url(self) -> QUrl:
+    def url(self) -> QtCore.QUrl:
         return self._qt_item.url()
 
-    def origin(self) -> QUrl:
+    def origin(self) -> QtCore.QUrl:
         page = self._qt_item.page()
-        return page.url() if page else QUrl()
+        return page.url() if page else QtCore.QUrl()
 
     def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
@@ -133,8 +132,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _ensure_can_set_filename(self, filename):
         state = self._qt_item.state()
-        if state != QWebEngineDownloadItem.DownloadRequested:
-            state_name = debug.qenum_key(QWebEngineDownloadItem, state)
+        if state != QtWebEngineWidgets.QWebEngineDownloadItem.DownloadRequested:
+            state_name = debug.qenum_key(QtWebEngineWidgets.QWebEngineDownloadItem, state)
             raise ValueError("Trying to set filename {} on {!r} which is "
                              "state {} (not in requested state)!".format(
                                  filename, self, state_name))
@@ -247,9 +246,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def install(self, profile):
         """Set up the download manager on a QWebEngineProfile."""
         profile.downloadRequested.connect(self.handle_download,
-                                          Qt.DirectConnection)
+                                          QtCore.Qt.DirectConnection)
 
-    @pyqtSlot(QWebEngineDownloadItem)
+    @QtCore.pyqtSlot(QtWebEngineWidgets.QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
         qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API

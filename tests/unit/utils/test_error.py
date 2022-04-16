@@ -21,8 +21,7 @@
 import logging
 
 import pytest
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt import QtWidgets, QtCore
 
 from qutebrowser.utils import error, utils
 from qutebrowser.misc import ipc
@@ -82,13 +81,13 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected, caplog):
             qtbot.add_widget(w)
             if not utils.is_mac:
                 assert w.windowTitle() == 'title'
-            assert w.icon() == QMessageBox.Critical
-            assert w.standardButtons() == QMessageBox.Ok
+            assert w.icon() == QtWidgets.QMessageBox.Critical
+            assert w.standardButtons() == QtWidgets.QMessageBox.Ok
             assert w.text() == expected
         finally:
             w.close()
 
-    QTimer.singleShot(10, err_window_check)
+    QtCore.QTimer.singleShot(10, err_window_check)
 
     with caplog.at_level(logging.ERROR):
         error.handle_fatal_exc(ValueError("exception"), 'title',

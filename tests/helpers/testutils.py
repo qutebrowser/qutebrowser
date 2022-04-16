@@ -31,7 +31,7 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtGui import QColor
+from qutebrowser.qt import QtWebEngine, QtGui
 
 from qutebrowser.utils import qtutils, log, utils, version
 
@@ -43,7 +43,7 @@ qt514 = pytest.mark.skipif(
     not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 
 
-class Color(QColor):
+class Color(QtGui.QColor):
 
     """A QColor with a nicer repr()."""
 
@@ -273,7 +273,7 @@ def disable_seccomp_bpf_sandbox():
     newer kernels.
     """
     try:
-        from PyQt5 import QtWebEngine  # pylint: disable=unused-import
+        pass
     except ImportError:
         # no QtWebEngine available
         return False

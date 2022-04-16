@@ -28,34 +28,32 @@ import types
 from typing import (
     Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
-
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects
-from qutebrowser.qt import sip
+from qutebrowser.qt import QtCore, sip
 
 
-def log_events(klass: Type[QObject]) -> Type[QObject]:
+def log_events(klass: Type[QtCore.QObject]) -> Type[QtCore.QObject]:
     """Class decorator to log Qt events."""
     old_event = klass.event
 
     @functools.wraps(old_event)
-    def new_event(self: Any, e: QEvent) -> bool:
+    def new_event(self: Any, e: QtCore.QEvent) -> bool:
         """Wrapper for event() which logs events."""
         log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
-                                                qenum_key(QEvent, e.type())))
+                                                qenum_key(QtCore.QEvent, e.type())))
         return old_event(self, e)
 
     klass.event = new_event  # type: ignore[assignment]
     return klass
 
 
-def log_signals(obj: QObject) -> QObject:
+def log_signals(obj: QtCore.QObject) -> QtCore.QObject:
     """Log all signals of an object or class.
 
     Can be used as class decorator.
     """
-    def log_slot(obj: QObject, signal: pyqtBoundSignal, *args: Any) -> None:
+    def log_slot(obj: QtCore.QObject, signal: QtCore.pyqtBoundSignal, *args: Any) -> None:
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
         try:
@@ -64,13 +62,13 @@ def log_signals(obj: QObject) -> QObject:
             r = '<deleted>'
         log.signals.debug("Signal in {}: {}".format(r, dbg))
 
-    def connect_log_slot(obj: QObject) -> None:
+    def connect_log_slot(obj: QtCore.QObject) -> None:
         """Helper function to connect all signals to a logging slot."""
         metaobj = obj.metaObject()
         for i in range(metaobj.methodCount()):
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)
-            if meta_method.methodType() == QMetaMethod.Signal:
+            if meta_method.methodType() == QtCore.QMetaMethod.Signal:
                 name = meta_method.name().data().decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
@@ -191,7 +189,7 @@ def qflags_key(base: Type[_EnumValueType],
     return '|'.join(names)
 
 
-def signal_name(sig: pyqtBoundSignal) -> str:
+def signal_name(sig: QtCore.pyqtBoundSignal) -> str:
     """Get a cleaned up name of a signal.
 
     Unfortunately, the way to get the name of a signal differs based on
@@ -236,7 +234,7 @@ def format_args(args: Sequence[Any] = None, kwargs: Mapping[str, Any] = None) ->
     return ', '.join(arglist)
 
 
-def dbg_signal(sig: pyqtBoundSignal, args: Any) -> str:
+def dbg_signal(sig: QtCore.pyqtBoundSignal, args: Any) -> str:
     """Get a string representation of a signal for debugging.
 
     Args:
@@ -324,15 +322,15 @@ def _get_widgets() -> Sequence[str]:
 
 
 def _get_pyqt_objects(lines: MutableSequence[str],
-                      obj: QObject,
+                      obj: QtCore.QObject,
                       depth: int = 0) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(QObject, '', Qt.FindDirectChildrenOnly):
+    for kid in obj.findChildren(QtCore.QObject, '', QtCore.Qt.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 
 
-def get_all_objects(start_obj: QObject = None) -> str:
+def get_all_objects(start_obj: QtCore.QObject = None) -> str:
     """Get all children of an object recursively as a string."""
     output = ['']
     widget_lines = _get_widgets()

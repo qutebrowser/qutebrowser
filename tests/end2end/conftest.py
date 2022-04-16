@@ -27,7 +27,6 @@ import pstats
 import operator
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
@@ -39,6 +38,7 @@ from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.qt import QtWebEngine, QtCore
 
 
 def pytest_configure(config):
@@ -111,7 +111,7 @@ def _get_version_tag(tag):
         return pytest.mark.skipif(
             not _check_version(
                 op_str=match.group('operator'),
-                running_version=PYQT_VERSION,
+                running_version=QtCore.PYQT_VERSION,
                 version_str=version,
                 as_hex=True,
             ),
@@ -119,11 +119,11 @@ def _get_version_tag(tag):
         )
     elif package == 'pyqtwebengine':
         try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+            pass
         except ImportError:
-            running_version = PYQT_VERSION
+            running_version = QtCore.PYQT_VERSION
         else:
-            running_version = PYQT_WEBENGINE_VERSION
+            running_version = QtWebEngine.PYQT_WEBENGINE_VERSION
         return pytest.mark.skipif(
             not _check_version(
                 op_str=match.group('operator'),
@@ -183,7 +183,7 @@ def pytest_collection_modifyitems(config, items):
     # (note this isn't actually fixed properly before Qt 5.15)
     header_bug_fixed = qtutils.version_check('5.15', compiled=False)
 
-    lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
+    lib_path = pathlib.Path(QtCore.QCoreApplication.libraryPaths()[0])
     qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
 
     markers = [

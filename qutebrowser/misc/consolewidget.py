@@ -22,14 +22,12 @@
 import sys
 import code
 from typing import MutableSequence
-
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
-from PyQt5.QtGui import QTextCursor
+from qutebrowser.qt import QtWidgets, QtGui
 
 from qutebrowser.config import stylesheet
 from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
+from qutebrowser.qt import QtCore
 
 
 console_widget = None
@@ -46,7 +44,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         execute: Emitted when a commandline should be executed.
     """
 
-    execute = pyqtSignal(str)
+    execute = QtCore.pyqtSignal(str)
 
     def __init__(self, _namespace, parent):
         """Constructor.
@@ -58,7 +56,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_return_pressed(self):
         """Execute the line of code which was entered."""
         self._history.stop()
@@ -92,20 +90,20 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to handle special keypresses."""
-        if e.key() == Qt.Key_Up:
+        if e.key() == QtCore.Qt.Key_Up:
             self.history_prev()
             e.accept()
-        elif e.key() == Qt.Key_Down:
+        elif e.key() == QtCore.Qt.Key_Down:
             self.history_next()
             e.accept()
-        elif e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
+        elif e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_C:
             self.setText('')
             e.accept()
         else:
             super().keyPressEvent(e)
 
 
-class ConsoleTextEdit(QTextEdit):
+class ConsoleTextEdit(QtWidgets.QTextEdit):
 
     """Custom QTextEdit for console output."""
 
@@ -113,7 +111,7 @@ class ConsoleTextEdit(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        self.setFocusPolicy(Qt.ClickFocus)
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -124,13 +122,13 @@ class ConsoleTextEdit(QTextEdit):
         We can't use Qt's way to append stuff because that inserts weird
         newlines.
         """
-        self.moveCursor(QTextCursor.End)
+        self.moveCursor(QtGui.QTextCursor.End)
         self.insertPlainText(text)
         scrollbar = self.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
 
-class ConsoleWidget(QWidget):
+class ConsoleWidget(QtWidgets.QWidget):
 
     """A widget with an interactive Python console.
 
@@ -158,7 +156,7 @@ class ConsoleWidget(QWidget):
         namespace = {
             '__name__': '__console__',
             '__doc__': None,
-            'q_app': QApplication.instance(),
+            'q_app': QtWidgets.QApplication.instance(),
             # We use parent as self here because the user "feels" the whole
             # console, not just the line edit.
             'self': parent,
@@ -170,7 +168,7 @@ class ConsoleWidget(QWidget):
         self._lineedit.execute.connect(self.push)
         self._output = ConsoleTextEdit()
         self.write(self._curprompt())
-        self._vbox = QVBoxLayout()
+        self._vbox = QtWidgets.QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
         self._vbox.addWidget(self._lineedit)
@@ -186,7 +184,7 @@ class ConsoleWidget(QWidget):
         """Write a line of text (without added newline) to the output."""
         self._output.append_text(line)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def push(self, line):
         """Push a line to the interpreter."""
         self._buffer.append(line)

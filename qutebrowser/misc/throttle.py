@@ -23,7 +23,7 @@ import dataclasses
 import time
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-from PyQt5.QtCore import QObject
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import usertypes
 
@@ -35,7 +35,7 @@ class _CallArgs:
     kwargs: Mapping[str, Any]
 
 
-class Throttle(QObject):
+class Throttle(QtCore.QObject):
 
     """A throttle to throttle calls.
 
@@ -47,7 +47,7 @@ class Throttle(QObject):
     def __init__(self,
                  func: Callable[..., None],
                  delay_ms: int,
-                 parent: QObject = None) -> None:
+                 parent: QtCore.QObject = None) -> None:
         """Constructor.
 
         Args:

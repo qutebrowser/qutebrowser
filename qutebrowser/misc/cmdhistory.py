@@ -21,10 +21,9 @@
 
 from typing import MutableSequence
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
-
 from qutebrowser.utils import usertypes, log, standarddir, objreg
 from qutebrowser.misc import lineparser
+from qutebrowser.qt import QtCore
 
 
 class HistoryEmptyError(Exception):
@@ -37,7 +36,7 @@ class HistoryEndReachedError(Exception):
     """Raised when the end of the history is reached."""
 
 
-class History(QObject):
+class History(QtCore.QObject):
 
     """Command history.
 
@@ -49,7 +48,7 @@ class History(QObject):
         changed: Emitted when an entry was added to the history.
     """
 
-    changed = pyqtSignal()
+    changed = QtCore.pyqtSignal()
 
     def __init__(self, *, history=None, parent=None):
         """Constructor.
@@ -92,7 +91,7 @@ class History(QObject):
         self._tmphist = usertypes.NeighborList(items)
         return self._tmphist.lastitem()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def stop(self):
         """Stop browsing the history."""
         self._tmphist = None

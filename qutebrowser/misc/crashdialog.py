@@ -30,25 +30,21 @@ import datetime
 import enum
 from typing import List, Tuple
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize
-from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
-                             QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QMessageBox)
-
 import qutebrowser
 from qutebrowser.utils import version, log, utils
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin, objects)
 from qutebrowser.config import config, configfiles
 from qutebrowser.browser import history
+from qutebrowser.qt import QtWidgets, QtCore
 
 
 class Result(enum.IntEnum):
 
     """The result code returned by the crash dialog."""
 
-    restore = QDialog.Accepted + 1
-    no_restore = QDialog.Accepted + 2
+    restore = QtWidgets.QDialog.Accepted + 1
+    no_restore = QtWidgets.QDialog.Accepted + 2
 
 
 def parse_fatal_stacktrace(text):
@@ -92,7 +88,7 @@ def _get_environment_vars():
     return '\n'.join(sorted(info))
 
 
-class _CrashDialog(QDialog):
+class _CrashDialog(QtWidgets.QDialog):
 
     """Dialog which gets shown after there was a crash.
 
@@ -122,8 +118,8 @@ class _CrashDialog(QDialog):
         self._btn_box = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
-        self.resize(QSize(640, 600))
-        self._vbox = QVBoxLayout(self)
+        self.resize(QtCore.QSize(640, 600))
+        self._vbox = QtWidgets.QVBoxLayout(self)
 
         http_client = httpclient.HTTPClient()
         self._paste_client = pastebin.PastebinClient(http_client, self)
@@ -135,9 +131,9 @@ class _CrashDialog(QDialog):
 
         self._init_contact_input()
 
-        info = QLabel("What were you doing when this crash/bug happened?")
+        info = QtWidgets.QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
-        self._info = QTextEdit()
+        self._info = QtWidgets.QTextEdit()
         self._info.setTabChangesFocus(True)
         self._info.setAcceptRichText(False)
         self._info.setPlaceholderText("- Opened http://www.example.com/\n"
@@ -146,10 +142,10 @@ class _CrashDialog(QDialog):
         self._vbox.addWidget(self._info, 5)
 
         self._vbox.addSpacing(15)
-        self._debug_log = QTextEdit()
+        self._debug_log = QtWidgets.QTextEdit()
         self._debug_log.setTabChangesFocus(True)
         self._debug_log.setAcceptRichText(False)
-        self._debug_log.setLineWrapMode(QTextEdit.NoWrap)
+        self._debug_log.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self._debug_log.hide()
         self._fold = miscwidgets.DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
@@ -165,7 +161,7 @@ class _CrashDialog(QDialog):
 
     def keyPressEvent(self, e):
         """Prevent closing :report dialogs when pressing <Escape>."""
-        if config.val.input.escape_quits_reporter or e.key() != Qt.Key_Escape:
+        if config.val.input.escape_quits_reporter or e.key() != QtCore.Qt.Key_Escape:
             super().keyPressEvent(e)
 
     def __repr__(self):
@@ -173,12 +169,12 @@ class _CrashDialog(QDialog):
 
     def _init_contact_input(self):
         """Initialize the widget asking for contact info."""
-        contact = QLabel("I'd like to be able to follow up with you, to keep "
+        contact = QtWidgets.QLabel("I'd like to be able to follow up with you, to keep "
                          "you posted on the status of this crash and get more "
                          "information if I need it - how can I contact you?")
         contact.setWordWrap(True)
         self._vbox.addWidget(contact)
-        self._contact = QTextEdit()
+        self._contact = QtWidgets.QTextEdit()
         self._contact.setTabChangesFocus(True)
         self._contact.setAcceptRichText(False)
         try:
@@ -198,10 +194,10 @@ class _CrashDialog(QDialog):
 
         Should be extended by subclasses to set the actual text.
         """
-        self._lbl = QLabel()
+        self._lbl = QtWidgets.QLabel()
         self._lbl.setWordWrap(True)
         self._lbl.setOpenExternalLinks(True)
-        self._lbl.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
+        self._lbl.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
 
     def _init_checkboxes(self):
@@ -209,22 +205,22 @@ class _CrashDialog(QDialog):
 
     def _init_buttons(self):
         """Initialize the buttons."""
-        self._btn_box = QDialogButtonBox()
+        self._btn_box = QtWidgets.QDialogButtonBox()
         self._vbox.addWidget(self._btn_box)
 
-        self._btn_report = QPushButton("Report")
+        self._btn_report = QtWidgets.QPushButton("Report")
         self._btn_report.setDefault(True)
         self._btn_report.clicked.connect(self.on_report_clicked)
-        self._btn_box.addButton(self._btn_report, QDialogButtonBox.AcceptRole)
+        self._btn_box.addButton(self._btn_report, QtWidgets.QDialogButtonBox.AcceptRole)
 
-        self._btn_cancel = QPushButton("Don't report")
+        self._btn_cancel = QtWidgets.QPushButton("Don't report")
         self._btn_cancel.setAutoDefault(False)
         self._btn_cancel.clicked.connect(self.finish)
-        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.RejectRole)
+        self._btn_box.addButton(self._btn_cancel, QtWidgets.QDialogButtonBox.RejectRole)
 
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
-        info_label = QLabel("<br/>There is currently a big backlog of crash "
+        info_label = QtWidgets.QLabel("<br/>There is currently a big backlog of crash "
                             "reports. Thus, it might take a while until your "
                             "report is seen.<br/>A new tool allowing for more "
                             "automation will fix this, but is not ready yet "
@@ -326,7 +322,7 @@ class _CrashDialog(QDialog):
             exc_text = '{}: {}'.format(e.__class__.__name__, e)
             self.show_error(exc_text)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_report_clicked(self):
         """Report and close dialog if report button was clicked."""
         self._btn_report.setEnabled(False)
@@ -334,14 +330,14 @@ class _CrashDialog(QDialog):
         self._btn_report.setText("Reporting...")
         self.report()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_paste_success(self):
         """Get the newest version from PyPI when the paste is done."""
         self._pypi_client.success.connect(self.on_version_success)
         self._pypi_client.error.connect(self.on_version_error)
         self._pypi_client.get_version()
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def show_error(self, text):
         """Show a paste error dialog.
 
@@ -352,7 +348,7 @@ class _CrashDialog(QDialog):
         error_dlg.finished.connect(self.finish)
         error_dlg.show()
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def on_version_success(self, newest):
         """Called when the version was obtained from self._pypi_client.
 
@@ -370,7 +366,7 @@ class _CrashDialog(QDialog):
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def on_version_error(self, msg):
         """Called when the version was not obtained from self._pypi_client.
 
@@ -386,7 +382,7 @@ class _CrashDialog(QDialog):
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def finish(self):
         """Save contact info and close the dialog."""
         self._save_contact_info()
@@ -421,10 +417,10 @@ class ExceptionCrashDialog(_CrashDialog):
     def _init_checkboxes(self):
         """Add checkboxes to the dialog."""
         super()._init_checkboxes()
-        self._chk_restore = QCheckBox("Restore open pages")
+        self._chk_restore = QtWidgets.QCheckBox("Restore open pages")
         self._chk_restore.setChecked(True)
         self._vbox.addWidget(self._chk_restore)
-        self._chk_log = QCheckBox("Include a debug log in the report")
+        self._chk_log = QtWidgets.QCheckBox("Include a debug log in the report")
         self._chk_log.setChecked(True)
         try:
             if config.val.content.private_browsing:
@@ -433,7 +429,7 @@ class ExceptionCrashDialog(_CrashDialog):
             log.misc.exception("Error while checking private browsing mode")
         self._chk_log.toggled.connect(self._set_crash_info)
         self._vbox.addWidget(self._chk_log)
-        info_label = QLabel("This makes it a lot easier to diagnose the "
+        info_label = QtWidgets.QLabel("This makes it a lot easier to diagnose the "
                             "crash.<br/><b>Note that the log might contain "
                             "sensitive information such as which pages you "
                             "visited or keyboard input.</b><br/>You can show "
@@ -468,7 +464,7 @@ class ExceptionCrashDialog(_CrashDialog):
             except Exception:
                 self._crash_info.append(("Debug log", traceback.format_exc()))
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def finish(self):
         self._save_contact_info()
         if self._chk_restore.isChecked():
@@ -492,7 +488,7 @@ class FatalCrashDialog(_CrashDialog):
     def __init__(self, debug, text, parent=None):
         super().__init__(debug, parent)
         self._log = text
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self._set_crash_info()
         self._type, self._func = parse_fatal_stacktrace(self._log)
 
@@ -519,7 +515,7 @@ class FatalCrashDialog(_CrashDialog):
     def _init_checkboxes(self):
         """Add checkboxes to the dialog."""
         super()._init_checkboxes()
-        self._chk_history = QCheckBox("Include a history of the last "
+        self._chk_history = QtWidgets.QCheckBox("Include a history of the last "
                                       "accessed pages in the report.")
         self._chk_history.setChecked(True)
         try:
@@ -544,7 +540,7 @@ class FatalCrashDialog(_CrashDialog):
                 history_data = traceback.format_exc()
             self._crash_info.append(("History", history_data))
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_report_clicked(self):
         """Prevent empty reports."""
         if (not self._info.toPlainText().strip() and
@@ -557,7 +553,7 @@ class FatalCrashDialog(_CrashDialog):
                           "spend on developing qutebrowser instead.\n\nPlease "
                           "help making qutebrowser better by providing more "
                           "information, or don't report this.",
-                          icon=QMessageBox.Critical)
+                          icon=QtWidgets.QMessageBox.Critical)
         else:
             super().on_report_clicked()
 
@@ -574,7 +570,7 @@ class ReportDialog(_CrashDialog):
 
     def __init__(self, pages, cmdhist, qobjects, parent=None):
         super().__init__(False, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self._pages = pages
         self._cmdhist = cmdhist
         self._qobjects = qobjects
@@ -608,21 +604,21 @@ class ReportDialog(_CrashDialog):
             self._crash_info.append(("Debug log", traceback.format_exc()))
 
 
-class ReportErrorDialog(QDialog):
+class ReportErrorDialog(QtWidgets.QDialog):
 
     """An error dialog shown on unsuccessful reports."""
 
     def __init__(self, exc_text, text, parent=None):
         super().__init__(parent)
-        vbox = QVBoxLayout(self)
-        label = QLabel("<b>There was an error while reporting the crash</b>:"
+        vbox = QtWidgets.QVBoxLayout(self)
+        label = QtWidgets.QLabel("<b>There was an error while reporting the crash</b>:"
                        "<br/>{}<br/><br/>"
                        "Please copy the text below and send a mail to "
                        "<a href='mailto:crash@qutebrowser.org'>"
                        "crash@qutebrowser.org</a> - Thanks!".format(
                            html.escape(exc_text)))
         vbox.addWidget(label)
-        txt = QTextEdit()
+        txt = QtWidgets.QTextEdit()
         txt.setReadOnly(True)
         txt.setTabChangesFocus(True)
         txt.setAcceptRichText(False)
@@ -630,9 +626,9 @@ class ReportErrorDialog(QDialog):
         txt.selectAll()
         vbox.addWidget(txt)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch()
-        btn = QPushButton("Close")
+        btn = QtWidgets.QPushButton("Close")
         btn.clicked.connect(self.close)
         hbox.addWidget(btn)
         vbox.addLayout(hbox)

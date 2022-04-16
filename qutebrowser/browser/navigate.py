@@ -23,7 +23,7 @@ import re
 import posixpath
 from typing import Optional, Set
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
@@ -42,24 +42,24 @@ class Error(Exception):
 # of information. (host and path use FullyDecoded by default)
 _URL_SEGMENTS = [
     ('host',
-     lambda url: url.host(QUrl.FullyEncoded),
-     lambda url, host: url.setHost(host, QUrl.StrictMode)),
+     lambda url: url.host(QtCore.QUrl.FullyEncoded),
+     lambda url, host: url.setHost(host, QtCore.QUrl.StrictMode)),
 
     ('port',
      lambda url: str(url.port()) if url.port() > 0 else '',
      lambda url, x: url.setPort(int(x))),
 
     ('path',
-     lambda url: url.path(QUrl.FullyEncoded),
-     lambda url, path: url.setPath(path, QUrl.StrictMode)),
+     lambda url: url.path(QtCore.QUrl.FullyEncoded),
+     lambda url, path: url.setPath(path, QtCore.QUrl.StrictMode)),
 
     ('query',
-     lambda url: url.query(QUrl.FullyEncoded),
-     lambda url, query: url.setQuery(query, QUrl.StrictMode)),
+     lambda url: url.query(QtCore.QUrl.FullyEncoded),
+     lambda url, query: url.setQuery(query, QtCore.QUrl.StrictMode)),
 
     ('anchor',
-     lambda url: url.fragment(QUrl.FullyEncoded),
-     lambda url, fragment: url.setFragment(fragment, QUrl.StrictMode)),
+     lambda url: url.fragment(QtCore.QUrl.FullyEncoded),
+     lambda url, fragment: url.setFragment(fragment, QtCore.QUrl.StrictMode)),
 ]
 
 
@@ -102,7 +102,7 @@ def incdec(url, count, inc_or_dec):
         segments = {'path', 'query'}
 
     # Make a copy of the QUrl so we don't modify the original
-    url = QUrl(url)
+    url = QtCore.QUrl(url)
     # We're searching the last number so we walk the url segments backwards
     for segment, getter, setter in reversed(_URL_SEGMENTS):
         if segment not in segments:
@@ -130,14 +130,14 @@ def path_up(url, count):
         count: The number of levels to go up in the url.
     """
     urlutils.ensure_valid(url)
-    url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
-    path = url.path(QUrl.FullyEncoded)
+    url = url.adjusted(QtCore.QUrl.RemoveFragment | QtCore.QUrl.RemoveQuery)
+    path = url.path(QtCore.QUrl.FullyEncoded)
     if not path or path == '/':
         raise Error("Can't go up!")
     for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
     path = posixpath.normpath(path)
-    url.setPath(path, QUrl.StrictMode)
+    url.setPath(path, QtCore.QUrl.StrictMode)
     return url
 
 
@@ -146,7 +146,7 @@ def strip(url, count):
     if count != 1:
         raise Error("Count is not supported when stripping URL components")
     urlutils.ensure_valid(url)
-    return url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
+    return url.adjusted(QtCore.QUrl.RemoveFragment | QtCore.QUrl.RemoveQuery)
 
 
 def _find_prevnext(prev, elems):

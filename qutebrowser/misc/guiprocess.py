@@ -25,12 +25,10 @@ import shlex
 import shutil
 from typing import Mapping, Sequence, Dict, Optional
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
-                          QProcessEnvironment, QByteArray, QUrl, Qt)
-
 from qutebrowser.utils import message, log, utils, usertypes, version
 from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.qt import QtCore
 
 
 all_processes: Dict[int, Optional['GUIProcess']] = {}
@@ -68,7 +66,7 @@ def process(tab: apitypes.Tab, pid: int = None, action: str = 'show') -> None:
         raise cmdutils.CommandError(f"Data for process {pid} got cleaned up")
 
     if action == 'show':
-        tab.load_url(QUrl(f'qute://process/{pid}'))
+        tab.load_url(QtCore.QUrl(f'qute://process/{pid}'))
     elif action == 'terminate':
         proc.terminate()
     elif action == 'kill':
@@ -84,7 +82,7 @@ class ProcessOutcome:
 
     what: str
     running: bool = False
-    status: Optional[QProcess.ExitStatus] = None
+    status: Optional[QtCore.QProcess.ExitStatus] = None
     code: Optional[int] = None
 
     def was_successful(self) -> bool:
@@ -94,7 +92,7 @@ class ProcessOutcome:
         """
         assert self.status is not None, "Process didn't finish yet"
         assert self.code is not None
-        return self.status == QProcess.NormalExit and self.code == 0
+        return self.status == QtCore.QProcess.NormalExit and self.code == 0
 
     def __str__(self) -> str:
         if self.running:
@@ -105,12 +103,12 @@ class ProcessOutcome:
         assert self.status is not None
         assert self.code is not None
 
-        if self.status == QProcess.CrashExit:
+        if self.status == QtCore.QProcess.CrashExit:
             return f"{self.what.capitalize()} crashed."
         elif self.was_successful():
             return f"{self.what.capitalize()} exited successfully."
 
-        assert self.status == QProcess.NormalExit
+        assert self.status == QtCore.QProcess.NormalExit
         # We call this 'status' here as it makes more sense to the user -
         # it's actually 'code'.
         return f"{self.what.capitalize()} exited with status {self.code}."
@@ -124,7 +122,7 @@ class ProcessOutcome:
             return 'running'
         elif self.status is None:
             return 'not started'
-        elif self.status == QProcess.CrashExit:
+        elif self.status == QtCore.QProcess.CrashExit:
             return 'crashed'
         elif self.was_successful():
             return 'successful'
@@ -132,7 +130,7 @@ class ProcessOutcome:
             return 'unsuccessful'
 
 
-class GUIProcess(QObject):
+class GUIProcess(QtCore.QObject):
 
     """An external process which shows notifications in the GUI.
 
@@ -150,9 +148,9 @@ class GUIProcess(QObject):
         error/finished/started signals proxied from QProcess.
     """
 
-    error = pyqtSignal(QProcess.ProcessError)
-    finished = pyqtSignal(int, QProcess.ExitStatus)
-    started = pyqtSignal()
+    error = QtCore.pyqtSignal(QtCore.QProcess.ProcessError)
+    finished = QtCore.pyqtSignal(int, QtCore.QProcess.ExitStatus)
+    started = QtCore.pyqtSignal()
 
     def __init__(
             self,
@@ -161,7 +159,7 @@ class GUIProcess(QObject):
             verbose: bool = False,
             additional_env: Mapping[str, str] = None,
             output_messages: bool = False,
-            parent: QObject = None,
+            parent: QtCore.QObject = None,
     ):
         super().__init__(parent)
         self.what = what
@@ -177,12 +175,12 @@ class GUIProcess(QObject):
         self.stderr: str = ""
 
         self._cleanup_timer = usertypes.Timer(self, 'process-cleanup')
-        self._cleanup_timer.setTimerType(Qt.VeryCoarseTimer)
+        self._cleanup_timer.setTimerType(QtCore.Qt.VeryCoarseTimer)
         self._cleanup_timer.setInterval(3600 * 1000)  # 1h
         self._cleanup_timer.timeout.connect(self._on_cleanup_timer)
         self._cleanup_timer.setSingleShot(True)
 
-        self._proc = QProcess(self)
+        self._proc = QtCore.QProcess(self)
         self._proc.errorOccurred.connect(self._on_error)
         self._proc.errorOccurred.connect(self.error)
         self._proc.finished.connect(self._on_finished)
@@ -193,7 +191,7 @@ class GUIProcess(QObject):
         self._proc.readyReadStandardError.connect(self._on_ready_read_stderr)
 
         if additional_env is not None:
-            procenv = QProcessEnvironment.systemEnvironment()
+            procenv = QtCore.QProcessEnvironment.systemEnvironment()
             for k, v in additional_env.items():
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
@@ -203,12 +201,12 @@ class GUIProcess(QObject):
             return f'<unknown {self.what} command>'
         return ' '.join(shlex.quote(e) for e in [self.cmd] + list(self.args))
 
-    def _decode_data(self, qba: QByteArray) -> str:
+    def _decode_data(self, qba: QtCore.QByteArray) -> str:
         """Decode data coming from a process."""
         encoding = locale.getpreferredencoding(do_setlocale=False)
         return qba.data().decode(encoding, 'replace')
 
-    def _process_text(self, data: QByteArray, attr: str) -> None:
+    def _process_text(self, data: QtCore.QByteArray, attr: str) -> None:
         """Process new stdout/stderr text.
 
         Arguments:
@@ -236,7 +234,7 @@ class GUIProcess(QObject):
         else:
             raise utils.Unreachable(attr)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_ready_read_stdout(self) -> None:
         if not self._output_messages:
             return
@@ -244,27 +242,27 @@ class GUIProcess(QObject):
         self._process_text(self._proc.readAllStandardOutput(), 'stdout')
         message.info(self._elide_output(self.stdout), replace=f"stdout-{self.pid}")
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_ready_read_stderr(self) -> None:
         if not self._output_messages:
             return
         self._process_text(self._proc.readAllStandardError(), 'stderr')
         message.error(self._elide_output(self.stderr), replace=f"stderr-{self.pid}")
 
-    @pyqtSlot(QProcess.ProcessError)
-    def _on_error(self, error: QProcess.ProcessError) -> None:
+    @QtCore.pyqtSlot(QtCore.QProcess.ProcessError)
+    def _on_error(self, error: QtCore.QProcess.ProcessError) -> None:
         """Show a message if there was an error while spawning."""
-        if error == QProcess.Crashed and not utils.is_windows:
+        if error == QtCore.QProcess.Crashed and not utils.is_windows:
             # Already handled via ExitStatus in _on_finished
             return
 
         what = f"{self.what} {self.cmd!r}"
         error_descriptions = {
-            QProcess.FailedToStart: f"{what.capitalize()} failed to start",
-            QProcess.Crashed: f"{what.capitalize()} crashed",
-            QProcess.Timedout: f"{what.capitalize()} timed out",
-            QProcess.WriteError: f"Write error for {what}",
-            QProcess.ReadError: f"Read error for {what}",
+            QtCore.QProcess.FailedToStart: f"{what.capitalize()} failed to start",
+            QtCore.QProcess.Crashed: f"{what.capitalize()} crashed",
+            QtCore.QProcess.Timedout: f"{what.capitalize()} timed out",
+            QtCore.QProcess.WriteError: f"Write error for {what}",
+            QtCore.QProcess.ReadError: f"Read error for {what}",
         }
         error_string = self._proc.errorString()
         msg = ': '.join([error_descriptions[error], error_string])
@@ -295,8 +293,8 @@ class GUIProcess(QObject):
 
         return output
 
-    @pyqtSlot(int, QProcess.ExitStatus)
-    def _on_finished(self, code: int, status: QProcess.ExitStatus) -> None:
+    @QtCore.pyqtSlot(int, QtCore.QProcess.ExitStatus)
+    def _on_finished(self, code: int, status: QtCore.QProcess.ExitStatus) -> None:
         """Show a message when the process finished."""
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
@@ -327,7 +325,7 @@ class GUIProcess(QObject):
                 log.procs.error("Process stderr:\n" + self.stderr.strip())
             message.error(str(self.outcome) + " See :process for details.")
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_started(self) -> None:
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
@@ -394,7 +392,7 @@ class GUIProcess(QObject):
         global last_pid
         last_pid = self.pid
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_cleanup_timer(self) -> None:
         """Remove the process from all registered processes."""
         log.procs.debug(f"Cleaning up data for {self.pid}")

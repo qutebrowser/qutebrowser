@@ -25,27 +25,22 @@ We use this to be able to highlight parts of the text.
 import re
 import html
 
-from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
-from PyQt5.QtCore import QRectF, QRegularExpression, QSize, Qt
-from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
-                         QAbstractTextDocumentLayout, QSyntaxHighlighter,
-                         QTextCharFormat)
-
 from qutebrowser.config import config
 from qutebrowser.utils import qtutils
+from qutebrowser.qt import QtWidgets, QtGui, QtCore
 
 
-class _Highlighter(QSyntaxHighlighter):
+class _Highlighter(QtGui.QSyntaxHighlighter):
 
     def __init__(self, doc, pattern, color):
         super().__init__(doc)
-        self._format = QTextCharFormat()
+        self._format = QtGui.QTextCharFormat()
         self._format.setForeground(color)
         words = pattern.split()
         words.sort(key=len, reverse=True)
         pat = "|".join(re.escape(word) for word in words)
-        self._expression = QRegularExpression(
-            pat, QRegularExpression.CaseInsensitiveOption
+        self._expression = QtCore.QRegularExpression(
+            pat, QtCore.QRegularExpression.CaseInsensitiveOption
         )
         qtutils.ensure_valid(self._expression)
 
@@ -61,7 +56,7 @@ class _Highlighter(QSyntaxHighlighter):
             )
 
 
-class CompletionItemDelegate(QStyledItemDelegate):
+class CompletionItemDelegate(QtWidgets.QStyledItemDelegate):
 
     """Delegate used by CompletionView to draw individual items.
 
@@ -109,12 +104,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
             # be displayed.
             return
 
-        mode = QIcon.Normal
-        if not self._opt.state & QStyle.State_Enabled:
-            mode = QIcon.Disabled
-        elif self._opt.state & QStyle.State_Selected:
-            mode = QIcon.Selected
-        state = QIcon.On if self._opt.state & QStyle.State_Open else QIcon.Off
+        mode = QtGui.QIcon.Normal
+        if not self._opt.state & QtWidgets.QStyle.State_Enabled:
+            mode = QtGui.QIcon.Disabled
+        elif self._opt.state & QtWidgets.QStyle.State_Selected:
+            mode = QtGui.QIcon.Selected
+        state = QtGui.QIcon.On if self._opt.state & QtWidgets.QStyle.State_Open else QtGui.QIcon.Off
         self._opt.icon.paint(self._painter, icon_rect,
                              self._opt.decorationAlignment, mode, state)
 
@@ -136,7 +131,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         text_rect_ = self._style.subElementRect(
             self._style.SE_ItemViewItemText, self._opt, self._opt.widget)
         qtutils.ensure_valid(text_rect_)
-        margin = self._style.pixelMetric(QStyle.PM_FocusFrameHMargin,
+        margin = self._style.pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin,
                                          self._opt, self._opt.widget) + 1
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
@@ -148,24 +143,24 @@ class CompletionItemDelegate(QStyledItemDelegate):
             text_rect.adjust(0, -2, 0, -2)
         self._painter.save()
         state = self._opt.state
-        if state & QStyle.State_Enabled and state & QStyle.State_Active:
-            cg = QPalette.Normal
-        elif state & QStyle.State_Enabled:
-            cg = QPalette.Inactive
+        if state & QtWidgets.QStyle.State_Enabled and state & QtWidgets.QStyle.State_Active:
+            cg = QtGui.QPalette.Normal
+        elif state & QtWidgets.QStyle.State_Enabled:
+            cg = QtGui.QPalette.Inactive
         else:
-            cg = QPalette.Disabled
+            cg = QtGui.QPalette.Disabled
 
-        if state & QStyle.State_Selected:
+        if state & QtWidgets.QStyle.State_Selected:
             self._painter.setPen(self._opt.palette.color(
-                cg, QPalette.HighlightedText))
+                cg, QtGui.QPalette.HighlightedText))
             # This is a dirty fix for the text jumping by one pixel for
             # whatever reason.
             text_rect.adjust(0, -1, 0, 0)
         else:
-            self._painter.setPen(self._opt.palette.color(cg, QPalette.Text))
+            self._painter.setPen(self._opt.palette.color(cg, QtGui.QPalette.Text))
 
-        if state & QStyle.State_Editing:
-            self._painter.setPen(self._opt.palette.color(cg, QPalette.Text))
+        if state & QtWidgets.QStyle.State_Editing:
+            self._painter.setPen(self._opt.palette.color(cg, QtGui.QPalette.Text))
             self._painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
         self._painter.translate(text_rect.left(), text_rect.top())
@@ -184,12 +179,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._opt is not None
 
         # We can't use drawContents because then the color would be ignored.
-        clip = QRectF(0, 0, rect.width(), rect.height())
+        clip = QtCore.QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
 
-        if self._opt.state & QStyle.State_Selected:
+        if self._opt.state & QtWidgets.QStyle.State_Selected:
             color = config.cache['colors.completion.item.selected.fg']
-        elif not self._opt.state & QStyle.State_Enabled:
+        elif not self._opt.state & QtWidgets.QStyle.State_Enabled:
             color = config.cache['colors.completion.category.fg']
         else:
             colors = config.cache['colors.completion.fg']
@@ -197,8 +192,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
             color = colors[col % len(colors)]
         self._painter.setPen(color)
 
-        ctx = QAbstractTextDocumentLayout.PaintContext()
-        ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
+        ctx = QtGui.QAbstractTextDocumentLayout.PaintContext()
+        ctx.palette.setColor(QtGui.QPalette.Text, self._painter.pen().color())
         if clip.isValid():
             self._painter.setClipRect(clip)
             ctx.clip = clip
@@ -215,18 +210,18 @@ class CompletionItemDelegate(QStyledItemDelegate):
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
         # https://github.com/qutebrowser/qutebrowser/issues/118
-        text_option = QTextOption()
-        if self._opt.features & QStyleOptionViewItem.WrapText:
-            text_option.setWrapMode(QTextOption.WordWrap)
+        text_option = QtGui.QTextOption()
+        if self._opt.features & QtWidgets.QStyleOptionViewItem.WrapText:
+            text_option.setWrapMode(QtGui.QTextOption.WordWrap)
         else:
-            text_option.setWrapMode(QTextOption.ManualWrap)
+            text_option.setWrapMode(QtGui.QTextOption.ManualWrap)
         text_option.setTextDirection(self._opt.direction)
-        text_option.setAlignment(QStyle.visualAlignment(
+        text_option.setAlignment(QtWidgets.QStyle.visualAlignment(
             self._opt.direction, self._opt.displayAlignment))
 
         if self._doc is not None:
             self._doc.deleteLater()
-        self._doc = QTextDocument(self)
+        self._doc = QtGui.QTextDocument(self)
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)
         self._doc.setDocumentMargin(2)
@@ -236,7 +231,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
-                if self._opt.state & QStyle.State_Selected:
+                if self._opt.state & QtWidgets.QStyle.State_Selected:
                     color = config.val.colors.completion.item.selected.match.fg
                 else:
                     color = config.val.colors.completion.match.fg
@@ -253,23 +248,23 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._opt is not None
         assert self._style is not None
         state = self._opt.state
-        if not state & QStyle.State_HasFocus:
+        if not state & QtWidgets.QStyle.State_HasFocus:
             return
         o = self._opt
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
-        o.state |= int(QStyle.State_KeyboardFocusChange | QStyle.State_Item)
+        o.state |= int(QtWidgets.QStyle.State_KeyboardFocusChange | QtWidgets.QStyle.State_Item)
         qtutils.ensure_valid(o.rect)
-        if state & QStyle.State_Enabled:
-            cg = QPalette.Normal
+        if state & QtWidgets.QStyle.State_Enabled:
+            cg = QtGui.QPalette.Normal
         else:
-            cg = QPalette.Disabled
-        if state & QStyle.State_Selected:
-            role = QPalette.Highlight
+            cg = QtGui.QPalette.Disabled
+        if state & QtWidgets.QStyle.State_Selected:
+            role = QtGui.QPalette.Highlight
         else:
-            role = QPalette.Window
+            role = QtGui.QPalette.Window
         o.backgroundColor = self._opt.palette.color(cg, role)
-        self._style.drawPrimitive(QStyle.PE_FrameFocusRect, o, self._painter,
+        self._style.drawPrimitive(QtWidgets.QStyle.PE_FrameFocusRect, o, self._painter,
                                   self._opt.widget)
 
     def sizeHint(self, option, index):
@@ -285,10 +280,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Return:
             A QSize with the recommended size.
         """
-        value = index.data(Qt.SizeHintRole)
+        value = index.data(QtCore.Qt.SizeHintRole)
         if value is not None:
             return value
-        self._opt = QStyleOptionViewItem(option)
+        self._opt = QtWidgets.QStyleOptionViewItem(option)
         self.initStyleOption(self._opt, index)
         self._style = self._opt.widget.style()
 
@@ -296,10 +291,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._doc is not None
 
         docsize = self._doc.size().toSize()
-        size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
+        size = self._style.sizeFromContents(QtWidgets.QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
         qtutils.ensure_valid(size)
-        return size + QSize(10, 3)  # type: ignore[operator]
+        return size + QtCore.QSize(10, 3)  # type: ignore[operator]
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function.
@@ -311,7 +306,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """
         self._painter = painter
         self._painter.save()
-        self._opt = QStyleOptionViewItem(option)
+        self._opt = QtWidgets.QStyleOptionViewItem(option)
         self.initStyleOption(self._opt, index)
         self._style = self._opt.widget.style()
 

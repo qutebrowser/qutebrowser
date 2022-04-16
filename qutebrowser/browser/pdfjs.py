@@ -22,10 +22,9 @@
 
 import os
 
-from PyQt5.QtCore import QUrl, QUrlQuery
-
 from qutebrowser.utils import resources, javascript, jinja, standarddir, log
 from qutebrowser.config import config
+from qutebrowser.qt import QtCore
 
 
 _SYSTEM_PATHS = [
@@ -90,13 +89,13 @@ def _generate_pdfjs_script(filename):
     Args:
         filename: The name of the file to open.
     """
-    url = QUrl('qute://pdfjs/file')
-    url_query = QUrlQuery()
+    url = QtCore.QUrl('qute://pdfjs/file')
+    url_query = QtCore.QUrlQuery()
     url_query.addQueryItem('filename', filename)
     url.setQuery(url_query)
 
     js_url = javascript.to_js(
-        url.toString(QUrl.FullyEncoded))  # type: ignore[arg-type]
+        url.toString(QtCore.QUrl.FullyEncoded))  # type: ignore[arg-type]
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
@@ -225,19 +224,19 @@ def should_use_pdfjs(mimetype, url):
     """Check whether PDF.js should be used."""
     # e.g. 'blob:qute%3A///b45250b3-787e-44d1-a8d8-c2c90f81f981'
     is_download_url = (url.scheme() == 'blob' and
-                       QUrl(url.path()).scheme() == 'qute')
+                       QtCore.QUrl(url.path()).scheme() == 'qute')
     is_pdf = mimetype in ['application/pdf', 'application/x-pdf']
     config_enabled = config.instance.get('content.pdfjs', url=url)
     return is_pdf and not is_download_url and config_enabled
 
 
-def get_main_url(filename: str, original_url: QUrl) -> QUrl:
+def get_main_url(filename: str, original_url: QtCore.QUrl) -> QtCore.QUrl:
     """Get the URL to be opened to view a local PDF."""
-    url = QUrl('qute://pdfjs/web/viewer.html')
-    query = QUrlQuery()
+    url = QtCore.QUrl('qute://pdfjs/web/viewer.html')
+    query = QtCore.QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
-    urlstr = original_url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = original_url.toString(QtCore.QUrl.FullyEncoded)  # type: ignore[arg-type]
     query.addQueryItem('source', urlstr)
     url.setQuery(query)
     return url

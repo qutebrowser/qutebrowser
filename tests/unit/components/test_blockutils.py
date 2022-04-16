@@ -21,7 +21,7 @@
 import io
 from typing import IO
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 import pytest
 
@@ -50,7 +50,7 @@ def pretend_blocklists(tmp_path):
         bl_dst_path = bl_dst_dir / filename
         bl_dst_path.write_text("\n".join(blocklist_lines), encoding="utf-8")
         assert bl_dst_path.is_file()
-        urls.append(QUrl.fromLocalFile(str(bl_dst_path)).toString())
+        urls.append(QtCore.QUrl.fromLocalFile(str(bl_dst_path)).toString())
     return urls, bl_dst_dir
 
 
@@ -69,7 +69,7 @@ def test_blocklist_dl(qtbot, pretend_blocklists):
                 num_lines += 1
         assert num_lines >= 1
 
-    list_qurls = [QUrl(blocklist) for blocklist in pretend_blocklists[0]]
+    list_qurls = [QtCore.QUrl(blocklist) for blocklist in pretend_blocklists[0]]
 
     dl = blockutils.BlocklistDownloads(list_qurls)
     dl.single_download_finished.connect(on_single_download)

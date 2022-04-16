@@ -21,15 +21,13 @@
 
 import pytest
 
-from PyQt5.QtCore import QUrl, QIODevice
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
-
 from qutebrowser.browser.webkit.network import networkreply
+from qutebrowser.qt import QtNetwork, QtCore
 
 
 @pytest.fixture
 def req():
-    return QNetworkRequest(QUrl('http://www.qutebrowser.org/'))
+    return QtNetwork.QNetworkRequest(QtCore.QUrl('http://www.qutebrowser.org/'))
 
 
 class TestFixedDataNetworkReply:
@@ -38,11 +36,11 @@ class TestFixedDataNetworkReply:
         reply = networkreply.FixedDataNetworkReply(req, b'', 'test/foo')
         assert reply.request() == req
         assert reply.url() == req.url()
-        assert reply.openMode() == QIODevice.ReadOnly
-        assert reply.header(QNetworkRequest.ContentTypeHeader) == 'test/foo'
-        http_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+        assert reply.openMode() == QtCore.QIODevice.ReadOnly
+        assert reply.header(QtNetwork.QNetworkRequest.ContentTypeHeader) == 'test/foo'
+        http_code = reply.attribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute)
         http_reason = reply.attribute(
-            QNetworkRequest.HttpReasonPhraseAttribute)
+            QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
         assert http_code == 200
         assert http_reason == 'OK'
         assert reply.isFinished()
@@ -76,7 +74,7 @@ class TestFixedDataNetworkReply:
 
 def test_error_network_reply(qtbot, req):
     reply = networkreply.ErrorNetworkReply(
-        req, "This is an error", QNetworkReply.UnknownNetworkError)
+        req, "This is an error", QtNetwork.QNetworkReply.UnknownNetworkError)
 
     with qtbot.wait_signals([reply.error, reply.finished], order='strict'):
         pass
@@ -84,18 +82,18 @@ def test_error_network_reply(qtbot, req):
     reply.abort()  # shouldn't do anything
     assert reply.request() == req
     assert reply.url() == req.url()
-    assert reply.openMode() == QIODevice.ReadOnly
+    assert reply.openMode() == QtCore.QIODevice.ReadOnly
     assert reply.isFinished()
     assert not reply.isRunning()
     assert reply.bytesAvailable() == 0
     assert reply.readData(1) == b''
-    assert reply.error() == QNetworkReply.UnknownNetworkError
+    assert reply.error() == QtNetwork.QNetworkReply.UnknownNetworkError
     assert reply.errorString() == "This is an error"
 
 
 def test_redirect_network_reply():
-    url = QUrl('https://www.example.com/')
+    url = QtCore.QUrl('https://www.example.com/')
     reply = networkreply.RedirectNetworkReply(url)
     assert reply.readData(1) == b''
-    assert reply.attribute(QNetworkRequest.RedirectionTargetAttribute) == url
+    assert reply.attribute(QtNetwork.QNetworkRequest.RedirectionTargetAttribute) == url
     reply.abort()  # shouldn't do anything

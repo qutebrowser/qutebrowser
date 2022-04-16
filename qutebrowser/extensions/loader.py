@@ -27,7 +27,7 @@ import argparse
 import dataclasses
 from typing import Callable, Iterator, List, Optional, Tuple
 
-from PyQt5.QtCore import pyqtSlot
+from qutebrowser.qt import QtCore
 
 from qutebrowser import components
 from qutebrowser.config import config
@@ -140,7 +140,7 @@ def _load_component(info: ExtensionInfo, *,
     return mod
 
 
-@pyqtSlot(str)
+@QtCore.pyqtSlot(str)
 def _on_config_changed(changed_name: str) -> None:
     """Call config_changed hooks if the config changed."""
     for mod_info in _module_infos:

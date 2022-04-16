@@ -21,8 +21,7 @@
 
 from typing import Optional
 
-from PyQt5.QtSql import QSqlQueryModel
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt import QtWidgets, QtSql
 
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log
@@ -30,13 +29,13 @@ from qutebrowser.config import config
 from qutebrowser.completion.models import util
 
 
-class HistoryCategory(QSqlQueryModel):
+class HistoryCategory(QtSql.QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 
     def __init__(self, *, database: sql.Database,
                  delete_func: util.DeleteFuncType = None,
-                 parent: QWidget = None) -> None:
+                 parent: QtWidgets.QWidget = None) -> None:
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self._database = database

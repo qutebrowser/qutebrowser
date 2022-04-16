@@ -28,9 +28,9 @@ import dataclasses
 from http import HTTPStatus
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
+from qutebrowser.qt import QtCore
 
 
 class Request(testprocess.Line):
@@ -93,7 +93,7 @@ class Request(testprocess.Line):
 
         default_statuses = [HTTPStatus.OK, HTTPStatus.NOT_MODIFIED]
 
-        sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
+        sanitized = QtCore.QUrl('http://localhost' + self.path).path()  # Remove ?foo
         expected_statuses = path_to_statuses.get(sanitized, default_statuses)
         if self.status not in expected_statuses:
             raise AssertionError(
@@ -135,7 +135,7 @@ class WebserverProcess(testprocess.Process):
         new_request: Emitted when there's a new request received.
     """
 
-    new_request = pyqtSignal(Request)
+    new_request = QtCore.pyqtSignal(Request)
     Request = Request  # So it can be used from the fixture easily.
     ExpectedRequest = ExpectedRequest
 

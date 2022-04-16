@@ -21,13 +21,12 @@
 
 from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
 import collections.abc
-
-from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
-from PyQt5.QtGui import QMouseEvent
+from qutebrowser.qt import QtGui
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
+from qutebrowser.qt import QtCore
 
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
@@ -46,7 +45,7 @@ class OrphanedError(Error):
     """Raised when a webelement's parent has vanished."""
 
 
-def css_selector(group: str, url: QUrl) -> str:
+def css_selector(group: str, url: QtCore.QUrl) -> str:
     """Get a CSS selector for the given group/URL."""
     selectors = config.instance.get('hints.selectors', url)
     if group not in selectors:
@@ -98,7 +97,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Check if this element has a valid frame attached."""
         raise NotImplementedError
 
-    def geometry(self) -> QRect:
+    def geometry(self) -> QtCore.QRect:
         """Get the geometry for this element."""
         raise NotImplementedError
 
@@ -144,8 +143,8 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Insert the given text into the element."""
         raise NotImplementedError
 
-    def rect_on_view(self, *, elem_geometry: QRect = None,
-                     no_js: bool = False) -> QRect:
+    def rect_on_view(self, *, elem_geometry: QtCore.QRect = None,
+                     no_js: bool = False) -> QtCore.QRect:
         """Get the geometry of the element relative to the webview.
 
         Args:
@@ -281,7 +280,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl: QUrl) -> Optional[QUrl]:
+    def resolve_url(self, baseurl: QtCore.QUrl) -> Optional[QtCore.QUrl]:
         """Resolve the URL in the element's src/href attribute.
 
         Args:
@@ -300,7 +299,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         else:
             return None
 
-        url = QUrl(text)
+        url = QtCore.QUrl(text)
         if not url.isValid():
             return None
         if url.isRelative():
@@ -317,7 +316,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Return True if clicking this element needs user interaction."""
         raise NotImplementedError
 
-    def _mouse_pos(self) -> QPoint:
+    def _mouse_pos(self) -> QtCore.QPoint:
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
@@ -338,7 +337,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         raise NotImplementedError
 
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: Qt.MouseButton = Qt.LeftButton) -> None:
+                          button: QtCore.Qt.MouseButton = QtCore.Qt.LeftButton) -> None:
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
@@ -346,28 +345,28 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
                           "target {}".format(self, pos, click_target))
 
         target_modifiers = {
-            usertypes.ClickTarget.normal: Qt.NoModifier,
-            usertypes.ClickTarget.window: Qt.AltModifier | Qt.ShiftModifier,
-            usertypes.ClickTarget.tab: Qt.ControlModifier,
-            usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
+            usertypes.ClickTarget.normal: QtCore.Qt.NoModifier,
+            usertypes.ClickTarget.window: QtCore.Qt.AltModifier | QtCore.Qt.ShiftModifier,
+            usertypes.ClickTarget.tab: QtCore.Qt.ControlModifier,
+            usertypes.ClickTarget.tab_bg: QtCore.Qt.ControlModifier,
         }
         if config.val.tabs.background:
-            target_modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab] |= QtCore.Qt.ShiftModifier
         else:
-            target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab_bg] |= QtCore.Qt.ShiftModifier
 
-        modifiers = cast(Qt.KeyboardModifiers, target_modifiers[click_target])
+        modifiers = cast(QtCore.Qt.KeyboardModifiers, target_modifiers[click_target])
 
         events = [
-            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, button, button, modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton, modifiers),
+            QtGui.QMouseEvent(QtCore.QEvent.MouseMove, pos, QtCore.Qt.NoButton, QtCore.Qt.NoButton, QtCore.Qt.NoModifier),
+            QtGui.QMouseEvent(QtCore.QEvent.MouseButtonPress, pos, button, button, modifiers),
+            QtGui.QMouseEvent(QtCore.QEvent.MouseButtonRelease, pos, button, QtCore.Qt.NoButton, modifiers),
         ]
 
         for evt in events:
             self._tab.send_event(evt)
 
-        QTimer.singleShot(0, self._move_text_cursor)
+        QtCore.QTimer.singleShot(0, self._move_text_cursor)
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an editable input field."""
@@ -445,11 +444,11 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
     def hover(self) -> None:
         """Simulate a mouse hover over the element."""
         pos = self._mouse_pos()
-        event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                            Qt.NoModifier)
+        event = QtGui.QMouseEvent(QtCore.QEvent.MouseMove, pos, QtCore.Qt.NoButton, QtCore.Qt.NoButton,
+                            QtCore.Qt.NoModifier)
         self._tab.send_event(event)
 
     def right_click(self) -> None:
         """Simulate a right-click on the element."""
         self._click_fake_event(usertypes.ClickTarget.normal,
-                               button=Qt.RightButton)
+                               button=QtCore.Qt.RightButton)

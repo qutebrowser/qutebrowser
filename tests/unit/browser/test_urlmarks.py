@@ -22,7 +22,7 @@
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import urlmarks
 
@@ -63,13 +63,13 @@ def test_add(bm_file, fake_save_manager, qtbot):
     bm = urlmarks.BookmarkManager()
 
     with qtbot.wait_signal(bm.changed):
-        bm.add(QUrl('http://example.com'), 'Example Site')
+        bm.add(QtCore.QUrl('http://example.com'), 'Example Site')
     assert list(bm.marks.items()) == [
         ('http://example.com', 'Example Site'),
     ]
 
     with qtbot.wait_signal(bm.changed):
-        bm.add(QUrl('http://example.com/notitle'), '')
+        bm.add(QtCore.QUrl('http://example.com/notitle'), '')
     assert list(bm.marks.items()) == [
         ('http://example.com', 'Example Site'),
         ('http://example.com/notitle', ''),
@@ -80,32 +80,32 @@ def test_add_toggle(bm_file, fake_save_manager, qtbot):
     bm = urlmarks.BookmarkManager()
 
     with qtbot.wait_signal(bm.changed):
-        bm.add(QUrl('http://example.com'), '', toggle=True)
+        bm.add(QtCore.QUrl('http://example.com'), '', toggle=True)
     assert 'http://example.com' in bm.marks
 
     with qtbot.wait_signal(bm.changed):
-        bm.add(QUrl('http://example.com'), '', toggle=True)
+        bm.add(QtCore.QUrl('http://example.com'), '', toggle=True)
     assert 'http://example.com' not in bm.marks
 
     with qtbot.wait_signal(bm.changed):
-        bm.add(QUrl('http://example.com'), '', toggle=True)
+        bm.add(QtCore.QUrl('http://example.com'), '', toggle=True)
     assert 'http://example.com' in bm.marks
 
 
 def test_add_dupe(bm_file, fake_save_manager, qtbot):
     bm = urlmarks.BookmarkManager()
 
-    bm.add(QUrl('http://example.com'), '')
+    bm.add(QtCore.QUrl('http://example.com'), '')
     with pytest.raises(urlmarks.AlreadyExistsError):
-        bm.add(QUrl('http://example.com'), '')
+        bm.add(QtCore.QUrl('http://example.com'), '')
 
 
 def test_delete(bm_file, fake_save_manager, qtbot):
     bm = urlmarks.BookmarkManager()
 
-    bm.add(QUrl('http://example.com/foo'), 'Foo')
-    bm.add(QUrl('http://example.com/bar'), 'Bar')
-    bm.add(QUrl('http://example.com/baz'), 'Baz')
+    bm.add(QtCore.QUrl('http://example.com/foo'), 'Foo')
+    bm.add(QtCore.QUrl('http://example.com/bar'), 'Bar')
+    bm.add(QtCore.QUrl('http://example.com/baz'), 'Baz')
     bm.save()
 
     with qtbot.wait_signal(bm.changed):
@@ -119,8 +119,8 @@ def test_delete(bm_file, fake_save_manager, qtbot):
 def test_save(bm_file, fake_save_manager, qtbot):
     bm = urlmarks.BookmarkManager()
 
-    bm.add(QUrl('http://example.com'), 'Example Site')
-    bm.add(QUrl('http://example.com/notitle'), '')
+    bm.add(QtCore.QUrl('http://example.com'), 'Example Site')
+    bm.add(QtCore.QUrl('http://example.com/notitle'), '')
     bm.save()
     assert bm_file.read().splitlines() == [
         'http://example.com Example Site',

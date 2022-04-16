@@ -27,7 +27,7 @@ import contextlib
 import subprocess
 from typing import Optional, IO, Iterator
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.api import (
     hook,
@@ -185,8 +185,8 @@ class BraveAdBlocker:
 
     def _is_blocked(
         self,
-        request_url: QUrl,
-        first_party_url: Optional[QUrl] = None,
+        request_url: QtCore.QUrl,
+        first_party_url: Optional[QtCore.QUrl] = None,
         resource_type: Optional[interceptor.ResourceType] = None,
     ) -> bool:
         """Check whether the given request is blocked."""

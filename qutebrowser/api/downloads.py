@@ -23,20 +23,19 @@
 
 import io
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
-
 from qutebrowser.browser import downloads, qtnetworkdownloads
 from qutebrowser.utils import objreg
+from qutebrowser.qt import QtCore
 
 
 UnsupportedAttribute = downloads.UnsupportedAttribute
 
 
-class TempDownload(QObject):
+class TempDownload(QtCore.QObject):
 
     """A download of some data into a file object."""
 
-    finished = pyqtSignal()
+    finished = QtCore.pyqtSignal()
 
     def __init__(self, item: qtnetworkdownloads.DownloadItem) -> None:
         super().__init__()
@@ -45,13 +44,13 @@ class TempDownload(QObject):
         self.successful = False
         self.fileobj = item.fileobj
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_download_finished(self) -> None:
         self.successful = self._item.successful
         self.finished.emit()
 
 
-def download_temp(url: QUrl) -> TempDownload:
+def download_temp(url: QtCore.QUrl) -> TempDownload:
     """Download the given URL into a file object.
 
     The download is not saved to disk.

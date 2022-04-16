@@ -29,10 +29,7 @@ import argparse
 import dataclasses
 from typing import Any, List, Sequence, Tuple, Optional
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
-                             QMessageBox, QWidget)
-from PyQt5.QtNetwork import QSslSocket
+from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtWebKit, QtWebEngineWidgets, QtNetwork, QtCore
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
@@ -44,10 +41,10 @@ class _Result(enum.IntEnum):
 
     """The result code returned by the backend problem dialog."""
 
-    quit = QDialog.Accepted + 1
-    restart = QDialog.Accepted + 2
-    restart_webkit = QDialog.Accepted + 3
-    restart_webengine = QDialog.Accepted + 4
+    quit = QtWidgets.QDialog.Accepted + 1
+    restart = QtWidgets.QDialog.Accepted + 2
+    restart_webkit = QtWidgets.QDialog.Accepted + 3
+    restart_webengine = QtWidgets.QDialog.Accepted + 4
 
 
 @dataclasses.dataclass
@@ -94,7 +91,7 @@ def _error_text(because: str, text: str, backend: usertypes.Backend) -> str:
                 warning=warning, suffix=suffix))
 
 
-class _Dialog(QDialog):
+class _Dialog(QtWidgets.QDialog):
 
     """A dialog which gets shown if there are issues with the backend."""
 
@@ -102,35 +99,35 @@ class _Dialog(QDialog):
                  text: str,
                  backend: usertypes.Backend,
                  buttons: Sequence[_Button] = None,
-                 parent: QWidget = None) -> None:
+                 parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
 
         other_backend, other_setting = _other_backend(backend)
         text = _error_text(because, text, backend)
 
-        label = QLabel(text)
+        label = QtWidgets.QLabel(text)
         label.setWordWrap(True)
-        label.setTextFormat(Qt.RichText)
+        label.setTextFormat(QtCore.Qt.RichText)
         vbox.addWidget(label)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         buttons = [] if buttons is None else buttons
 
-        quit_button = QPushButton("Quit")
+        quit_button = QtWidgets.QPushButton("Quit")
         quit_button.clicked.connect(lambda: self.done(_Result.quit))
         hbox.addWidget(quit_button)
 
         backend_text = "Force {} backend".format(other_backend.name)
         if other_backend == usertypes.Backend.QtWebKit:
             backend_text += ' (not recommended)'
-        backend_button = QPushButton(backend_text)
+        backend_button = QtWidgets.QPushButton(backend_text)
         backend_button.clicked.connect(functools.partial(
             self._change_setting, 'backend', other_setting))
         hbox.addWidget(backend_button)
 
         for button in buttons:
-            btn = QPushButton(button.text)
+            btn = QtWidgets.QPushButton(button.text)
             btn.setDefault(button.default)
             btn.clicked.connect(functools.partial(
                 self._change_setting, button.setting, button.value))
@@ -181,7 +178,7 @@ class _BackendProblemChecker:
         status = dialog.exec()
         self._save_manager.save_all(is_exit=True)
 
-        if status in [_Result.quit, QDialog.Rejected]:
+        if status in [_Result.quit, QtWidgets.QDialog.Rejected]:
             pass
         elif status == _Result.restart_webkit:
             quitter.instance.restart(override_args={'backend': 'webkit'})
@@ -270,9 +267,7 @@ class _BackendProblemChecker:
         results = _BackendImports()
 
         try:
-            from PyQt5 import QtWebKit
-            from PyQt5.QtWebKit import qWebKitVersion
-            from PyQt5 import QtWebKitWidgets
+            pass
         except (ImportError, ValueError) as e:
             results.webkit_error = str(e)
         else:
@@ -280,7 +275,7 @@ class _BackendProblemChecker:
                 results.webkit_error = "Unsupported legacy QtWebKit found"
 
         try:
-            from PyQt5 import QtWebEngineWidgets
+            pass
         except (ImportError, ValueError) as e:
             results.webengine_error = str(e)
 
@@ -291,7 +286,7 @@ class _BackendProblemChecker:
 
         If "fatal" is given, show an error and exit.
         """
-        if QSslSocket.supportsSsl():
+        if QtNetwork.QSslSocket.supportsSsl():
             return
 
         if qtutils.version_check('5.12.4'):
@@ -312,7 +307,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="SSL error",
                                    text="Could not initialize SSL support.",
-                                   icon=QMessageBox.Critical,
+                                   icon=QtWidgets.QMessageBox.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
@@ -338,7 +333,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="No backend library found!",
                                    text=text,
-                                   icon=QMessageBox.Critical,
+                                   icon=QtWidgets.QMessageBox.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)

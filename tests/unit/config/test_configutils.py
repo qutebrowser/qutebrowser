@@ -20,8 +20,7 @@
 import hypothesis
 from hypothesis import strategies
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QLabel
+from qutebrowser.qt import QtWidgets, QtCore
 
 from qutebrowser.config import configutils, configdata, configtypes, configexc
 from qutebrowser.utils import urlmatch, usertypes, qtutils
@@ -112,8 +111,8 @@ def test_add_existing(values):
 def test_add_new(values, other_pattern):
     values.add('example.org value', other_pattern)
     assert values.get_for_url() == 'global value'
-    example_com = QUrl('https://www.example.com/')
-    example_org = QUrl('https://www.example.org/')
+    example_com = QtCore.QUrl('https://www.example.com/')
+    example_org = QtCore.QUrl('https://www.example.org/')
     assert values.get_for_url(example_com) == 'example value'
     assert values.get_for_url(example_org) == 'example.org value'
 
@@ -122,7 +121,7 @@ def test_remove_existing(values, pattern):
     removed = values.remove(pattern)
     assert removed
 
-    url = QUrl('https://www.example.com/')
+    url = QtCore.QUrl('https://www.example.com/')
     assert values.get_for_url(url) == 'global value'
 
 
@@ -130,7 +129,7 @@ def test_remove_non_existing(values, other_pattern):
     removed = values.remove(other_pattern)
     assert not removed
 
-    url = QUrl('https://www.example.com/')
+    url = QtCore.QUrl('https://www.example.com/')
     assert values.get_for_url(url) == 'example value'
 
 
@@ -142,13 +141,13 @@ def test_clear(values):
 
 
 def test_get_matching(values):
-    url = QUrl('https://www.example.com/')
+    url = QtCore.QUrl('https://www.example.com/')
     assert values.get_for_url(url, fallback=False) == 'example value'
 
 
 def test_get_invalid(values):
     with pytest.raises(qtutils.QtValueError):
-        values.get_for_url(QUrl())
+        values.get_for_url(QtCore.QUrl())
 
 
 def test_get_unset(empty_values):
@@ -165,12 +164,12 @@ def test_get_unset_fallback(empty_values):
 
 
 def test_get_non_matching(values):
-    url = QUrl('https://www.example.ch/')
+    url = QtCore.QUrl('https://www.example.ch/')
     assert values.get_for_url(url, fallback=False) is usertypes.UNSET
 
 
 def test_get_non_matching_fallback(values):
-    url = QUrl('https://www.example.ch/')
+    url = QtCore.QUrl('https://www.example.ch/')
     assert values.get_for_url(url) == 'global value'
 
 
@@ -178,7 +177,7 @@ def test_get_multiple_matches(values):
     """With multiple matching pattern, the last added should win."""
     all_pattern = urlmatch.UrlPattern('*://*/')
     values.add('new value', all_pattern)
-    url = QUrl('https://www.example.com/')
+    url = QtCore.QUrl('https://www.example.com/')
     assert values.get_for_url(url) == 'new value'
 
 
@@ -188,7 +187,7 @@ def test_get_non_domain_patterns(empty_values):
     empty_values.add('fallback')
     empty_values.add('value', pat1)
 
-    assert empty_values.get_for_url(QUrl("http://qutebrowser.org")) == 'value'
+    assert empty_values.get_for_url(QtCore.QUrl("http://qutebrowser.org")) == 'value'
     assert empty_values.get_for_url() == 'fallback'
 
 
@@ -245,9 +244,9 @@ def test_get_trailing_dot(values):
     other_pattern = urlmatch.UrlPattern('https://www.example.org./')
     values.add('example.org value', other_pattern)
     assert values.get_for_url() == 'global value'
-    example_com = QUrl('https://www.example.com/')
-    example_org = QUrl('https://www.example.org./')
-    example_org_2 = QUrl('https://www.example.org/')
+    example_com = QtCore.QUrl('https://www.example.com/')
+    example_org = QtCore.QUrl('https://www.example.org./')
+    example_org_2 = QtCore.QUrl('https://www.example.org/')
     assert values.get_for_url(example_com) == 'example value'
     assert (values.get_for_url(example_org) ==
             values.get_for_url(example_org_2) ==
@@ -262,7 +261,7 @@ def test_get_trailing_dot(values):
                  values.remove(pattern),
                  id='remove'),
     pytest.param(lambda values, pattern:
-                 values.get_for_url(QUrl('https://example.org/')),
+                 values.get_for_url(QtCore.QUrl('https://example.org/')),
                  id='get_for_url'),
     pytest.param(lambda values, pattern:
                  values.get_for_pattern(pattern),
@@ -292,7 +291,7 @@ def test_add_url_benchmark(values, benchmark):
     'http://bop.foo.bar.baz/',
 ])
 def test_domain_lookup_sparse_benchmark(url, values, benchmark):
-    url = QUrl(url)
+    url = QtCore.QUrl(url)
     values.add(False, urlmatch.UrlPattern("*.foo.bar.baz"))
     for line in testutils.blocked_hosts():
         values.add(False, urlmatch.UrlPattern(line))
@@ -349,7 +348,7 @@ class TestFontFamilies:
     def test_system_default_rendering(self, qtbot):
         families = configutils.FontFamilies.from_system_default()
 
-        label = QLabel()
+        label = QtWidgets.QLabel()
         qtbot.add_widget(label)
         label.setText("Hello World")
 
@@ -371,7 +370,7 @@ class TestFontFamilies:
 
         # Try to find out whether the monospace font did a fallback on a non-monospace
         # font...
-        fallback_label = QLabel()  # pylint: disable=unreachable
+        fallback_label = QtWidgets.QLabel()  # pylint: disable=unreachable
         qtbot.add_widget(label)
         fallback_label.setText("fallback")
 

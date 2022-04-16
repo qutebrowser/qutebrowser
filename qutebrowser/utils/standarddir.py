@@ -27,8 +27,7 @@ import enum
 import argparse
 from typing import Iterator, Optional
 
-from PyQt5.QtCore import QStandardPaths
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt import QtWidgets, QtCore
 
 from qutebrowser.utils import log, debug, utils, version
 
@@ -64,7 +63,7 @@ def _unset_organization() -> Iterator[None]:
 
     This is primarily needed in config.py.
     """
-    qapp = QApplication.instance()
+    qapp = QtWidgets.QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
         qapp.setOrganizationName(None)  # type: ignore[arg-type]
@@ -77,12 +76,12 @@ def _unset_organization() -> Iterator[None]:
 
 def _init_config(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for configs."""
-    typ = QStandardPaths.ConfigLocation
+    typ = QtCore.QStandardPaths.ConfigLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(
-                QStandardPaths.AppDataLocation)
+                QtCore.QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'config')
         else:
             path = _writable_location(typ)
@@ -128,7 +127,7 @@ def config_py() -> str:
 
 def _init_data(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for data."""
-    typ = QStandardPaths.AppDataLocation
+    typ = QtCore.QStandardPaths.AppDataLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
@@ -136,7 +135,7 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
             path = os.path.join(app_data_path, 'data')
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
-            config_path = _writable_location(QStandardPaths.ConfigLocation)
+            config_path = _writable_location(QtCore.QStandardPaths.ConfigLocation)
             path = os.path.join(config_path, 'data')
         else:
             path = _writable_location(typ)
@@ -169,12 +168,12 @@ def data(system: bool = False) -> str:
 
 def _init_cache(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for the cache."""
-    typ = QStandardPaths.CacheLocation
+    typ = QtCore.QStandardPaths.CacheLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
             # Local, not Roaming!
-            data_path = _writable_location(QStandardPaths.AppLocalDataLocation)
+            data_path = _writable_location(QtCore.QStandardPaths.AppLocalDataLocation)
             path = os.path.join(data_path, 'cache')
         else:
             path = _writable_location(typ)
@@ -193,7 +192,7 @@ def _init_download(args: Optional[argparse.Namespace]) -> None:
     Note this is only the default directory as found by Qt.
     Therefore, we also don't create it.
     """
-    typ = QStandardPaths.DownloadLocation
+    typ = QtCore.QStandardPaths.DownloadLocation
     path = _from_args(typ, args)
     if path is None:
         path = _writable_location(typ)
@@ -208,9 +207,9 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
     """Initialize location for runtime data."""
     if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
-        typ = QStandardPaths.TempLocation
+        typ = QtCore.QStandardPaths.TempLocation
     else:
-        typ = QStandardPaths.RuntimeLocation
+        typ = QtCore.QStandardPaths.RuntimeLocation
 
     path = _from_args(typ, args)
     if path is None:
@@ -218,10 +217,10 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
             path = _writable_location(typ)
         except EmptyValueError:
             # Fall back to TempLocation when RuntimeLocation is misconfigured
-            if typ == QStandardPaths.TempLocation:
+            if typ == QtCore.QStandardPaths.TempLocation:
                 raise
             path = _writable_location(  # pragma: no cover
-                QStandardPaths.TempLocation)
+                QtCore.QStandardPaths.TempLocation)
 
         # This is generic, but per-user.
         # _writable_location makes sure we have a qutebrowser-specific subdir.
@@ -253,23 +252,23 @@ def runtime() -> str:
     return _locations[_Location.runtime]
 
 
-def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
+def _writable_location(typ: QtCore.QStandardPaths.StandardLocation) -> str:
     """Wrapper around QStandardPaths.writableLocation.
 
     Arguments:
         typ: A QStandardPaths::StandardLocation member.
     """
-    typ_str = debug.qenum_key(QStandardPaths, typ)
+    typ_str = debug.qenum_key(QtCore.QStandardPaths, typ)
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        QStandardPaths.ConfigLocation, QStandardPaths.AppLocalDataLocation,
-        QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
-        QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
-        QStandardPaths.AppDataLocation], typ_str
+        QtCore.QStandardPaths.ConfigLocation, QtCore.QStandardPaths.AppLocalDataLocation,
+        QtCore.QStandardPaths.CacheLocation, QtCore.QStandardPaths.DownloadLocation,
+        QtCore.QStandardPaths.RuntimeLocation, QtCore.QStandardPaths.TempLocation,
+        QtCore.QStandardPaths.AppDataLocation], typ_str
 
     with _unset_organization():
-        path = QStandardPaths.writableLocation(typ)
+        path = QtCore.QStandardPaths.writableLocation(typ)
 
     log.misc.debug("writable location for {}: {}".format(typ_str, path))
     if not path:
@@ -281,7 +280,7 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     # Add the application name to the given path if needed.
     # This is in order for this to work without a QApplication (and thus
     # QStandardsPaths not knowing the application name).
-    if (typ != QStandardPaths.DownloadLocation and
+    if (typ != QtCore.QStandardPaths.DownloadLocation and
             path.split(os.sep)[-1] != APPNAME):
         path = os.path.join(path, APPNAME)
 
@@ -289,7 +288,7 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 
 
 def _from_args(
-        typ: QStandardPaths.StandardLocation,
+        typ: QtCore.QStandardPaths.StandardLocation,
         args: Optional[argparse.Namespace]
 ) -> Optional[str]:
     """Get the standard directory from an argparse namespace.
@@ -298,12 +297,12 @@ def _from_args(
         The overridden path, or None if there is no override.
     """
     basedir_suffix = {
-        QStandardPaths.ConfigLocation: 'config',
-        QStandardPaths.AppDataLocation: 'data',
-        QStandardPaths.AppLocalDataLocation: 'data',
-        QStandardPaths.CacheLocation: 'cache',
-        QStandardPaths.DownloadLocation: 'download',
-        QStandardPaths.RuntimeLocation: 'runtime',
+        QtCore.QStandardPaths.ConfigLocation: 'config',
+        QtCore.QStandardPaths.AppDataLocation: 'data',
+        QtCore.QStandardPaths.AppLocalDataLocation: 'data',
+        QtCore.QStandardPaths.CacheLocation: 'cache',
+        QtCore.QStandardPaths.DownloadLocation: 'download',
+        QtCore.QStandardPaths.RuntimeLocation: 'runtime',
     }
 
     if getattr(args, 'basedir', None) is None:

@@ -21,17 +21,12 @@
 
 from typing import Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication,
-                             QSplitter)
-from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
-
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import utils, log, usertypes
 from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
 from qutebrowser.keyinput import keyutils, modeman
+from qutebrowser.qt import QtWidgets, QtGui, QtCore
 
 
 class MinimalLineEditMixin:
@@ -49,11 +44,11 @@ class MinimalLineEditMixin:
             """
         )
         self.setAttribute(  # type: ignore[attr-defined]
-            Qt.WA_MacShowFocusRect, False)
+            QtCore.Qt.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+        if e.key() == QtCore.Qt.Key_Insert and e.modifiers() == QtCore.Qt.ShiftModifier:
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:
@@ -68,7 +63,7 @@ class MinimalLineEditMixin:
         return utils.get_repr(self)
 
 
-class CommandLineEdit(QLineEdit):
+class CommandLineEdit(QtWidgets.QLineEdit):
 
     """A QLineEdit with a history and prompt chars.
 
@@ -90,12 +85,12 @@ class CommandLineEdit(QLineEdit):
     def __repr__(self):
         return utils.get_repr(self, text=self.text())
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def on_text_edited(self, _text):
         """Slot for textEdited. Stop history browsing."""
         self.history.stop()
 
-    @pyqtSlot(int, int)
+    @QtCore.pyqtSlot(int, int)
     def __on_cursor_position_changed(self, _old, new):
         """Prevent the cursor moving to the prompt.
 
@@ -114,7 +109,7 @@ class CommandLineEdit(QLineEdit):
         self._promptlen = len(text)
 
 
-class _CommandValidator(QValidator):
+class _CommandValidator(QtGui.QValidator):
 
     """Validator to prevent the : from getting deleted.
 
@@ -137,12 +132,12 @@ class _CommandValidator(QValidator):
             A tuple (status, string, pos) as a QValidator should.
         """
         if self.prompt is None or string.startswith(self.prompt):
-            return (QValidator.Acceptable, string, pos)
+            return (QtGui.QValidator.Acceptable, string, pos)
         else:
-            return (QValidator.Invalid, string, pos)
+            return (QtGui.QValidator.Invalid, string, pos)
 
 
-class DetailFold(QWidget):
+class DetailFold(QtWidgets.QWidget):
 
     """A "fold" widget with an arrow to show/hide details.
 
@@ -156,16 +151,16 @@ class DetailFold(QWidget):
                  arg 0: bool, if the contents are currently visible.
     """
 
-    toggled = pyqtSignal(bool)
+    toggled = QtCore.pyqtSignal(bool)
 
     def __init__(self, text, parent=None):
         super().__init__(parent)
         self._folded = True
-        self._hbox = QHBoxLayout(self)
+        self._hbox = QtWidgets.QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._arrow = _FoldArrow()
         self._hbox.addWidget(self._arrow)
-        label = QLabel(text)
+        label = QtWidgets.QLabel(text)
         self._hbox.addWidget(label)
         self._hbox.addStretch()
 
@@ -181,14 +176,14 @@ class DetailFold(QWidget):
         Args:
             e: The QMouseEvent.
         """
-        if e.button() == Qt.LeftButton:
+        if e.button() == QtCore.Qt.LeftButton:
             e.accept()
             self.toggle()
         else:
             super().mousePressEvent(e)
 
 
-class _FoldArrow(QWidget):
+class _FoldArrow(QtWidgets.QWidget):
 
     """The arrow shown for the DetailFold widget.
 
@@ -215,21 +210,21 @@ class _FoldArrow(QWidget):
         Args:
             _event: The QPaintEvent (unused).
         """
-        opt = QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
-        painter = QPainter(self)
+        painter = QtGui.QPainter(self)
         if self._folded:
-            elem = QStyle.PE_IndicatorArrowRight
+            elem = QtWidgets.QStyle.PE_IndicatorArrowRight
         else:
-            elem = QStyle.PE_IndicatorArrowDown
+            elem = QtWidgets.QStyle.PE_IndicatorArrowDown
         self.style().drawPrimitive(elem, opt, painter, self)
 
     def minimumSizeHint(self):
         """Return a sensible size."""
-        return QSize(8, 8)
+        return QtCore.QSize(8, 8)
 
 
-class WrapperLayout(QLayout):
+class WrapperLayout(QtWidgets.QLayout):
 
     """A Qt layout which simply wraps a single widget.
 
@@ -239,8 +234,8 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget: Optional[QWidget] = None
-        self._container: Optional[QWidget] = None
+        self._widget: Optional[QtWidgets.QWidget] = None
+        self._container: Optional[QtWidgets.QWidget] = None
 
     def addItem(self, _widget):
         raise utils.Unreachable
@@ -248,7 +243,7 @@ class WrapperLayout(QLayout):
     def sizeHint(self):
         """Get the size of the underlying widget."""
         if self._widget is None:
-            return QSize()
+            return QtCore.QSize()
         return self._widget.sizeHint()
 
     def itemAt(self, _index):
@@ -284,7 +279,7 @@ class WrapperLayout(QLayout):
         self._container.setFocusProxy(None)  # type: ignore[arg-type]
 
 
-class FullscreenNotification(QLabel):
+class FullscreenNotification(QtWidgets.QLabel):
 
     """A label telling the user this page is now fullscreen."""
 
@@ -309,21 +304,21 @@ class FullscreenNotification(QLabel):
         if config.val.content.fullscreen.window:
             geom = self.parentWidget().geometry()
         else:
-            geom = QApplication.desktop().screenGeometry(self)
+            geom = QtWidgets.QApplication.desktop().screenGeometry(self)
         self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
         """Hide the widget after the given timeout."""
-        QTimer.singleShot(timeout, self._on_timeout)
+        QtCore.QTimer.singleShot(timeout, self._on_timeout)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_timeout(self):
         """Hide and delete the widget."""
         self.hide()
         self.deleteLater()
 
 
-class InspectorSplitter(QSplitter):
+class InspectorSplitter(QtWidgets.QSplitter):
 
     """Allows putting an inspector inside the tab.
 
@@ -342,8 +337,8 @@ class InspectorSplitter(QSplitter):
     _PROTECTED_MAIN_SIZE = 150
     _SMALL_SIZE_THRESHOLD = 300
 
-    def __init__(self, win_id: int, main_webview: QWidget,
-                 parent: QWidget = None) -> None:
+    def __init__(self, win_id: int, main_webview: QtWidgets.QWidget,
+                 parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self.addWidget(main_webview)
@@ -387,10 +382,10 @@ class InspectorSplitter(QSplitter):
             self._inspector_idx = 0
             self._main_idx = 1
 
-        self.setOrientation(Qt.Horizontal
+        self.setOrientation(QtCore.Qt.Horizontal
                             if position in [inspector.Position.left,
                                             inspector.Position.right]
-                            else Qt.Vertical)
+                            else QtCore.Qt.Vertical)
         self.insertWidget(self._inspector_idx, inspector_widget)
         self._position = position
         self._load_preferred_size()
@@ -405,7 +400,7 @@ class InspectorSplitter(QSplitter):
     def _load_preferred_size(self) -> None:
         """Load the preferred size of the inspector widget."""
         assert self._position is not None
-        full = (self.width() if self.orientation() == Qt.Horizontal
+        full = (self.width() if self.orientation() == QtCore.Qt.Horizontal
                 else self.height())
 
         # If we first open the inspector with a window size of < 300px
@@ -469,29 +464,29 @@ class InspectorSplitter(QSplitter):
             # Case 3 above
             pass
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_splitter_moved(self) -> None:
         assert self._inspector_idx is not None
         sizes = self.sizes()
         self._preferred_size = sizes[self._inspector_idx]
         self._save_preferred_size()
 
-    def resizeEvent(self, e: QResizeEvent) -> None:
+    def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         """Window resize event."""
         super().resizeEvent(e)
         if self.count() == 2:
             self._adjust_size()
 
 
-class KeyTesterWidget(QWidget):
+class KeyTesterWidget(QtWidgets.QWidget):
 
     """Widget displaying key presses."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
-        self._layout = QHBoxLayout(self)
-        self._label = QLabel(text="Waiting for keypress...")
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self._layout = QtWidgets.QHBoxLayout(self)
+        self._label = QtWidgets.QLabel(text="Waiting for keypress...")
         self._layout.addWidget(self._label)
 
     def keyPressEvent(self, e):

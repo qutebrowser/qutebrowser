@@ -34,7 +34,7 @@ import fnmatch
 import urllib.parse
 from typing import Any, Optional, Tuple
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import utils, qtutils
 
@@ -196,7 +196,7 @@ class UrlPattern:
 
         if parsed.netloc.startswith('['):
             # Using QUrl parsing to minimize ipv6 addresses
-            url = QUrl()
+            url = QtCore.QUrl()
             url.setHost(parsed.hostname)
             if not url.isValid():
                 raise ParseError(url.errorString())
@@ -309,7 +309,7 @@ class UrlPattern:
         # doesn't rely on regexes. Do we need that too?
         return fnmatch.fnmatchcase(path, self._path)
 
-    def matches(self, qurl: QUrl) -> bool:
+    def matches(self, qurl: QtCore.QUrl) -> bool:
         """Check if the pattern matches the given QUrl."""
         qtutils.ensure_valid(qurl)
 

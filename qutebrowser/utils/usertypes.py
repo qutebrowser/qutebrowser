@@ -24,9 +24,7 @@ import operator
 import enum
 import dataclasses
 from typing import Optional, Sequence, TypeVar, Union
-
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -358,7 +356,7 @@ class CommandValue(enum.Enum):
     count_tab = enum.auto()
 
 
-class Question(QObject):
+class Question(QtCore.QObject):
 
     """A question asked to the user, e.g. via the status bar.
 
@@ -396,14 +394,14 @@ class Question(QObject):
         completed: Emitted when the question was completed in any way.
     """
 
-    answered = pyqtSignal(object)
-    cancelled = pyqtSignal()
-    aborted = pyqtSignal()
-    answered_yes = pyqtSignal()
-    answered_no = pyqtSignal()
-    completed = pyqtSignal()
+    answered = QtCore.pyqtSignal(object)
+    cancelled = QtCore.pyqtSignal()
+    aborted = QtCore.pyqtSignal()
+    answered_yes = QtCore.pyqtSignal()
+    answered_no = QtCore.pyqtSignal()
+    completed = QtCore.pyqtSignal()
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self.mode: Optional[PromptMode] = None
         self.default: Union[bool, str, None] = None
@@ -420,7 +418,7 @@ class Question(QObject):
                               mode=self.mode, default=self.default,
                               option=self.option)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def done(self) -> None:
         """Must be called when the question was answered completely."""
         self.answered.emit(self.answer)
@@ -431,13 +429,13 @@ class Question(QObject):
                 self.answered_no.emit()
         self.completed.emit()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def cancel(self) -> None:
         """Cancel the question (resulting from user-input)."""
         self.cancelled.emit()
         self.completed.emit()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def abort(self) -> None:
         """Abort the question."""
         if self.is_aborted:
@@ -448,7 +446,7 @@ class Question(QObject):
         self.completed.emit()
 
 
-class Timer(QTimer):
+class Timer(QtCore.QTimer):
 
     """A timer which has a name to show in __repr__ and checks for overflows.
 
@@ -456,7 +454,7 @@ class Timer(QTimer):
         _name: The name of the timer.
     """
 
-    def __init__(self, parent: QObject = None, name: str = None) -> None:
+    def __init__(self, parent: QtCore.QObject = None, name: str = None) -> None:
         super().__init__(parent)
         if name is None:
             self._name = "unnamed"
@@ -528,7 +526,7 @@ class NavigationRequest:
         #: None of the above.
         other = 8
 
-    url: QUrl
+    url: QtCore.QUrl
     navigation_type: Type
     is_main_frame: bool
     accepted: bool = True

@@ -31,16 +31,15 @@ import os
 import os.path
 from typing import List, Optional, Iterable
 
-from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
-
 from qutebrowser.config import config
 from qutebrowser.utils import log
+from qutebrowser.qt import QtCore
 
 
-class FilePathCategory(QAbstractListModel):
+class FilePathCategory(QtCore.QAbstractListModel):
     """Represent filesystem paths matching a pattern."""
 
-    def __init__(self, name: str, parent: QObject = None) -> None:
+    def __init__(self, name: str, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self._paths: List[str] = []
         self.name = name
@@ -71,7 +70,7 @@ class FilePathCategory(QAbstractListModel):
 
     def _url_to_path(self, val: str) -> str:
         """Get a path from a file:/// URL."""
-        url = QUrl(val)
+        url = QtCore.QUrl(val)
         assert url.isValid(), url
         assert url.scheme() == 'file', url
         return url.toLocalFile()
@@ -87,7 +86,7 @@ class FilePathCategory(QAbstractListModel):
         elif val.startswith('file:///'):
             url_path = self._url_to_path(val)
             self._paths = sorted(
-                QUrl.fromLocalFile(path).toString()
+                QtCore.QUrl.fromLocalFile(path).toString()
                 for path in self._glob(url_path)
             )
         else:
@@ -100,13 +99,13 @@ class FilePathCategory(QAbstractListModel):
             paths = self._glob(expanded)
             self._paths = sorted(self._contract_user(val, path) for path in paths)
 
-    def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Optional[str]:
+    def data(self, index: QtCore.QModelIndex, role: int = QtCore.Qt.DisplayRole) -> Optional[str]:
         """Implement abstract method in QAbstractListModel."""
-        if role == Qt.DisplayRole and index.column() == 0:
+        if role == QtCore.Qt.DisplayRole and index.column() == 0:
             return self._paths[index.row()]
         return None
 
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
+    def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
         """Implement abstract method in QAbstractListModel."""
         if parent.isValid():
             return 0

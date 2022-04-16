@@ -22,12 +22,10 @@
 import functools
 from typing import Callable, MutableSequence, Tuple, Union
 
-from PyQt5.QtCore import pyqtSlot, QSize, Qt
-from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
-
 from qutebrowser.browser import downloads
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.qt import QtWidgets, QtCore
 
 
 _ActionListType = MutableSequence[
@@ -38,7 +36,7 @@ _ActionListType = MutableSequence[
 ]
 
 
-class DownloadView(QListView):
+class DownloadView(QtWidgets.QListView):
 
     """QListView which shows currently running downloads as a bar.
 
@@ -60,13 +58,13 @@ class DownloadView(QListView):
     def __init__(self, model, parent=None):
         super().__init__(parent)
         if not utils.is_mac:
-            self.setStyle(QStyleFactory.create('Fusion'))
+            self.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setResizeMode(QListView.Adjust)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        self.setFocusPolicy(Qt.NoFocus)
-        self.setFlow(QListView.LeftToRight)
+        self.setResizeMode(QtWidgets.QListView.Adjust)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.setFlow(QtWidgets.QListView.LeftToRight)
         self.setSpacing(1)
         self._menu = None
         model.rowsInserted.connect(self._update_geometry)
@@ -74,7 +72,7 @@ class DownloadView(QListView):
         model.dataChanged.connect(self._update_geometry)
         self.setModel(model)
         self.setWrapping(True)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
         self.clicked.connect(self.on_clicked)
 
@@ -86,7 +84,7 @@ class DownloadView(QListView):
             count = model.rowCount()
         return utils.get_repr(self, count=count)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _update_geometry(self):
         """Wrapper to call updateGeometry.
 
@@ -95,7 +93,7 @@ class DownloadView(QListView):
         """
         self.updateGeometry()
 
-    @pyqtSlot(bool)
+    @QtCore.pyqtSlot(bool)
     def on_fullscreen_requested(self, on):
         """Hide/show the downloadview when entering/leaving fullscreen."""
         if on:
@@ -103,7 +101,7 @@ class DownloadView(QListView):
         else:
             self.show()
 
-    @pyqtSlot('QModelIndex')
+    @QtCore.pyqtSlot('QModelIndex')
     def on_clicked(self, index):
         """Handle clicking of an item.
 
@@ -149,7 +147,7 @@ class DownloadView(QListView):
             actions.append(("Remove all finished", model.download_clear))
         return actions
 
-    @pyqtSlot('QPoint')
+    @QtCore.pyqtSlot('QPoint')
     def show_context_menu(self, point):
         """Show the context menu."""
         index = self.indexAt(point)
@@ -157,7 +155,7 @@ class DownloadView(QListView):
             item = self.model().data(index, downloads.ModelRole.item)
         else:
             item = None
-        self._menu = QMenu(self)
+        self._menu = QtWidgets.QMenu(self)
         actions = self._get_menu_actions(item)
         for (name, handler) in actions:
             if name is None and handler is None:
@@ -182,8 +180,8 @@ class DownloadView(QListView):
             margins = self.contentsMargins()
             height = (bottom + margins.top() + margins.bottom() +
                       2 * self.spacing())
-            size = QSize(0, height)
+            size = QtCore.QSize(0, height)
         else:
-            size = QSize(0, 0)
+            size = QtCore.QSize(0, 0)
         qtutils.ensure_valid(size)
         return size

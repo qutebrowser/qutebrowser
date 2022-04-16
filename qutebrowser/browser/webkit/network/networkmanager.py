@@ -24,10 +24,6 @@ import html
 import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
-                             QNetworkProxy)
-
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
@@ -38,6 +34,7 @@ from qutebrowser.browser.webkit import certificateerror, cookies, cache
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 from qutebrowser.misc import objects
+from qutebrowser.qt import QtNetwork, QtCore
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import prompt
@@ -52,7 +49,7 @@ class ProxyId:
 
     """Information identifying a proxy server."""
 
-    type: QNetworkProxy.ProxyType
+    type: QtNetwork.QNetworkProxy.ProxyType
     hostname: str
     port: int
 
@@ -103,7 +100,7 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    sslconfig = QSslConfiguration.defaultConfiguration()
+    sslconfig = QtNetwork.QSslConfiguration.defaultConfiguration()
     default_ciphers = sslconfig.ciphers()
     log.init.vdebug(  # type: ignore[attr-defined]
         "Default Qt ciphers: {}".format(
@@ -129,7 +126,7 @@ _SavedErrorsType = MutableMapping[
 ]
 
 
-class NetworkManager(QNetworkAccessManager):
+class NetworkManager(QtNetwork.QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
 
@@ -154,7 +151,7 @@ class NetworkManager(QNetworkAccessManager):
         shutting_down: Emitted when the QNAM is shutting down.
     """
 
-    shutting_down = pyqtSignal()
+    shutting_down = QtCore.pyqtSignal()
 
     def __init__(self, *, win_id, tab_id, private, parent=None):
         log.init.debug("Initializing NetworkManager")
@@ -239,7 +236,7 @@ class NetworkManager(QNetworkAccessManager):
 
     def shutdown(self):
         """Abort all running requests."""
-        self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+        self.setNetworkAccessible(QtNetwork.QNetworkAccessManager.NotAccessible)
         self.shutting_down.emit()
 
     # No @pyqtSlot here, see
@@ -279,7 +276,7 @@ class NetworkManager(QNetworkAccessManager):
         abort_on = self._get_abort_signals(reply)
 
         tab = self._get_tab()
-        first_party_url = QUrl() if tab is None else tab.data.last_navigation.url
+        first_party_url = QtCore.QUrl() if tab is None else tab.data.last_navigation.url
 
         ignore = shared.ignore_certificate_error(
             request_url=reply.url(),
@@ -299,7 +296,7 @@ class NetworkManager(QNetworkAccessManager):
         self._accepted_ssl_errors.clear()
         self._rejected_ssl_errors.clear()
 
-    @pyqtSlot(QUrl)
+    @QtCore.pyqtSlot(QtCore.QUrl)
     def clear_rejected_ssl_errors(self, url):
         """Clear the rejected SSL errors on a reload.
 
@@ -311,7 +308,7 @@ class NetworkManager(QNetworkAccessManager):
         except KeyError:
             pass
 
-    @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
+    @QtCore.pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         url = reply.url()
@@ -329,7 +326,7 @@ class NetworkManager(QNetworkAccessManager):
             shared.authentication_required(url, authenticator,
                                            abort_on=abort_on)
 
-    @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
+    @QtCore.pyqtSlot('QNetworkProxy', 'QAuthenticator*')
     def on_proxy_authentication_required(self, proxy, authenticator):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
@@ -350,7 +347,7 @@ class NetworkManager(QNetworkAccessManager):
                 authenticator.setPassword(answer.password)
                 _proxy_auth_cache[proxy_id] = answer
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_adopted_download_destroyed(self):
         """Check if we can clean up if an adopted download was destroyed.
 
@@ -363,7 +360,7 @@ class NetworkManager(QNetworkAccessManager):
         if self.adopted_downloads == 0:
             self.deleteLater()
 
-    @pyqtSlot(object)  # DownloadItem
+    @QtCore.pyqtSlot(object)  # DownloadItem
     def adopt_download(self, download):
         """Adopt a new DownloadItem."""
         self.adopted_downloads += 1
@@ -380,10 +377,10 @@ class NetworkManager(QNetworkAccessManager):
             if referer_header_conf == 'never':
                 # Note: using ''.encode('ascii') sends a header with no value,
                 # instead of no header at all
-                req.setRawHeader(b'Referer', QByteArray())
+                req.setRawHeader(b'Referer', QtCore.QByteArray())
             elif (referer_header_conf == 'same-domain' and
                   not urlutils.same_domain(req.url(), current_url)):
-                req.setRawHeader(b'Referer', QByteArray())
+                req.setRawHeader(b'Referer', QtCore.QByteArray())
             # If refer_header_conf is set to 'always', we leave the header
             # alone as QtWebKit did set it.
         except urlutils.InvalidUrlError:
@@ -406,21 +403,21 @@ class NetworkManager(QNetworkAccessManager):
             proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
-                    req, proxy_error, QNetworkReply.UnknownProxyError,
+                    req, proxy_error, QtNetwork.QNetworkReply.UnknownProxyError,
                     self)
 
         if not req.url().isValid():
             log.network.debug("Ignoring invalid requested URL: {}".format(
                 req.url().errorString()))
             return networkreply.ErrorNetworkReply(
-                req, "Invalid request URL", QNetworkReply.HostNotFoundError,
+                req, "Invalid request URL", QtNetwork.QNetworkReply.HostNotFoundError,
                 self)
 
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
         tab = self._get_tab()
-        current_url = QUrl()
+        current_url = QtCore.QUrl()
         if tab is not None:
             try:
                 current_url = tab.url()
@@ -433,11 +430,11 @@ class NetworkManager(QNetworkAccessManager):
         interceptors.run(request)
         if request.is_blocked:
             return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                req, HOSTBLOCK_ERROR_STRING, QtNetwork.QNetworkReply.ContentAccessDenied,
                 self)
 
         if 'log-requests' in objects.debug_flags:
-            operation = debug.qenum_key(QNetworkAccessManager, op)
+            operation = debug.qenum_key(QtNetwork.QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
             log.network.debug("{} {}, first-party {}".format(
                 operation,

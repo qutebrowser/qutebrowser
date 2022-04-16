@@ -26,37 +26,37 @@ the native functionality exists.
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 
 @pytest.mark.parametrize('base_url, source, expected', [
     pytest.param(
-        QUrl(),
+        QtCore.QUrl(),
         '"This is a test".replaceAll("test", "fest")',
         "This is a fest",
         id='replace-all',
     ),
     pytest.param(
-        QUrl(),
+        QtCore.QUrl(),
         '"This is a test".replaceAll(/[tr]est/g, "fest")',
         "This is a fest",
         id='replace-all-regex',
     ),
     pytest.param(
-        QUrl(),
+        QtCore.QUrl(),
         '"This is a [test[".replaceAll("[", "<")',
         "This is a <test<",
         id='replace-all-reserved-string',
     ),
     pytest.param(
-        QUrl('https://test.qutebrowser.org/test'),
+        QtCore.QUrl('https://test.qutebrowser.org/test'),
         'typeof globalThis.setTimeout === "function"',
         True,
         id='global-this',
     ),
     pytest.param(
-        QUrl(),
+        QtCore.QUrl(),
         'Object.fromEntries([["0", "a"], ["1", "b"]])',
         {'0': 'a', '1': 'b'},
         id='object-fromentries',

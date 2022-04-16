@@ -24,14 +24,13 @@ import argparse
 import functools
 import dataclasses
 from typing import Any, Callable, Dict, Optional, Union
-
-from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
-from PyQt5.QtGui import QFont
+from qutebrowser.qt import QtGui
 
 import qutebrowser
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, urlmatch, qtutils, utils
 from qutebrowser.misc import objects, debugcachestats
+from qutebrowser.qt import QtCore
 
 UNSET = object()
 
@@ -104,7 +103,7 @@ class AbstractSettings:
     _ATTRIBUTES: Dict[str, AttributeInfo] = {}
     _FONT_SIZES: Dict[str, Any] = {}
     _FONT_FAMILIES: Dict[str, Any] = {}
-    _FONT_TO_QFONT: Dict[Any, QFont.StyleHint] = {}
+    _FONT_TO_QFONT: Dict[Any, QtGui.QFont.StyleHint] = {}
 
     def __init__(self, settings: Any) -> None:
         self._settings = settings
@@ -152,7 +151,7 @@ class AbstractSettings:
         if value is usertypes.UNSET:
             self._settings.resetFontFamily(family)
         elif value is None:
-            font = QFont()
+            font = QtGui.QFont()
             font.setStyleHint(self._FONT_TO_QFONT[family])
             value = font.defaultFamily()
             self._settings.setFontFamily(family, value)
@@ -187,7 +186,7 @@ class AbstractSettings:
         value = config.instance.get(setting)
         self._update_setting(setting, value)
 
-    def update_for_url(self, url: QUrl) -> None:
+    def update_for_url(self, url: QtCore.QUrl) -> None:
         """Update settings customized for the given tab."""
         qtutils.ensure_valid(url)
         for values in config.instance:
@@ -220,14 +219,14 @@ def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
         os_info=parsed.os_info,
         webkit_version=parsed.webkit_version,
         qt_key=parsed.qt_key,
-        qt_version=qVersion(),
+        qt_version=QtCore.qVersion(),
         upstream_browser_key=parsed.upstream_browser_key,
         upstream_browser_version=parsed.upstream_browser_version,
         qutebrowser_version=qutebrowser.__version__,
     )
 
 
-def user_agent(url: QUrl = None) -> str:
+def user_agent(url: QtCore.QUrl = None) -> str:
     """Get the user agent for the given URL, or the global one if URL is None.
 
     Note that the given URL should always be valid.
@@ -268,7 +267,7 @@ def clear_private_data() -> None:
         raise utils.Unreachable(objects.backend)
 
 
-@pyqtSlot()
+@QtCore.pyqtSlot()
 def shutdown() -> None:
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:

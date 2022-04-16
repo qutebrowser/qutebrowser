@@ -30,14 +30,13 @@ from unittest import mock
 from typing import Optional, List
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import standarddir, utils, version
 from helpers import stubs, testutils
+from qutebrowser.qt import QtNetwork, QtCore
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
@@ -56,7 +55,7 @@ def ipc_server(qapp, qtbot):
     server = ipc.IPCServer('qute-test')
     yield server
     if (server._socket is not None and
-            server._socket.state() != QLocalSocket.UnconnectedState):
+            server._socket.state() != QtNetwork.QLocalSocket.UnconnectedState):
         with qtbot.wait_signal(server._socket.disconnected, raising=False):
             server._socket.abort()
     try:
@@ -67,7 +66,7 @@ def ipc_server(qapp, qtbot):
 
 @pytest.fixture
 def qlocalserver(qapp):
-    server = QLocalServer()
+    server = QtNetwork.QLocalServer()
     yield server
     server.close()
     server.deleteLater()
@@ -75,10 +74,10 @@ def qlocalserver(qapp):
 
 @pytest.fixture
 def qlocalsocket(qapp):
-    socket = QLocalSocket()
+    socket = QtNetwork.QLocalSocket()
     yield socket
     socket.disconnectFromServer()
-    if socket.state() != QLocalSocket.UnconnectedState:
+    if socket.state() != QtNetwork.QLocalSocket.UnconnectedState:
         socket.waitForDisconnected(1000)
 
 
@@ -89,7 +88,7 @@ def fake_runtime_dir(monkeypatch, short_tmpdir):
     return short_tmpdir
 
 
-class FakeSocket(QObject):
+class FakeSocket(QtCore.QObject):
 
     """A stub for a QLocalSocket.
 
@@ -100,10 +99,10 @@ class FakeSocket(QObject):
         _connect_successful: The value returned for waitForConnected().
     """
 
-    readyRead = pyqtSignal()  # noqa: N815
-    disconnected = pyqtSignal()
+    readyRead = QtCore.pyqtSignal()  # noqa: N815
+    disconnected = QtCore.pyqtSignal()
 
-    def __init__(self, *, error=QLocalSocket.UnknownSocketError, state=None,
+    def __init__(self, *, error=QtNetwork.QLocalSocket.UnknownSocketError, state=None,
                  data=None, connect_successful=True, parent=None):
         super().__init__(parent)
         self._error_val = error
@@ -280,9 +279,9 @@ class TestExceptions:
             raise exc
 
     def test_socket_error(self, qlocalserver):
-        socket = FakeSocket(error=QLocalSocket.ConnectionRefusedError)
+        socket = FakeSocket(error=QtNetwork.QLocalSocket.ConnectionRefusedError)
         exc = ipc.SocketError("testing", socket)
-        assert exc.code == QLocalSocket.ConnectionRefusedError
+        assert exc.code == QtNetwork.QLocalSocket.ConnectionRefusedError
         assert exc.message == "Error string"
         assert str(exc) == "Error while testing: Error string (error 0)"
 
@@ -322,7 +321,7 @@ class TestListen:
     @pytest.mark.windows
     def test_permissions_windows(self, ipc_server):
         opts = ipc_server._server.socketOptions()
-        assert opts == QLocalServer.UserAccessOption
+        assert opts == QtNetwork.QLocalServer.UserAccessOption
 
     @pytest.mark.posix
     def test_permissions_posix(self, ipc_server):
@@ -403,24 +402,24 @@ class TestListen:
 class TestOnError:
 
     def test_closed(self, ipc_server):
-        ipc_server._socket = QLocalSocket()
+        ipc_server._socket = QtNetwork.QLocalSocket()
         ipc_server._timer.timeout.disconnect()
         ipc_server._timer.start()
-        ipc_server.on_error(QLocalSocket.PeerClosedError)
+        ipc_server.on_error(QtNetwork.QLocalSocket.PeerClosedError)
         assert not ipc_server._timer.isActive()
 
     def test_other_error(self, ipc_server, monkeypatch):
-        socket = QLocalSocket()
+        socket = QtNetwork.QLocalSocket()
         ipc_server._socket = socket
         monkeypatch.setattr(socket, 'error',
-                            lambda: QLocalSocket.ConnectionRefusedError)
+                            lambda: QtNetwork.QLocalSocket.ConnectionRefusedError)
         monkeypatch.setattr(socket, 'errorString',
                             lambda: "Connection refused")
         socket.setErrorString("Connection refused.")
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
                            r"connection: Connection refused \(error 0\)"):
-            ipc_server.on_error(QLocalSocket.ConnectionRefusedError)
+            ipc_server.on_error(QtNetwork.QLocalSocket.ConnectionRefusedError)
 
 
 class TestHandleConnection:
@@ -444,13 +443,13 @@ class TestHandleConnection:
         assert any(message.startswith(msg) for message in caplog.messages)
 
     def test_disconnected_immediately(self, ipc_server, caplog):
-        socket = FakeSocket(state=QLocalSocket.UnconnectedState)
+        socket = FakeSocket(state=QtNetwork.QLocalSocket.UnconnectedState)
         ipc_server._server = FakeServer(socket)
         ipc_server.handle_connection()
         assert "Socket was disconnected immediately." in caplog.messages
 
     def test_error_immediately(self, ipc_server, caplog):
-        socket = FakeSocket(error=QLocalSocket.ConnectionError)
+        socket = FakeSocket(error=QtNetwork.QLocalSocket.ConnectionError)
         ipc_server._server = FakeServer(socket)
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
@@ -588,7 +587,7 @@ class TestSendToRunningInstance:
         assert parsed == raw_expected
 
     def test_socket_error(self):
-        socket = FakeSocket(error=QLocalSocket.ConnectionError)
+        socket = FakeSocket(error=QtNetwork.QLocalSocket.ConnectionError)
         with pytest.raises(ipc.Error, match=r"Error while writing to running "
                            r"instance: Error string \(error 7\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
@@ -598,7 +597,7 @@ class TestSendToRunningInstance:
         ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
     def test_socket_error_no_server(self):
-        socket = FakeSocket(error=QLocalSocket.ConnectionError,
+        socket = FakeSocket(error=QtNetwork.QLocalSocket.ConnectionError,
                             connect_successful=False)
         with pytest.raises(ipc.Error, match=r"Error while connecting to "
                            r"running instance: Error string \(error 7\)"):
@@ -667,7 +666,7 @@ class TestSendOrListen:
         for name in ['UnknownSocketError', 'UnconnectedState',
                      'ConnectionRefusedError', 'ServerNotFoundError',
                      'PeerClosedError']:
-            setattr(m, name, getattr(QLocalSocket, name))
+            setattr(m, name, getattr(QtNetwork.QLocalSocket, name))
         return m
 
     @pytest.mark.linux(reason="Flaky on Windows and macOS")
@@ -701,14 +700,14 @@ class TestSendOrListen:
             -> success
         """
         qlocalserver_mock().listen.return_value = False
-        err = QAbstractSocket.AddressInUseError
+        err = QtNetwork.QAbstractSocket.AddressInUseError
         qlocalserver_mock().serverError.return_value = err
 
         qlocalsocket_mock().waitForConnected.side_effect = [False, True]
         qlocalsocket_mock().error.side_effect = [
-            QLocalSocket.ServerNotFoundError,
-            QLocalSocket.UnknownSocketError,
-            QLocalSocket.UnknownSocketError,  # error() gets called twice
+            QtNetwork.QLocalSocket.ServerNotFoundError,
+            QtNetwork.QLocalSocket.UnknownSocketError,
+            QtNetwork.QLocalSocket.UnknownSocketError,  # error() gets called twice
         ]
 
         ret = ipc.send_or_listen(args)
@@ -734,17 +733,17 @@ class TestSendOrListen:
             -> not sent / error
         """
         qlocalserver_mock().listen.return_value = False
-        err = QAbstractSocket.AddressInUseError
+        err = QtNetwork.QAbstractSocket.AddressInUseError
         qlocalserver_mock().serverError.return_value = err
 
         # If the second connection succeeds, we will have an error later.
         # If it fails, that's the "not sent" case above.
         qlocalsocket_mock().waitForConnected.side_effect = [False, has_error]
         qlocalsocket_mock().error.side_effect = [
-            QLocalSocket.ServerNotFoundError,
-            QLocalSocket.ServerNotFoundError,
-            QLocalSocket.ConnectionRefusedError,
-            QLocalSocket.ConnectionRefusedError,  # error() gets called twice
+            QtNetwork.QLocalSocket.ServerNotFoundError,
+            QtNetwork.QLocalSocket.ServerNotFoundError,
+            QtNetwork.QLocalSocket.ConnectionRefusedError,
+            QtNetwork.QLocalSocket.ConnectionRefusedError,  # error() gets called twice
         ]
 
         with caplog.at_level(logging.ERROR):
@@ -766,7 +765,7 @@ class TestSendOrListen:
     def test_error_while_listening(self, qlocalserver_mock, caplog, args):
         """Test an error with the first listen call."""
         qlocalserver_mock().listen.return_value = False
-        err = QAbstractSocket.SocketResourceError
+        err = QtNetwork.QAbstractSocket.SocketResourceError
         qlocalserver_mock().serverError.return_value = err
 
         with caplog.at_level(logging.ERROR):
@@ -809,7 +808,7 @@ def test_connect_inexistent(qlocalsocket):
     would not work properly.
     """
     qlocalsocket.connectToServer('qute-test-inexistent')
-    assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError
+    assert qlocalsocket.error() == QtNetwork.QLocalSocket.ServerNotFoundError
 
 
 @pytest.mark.posix
@@ -821,12 +820,12 @@ def test_socket_options_address_in_use_problem(qlocalserver, short_tmpdir):
     """
     servername = str(short_tmpdir / 'x')
 
-    s1 = QLocalServer()
+    s1 = QtNetwork.QLocalServer()
     ok = s1.listen(servername)
     assert ok
 
-    s2 = QLocalServer()
-    s2.setSocketOptions(QLocalServer.UserAccessOption)
+    s2 = QtNetwork.QLocalServer()
+    s2.setSocketOptions(QtNetwork.QLocalServer.UserAccessOption)
     ok = s2.listen(servername)
     print(s2.errorString())
     # We actually would expect ok == False here - but we want the test to fail

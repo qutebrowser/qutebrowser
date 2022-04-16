@@ -25,10 +25,7 @@ import shutil
 import functools
 import dataclasses
 from typing import Dict, IO, Optional
-
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
+from qutebrowser.qt import QtWidgets
 
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
@@ -36,13 +33,14 @@ from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.qt import QtNetwork, QtCore
 
 
 @dataclasses.dataclass
 class _RetryInfo:
 
-    request: QNetworkRequest
-    manager: QNetworkAccessManager
+    request: QtNetwork.QNetworkRequest
+    manager: QtNetwork.QNetworkAccessManager
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -83,7 +81,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     """
 
     _MAX_REDIRECTS = 10
-    adopt_download = pyqtSignal(object)  # DownloadItem
+    adopt_download = QtCore.pyqtSignal(object)  # DownloadItem
 
     def __init__(self, reply, manager):
         """Constructor.
@@ -162,8 +160,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         # We could have got signals before we connected slots to them.
         # Here no signals are connected to the DownloadItem yet, so we use a
         # singleShot QTimer to emit them after they are connected.
-        if reply.error() != QNetworkReply.NoError:
-            QTimer.singleShot(0, lambda: self._die(reply.errorString()))
+        if reply.error() != QtNetwork.QNetworkReply.NoError:
+            QtCore.QTimer.singleShot(0, lambda: self._die(reply.errorString()))
 
     def _do_cancel(self):
         self._read_timer.stop()
@@ -176,7 +174,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.fileobj.close()
         self.cancelled.emit()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def retry(self):
         """Retry a failed download."""
         assert self.done
@@ -199,20 +197,20 @@ class DownloadItem(downloads.AbstractDownloadItem):
             filename = getattr(self.fileobj, 'name', None)
         return filename
 
-    def url(self) -> QUrl:
+    def url(self) -> QtCore.QUrl:
         # Note: self._reply is deleted when the download finishes
         return self._url
 
-    def origin(self) -> QUrl:
+    def origin(self) -> QtCore.QUrl:
         if self._reply is None:
-            return QUrl()
+            return QtCore.QUrl()
         origin = self._reply.request().originatingObject()
         try:
             return origin.url()
         except AttributeError:
             # Raised either if origin is None or some object that doesn't
             # have its own url.
-            return QUrl()
+            return QtCore.QUrl()
 
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover
@@ -286,7 +284,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.fileobj.write(self._reply.readAll())
         if self._autoclose:
             self.fileobj.close()
-        self.successful = self._reply.error() == QNetworkReply.NoError
+        self.successful = self._reply.error() == QtNetwork.QNetworkReply.NoError
         self._reply.close()
         self._reply.deleteLater()
         self._reply = None
@@ -295,7 +293,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         log.downloads.debug("Download {} finished".format(self.basename))
         self.data_changed.emit()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_reply_finished(self):
         """Clean up when the download was finished.
 
@@ -316,7 +314,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             # clean up.
             self._finish_download()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_ready_read(self):
         """Read available data and save file when ready to read."""
         if self.fileobj is None or self._reply is None:
@@ -331,21 +329,21 @@ class DownloadItem(downloads.AbstractDownloadItem):
         except OSError as e:
             self._die(e.strerror)
 
-    @pyqtSlot('QNetworkReply::NetworkError')
+    @QtCore.pyqtSlot('QNetworkReply::NetworkError')
     def _on_reply_error(self, code):
         """Handle QNetworkReply errors."""
-        if code == QNetworkReply.OperationCanceledError:
+        if code == QtNetwork.QNetworkReply.OperationCanceledError:
             return
 
         if self._reply is None:
             error = "Unknown error: {}".format(
-                debug.qenum_key(QNetworkReply, code))
+                debug.qenum_key(QtNetwork.QNetworkReply, code))
         else:
             error = self._reply.errorString()
 
         self._die(error)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_read_timer_timeout(self):
         """Read some bytes from the QNetworkReply periodically."""
         assert self._reply is not None
@@ -355,7 +353,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if data is not None:
             self._buffer.write(data)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_meta_data_changed(self):
         """Update the download's metadata."""
         if self._reply is None:
@@ -372,7 +370,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """
         assert self._reply is not None
         redirect = self._reply.attribute(
-            QNetworkRequest.RedirectionTargetAttribute)
+            QtNetwork.QNetworkRequest.RedirectionTargetAttribute)
         if redirect is None or redirect.isEmpty():
             return False
         new_url = self._reply.url().resolved(redirect)
@@ -430,7 +428,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             win_id=None, tab_id=None,
             private=config.val.content.private_browsing, parent=self)
 
-    @pyqtSlot('QUrl')
+    @QtCore.pyqtSlot('QUrl')
     def get(self, url, cache=True, **kwargs):
         """Start a download with a link URL.
 
@@ -446,12 +444,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
             urlutils.invalid_url_error(url, "start download")
             return None
 
-        req = QNetworkRequest(url)
+        req = QtNetwork.QNetworkRequest(url)
         user_agent = websettings.user_agent(url)
-        req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+        req.setHeader(QtNetwork.QNetworkRequest.UserAgentHeader, user_agent)
 
         if not cache:
-            req.setAttribute(QNetworkRequest.CacheSaveControlAttribute, False)
+            req.setAttribute(QtNetwork.QNetworkRequest.CacheSaveControlAttribute, False)
 
         return self.get_request(req, **kwargs)
 
@@ -511,8 +509,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
-        request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
-                             QNetworkRequest.AlwaysNetwork)
+        request.setAttribute(QtNetwork.QNetworkRequest.CacheLoadControlAttribute,
+                             QtNetwork.QNetworkRequest.AlwaysNetwork)
 
         if suggested_fn is None:
             suggested_fn = self._get_suggested_filename(request)
@@ -538,7 +536,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         reply = qnam.get(request)
         return self.fetch(reply, **kwargs)
 
-    @pyqtSlot('QNetworkReply')
+    @QtCore.pyqtSlot('QNetworkReply')
     def fetch(self, reply, *, target=None, auto_remove=False,
               suggested_filename=None, prompt_download_directory=None):
         """Download a QNetworkReply to disk.
@@ -608,6 +606,6 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
 def init():
     """Initialize the global QtNetwork download manager."""
-    download_manager = DownloadManager(parent=QApplication.instance())
+    download_manager = DownloadManager(parent=QtWidgets.QApplication.instance())
     objreg.register('qtnetwork-download-manager', download_manager)
     quitter.instance.shutting_down.connect(download_manager.shutdown)

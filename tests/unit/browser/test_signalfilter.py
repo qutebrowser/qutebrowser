@@ -23,25 +23,25 @@ import logging
 import dataclasses
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.browser import signalfilter
+from qutebrowser.qt import QtCore
 
 
-class Signaller(QObject):
+class Signaller(QtCore.QObject):
 
-    signal = pyqtSignal(str)
-    link_hovered = pyqtSignal(str)
+    signal = QtCore.pyqtSignal(str)
+    link_hovered = QtCore.pyqtSignal(str)
 
-    filtered_signal = pyqtSignal(str)
-    cur_link_hovered = pyqtSignal(str)
+    filtered_signal = QtCore.pyqtSignal(str)
+    cur_link_hovered = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.filtered_signal_arg = None
         self.filtered_signal.connect(self.filtered_signal_slot)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def filtered_signal_slot(self, s):
         self.filtered_signal_arg = s
 

@@ -24,40 +24,40 @@ from typing import Any
 
 import pytest
 pytest.importorskip('PyQt5.QtWebKit')
-from PyQt5.QtCore import QUrl, QPoint
-from PyQt5.QtWebKit import QWebHistory
+from qutebrowser.qt import QtWebKit
 
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
+from qutebrowser.qt import QtCore
 
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 
 ITEMS = [
-    Item(QUrl('https://www.heise.de/'), 'heise'),
-    Item(QUrl('about:blank'), 'blank', active=True),
-    Item(QUrl('http://example.com/%E2%80%A6'), 'percent'),
-    Item(QUrl('http://example.com/?foo=bar'), 'arg',
-         original_url=QUrl('http://original.url.example.com/'),
+    Item(QtCore.QUrl('https://www.heise.de/'), 'heise'),
+    Item(QtCore.QUrl('about:blank'), 'blank', active=True),
+    Item(QtCore.QUrl('http://example.com/%E2%80%A6'), 'percent'),
+    Item(QtCore.QUrl('http://example.com/?foo=bar'), 'arg',
+         original_url=QtCore.QUrl('http://original.url.example.com/'),
          user_data={'foo': 23, 'bar': 42}),
     # From https://github.com/OtterBrowser/otter-browser/issues/709#issuecomment-74749471
-    Item(QUrl('http://github.com/OtterBrowser/24/134/2344/otter-browser/'
+    Item(QtCore.QUrl('http://github.com/OtterBrowser/24/134/2344/otter-browser/'
               'issues/709/'),
          'Page not found | github',
-         user_data={'zoom': 149, 'scroll-pos': QPoint(0, 0)}),
-    Item(QUrl('https://mail.google.com/mail/u/0/#label/some+label/'
+         user_data={'zoom': 149, 'scroll-pos': QtCore.QPoint(0, 0)}),
+    Item(QtCore.QUrl('https://mail.google.com/mail/u/0/#label/some+label/'
               '234lkjsd0932lkjf884jqwerdf4'),
          '"some label" - email@gmail.com - Gmail"',
-         user_data={'zoom': 120, 'scroll-pos': QPoint(0, 0)}),
+         user_data={'zoom': 120, 'scroll-pos': QtCore.QPoint(0, 0)}),
 ]
 
 
 @dataclasses.dataclass
 class Objects:
 
-    history: QWebHistory
+    history: QtWebKit.QWebHistory
     user_data: Any
 
 
@@ -125,16 +125,16 @@ def test_titles(objects, i, item):
 
 def test_no_active_item():
     """Check tabhistory.serialize with no active item."""
-    items = [Item(QUrl(), '')]
+    items = [Item(QtCore.QUrl(), '')]
     with pytest.raises(ValueError):
         tabhistory.serialize(items)
 
 
 def test_two_active_items():
     """Check tabhistory.serialize with two active items."""
-    items = [Item(QUrl(), '', active=True),
-             Item(QUrl(), ''),
-             Item(QUrl(), '', active=True)]
+    items = [Item(QtCore.QUrl(), '', active=True),
+             Item(QtCore.QUrl(), ''),
+             Item(QtCore.QUrl(), '', active=True)]
     with pytest.raises(ValueError):
         tabhistory.serialize(items)
 

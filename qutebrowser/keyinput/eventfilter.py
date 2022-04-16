@@ -21,15 +21,13 @@
 
 from typing import cast
 
-from PyQt5.QtCore import pyqtSlot, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent, QWindow
-
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
 from qutebrowser.utils import objreg
+from qutebrowser.qt import QtGui, QtCore
 
 
-class EventFilter(QObject):
+class EventFilter(QtCore.QObject):
 
     """Global Qt event filter.
 
@@ -39,23 +37,23 @@ class EventFilter(QObject):
                    event.
     """
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self._activated = True
         self._handlers = {
-            QEvent.KeyPress: self._handle_key_event,
-            QEvent.KeyRelease: self._handle_key_event,
-            QEvent.ShortcutOverride: self._handle_key_event,
+            QtCore.QEvent.KeyPress: self._handle_key_event,
+            QtCore.QEvent.KeyRelease: self._handle_key_event,
+            QtCore.QEvent.ShortcutOverride: self._handle_key_event,
         }
 
     def install(self) -> None:
         objects.qapp.installEventFilter(self)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def shutdown(self) -> None:
         objects.qapp.removeEventFilter(self)
 
-    def _handle_key_event(self, event: QKeyEvent) -> bool:
+    def _handle_key_event(self, event: QtGui.QKeyEvent) -> bool:
         """Handle a key press/release event.
 
         Args:
@@ -76,7 +74,7 @@ class EventFilter(QObject):
             # No window available yet, or not a MainWindow
             return False
 
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, obj: QtCore.QObject, event: QtCore.QEvent) -> bool:
         """Handle an event.
 
         Args:
@@ -86,7 +84,7 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
-        if not isinstance(obj, QWindow):
+        if not isinstance(obj, QtGui.QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
@@ -101,7 +99,7 @@ class EventFilter(QObject):
 
         handler = self._handlers[typ]
         try:
-            return handler(cast(QKeyEvent, event))
+            return handler(cast(QtGui.QKeyEvent, event))
         except:
             # If there is an exception in here and we leave the eventfilter
             # activated, we'll get an infinite loop and a stack overflow.

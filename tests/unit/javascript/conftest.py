@@ -23,7 +23,7 @@ import pathlib
 import pytest
 import jinja2
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 import qutebrowser
 from qutebrowser.utils import usertypes
@@ -54,7 +54,7 @@ class JSTester:
             'warning': 'error'
         }
 
-    def load(self, path, base_url=QUrl(), **kwargs):
+    def load(self, path, base_url=QtCore.QUrl(), **kwargs):
         """Load and display the given jinja test data.
 
         Args:
@@ -86,10 +86,10 @@ class JSTester:
             path: The string path from disk to load (relative to this file)
             force: Whether to force loading even if the file is invalid.
         """
-        self.load_url(QUrl.fromLocalFile(
+        self.load_url(QtCore.QUrl.fromLocalFile(
             str(JS_DIR / path)), force)
 
-    def load_url(self, url: QUrl, force: bool = False):
+    def load_url(self, url: QtCore.QUrl, force: bool = False):
         """Load a given QUrl.
 
         Args:

@@ -24,11 +24,7 @@ import base64
 import itertools
 import functools
 from typing import List, MutableSequence, Optional, Tuple, cast
-
-from PyQt5.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
-                          QCoreApplication, QEventLoop, QByteArray)
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
-from PyQt5.QtGui import QPalette
+from qutebrowser.qt import QtWidgets, QtGui
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -40,7 +36,7 @@ from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import downloadview, hints, downloads
 from qutebrowser.misc import crashsignal, keyhintwidget, sessions, objects
-from qutebrowser.qt import sip
+from qutebrowser.qt import QtCore, sip
 
 
 win_id_gen = itertools.count(0)
@@ -88,12 +84,12 @@ def get_window(*, via_ipc: bool,
 
 def raise_window(window, alert=True):
     """Raise the given MainWindow object."""
-    window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
-    window.setWindowState(window.windowState() | Qt.WindowActive)
+    window.setWindowState(window.windowState() & ~QtCore.Qt.WindowMinimized)
+    window.setWindowState(window.windowState() | QtCore.Qt.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
-    QCoreApplication.processEvents(  # type: ignore[call-overload]
-        QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
+    QtCore.QCoreApplication.processEvents(  # type: ignore[call-overload]
+        QtCore.QEventLoop.ExcludeUserInputEvents | QtCore.QEventLoop.ExcludeSocketNotifiers)
 
     if not sip.isdeleted(window):
         # Could be deleted by the events run above
@@ -118,10 +114,10 @@ def get_target_window():
         return None
 
 
-_OverlayInfoType = Tuple[QWidget, pyqtBoundSignal, bool, str]
+_OverlayInfoType = Tuple[QtWidgets.QWidget, QtCore.pyqtBoundSignal, bool, str]
 
 
-class MainWindow(QWidget):
+class MainWindow(QtWidgets.QWidget):
 
     """The main window of qutebrowser.
 
@@ -187,8 +183,8 @@ class MainWindow(QWidget):
 
     def __init__(self, *,
                  private: bool,
-                 geometry: Optional[QByteArray] = None,
-                 parent: Optional[QWidget] = None) -> None:
+                 geometry: Optional[QtCore.QByteArray] = None,
+                 parent: Optional[QtWidgets.QWidget] = None) -> None:
         """Create a new main window.
 
         Args:
@@ -202,10 +198,10 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow import tabbedbrowser
         from qutebrowser.mainwindow.statusbar import bar
 
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         if config.val.window.transparent:
-            self.setAttribute(Qt.WA_TranslucentBackground)
-            self.palette().setColor(QPalette.Window, Qt.transparent)
+            self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+            self.palette().setColor(QtGui.QPalette.Window, QtCore.Qt.transparent)
 
         self._overlays: MutableSequence[_OverlayInfoType] = []
         self.win_id = next(win_id_gen)
@@ -218,7 +214,7 @@ class MainWindow(QWidget):
                         window=self.win_id)
 
         self.setWindowTitle('qutebrowser')
-        self._vbox = QVBoxLayout(self)
+        self._vbox = QtWidgets.QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
@@ -272,7 +268,7 @@ class MainWindow(QWidget):
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
-        QTimer.singleShot(0, self._connect_overlay_signals)
+        QtCore.QTimer.singleShot(0, self._connect_overlay_signals)
         config.instance.changed.connect(self._on_config_changed)
 
         objects.qapp.new_window.emit(self)
@@ -305,7 +301,7 @@ class MainWindow(QWidget):
         if not widget.isVisible():
             return
 
-        if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
+        if widget.sizePolicy().horizontalPolicy() == QtWidgets.QSizePolicy.Expanding:
             width = self.width() - 2 * padding
             if widget.hasHeightForWidth():
                 height = widget.heightForWidth(width)
@@ -329,8 +325,8 @@ class MainWindow(QWidget):
                 bottom = self.height()
             top = self.height() - status_height - height
             top = qtutils.check_overflow(top, 'int', fatal=False)
-            topleft = QPoint(left, max(height_padding, top))
-            bottomright = QPoint(left + width, bottom)
+            topleft = QtCore.QPoint(left, max(height_padding, top))
+            bottomright = QtCore.QPoint(left + width, bottom)
         elif status_position == 'top':
             if self.status.isVisible():
                 status_height = self.status.height()
@@ -338,15 +334,15 @@ class MainWindow(QWidget):
             else:
                 status_height = 0
                 top = 0
-            topleft = QPoint(left, top)
+            topleft = QtCore.QPoint(left, top)
             bottom = status_height + height
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(left + width,
+            bottomright = QtCore.QPoint(left + width,
                                  min(self.height() - height_padding, bottom))
         else:
             raise ValueError("Invalid position {}!".format(status_position))
 
-        rect = QRect(topleft, bottomright)
+        rect = QtCore.QRect(topleft, bottomright)
         log.misc.debug('new geometry for {!r}: {}'.format(widget, rect))
         if rect.isValid():
             widget.setGeometry(rect)
@@ -398,7 +394,7 @@ class MainWindow(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def _on_config_changed(self, option):
         """Resize the completion if related config options changed."""
         if option == 'statusbar.padding':
@@ -416,7 +412,7 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        widgets: List[QWidget] = [self.tabbed_browser.widget]
+        widgets: List[QtWidgets.QWidget] = [self.tabbed_browser.widget]
 
         downloads_position = config.val.downloads.position
         if downloads_position == 'top':
@@ -478,7 +474,7 @@ class MainWindow(QWidget):
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
-        self.setGeometry(QRect(50, 50, 800, 600))
+        self.setGeometry(QtCore.QRect(50, 50, 800, 600))
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
@@ -561,29 +557,29 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags: int = Qt.Window
+        window_flags: int = QtCore.Qt.Window
         refresh_window = self.isVisible()
         if hidden:
-            window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
-        self.setWindowFlags(cast(Qt.WindowFlags, window_flags))
+            window_flags |= QtCore.Qt.CustomizeWindowHint | QtCore.Qt.NoDropShadowWindowHint
+        self.setWindowFlags(cast(QtCore.Qt.WindowFlags, window_flags))
         if refresh_window:
             self.show()
 
-    @pyqtSlot(bool)
+    @QtCore.pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
         if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
                 self.setWindowState(
-                    Qt.WindowFullScreen |  # type: ignore[arg-type]
+                    QtCore.Qt.WindowFullScreen |  # type: ignore[arg-type]
                     self.state_before_fullscreen)  # type: ignore[operator]
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
-            on, debug.qflags_key(Qt, self.state_before_fullscreen)))
+            on, debug.qflags_key(QtCore.Qt, self.state_before_fullscreen)))
 
     @cmdutils.register(instance='main-window', scope='window')
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def close(self):
         """Close the current window.
 

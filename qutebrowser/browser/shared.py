@@ -27,13 +27,12 @@ import netrc
 import tempfile
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
-from PyQt5.QtCore import QUrl, pyqtBoundSignal
-
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
                                qtutils, version)
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import guiprocess, objects
+from qutebrowser.qt import QtCore
 
 
 class CallSuper(Exception):
@@ -72,7 +71,7 @@ def authentication_required(url, authenticator, abort_on):
     else:
         msg = '<b>{}</b> needs authentication'.format(
             html.escape(url.toDisplayString()))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
                          abort_on=abort_on, url=urlstr)
@@ -95,7 +94,7 @@ def javascript_confirm(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
                       abort_on=abort_on, url=urlstr)
@@ -112,7 +111,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
                          default=default,
@@ -135,7 +134,7 @@ def javascript_alert(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)
 
@@ -160,10 +159,10 @@ def javascript_log_message(level, source, line, msg):
 
 def ignore_certificate_error(
         *,
-        request_url: QUrl,
-        first_party_url: QUrl,
+        request_url: QtCore.QUrl,
+        first_party_url: QtCore.QUrl,
         error: usertypes.AbstractCertificateErrorWrapper,
-        abort_on: Iterable[pyqtBoundSignal],
+        abort_on: Iterable[QtCore.pyqtBoundSignal],
 ) -> bool:
     """Display a certificate error question.
 
@@ -187,7 +186,7 @@ def ignore_certificate_error(
         first_party_url.isValid() and
         not request_url.matches(
             first_party_url,
-            QUrl.RemoveScheme))  # type: ignore[arg-type]
+            QtCore.QUrl.RemoveScheme))  # type: ignore[arg-type]
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -218,7 +217,7 @@ def ignore_certificate_error(
         )
 
         urlstr = request_url.toString(
-            QUrl.RemovePassword | QUrl.FullyEncoded)  # type: ignore[arg-type]
+            QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)  # type: ignore[arg-type]
         ignore = message.ask(title="Certificate error", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
@@ -260,7 +259,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
     config_val = config.instance.get(option, url=url)
     if config_val == 'ask':
         if url.isValid():
-            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+            urlstr = url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
             text = "Allow the website at <b>{}</b> to {}?".format(
                 html.escape(url.toDisplayString()), msg)
         else:

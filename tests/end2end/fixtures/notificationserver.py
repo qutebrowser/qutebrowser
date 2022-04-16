@@ -20,15 +20,13 @@
 import dataclasses
 import itertools
 from typing import Dict, List
-
-from PyQt5.QtCore import QObject, QByteArray, QUrl, pyqtSlot
-from PyQt5.QtGui import QImage
-from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
+from qutebrowser.qt import QtGui
 import pytest
 
 from qutebrowser.browser.webengine import notification
 from qutebrowser.utils import utils
 from tests.helpers import testutils
+from qutebrowser.qt import QtDBus, QtCore
 
 
 @dataclasses.dataclass
@@ -42,7 +40,7 @@ class NotificationProperties:
     closed_via_web: bool = False
 
 
-class TestNotificationServer(QObject):
+class TestNotificationServer(QtCore.QObject):
     """A libnotify notification server used for testing."""
 
     def __init__(self, service: str):
@@ -55,7 +53,7 @@ class TestNotificationServer(QObject):
         super().__init__()
         self._service = service
         # Trying to connect to the bus doesn't fail if there's no bus.
-        self._bus = QDBusConnection.sessionBus()
+        self._bus = QtDBus.QDBusConnection.sessionBus()
         self._message_id_gen = itertools.count(1)
         # A dict mapping notification IDs to currently-displayed notifications.
         self.messages: Dict[int, NotificationProperties] = {}
@@ -82,7 +80,7 @@ class TestNotificationServer(QObject):
             notification.DBusNotificationAdapter.PATH,
             notification.DBusNotificationAdapter.INTERFACE,
             self,
-            QDBusConnection.ExportAllSlots,
+            QtDBus.QDBusConnection.ExportAllSlots,
         )
         return True
 
@@ -110,7 +108,7 @@ class TestNotificationServer(QObject):
         }
         for key in 'x-qutebrowser-origin', 'x-kde-origin-name':
             value = hints[key]
-            url = QUrl(value)
+            url = QtCore.QUrl(value)
             assert url.isValid(), value
             assert url.scheme() == 'http', value
             assert url.host() == 'localhost', value
@@ -133,8 +131,8 @@ class TestNotificationServer(QObject):
             has_alpha: bool,
             bits_per_color: int,
             channel_count: int,
-            data: QByteArray,
-    ) -> QImage:
+            data: QtCore.QByteArray,
+    ) -> QtGui.QImage:
         """Make sure the given image data is valid and return a QImage."""
         # Chromium limit?
         assert 0 < width <= 320
@@ -151,8 +149,8 @@ class TestNotificationServer(QObject):
         assert channel_count == (4 if has_alpha else 3)
         assert bytes_per_line >= width * channel_count
 
-        qimage_format = QImage.Format_RGBA8888 if has_alpha else QImage.Format_RGB888
-        img = QImage(data, width, height, bytes_per_line, qimage_format)
+        qimage_format = QtGui.QImage.Format_RGBA8888 if has_alpha else QtGui.QImage.Format_RGB888
+        img = QtGui.QImage(data, width, height, bytes_per_line, qimage_format)
         assert not img.isNull()
         assert img.width() == width
         assert img.height() == height
@@ -161,7 +159,7 @@ class TestNotificationServer(QObject):
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
-        message = QDBusMessage.createSignal(
+        message = QtDBus.QDBusMessage.createSignal(
             notification.DBusNotificationAdapter.PATH,
             notification.DBusNotificationAdapter.INTERFACE,
             "NotificationClosed")
@@ -181,7 +179,7 @@ class TestNotificationServer(QObject):
 
     def action(self, notification_id: int, name: str) -> None:
         """Sends an action notification for the given ID."""
-        message = QDBusMessage.createSignal(
+        message = QtDBus.QDBusMessage.createSignal(
             notification.DBusNotificationAdapter.PATH,
             notification.DBusNotificationAdapter.INTERFACE,
             "ActionInvoked")
@@ -193,10 +191,10 @@ class TestNotificationServer(QObject):
     # Everything below is exposed via DBus
     # pylint: disable=invalid-name
 
-    @pyqtSlot(QDBusMessage, result="uint")
-    def Notify(self, dbus_message: QDBusMessage) -> QDBusArgument:
+    @QtCore.pyqtSlot(QtDBus.QDBusMessage, result="uint")
+    def Notify(self, dbus_message: QtDBus.QDBusMessage) -> QtDBus.QDBusArgument:
         assert dbus_message.signature() == 'susssasa{sv}i'
-        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+        assert dbus_message.type() == QtDBus.QDBusMessage.MethodCallMessage
 
         message = self._parse_notify_args(*dbus_message.arguments())
 
@@ -209,11 +207,11 @@ class TestNotificationServer(QObject):
         self.last_id = message_id
         return message_id
 
-    @pyqtSlot(QDBusMessage, result="QStringList")
-    def GetCapabilities(self, message: QDBusMessage) -> List[str]:
+    @QtCore.pyqtSlot(QtDBus.QDBusMessage, result="QStringList")
+    def GetCapabilities(self, message: QtDBus.QDBusMessage) -> List[str]:
         assert not message.signature()
         assert not message.arguments()
-        assert message.type() == QDBusMessage.MethodCallMessage
+        assert message.type() == QtDBus.QDBusMessage.MethodCallMessage
 
         capabilities = ["actions", "x-kde-origin-name"]
         if self.supports_body_markup:
@@ -221,10 +219,10 @@ class TestNotificationServer(QObject):
 
         return capabilities
 
-    @pyqtSlot(QDBusMessage)
-    def CloseNotification(self, dbus_message: QDBusMessage) -> None:
+    @QtCore.pyqtSlot(QtDBus.QDBusMessage)
+    def CloseNotification(self, dbus_message: QtDBus.QDBusMessage) -> None:
         assert dbus_message.signature() == 'u'
-        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+        assert dbus_message.type() == QtDBus.QDBusMessage.MethodCallMessage
 
         message_id = dbus_message.arguments()[0]
         self.messages[message_id].closed_via_web = True

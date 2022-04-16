@@ -24,9 +24,8 @@ import os
 import functools
 from typing import IO, List, Optional
 
-from PyQt5.QtCore import QUrl, QObject, pyqtSignal
-
 from qutebrowser.api import downloads, message, config
+from qutebrowser.qt import QtCore
 
 
 class FakeDownload(downloads.TempDownload):
@@ -39,7 +38,7 @@ class FakeDownload(downloads.TempDownload):
         self.successful = True
 
 
-class BlocklistDownloads(QObject):
+class BlocklistDownloads(QtCore.QObject):
     """Download blocklists from the given URLs.
 
     Attributes:
@@ -60,10 +59,10 @@ class BlocklistDownloads(QObject):
         _finished: Has `all_downloads_finished` been emitted?
     """
 
-    single_download_finished = pyqtSignal(object)  # arg: the file object
-    all_downloads_finished = pyqtSignal(int)  # arg: download count
+    single_download_finished = QtCore.pyqtSignal(object)  # arg: the file object
+    all_downloads_finished = QtCore.pyqtSignal(int)  # arg: download count
 
-    def __init__(self, urls: List[QUrl], parent: Optional[QObject] = None) -> None:
+    def __init__(self, urls: List[QtCore.QUrl], parent: Optional[QtCore.QObject] = None) -> None:
         super().__init__(parent)
         self._urls = urls
 
@@ -95,7 +94,7 @@ class BlocklistDownloads(QObject):
             self._finished = True
             self.all_downloads_finished.emit(self._done_count)
 
-    def _download_blocklist_url(self, url: QUrl) -> None:
+    def _download_blocklist_url(self, url: QtCore.QUrl) -> None:
         """Take a blocklist url and queue it for download.
 
         Args:
@@ -156,7 +155,7 @@ class BlocklistDownloads(QObject):
             self.all_downloads_finished.emit(self._done_count)
 
 
-def is_whitelisted_url(url: QUrl) -> bool:
+def is_whitelisted_url(url: QtCore.QUrl) -> bool:
     """Check if the given URL is on the adblock whitelist."""
     whitelist = config.val.content.blocking.whitelist
     return any(pattern.matches(url) for pattern in whitelist)

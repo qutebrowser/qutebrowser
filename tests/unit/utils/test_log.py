@@ -34,6 +34,7 @@ from qutebrowser import qutebrowser
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils
+from qutebrowser.qt import QtCore
 
 
 @pytest.fixture(autouse=True)

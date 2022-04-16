@@ -29,19 +29,15 @@ import dataclasses
 import builtins
 import importlib
 import types
-
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
-from PyQt5.QtGui import QIcon
-from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
-                             QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
+from qutebrowser.qt import QtWidgets, QtNetwork, QtGui
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
 from qutebrowser.commands import runners
+from qutebrowser.qt import QtCore
 
 
-class FakeNetworkCache(QAbstractNetworkCache):
+class FakeNetworkCache(QtNetwork.QAbstractNetworkCache):
 
     """Fake cache with no data."""
 
@@ -55,7 +51,7 @@ class FakeNetworkCache(QAbstractNetworkCache):
         pass
 
     def metaData(self, _url):
-        return QNetworkCacheMetaData()
+        return QtNetwork.QNetworkCacheMetaData()
 
     def prepare(self, _metadata):
         return None
@@ -94,7 +90,7 @@ class FakeWebFrame:
             parent: The parent frame.
         """
         if scroll is None:
-            scroll = QPoint(0, 0)
+            scroll = QtCore.QPoint(0, 0)
         self.geometry = mock.Mock(return_value=geometry)
         self.scrollPosition = mock.Mock(return_value=scroll)
         self.parentFrame = mock.Mock(return_value=parent)
@@ -121,7 +117,7 @@ class FakeQApplication:
 
     def __init__(self, *, style=None, all_widgets=None, active_window=None,
                  arguments=None, platform_name=None):
-        self.style = mock.Mock(spec=QCommonStyle)
+        self.style = mock.Mock(spec=QtWidgets.QCommonStyle)
         self.style().metaObject().className.return_value = style
 
         self.allWidgets = lambda: all_widgets
@@ -135,12 +131,12 @@ class FakeNetworkReply:
     """QNetworkReply stub which provides a Content-Disposition header."""
 
     KNOWN_HEADERS = {
-        QNetworkRequest.ContentTypeHeader: 'Content-Type',
+        QtNetwork.QNetworkRequest.ContentTypeHeader: 'Content-Type',
     }
 
     def __init__(self, headers=None, url=None):
         if url is None:
-            url = QUrl()
+            url = QtCore.QUrl()
         if headers is None:
             self.headers = {}
         else:
@@ -193,18 +189,18 @@ class FakeNetworkReply:
         self.headers[key] = value
 
 
-class FakeProcess(QProcess):
+class FakeProcess(QtCore.QProcess):
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
-        self.start = mock.Mock(spec=QProcess.start)
-        self.startDetached = mock.Mock(spec=QProcess.startDetached)
+        self.start = mock.Mock(spec=QtCore.QProcess.start)
+        self.startDetached = mock.Mock(spec=QtCore.QProcess.startDetached)
         self.readAllStandardOutput = mock.Mock(
-            spec=QProcess.readAllStandardOutput, return_value=QByteArray(b''))
+            spec=QtCore.QProcess.readAllStandardOutput, return_value=QtCore.QByteArray(b''))
         self.readAllStandardError = mock.Mock(
-            spec=QProcess.readAllStandardError, return_value=QByteArray(b''))
-        self.terminate = mock.Mock(spec=QProcess.terminate)
-        self.kill = mock.Mock(spec=QProcess.kill)
+            spec=QtCore.QProcess.readAllStandardError, return_value=QtCore.QByteArray(b''))
+        self.terminate = mock.Mock(spec=QtCore.QProcess.terminate)
+        self.kill = mock.Mock(spec=QtCore.QProcess.kill)
 
 
 class FakeWebTabScroller(browsertab.AbstractScroller):
@@ -256,7 +252,7 @@ class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
 
-    def __init__(self, url=QUrl(), title='', tab_id=0, *,
+    def __init__(self, url=QtCore.QUrl(), title='', tab_id=0, *,
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0, can_go_back=None, can_go_forward=None):
@@ -270,7 +266,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
         self.audio = FakeWebTabAudio(self)
         self.private_api = FakeWebTabPrivate(tab=self, mode_manager=None)
-        wrapped = QWidget()
+        wrapped = QtWidgets.QWidget()
         self._layout.wrap(self, wrapped)
 
     def url(self, *, requested=False):
@@ -287,7 +283,7 @@ class FakeWebTab(browsertab.AbstractTab):
         return self._load_status
 
     def icon(self):
-        return QIcon()
+        return QtGui.QIcon()
 
     def renderer_process_pid(self):
         return None
@@ -352,11 +348,11 @@ class FakeCommand:
     modes: Tuple[usertypes.KeyMode] = (usertypes.KeyMode.normal, )
 
 
-class FakeTimer(QObject):
+class FakeTimer(QtCore.QObject):
 
     """Stub for a usertypes.Timer."""
 
-    timeout_signal = pyqtSignal()
+    timeout_signal = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, name=None):
         super().__init__(parent)
@@ -402,14 +398,14 @@ class FakeTimer(QObject):
         return self._started
 
 
-class InstaTimer(QObject):
+class InstaTimer(QtCore.QObject):
 
     """Stub for a QTimer that fires instantly on start().
 
     Useful to test a time-based event without inserting an artificial delay.
     """
 
-    timeout = pyqtSignal()
+    timeout = QtCore.pyqtSignal()
 
     def start(self, interval=None):
         self.timeout.emit()
@@ -425,27 +421,27 @@ class InstaTimer(QObject):
         fun()
 
 
-class StatusBarCommandStub(QLineEdit):
+class StatusBarCommandStub(QtWidgets.QLineEdit):
 
     """Stub for the statusbar command prompt."""
 
-    got_cmd = pyqtSignal(str)
-    clear_completion_selection = pyqtSignal()
-    hide_completion = pyqtSignal()
-    update_completion = pyqtSignal()
-    show_cmd = pyqtSignal()
-    hide_cmd = pyqtSignal()
+    got_cmd = QtCore.pyqtSignal(str)
+    clear_completion_selection = QtCore.pyqtSignal()
+    hide_completion = QtCore.pyqtSignal()
+    update_completion = QtCore.pyqtSignal()
+    show_cmd = QtCore.pyqtSignal()
+    hide_cmd = QtCore.pyqtSignal()
 
     def prefix(self):
         return self.text()[0]
 
 
-class UrlMarkManagerStub(QObject):
+class UrlMarkManagerStub(QtCore.QObject):
 
     """Stub for the quickmark-manager or bookmark-manager object."""
 
-    added = pyqtSignal(str, str)
-    removed = pyqtSignal(str)
+    added = QtCore.pyqtSignal(str, str)
+    removed = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -483,7 +479,7 @@ class SessionManagerStub:
         pass
 
 
-class TabbedBrowserStub(QObject):
+class TabbedBrowserStub(QtCore.QObject):
 
     """Stub for the tabbed-browser object."""
 
@@ -513,16 +509,16 @@ class TabbedBrowserStub(QObject):
         return self.cur_url
 
 
-class TabWidgetStub(QObject):
+class TabWidgetStub(QtCore.QObject):
 
     """Stub for the tab-widget object."""
 
-    new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    new_tab = QtCore.pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.tabs = []
-        self._qtabbar = QTabBar()
+        self._qtabbar = QtWidgets.QTabBar()
         self.index_of = None
         self.current_index = None
 
@@ -558,7 +554,7 @@ class TabWidgetStub(QObject):
         return self.tabs[idx - 1]
 
 
-class HTTPPostStub(QObject):
+class HTTPPostStub(QtCore.QObject):
 
     """A stub class for HTTPClient.
 
@@ -567,8 +563,8 @@ class HTTPPostStub(QObject):
         data: the last data send by post()
     """
 
-    success = pyqtSignal(str)
-    error = pyqtSignal(str)
+    success = QtCore.pyqtSignal(str)
+    error = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -580,11 +576,11 @@ class HTTPPostStub(QObject):
         self.data = data
 
 
-class FakeDownloadItem(QObject):
+class FakeDownloadItem(QtCore.QObject):
 
     """Mock browser.downloads.DownloadItem."""
 
-    finished = pyqtSignal()
+    finished = QtCore.pyqtSignal()
 
     def __init__(self, fileobj, name, parent=None):
         super().__init__(parent)

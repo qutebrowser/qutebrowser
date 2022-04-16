@@ -27,7 +27,7 @@ from typing import List
 import pytest
 import bs4
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import urlutils
 from helpers import testutils
@@ -147,14 +147,14 @@ def parse(quteproc):
     if not parent_elem:
         parent = None
     else:
-        parent = pathlib.Path(QUrl(parent_elem[0].li.a['href']).toLocalFile())
+        parent = pathlib.Path(QtCore.QUrl(parent_elem[0].li.a['href']).toLocalFile())
 
     folders = []
     files = []
 
     for css_class, list_ in [('folders', folders), ('files', files)]:
         for li in container('ul', class_=css_class)[0]('li'):
-            item_path = pathlib.Path(QUrl(li.a['href']).toLocalFile())
+            item_path = pathlib.Path(QtCore.QUrl(li.a['href']).toLocalFile())
             list_.append(Item(path=item_path, link=li.a['href'],
                               text=str(li.a.string)))
 

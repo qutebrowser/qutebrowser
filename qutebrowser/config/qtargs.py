@@ -25,11 +25,10 @@ import argparse
 import pathlib
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from PyQt5.QtCore import QLibraryInfo, QLocale
-
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, qtutils, utils, log, version
+from qutebrowser.qt import QtCore
 
 
 _ENABLE_FEATURES = '--enable-features='
@@ -199,7 +198,7 @@ def _webengine_locales_path() -> pathlib.Path:
         # not QtWebEngine.
         base = pathlib.Path('/app/translations')
     else:
-        base = pathlib.Path(QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+        base = pathlib.Path(QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
     return base / 'qtwebengine_locales'
 
 
@@ -265,7 +264,7 @@ def _qtwebengine_args(
 
     lang_override = _get_lang_override(
         webengine_version=versions.webengine,
-        locale_name=QLocale().bcp47Name(),
+        locale_name=QtCore.QLocale().bcp47Name(),
     )
     if lang_override is not None:
         yield f'--lang={lang_override}'

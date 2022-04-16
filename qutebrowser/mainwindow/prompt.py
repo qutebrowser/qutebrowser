@@ -26,18 +26,13 @@ import functools
 import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop)
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
-                             QSpacerItem)
-
 from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
+from qutebrowser.qt import QtWidgets, QtCore
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -62,7 +57,7 @@ class UnsupportedOperationError(Error):
     """Raised when the prompt class doesn't support the requested operation."""
 
 
-class PromptQueue(QObject):
+class PromptQueue(QtCore.QObject):
 
     """Global manager and queue for upcoming prompts.
 
@@ -96,7 +91,7 @@ class PromptQueue(QObject):
                       shown.
     """
 
-    show_prompts = pyqtSignal(usertypes.Question)
+    show_prompts = QtCore.pyqtSignal(usertypes.Question)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -112,7 +107,7 @@ class PromptQueue(QObject):
 
     def _pop_later(self):
         """Helper to call self._pop as soon as everything else is done."""
-        QTimer.singleShot(0, self._pop)
+        QtCore.QTimer.singleShot(0, self._pop)
 
     def _pop(self):
         """Pop a question from the queue and ask it, if there are any."""
@@ -145,7 +140,7 @@ class PromptQueue(QObject):
         else:
             return False
 
-    @pyqtSlot(usertypes.Question, bool)
+    @QtCore.pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
         """Display a prompt for a given question.
 
@@ -195,8 +190,8 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec() for {}".format(question))
-            flags = cast(QEventLoop.ProcessEventsFlags,
-                         QEventLoop.ExcludeSocketNotifiers)
+            flags = cast(QtCore.QEventLoop.ProcessEventsFlags,
+                         QtCore.QEventLoop.ExcludeSocketNotifiers)
             loop.exec(flags)
             log.prompt.debug("Ending loop.exec() for {}".format(question))
 
@@ -214,7 +209,7 @@ class PromptQueue(QObject):
             question.completed.connect(self._pop_later)
             return None
 
-    @pyqtSlot(usertypes.KeyMode)
+    @QtCore.pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
         """Abort question when a prompt mode was left."""
         if mode not in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
@@ -232,7 +227,7 @@ class PromptQueue(QObject):
         self._question = None
 
 
-class PromptContainer(QWidget):
+class PromptContainer(QtWidgets.QWidget):
 
     """Container for prompts to be shown above the statusbar.
 
@@ -283,17 +278,17 @@ class PromptContainer(QWidget):
             background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
-    update_geometry = pyqtSignal()
+    update_geometry = QtCore.pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self._layout = QVBoxLayout(self)
+        self._layout = QtWidgets.QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
         self._prompt: Optional[_BasePrompt] = None
 
         self.setObjectName('PromptContainer')
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(QtCore.Qt.WA_StyledBackground, True)
         stylesheet.set_register(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
@@ -303,7 +298,7 @@ class PromptContainer(QWidget):
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
 
-    @pyqtSlot(usertypes.Question)
+    @QtCore.pyqtSlot(usertypes.Question)
     def _on_show_prompts(self, question):
         """Show a prompt for the given question.
 
@@ -349,7 +344,7 @@ class PromptContainer(QWidget):
         prompt.setFocus()
         self.update_geometry.emit()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _on_aborted(self, key_mode):
         """Leave KEY_MODE whenever a prompt is aborted."""
         try:
@@ -358,12 +353,12 @@ class PromptContainer(QWidget):
             # window was deleted: ignore
             pass
 
-    @pyqtSlot(usertypes.KeyMode)
+    @QtCore.pyqtSlot(usertypes.KeyMode)
     def _on_prompt_done(self, key_mode):
         """Leave the prompt mode in this window if a question was answered."""
         modeman.leave(self._win_id, key_mode, ':prompt-accept', maybe=True)
 
-    @pyqtSlot(usertypes.KeyMode)
+    @QtCore.pyqtSlot(usertypes.KeyMode)
     def _on_global_mode_left(self, mode):
         """Leave prompt/yesno mode in this window if it was left elsewhere.
 
@@ -468,7 +463,7 @@ class PromptContainer(QWidget):
         message.info("Yanked to {}: {}".format(target, question.url))
 
 
-class LineEdit(QLineEdit):
+class LineEdit(QtWidgets.QLineEdit):
 
     """A line edit used in prompts."""
 
@@ -479,11 +474,11 @@ class LineEdit(QLineEdit):
                 background-color: transparent;
             }
         """)
-        self.setAttribute(Qt.WA_MacShowFocusRect, False)
+        self.setAttribute(QtCore.Qt.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+        if e.key() == QtCore.Qt.Key_Insert and e.modifiers() == QtCore.Qt.ShiftModifier:
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:  # pragma: no cover
@@ -498,7 +493,7 @@ class LineEdit(QLineEdit):
         return utils.get_repr(self)
 
 
-class _BasePrompt(QWidget):
+class _BasePrompt(QtWidgets.QWidget):
 
     """Base class for all prompts."""
 
@@ -507,7 +502,7 @@ class _BasePrompt(QWidget):
     def __init__(self, question, parent=None):
         super().__init__(parent)
         self.question = question
-        self._vbox = QVBoxLayout(self)
+        self._vbox = QtWidgets.QVBoxLayout(self)
         self._vbox.setSpacing(15)
         self._key_grid = None
 
@@ -518,18 +513,18 @@ class _BasePrompt(QWidget):
         assert question.title is not None, question
         title = '<font size="4"><b>{}</b></font>'.format(
             html.escape(question.title))
-        title_label = QLabel(title, self)
+        title_label = QtWidgets.QLabel(title, self)
         self._vbox.addWidget(title_label)
         if question.text is not None:
             # Not doing any HTML escaping here as the text can be formatted
-            text_label = QLabel(question.text)
+            text_label = QtWidgets.QLabel(question.text)
             text_label.setWordWrap(True)
-            text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            text_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
             self._vbox.addWidget(text_label)
 
     def _init_key_label(self):
         assert self._key_grid is None, self._key_grid
-        self._key_grid = QGridLayout()
+        self._key_grid = QtWidgets.QGridLayout()
         self._key_grid.setVerticalSpacing(0)
 
         all_bindings = config.key_instance.get_reverse_bindings_for(
@@ -548,24 +543,24 @@ class _BasePrompt(QWidget):
                         binding = pref
                 if binding is None:
                     binding = bindings[0]
-                key_label = QLabel('<b>{}</b>'.format(html.escape(binding)))
+                key_label = QtWidgets.QLabel('<b>{}</b>'.format(html.escape(binding)))
             else:
-                key_label = QLabel(f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)')
+                key_label = QtWidgets.QLabel(f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)')
 
-            text_label = QLabel(text)
+            text_label = QtWidgets.QLabel(text)
             labels.append((key_label, text_label))
 
         for i, (key_label, text_label) in enumerate(labels):
             self._key_grid.addWidget(key_label, i, 0)
             self._key_grid.addWidget(text_label, i, 1)
 
-        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding)
+        spacer = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding)
         self._key_grid.addItem(spacer, 0, 2)
 
         self._vbox.addLayout(self._key_grid)
 
         if not has_bindings:
-            label = QLabel(
+            label = QtWidgets.QLabel(
                 "<b>Note:</b> You seem to have unbound all keys for this prompt "
                 f"(<tt>{self.KEY_MODE.name}</tt> key mode)."
                 "<br/>Run <tt>qutebrowser :CMD</tt> with a command from above to "
@@ -641,10 +636,10 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(question.default)
 
         if config.val.prompt.filebrowser:
-            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
 
         self._to_complete = ''
-        self._root_index = QModelIndex()
+        self._root_index = QtCore.QModelIndex()
 
     def _directories_hide_show_model(self):
         """Get rid of non-matching directories."""
@@ -655,7 +650,7 @@ class FilenamePrompt(_BasePrompt):
             hidden = self._to_complete not in filename and filename != '..'
             self._file_view.setRowHidden(index.row(), index.parent(), hidden)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
         separators = os.sep
@@ -691,7 +686,7 @@ class FilenamePrompt(_BasePrompt):
 
         self._directories_hide_show_model()
 
-    @pyqtSlot(QModelIndex)
+    @QtCore.pyqtSlot(QtCore.QModelIndex)
     def _insert_path(self, index, *, clicked=True):
         """Handle an element selection.
 
@@ -699,7 +694,7 @@ class FilenamePrompt(_BasePrompt):
             index: The QModelIndex of the selected element.
             clicked: Whether the element was clicked.
         """
-        if index == QModelIndex():
+        if index == QtCore.QModelIndex():
             path = os.path.join(self._file_model.rootPath(), self._to_complete)
         else:
             path = os.path.normpath(self._file_model.filePath(index))
@@ -716,11 +711,11 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(path, tabbed=True)
         if clicked:
             # Avoid having a ..-subtree highlighted
-            self._file_view.setCurrentIndex(QModelIndex())
+            self._file_view.setCurrentIndex(QtCore.QModelIndex())
 
     def _init_fileview(self):
-        self._file_view = QTreeView(self)
-        self._file_model = QFileSystemModel(self)
+        self._file_view = QtWidgets.QTreeView(self)
+        self._file_model = QtWidgets.QFileSystemModel(self)
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
@@ -734,7 +729,7 @@ class FilenamePrompt(_BasePrompt):
         for col in range(1, 4):
             self._file_view.setColumnHidden(col, True)
         # Nothing selected initially
-        self._file_view.setCurrentIndex(QModelIndex())
+        self._file_view.setCurrentIndex(QtCore.QModelIndex())
         # The model needs to be sorted so we get the correct first/last index
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
@@ -784,8 +779,8 @@ class FilenamePrompt(_BasePrompt):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
-            QItemSelectionModel.Rows)
+            QtCore.QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
+            QtCore.QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
@@ -808,7 +803,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)  # type: ignore[arg-type]
+            QtCore.QDir.AllDirs | QtCore.QDir.Drives | QtCore.QDir.NoDotAndDotDot)  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -847,14 +842,14 @@ class AuthenticationPrompt(_BasePrompt):
         super().__init__(question, parent)
         self._init_texts(question)
 
-        user_label = QLabel("Username:", self)
+        user_label = QtWidgets.QLabel("Username:", self)
         self._user_lineedit = LineEdit(self)
 
-        password_label = QLabel("Password:", self)
+        password_label = QtWidgets.QLabel("Password:", self)
         self._password_lineedit = LineEdit(self)
-        self._password_lineedit.setEchoMode(QLineEdit.Password)
+        self._password_lineedit.setEchoMode(QtWidgets.QLineEdit.Password)
 
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.addWidget(user_label, 1, 0)
         grid.addWidget(self._user_lineedit, 1, 1)
         grid.addWidget(password_label, 2, 0)
@@ -987,4 +982,4 @@ def init():
     global prompt_queue
     prompt_queue = PromptQueue()
     message.global_bridge.ask_question.connect(  # type: ignore[call-arg]
-        prompt_queue.ask_question, Qt.DirectConnection)
+        prompt_queue.ask_question, QtCore.Qt.DirectConnection)

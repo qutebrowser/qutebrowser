@@ -21,15 +21,13 @@
 
 
 import pytest
+from qutebrowser.qt import QtWebKit, QtWebEngineWidgets
 
 
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, None)])
 def test_simple_js_webkit(webview, js_enabled, expected):
     """With QtWebKit, evaluateJavaScript works when JS is on."""
-    # If we get there (because of the webview fixture) we can be certain
-    # QtWebKit is available
-    from PyQt5.QtWebKit import QWebSettings
-    webview.settings().setAttribute(QWebSettings.JavascriptEnabled, js_enabled)
+    webview.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled, js_enabled)
     result = webview.page().mainFrame().evaluateJavaScript('1 + 1')
     assert result == expected
 
@@ -37,10 +35,7 @@ def test_simple_js_webkit(webview, js_enabled, expected):
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, 2.0)])
 def test_element_js_webkit(webview, js_enabled, expected):
     """With QtWebKit, evaluateJavaScript on an element works with JS off."""
-    # If we get there (because of the webview fixture) we can be certain
-    # QtWebKit is available
-    from PyQt5.QtWebKit import QWebSettings
-    webview.settings().setAttribute(QWebSettings.JavascriptEnabled, js_enabled)
+    webview.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled, js_enabled)
     elem = webview.page().mainFrame().documentElement()
     result = elem.evaluateJavaScript('1 + 1')
     assert result == expected
@@ -61,16 +56,13 @@ def test_element_js_webkit(webview, js_enabled, expected):
 def test_simple_js_webengine(qtbot, webengineview, qapp,
                              js_enabled, world, expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
-    # If we get there (because of the webengineview fixture) we can be certain
-    # QtWebEngine is available
-    from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineScript
 
-    assert world in [QWebEngineScript.MainWorld,
-                     QWebEngineScript.ApplicationWorld,
-                     QWebEngineScript.UserWorld]
+    assert world in [QtWebEngineWidgets.QWebEngineScript.MainWorld,
+                     QtWebEngineWidgets.QWebEngineScript.ApplicationWorld,
+                     QtWebEngineWidgets.QWebEngineScript.UserWorld]
 
     settings = webengineview.settings()
-    settings.setAttribute(QWebEngineSettings.JavascriptEnabled, js_enabled)
+    settings.setAttribute(QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled, js_enabled)
     qapp.processEvents()
 
     page = webengineview.page()

@@ -22,7 +22,7 @@
 from typing import cast
 import os.path
 
-from PyQt5.QtNetwork import QNetworkDiskCache
+from qutebrowser.qt import QtNetwork
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir
@@ -31,7 +31,7 @@ from qutebrowser.utils import utils, standarddir
 diskcache = cast('DiskCache', None)
 
 
-class DiskCache(QNetworkDiskCache):
+class DiskCache(QtNetwork.QNetworkDiskCache):
 
     """Disk cache which sets correct cache dir and size."""
 

@@ -25,13 +25,12 @@ import functools
 from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
                     MutableMapping, MutableSequence, Optional, Tuple, cast)
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
-
 from qutebrowser.commands import cmdexc, parser
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import QtCore
 
 if TYPE_CHECKING:
     from qutebrowser.config import configcache, configfiles
@@ -282,7 +281,7 @@ class KeyConfig:
         self._config.update_mutables(save_yaml=save_yaml)
 
 
-class Config(QObject):
+class Config(QtCore.QObject):
 
     """Main config object.
 
@@ -300,11 +299,11 @@ class Config(QObject):
     """
 
     MUTABLE_TYPES = (dict, list)
-    changed = pyqtSignal(str)
+    changed = QtCore.pyqtSignal(str)
 
     def __init__(self,
                  yaml_config: 'configfiles.YamlConfig',
-                 parent: QObject = None) -> None:
+                 parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self._mutables: MutableMapping[str, Tuple[Any, Any]] = {}
         self._yaml = yaml_config
@@ -382,7 +381,7 @@ class Config(QObject):
 
     def get(self,
             name: str,
-            url: QUrl = None, *,
+            url: QtCore.QUrl = None, *,
             fallback: bool = True) -> Any:
         """Get the given setting converted for Python code.
 
@@ -408,7 +407,7 @@ class Config(QObject):
 
     def get_obj(self,
                 name: str, *,
-                url: QUrl = None,
+                url: QtCore.QUrl = None,
                 fallback: bool = True) -> Any:
         """Get the given setting as object (for YAML/config.py).
 

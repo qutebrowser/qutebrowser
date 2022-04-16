@@ -22,7 +22,7 @@
 import logging
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtWebKit, QtCore
 
 from qutebrowser.browser import history
 from qutebrowser.utils import urlutils, usertypes
@@ -40,7 +40,7 @@ class TestSpecialMethods:
 
     def test_iter(self, web_history):
         urlstr = 'http://www.example.com/'
-        url = QUrl(urlstr)
+        url = QtCore.QUrl(urlstr)
         web_history.add_url(url, atime=12345)
 
         assert list(web_history) == [(urlstr, '', 12345, False)]
@@ -48,13 +48,13 @@ class TestSpecialMethods:
     def test_len(self, web_history):
         assert len(web_history) == 0
 
-        url = QUrl('http://www.example.com/')
+        url = QtCore.QUrl('http://www.example.com/')
         web_history.add_url(url)
 
         assert len(web_history) == 1
 
     def test_contains(self, web_history):
-        web_history.add_url(QUrl('http://www.example.com/'),
+        web_history.add_url(QtCore.QUrl('http://www.example.com/'),
                             title='Title', atime=12345)
         assert 'http://www.example.com/' in web_history
         assert 'www.example.com' not in web_history
@@ -65,34 +65,34 @@ class TestSpecialMethods:
 class TestGetting:
 
     def test_get_recent(self, web_history):
-        web_history.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
-        web_history.add_url(QUrl('http://example.com/'), atime=12345)
+        web_history.add_url(QtCore.QUrl('http://www.qutebrowser.org/'), atime=67890)
+        web_history.add_url(QtCore.QUrl('http://example.com/'), atime=12345)
         assert list(web_history.get_recent()) == [
             ('http://www.qutebrowser.org/', '', 67890, False),
             ('http://example.com/', '', 12345, False),
         ]
 
     def test_entries_between(self, web_history):
-        web_history.add_url(QUrl('http://www.example.com/1'), atime=12345)
-        web_history.add_url(QUrl('http://www.example.com/2'), atime=12346)
-        web_history.add_url(QUrl('http://www.example.com/3'), atime=12347)
-        web_history.add_url(QUrl('http://www.example.com/4'), atime=12348)
-        web_history.add_url(QUrl('http://www.example.com/5'), atime=12348)
-        web_history.add_url(QUrl('http://www.example.com/6'), atime=12349)
-        web_history.add_url(QUrl('http://www.example.com/7'), atime=12350)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/1'), atime=12345)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/2'), atime=12346)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/3'), atime=12347)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/4'), atime=12348)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/5'), atime=12348)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/6'), atime=12349)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/7'), atime=12350)
 
         times = [x.atime for x in web_history.entries_between(12346, 12349)]
         assert times == [12349, 12348, 12348, 12347]
 
     def test_entries_before(self, web_history):
-        web_history.add_url(QUrl('http://www.example.com/1'), atime=12346)
-        web_history.add_url(QUrl('http://www.example.com/2'), atime=12346)
-        web_history.add_url(QUrl('http://www.example.com/3'), atime=12347)
-        web_history.add_url(QUrl('http://www.example.com/4'), atime=12348)
-        web_history.add_url(QUrl('http://www.example.com/5'), atime=12348)
-        web_history.add_url(QUrl('http://www.example.com/6'), atime=12348)
-        web_history.add_url(QUrl('http://www.example.com/7'), atime=12349)
-        web_history.add_url(QUrl('http://www.example.com/8'), atime=12349)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/1'), atime=12346)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/2'), atime=12346)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/3'), atime=12347)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/4'), atime=12348)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/5'), atime=12348)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/6'), atime=12348)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/7'), atime=12349)
+        web_history.add_url(QtCore.QUrl('http://www.example.com/8'), atime=12349)
 
         times = [x.atime for x in
                  web_history.entries_before(12348, limit=3, offset=2)]
@@ -102,8 +102,8 @@ class TestGetting:
 class TestDelete:
 
     def test_clear(self, qtbot, tmpdir, web_history, mocker):
-        web_history.add_url(QUrl('http://example.com/'))
-        web_history.add_url(QUrl('http://www.qutebrowser.org/'))
+        web_history.add_url(QtCore.QUrl('http://example.com/'))
+        web_history.add_url(QtCore.QUrl('http://www.qutebrowser.org/'))
 
         m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
                          new=mocker.Mock, spec=[])
@@ -111,8 +111,8 @@ class TestDelete:
         assert m.called
 
     def test_clear_force(self, qtbot, tmpdir, web_history):
-        web_history.add_url(QUrl('http://example.com/'))
-        web_history.add_url(QUrl('http://www.qutebrowser.org/'))
+        web_history.add_url(QtCore.QUrl('http://example.com/'))
+        web_history.add_url(QtCore.QUrl('http://www.qutebrowser.org/'))
         history.history_clear(force=True)
         assert not len(web_history)
         assert not len(web_history.completion)
@@ -122,14 +122,14 @@ class TestDelete:
         ('http://example.com/1 2', 'http://example.com/1%202'),
     ])
     def test_delete_url(self, web_history, raw, escaped):
-        web_history.add_url(QUrl('http://example.com/'), atime=0)
-        web_history.add_url(QUrl(escaped), atime=0)
-        web_history.add_url(QUrl('http://example.com/2'), atime=0)
+        web_history.add_url(QtCore.QUrl('http://example.com/'), atime=0)
+        web_history.add_url(QtCore.QUrl(escaped), atime=0)
+        web_history.add_url(QtCore.QUrl('http://example.com/2'), atime=0)
 
         before = set(web_history)
         completion_before = set(web_history.completion)
 
-        web_history.delete_url(QUrl(raw))
+        web_history.delete_url(QtCore.QUrl(raw))
 
         diff = before.difference(set(web_history))
         assert diff == {(escaped, '', 0, False)}
@@ -161,7 +161,7 @@ class TestAdd:
     )
     def test_add_url(self, qtbot, web_history,
                      url, atime, title, redirect, history_url, completion_url):
-        web_history.add_url(QUrl(url), atime=atime, title=title,
+        web_history.add_url(QtCore.QUrl(url), atime=atime, title=title,
                             redirect=redirect)
         assert list(web_history) == [(history_url, title, atime, redirect)]
         if completion_url is None:
@@ -172,13 +172,13 @@ class TestAdd:
 
     def test_no_sql_web_history(self, web_history, monkeypatch):
         monkeypatch.setattr(objects, 'debug_flags', {'no-sql-history'})
-        web_history.add_url(QUrl('https://www.example.com/'), atime=12346,
+        web_history.add_url(QtCore.QUrl('https://www.example.com/'), atime=12346,
                             title='Hello World', redirect=False)
         assert not list(web_history)
 
     def test_invalid(self, qtbot, web_history, caplog):
         with caplog.at_level(logging.WARNING):
-            web_history.add_url(QUrl())
+            web_history.add_url(QtCore.QUrl())
         assert not list(web_history)
         assert not list(web_history.completion)
 
@@ -198,12 +198,12 @@ class TestAdd:
 
         if known_error:
             with caplog.at_level(logging.ERROR):
-                web_history.add_url(QUrl('https://www.example.org/'))
+                web_history.add_url(QtCore.QUrl('https://www.example.org/'))
             msg = message_mock.getmsg(usertypes.MessageLevel.error)
             assert msg.text == "Failed to write history: Error message"
         else:
             with pytest.raises(sql.BugError):
-                web_history.add_url(QUrl('https://www.example.org/'))
+                web_history.add_url(QtCore.QUrl('https://www.example.org/'))
 
     @pytest.mark.parametrize('level, url, req_url, expected', [
         (logging.DEBUG, 'a.com', 'a.com', [('a.com', 'title', 12345, False)]),
@@ -228,46 +228,46 @@ class TestAdd:
     def test_from_tab(self, web_history, caplog, mock_time,
                       level, url, req_url, expected):
         with caplog.at_level(level):
-            web_history.add_from_tab(QUrl(url), QUrl(req_url), 'title')
+            web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(req_url), 'title')
         assert set(web_history) == set(expected)
 
     def test_exclude(self, web_history, config_stub):
         """Excluded URLs should be in the history but not completion."""
         config_stub.val.completion.web_history.exclude = ['*.example.org']
-        url = QUrl('http://www.example.org/')
+        url = QtCore.QUrl('http://www.example.org/')
         web_history.add_from_tab(url, url, 'title')
         assert list(web_history)
         assert not list(web_history.completion)
 
     def test_no_immedate_duplicates(self, web_history, mock_time):
-        url = QUrl("http://example.com")
-        url2 = QUrl("http://example2.com")
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        url = QtCore.QUrl("http://example.com")
+        url2 = QtCore.QUrl("http://example2.com")
+        web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(url), 'title')
         hist = list(web_history)
         assert hist
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(url), 'title')
         assert list(web_history) == hist
-        web_history.add_from_tab(QUrl(url2), QUrl(url2), 'title')
+        web_history.add_from_tab(QtCore.QUrl(url2), QtCore.QUrl(url2), 'title')
         assert list(web_history) != hist
 
     def test_delete_add_tab(self, web_history, mock_time):
-        url = QUrl("http://example.com")
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        url = QtCore.QUrl("http://example.com")
+        web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(url), 'title')
         hist = list(web_history)
         assert hist
-        web_history.delete_url(QUrl(url))
+        web_history.delete_url(QtCore.QUrl(url))
         assert len(web_history) == 0
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(url), 'title')
         assert list(web_history) == hist
 
     def test_clear_add_tab(self, web_history, mock_time):
-        url = QUrl("http://example.com")
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        url = QtCore.QUrl("http://example.com")
+        web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(url), 'title')
         hist = list(web_history)
         assert hist
         history.history_clear(force=True)
         assert len(web_history) == 0
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QtCore.QUrl(url), QtCore.QUrl(url), 'title')
         assert list(web_history) == hist
 
 
@@ -280,7 +280,7 @@ class TestHistoryInterface:
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
-        web_history.add_url(url=QUrl('http://www.example.com/'),
+        web_history.add_url(url=QtCore.QUrl('http://www.example.com/'),
                             title='example')
         interface = webkithistory.WebHistoryInterface(web_history)
         QWebHistoryInterface.setDefaultInterface(interface)
@@ -304,8 +304,7 @@ class TestInit:
             history.web_history.setParent(None)
             history.web_history = None
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
-            QWebHistoryInterface.setDefaultInterface(None)
+            QtWebKit.QWebHistoryInterface.setDefaultInterface(None)
         except ImportError:
             pass
 
@@ -322,19 +321,19 @@ class TestInit:
         assert history.web_history.parent() is qapp
 
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            pass
         except ImportError:
             QWebHistoryInterface = None
 
         if backend == usertypes.Backend.QtWebKit:
-            default_interface = QWebHistoryInterface.defaultInterface()
+            default_interface = QtWebKit.QWebHistoryInterface.defaultInterface()
             assert default_interface._history is history.web_history
         else:
             assert backend == usertypes.Backend.QtWebEngine
-            if QWebHistoryInterface is None:
+            if QtWebKit.QWebHistoryInterface is None:
                 default_interface = None
             else:
-                default_interface = QWebHistoryInterface.defaultInterface()
+                default_interface = QtWebKit.QWebHistoryInterface.defaultInterface()
             # For this to work, nothing can ever have called
             # setDefaultInterface before (so we need to test webengine before
             # webkit)
@@ -344,13 +343,13 @@ class TestInit:
 class TestDump:
 
     def test_debug_dump_history(self, web_history, tmpdir):
-        web_history.add_url(QUrl('http://example.com/1'),
+        web_history.add_url(QtCore.QUrl('http://example.com/1'),
                             title="Title1", atime=12345)
-        web_history.add_url(QUrl('http://example.com/2'),
+        web_history.add_url(QtCore.QUrl('http://example.com/2'),
                             title="Title2", atime=12346)
-        web_history.add_url(QUrl('http://example.com/3'),
+        web_history.add_url(QtCore.QUrl('http://example.com/3'),
                             title="Title3", atime=12347)
-        web_history.add_url(QUrl('http://example.com/4'),
+        web_history.add_url(QtCore.QUrl('http://example.com/4'),
                             title="Title4", atime=12348, redirect=True)
         histfile = tmpdir / 'history'
         history.debug_dump_history(str(histfile))
@@ -371,8 +370,8 @@ class TestRebuild:
     def test_user_version(self, database, stubs, monkeypatch):
         """Ensure that completion is regenerated if user_version changes."""
         web_history = history.WebHistory(database, stubs.FakeHistoryProgress())
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.add_url(QtCore.QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QtCore.QUrl('example.com/2'), redirect=False, atime=2)
         web_history.completion.delete('url', 'example.com/2')
 
         hist2 = history.WebHistory(database, progress=stubs.FakeHistoryProgress())
@@ -391,8 +390,8 @@ class TestRebuild:
     def test_force_rebuild(self, database, stubs):
         """Ensure that completion is regenerated if we force a rebuild."""
         web_history = history.WebHistory(database, stubs.FakeHistoryProgress())
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.add_url(QtCore.QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QtCore.QUrl('example.com/2'), redirect=False, atime=2)
         web_history.completion.delete('url', 'example.com/2')
 
         hist2 = history.WebHistory(web_history.database,
@@ -415,9 +414,9 @@ class TestRebuild:
         """
         config_stub.val.completion.web_history.exclude = ['*.example.org']
 
-        web_history.add_url(QUrl('http://example.com'),
+        web_history.add_url(QtCore.QUrl('http://example.com'),
                             redirect=False, atime=1)
-        web_history.add_url(QUrl('http://example.org'),
+        web_history.add_url(QtCore.QUrl('http://example.org'),
                             redirect=False, atime=2)
 
         hist2 = history.WebHistory(web_history.database,
@@ -428,9 +427,9 @@ class TestRebuild:
         """Ensure that completion is rebuilt when exclude patterns change."""
         config_stub.val.completion.web_history.exclude = ['*.example.org']
 
-        web_history.add_url(QUrl('http://example.com'),
+        web_history.add_url(QtCore.QUrl('http://example.com'),
                             redirect=False, atime=1)
-        web_history.add_url(QUrl('http://example.org'),
+        web_history.add_url(QtCore.QUrl('http://example.org'),
                             redirect=False, atime=2)
 
         hist2 = history.WebHistory(web_history.database,
@@ -449,8 +448,8 @@ class TestRebuild:
         ]
 
     def test_progress(self, monkeypatch, web_history, config_stub, stubs):
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.add_url(QtCore.QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QtCore.QUrl('example.com/2'), redirect=False, atime=2)
 
         # Trigger a completion rebuild
         monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
@@ -464,7 +463,7 @@ class TestRebuild:
     def test_interrupted(self, stubs, database, monkeypatch):
         """If we interrupt the rebuilding process, force_rebuild should still be set."""
         web_history = history.WebHistory(database, stubs.FakeHistoryProgress())
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QtCore.QUrl('example.com/1'), redirect=False, atime=1)
         web_history.completion.delete('url', 'example.com/1')
         progress = stubs.FakeHistoryProgress(raise_on_tick=True)
 

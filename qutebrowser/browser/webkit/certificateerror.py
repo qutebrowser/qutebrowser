@@ -21,7 +21,7 @@
 
 from typing import Sequence
 
-from PyQt5.QtNetwork import QSslError
+from qutebrowser.qt import QtNetwork
 
 from qutebrowser.utils import usertypes, utils, debug, jinja
 
@@ -30,7 +30,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a list of QSslErrors."""
 
-    def __init__(self, errors: Sequence[QSslError]) -> None:
+    def __init__(self, errors: Sequence[QtNetwork.QSslError]) -> None:
         self._errors = tuple(errors)  # needs to be hashable
 
     def __str__(self) -> str:
@@ -39,7 +39,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            errors=[debug.qenum_key(QSslError, err.error()) for err in self._errors],
+            errors=[debug.qenum_key(QtNetwork.QSslError, err.error()) for err in self._errors],
             string=str(self))
 
     def __hash__(self) -> int:

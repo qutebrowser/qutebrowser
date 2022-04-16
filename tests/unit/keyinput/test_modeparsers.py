@@ -19,8 +19,7 @@
 
 """Tests for mode parsers."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
+from qutebrowser.qt import QtGui, QtCore
 
 import pytest
 
@@ -65,7 +64,7 @@ class TestsNormalKeyParser:
 
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
-        keyparser.handle(keyutils.KeyInfo(Qt.Key_B, Qt.NoModifier).to_event())
+        keyparser.handle(keyutils.KeyInfo(QtCore.Qt.Key_B, QtCore.Qt.NoModifier).to_event())
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()
@@ -129,11 +128,11 @@ class TestHintKeyParser:
         assert len(seq) == 2
 
         match = keyparser.handle(seq[0].to_event())
-        assert match == QKeySequence.PartialMatch
+        assert match == QtGui.QKeySequence.PartialMatch
         assert hintmanager.keystr == prefix
 
         match = keyparser.handle(seq[1].to_event())
-        assert match == QKeySequence.ExactMatch
+        assert match == QtGui.QKeySequence.ExactMatch
         assert hintmanager.keystr == hint
 
     def test_match_key_mappings(self, config_stub, keyparser, hintmanager):
@@ -144,11 +143,11 @@ class TestHintKeyParser:
         assert len(seq) == 2
 
         match = keyparser.handle(seq[0].to_event())
-        assert match == QKeySequence.PartialMatch
+        assert match == QtGui.QKeySequence.PartialMatch
         assert hintmanager.keystr == 'a'
 
         match = keyparser.handle(seq[1].to_event())
-        assert match == QKeySequence.ExactMatch
+        assert match == QtGui.QKeySequence.ExactMatch
         assert hintmanager.keystr == 'as'
 
     def test_command(self, keyparser, config_stub, hintmanager, commandrunner):
@@ -159,17 +158,17 @@ class TestHintKeyParser:
         keyparser.update_bindings(['xabcy'])
 
         steps = [
-            (Qt.Key_X, QKeySequence.PartialMatch, 'x'),
-            (Qt.Key_A, QKeySequence.PartialMatch, ''),
-            (Qt.Key_B, QKeySequence.PartialMatch, ''),
-            (Qt.Key_C, QKeySequence.ExactMatch, ''),
+            (QtCore.Qt.Key_X, QtGui.QKeySequence.PartialMatch, 'x'),
+            (QtCore.Qt.Key_A, QtGui.QKeySequence.PartialMatch, ''),
+            (QtCore.Qt.Key_B, QtGui.QKeySequence.PartialMatch, ''),
+            (QtCore.Qt.Key_C, QtGui.QKeySequence.ExactMatch, ''),
         ]
         for key, expected_match, keystr in steps:
-            info = keyutils.KeyInfo(key, Qt.NoModifier)
+            info = keyutils.KeyInfo(key, QtCore.Qt.NoModifier)
             match = keyparser.handle(info.to_event())
             assert match == expected_match
             assert hintmanager.keystr == keystr
-            if key != Qt.Key_C:
+            if key != QtCore.Qt.Key_C:
                 assert not commandrunner.commands
 
         assert commandrunner.commands == [('message-info abc', None)]

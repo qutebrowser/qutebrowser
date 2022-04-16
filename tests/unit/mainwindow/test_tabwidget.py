@@ -23,10 +23,10 @@
 import functools
 
 import pytest
-from PyQt5.QtGui import QIcon, QPixmap
 
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.utils import usertypes
+from qutebrowser.qt import QtGui
 
 
 class TestTabWidget:
@@ -48,8 +48,8 @@ class TestTabWidget:
         Regression test for #1015.
         """
         # Size taken from issue report
-        pixmap = QPixmap(72, 1)
-        icon = QIcon(pixmap)
+        pixmap = QtGui.QPixmap(72, 1)
+        icon = QtGui.QIcon(pixmap)
         tab = fake_web_tab()
         widget.addTab(tab, icon, 'foobar')
 

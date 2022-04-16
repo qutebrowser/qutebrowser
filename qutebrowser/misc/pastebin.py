@@ -20,11 +20,10 @@
 """Client for the pastebin."""
 
 import urllib.parse
+from qutebrowser.qt import QtCore
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
-
-class PastebinClient(QObject):
+class PastebinClient(QtCore.QObject):
 
     """A client for Stikked pastebins using HTTPClient.
 
@@ -43,8 +42,8 @@ class PastebinClient(QObject):
 
     API_URL = 'https://crashes.qutebrowser.org/api/'
     MISC_API_URL = 'https://paste.the-compiler.org/api/'
-    success = pyqtSignal(str)
-    error = pyqtSignal(str)
+    success = QtCore.pyqtSignal(str)
+    error = QtCore.pyqtSignal(str)
 
     def __init__(self, client, parent=None, api_url=API_URL):
         """Constructor.
@@ -81,10 +80,10 @@ class PastebinClient(QObject):
         if private:
             data['private'] = '1'
 
-        url = QUrl(urllib.parse.urljoin(self._api_url, 'create'))
+        url = QtCore.QUrl(urllib.parse.urljoin(self._api_url, 'create'))
         self._client.post(url, data)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def on_client_success(self, data):
         """Process the data and finish when the client finished.
 

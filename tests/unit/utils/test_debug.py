@@ -25,30 +25,29 @@ import time
 import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
-from PyQt5.QtWidgets import QStyle, QFrame, QSpinBox
 
 from qutebrowser.utils import debug
 from qutebrowser.misc import objects
+from qutebrowser.qt import QtWidgets, QtCore
 
 
 @debug.log_events
-class EventObject(QObject):
+class EventObject(QtCore.QObject):
 
     pass
 
 
 def test_log_events(qapp, caplog):
     obj = EventObject()
-    qapp.sendEvent(obj, QEvent(QEvent.User))
+    qapp.sendEvent(obj, QtCore.QEvent(QtCore.QEvent.User))
     qapp.processEvents()
     assert caplog.messages == ['Event in test_debug.EventObject: User']
 
 
-class SignalObject(QObject):
+class SignalObject(QtCore.QObject):
 
-    signal1 = pyqtSignal()
-    signal2 = pyqtSignal(str, str)
+    signal1 = QtCore.pyqtSignal()
+    signal2 = QtCore.pyqtSignal(str, str)
 
     def __repr__(self):
         """This is not a nice thing to do, but it makes our tests easier."""
@@ -129,28 +128,28 @@ class TestQEnumKey:
         If Qt/PyQt even changes and our tests wouldn't test the full
         functionality of qenum_key because of that, this test will tell us.
         """
-        assert not hasattr(QStyle.PrimitiveElement, 'staticMetaObject')
-        assert hasattr(QFrame, 'staticMetaObject')
+        assert not hasattr(QtWidgets.QStyle.PrimitiveElement, 'staticMetaObject')
+        assert hasattr(QtWidgets.QFrame, 'staticMetaObject')
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (QStyle, QStyle.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
-        (QFrame, QFrame.Sunken, None, 'Sunken'),
-        (QFrame, 0x0030, QFrame.Shadow, 'Sunken'),
-        (QFrame, 0x1337, QFrame.Shadow, '0x1337'),
-        (Qt, Qt.AnchorLeft, None, 'AnchorLeft'),
+        (QtWidgets.QStyle, QtWidgets.QStyle.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
+        (QtWidgets.QFrame, QtWidgets.QFrame.Sunken, None, 'Sunken'),
+        (QtWidgets.QFrame, 0x0030, QtWidgets.QFrame.Shadow, 'Sunken'),
+        (QtWidgets.QFrame, 0x1337, QtWidgets.QFrame.Shadow, '0x1337'),
+        (QtCore.Qt, QtCore.Qt.AnchorLeft, None, 'AnchorLeft'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
         assert key == expected
 
     def test_add_base(self):
-        key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
+        key = debug.qenum_key(QtWidgets.QFrame, QtWidgets.QFrame.Sunken, add_base=True)
         assert key == 'QFrame.Sunken'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
         with pytest.raises(TypeError):
-            debug.qenum_key(QFrame, 42)
+            debug.qenum_key(QtWidgets.QFrame, 42)
 
 
 class TestQFlagsKey:
@@ -163,15 +162,15 @@ class TestQFlagsKey:
     fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (Qt, Qt.AlignTop, None, 'AlignTop'),
-        pytest.param(Qt, Qt.AlignLeft | Qt.AlignTop, None,
+        (QtCore.Qt, QtCore.Qt.AlignTop, None, 'AlignTop'),
+        pytest.param(QtCore.Qt, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop, None,
                      'AlignLeft|AlignTop', marks=fixme),
-        (Qt, Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
-        pytest.param(Qt, 0x0021, Qt.Alignment, 'AlignLeft|AlignTop',
+        (QtCore.Qt, QtCore.Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
+        pytest.param(QtCore.Qt, 0x0021, QtCore.Qt.Alignment, 'AlignLeft|AlignTop',
                      marks=fixme),
-        (Qt, 0x1100, Qt.Alignment, '0x0100|0x1000'),
-        (Qt, Qt.DockWidgetAreas(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
-        (Qt, Qt.DockWidgetAreas(0), None, '0x0000'),
+        (QtCore.Qt, 0x1100, QtCore.Qt.Alignment, '0x0100|0x1000'),
+        (QtCore.Qt, QtCore.Qt.DockWidgetAreas(0), QtCore.Qt.DockWidgetArea, 'NoDockWidgetArea'),
+        (QtCore.Qt, QtCore.Qt.DockWidgetAreas(0), None, '0x0000'),
     ])
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)
@@ -199,20 +198,20 @@ class TestQFlagsKey:
 
     def test_add_base(self):
         """Test with add_base=True."""
-        flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
+        flags = debug.qflags_key(QtCore.Qt, QtCore.Qt.AlignTop, add_base=True)
         assert flags == 'Qt.AlignTop'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
         with pytest.raises(TypeError):
-            debug.qflags_key(Qt, 42)
+            debug.qflags_key(QtCore.Qt, 42)
 
 
 @pytest.mark.parametrize('cls, signal', [
     (SignalObject, 'signal1'),
     (SignalObject, 'signal2'),
-    (QTimer, 'timeout'),
-    (QSpinBox, 'valueChanged'),  # Overloaded signal
+    (QtCore.QTimer, 'timeout'),
+    (QtWidgets.QSpinBox, 'valueChanged'),  # Overloaded signal
 ])
 @pytest.mark.parametrize('bound', [True, False])
 def test_signal_name(cls, signal, bound):
@@ -259,7 +258,7 @@ def test_dbg_signal(stubs, args, expected):
 
 class TestGetAllObjects:
 
-    class Object(QObject):
+    class Object(QtCore.QObject):
 
         def __init__(self, name, parent=None):
             self._name = name
@@ -274,7 +273,7 @@ class TestGetAllObjects:
         app = stubs.FakeQApplication(all_widgets=widgets)
         monkeypatch.setattr(objects, 'qapp', app)
 
-        root = QObject()
+        root = QtCore.QObject()
         o1 = self.Object('Object 1', root)
         o2 = self.Object('Object 2', o1)  # noqa: F841
         o3 = self.Object('Object 3', root)  # noqa: F841

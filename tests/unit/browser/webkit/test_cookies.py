@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-from PyQt5.QtNetwork import QNetworkCookie
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtNetwork
+from qutebrowser.qt import QtCore
 import pytest
 
 from qutebrowser.browser.webkit import cookies
@@ -66,7 +66,7 @@ class TestSetCookies:
 
     @pytest.fixture
     def cookie(self):
-        return QNetworkCookie(b'foo', b'bar')
+        return QtNetwork.QNetworkCookie(b'foo', b'bar')
 
     @pytest.fixture
     def ram_jar(self):
@@ -74,7 +74,7 @@ class TestSetCookies:
 
     @pytest.fixture
     def url(self):
-        return QUrl('http://example.com/')
+        return QtCore.QUrl('http://example.com/')
 
     @pytest.fixture(autouse=True)
     def set_webkit_backend(self, monkeypatch):
@@ -110,7 +110,7 @@ class TestSetCookies:
         config_stub.set_str('content.cookies.accept', 'never',
                             pattern=urlmatch.UrlPattern('http://example.com'))
 
-        org_url = QUrl('http://example.org/')
+        org_url = QtCore.QUrl('http://example.org/')
 
         with qtbot.wait_signal(ram_jar.changed):
             assert ram_jar.setCookiesFromUrl([cookie], org_url)

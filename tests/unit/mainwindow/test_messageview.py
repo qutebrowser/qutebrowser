@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt import QtCore
 
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes
@@ -155,10 +155,10 @@ def test_replacing_geometry(qtbot, view):
 
 
 @pytest.mark.parametrize('button, count', [
-    (Qt.LeftButton, 0),
-    (Qt.MiddleButton, 0),
-    (Qt.RightButton, 0),
-    (Qt.BackButton, 2),
+    (QtCore.Qt.LeftButton, 0),
+    (QtCore.Qt.MiddleButton, 0),
+    (QtCore.Qt.RightButton, 0),
+    (QtCore.Qt.BackButton, 2),
 ])
 def test_click_messages(qtbot, view, button, count):
     """Messages should disappear when we click on them."""

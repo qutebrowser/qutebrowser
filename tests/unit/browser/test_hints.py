@@ -23,7 +23,7 @@ import itertools
 import operator
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import usertypes
 import qutebrowser.browser.hints
@@ -39,7 +39,7 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
     tb = tabbed_browser_stubs[0]
     tb.widget.tabs = [web_tab]
     tb.widget.current_index = 1
-    tb.widget.cur_url = QUrl('https://www.example.com/')
+    tb.widget.cur_url = QtCore.QUrl('https://www.example.com/')
     web_tab.container.expose()  # No elements found if we don't do this.
     return tb
 
@@ -49,7 +49,7 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, mode_manager):
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
-        tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
+        tab.load_url(QtCore.QUrl('qute://testdata/data/hints/benchmark.html'))
 
     manager = qutebrowser.browser.hints.HintManager(win_id=0)
 
@@ -69,7 +69,7 @@ def test_match_benchmark(benchmark, tabbed_browser, qtbot, mode_manager, qapp,
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
-        tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
+        tab.load_url(QtCore.QUrl('qute://testdata/data/hints/benchmark.html'))
 
     config_stub.val.hints.scatter = False
     manager = qutebrowser.browser.hints.HintManager(win_id=0)

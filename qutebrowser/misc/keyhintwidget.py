@@ -28,16 +28,14 @@ import html
 import fnmatch
 import re
 
-from PyQt5.QtWidgets import QLabel, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
-
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import utils, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import QtWidgets, QtCore
 
 
-class KeyHintView(QLabel):
+class KeyHintView(QtWidgets.QLabel):
 
     """The view showing hints for key bindings based on the current key string.
 
@@ -61,13 +59,13 @@ class KeyHintView(QLabel):
             {% endif %}
         }
     """
-    update_geometry = pyqtSignal()
+    update_geometry = QtCore.pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(QtCore.Qt.RichText)
         self._win_id = win_id
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
@@ -82,7 +80,7 @@ class KeyHintView(QLabel):
         self.update_geometry.emit()
         super().showEvent(e)
 
-    @pyqtSlot(usertypes.KeyMode, str)
+    @QtCore.pyqtSlot(usertypes.KeyMode, str)
     def update_keyhint(self, mode, prefix):
         """Show hints for the given prefix (or hide if prefix is empty).
 

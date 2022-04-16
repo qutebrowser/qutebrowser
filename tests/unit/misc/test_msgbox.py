@@ -20,8 +20,7 @@
 
 import pytest
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMessageBox, QWidget
+from qutebrowser.qt import QtWidgets, QtCore
 
 from qutebrowser.misc import msgbox
 from qutebrowser.utils import utils
@@ -36,10 +35,10 @@ def test_attributes(qtbot):
     """Test basic QMessageBox attributes."""
     title = 'title'
     text = 'text'
-    parent = QWidget()
+    parent = QtWidgets.QWidget()
     qtbot.add_widget(parent)
-    icon = QMessageBox.Critical
-    buttons = QMessageBox.Ok | QMessageBox.Cancel
+    icon = QtWidgets.QMessageBox.Critical
+    buttons = QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
 
     box = msgbox.msgbox(parent=parent, title=title, text=text, icon=icon,
                         buttons=buttons)
@@ -53,13 +52,13 @@ def test_attributes(qtbot):
 
 
 @pytest.mark.parametrize('plain_text, expected', [
-    (True, Qt.PlainText),
-    (False, Qt.RichText),
-    (None, Qt.AutoText),
+    (True, QtCore.Qt.PlainText),
+    (False, QtCore.Qt.RichText),
+    (None, QtCore.Qt.AutoText),
 ])
 def test_plain_text(qtbot, plain_text, expected):
     box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QMessageBox.Information, plain_text=plain_text)
+                        icon=QtWidgets.QMessageBox.Information, plain_text=plain_text)
     qtbot.add_widget(box)
     assert box.textFormat() == expected
 
@@ -73,7 +72,7 @@ def test_finished_signal(qtbot):
         signal_triggered = True
 
     box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QMessageBox.Information, on_finished=on_finished)
+                        icon=QtWidgets.QMessageBox.Information, on_finished=on_finished)
 
     qtbot.add_widget(box)
 
@@ -89,7 +88,7 @@ def test_information(qtbot):
     if not utils.is_mac:
         assert box.windowTitle() == 'foo'
     assert box.text() == 'bar'
-    assert box.icon() == QMessageBox.Information
+    assert box.icon() == QtWidgets.QMessageBox.Information
 
 
 def test_no_err_windows(fake_args, caplog):

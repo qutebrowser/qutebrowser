@@ -18,10 +18,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtWebEngineWidgets, QtWebEngineCore, QtCore
 pytest.importorskip('PyQt5.QtWebEngineCore')
-from PyQt5.QtWebEngineCore import QWebEngineCookieStore
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch
@@ -29,8 +27,8 @@ from qutebrowser.utils import urlmatch
 
 @pytest.fixture
 def filter_request():
-    request = QWebEngineCookieStore.FilterRequest()
-    request.firstPartyUrl = QUrl('https://example.com')
+    request = QtWebEngineCore.QWebEngineCookieStore.FilterRequest()
+    request.firstPartyUrl = QtCore.QUrl('https://example.com')
     return request
 
 
@@ -77,7 +75,7 @@ def test_invalid_url(config_stub, filter_request, global_value):
     https://developers.google.com/youtube/youtube_player_demo
     """
     config_stub.val.content.cookies.accept = global_value
-    filter_request.firstPartyUrl = QUrl()
+    filter_request.firstPartyUrl = QtCore.QUrl()
     accepted = global_value == 'all'
     assert cookies._accept_cookie(filter_request) == accepted
 
@@ -102,7 +100,7 @@ def test_logging(monkeypatch, config_stub, filter_request, caplog, enabled):
 class TestInstall:
 
     def test_real_profile(self):
-        profile = QWebEngineProfile()
+        profile = QtWebEngineWidgets.QWebEngineProfile()
         cookies.install_filter(profile)
 
     def test_fake_profile(self, stubs):

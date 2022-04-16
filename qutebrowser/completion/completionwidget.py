@@ -25,18 +25,17 @@ subclasses to provide completions.
 
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
-
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
 from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
+from qutebrowser.qt import QtWidgets, QtCore
+
 if TYPE_CHECKING:
     from qutebrowser.mainwindow.statusbar import command
 
 
-class CompletionView(QTreeView):
+class CompletionView(QtWidgets.QTreeView):
 
     """The view showing available completions.
 
@@ -107,13 +106,13 @@ class CompletionView(QTreeView):
         }
     """
 
-    update_geometry = pyqtSignal()
-    selection_changed = pyqtSignal(str)
+    update_geometry = QtCore.pyqtSignal()
+    selection_changed = QtCore.pyqtSignal(str)
 
     def __init__(self, *,
                  cmd: 'command.Command',
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
         self.pattern: Optional[str] = None
         self._win_id = win_id
@@ -124,16 +123,16 @@ class CompletionView(QTreeView):
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
-        self.setStyle(QStyleFactory.create('Fusion'))
+        self.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
         self.setAnimated(False)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         # WORKAROUND
         # This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
@@ -148,7 +147,7 @@ class CompletionView(QTreeView):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['completion.height', 'completion.shrink']:
             self.update_geometry.emit()
@@ -327,8 +326,8 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
-            QItemSelectionModel.Rows)
+            QtCore.QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
+            QtCore.QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more
         next_idx = self.indexBelow(idx)
@@ -399,7 +398,7 @@ class CompletionView(QTreeView):
         if config.val.completion.shrink:
             self.update_geometry.emit()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
         self.hide()
@@ -425,7 +424,7 @@ class CompletionView(QTreeView):
             if contents_height <= height:
                 height = contents_height
         # The width isn't really relevant as we're expanding anyways.
-        return QSize(-1, height)
+        return QtCore.QSize(-1, height)
 
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""

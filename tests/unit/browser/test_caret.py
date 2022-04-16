@@ -22,7 +22,7 @@
 import textwrap
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import usertypes
 from qutebrowser.browser import browsertab
@@ -33,7 +33,7 @@ def caret(web_tab, qtbot, mode_manager):
     web_tab.container.expose()
 
     with qtbot.wait_signal(web_tab.load_finished, timeout=10000):
-        web_tab.load_url(QUrl('qute://testdata/data/caret.html'))
+        web_tab.load_url(QtCore.QUrl('qute://testdata/data/caret.html'))
 
     with qtbot.wait_signal(web_tab.caret.selection_toggled):
         mode_manager.enter(usertypes.KeyMode.caret)

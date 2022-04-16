@@ -22,23 +22,17 @@
 import html
 import functools
 from typing import cast
-
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
+from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtPrintSupport, QtNetwork, QtGui
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
-from qutebrowser.qt import sip
+from qutebrowser.qt import QtCore, sip
 
 
-class BrowserPage(QWebPage):
+class BrowserPage(QtWebKitWidgets.QWebPage):
 
     """Our own QWebPage with advanced features.
 
@@ -58,9 +52,9 @@ class BrowserPage(QWebPage):
         navigation_request: Emitted on acceptNavigationRequest.
     """
 
-    shutting_down = pyqtSignal()
-    reloading = pyqtSignal(QUrl)
-    navigation_request = pyqtSignal(usertypes.NavigationRequest)
+    shutting_down = QtCore.pyqtSignal()
+    reloading = QtCore.pyqtSignal(QtCore.QUrl)
+    navigation_request = QtCore.pyqtSignal(usertypes.NavigationRequest)
 
     def __init__(self, win_id, tab_id, tabdata, private, parent=None):
         super().__init__(parent)
@@ -68,8 +62,8 @@ class BrowserPage(QWebPage):
         self._tabdata = tabdata
         self._is_shutting_down = False
         self._extension_handlers = {
-            QWebPage.ErrorPageExtension: self._handle_errorpage,
-            QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
+            QtWebKitWidgets.QWebPage.ErrorPageExtension: self._handle_errorpage,
+            QtWebKitWidgets.QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
         self.error_occurred = False
@@ -97,7 +91,7 @@ class BrowserPage(QWebPage):
         self.frameCreated.connect(  # type: ignore[attr-defined]
             self._connect_userjs_signals)
 
-    @pyqtSlot('QWebFrame*')
+    @QtCore.pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
         """Connect userjs related signals to `frame`.
 
@@ -135,27 +129,27 @@ class BrowserPage(QWebPage):
             False if no error page should be displayed, True otherwise.
         """
         ignored_errors = [
-            (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
+            (QtWebKitWidgets.QWebPage.QtNetwork, QtNetwork.QNetworkReply.OperationCanceledError),
             # "Loading is handled by the media engine"
-            (QWebPage.WebKit, 203),
+            (QtWebKitWidgets.QWebPage.WebKit, 203),
             # "Frame load interrupted by policy change"
-            (QWebPage.WebKit, 102),
+            (QtWebKitWidgets.QWebPage.WebKit, 102),
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
-        if (info.domain, info.error) == (QWebPage.QtNetwork,
-                                         QNetworkReply.ProtocolUnknownError):
+        if (info.domain, info.error) == (QtWebKitWidgets.QWebPage.QtNetwork,
+                                         QtNetwork.QNetworkReply.ProtocolUnknownError):
             # For some reason, we get a segfault when we use
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
-            url = QUrl(info.url)
+            url = QtCore.QUrl(info.url)
             scheme = url.scheme()
             message.confirm_async(
                 title="Open external application for {}-link?".format(scheme),
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
-                yes_action=functools.partial(QDesktopServices.openUrl, url),
-                url=info.url.toString(QUrl.RemovePassword | QUrl.FullyEncoded))
+                yes_action=functools.partial(QtGui.QDesktopServices.openUrl, url),
+                url=info.url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -174,7 +168,7 @@ class BrowserPage(QWebPage):
                     # any space. We can't hide the frame's documentElement
                     # directly though.
                     for elem in main_frame.documentElement().findAll('iframe'):
-                        if QUrl(elem.attribute('src')) == info.url:
+                        if QtCore.QUrl(elem.attribute('src')) == info.url:
                             elem.setAttribute('style', 'display: none')
                     return False
             else:
@@ -192,7 +186,7 @@ class BrowserPage(QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
-    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str) -> str:
+    def chooseFile(self, parent_frame: QtWebKitWidgets.QWebFrame, suggested_file: str) -> str:
         """Override chooseFile to (optionally) invoke custom file uploader."""
         handler = config.val.fileselect.handler
         if handler == "default":
@@ -224,7 +218,7 @@ class BrowserPage(QWebPage):
             if info.suggestedFileNames:
                 suggested_file = info.suggestedFileNames[0]
 
-            files.fileNames, _ = QFileDialog.getOpenFileNames(
+            files.fileNames, _ = QtWidgets.QFileDialog.getOpenFileNames(
                 None, None, suggested_file)  # type: ignore[arg-type]
             return True
 
@@ -250,8 +244,8 @@ class BrowserPage(QWebPage):
 
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
-        printdiag = QPrintDialog()
-        printdiag.setAttribute(Qt.WA_DeleteOnClose)
+        printdiag = QtPrintSupport.QPrintDialog()
+        printdiag.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
     def on_download_requested(self, request):
@@ -262,11 +256,11 @@ class BrowserPage(QWebPage):
         soon as the user has entered the filename, as Qt seems to delete it
         after this slot returns.
         """
-        req = QNetworkRequest(request)
+        req = QtNetwork.QNetworkRequest(request)
         download_manager = objreg.get('qtnetwork-download-manager')
         download_manager.get_request(req, qnam=self.networkAccessManager())
 
-    @pyqtSlot('QNetworkReply*')
+    @QtCore.pyqtSlot('QNetworkReply*')
     def on_unsupported_content(self, reply):
         """Handle an unsupportedContent signal.
 
@@ -303,7 +297,7 @@ class BrowserPage(QWebPage):
             download_manager.fetch(reply,
                                    suggested_filename=suggested_filename)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_load_started(self):
         """Reset error_occurred when loading of a new page started."""
         if self._ignore_load_started:
@@ -346,10 +340,10 @@ class BrowserPage(QWebPage):
                 log.webview.debug(f'Running GM script: {script}')
                 frame.evaluateJavaScript(script.code())
 
-    @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
+    @QtCore.pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
-        if not isinstance(frame, QWebFrame):  # pragma: no cover
+        if not isinstance(frame, QtWebKitWidgets.QWebFrame):  # pragma: no cover
             # This makes no sense whatsoever, but someone reported this being
             # called with a QBuffer...
             log.misc.error("on_feature_permission_requested got called with "
@@ -357,25 +351,25 @@ class BrowserPage(QWebPage):
             return
 
         options = {
-            QWebPage.Notifications: 'content.notifications.enabled',
-            QWebPage.Geolocation: 'content.geolocation',
+            QtWebKitWidgets.QWebPage.Notifications: 'content.notifications.enabled',
+            QtWebKitWidgets.QWebPage.Geolocation: 'content.geolocation',
         }
         messages = {
-            QWebPage.Notifications: 'show notifications',
-            QWebPage.Geolocation: 'access your location',
+            QtWebKitWidgets.QWebPage.Notifications: 'show notifications',
+            QtWebKitWidgets.QWebPage.Geolocation: 'access your location',
         }
         yes_action = functools.partial(
             self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionGrantedByUser)
+            QtWebKitWidgets.QWebPage.PermissionGrantedByUser)
         no_action = functools.partial(
             self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionDeniedByUser)
+            QtWebKitWidgets.QWebPage.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
-                                        QUrl.RemoveUserInfo |
-                                        QUrl.RemovePath |
-                                        QUrl.RemoveQuery |
-                                        QUrl.RemoveFragment))
+        url = frame.url().adjusted(cast(QtCore.QUrl.FormattingOptions,
+                                        QtCore.QUrl.RemoveUserInfo |
+                                        QtCore.QUrl.RemovePath |
+                                        QtCore.QUrl.RemoveQuery |
+                                        QtCore.QUrl.RemoveFragment))
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -429,7 +423,7 @@ class BrowserPage(QWebPage):
             return
         if 'zoom' in data:
             frame.page().view().tab.zoom.set_factor(data['zoom'])
-        if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
+        if 'scroll-pos' in data and frame.scrollPosition() == QtCore.QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
     def userAgentForUrl(self, url):
@@ -495,9 +489,9 @@ class BrowserPage(QWebPage):
                                       source, line, msg)
 
     def acceptNavigationRequest(self,
-                                frame: QWebFrame,
-                                request: QNetworkRequest,
-                                typ: QWebPage.NavigationType) -> bool:
+                                frame: QtWebKitWidgets.QWebFrame,
+                                request: QtNetwork.QNetworkRequest,
+                                typ: QtWebKitWidgets.QWebPage.NavigationType) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
@@ -508,17 +502,17 @@ class BrowserPage(QWebPage):
         and then conditionally opens the URL here or in another tab/window.
         """
         type_map = {
-            QWebPage.NavigationTypeLinkClicked:
+            QtWebKitWidgets.QWebPage.NavigationTypeLinkClicked:
                 usertypes.NavigationRequest.Type.link_clicked,
-            QWebPage.NavigationTypeFormSubmitted:
+            QtWebKitWidgets.QWebPage.NavigationTypeFormSubmitted:
                 usertypes.NavigationRequest.Type.form_submitted,
-            QWebPage.NavigationTypeFormResubmitted:
+            QtWebKitWidgets.QWebPage.NavigationTypeFormResubmitted:
                 usertypes.NavigationRequest.Type.form_resubmitted,
-            QWebPage.NavigationTypeBackOrForward:
+            QtWebKitWidgets.QWebPage.NavigationTypeBackOrForward:
                 usertypes.NavigationRequest.Type.back_forward,
-            QWebPage.NavigationTypeReload:
+            QtWebKitWidgets.QWebPage.NavigationTypeReload:
                 usertypes.NavigationRequest.Type.reloaded,
-            QWebPage.NavigationTypeOther:
+            QtWebKitWidgets.QWebPage.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
         is_main_frame = frame is self.mainFrame()

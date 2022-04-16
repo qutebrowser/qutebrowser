@@ -19,7 +19,7 @@
 
 """Tools related to error printing/displaying."""
 
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt import QtWidgets
 
 from qutebrowser.utils import log, utils
 
@@ -70,5 +70,5 @@ def handle_fatal_exc(exc: BaseException,
             msg_text = str(exc)
         if post_text:
             msg_text += '\n\n{}'.format(post_text)
-        msgbox = QMessageBox(QMessageBox.Critical, title, msg_text)
+        msgbox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Critical, title, msg_text)
         msgbox.exec()

@@ -21,7 +21,7 @@
 
 from typing import cast, Any
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.config import config
 
@@ -38,6 +38,6 @@ from qutebrowser.config import config
 val = cast('config.ConfigContainer', None)
 
 
-def get(name: str, url: QUrl = None) -> Any:
+def get(name: str, url: QtCore.QUrl = None) -> Any:
     """Get a value from the config based on a string name."""
     return config.instance.get(name, url)

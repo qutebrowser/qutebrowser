@@ -23,7 +23,7 @@ import os.path
 import contextlib
 from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
@@ -108,7 +108,7 @@ class ConfigCommands:
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.load_url(QUrl('qute://settings'), newtab=False)
+            tabbed_browser.load_url(QtCore.QUrl('qute://settings'), newtab=False)
             return
 
         if option.endswith('!'):
@@ -151,7 +151,7 @@ class ConfigCommands:
             default: If given, restore a default binding.
         """
         if key is None:
-            url = QUrl('qute://bindings')
+            url = QtCore.QUrl('qute://bindings')
             if mode != "normal":
                 url.setFragment(mode)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -283,7 +283,7 @@ class ConfigCommands:
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     def config_diff(self, win_id: int) -> None:
         """Show all customized options."""
-        url = QUrl('qute://configdiff')
+        url = QtCore.QUrl('qute://configdiff')
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window', window=win_id)
         tabbed_browser.load_url(url, newtab=False)

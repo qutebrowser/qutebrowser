@@ -23,8 +23,7 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor
+from qutebrowser.qt import QtGui, QtCore
 
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
@@ -494,14 +493,14 @@ class TestConfig:
 
     def test_get(self, conf):
         """Test conf.get() with a QColor (where get/get_obj is different)."""
-        assert conf.get('colors.completion.category.fg') == QColor('white')
+        assert conf.get('colors.completion.category.fg') == QtGui.QColor('white')
 
     def test_get_for_url(self, conf):
         """Test conf.get() with a URL/pattern."""
         pattern = urlmatch.UrlPattern('*://example.com/')
         name = 'content.javascript.enabled'
         conf.set_obj(name, False, pattern=pattern)
-        assert conf.get(name, url=QUrl('https://example.com/')) is False
+        assert conf.get(name, url=QtCore.QUrl('https://example.com/')) is False
 
     @pytest.mark.parametrize('fallback, expected', [
         (True, True),
@@ -510,7 +509,7 @@ class TestConfig:
     def test_get_for_url_fallback(self, conf, fallback, expected):
         """Test conf.get() with a URL and fallback."""
         value = conf.get('content.javascript.enabled',
-                         url=QUrl('https://example.com/'),
+                         url=QtCore.QUrl('https://example.com/'),
                          fallback=fallback)
         assert value is expected
 
@@ -758,7 +757,7 @@ class TestContainer:
 
     @pytest.mark.parametrize('configapi, expected', [
         (object(), 'rgb'),
-        (None, QColor.Rgb),
+        (None, QtGui.QColor.Rgb),
     ])
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi

@@ -23,7 +23,7 @@ import functools
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.config import configcommands
 from qutebrowser.api import cmdutils
@@ -59,7 +59,7 @@ class TestSet:
 
         Should open qute://settings."""
         commands.set(win_id=0)
-        assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://settings')
+        assert tabbed_browser_stubs[0].loaded_url == QtCore.QUrl('qute://settings')
 
     @pytest.mark.parametrize('option', ['url.auto_search?', 'url.auto_search'])
     def test_get(self, config_stub, commands, message_mock, option):
@@ -217,7 +217,7 @@ def test_diff(commands, tabbed_browser_stubs):
 
     Should open qute://configdiff."""
     commands.config_diff(win_id=0)
-    assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://configdiff')
+    assert tabbed_browser_stubs[0].loaded_url == QtCore.QUrl('qute://configdiff')
 
 
 class TestCycle:
@@ -468,7 +468,7 @@ class TestUnsetAndClear:
     def test_unset_pattern(self, commands, config_stub, set_global):
         name = 'content.javascript.enabled'
         pattern = urlmatch.UrlPattern('*://example.com')
-        url = QUrl('https://example.com')
+        url = QtCore.QUrl('https://example.com')
 
         if set_global:
             config_stub.set_obj(name, False)
@@ -726,8 +726,8 @@ class TestBind:
         return {'normal': {}}
 
     @pytest.mark.parametrize("mode, url", [
-        ("normal", QUrl("qute://bindings")),
-        ("passthrough", QUrl("qute://bindings#passthrough")),
+        ("normal", QtCore.QUrl("qute://bindings")),
+        ("passthrough", QtCore.QUrl("qute://bindings#passthrough")),
     ])
     def test_bind_no_args(self, commands, config_stub, no_bindings,
                           tabbed_browser_stubs, mode, url):

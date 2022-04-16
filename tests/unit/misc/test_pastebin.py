@@ -19,7 +19,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.misc import httpclient, pastebin
 
@@ -56,7 +56,7 @@ def test_paste_with_parent(data, pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"], data["reply"])
     assert http_stub.data == data
-    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
+    assert http_stub.url == QtCore.QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 @pytest.mark.parametrize('data', [
@@ -77,7 +77,7 @@ def test_paste_without_parent(data, pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"])
     assert pbclient._client.data == data
-    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
+    assert http_stub.url == QtCore.QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 def test_paste_private(pbclient):
@@ -91,7 +91,7 @@ def test_paste_private(pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"], private=True)
     assert pbclient._client.data == data
-    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
+    assert http_stub.url == QtCore.QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 @pytest.mark.parametrize('http', [

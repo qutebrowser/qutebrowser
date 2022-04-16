@@ -24,18 +24,16 @@ import os.path
 import tempfile
 from typing import cast, Any, MutableMapping, Tuple
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
-
 import qutebrowser
 from qutebrowser.utils import message, log, objreg, standarddir, utils
 from qutebrowser.commands import runners
 from qutebrowser.config import websettings
 from qutebrowser.misc import guiprocess
 from qutebrowser.browser import downloads
-from qutebrowser.qt import sip
+from qutebrowser.qt import QtCore, sip
 
 
-class _QtFIFOReader(QObject):
+class _QtFIFOReader(QtCore.QObject):
 
     """A FIFO reader based on a QSocketNotifier.
 
@@ -48,7 +46,7 @@ class _QtFIFOReader(QObject):
         got_line: Emitted when a whole line arrived.
     """
 
-    got_line = pyqtSignal(str)
+    got_line = QtCore.pyqtSignal(str)
 
     def __init__(self, filepath, parent=None):
         super().__init__(parent)
@@ -61,12 +59,12 @@ class _QtFIFOReader(QObject):
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
-        self._notifier = QSocketNotifier(cast(sip.voidptr, fd),
-                                         QSocketNotifier.Read, self)
+        self._notifier = QtCore.QSocketNotifier(cast(sip.voidptr, fd),
+                                         QtCore.QSocketNotifier.Read, self)
         self._notifier.activated.connect(  # type: ignore[attr-defined]
             self.read_line)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def read_line(self):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
@@ -92,7 +90,7 @@ class _QtFIFOReader(QObject):
         self._fifo.close()
 
 
-class _BaseUserscriptRunner(QObject):
+class _BaseUserscriptRunner(QtCore.QObject):
 
     """Common part between the Windows and the POSIX userscript runners.
 
@@ -111,8 +109,8 @@ class _BaseUserscriptRunner(QObject):
                   arg: The finished GUIProcess object.
     """
 
-    got_cmd = pyqtSignal(str)
-    finished = pyqtSignal(guiprocess.GUIProcess)
+    got_cmd = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(guiprocess.GUIProcess)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -217,7 +215,7 @@ class _BaseUserscriptRunner(QObject):
         """
         raise NotImplementedError
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_proc_finished(self):
         """Called when the process has finished.
 
@@ -225,7 +223,7 @@ class _BaseUserscriptRunner(QObject):
         """
         raise NotImplementedError
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_proc_error(self):
         """Called when the process encountered an error.
 
@@ -271,11 +269,11 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._reader = _QtFIFOReader(self._filepath)
         self._reader.got_line.connect(self.got_cmd)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_proc_finished(self):
         self._cleanup()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_proc_error(self):
         self._cleanup()
 
@@ -328,11 +326,11 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         super()._cleanup()
         self.finished.emit(proc)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_proc_error(self):
         self._cleanup()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
         self._cleanup()

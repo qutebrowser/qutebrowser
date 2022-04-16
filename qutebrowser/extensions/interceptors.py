@@ -23,7 +23,7 @@ import enum
 import dataclasses
 from typing import Callable, List, Optional
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 
 class ResourceType(enum.Enum):
@@ -67,10 +67,10 @@ class Request:
     """A request which can be intercepted/blocked."""
 
     #: The URL of the page being shown.
-    first_party_url: Optional[QUrl]
+    first_party_url: Optional[QtCore.QUrl]
 
     #: The URL of the file being requested.
-    request_url: QUrl
+    request_url: QtCore.QUrl
 
     is_blocked: bool = False
 
@@ -81,7 +81,7 @@ class Request:
         """Block this request."""
         self.is_blocked = True
 
-    def redirect(self, url: QUrl, *, ignore_unsupported: bool = False) -> None:
+    def redirect(self, url: QtCore.QUrl, *, ignore_unsupported: bool = False) -> None:
         """Redirect this request.
 
         Only some types of requests can be successfully redirected.

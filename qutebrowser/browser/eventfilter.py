@@ -19,15 +19,14 @@
 
 """Event handling for a browser tab."""
 
-from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
-
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
+from qutebrowser.qt import QtCore
 
 
-class ChildEventFilter(QObject):
+class ChildEventFilter(QtCore.QObject):
 
     """An event filter re-adding TabEventFilter on ChildEvent.
 
@@ -48,7 +47,7 @@ class ChildEventFilter(QObject):
 
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
-        if event.type() == QEvent.ChildAdded:
+        if event.type() == QtCore.QEvent.ChildAdded:
             child = event.child()
             log.misc.debug("{} got new child {}, installing filter"
                            .format(obj, child))
@@ -58,14 +57,14 @@ class ChildEventFilter(QObject):
                 assert obj is self._widget
 
             child.installEventFilter(self._filter)
-        elif event.type() == QEvent.ChildRemoved:
+        elif event.type() == QtCore.QEvent.ChildRemoved:
             child = event.child()
             log.misc.debug("{}: removed child {}".format(obj, child))
 
         return False
 
 
-class TabEventFilter(QObject):
+class TabEventFilter(QtCore.QObject):
 
     """Handle mouse/keyboard events on a tab.
 
@@ -81,10 +80,10 @@ class TabEventFilter(QObject):
         super().__init__(parent)
         self._tab = tab
         self._handlers = {
-            QEvent.MouseButtonPress: self._handle_mouse_press,
-            QEvent.MouseButtonRelease: self._handle_mouse_release,
-            QEvent.Wheel: self._handle_wheel,
-            QEvent.KeyRelease: self._handle_key_release,
+            QtCore.QEvent.MouseButtonPress: self._handle_mouse_press,
+            QtCore.QEvent.MouseButtonRelease: self._handle_mouse_release,
+            QtCore.QEvent.Wheel: self._handle_wheel,
+            QtCore.QEvent.KeyRelease: self._handle_key_release,
         }
         self._ignore_wheel_event = False
         self._check_insertmode_on_release = False
@@ -99,9 +98,9 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         is_rocker_gesture = (config.val.input.mouse.rocker_gestures and
-                             e.buttons() == Qt.LeftButton | Qt.RightButton)
+                             e.buttons() == QtCore.Qt.LeftButton | QtCore.Qt.RightButton)
 
-        if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
+        if e.button() in [QtCore.Qt.XButton1, QtCore.Qt.XButton2] or is_rocker_gesture:
             self._mousepress_backforward(e)
             return True
 
@@ -112,7 +111,7 @@ class TabEventFilter(QObject):
             log.mouse.warning("Ignoring invalid click at {}".format(pos))
             return False
 
-        if e.button() != Qt.NoButton:
+        if e.button() != QtCore.Qt.NoButton:
             self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
 
         return False
@@ -128,7 +127,7 @@ class TabEventFilter(QObject):
         """
         # We want to make sure we check the focus element after the WebView is
         # updated completely.
-        QTimer.singleShot(0, self._mouserelease_insertmode)
+        QtCore.QTimer.singleShot(0, self._mouserelease_insertmode)
         return False
 
     def _handle_wheel(self, e):
@@ -150,7 +149,7 @@ class TabEventFilter(QObject):
         if mode == usertypes.KeyMode.hint:
             return True
 
-        elif e.modifiers() & Qt.ControlModifier:
+        elif e.modifiers() & QtCore.Qt.ControlModifier:
             if mode == usertypes.KeyMode.passthrough:
                 return False
 
@@ -240,17 +239,17 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         if (not config.val.input.mouse.back_forward_buttons and
-                e.button() in [Qt.XButton1, Qt.XButton2]):
+                e.button() in [QtCore.Qt.XButton1, QtCore.Qt.XButton2]):
             # Back and forward on mice are disabled
             return
 
-        if e.button() in [Qt.XButton1, Qt.LeftButton]:
+        if e.button() in [QtCore.Qt.XButton1, QtCore.Qt.LeftButton]:
             # Back button on mice which have it, or rocker gesture
             if self._tab.history.can_go_back():
                 self._tab.history.back()
             else:
                 message.error("At beginning of history.")
-        elif e.button() in [Qt.XButton2, Qt.RightButton]:
+        elif e.button() in [QtCore.Qt.XButton2, QtCore.Qt.RightButton]:
             # Forward button on mice which have it, or rocker gesture
             if self._tab.history.can_go_forward():
                 self._tab.history.forward()

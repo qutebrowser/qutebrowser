@@ -36,7 +36,7 @@ import quopri
 import dataclasses
 from typing import MutableMapping, Set, Tuple, Callable
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
@@ -137,7 +137,7 @@ class MHTMLWriter:
         self.root_content = root_content
         self.content_location = content_location
         self.content_type = content_type
-        self._files: MutableMapping[QUrl, _File] = {}
+        self._files: MutableMapping[QtCore.QUrl, _File] = {}
 
     def add_file(self, location, content, content_type=None,
                  transfer_encoding=E_QUOPRI):
@@ -192,7 +192,7 @@ class MHTMLWriter:
         return msg
 
 
-_PendingDownloadType = Set[Tuple[QUrl, downloads.AbstractDownloadItem]]
+_PendingDownloadType = Set[Tuple[QtCore.QUrl, downloads.AbstractDownloadItem]]
 
 
 class _Downloader:
@@ -259,7 +259,7 @@ class _Downloader:
             else:
                 # Might be a local <script> tag or something else
                 continue
-            absolute_url = web_url.resolved(QUrl(element_url))
+            absolute_url = web_url.resolved(QtCore.QUrl(element_url))
             self._fetch_url(absolute_url)
 
         styles = web_frame.findAllElements('style')
@@ -273,14 +273,14 @@ class _Downloader:
             if 'type' in style and style['type'] != 'text/css':
                 continue
             for element_url in _get_css_imports(str(style)):
-                self._fetch_url(web_url.resolved(QUrl(element_url)))
+                self._fetch_url(web_url.resolved(QtCore.QUrl(element_url)))
 
         # Search for references in inline styles
         for element in web_frame.findAllElements('[style]'):
             element = webkitelem.WebKitElement(element, tab=self.tab)
             style = element['style']
             for element_url in _get_css_imports(style):
-                self._fetch_url(web_url.resolved(QUrl(element_url)))
+                self._fetch_url(web_url.resolved(QtCore.QUrl(element_url)))
 
         # Shortcut if no assets need to be downloaded, otherwise the file would
         # never be saved. Also might happen if the downloads are fast enough to
@@ -366,7 +366,7 @@ class _Downloader:
                 css_string = item.fileobj.getvalue().decode('utf-8', 'ignore')
             import_urls = _get_css_imports(css_string)
             for import_url in import_urls:
-                absolute_url = url.resolved(QUrl(import_url))
+                absolute_url = url.resolved(QtCore.QUrl(import_url))
                 self._fetch_url(absolute_url)
 
         encode = E_QUOPRI if mime.startswith('text/') else E_BASE64

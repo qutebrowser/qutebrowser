@@ -20,11 +20,10 @@
 import os
 import re
 import inspect
-
-from PyQt5.QtWidgets import QLineEdit, QApplication
 import pytest
 
 from qutebrowser.components import readlinecommands
+from qutebrowser.qt import QtWidgets
 
 
 # Some functions aren't 100% readline compatible:
@@ -35,7 +34,7 @@ from qutebrowser.components import readlinecommands
 fixme = pytest.mark.xfail(reason='readline compatibility - see #678')
 
 
-class LineEdit(QLineEdit):
+class LineEdit(QtWidgets.QLineEdit):
 
     """QLineEdit with some methods to make testing easier."""
 
@@ -120,13 +119,13 @@ def lineedit(qtbot, monkeypatch):
     """Fixture providing a LineEdit."""
     le = LineEdit()
     qtbot.add_widget(le)
-    monkeypatch.setattr(QApplication.instance(), 'focusWidget', lambda: le)
+    monkeypatch.setattr(QtWidgets.QApplication.instance(), 'focusWidget', lambda: le)
     return le
 
 
 def test_none(qtbot):
     """Call each rl_* method with a None focusWidget."""
-    assert QApplication.instance().focusWidget() is None
+    assert QtWidgets.QApplication.instance().focusWidget() is None
     for name, method in inspect.getmembers(readlinecommands,
                                            inspect.isfunction):
         if name == "rl_rubout":

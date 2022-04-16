@@ -22,16 +22,13 @@
 import os
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
-                          QFileSystemWatcher)
-
 from qutebrowser.config import config
 from qutebrowser.utils import message, log
 from qutebrowser.misc import guiprocess
-from qutebrowser.qt import sip
+from qutebrowser.qt import QtCore, sip
 
 
-class ExternalEditor(QObject):
+class ExternalEditor(QtCore.QObject):
 
     """Class to simplify editing a text in an external editor.
 
@@ -51,15 +48,15 @@ class ExternalEditor(QObject):
         editing_finished: The editor process was closed.
     """
 
-    file_updated = pyqtSignal(str)
-    editing_finished = pyqtSignal()
+    file_updated = QtCore.pyqtSignal(str)
+    editing_finished = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, watch=False):
         super().__init__(parent)
         self._filename = None
         self._proc = None
         self._remove_file = None
-        self._watcher = QFileSystemWatcher(parent=self) if watch else None
+        self._watcher = QtCore.QFileSystemWatcher(parent=self) if watch else None
         self._content = None
 
     def _cleanup(self, *, successful):
@@ -94,7 +91,7 @@ class ExternalEditor(QObject):
             message.info(f"Keeping file {self._filename} as the editor process exited "
                          "abnormally")
 
-    @pyqtSlot(int, QProcess.ExitStatus)
+    @QtCore.pyqtSlot(int, QtCore.QProcess.ExitStatus)
     def _on_proc_closed(self, _exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.
 
@@ -105,7 +102,7 @@ class ExternalEditor(QObject):
             return
 
         log.procs.debug("Editor closed")
-        if exitstatus != QProcess.NormalExit:
+        if exitstatus != QtCore.QProcess.NormalExit:
             # No error/cleanup here, since we already handle this in
             # on_proc_error.
             return
@@ -116,7 +113,7 @@ class ExternalEditor(QObject):
         self.editing_finished.emit()
         self._cleanup(successful=self._proc.outcome.was_successful())
 
-    @pyqtSlot(QProcess.ProcessError)
+    @QtCore.pyqtSlot(QtCore.QProcess.ProcessError)
     def _on_proc_error(self, _err):
         self._cleanup(successful=False)
 
@@ -164,7 +161,7 @@ class ExternalEditor(QObject):
                 fobj.write(text)
             return fobj.name
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def _on_file_changed(self, path):
         try:
             with open(path, 'r', encoding=config.val.editor.encoding) as f:

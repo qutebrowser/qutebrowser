@@ -33,13 +33,13 @@ from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
                     MutableMapping, Optional, Tuple, cast)
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
+from qutebrowser.qt import QtCore
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
@@ -108,7 +108,7 @@ class StateConfig(configparser.ConfigParser):
         for sect, key in deleted_keys:
             self[sect].pop(key, None)
 
-        self['general']['qt_version'] = qVersion()
+        self['general']['qt_version'] = QtCore.qVersion()
         self['general']['qtwe_version'] = self._qtwe_version_str()
         self['general']['version'] = qutebrowser.__version__
 
@@ -118,7 +118,7 @@ class StateConfig(configparser.ConfigParser):
         Note that it's too early to use objects.backend here...
         """
         try:
-            import PyQt5.QtWebEngineWidgets  # pylint: disable=unused-import
+            import qutebrowser.qt  # pylint: disable=unused-import
         except ImportError:
             return 'no'
         return str(version.qtwebengine_versions(avoid_init=True).webengine)
@@ -134,7 +134,7 @@ class StateConfig(configparser.ConfigParser):
             return
 
         old_qt_version = self['general'].get('qt_version', None)
-        self.qt_version_changed = old_qt_version != qVersion()
+        self.qt_version_changed = old_qt_version != QtCore.qVersion()
 
         old_qtwe_version = self['general'].get('qtwe_version', None)
         self.qtwe_version_changed = old_qtwe_version != self._qtwe_version_str()
@@ -178,7 +178,7 @@ class StateConfig(configparser.ConfigParser):
             self.write(f)
 
 
-class YamlConfig(QObject):
+class YamlConfig(QtCore.QObject):
 
     """A config stored on disk as YAML file.
 
@@ -187,9 +187,9 @@ class YamlConfig(QObject):
     """
 
     VERSION = 2
-    changed = pyqtSignal()
+    changed = QtCore.pyqtSignal()
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
@@ -212,7 +212,7 @@ class YamlConfig(QObject):
         """Iterate over configutils.Values items."""
         yield from self._values.values()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def _mark_changed(self) -> None:
         """Mark the YAML config as changed."""
         self._dirty = True
@@ -378,14 +378,14 @@ class YamlConfig(QObject):
         self._mark_changed()
 
 
-class YamlMigrations(QObject):
+class YamlMigrations(QtCore.QObject):
 
     """Automated migrations for autoconfig.yml."""
 
-    changed = pyqtSignal()
+    changed = QtCore.pyqtSignal()
 
     # Note: settings is Any because it's not validated yet.
-    def __init__(self, settings: Any, parent: QObject = None) -> None:
+    def __init__(self, settings: Any, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self._settings = settings
 
@@ -982,5 +982,5 @@ def init() -> None:
     # https://github.com/qutebrowser/qutebrowser/issues/515
 
     path = os.path.join(standarddir.config(auto=True), 'qsettings')
-    for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:
-        QSettings.setPath(fmt, QSettings.UserScope, path)
+    for fmt in [QtCore.QSettings.NativeFormat, QtCore.QSettings.IniFormat]:
+        QtCore.QSettings.setPath(fmt, QtCore.QSettings.UserScope, path)

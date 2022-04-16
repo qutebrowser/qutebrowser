@@ -23,13 +23,13 @@ import logging
 
 import pytest
 import yaml
-from PyQt5.QtCore import QUrl, QPoint, QByteArray, QObject
 QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import objreg, qtutils
 from qutebrowser.browser.webkit import tabhistory
+from qutebrowser.qt import QtCore
 
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
@@ -123,7 +123,7 @@ class TestSaveTab:
         assert not data['history']
 
 
-class FakeMainWindow(QObject):
+class FakeMainWindow(QtCore.QObject):
 
     """Helper class for the fake_main_window fixture.
 
@@ -134,7 +134,7 @@ class FakeMainWindow(QObject):
 
     def __init__(self, geometry, win_id, parent=None):
         super().__init__(parent)
-        self._geometry = QByteArray(geometry)
+        self._geometry = QtCore.QByteArray(geometry)
         self.win_id = win_id
 
     def saveGeometry(self):
@@ -245,7 +245,7 @@ class TestSave:
     def test_utf_8_invalid(self, tmp_path, sess_man, fake_history):
         """Make sure data containing invalid UTF8 raises SessionError."""
         session_path = tmp_path / 'foo.yml'
-        fake_history([Item(QUrl('http://www.qutebrowser.org/'), '\ud800',
+        fake_history([Item(QtCore.QUrl('http://www.qutebrowser.org/'), '\ud800',
                            active=True)])
 
         try:
@@ -308,7 +308,7 @@ class TestLoadTab:
 
     @pytest.mark.parametrize('key, val, expected', [
         ('zoom', 1.23, 1.23),
-        ('scroll-pos', {'x': 23, 'y': 42}, QPoint(23, 42)),
+        ('scroll-pos', {'x': 23, 'y': 42}, QtCore.QPoint(23, 42)),
     ])
     @pytest.mark.parametrize('in_main_data', [True, False])
     def test_user_data(self, sess_man, fake_webview, key, val, expected,
@@ -335,17 +335,17 @@ class TestLoadTab:
         item = {'url': url, 'title': 'foo'}
 
         if original_url is None:
-            expected = QUrl(url)
+            expected = QtCore.QUrl(url)
         else:
             item['original-url'] = original_url
-            expected = QUrl(original_url)
+            expected = QtCore.QUrl(original_url)
 
         d = {'history': [item]}
 
         sess_man._load_tab(fake_webview, d)
         assert len(fake_webview.loaded_history) == 1
         loaded_item = fake_webview.loaded_history[0]
-        assert loaded_item.url == QUrl(url)
+        assert loaded_item.url == QtCore.QUrl(url)
         assert loaded_item.original_url == expected
 
 

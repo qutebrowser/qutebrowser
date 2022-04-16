@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt import QtWidgets
 
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets
@@ -28,10 +28,10 @@ from qutebrowser.misc import miscwidgets
 class FakeInspector(inspector.AbstractWebInspector):
 
     def __init__(self,
-                 inspector_widget: QWidget,
+                 inspector_widget: QtWidgets.QWidget,
                  splitter: miscwidgets.InspectorSplitter,
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: QtWidgets.QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._set_widget(inspector_widget)
         self._inspected_page = None

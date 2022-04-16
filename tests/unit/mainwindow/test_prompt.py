@@ -20,7 +20,7 @@
 import os
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt import QtCore
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
@@ -79,7 +79,7 @@ class TestFileCompletion:
         # Deleting /f[oo/]
         with qtbot.wait_signal(prompt._file_model.directoryLoaded):
             for _ in range(3):
-                qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+                qtbot.keyPress(prompt._lineedit, QtCore.Qt.Key_Backspace)
 
         # For some reason, this isn't always called when using qtbot.keyPress.
         prompt._set_fileview_root(prompt._lineedit.text())
@@ -90,7 +90,7 @@ class TestFileCompletion:
 
         # Deleting /[foo]
         for _ in range(3):
-            qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+            qtbot.keyPress(prompt._lineedit, QtCore.Qt.Key_Backspace)
 
         # We should now show / again, so tabbing twice gives us bar -> foo
         prompt.item_focus('next')
@@ -99,8 +99,8 @@ class TestFileCompletion:
 
     @pytest.mark.parametrize("keys, expected", [
         ([], ['bar', 'bat', 'foo']),
-        ([Qt.Key_F], ['foo']),
-        ([Qt.Key_A], ['bar', 'bat']),
+        ([QtCore.Qt.Key_F], ['foo']),
+        ([QtCore.Qt.Key_A], ['bar', 'bat']),
     ])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'

@@ -67,7 +67,7 @@ import mmap
 import pathlib
 from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
 
-from PyQt5.QtCore import QLibraryInfo
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import log, version
 
@@ -314,7 +314,7 @@ def parse_webenginecore() -> Optional[Versions]:
         # Flatpak has Qt in /usr/lib/x86_64-linux-gnu, but QtWebEngine in /app/lib.
         library_path = pathlib.Path("/app/lib")
     else:
-        library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
+        library_path = pathlib.Path(QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.LibrariesPath))
 
     library_name = sorted(library_path.glob('libQt5WebEngineCore.so*'))
     if not library_name:

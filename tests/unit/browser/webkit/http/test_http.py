@@ -24,7 +24,7 @@ import logging
 import pytest
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.browser.webkit import http
 
@@ -38,7 +38,7 @@ from qutebrowser.browser.webkit import http
     ('http://example.com/', 'qutebrowser-download'),
 ])
 def test_no_content_disposition(stubs, url, expected):
-    reply = stubs.FakeNetworkReply(url=QUrl(url))
+    reply = stubs.FakeNetworkReply(url=QtCore.QUrl(url))
     inline, filename = http.parse_content_disposition(reply)
     assert inline
     assert filename == expected

@@ -18,13 +18,12 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt import QtWidgets
 import pytest
 
 from qutebrowser.misc import miscwidgets
 from qutebrowser.browser import inspector
+from qutebrowser.qt import QtCore
 
 
 class TestCommandLineEdit:
@@ -48,9 +47,9 @@ class TestCommandLineEdit:
 
         cmd_edit.home(True)
         assert cmd_edit.cursorPosition() == len(':')
-        qtbot.keyClick(cmd_edit, Qt.Key_Delete)
+        qtbot.keyClick(cmd_edit, QtCore.Qt.Key_Delete)
         assert cmd_edit.text() == ':'
-        qtbot.keyClick(cmd_edit, Qt.Key_Backspace)
+        qtbot.keyClick(cmd_edit, QtCore.Qt.Key_Backspace)
         assert cmd_edit.text() == ':'
 
         qtbot.keyClicks(cmd_edit, 'hey again')
@@ -76,15 +75,15 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ':hello'
         assert cmd_edit.cursorPosition() == len(':hello')
         for _ in ':hello':
-            qtbot.keyClick(cmd_edit, Qt.Key_Left, modifier=Qt.ShiftModifier)
+            qtbot.keyClick(cmd_edit, QtCore.Qt.Key_Left, modifier=QtCore.Qt.ShiftModifier)
         assert cmd_edit.cursorPosition() == len(':')
         assert cmd_edit.selectionStart() == len(':')
 
 
-class WrappedWidget(QWidget):
+class WrappedWidget(QtWidgets.QWidget):
 
     def sizeHint(self):
-        return QSize(23, 42)
+        return QtCore.QSize(23, 42)
 
 
 class TestWrapperLayout:
@@ -92,7 +91,7 @@ class TestWrapperLayout:
     @pytest.fixture
     def container(self, qtbot):
         wrapped = WrappedWidget()
-        parent = QWidget()
+        parent = QtWidgets.QWidget()
         qtbot.add_widget(wrapped)
         qtbot.add_widget(parent)
         layout = miscwidgets.WrapperLayout(parent)
@@ -101,7 +100,7 @@ class TestWrapperLayout:
         return parent
 
     def test_size_hint(self, container):
-        assert container.sizeHint() == QSize(23, 42)
+        assert container.sizeHint() == QtCore.QSize(23, 42)
 
     def test_wrapped(self, container):
         assert container.wrapped.parent() is container
@@ -165,10 +164,10 @@ class TestInspectorSplitter:
 
     @pytest.mark.parametrize(
         'position, orientation, inspector_idx, webview_idx', [
-            (inspector.Position.left, Qt.Horizontal, 0, 1),
-            (inspector.Position.right, Qt.Horizontal, 1, 0),
-            (inspector.Position.top, Qt.Vertical, 0, 1),
-            (inspector.Position.bottom, Qt.Vertical, 1, 0),
+            (inspector.Position.left, QtCore.Qt.Horizontal, 0, 1),
+            (inspector.Position.right, QtCore.Qt.Horizontal, 1, 0),
+            (inspector.Position.top, QtCore.Qt.Vertical, 0, 1),
+            (inspector.Position.bottom, QtCore.Qt.Vertical, 1, 0),
         ]
     )
     def test_set_inspector(self, position, orientation,
@@ -212,7 +211,7 @@ class TestInspectorSplitter:
             state_config['inspector'] = {position.name: config}
 
         splitter.resize(width, height)
-        assert splitter.size() == QSize(width, height)
+        assert splitter.size() == QtCore.QSize(width, height)
 
         with caplog.at_level(logging.ERROR):
             splitter.set_inspector(fake_inspector, position)
@@ -260,8 +259,8 @@ class TestInspectorSplitter:
                          new_window_size, exp_inspector_size,
                          position, splitter, fake_inspector, qtbot):
         def resize(dim):
-            size = (QSize(dim, 666) if splitter.orientation() == Qt.Horizontal
-                    else QSize(666, dim))
+            size = (QtCore.QSize(dim, 666) if splitter.orientation() == QtCore.Qt.Horizontal
+                    else QtCore.QSize(666, dim))
             splitter.resize(size)
             if splitter.size() != size:
                 pytest.skip("Resizing window failed")

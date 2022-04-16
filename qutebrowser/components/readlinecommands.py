@@ -22,9 +22,8 @@
 import os
 from typing import Iterable, Optional, MutableMapping, Any, Callable
 
-from PyQt5.QtWidgets import QApplication, QLineEdit
-
 from qutebrowser.api import cmdutils
+from qutebrowser.qt import QtWidgets
 
 
 class _ReadlineBridge:
@@ -36,16 +35,16 @@ class _ReadlineBridge:
     """
 
     def __init__(self) -> None:
-        self._deleted: MutableMapping[QLineEdit, str] = {}
+        self._deleted: MutableMapping[QtWidgets.QLineEdit, str] = {}
 
-    def _widget(self) -> Optional[QLineEdit]:
+    def _widget(self) -> Optional[QtWidgets.QLineEdit]:
         """Get the currently active QLineEdit."""
         # FIXME add this to api.utils or so
-        qapp = QApplication.instance()
+        qapp = QtWidgets.QApplication.instance()
         assert qapp is not None
         w = qapp.focusWidget()
 
-        if isinstance(w, QLineEdit):
+        if isinstance(w, QtWidgets.QLineEdit):
             return w
         else:
             return None

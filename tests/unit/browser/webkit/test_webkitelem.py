@@ -27,13 +27,14 @@ import itertools
 import dataclasses
 
 import pytest
-from PyQt5.QtCore import QRect, QPoint, QUrl
 QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
+from qutebrowser.qt import QtCore
+
 if TYPE_CHECKING:
     from helpers import stubs
 
@@ -487,19 +488,19 @@ class TestIsVisible:
 
     @pytest.fixture
     def frame(self, stubs):
-        return stubs.FakeWebFrame(QRect(0, 0, 100, 100))
+        return stubs.FakeWebFrame(QtCore.QRect(0, 0, 100, 100))
 
     def test_invalid_frame_geometry(self, stubs):
         """Test with an invalid frame geometry."""
-        rect = QRect(0, 0, 0, 0)
+        rect = QtCore.QRect(0, 0, 0, 0)
         assert not rect.isValid()
         frame = stubs.FakeWebFrame(rect)
-        elem = get_webelem(QRect(0, 0, 10, 10), frame)
+        elem = get_webelem(QtCore.QRect(0, 0, 10, 10), frame)
         assert not elem._is_visible(frame)
 
     def test_invalid_invisible(self, frame):
         """Test elements with an invalid geometry which are invisible."""
-        elem = get_webelem(QRect(0, 0, 0, 0), frame)
+        elem = get_webelem(QtCore.QRect(0, 0, 0, 0), frame)
         assert not elem.geometry().isValid()
         assert elem.geometry().x() == 0
         assert not elem._is_visible(frame)
@@ -510,17 +511,17 @@ class TestIsVisible:
         This seems to happen sometimes in the real world, with real elements
         which *are* visible, but don't have a valid geometry.
         """
-        elem = get_webelem(QRect(10, 10, 0, 0), frame)
+        elem = get_webelem(QtCore.QRect(10, 10, 0, 0), frame)
         assert not elem.geometry().isValid()
         assert elem._is_visible(frame)
 
     @pytest.mark.parametrize('geometry, visible', [
-        (QRect(5, 5, 4, 4), False),
-        (QRect(10, 10, 1, 1), True),
+        (QtCore.QRect(5, 5, 4, 4), False),
+        (QtCore.QRect(10, 10, 1, 1), True),
     ])
     def test_scrolled(self, geometry, visible, stubs):
-        scrolled_frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
-                                            scroll=QPoint(10, 10))
+        scrolled_frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 100, 100),
+                                            scroll=QtCore.QPoint(10, 10))
         elem = get_webelem(geometry, scrolled_frame)
         assert elem._is_visible(scrolled_frame) == visible
 
@@ -533,7 +534,7 @@ class TestIsVisible:
         ({'visibility': 'hidden', 'display': 'inline'}, False),
     ])
     def test_css_attributes(self, frame, style, visible):
-        elem = get_webelem(QRect(0, 0, 10, 10), frame, style=style)
+        elem = get_webelem(QtCore.QRect(0, 0, 10, 10), frame, style=style)
         assert elem._is_visible(frame) == visible
 
 
@@ -579,14 +580,14 @@ class TestIsVisibleIframe:
 
         Returns an Objects object with frame/iframe/elems attributes.
         """
-        frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
-        iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 300, 300))
+        iframe = stubs.FakeWebFrame(QtCore.QRect(0, 10, 100, 100), parent=frame)
         assert frame.geometry().contains(iframe.geometry())
         elems = [
-            get_webelem(QRect(0, 0, 10, 10), iframe),
-            get_webelem(QRect(20, 90, 10, 10), iframe),
-            get_webelem(QRect(20, 150, 10, 10), iframe),
-            get_webelem(QRect(30, 180, 10, 10), frame),
+            get_webelem(QtCore.QRect(0, 0, 10, 10), iframe),
+            get_webelem(QtCore.QRect(20, 90, 10, 10), iframe),
+            get_webelem(QtCore.QRect(20, 150, 10, 10), iframe),
+            get_webelem(QtCore.QRect(30, 180, 10, 10), frame),
         ]
 
         assert elems[0]._is_visible(frame)
@@ -598,7 +599,7 @@ class TestIsVisibleIframe:
 
     def test_iframe_scrolled(self, objects):
         """Scroll iframe down so elem3 gets visible and elem1/elem2 not."""
-        objects.iframe.scrollPosition.return_value = QPoint(0, 100)
+        objects.iframe.scrollPosition.return_value = QtCore.QPoint(0, 100)
         assert not objects.elems[0]._is_visible(objects.frame)
         assert not objects.elems[1]._is_visible(objects.frame)
         assert objects.elems[2]._is_visible(objects.frame)
@@ -606,7 +607,7 @@ class TestIsVisibleIframe:
 
     def test_mainframe_scrolled_iframe_visible(self, objects):
         """Scroll mainframe down so iframe is partly visible but elem1 not."""
-        objects.frame.scrollPosition.return_value = QPoint(0, 50)
+        objects.frame.scrollPosition.return_value = QtCore.QPoint(0, 50)
         geom = objects.frame.geometry().translated(
             objects.frame.scrollPosition())
         assert not geom.contains(objects.iframe.geometry())
@@ -618,7 +619,7 @@ class TestIsVisibleIframe:
 
     def test_mainframe_scrolled_iframe_invisible(self, objects):
         """Scroll mainframe down so iframe is invisible."""
-        objects.frame.scrollPosition.return_value = QPoint(0, 110)
+        objects.frame.scrollPosition.return_value = QtCore.QPoint(0, 110)
         geom = objects.frame.geometry().translated(
             objects.frame.scrollPosition())
         assert not geom.contains(objects.iframe.geometry())
@@ -650,13 +651,13 @@ class TestIsVisibleIframe:
 
         Returns an Objects object with frame/iframe/elems attributes.
         """
-        frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
-        iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 300, 300))
+        iframe = stubs.FakeWebFrame(QtCore.QRect(0, 10, 100, 100), parent=frame)
         assert frame.geometry().contains(iframe.geometry())
 
         elems = [
-            get_webelem(QRect(10, 10, 0, 0), iframe),
-            get_webelem(QRect(20, 150, 0, 0), iframe),
+            get_webelem(QtCore.QRect(10, 10, 0, 0), iframe),
+            get_webelem(QtCore.QRect(20, 150, 0, 0), iframe),
         ]
         for e in elems:
             assert not e.geometry().isValid()
@@ -688,18 +689,18 @@ class TestRectOnView:
         {'length': '1', '0': {'width': 0, 'height': 0, 'x': 0, 'y': 0}},
     ])
     def test_simple(self, stubs, js_rect):
-        geometry = QRect(5, 5, 4, 4)
-        frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
+        geometry = QtCore.QRect(5, 5, 4, 4)
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 100, 100))
         elem = get_webelem(geometry, frame, js_rect_return=js_rect)
-        assert elem.rect_on_view() == QRect(5, 5, 4, 4)
+        assert elem.rect_on_view() == QtCore.QRect(5, 5, 4, 4)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     def test_scrolled(self, stubs, js_rect):
-        geometry = QRect(20, 20, 4, 4)
-        frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
-                                   scroll=QPoint(10, 10))
+        geometry = QtCore.QRect(20, 20, 4, 4)
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 100, 100),
+                                   scroll=QtCore.QPoint(10, 10))
         elem = get_webelem(geometry, frame, js_rect_return=js_rect)
-        assert elem.rect_on_view() == QRect(20 - 10, 20 - 10, 4, 4)
+        assert elem.rect_on_view() == QtCore.QRect(20 - 10, 20 - 10, 4, 4)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     def test_iframe(self, stubs, js_rect):
@@ -718,19 +719,19 @@ class TestRectOnView:
               ##############################
             200, 0                         200, 200
         """
-        frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
-        iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 200, 200))
+        iframe = stubs.FakeWebFrame(QtCore.QRect(0, 10, 100, 100), parent=frame)
         assert frame.geometry().contains(iframe.geometry())
-        elem = get_webelem(QRect(20, 90, 10, 10), iframe,
+        elem = get_webelem(QtCore.QRect(20, 90, 10, 10), iframe,
                            js_rect_return=js_rect)
-        assert elem.rect_on_view() == QRect(20, 10 + 90, 10, 10)
+        assert elem.rect_on_view() == QtCore.QRect(20, 10 + 90, 10, 10)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     def test_passed_geometry(self, stubs, js_rect):
         """Make sure geometry isn't called when a geometry is passed."""
-        frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 200, 200))
         elem = get_webelem(frame=frame, js_rect_return=js_rect)
-        rect = QRect(10, 20, 30, 40)
+        rect = QtCore.QRect(10, 20, 30, 40)
         assert elem.rect_on_view(elem_geometry=rect) == rect
         assert not elem._elem.geometry.called
 
@@ -741,11 +742,11 @@ class TestRectOnView:
         """Make sure the coordinates are adjusted when zoomed."""
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
         config_stub.val.zoom.text_only = zoom_text_only
-        geometry = QRect(10, 10, 4, 4)
-        frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
+        geometry = QtCore.QRect(10, 10, 4, 4)
+        frame = stubs.FakeWebFrame(QtCore.QRect(0, 0, 100, 100), zoom=0.5)
         elem = get_webelem(geometry, frame, js_rect_return=js_rect,
                            zoom_text_only=zoom_text_only)
-        assert elem.rect_on_view() == QRect(10, 10, 4, 4)
+        assert elem.rect_on_view() == QtCore.QRect(10, 10, 4, 4)
 
 
 class TestGetChildFrames:
@@ -885,20 +886,20 @@ class TestIsEditable:
 @pytest.mark.parametrize('attributes, expected', [
     # No attributes
     ({}, None),
-    ({'href': 'foo'}, QUrl('http://www.example.com/foo')),
-    ({'src': 'foo'}, QUrl('http://www.example.com/foo')),
-    ({'href': 'foo', 'src': 'bar'}, QUrl('http://www.example.com/foo')),
+    ({'href': 'foo'}, QtCore.QUrl('http://www.example.com/foo')),
+    ({'src': 'foo'}, QtCore.QUrl('http://www.example.com/foo')),
+    ({'href': 'foo', 'src': 'bar'}, QtCore.QUrl('http://www.example.com/foo')),
     ({'href': '::garbage::'}, None),
-    ({'href': 'http://www.example.org/'}, QUrl('http://www.example.org/')),
-    ({'href': '  foo  '}, QUrl('http://www.example.com/foo')),
+    ({'href': 'http://www.example.org/'}, QtCore.QUrl('http://www.example.org/')),
+    ({'href': '  foo  '}, QtCore.QUrl('http://www.example.com/foo')),
 ])
 def test_resolve_url(attributes, expected):
     elem = get_webelem(attributes=attributes)
-    baseurl = QUrl('http://www.example.com/')
+    baseurl = QtCore.QUrl('http://www.example.com/')
     assert elem.resolve_url(baseurl) == expected
 
 
 def test_resolve_url_relative_base():
     elem = get_webelem(attributes={'href': 'foo'})
     with pytest.raises(ValueError):
-        elem.resolve_url(QUrl('base'))
+        elem.resolve_url(QtCore.QUrl('base'))

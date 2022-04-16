@@ -21,7 +21,7 @@
 """Tests for qutebrowser.misc.autoupdate."""
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.misc import autoupdate, httpclient
 
@@ -68,7 +68,7 @@ def test_get_version_success(qtbot):
         with qtbot.wait_signal(client.success):
             client.get_version('test')
 
-    assert http_stub.url == QUrl(client.API_URL.format('test'))
+    assert http_stub.url == QtCore.QUrl(client.API_URL.format('test'))
 
 
 def test_get_version_error(qtbot):

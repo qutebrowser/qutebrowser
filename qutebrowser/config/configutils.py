@@ -28,9 +28,7 @@ from typing import (
     TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
     MutableMapping)
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt import QtWidgets, QtGui, QtCore
 
 from qutebrowser.utils import utils, urlmatch, urlutils, usertypes, qtutils
 from qutebrowser.config import configexc
@@ -146,7 +144,7 @@ class Values:
         return bool(self._vmap)
 
     def _check_pattern_support(
-            self, arg: Union[urlmatch.UrlPattern, QUrl, None]) -> None:
+            self, arg: Union[urlmatch.UrlPattern, QtCore.QUrl, None]) -> None:
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
@@ -206,7 +204,7 @@ class Values:
         else:
             return usertypes.UNSET
 
-    def get_for_url(self, url: QUrl = None, *, fallback: bool = True) -> Any:
+    def get_for_url(self, url: QtCore.QUrl = None, *, fallback: bool = True) -> Any:
         """Get a config value, falling back when needed.
 
         This first tries to find a value matching the URL (if given).
@@ -294,7 +292,7 @@ class FontFamilies:
     @classmethod
     def from_system_default(
             cls,
-            font_type: QFontDatabase.SystemFont = QFontDatabase.FixedFont,
+            font_type: QtGui.QFontDatabase.SystemFont = QtGui.QFontDatabase.FixedFont,
     ) -> 'FontFamilies':
         """Get a FontFamilies object for the default system font.
 
@@ -338,8 +336,8 @@ class FontFamilies:
         the "right" choice isn't really obvious. Thus, let's go for the
         QFontDatabase approach here, since it's by far the simplest one.
         """
-        assert QApplication.instance() is not None
-        font = QFontDatabase.systemFont(font_type)
+        assert QtWidgets.QApplication.instance() is not None
+        font = QtGui.QFontDatabase.systemFont(font_type)
         return cls([font.family()])
 
     @classmethod

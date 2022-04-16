@@ -19,10 +19,9 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime
-from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
+from qutebrowser.qt import QtNetwork, QtCore
 
 
 @pytest.fixture
@@ -31,8 +30,8 @@ def disk_cache(tmpdir, config_stub):
 
 
 def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
+    metadata = QtNetwork.QNetworkCacheMetaData()
+    metadata.setUrl(QtCore.QUrl(url))
     assert metadata.isValid()
     device = cache.prepare(metadata)
     assert device is not None
@@ -74,8 +73,8 @@ def test_cache_existing_metadata_file(tmpdir, disk_cache):
     url = 'http://qutebrowser.org'
     content = b'foobar'
 
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
+    metadata = QtNetwork.QNetworkCacheMetaData()
+    metadata.setUrl(QtCore.QUrl(url))
     assert metadata.isValid()
 
     device = disk_cache.prepare(metadata)
@@ -99,7 +98,7 @@ def test_cache_get_nonexistent_data(disk_cache):
     """Test querying some data that was never inserted."""
     preload_cache(disk_cache, 'https://qutebrowser.org')
 
-    assert disk_cache.data(QUrl('http://qutebrowser.org')) is None
+    assert disk_cache.data(QtCore.QUrl('http://qutebrowser.org')) is None
 
 
 def test_cache_insert_data(disk_cache):
@@ -111,7 +110,7 @@ def test_cache_insert_data(disk_cache):
     preload_cache(disk_cache, url, content)
 
     assert disk_cache.cacheSize() != 0
-    assert disk_cache.data(QUrl(url)).readAll() == content
+    assert disk_cache.data(QtCore.QUrl(url)).readAll() == content
 
 
 def test_cache_remove_data(disk_cache):
@@ -120,7 +119,7 @@ def test_cache_remove_data(disk_cache):
     preload_cache(disk_cache, url)
     assert disk_cache.cacheSize() > 0
 
-    assert disk_cache.remove(QUrl(url))
+    assert disk_cache.remove(QtCore.QUrl(url))
     assert disk_cache.cacheSize() == 0
 
 
@@ -138,14 +137,14 @@ def test_cache_clear_activated(disk_cache):
 def test_cache_metadata(disk_cache):
     """Ensure that DiskCache.metaData() returns exactly what was inserted."""
     url = 'http://qutebrowser.org'
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
+    metadata = QtNetwork.QNetworkCacheMetaData()
+    metadata.setUrl(QtCore.QUrl(url))
     assert metadata.isValid()
     device = disk_cache.prepare(metadata)
     device.write(b'foobar')
     disk_cache.insert(device)
 
-    assert disk_cache.metaData(QUrl(url)) == metadata
+    assert disk_cache.metaData(QtCore.QUrl(url)) == metadata
 
 
 def test_cache_update_metadata(disk_cache):
@@ -154,16 +153,16 @@ def test_cache_update_metadata(disk_cache):
     preload_cache(disk_cache, url, b'foo')
     assert disk_cache.cacheSize() > 0
 
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
+    metadata = QtNetwork.QNetworkCacheMetaData()
+    metadata.setUrl(QtCore.QUrl(url))
     assert metadata.isValid()
     disk_cache.updateMetaData(metadata)
-    assert disk_cache.metaData(QUrl(url)) == metadata
+    assert disk_cache.metaData(QtCore.QUrl(url)) == metadata
 
 
 def test_cache_full(tmpdir):
     """Do a sanity test involving everything."""
-    disk_cache = QNetworkDiskCache()
+    disk_cache = QtNetwork.QNetworkDiskCache()
     disk_cache.setCacheDirectory(str(tmpdir))
 
     url = 'http://qutebrowser.org'
@@ -173,14 +172,14 @@ def test_cache_full(tmpdir):
     content2 = b'ohmycert'
     preload_cache(disk_cache, url2, content2)
 
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
-    soon = QDateTime.currentDateTime().addMonths(4)
+    metadata = QtNetwork.QNetworkCacheMetaData()
+    metadata.setUrl(QtCore.QUrl(url))
+    soon = QtCore.QDateTime.currentDateTime().addMonths(4)
     assert soon.isValid()
     metadata.setLastModified(soon)
     assert metadata.isValid()
     disk_cache.updateMetaData(metadata)
-    disk_cache.remove(QUrl(url2))
+    disk_cache.remove(QtCore.QUrl(url2))
 
-    assert disk_cache.metaData(QUrl(url)).lastModified() == soon
-    assert disk_cache.data(QUrl(url)).readAll() == content
+    assert disk_cache.metaData(QtCore.QUrl(url)).lastModified() == soon
+    assert disk_cache.data(QtCore.QUrl(url)).readAll() == content

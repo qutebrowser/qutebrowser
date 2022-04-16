@@ -25,13 +25,11 @@ import contextlib
 import pathlib
 from typing import cast, Mapping, MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog, QApplication
-
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
+from qutebrowser.qt import QtWidgets, QtCore
 
 
 web_history = cast('WebHistory', None)
@@ -52,27 +50,27 @@ class HistoryProgress:
 
     def start(self, text):
         """Start showing a progress dialog."""
-        self._progress = QProgressDialog()
+        self._progress = QtWidgets.QProgressDialog()
         self._progress.setMaximum(0)  # unknown
         self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
         self._progress.setCancelButton(None)
         self._progress.setAutoClose(False)
         self._progress.show()
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     def set_maximum(self, maximum):
         """Set the progress maximum as soon as we know about it."""
         assert self._progress is not None
         self._progress.setMaximum(maximum)
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     def tick(self):
         """Increase the displayed progress value."""
         self._value += 1
         if self._progress is not None:
             self._progress.setValue(self._value)
-            QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
 
     def finish(self):
         """Finish showing the progress dialog.
@@ -93,7 +91,7 @@ class CompletionMetaInfo(sql.SqlTable):
     }
 
     def __init__(self, database: sql.Database,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: Optional[QtCore.QObject] = None) -> None:
         self._fields = ['key', 'value']
         self._constraints = {'key': 'PRIMARY KEY'}
         super().__init__(database, "CompletionMetaInfo", self._fields,
@@ -141,7 +139,7 @@ class CompletionHistory(sql.SqlTable):
     """History which only has the newest entry for each URL."""
 
     def __init__(self, database: sql.Database,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: Optional[QtCore.QObject] = None) -> None:
         super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime'],
                          constraints={'url': 'PRIMARY KEY',
                                       'title': 'NOT NULL',
@@ -161,12 +159,12 @@ class WebHistory(sql.SqlTable):
     """
 
     # All web history cleared
-    history_cleared = pyqtSignal()
+    history_cleared = QtCore.pyqtSignal()
     # one url cleared
-    url_cleared = pyqtSignal(QUrl)
+    url_cleared = QtCore.pyqtSignal(QtCore.QUrl)
 
     def __init__(self, database: sql.Database, progress: HistoryProgress,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: Optional[QtCore.QObject] = None) -> None:
         super().__init__(database, "History", ['url', 'title', 'atime', 'redirect'],
                          constraints={'url': 'NOT NULL',
                                       'title': 'NOT NULL',
@@ -300,14 +298,14 @@ class WebHistory(sql.SqlTable):
 
         # Delete old entries
         self.completion.delete_all()
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # Select the latest entry for each url
         q = self.database.query('SELECT url, title, max(atime) AS atime FROM History '
                                 'WHERE NOT redirect '
                                 'GROUP BY url ORDER BY atime asc')
         result = q.run()
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
         entries = list(result)
 
         self._progress.set_maximum(len(entries))
@@ -315,7 +313,7 @@ class WebHistory(sql.SqlTable):
         for entry in entries:
             self._progress.tick()
 
-            url = QUrl(entry.url)
+            url = QtCore.QUrl(entry.url)
             if self._is_excluded_from_completion(url):
                 continue
             data['url'].append(self._format_completion_url(url))
@@ -326,10 +324,10 @@ class WebHistory(sql.SqlTable):
 
         # We might have caused fragmentation - let's clean up.
         self.database.query('VACUUM').run()
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self.completion.insert_batch(data, replace=True)
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._progress.finish()
         self.metainfo['force_rebuild'] = False
@@ -373,7 +371,7 @@ class WebHistory(sql.SqlTable):
         Args:
             url: URL string to delete.
         """
-        qurl = QUrl(url)
+        qurl = QtCore.QUrl(url)
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
@@ -381,7 +379,7 @@ class WebHistory(sql.SqlTable):
             self._last_url = None
         self.url_cleared.emit(qurl)
 
-    @pyqtSlot(QUrl, QUrl, str)
+    @QtCore.pyqtSlot(QtCore.QUrl, QtCore.QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
         if self._is_excluded_entirely(url) or self._is_excluded_entirely(requested_url):
@@ -390,7 +388,7 @@ class WebHistory(sql.SqlTable):
             # things set via setHtml
             return
 
-        no_formatting = QUrl.UrlFormattingOption(0)
+        no_formatting = QtCore.QUrl.UrlFormattingOption(0)
         if (requested_url.isValid() and
                 not requested_url.matches(url, no_formatting)):
             # If the url of the page is different than the url of the link
@@ -435,10 +433,10 @@ class WebHistory(sql.SqlTable):
             }, replace=True)
 
     def _format_url(self, url):
-        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        return url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
 
     def _format_completion_url(self, url):
-        return url.toString(QUrl.RemovePassword)
+        return url.toString(QtCore.QUrl.RemovePassword)
 
 
 @cmdutils.register()
@@ -479,7 +477,7 @@ def debug_dump_history(dest):
         raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
-def init(db_path: pathlib.Path, parent: Optional[QObject] = None) -> None:
+def init(db_path: pathlib.Path, parent: Optional[QtCore.QObject] = None) -> None:
     """Initialize the web history.
 
     Args:

@@ -30,8 +30,6 @@ import tokenize
 import functools
 import subprocess
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
-
-from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 try:
     import hunter
 except ImportError:
@@ -43,12 +41,13 @@ from qutebrowser.utils import log
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.qt import QtCore
 
 
 instance = cast('Quitter', None)
 
 
-class Quitter(QObject):
+class Quitter(QtCore.QObject):
 
     """Utility class to quit/restart the QApplication.
 
@@ -58,11 +57,11 @@ class Quitter(QObject):
         _args: The argparse namespace.
     """
 
-    shutting_down = pyqtSignal()  # Emitted immediately before shut down
+    shutting_down = QtCore.pyqtSignal()  # Emitted immediately before shut down
 
     def __init__(self, *,
                  args: argparse.Namespace,
-                 parent: QObject = None) -> None:
+                 parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self.quit_status = {
             'crash': True,
@@ -230,7 +229,7 @@ class Quitter(QObject):
             # in the real main event loop, or we'll get a segfault.
             log.destroy.debug("Deferring real shutdown because question was "
                               "active.")
-            QTimer.singleShot(0, functools.partial(self._shutdown_2, status,
+            QtCore.QTimer.singleShot(0, functools.partial(self._shutdown_2, status,
                                                    is_restart=is_restart))
         else:
             # If we have no questions to shut down, we are already in the real
@@ -254,7 +253,7 @@ class Quitter(QObject):
         log.destroy.debug("Deferring QApplication::exit...")
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
-        QTimer.singleShot(0, functools.partial(self._shutdown_3, status))
+        QtCore.QTimer.singleShot(0, functools.partial(self._shutdown_3, status))
 
     def _shutdown_3(self, status: int) -> None:
         """Finally shut down the QApplication."""

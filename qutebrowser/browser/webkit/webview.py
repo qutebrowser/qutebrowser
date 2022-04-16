@@ -18,18 +18,16 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
-
-from PyQt5.QtCore import pyqtSignal, Qt, QUrl
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from qutebrowser.qt import QtWebKitWidgets, QtWebKit
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
+from qutebrowser.qt import QtCore
 
 
-class WebView(QWebView):
+class WebView(QtWebKitWidgets.QWebView):
 
     """Custom QWebView subclass with qutebrowser-specific features.
 
@@ -56,8 +54,8 @@ class WebView(QWebView):
         }
     """
 
-    scroll_pos_changed = pyqtSignal(int, int)
-    shutting_down = pyqtSignal()
+    scroll_pos_changed = QtCore.pyqtSignal(int, int)
+    shutting_down = QtCore.pyqtSignal()
 
     def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
@@ -74,15 +72,15 @@ class WebView(QWebView):
                                    tabdata=tab.data, private=private,
                                    parent=self)
         page.setVisibilityState(
-            QWebPage.VisibilityStateVisible if self.isVisible()
-            else QWebPage.VisibilityStateHidden)
+            QtWebKitWidgets.QWebPage.VisibilityStateVisible if self.isVisible()
+            else QtWebKitWidgets.QWebPage.VisibilityStateHidden)
 
         self.setPage(page)
 
         stylesheet.set_register(self)
 
     def __repr__(self):
-        flags = QUrl.EncodeUnicode
+        flags = QtCore.QUrl.EncodeUnicode
         urlstr = self.url().toDisplayString(flags)  # type: ignore[arg-type]
         url = utils.elide(urlstr, 100)
         return utils.get_repr(self, tab_id=self._tab_id, url=url)
@@ -107,7 +105,7 @@ class WebView(QWebView):
         # quitting it seems.
         log.destroy.debug("Shutting down {!r}.".format(self))
         settings = self.settings()
-        settings.setAttribute(QWebSettings.JavascriptEnabled, False)
+        settings.setAttribute(QtWebKit.QWebSettings.JavascriptEnabled, False)
         self.stop()
         self.page().shutdown()
 
@@ -130,9 +128,9 @@ class WebView(QWebView):
         Return:
             The new QWebView object.
         """
-        debug_type = debug.qenum_key(QWebPage, wintype)
+        debug_type = debug.qenum_key(QtWebKitWidgets.QWebPage, wintype)
         log.webview.debug("createWindow with type {}".format(debug_type))
-        if wintype == QWebPage.WebModalDialog:
+        if wintype == QtWebKitWidgets.QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -154,12 +152,12 @@ class WebView(QWebView):
             e: The QPaintEvent.
         """
         frame = self.page().mainFrame()
-        new_pos = (frame.scrollBarValue(Qt.Horizontal),
-                   frame.scrollBarValue(Qt.Vertical))
+        new_pos = (frame.scrollBarValue(QtCore.Qt.Horizontal),
+                   frame.scrollBarValue(QtCore.Qt.Vertical))
         if self._old_scroll_pos != new_pos:
             self._old_scroll_pos = new_pos
-            m = (frame.scrollBarMaximum(Qt.Horizontal),
-                 frame.scrollBarMaximum(Qt.Vertical))
+            m = (frame.scrollBarMaximum(QtCore.Qt.Horizontal),
+                 frame.scrollBarMaximum(QtCore.Qt.Vertical))
             perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
                     round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
             self.scroll_pos = perc
@@ -185,7 +183,7 @@ class WebView(QWebView):
             e: The QShowEvent.
         """
         super().showEvent(e)
-        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
+        self.page().setVisibilityState(QtWebKitWidgets.QWebPage.VisibilityStateVisible)
 
     def hideEvent(self, e):
         """Extend hideEvent to set the page visibility state to hidden.
@@ -194,16 +192,16 @@ class WebView(QWebView):
             e: The QHideEvent.
         """
         super().hideEvent(e)
-        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
+        self.page().setVisibilityState(QtWebKitWidgets.QWebPage.VisibilityStateHidden)
 
     def mousePressEvent(self, e):
         """Set the tabdata ClickTarget on a mousepress.
 
         This is implemented here as we don't need it for QtWebEngine.
         """
-        if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
+        if e.button() == QtCore.Qt.MidButton or e.modifiers() & QtCore.Qt.ControlModifier:
             background = config.val.tabs.background
-            if e.modifiers() & Qt.ShiftModifier:
+            if e.modifiers() & QtCore.Qt.ShiftModifier:
                 background = not background
             if background:
                 target = usertypes.ClickTarget.tab_bg

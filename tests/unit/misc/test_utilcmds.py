@@ -20,7 +20,7 @@
 """Tests for qutebrowser.misc.utilcmds."""
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils
@@ -76,4 +76,4 @@ def tabbed_browser(stubs, win_registry):
 
 def test_version(tabbed_browser, qapp):
     utilcmds.version(win_id=0)
-    assert tabbed_browser.loaded_url == QUrl('qute://version/')
+    assert tabbed_browser.loaded_url == QtCore.QUrl('qute://version/')

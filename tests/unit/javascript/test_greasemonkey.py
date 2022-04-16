@@ -23,7 +23,7 @@ import textwrap
 
 import pytest
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import usertypes, version
 from qutebrowser.browser import greasemonkey
@@ -76,7 +76,7 @@ def test_get_scripts_by_url(url, expected_matches):
     _save_script(test_gm_script, 'test.user.js')
     gm_manager = greasemonkey.GreasemonkeyManager()
 
-    scripts = gm_manager.scripts_for(QUrl(url))
+    scripts = gm_manager.scripts_for(QtCore.QUrl(url))
     assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
@@ -100,7 +100,7 @@ def test_regex_includes_scripts_for(url, expected_matches):
     _save_script(gh_dark_example, 'test.user.js')
     gm_manager = greasemonkey.GreasemonkeyManager()
 
-    scripts = gm_manager.scripts_for(QUrl(url))
+    scripts = gm_manager.scripts_for(QtCore.QUrl(url))
     assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
@@ -111,7 +111,7 @@ def test_no_metadata(caplog):
     with caplog.at_level(logging.WARNING):
         gm_manager = greasemonkey.GreasemonkeyManager()
 
-    scripts = gm_manager.scripts_for(QUrl('http://notamatch.invalid/'))
+    scripts = gm_manager.scripts_for(QtCore.QUrl('http://notamatch.invalid/'))
     assert len(scripts.start + scripts.end + scripts.idle) == 1
     assert len(scripts.end) == 1
 
@@ -152,7 +152,7 @@ def test_bad_scheme(caplog):
     with caplog.at_level(logging.WARNING):
         gm_manager = greasemonkey.GreasemonkeyManager()
 
-    scripts = gm_manager.scripts_for(QUrl('qute://settings'))
+    scripts = gm_manager.scripts_for(QtCore.QUrl('qute://settings'))
     assert len(scripts.start + scripts.end + scripts.idle) == 0
 
 

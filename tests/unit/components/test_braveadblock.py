@@ -22,7 +22,7 @@ import logging
 import csv
 from typing import Iterable, Tuple
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 import pytest
 
@@ -110,8 +110,8 @@ def run_function_on_dataset(given_function):
     dataset = testutils.adblock_dataset_tsv()
     reader = csv.DictReader(dataset, delimiter="\t")
     for row in reader:
-        url = QUrl(row["url"])
-        source_url = QUrl(row["source_url"])
+        url = QtCore.QUrl(row["url"])
+        source_url = QtCore.QUrl(row["source_url"])
         resource_type = ResourceType[row["type"]]
         given_function(url, source_url, resource_type)
 
@@ -130,7 +130,7 @@ def assert_none_blocked(ad_blocker):
 def blocklist_invalid_utf8(tmp_path):
     dest_path = tmp_path / "invalid_utf8.txt"
     dest_path.write_bytes(b"invalidutf8\xa0")
-    return QUrl.fromLocalFile(str(dest_path)).toString()
+    return QtCore.QUrl.fromLocalFile(str(dest_path)).toString()
 
 
 @pytest.fixture
@@ -150,7 +150,7 @@ def easylist_easyprivacy_both(tmp_path):
         bl_dst_path = bl_dst_dir / filename
         bl_dst_path.write_text("\n".join(list(blocklist)), encoding="utf-8")
         assert bl_dst_path.is_file()
-        urls.append(QUrl.fromLocalFile(str(bl_dst_path)).toString())
+        urls.append(QtCore.QUrl.fromLocalFile(str(bl_dst_path)).toString())
     return urls, bl_dst_dir
 
 
@@ -184,8 +184,8 @@ def assert_urls(
     should_be_blocked: bool,
 ) -> None:
     for (str_url, source_str_url, request_type) in urls:
-        url = QUrl(str_url)
-        source_url = QUrl(source_str_url)
+        url = QtCore.QUrl(str_url)
+        source_url = QtCore.QUrl(source_str_url)
         is_blocked = ad_blocker._is_blocked(url, source_url, request_type)
         assert is_blocked == should_be_blocked
 
@@ -327,7 +327,7 @@ def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
         assert not blockutils.is_whitelisted_url(url)
         config_stub.val.content.blocking.whitelist = []
         assert not blockutils.is_whitelisted_url(url)
-        whitelist_url = url.toString(QUrl.RemovePath) + "/*"
+        whitelist_url = url.toString(QtCore.QUrl.RemovePath) + "/*"
         config_stub.val.content.blocking.whitelist = [whitelist_url]
         assert blockutils.is_whitelisted_url(url)
 
@@ -342,7 +342,7 @@ def test_update_easylist_easyprivacy_directory(
     lists_directory = easylist_easyprivacy_both[1]
 
     config_stub.val.content.blocking.adblock.lists = [
-        QUrl.fromLocalFile(str(lists_directory)).toString()
+        QtCore.QUrl.fromLocalFile(str(lists_directory)).toString()
     ]
     config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.whitelist = None
@@ -359,7 +359,7 @@ def test_update_easylist_easyprivacy_directory(
 
 
 def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, caplog):
-    tmpdir_url = QUrl.fromLocalFile(str(empty_dir)).toString()
+    tmpdir_url = QtCore.QUrl.fromLocalFile(str(empty_dir)).toString()
     config_stub.val.content.blocking.adblock.lists = [tmpdir_url]
     config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.whitelist = None
@@ -386,12 +386,12 @@ def test_buggy_url_workaround(ad_blocker, config_stub, easylist_easyprivacy,
     config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
     ad_blocker.adblock_update()
 
-    url = QUrl(url_str)
+    url = QtCore.QUrl(url_str)
     assert url.isValid()
     if source_url_str is None:
         source_url = None
     else:
-        source_url = QUrl(source_url_str)
+        source_url = QtCore.QUrl(source_url_str)
         assert source_url.isValid()
 
     assert not ad_blocker._is_blocked(url, source_url, resource_type)

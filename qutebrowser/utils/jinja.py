@@ -29,7 +29,7 @@ from typing import Any, Callable, FrozenSet, Iterator, List, Set, Tuple
 
 import jinja2
 import jinja2.nodes
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import utils, urlutils, log, qtutils, resources
 from qutebrowser.misc import debugcachestats
@@ -111,10 +111,10 @@ class Environment(jinja2.Environment):
             path: The relative path to the resource.
         """
         assert not posixpath.isabs(path), path
-        url = QUrl('qute://resource')
+        url = QtCore.QUrl('qute://resource')
         url.setPath('/' + path)
         urlutils.ensure_valid(url)
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(QtCore.QUrl.FullyEncoded)  # type: ignore[arg-type]
         return urlstr
 
     def _data_url(self, path: str) -> str:

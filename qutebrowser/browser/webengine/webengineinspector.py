@@ -21,9 +21,7 @@
 
 import pathlib
 
-from PyQt5.QtCore import QLibraryInfo
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt import QtWidgets, QtWebEngineWidgets, QtCore
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
@@ -32,7 +30,7 @@ from qutebrowser.utils import version, usertypes
 from qutebrowser.keyinput import modeman
 
 
-class WebEngineInspectorView(QWebEngineView):
+class WebEngineInspectorView(QtWebEngineWidgets.QWebEngineView):
 
     """The QWebEngineView used for the inspector.
 
@@ -41,7 +39,7 @@ class WebEngineInspectorView(QWebEngineView):
     """
 
     def createWindow(self,
-                     wintype: QWebEnginePage.WebWindowType) -> QWebEngineView:
+                     wintype: QtWebEngineWidgets.QWebEnginePage.WebWindowType) -> QtWebEngineWidgets.QWebEngineView:
         """Called by Qt when a page wants to create a new tab or window.
 
         In case the user wants to open a resource in a new tab, we use the
@@ -58,7 +56,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     def __init__(self, splitter: miscwidgets.InspectorSplitter,
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: QtWidgets.QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
 
@@ -89,14 +87,14 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         if dist is None or dist.parsed != version.Distribution.fedora:
             return
 
-        data_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.DataPath))
+        data_path = pathlib.Path(QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.DataPath))
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
             raise inspector.Error("QtWebEngine devtools resources not found, "
                                   "please install the qt5-qtwebengine-devtools "
                                   "Fedora package.")
 
-    def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
+    def inspect(self, page: QtWebEngineWidgets.QWebEnginePage) -> None:  # type: ignore[override]
         inspector_page = self._widget.page()
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())

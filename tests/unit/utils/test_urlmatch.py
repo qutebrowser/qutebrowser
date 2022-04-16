@@ -33,7 +33,7 @@ import string
 import pytest
 import hypothesis
 import hypothesis.strategies as hst
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import urlmatch
 
@@ -203,7 +203,7 @@ def test_whitespace_hosts(host):
     This is a deviation from Chromium.
     """
     template = 'https://{}/*'
-    url = QUrl(template.format(host))
+    url = QtCore.QUrl(template.format(host))
     assert not url.isValid()
 
     with pytest.raises(urlmatch.ParseError,
@@ -288,7 +288,7 @@ class TestMatchAllPagesForGivenScheme:
         ("http://[::1]/bar", True),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestMatchAllDomains:
@@ -313,7 +313,7 @@ class TestMatchAllDomains:
         ("https://google.com/", False),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestMatchSubdomains:
@@ -340,7 +340,7 @@ class TestMatchSubdomains:
         ("http://yahoo.com/foobar", False),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestMatchGlobEscaping:
@@ -365,7 +365,7 @@ class TestMatchGlobEscaping:
         (r"file:///fooXbar\hellobaz", False),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestMatchIpAddresses:
@@ -396,7 +396,7 @@ class TestMatchIpAddresses:
     ])
     def test_urls(self, pattern, expected):
         up = urlmatch.UrlPattern(pattern)
-        assert up.matches(QUrl("http://127.0.0.1")) == expected
+        assert up.matches(QtCore.QUrl("http://127.0.0.1")) == expected
 
 
 ## FIXME Missing TEST(ExtensionURLPatternTest, Match8) (unicode)?
@@ -423,7 +423,7 @@ class TestMatchChromeUrls:
         ("chrome://history", False),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestMatchAnything:
@@ -461,7 +461,7 @@ class TestMatchAnything:
         "javascript:",
     ])
     def test_urls(self, up, url):
-        assert up.matches(QUrl(url))
+        assert up.matches(QtCore.QUrl(url))
 
 
 @pytest.mark.parametrize('pattern, url, expected', [
@@ -474,7 +474,7 @@ class TestMatchAnything:
 ])
 def test_special_schemes(pattern, url, expected):
     """Based on TEST(ExtensionURLPatternTest, Match13)."""
-    assert urlmatch.UrlPattern(pattern).matches(QUrl(url)) == expected
+    assert urlmatch.UrlPattern(pattern).matches(QtCore.QUrl(url)) == expected
 
 
 class TestFileScheme:
@@ -506,7 +506,7 @@ class TestFileScheme:
         ("file://localhost/foo", True),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestMatchSpecificPort:
@@ -531,7 +531,7 @@ class TestMatchSpecificPort:
         ("http://www.example.com:8080/foo", False),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 class TestExplicitPortWildcard:
@@ -556,15 +556,15 @@ class TestExplicitPortWildcard:
         ("http://www.example.com:8080/foo", True),
     ])
     def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+        assert up.matches(QtCore.QUrl(url)) == expected
 
 
 def test_ignore_missing_slashes():
     """Based on TEST(ExtensionURLPatternTest, IgnoreMissingBackslashes)."""
     pattern1 = urlmatch.UrlPattern("http://www.example.com/example")
     pattern2 = urlmatch.UrlPattern("http://www.example.com/example/*")
-    url1 = QUrl('http://www.example.com/example')
-    url2 = QUrl('http://www.example.com/example/')
+    url1 = QtCore.QUrl('http://www.example.com/example')
+    url2 = QtCore.QUrl('http://www.example.com/example/')
 
     # Same patterns should match same URLs.
     assert pattern1.matches(url1)
@@ -577,7 +577,7 @@ def test_ignore_missing_slashes():
 
 def test_trailing_slash():
     """Contrary to Chromium, we allow to leave off a trailing slash."""
-    url = QUrl('http://www.example.com/')
+    url = QtCore.QUrl('http://www.example.com/')
     pattern = urlmatch.UrlPattern('http://www.example.com')
     assert pattern.matches(url)
 
@@ -603,7 +603,7 @@ def test_trailing_dot_domain(pattern, url):
     [1] http://www.dns-sd.org./TrailingDotsInDomainNames.html
     [2] http://www.ietf.org/rfc/rfc1738.txt
     """
-    assert urlmatch.UrlPattern(pattern).matches(QUrl(url))
+    assert urlmatch.UrlPattern(pattern).matches(QtCore.QUrl(url))
 
 
 class TestUncanonicalizedUrl:
@@ -624,7 +624,7 @@ class TestUncanonicalizedUrl:
         practice.
         """
         pattern = urlmatch.UrlPattern('*://*.gOoGle.com/*')
-        assert pattern.matches(QUrl(url))
+        assert pattern.matches(QtCore.QUrl(url))
 
     @pytest.mark.parametrize('url', [
         'https://ɡoogle.com',
@@ -636,7 +636,7 @@ class TestUncanonicalizedUrl:
         The first 'g' isn't actually a 'g'.
         """
         pattern = urlmatch.UrlPattern('https://*.ɡoogle.com/*')
-        assert pattern.matches(QUrl(url))
+        assert pattern.matches(QtCore.QUrl(url))
 
     @pytest.mark.xfail(reason="Gets accepted by urllib.parse")
     def test_failing_canonicalization(self):
@@ -671,7 +671,7 @@ class TestUncanonicalizedUrl:
 
 
 def test_urlpattern_benchmark(benchmark):
-    url = QUrl('https://www.example.com/barfoobar')
+    url = QtCore.QUrl('https://www.example.com/barfoobar')
 
     def run():
         up = urlmatch.UrlPattern('https://*.example.com/*foo*')
@@ -707,7 +707,7 @@ def test_urlpattern_hypothesis(pattern):
         up = urlmatch.UrlPattern(pattern)
     except urlmatch.ParseError:
         return
-    up.matches(QUrl('https://www.example.com/'))
+    up.matches(QtCore.QUrl('https://www.example.com/'))
 
 
 @pytest.mark.parametrize('text1, text2, equal', [

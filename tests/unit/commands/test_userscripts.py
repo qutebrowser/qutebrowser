@@ -25,7 +25,7 @@ import logging
 import signal
 
 import pytest
-from PyQt5.QtCore import QFileSystemWatcher
+from qutebrowser.qt import QtCore
 
 from qutebrowser.commands import userscripts
 from qutebrowser.utils import utils
@@ -171,7 +171,7 @@ def test_command_with_error(qtbot, py_proc, runner, caplog):
 
 def test_killed_command(qtbot, tmp_path, py_proc, runner, caplog):
     data_file = tmp_path / 'data'
-    watcher = QFileSystemWatcher()
+    watcher = QtCore.QFileSystemWatcher()
     watcher.addPath(str(tmp_path))
 
     cmd, args = py_proc(r"""

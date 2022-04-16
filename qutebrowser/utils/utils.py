@@ -43,10 +43,7 @@ except ImportError:  # pragma: no cover
         class Protocol:
 
             """Empty stub at runtime."""
-
-from PyQt5.QtCore import QUrl, QVersionNumber, QRect
-from PyQt5.QtGui import QClipboard, QDesktopServices
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt import QtWidgets
 
 import yaml
 try:
@@ -59,6 +56,7 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 from qutebrowser.utils import log
+from qutebrowser.qt import QtGui, QtCore
 
 fake_clipboard = None
 log_clipboard = False
@@ -87,7 +85,7 @@ class VersionNumber:
     """A representation of a version number."""
 
     def __init__(self, *args: int) -> None:
-        self._ver = QVersionNumber(args)  # not *args, to support >3 components
+        self._ver = QtCore.QVersionNumber(args)  # not *args, to support >3 components
         if self._ver.isNull():
             raise ValueError("Can't construct a null version")
 
@@ -116,7 +114,7 @@ class VersionNumber:
     @classmethod
     def parse(cls, s: str) -> 'VersionNumber':
         """Parse a version number from a string."""
-        ver, _suffix = QVersionNumber.fromString(s)
+        ver, _suffix = QtCore.QVersionNumber.fromString(s)
         # FIXME: Should we support a suffix?
 
         if ver.isNull():
@@ -535,8 +533,8 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
         fake_clipboard = data
     else:
-        mode = QClipboard.Selection if selection else QClipboard.Clipboard
-        QApplication.clipboard().setText(data, mode=mode)
+        mode = QtGui.QClipboard.Selection if selection else QtGui.QClipboard.Clipboard
+        QtWidgets.QApplication.clipboard().setText(data, mode=mode)
 
 
 def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
@@ -561,8 +559,8 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
         data = fake_clipboard
         fake_clipboard = None
     else:
-        mode = QClipboard.Selection if selection else QClipboard.Clipboard
-        data = QApplication.clipboard().text(mode=mode)
+        mode = QtGui.QClipboard.Selection if selection else QtGui.QClipboard.Clipboard
+        data = QtWidgets.QApplication.clipboard().text(mode=mode)
 
     target = "Primary selection" if selection else "Clipboard"
     if not data.strip():
@@ -574,7 +572,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
 
 def supports_selection() -> bool:
     """Check if the OS supports primary selection."""
-    return QApplication.clipboard().supportsSelection()
+    return QtWidgets.QApplication.clipboard().supportsSelection()
 
 
 def open_file(filename: str, cmdline: str = None) -> None:
@@ -616,8 +614,8 @@ def open_file(filename: str, cmdline: str = None) -> None:
     if cmdline is None and not override:
         log.misc.debug("Opening {} with the system application"
                        .format(filename))
-        url = QUrl.fromLocalFile(filename)
-        QDesktopServices.openUrl(url)
+        url = QtCore.QUrl.fromLocalFile(filename)
+        QtGui.QDesktopServices.openUrl(url)
         return
 
     if cmdline is None and override:
@@ -816,7 +814,7 @@ def cleanup_file(filepath: str) -> Iterator[None]:
 _RECT_PATTERN = re.compile(r'(?P<w>\d+)x(?P<h>\d+)\+(?P<x>\d+)\+(?P<y>\d+)')
 
 
-def parse_rect(s: str) -> QRect:
+def parse_rect(s: str) -> QtCore.QRect:
     """Parse a rectangle string like 20x20+5+3.
 
     Negative offsets aren't supported, and neither is leaving off parts of the string.
@@ -831,7 +829,7 @@ def parse_rect(s: str) -> QRect:
     y = int(match.group('y'))
 
     try:
-        rect = QRect(x, y, w, h)
+        rect = QtCore.QRect(x, y, w, h)
     except OverflowError as e:
         raise ValueError(e)
 

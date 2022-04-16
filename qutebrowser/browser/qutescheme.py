@@ -34,15 +34,13 @@ import collections
 import secrets
 from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple
 
-from PyQt5.QtCore import QUrlQuery, QUrl
-
 import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                resources, objreg, standarddir)
 from qutebrowser.misc import guiprocess, quitter
-from qutebrowser.qt import sip
+from qutebrowser.qt import QtCore, sip
 
 
 pyeval_output = ":pyeval was never called"
@@ -85,14 +83,14 @@ class Redirect(Exception):
         url: The URL to redirect to, as a QUrl.
     """
 
-    def __init__(self, url: QUrl):
+    def __init__(self, url: QtCore.QUrl):
         super().__init__(url.toDisplayString())
         self.url = url
 
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
 _HandlerRet = Tuple[str, Union[str, bytes]]
-_HandlerCallable = Callable[[QUrl], _HandlerRet]
+_HandlerCallable = Callable[[QtCore.QUrl], _HandlerRet]
 _Handler = TypeVar('_Handler', bound=_HandlerCallable)
 
 
@@ -113,13 +111,13 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         _HANDLERS[self._name] = self.wrapper
         return function
 
-    def wrapper(self, url: QUrl) -> _HandlerRet:
+    def wrapper(self, url: QtCore.QUrl) -> _HandlerRet:
         """Call the underlying function."""
         assert self._function is not None
         return self._function(url)
 
 
-def data_for_url(url: QUrl) -> Tuple[str, bytes]:
+def data_for_url(url: QtCore.QUrl) -> Tuple[str, bytes]:
     """Get the data to show for the given URL.
 
     Args:
@@ -129,8 +127,8 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
         A (mimetype, data) tuple.
     """
     norm_url = url.adjusted(
-        QUrl.NormalizePathSegments |  # type: ignore[arg-type]
-        QUrl.StripTrailingSlash)
+        QtCore.QUrl.NormalizePathSegments |  # type: ignore[arg-type]
+        QtCore.QUrl.StripTrailingSlash)
     if norm_url != url:
         raise Redirect(norm_url)
 
@@ -141,7 +139,7 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))
     if not path or not host:
-        new_url = QUrl()
+        new_url = QtCore.QUrl()
         new_url.setScheme('qute')
         # When path is absent, e.g. qute://help (with no trailing slash)
         if host:
@@ -177,7 +175,7 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
 
 
 @add_handler('bookmarks')
-def qute_bookmarks(_url: QUrl) -> _HandlerRet:
+def qute_bookmarks(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://bookmarks. Display all quickmarks / bookmarks."""
     bookmarks = sorted(objreg.get('bookmark-manager').marks.items(),
                        key=lambda x: x[1])  # Sort by title
@@ -192,7 +190,7 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 
 
 @add_handler('tabs')
-def qute_tabs(_url: QUrl) -> _HandlerRet:
+def qute_tabs(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
     tabs: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
     for win_id, window in objreg.window_registry.items():
@@ -202,7 +200,7 @@ def qute_tabs(_url: QUrl) -> _HandlerRet:
                                     scope='window',
                                     window=win_id)
         for tab in tabbed_browser.widgets():
-            if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
+            if tab.url() not in [QtCore.QUrl("qute://tabs/"), QtCore.QUrl("qute://tabs")]:
                 urlstr = tab.url().toDisplayString()
                 tabs[str(win_id)].append((tab.title(), urlstr))
 
@@ -238,17 +236,17 @@ def history_data(
 
 
 @add_handler('history')
-def qute_history(url: QUrl) -> _HandlerRet:
+def qute_history(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
-        q_offset = QUrlQuery(url).queryItemValue("offset")
+        q_offset = QtCore.QUrlQuery(url).queryItemValue("offset")
         try:
             offset = int(q_offset) if q_offset else None
         except ValueError:
             raise UrlInvalidError("Query parameter offset is invalid")
 
         # Use start_time in query or current time.
-        q_start_time = QUrlQuery(url).queryItemValue("start_time")
+        q_start_time = QtCore.QUrlQuery(url).queryItemValue("start_time")
         try:
             start_time = float(q_start_time) if q_start_time else time.time()
         except ValueError:
@@ -264,7 +262,7 @@ def qute_history(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('javascript')
-def qute_javascript(url: QUrl) -> _HandlerRet:
+def qute_javascript(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://javascript.
 
     Return content of file given as query parameter.
@@ -278,14 +276,14 @@ def qute_javascript(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('pyeval')
-def qute_pyeval(_url: QUrl) -> _HandlerRet:
+def qute_pyeval(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://pyeval."""
     src = jinja.render('pre.html', title='pyeval', content=pyeval_output)
     return 'text/html', src
 
 
 @add_handler('process')
-def qute_process(url: QUrl) -> _HandlerRet:
+def qute_process(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://process."""
     path = url.path()[1:]
     try:
@@ -307,7 +305,7 @@ def qute_process(url: QUrl) -> _HandlerRet:
 
 @add_handler('version')
 @add_handler('verizon')
-def qute_version(_url: QUrl) -> _HandlerRet:
+def qute_version(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://version."""
     src = jinja.render('version.html', title='Version info',
                        version=version.version_info(),
@@ -316,7 +314,7 @@ def qute_version(_url: QUrl) -> _HandlerRet:
 
 
 @add_handler('log')
-def qute_log(url: QUrl) -> _HandlerRet:
+def qute_log(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://log.
 
     There are three query parameters:
@@ -330,7 +328,7 @@ def qute_log(url: QUrl) -> _HandlerRet:
     - logfilter: A filter string like the --logfilter commandline argument
       accepts.
     """
-    query = QUrlQuery(url)
+    query = QtCore.QUrlQuery(url)
     plain = (query.hasQueryItem('plain') and
              query.queryItemValue('plain').lower() != 'false')
 
@@ -358,7 +356,7 @@ def qute_log(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('gpl')
-def qute_gpl(_url: QUrl) -> _HandlerRet:
+def qute_gpl(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://gpl. Return HTML content as string."""
     return 'text/html', resources.read_file('html/license.html')
 
@@ -373,7 +371,7 @@ def _asciidoc_fallback_path(html_path: str) -> Optional[str]:
 
 
 @add_handler('help')
-def qute_help(url: QUrl) -> _HandlerRet:
+def qute_help(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://help."""
     urlpath = url.path()
     if not urlpath or urlpath == '/':
@@ -422,11 +420,11 @@ def qute_help(url: QUrl) -> _HandlerRet:
         return 'text/html', data
 
 
-def _qute_settings_set(url: QUrl) -> _HandlerRet:
+def _qute_settings_set(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://settings/set."""
-    query = QUrlQuery(url)
-    option = query.queryItemValue('option', QUrl.FullyDecoded)
-    value = query.queryItemValue('value', QUrl.FullyDecoded)
+    query = QtCore.QUrlQuery(url)
+    option = query.queryItemValue('option', QtCore.QUrl.FullyDecoded)
+    value = query.queryItemValue('value', QtCore.QUrl.FullyDecoded)
 
     # https://github.com/qutebrowser/qutebrowser/issues/727
     if option == 'content.javascript.enabled' and value == 'false':
@@ -444,7 +442,7 @@ def _qute_settings_set(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('settings')
-def qute_settings(url: QUrl) -> _HandlerRet:
+def qute_settings(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://settings. View/change qute configuration."""
     global csrf_token
 
@@ -470,7 +468,7 @@ def qute_settings(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('bindings')
-def qute_bindings(_url: QUrl) -> _HandlerRet:
+def qute_bindings(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://bindings. View keybindings."""
     bindings = {}
     defaults = config.val.bindings.default
@@ -488,7 +486,7 @@ def qute_bindings(_url: QUrl) -> _HandlerRet:
 
 
 @add_handler('back')
-def qute_back(url: QUrl) -> _HandlerRet:
+def qute_back(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://back.
 
     Simple page to free ram / lazy load a site, goes back on focusing the tab.
@@ -500,14 +498,14 @@ def qute_back(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('configdiff')
-def qute_configdiff(_url: QUrl) -> _HandlerRet:
+def qute_configdiff(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://configdiff."""
     data = config.instance.dump_userconfig().encode('utf-8')
     return 'text/plain', data
 
 
 @add_handler('pastebin-version')
-def qute_pastebin_version(_url: QUrl) -> _HandlerRet:
+def qute_pastebin_version(_url: QtCore.QUrl) -> _HandlerRet:
     """Handler that pastebins the version string."""
     version.pastebin_version()
     return 'text/plain', b'Paste called.'
@@ -520,14 +518,14 @@ def _pdf_path(filename: str) -> str:
 
 
 @add_handler('pdfjs')
-def qute_pdfjs(url: QUrl) -> _HandlerRet:
+def qute_pdfjs(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://pdfjs.
 
     Return the pdf.js viewer or redirect to original URL if the file does not
     exist.
     """
     if url.path() == '/file':
-        filename = QUrlQuery(url).queryItemValue('filename')
+        filename = QtCore.QUrlQuery(url).queryItemValue('filename')
         if not filename:
             raise UrlInvalidError("Missing filename")
         if '/' in filename or os.sep in filename:
@@ -541,7 +539,7 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
         return mimetype, data
 
     if url.path() == '/web/viewer.html':
-        query = QUrlQuery(url)
+        query = QtCore.QUrlQuery(url)
         filename = query.queryItemValue("filename")
         if not filename:
             raise UrlInvalidError("Missing filename")
@@ -551,7 +549,7 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
             source = query.queryItemValue('source')
             if not source:  # This may happen with old URLs stored in history
                 raise UrlInvalidError("Missing source")
-            raise Redirect(QUrl(source))
+            raise Redirect(QtCore.QUrl(source))
 
         data = pdfjs.generate_pdfjs_page(filename, url)
         return 'text/html', data
@@ -571,7 +569,7 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('warning')
-def qute_warning(url: QUrl) -> _HandlerRet:
+def qute_warning(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://warning."""
     path = url.path()
     if path == '/webkit':
@@ -588,7 +586,7 @@ def qute_warning(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('resource')
-def qute_resource(url: QUrl) -> _HandlerRet:
+def qute_resource(url: QtCore.QUrl) -> _HandlerRet:
     """Handler for qute://resource."""
     path = url.path().lstrip('/')
     mimetype = utils.guess_mimetype(path, fallback=True)

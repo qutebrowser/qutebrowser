@@ -20,7 +20,7 @@ import os
 import pathlib
 
 import pytest
-from PyQt5.QtCore import QLocale
+from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import utils
 from qutebrowser.config import qtargs
@@ -406,7 +406,7 @@ def qtwe_version():
 ])
 @pytest.mark.linux
 def test_lang_workaround_all_locales(lang, expected, qtwe_version):
-    locale_name = QLocale(lang).bcp47Name()
+    locale_name = QtCore.QLocale(lang).bcp47Name()
     print(locale_name)
 
     override = qtargs._get_lang_override(

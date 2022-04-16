@@ -23,7 +23,7 @@ import shlex
 
 import pytest
 import pytest_bdd as bdd
-from PyQt5.QtNetwork import QSslSocket
+from qutebrowser.qt import QtNetwork
 bdd.scenarios('downloads.feature')
 
 
@@ -65,7 +65,7 @@ def clean_old_downloads(quteproc):
 
 @bdd.when("SSL is supported")
 def check_ssl():
-    if not QSslSocket.supportsSsl():
+    if not QtNetwork.QSslSocket.supportsSsl():
         pytest.skip("QtNetwork SSL not supported")
 
 

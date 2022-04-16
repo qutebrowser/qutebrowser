@@ -21,12 +21,10 @@
 
 import enum
 
-from PyQt5.QtCore import (pyqtSlot, pyqtProperty,  # type: ignore[attr-defined]
-                          QUrl)
-
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import usertypes, urlutils
+from qutebrowser.qt import QtCore
 
 
 class UrlType(enum.Enum):
@@ -92,7 +90,7 @@ class UrlText(textbase.TextBase):
         self._normal_url = None
         self._normal_url_type = UrlType.normal
 
-    @pyqtProperty(str)
+    @QtCore.pyqtProperty(str)
     def urltype(self):
         """Getter for self.urltype, so it can be used as Qt property.
 
@@ -121,7 +119,7 @@ class UrlText(textbase.TextBase):
             # always override the old one.
             self.style().polish(self)
 
-    @pyqtSlot(usertypes.LoadStatus)
+    @QtCore.pyqtSlot(usertypes.LoadStatus)
     def on_load_status_changed(self, status):
         """Slot for load_status_changed. Sets URL color accordingly.
 
@@ -138,7 +136,7 @@ class UrlText(textbase.TextBase):
             self._normal_url_type = UrlType.normal
         self._update_url()
 
-    @pyqtSlot(QUrl)
+    @QtCore.pyqtSlot(QtCore.QUrl)
     def set_url(self, url):
         """Setter to be used as a Qt slot.
 
@@ -154,7 +152,7 @@ class UrlText(textbase.TextBase):
         self._normal_url_type = UrlType.normal
         self._update_url()
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def set_hover_url(self, link):
         """Setter to be used as a Qt slot.
 
@@ -165,7 +163,7 @@ class UrlText(textbase.TextBase):
             link: The link which was hovered (string)
         """
         if link:
-            qurl = QUrl(link)
+            qurl = QtCore.QUrl(link)
             if qurl.isValid():
                 self._hover_url = urlutils.safe_display_string(qurl)
             else:

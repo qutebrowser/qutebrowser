@@ -33,21 +33,18 @@ import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
-
-from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QObject, QUrl)
-from PyQt5.QtGui import QColor
+from qutebrowser.qt import QtWebKit, QtWebEngineWidgets, QtGui
 try:
-    from PyQt5.QtWebKit import qWebKitVersion
+    pass
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+    from qutebrowser.qt import QWebHistory
+    from qutebrowser.qt import QWebEngineHistory
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
+from qutebrowser.qt import QtCore
 
 
 MAXVALS = {
@@ -69,17 +66,17 @@ class QtOSError(OSError):
         qt_errno: The error attribute of the given QFileDevice, if applicable.
     """
 
-    def __init__(self, dev: QIODevice, msg: str = None) -> None:
+    def __init__(self, dev: QtCore.QIODevice, msg: str = None) -> None:
         if msg is None:
             msg = dev.errorString()
 
-        self.qt_errno: Optional[QFileDevice.FileError] = None
-        if isinstance(dev, QFileDevice):
+        self.qt_errno: Optional[QtCore.QFileDevice.FileError] = None
+        if isinstance(dev, QtCore.QFileDevice):
             msg = self._init_filedev(dev, msg)
 
         super().__init__(msg)
 
-    def _init_filedev(self, dev: QFileDevice, msg: str) -> str:
+    def _init_filedev(self, dev: QtCore.QFileDevice, msg: str) -> str:
         self.qt_errno = dev.error()
         filename = dev.fileName()
         msg += ": {!r}".format(filename)
@@ -101,13 +98,13 @@ def version_check(version: str,
 
     parsed = utils.VersionNumber.parse(version)
     op = operator.eq if exact else operator.ge
-    result = op(utils.VersionNumber.parse(qVersion()), parsed)
+    result = op(utils.VersionNumber.parse(QtCore.qVersion()), parsed)
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(utils.VersionNumber.parse(QT_VERSION_STR), parsed)
+        result = op(utils.VersionNumber.parse(QtCore.QT_VERSION_STR), parsed)
     if compiled and result:
         # Finally, check PYQT_VERSION_STR as well.
-        result = op(utils.VersionNumber.parse(PYQT_VERSION_STR), parsed)
+        result = op(utils.VersionNumber.parse(QtCore.PYQT_VERSION_STR), parsed)
     return result
 
 
@@ -116,8 +113,8 @@ MAX_WORLD_ID = 256
 
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
-    assert qWebKitVersion is not None
-    return (utils.VersionNumber.parse(qWebKitVersion()) >
+    assert QtWebKit.qWebKitVersion is not None
+    return (utils.VersionNumber.parse(QtWebKit.qWebKitVersion()) >
             utils.VersionNumber.parse('538.1'))
 
 
@@ -170,44 +167,44 @@ def ensure_valid(obj: Validatable) -> None:
         raise QtValueError(obj)
 
 
-def check_qdatastream(stream: QDataStream) -> None:
+def check_qdatastream(stream: QtCore.QDataStream) -> None:
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
-        QDataStream.Ok: "The data stream is operating normally.",
-        QDataStream.ReadPastEnd: ("The data stream has read past the end of "
+        QtCore.QDataStream.Ok: "The data stream is operating normally.",
+        QtCore.QDataStream.ReadPastEnd: ("The data stream has read past the end of "
                                   "the data in the underlying device."),
-        QDataStream.ReadCorruptData: "The data stream has read corrupt data.",
-        QDataStream.WriteFailed: ("The data stream cannot write to the "
+        QtCore.QDataStream.ReadCorruptData: "The data stream has read corrupt data.",
+        QtCore.QDataStream.WriteFailed: ("The data stream cannot write to the "
                                   "underlying device."),
     }
-    if stream.status() != QDataStream.Ok:
+    if stream.status() != QtCore.QDataStream.Ok:
         raise OSError(status_to_str[stream.status()])
 
 
 _QtSerializableType = Union[
-    QObject,
-    QByteArray,
-    QUrl,
+    QtCore.QObject,
+    QtCore.QByteArray,
+    QtCore.QUrl,
     'QWebEngineHistory',
     'QWebHistory'
 ]
 
 
-def serialize(obj: _QtSerializableType) -> QByteArray:
+def serialize(obj: _QtSerializableType) -> QtCore.QByteArray:
     """Serialize an object into a QByteArray."""
-    data = QByteArray()
-    stream = QDataStream(data, QIODevice.WriteOnly)
+    data = QtCore.QByteArray()
+    stream = QtCore.QDataStream(data, QtCore.QIODevice.WriteOnly)
     serialize_stream(stream, obj)
     return data
 
 
-def deserialize(data: QByteArray, obj: _QtSerializableType) -> None:
+def deserialize(data: QtCore.QByteArray, obj: _QtSerializableType) -> None:
     """Deserialize an object from a QByteArray."""
-    stream = QDataStream(data, QIODevice.ReadOnly)
+    stream = QtCore.QDataStream(data, QtCore.QIODevice.ReadOnly)
     deserialize_stream(stream, obj)
 
 
-def serialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
+def serialize_stream(stream: QtCore.QDataStream, obj: _QtSerializableType) -> None:
     """Serialize an object into a QDataStream."""
     # pylint: disable=pointless-statement
     check_qdatastream(stream)
@@ -215,7 +212,7 @@ def serialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     check_qdatastream(stream)
 
 
-def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
+def deserialize_stream(stream: QtCore.QDataStream, obj: _QtSerializableType) -> None:
     """Deserialize a QDataStream into an object."""
     # pylint: disable=pointless-statement
     check_qdatastream(stream)
@@ -230,10 +227,10 @@ def savefile_open(
         encoding: str = 'utf-8'
 ) -> Iterator[IO[AnyStr]]:
     """Context manager to easily use a QSaveFile."""
-    f = QSaveFile(filename)
+    f = QtCore.QSaveFile(filename)
     cancelled = False
     try:
-        open_ok = f.open(QIODevice.WriteOnly)
+        open_ok = f.open(QtCore.QIODevice.WriteOnly)
         if not open_ok:
             raise QtOSError(f)
 
@@ -257,7 +254,7 @@ def savefile_open(
             raise QtOSError(f, msg="Commit failed!")
 
 
-def qcolor_to_qsscolor(c: QColor) -> str:
+def qcolor_to_qsscolor(c: QtGui.QColor) -> str:
     """Convert a QColor to a string that can be used in a QStyleSheet."""
     ensure_valid(c)
     return "rgba({}, {}, {}, {})".format(
@@ -272,7 +269,7 @@ class PyQIODevice(io.BufferedIOBase):
         dev: The underlying QIODevice.
     """
 
-    def __init__(self, dev: QIODevice) -> None:
+    def __init__(self, dev: QtCore.QIODevice) -> None:
         super().__init__()
         self.dev = dev
 
@@ -302,7 +299,7 @@ class PyQIODevice(io.BufferedIOBase):
     # contextlib.closing is only generic in Python 3.9+
     def open(
         self,
-        mode: QIODevice.OpenMode,
+        mode: QtCore.QIODevice.OpenMode,
     ) -> contextlib.closing:  # type: ignore[type-arg]
         """Open the underlying device and ensure opening succeeded.
 
@@ -373,7 +370,7 @@ class PyQIODevice(io.BufferedIOBase):
         else:
             qt_size = size + 1  # Qt also counts the NUL byte
 
-        buf: Union[QByteArray, bytes, None] = None
+        buf: Union[QtCore.QByteArray, bytes, None] = None
         if self.dev.canReadLine():
             buf = self.dev.readLine(qt_size)
         elif size is None or size < 0:
@@ -384,7 +381,7 @@ class PyQIODevice(io.BufferedIOBase):
         if buf is None:
             raise QtOSError(self.dev)
 
-        if isinstance(buf, QByteArray):
+        if isinstance(buf, QtCore.QByteArray):
             # The type (bytes or QByteArray) seems to depend on what data we
             # feed in...
             buf = buf.data()
@@ -417,7 +414,7 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_open()
         self._check_readable()
 
-        buf: Union[QByteArray, bytes, None] = None
+        buf: Union[QtCore.QByteArray, bytes, None] = None
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
@@ -427,7 +424,7 @@ class PyQIODevice(io.BufferedIOBase):
         if buf is None:
             raise QtOSError(self.dev)
 
-        if isinstance(buf, QByteArray):
+        if isinstance(buf, QtCore.QByteArray):
             # The type (bytes or QByteArray) seems to depend on what data we
             # feed in...
             buf = buf.data()
@@ -450,21 +447,21 @@ class QtValueError(ValueError):
         super().__init__(err)
 
 
-class EventLoop(QEventLoop):
+class EventLoop(QtCore.QEventLoop):
 
     """A thin wrapper around QEventLoop.
 
     Raises an exception when doing exec() multiple times.
     """
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         self._executing = False
 
     def exec(
             self,
-            flags: QEventLoop.ProcessEventsFlags =
-            cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
+            flags: QtCore.QEventLoop.ProcessEventsFlags =
+            cast(QtCore.QEventLoop.ProcessEventsFlags, QtCore.QEventLoop.AllEvents)
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
@@ -500,11 +497,11 @@ def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
 
 
 def interpolate_color(
-        start: QColor,
-        end: QColor,
+        start: QtGui.QColor,
+        end: QtGui.QColor,
         percent: int,
-        colorspace: Optional[QColor.Spec] = QColor.Rgb
-) -> QColor:
+        colorspace: Optional[QtGui.QColor.Spec] = QtGui.QColor.Rgb
+) -> QtGui.QColor:
     """Get an interpolated color value.
 
     Args:
@@ -523,22 +520,22 @@ def interpolate_color(
 
     if colorspace is None:
         if percent == 100:
-            return QColor(*end.getRgb())
+            return QtGui.QColor(*end.getRgb())
         else:
-            return QColor(*start.getRgb())
+            return QtGui.QColor(*start.getRgb())
 
-    out = QColor()
-    if colorspace == QColor.Rgb:
+    out = QtGui.QColor()
+    if colorspace == QtGui.QColor.Rgb:
         r1, g1, b1, a1 = start.getRgb()
         r2, g2, b2, a2 = end.getRgb()
         components = _get_color_percentage(r1, g1, b1, a1, r2, g2, b2, a2, percent)
         out.setRgb(*components)
-    elif colorspace == QColor.Hsv:
+    elif colorspace == QtGui.QColor.Hsv:
         h1, s1, v1, a1 = start.getHsv()
         h2, s2, v2, a2 = end.getHsv()
         components = _get_color_percentage(h1, s1, v1, a1, h2, s2, v2, a2, percent)
         out.setHsv(*components)
-    elif colorspace == QColor.Hsl:
+    elif colorspace == QtGui.QColor.Hsl:
         h1, s1, l1, a1 = start.getHsl()
         h2, s2, l2, a2 = end.getHsl()
         components = _get_color_percentage(h1, s1, l1, a1, h2, s2, l2, a2, percent)

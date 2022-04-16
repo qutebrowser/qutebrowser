@@ -21,13 +21,12 @@
 
 from typing import MutableSequence
 
-from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
-
 from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
+from qutebrowser.qt import QtCore
 
 
-class CompletionModel(QAbstractItemModel):
+class CompletionModel(QtCore.QAbstractItemModel):
 
     """A model that proxies access to one or more completion categories.
 
@@ -43,7 +42,7 @@ class CompletionModel(QAbstractItemModel):
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
-        self._categories: MutableSequence[QAbstractItemModel] = []
+        self._categories: MutableSequence[QtCore.QAbstractItemModel] = []
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -63,7 +62,7 @@ class CompletionModel(QAbstractItemModel):
         """Add a completion category to the model."""
         self._categories.append(cat)
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=QtCore.Qt.DisplayRole):
         """Return the item data for index.
 
         Override QAbstractItemModel::data.
@@ -74,7 +73,7 @@ class CompletionModel(QAbstractItemModel):
 
         Return: The item data, or None on an invalid index.
         """
-        if role != Qt.DisplayRole:
+        if role != QtCore.Qt.DisplayRole:
             return None
         cat = self._cat_from_idx(index)
         if cat:
@@ -97,16 +96,16 @@ class CompletionModel(QAbstractItemModel):
         Return: The item flags, or Qt.NoItemFlags on error.
         """
         if not index.isValid():
-            return Qt.NoItemFlags
+            return QtCore.Qt.NoItemFlags
         if index.parent().isValid():
             # item
-            return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
-                    Qt.ItemNeverHasChildren)
+            return (QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable |
+                    QtCore.Qt.ItemNeverHasChildren)
         else:
             # category
-            return Qt.NoItemFlags
+            return QtCore.Qt.NoItemFlags
 
-    def index(self, row, col, parent=QModelIndex()):
+    def index(self, row, col, parent=QtCore.QModelIndex()):
         """Get an index into the model.
 
         Override QAbstractItemModel::index.
@@ -115,10 +114,10 @@ class CompletionModel(QAbstractItemModel):
         """
         if (row < 0 or row >= self.rowCount(parent) or
                 col < 0 or col >= self.columnCount(parent)):
-            return QModelIndex()
+            return QtCore.QModelIndex()
         if parent.isValid():
             if parent.column() != 0:
-                return QModelIndex()
+                return QtCore.QModelIndex()
             # store a pointer to the parent category in internalPointer
             return self.createIndex(row, col, self._categories[parent.row()])
         return self.createIndex(row, col, None)
@@ -134,11 +133,11 @@ class CompletionModel(QAbstractItemModel):
         parent_cat = index.internalPointer()
         if not parent_cat:
             # categories have no parent
-            return QModelIndex()
+            return QtCore.QModelIndex()
         row = self._categories.index(parent_cat)
         return self.createIndex(row, 0, None)
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, parent=QtCore.QModelIndex()):
         """Override QAbstractItemModel::rowCount."""
         if not parent.isValid():
             # top-level
@@ -151,7 +150,7 @@ class CompletionModel(QAbstractItemModel):
             # category
             return cat.rowCount()
 
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, parent=QtCore.QModelIndex()):
         """Override QAbstractItemModel::columnCount."""
         utils.unused(parent)
         return len(self.column_widths)
@@ -160,14 +159,14 @@ class CompletionModel(QAbstractItemModel):
         """Override to forward the call to the categories."""
         cat = self._cat_from_idx(parent)
         if cat:
-            return cat.canFetchMore(QModelIndex())
+            return cat.canFetchMore(QtCore.QModelIndex())
         return False
 
     def fetchMore(self, parent):
         """Override to forward the call to the categories."""
         cat = self._cat_from_idx(parent)
         if cat:
-            cat.fetchMore(QModelIndex())
+            cat.fetchMore(QtCore.QModelIndex())
 
     def count(self):
         """Return the count of non-category items."""
@@ -193,7 +192,7 @@ class CompletionModel(QAbstractItemModel):
                 index = self.index(0, 0, parent)
                 qtutils.ensure_valid(index)
                 return index
-        return QModelIndex()
+        return QtCore.QModelIndex()
 
     def last_item(self):
         """Return the index of the last child (non-category) in the model."""
@@ -204,7 +203,7 @@ class CompletionModel(QAbstractItemModel):
                 index = self.index(childcount - 1, 0, parent)
                 qtutils.ensure_valid(index)
                 return index
-        return QModelIndex()
+        return QtCore.QModelIndex()
 
     def columns_to_filter(self, index):
         """Return the column indices the filter pattern applies to.
@@ -231,5 +230,5 @@ class CompletionModel(QAbstractItemModel):
         cat.delete_func(data)
 
         self.beginRemoveRows(parent, index.row(), index.row())
-        cat.removeRow(index.row(), QModelIndex())
+        cat.removeRow(index.row(), QtCore.QModelIndex())
         self.endRemoveRows()
