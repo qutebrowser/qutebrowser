@@ -19,11 +19,43 @@
 
 """Wrappers around Qt/PyQt code."""
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import,import-error
+import importlib
+
+try:
+    import PyQt5 as pyqt  # noqa: N813
+except ImportError:
+    import PyQt6 as pyqt  # type: ignore[import, no-redef] # noqa: N813
 
 # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some distributions
 # still package later versions of PyQt5 with a top-level "sip" rather than "PyQt5.sip".
+# pylint: disable=ungrouped-imports
 try:
-    from PyQt5 import sip
+    sip = importlib.import_module(f"{pyqt.__name__}.sip")
 except ImportError:
     import sip  # type: ignore[import, no-redef]
+
+QtCore = importlib.import_module(f"{pyqt.__name__}.QtCore")
+QtDBus = importlib.import_module(f"{pyqt.__name__}.QtDBus")
+QtGui = importlib.import_module(f"{pyqt.__name__}.QtGui")
+QtNetwork = importlib.import_module(f"{pyqt.__name__}.QtNetwork")
+QtPrintSupport = importlib.import_module(f"{pyqt.__name__}.QtPrintSupport")
+QtQml = importlib.import_module(f"{pyqt.__name__}.QtQml")
+QtSql = importlib.import_module(f"{pyqt.__name__}.QtSql")
+QtWidgets = importlib.import_module(f"{pyqt.__name__}.QtWidgets")
+
+try:
+    QtWebEngine = importlib.import_module(f"{pyqt.__name__}.QtWebEngine")
+    QtWebEngineCore = importlib.import_module(f"{pyqt.__name__}.QtWebEngineCore")
+    QtWebEngineWidgets = importlib.import_module(f"{pyqt.__name__}.QtWebEngineWidgets")
+except ImportError:
+    QtWebEngine = None
+    QtWebEngineCore = None
+    QtWebEngineWidgets = None
+
+try:
+    QtWebKit = importlib.import_module(f"{pyqt.__name__}.QtWebKit")
+    QtWebKitWidgets = importlib.import_module(f"{pyqt.__name__}.QtWebKitWidgets")
+except ImportError:
+    QtWebKit = None
+    QtWebKitWidgets = None
