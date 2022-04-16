@@ -137,7 +137,14 @@ def init_faulthandler(fileobj=sys.__stderr__):
 
 def check_pyqt():
     """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
-    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+    pyqt_name = "PyQt6"
+    try:
+        import PyQt5
+        pyqt_name = PyQt5.__name__
+    except ImportError:
+        pass
+
+    for name in [f'{pyqt_name}.QtCore', f'{pyqt_name}.QtWidgets']:
         try:
             importlib.import_module(name)
         except ImportError as e:
@@ -228,13 +235,21 @@ def _check_modules(modules):
 
 def check_libraries():
     """Check if all needed Python libraries are installed."""
+    pyqt_name = None
+    try:
+        import PyQt5
+        pyqt_name = PyQt5.__name__
+    except ImportError:
+        import PyQt6  # type: ignore[import]
+        pyqt_name = PyQt6.__name__
+
     modules = {
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
-        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
-        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
-        'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
-        'PyQt5.QtDBus': _missing_str("PyQt5.QtDBus"),
+        f'{pyqt_name}.QtQml': _missing_str(f"{pyqt_name}.QtQml"),
+        f'{pyqt_name}.QtSql': _missing_str(f"{pyqt_name}.QtSql"),
+        f'{pyqt_name}.QtOpenGL': _missing_str(f"{pyqt_name}.QtOpenGL"),
+        f'{pyqt_name}.QtDBus': _missing_str(f"{pyqt_name}.QtDBus"),
     }
     if sys.version_info < (3, 9):
         # Backport required
@@ -248,7 +263,8 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5 import QtCore
+    from qutebrowser.qt import QtCore, sip
+
     QtCore.pyqtRemoveInputHook()
     try:
         QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore[attr-defined]
@@ -256,7 +272,6 @@ def configure_pyqt():
         # Added in PyQt 5.13 somewhere, going to be the default in 5.14
         pass
 
-    from qutebrowser.qt import sip
     sip.enableoverflowchecking(True)
 
 

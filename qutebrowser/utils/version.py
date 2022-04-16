@@ -52,7 +52,7 @@ from qutebrowser.utils import log, utils, standarddir, usertypes, message, resou
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config
-from qutebrowser.qt import QtGui, QtCore
+from qutebrowser.qt import QtGui, QtCore, pyqt
 
 if TYPE_CHECKING:
     from qutebrowser.config import websettings
@@ -398,9 +398,9 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('adblock', ['__version__'], "0.3.2"),
-        ('PyQt5.QtWebEngineWidgets', []),
-        ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
-        ('PyQt5.QtWebKitWidgets', []),
+        (f'{pyqt.__name__}.QtWebEngineWidgets', []),
+        (f'{pyqt.__name__}.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
+        (f'{pyqt.__name__}.QtWebKitWidgets', []),
     ]
 ])
 
