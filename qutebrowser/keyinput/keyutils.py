@@ -454,17 +454,12 @@ class KeyInfo:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
-    def to_int(self) -> int:
-        """Get the key as an integer (with key/modifiers)."""
-        return int(self.key) | _extract_enum_val(self.modifiers)
-
     def to_qt(self) -> Union[int, QKeyCombination]:
         """Get something suitable for a QKeySequence."""
         if QKeyCombination is None:
             # Qt 5
-            return self.to_int()
-        # FIXME:qt6 why can't we pass them individually?
-        return QKeyCombination.fromCombined(self.to_int())
+            return int(self.key) | int(self.modifiers)
+        return QKeyCombination(self.modifiers, self.key)
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
         return KeyInfo(key=self.key, modifiers=self.modifiers & ~modifiers)

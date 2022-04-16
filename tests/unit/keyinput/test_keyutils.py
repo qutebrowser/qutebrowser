@@ -563,9 +563,9 @@ def test_key_info_to_event():
     assert ev.text() == 'A'
 
 
-def test_key_info_to_int():
+def test_key_info_to_qt():
     info = keyutils.KeyInfo(Qt.Key.Key_A, Qt.KeyboardModifier.ShiftModifier)
-    assert info.to_int() == Qt.Key.Key_A | Qt.KeyboardModifier.ShiftModifier
+    assert info.to_qt() == Qt.Key.Key_A | Qt.KeyboardModifier.ShiftModifier
 
 
 @pytest.mark.parametrize('key, printable', [
