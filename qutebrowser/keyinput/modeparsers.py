@@ -278,7 +278,7 @@ class RegisterKeyParser(CommandKeyParser):
                dry_run: bool = False) -> QKeySequence.SequenceMatch:
         """Override to always match the next key and use the register."""
         match = super().handle(e, dry_run=dry_run)
-        if match or dry_run:
+        if match != QKeySequence.SequenceMatch.NoMatch or dry_run:
             return match
 
         if keyutils.is_special(Qt.Key(e.key()), e.modifiers()):

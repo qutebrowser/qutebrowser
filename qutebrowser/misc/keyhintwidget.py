@@ -29,6 +29,7 @@ import re
 
 from qutebrowser.qt.widgets import QLabel, QSizePolicy
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt
+from qutebrowser.qt.gui import QKeySequence
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import utils, usertypes
@@ -109,10 +110,13 @@ class KeyHintView(QLabel):
             return cmd and cmd.takes_count()
 
         bindings_dict = config.key_instance.get_bindings_for(mode.name)
-        bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
-                    if keyutils.KeySequence.parse(prefix).matches(k) and
-                    not blacklisted(str(k)) and
-                    (takes_count(v) or not countstr)]
+        bindings = [
+            (k, v)
+            for (k, v) in sorted(bindings_dict.items())
+            if keyutils.KeySequence.parse(prefix).matches(k) != QKeySequence.SequenceMatch.NoMatch
+            and not blacklisted(str(k))
+            and (takes_count(v) or not countstr)
+        ]
 
         if not bindings:
             self._show_timer.stop()
