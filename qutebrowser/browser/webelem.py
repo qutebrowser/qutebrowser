@@ -22,7 +22,7 @@
 from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union, Dict
 import collections.abc
 
-from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPoint
+from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPointF
 from qutebrowser.qt.gui import QMouseEvent
 
 from qutebrowser.config import config
@@ -317,7 +317,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Return True if clicking this element needs user interaction."""
         raise NotImplementedError
 
-    def _mouse_pos(self) -> QPoint:
+    def _mouse_pos(self) -> QPointF:
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
@@ -331,7 +331,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         pos = rect.center()
         if pos.x() < 0 or pos.y() < 0:
             raise Error("Element position is out of view!")
-        return pos
+        return QPointF(pos)
 
     def _move_text_cursor(self) -> None:
         """Move cursor to end after clicking."""
