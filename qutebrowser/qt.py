@@ -50,6 +50,7 @@ if PyQt5:
     from PyQt5 import QtQml
     from PyQt5 import QtSql
     from PyQt5 import QtWidgets
+    from PyQt5 import QtTest
 elif PyQt6:
     from PyQt6 import QtCore  # type: ignore[no-redef]
     from PyQt6 import QtDBus  # type: ignore[no-redef]
@@ -59,6 +60,7 @@ elif PyQt6:
     from PyQt6 import QtQml  # type: ignore[no-redef]
     from PyQt6 import QtSql  # type: ignore[no-redef]
     from PyQt6 import QtWidgets  # type: ignore[no-redef]
+    from PyQt6 import QtTest  # type: ignore[no-redef]
 
 try:
     if PyQt5:

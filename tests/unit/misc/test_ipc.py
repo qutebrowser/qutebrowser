@@ -30,7 +30,7 @@ from unittest import mock
 from typing import Optional, List
 
 import pytest
-from PyQt5.QtTest import QSignalSpy
+from qutebrowser.qt import QtTest
 
 import qutebrowser
 from qutebrowser.misc import ipc
@@ -528,7 +528,7 @@ def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
 
 
 def test_multiline(qtbot, ipc_server, connected_socket):
-    spy = QSignalSpy(ipc_server.got_args)
+    spy = QtTest.QSignalSpy(ipc_server.got_args)
 
     data = ('{{"args": ["one"], "target_arg": "tab",'
             ' "protocol_version": {version}}}\n'

@@ -26,12 +26,11 @@ import dataclasses
 
 import pytest
 import pytestqt.wait_signal
-from PyQt5.QtTest import QSignalSpy
 
 from helpers import testutils
 
 from qutebrowser.utils import utils as quteutils
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtTest
 
 
 class InvalidLine(Exception):
@@ -393,7 +392,7 @@ class Process(QtCore.QObject):
             elided = quteutils.elide(repr(message), 100)
             self._log("\n----> Waiting for {} in the log".format(elided))
 
-        spy = QSignalSpy(self.new_data)
+        spy = QtTest.QSignalSpy(self.new_data)
         elapsed_timer = QtCore.QElapsedTimer()
         elapsed_timer.start()
 

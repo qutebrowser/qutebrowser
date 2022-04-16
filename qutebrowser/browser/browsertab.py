@@ -25,13 +25,10 @@ import functools
 import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
                     Sequence, Set, Type, Union)
-from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtPrintSupport, QtNetwork
+from qutebrowser.qt import QtWidgets, QtPrintSupport, QtNetwork
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
-    from qutebrowser.qt import QWebPage
-    from PyQt5.QtWebEngineWidgets import (
-        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
+    from qutebrowser.qt import QtWebKit, QtWebKitWidgets, QtWebEngineWidgets
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -146,8 +143,8 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    action_class: Type[Union['QWebPage', 'QWebEnginePage']]
-    action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
+    action_class: Type[Union['QtWebKitWidgets.QWebPage', 'QtWebEngineWidgets.QWebEnginePage']]
+    action_base: Type[Union['QtWebKitWidgets.QWebPage.WebAction', 'QtWebEngineWidgets.QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = cast(QtWidgets.QWidget, None)
@@ -640,13 +637,13 @@ class AbstractHistory:
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
-        self._history = cast(Union['QWebHistory', 'QWebEngineHistory'], None)
+        self._history = cast(Union['QtWebKit.QWebHistory', 'QtWebEngineWidgets.QWebEngineHistory'], None)
         self.private_api = AbstractHistoryPrivate()
 
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
+    def __iter__(self) -> Iterable[Union['QtWebKit.QWebHistoryItem', 'QtWebEngineWidgets.QWebEngineHistoryItem']]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
