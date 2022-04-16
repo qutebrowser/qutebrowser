@@ -28,6 +28,7 @@ import contextlib
 import pathlib
 import importlib.util
 import importlib.machinery
+from typing import Optional, Any
 
 import pytest
 
@@ -308,3 +309,13 @@ def import_userscript(name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def importorskip_ifnull(
+    modname: str, minversion: Optional[str] = None, reason: Optional[str] = None
+) -> Any:
+    """Wraps pytest.importorskip and also skips if the target is None."""
+    result = pytest.importorskip(modname, minversion, reason)
+    if result is None:
+        raise pytest.Skipped
+    return result

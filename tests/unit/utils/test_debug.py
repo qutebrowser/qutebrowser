@@ -29,6 +29,7 @@ import pytest
 from qutebrowser.utils import debug
 from qutebrowser.misc import objects
 from qutebrowser.qt import QtWidgets, QtCore
+from helpers import testutils
 
 
 @debug.log_events
@@ -185,7 +186,7 @@ class TestQFlagsKey:
 
         No idea what's happening here exactly...
         """
-        qwebpage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+        qwebpage = testutils.importorskip_ifnull("PyQt5.QtWebKitWidgets").QWebPage
 
         flags = qwebpage.FindWrapsAroundDocument
         flags |= qwebpage.FindBackward

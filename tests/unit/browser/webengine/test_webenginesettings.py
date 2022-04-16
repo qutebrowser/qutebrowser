@@ -21,7 +21,8 @@ import logging
 
 import pytest
 
-QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+from helpers import testutils
+QtWebEngineWidgets = testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes

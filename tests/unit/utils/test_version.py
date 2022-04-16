@@ -40,6 +40,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
+from helpers import testutils
 
 try:
     from qutebrowser.browser.webengine import webenginesettings
@@ -1059,7 +1060,7 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
+        testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
         if webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
@@ -1341,7 +1342,7 @@ class TestOpenGLInfo:
 
     def test_func(self, qapp):
         """Simply call version.opengl_info() and see if it doesn't crash."""
-        pytest.importorskip("PyQt5.QtOpenGL")
+        testutils.importorskip_ifnull("PyQt5.QtOpenGL")
         version.opengl_info()
 
     def test_func_fake(self, qapp, monkeypatch):

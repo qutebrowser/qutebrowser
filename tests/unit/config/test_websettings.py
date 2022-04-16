@@ -22,6 +22,7 @@ import pytest
 from qutebrowser.config import websettings
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
+from helpers import testutils
 
 
 @pytest.mark.parametrize([  # noqa: PT006
@@ -80,7 +81,7 @@ def test_parse_user_agent(user_agent, os_info, webkit_version,
 
 
 def test_user_agent(monkeypatch, config_stub, qapp):
-    webenginesettings = pytest.importorskip(
+    webenginesettings = testutils.importorskip_ifnull(
         "qutebrowser.browser.webengine.webenginesettings")
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     webenginesettings.init_user_agent()

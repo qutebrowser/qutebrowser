@@ -26,6 +26,7 @@ from hypothesis import strategies as hst
 
 from qutebrowser.misc import elf
 from qutebrowser.utils import utils
+from helpers import testutils
 
 
 @pytest.mark.parametrize('fmt, expected', [
@@ -57,7 +58,7 @@ def test_result(qapp, caplog):
 
     If that happens, please report a bug about it!
     """
-    pytest.importorskip('PyQt5.QtWebEngineCore')
+    testutils.importorskip_ifnull('PyQt5.QtWebEngineCore')
 
     versions = elf.parse_webenginecore()
     assert versions is not None

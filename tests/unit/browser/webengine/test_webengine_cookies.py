@@ -18,11 +18,13 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from qutebrowser.qt import QtWebEngineWidgets, QtWebEngineCore, QtCore
-pytest.importorskip('PyQt5.QtWebEngineCore')
+
+from helpers import testutils
+testutils.importorskip_ifnull('PyQt5.QtWebEngineCore')
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch
+from qutebrowser.qt import QtWebEngineWidgets, QtWebEngineCore, QtCore
 
 
 @pytest.fixture

@@ -24,9 +24,10 @@ from qutebrowser.qt import QtCore
 
 from qutebrowser.utils import utils
 from qutebrowser.config import qtargs
+from helpers import testutils
 
 
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
+testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
 
 
 @pytest.fixture(autouse=True)

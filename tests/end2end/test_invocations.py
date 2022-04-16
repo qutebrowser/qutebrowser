@@ -790,11 +790,11 @@ def test_unavailable_backend(request, quteproc_new):
     qtwk_module = "PyQt5.QtWebKitWidgets"
     # Note we want to try the *opposite* backend here.
     if request.config.webengine:
-        pytest.importorskip(qtwe_module)
+        testutils.importorskip_ifnull(qtwe_module)
         module = qtwk_module
         backend = 'webkit'
     else:
-        pytest.importorskip(qtwk_module)
+        testutils.importorskip_ifnull(qtwk_module)
         module = qtwe_module
         backend = 'webengine'
 

@@ -23,9 +23,10 @@ import dataclasses
 from typing import Any
 
 import pytest
-pytest.importorskip('PyQt5.QtWebKit')
-from qutebrowser.qt import QtWebKit
+from helpers import testutils
+testutils.importorskip_ifnull('PyQt5.QtWebKit')
 
+from qutebrowser.qt import QtWebKit
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils

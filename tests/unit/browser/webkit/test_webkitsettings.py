@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
-pytest.importorskip('PyQt5.QtWebKitWidgets')
+from helpers import testutils
+
+testutils.importorskip_ifnull('PyQt5.QtWebKitWidgets')
 
 from qutebrowser.browser.webkit import webkitsettings
 

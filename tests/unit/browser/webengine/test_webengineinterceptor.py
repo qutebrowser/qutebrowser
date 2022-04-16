@@ -20,12 +20,10 @@
 """Test interceptor.py for webengine."""
 
 
-import pytest
-
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
+from helpers import testutils
+testutils.importorskip_ifnull('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.qt import QtWebEngineCore
-
 from qutebrowser.browser.webengine import interceptor
 
 

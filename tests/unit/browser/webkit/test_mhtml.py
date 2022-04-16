@@ -25,7 +25,10 @@ import uuid
 
 import pytest
 
-mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
+from helpers import testutils
+
+testutils.importorskip_ifnull('qutebrowser.qt.QtWebKit')
+mhtml = testutils.importorskip_ifnull('qutebrowser.browser.webkit.mhtml')
 
 
 @pytest.fixture(autouse=True)

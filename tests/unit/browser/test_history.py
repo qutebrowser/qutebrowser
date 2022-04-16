@@ -24,6 +24,7 @@ import logging
 import pytest
 from qutebrowser.qt import QtWebKit, QtCore
 
+from helpers import testutils
 from qutebrowser.browser import history
 from qutebrowser.utils import urlutils, usertypes
 from qutebrowser.api import cmdutils
@@ -276,7 +277,7 @@ class TestHistoryInterface:
     @pytest.fixture
     def hist_interface(self, web_history):
         # pylint: disable=invalid-name
-        QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
+        QtWebKit = testutils.importorskip_ifnull('PyQt5.QtWebKit')
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
@@ -303,16 +304,14 @@ class TestInit:
         if history.web_history is not None:
             history.web_history.setParent(None)
             history.web_history = None
-        try:
+        if QtWebKit and QtWebKit.QWebHistoryInterface:
             QtWebKit.QWebHistoryInterface.setDefaultInterface(None)
-        except ImportError:
-            pass
 
     @pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
                                          usertypes.Backend.QtWebKit])
     def test_init(self, backend, qapp, tmpdir, data_tmpdir, monkeypatch, cleanup_init):
         if backend == usertypes.Backend.QtWebKit:
-            pytest.importorskip('PyQt5.QtWebKitWidgets')
+            testutils.importorskip_ifnull('PyQt5.QtWebKitWidgets')
         else:
             assert backend == usertypes.Backend.QtWebEngine
 
@@ -325,10 +324,10 @@ class TestInit:
             assert default_interface._history is history.web_history
         else:
             assert backend == usertypes.Backend.QtWebEngine
-            if QtWebKit.QWebHistoryInterface is None:
-                default_interface = None
-            else:
+            if QtWebKit and QtWebKit.QWebHistoryInterface:
                 default_interface = QtWebKit.QWebHistoryInterface.defaultInterface()
+            else:
+                default_interface = None
             # For this to work, nothing can ever have called
             # setDefaultInterface before (so we need to test webengine before
             # webkit)

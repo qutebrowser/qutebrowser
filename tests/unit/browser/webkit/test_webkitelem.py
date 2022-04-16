@@ -27,7 +27,9 @@ import itertools
 import dataclasses
 
 import pytest
-QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+
+from helpers import testutils
+QWebElement = testutils.importorskip_ifnull('PyQt5.QtWebKit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
