@@ -117,6 +117,13 @@ class RenameCommand(VisitorBasedCodemodCommand):
         # this so that we do not end up with two of the same import.
         self.bypass_import = False
 
+    def per_module_reset(self):
+        """Reset attributes that are cached on self."""
+        # They should probably really be on self.context.scratch?
+        self.as_name = None
+        self.scheduled_removals = set()
+        self.bypass_import = False
+
     def visit_Import(self, node: cst.Import) -> None:
         for import_alias in node.names:
             alias_name = get_full_name_for_node(import_alias.name)
@@ -314,6 +321,9 @@ class RenameCommand(VisitorBasedCodemodCommand):
             return self.gen_name_or_attr_node(new_attr)
 
         return updated_node
+
+    def visit_Module(self, node: cst.Module) -> Optional[bool]:
+        self.per_module_reset()
 
     def leave_Module(
         self, original_node: cst.Module, updated_node: cst.Module
