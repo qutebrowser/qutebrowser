@@ -733,7 +733,15 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    successful = variant.convert(QVariant.Type.UInt)
+
+    try:
+        # Qt 5
+        target_type = QVariant.Type.UInt
+    except AttributeError:
+        # Qt 6
+        target_type = QMetaType(QMetaType.Type.UInt.value)
+
+    successful = variant.convert(target_type)
     assert successful
     return variant
 
@@ -993,7 +1001,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         actions = []
         if self._capabilities.actions:
             actions = ['default', 'Activate']  # key, name
-        return QDBusArgument(actions, QMetaType.Type.QStringList)
+        return QDBusArgument(
+            actions,
+            qtutils.extract_enum_val(QMetaType.Type.QStringList),
+        )
 
     def _get_hints_arg(self, *, origin_url: QUrl, icon: QImage) -> Dict[str, Any]:
         """Get the hints argument for present()."""
