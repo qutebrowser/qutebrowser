@@ -31,10 +31,6 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies as hst
 import pytest
-try:
-    pass
-except ImportError:
-    pass
 
 from qutebrowser.misc import objects, guiprocess
 from qutebrowser.completion import completer

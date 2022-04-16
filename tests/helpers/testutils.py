@@ -272,10 +272,7 @@ def disable_seccomp_bpf_sandbox():
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
     """
-    try:
-        pass
-    except ImportError:
-        # no QtWebEngine available
+    if not QtWebEngine:
         return False
 
     affected_versions = set()

@@ -119,9 +119,7 @@ class _WebEngineSearchWrapHandler:
         if not qtutils.version_check("5.14"):
             return
 
-        try:
-            pass
-        except ImportError:
+        if not hasattr(QtWebEngineCore, 'QWebEngineFindTextResult'):
             # WORKAROUND for some odd PyQt/packaging bug where the
             # findTextResult signal is available, but QWebEngineFindTextResult
             # is not. Seems to happen on e.g. Gentoo.
@@ -1692,11 +1690,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
 
-        try:
-            pass
-        except ImportError:
-            pass
-        else:
+        if QtWebEngineWidgets.QWebEngineClientCertificateSelection:
             page.selectClientCertificate.connect(
                 self._on_select_client_certificate)
 

@@ -118,12 +118,10 @@ def _get_version_tag(tag):
             reason='Needs ' + tag,
         )
     elif package == 'pyqtwebengine':
-        try:
-            pass
-        except ImportError:
-            running_version = QtCore.PYQT_VERSION
-        else:
+        if QtWebEngine:
             running_version = QtWebEngine.PYQT_WEBENGINE_VERSION
+        else:
+            running_version = QtCore.PYQT_VERSION
         return pytest.mark.skipif(
             not _check_version(
                 op_str=match.group('operator'),

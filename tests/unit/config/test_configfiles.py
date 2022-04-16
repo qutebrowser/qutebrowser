@@ -166,9 +166,7 @@ def state_writer(data_tmpdir):
 
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
-    try:
-        pass
-    except ImportError:
+    if not QtWebEngineWidgets:
         pytest.skip("QtWebEngine not available")
 
     def patch(ver):

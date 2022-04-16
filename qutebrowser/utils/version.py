@@ -38,13 +38,11 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 from qutebrowser.qt import QtWidgets, QtWebKit, QtWebEngine, QtNetwork
 
-try:
-    pass
-except ImportError:  # pragma: no cover
+if not QtWebKit:
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
-try:
-    pass
-except ImportError:  # pragma: no cover
+if QtWebEngine:
+    PYQT_WEBENGINE_VERSION_STR = QtWebEngine.PYQT_WEBENGINE_VERSION_STR
+else:
     # Added in PyQt 5.13
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
 

@@ -33,10 +33,8 @@ import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
-from qutebrowser.qt import QtWebKit, QtWebEngineWidgets, QtGui
-try:
-    pass
-except ImportError:  # pragma: no cover
+from qutebrowser.qt import QtWebKit, QtGui
+if not QtWebKit:
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
     from qutebrowser.qt import QWebHistory

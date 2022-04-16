@@ -263,21 +263,16 @@ class _BackendProblemChecker:
 
     def _try_import_backends(self) -> _BackendImports:
         """Check whether backends can be imported and return BackendImports."""
-        # pylint: disable=unused-import
         results = _BackendImports()
 
-        try:
-            pass
-        except (ImportError, ValueError) as e:
-            results.webkit_error = str(e)
-        else:
+        if QtWebKit and QtWebKitWidgets and QtWebKit.qWebKitVersion:
             if not qtutils.is_new_qtwebkit():
                 results.webkit_error = "Unsupported legacy QtWebKit found"
+        else:
+            results.webkit_error = "Some required QtWebKit modules not found"
 
-        try:
-            pass
-        except (ImportError, ValueError) as e:
-            results.webengine_error = str(e)
+        if not QtWebEngineWidgets:
+            results.webengine_error = "QtWebEngineWidgets not available"
 
         return results
 

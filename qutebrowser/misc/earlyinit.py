@@ -78,7 +78,7 @@ def _die(message, exception=None):
         message: The message to display.
         exception: The exception object if we're handling an exception.
     """
-    from qutebrowser.qt import QtWidgets, QtWebEngineWidgets, QtNetwork, QtCore
+    from qutebrowser.qt import QtWidgets, QtCore
     if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
             exception is not None):
         print(file=sys.stderr)
@@ -160,6 +160,7 @@ def check_pyqt():
 
 def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
+    from qutebrowser.qt import QtCore
     if qversion is None:
         qversion = QtCore.qVersion()
     if qt_version_str is None:
@@ -173,6 +174,7 @@ def qt_version(qversion=None, qt_version_str=None):
 
 def check_qt_version():
     """Check if the Qt version is recent enough."""
+    from qutebrowser.qt import QtCore
     try:
         qt_ver = QtCore.QLibraryInfo.version().normalized()
         recent_qt_runtime = qt_ver >= QtCore.QVersionNumber(5, 12)  # type: ignore[operator]
@@ -194,9 +196,8 @@ def check_qt_version():
 
 def check_ssl_support():
     """Check if SSL support is available."""
-    try:
-        pass
-    except ImportError:
+    from qutebrowser.qt import QtNetwork
+    if not QtNetwork or not QtNetwork.QSslSocket:
         _die("Fatal error: Your Qt is built without SSL support.")
 
 
@@ -288,7 +289,7 @@ def webengine_early_import():
     error messages in backendproblem.py are accurate.
     """
     try:
-        pass
+        from qutebrowser.qt import QtWebEngineWidgets  # pylint: disable=unused-import
     except ImportError:
         pass
 

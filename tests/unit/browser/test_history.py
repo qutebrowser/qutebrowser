@@ -320,11 +320,6 @@ class TestInit:
         history.init(data_tmpdir / f'test_init_{backend}', qapp)
         assert history.web_history.parent() is qapp
 
-        try:
-            pass
-        except ImportError:
-            QWebHistoryInterface = None
-
         if backend == usertypes.Backend.QtWebKit:
             default_interface = QtWebKit.QWebHistoryInterface.defaultInterface()
             assert default_interface._history is history.web_history
