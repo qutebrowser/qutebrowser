@@ -1476,7 +1476,7 @@ def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
 
 
 def test_process_completion(monkeypatch, stubs, info):
-    monkeypatch.setattr(guiprocess, 'QProcess', stubs.FakeProcess)
+    monkeypatch.setattr(guiprocess.QtCore, 'QProcess', stubs.FakeProcess)
     p1 = guiprocess.GUIProcess('testprocess')
     p2 = guiprocess.GUIProcess('testprocess')
     p3 = guiprocess.GUIProcess('editor')

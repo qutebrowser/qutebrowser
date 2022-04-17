@@ -70,7 +70,7 @@ def completion_widget_stub():
 def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
                   completion_widget_stub):
     """Create the completer used for testing."""
-    monkeypatch.setattr(completer, 'QTimer', stubs.InstaTimer)
+    monkeypatch.setattr(completer.QtCore, 'QTimer', stubs.InstaTimer)
     config_stub.val.completion.show = 'auto'
     return completer.Completer(cmd=status_command_stub, win_id=0,
                                parent=completion_widget_stub)

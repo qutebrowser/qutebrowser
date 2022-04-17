@@ -85,10 +85,10 @@ def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
         exact: Use exact comparing (==)
         expected: The expected result.
     """
-    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
+    monkeypatch.setattr(qtutils.QtCore, 'qVersion', lambda: qversion)
     if compiled is not None:
-        monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
-        monkeypatch.setattr(qtutils, 'PYQT_VERSION_STR', pyqt)
+        monkeypatch.setattr(qtutils.QtCore, 'QT_VERSION_STR', compiled)
+        monkeypatch.setattr(qtutils.QtCore, 'PYQT_VERSION_STR', pyqt)
         compiled_arg = True
     else:
         compiled_arg = False
@@ -373,7 +373,7 @@ class TestSavefileOpen:
     @pytest.fixture
     def qsavefile_mock(self, mocker):
         """Mock for QSaveFile."""
-        m = mocker.patch('qutebrowser.utils.qtutils.QSaveFile')
+        m = mocker.patch('qutebrowser.utils.qtutils.QtCore.QSaveFile')
         instance = m()
         yield instance
         instance.commit.assert_called_once_with()

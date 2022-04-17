@@ -80,7 +80,7 @@ def test_unset_organization(qapp, orgname, expected):
 
 def test_unset_organization_no_qapp(monkeypatch):
     """Without a QApplication, _unset_organization should do nothing."""
-    monkeypatch.setattr(standarddir.QApplication, 'instance', lambda: None)
+    monkeypatch.setattr(standarddir.QtWidgets.QApplication, 'instance', lambda: None)
     with standarddir._unset_organization():
         pass
 
@@ -99,7 +99,7 @@ def test_fake_mac_config(tmp_path, fake_home_envvar):
 @pytest.mark.fake_os('windows')
 def test_fake_windows(tmpdir, monkeypatch, what):
     """Make sure the config/data/cache dirs are correct on a fake Windows."""
-    monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+    monkeypatch.setattr(standarddir.QtCore.QStandardPaths, 'writableLocation',
                         lambda typ: str(tmpdir / APPNAME))
 
     standarddir._init_config(args=None)
@@ -117,7 +117,7 @@ def test_fake_haiku(tmpdir, monkeypatch):
         QtCore.QStandardPaths.AppDataLocation: '',
         QtCore.QStandardPaths.ConfigLocation: str(tmpdir / 'config' / APPNAME),
     }
-    monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+    monkeypatch.setattr(standarddir.QtCore.QStandardPaths, 'writableLocation',
                         locations.get)
     monkeypatch.setattr(standarddir.sys, 'platform', 'haiku1')
 
@@ -132,7 +132,7 @@ class TestWritableLocation:
     def test_empty(self, monkeypatch):
         """Test QStandardPaths returning an empty value."""
         monkeypatch.setattr(
-            'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
+            'qutebrowser.utils.standarddir.QtCore.QStandardPaths.writableLocation',
             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
             standarddir._writable_location(QtCore.QStandardPaths.AppDataLocation)
@@ -229,7 +229,7 @@ class TestStandardDir:
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
         """With an empty tempdir on non-Linux, we should raise."""
-        monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+        monkeypatch.setattr(standarddir.QtCore.QStandardPaths, 'writableLocation',
                             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
             standarddir._init_runtime(args=None)

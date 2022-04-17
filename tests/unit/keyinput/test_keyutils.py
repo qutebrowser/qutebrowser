@@ -139,7 +139,7 @@ class TestKeyToString:
         assert keyutils._modifiers_to_string(qt_mod.member) == expected
 
     def test_missing(self, monkeypatch):
-        monkeypatch.delattr(keyutils.Qt, 'Key_AltGr')
+        monkeypatch.delattr(keyutils.QtCore.Qt, 'Key_AltGr')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert keyutils._key_to_string(QtCore.Qt.Key_A) == 'A'

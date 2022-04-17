@@ -131,7 +131,7 @@ def test_state_config(
     old_data, insert, new_data
 ):
     monkeypatch.setattr(configfiles.qutebrowser, '__version__', '1.2.3')
-    monkeypatch.setattr(configfiles, 'qVersion', lambda: '5.6.7')
+    monkeypatch.setattr(configfiles.QtCore, 'qVersion', lambda: '5.6.7')
     qtwe_version_patcher('7.8.9')
 
     statefile = data_tmpdir / 'state'
@@ -194,7 +194,7 @@ def qtwe_version_patcher(monkeypatch):
 ])
 def test_qt_version_changed(state_writer, monkeypatch,
                             old_version, new_version, changed):
-    monkeypatch.setattr(configfiles, 'qVersion', lambda: new_version)
+    monkeypatch.setattr(configfiles.QtCore, 'qVersion', lambda: new_version)
 
     if old_version is not None:
         state_writer('qt_version', old_version)
@@ -221,8 +221,7 @@ def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
 
 
 def test_qtwe_version_changed_webkit(stubs, monkeypatch, state_writer):
-    fake = stubs.ImportFake({'qutebrowser.qt.QtWebEngineWidgets': False}, monkeypatch)
-    fake.patch()
+    monkeypatch.setattr(configfiles, 'QtWebEngineWidgets', None)
 
     state_writer('qtwe_version', 'no')
     state = configfiles.StateConfig()

@@ -1078,7 +1078,7 @@ class TestChromiumVersion:
             def defaultProfile(self):
                 raise AssertionError("Should not be called")
 
-        monkeypatch.setattr(webenginesettings, 'QWebEngineProfile', FakeProfile())
+        monkeypatch.setattr(webenginesettings.QtWebEngineWidgets, 'QWebEngineProfile', FakeProfile())
 
         version.qtwebengine_versions()
 
@@ -1097,7 +1097,7 @@ class TestChromiumVersion:
     @pytest.fixture
     def patch_old_pyqt(self, monkeypatch):
         """Simulate an old PyQt without PYQT_WEBENGINE_VERSION_STR."""
-        monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
+        monkeypatch.setattr(version.QtWebEngine, 'PYQT_WEBENGINE_VERSION_STR', None)
 
     @pytest.fixture
     def patch_no_importlib(self, monkeypatch, stubs):
@@ -1223,18 +1223,18 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
         'sys.executable': 'EXECUTABLE PATH',
-        'PYQT_VERSION_STR': 'PYQT VERSION',
+        'QtCore.PYQT_VERSION_STR': 'PYQT VERSION',
         'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
+        'QtNetwork.QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'objects.qapp': (stubs.FakeQApplication(style='STYLE', platform_name='PLATFORM')
                          if params.qapp else None),
-        'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'QtCore.QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
         'config.instance.yaml_loaded': params.autoconfig_loaded,
@@ -1330,7 +1330,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     """.lstrip('\n'))
 
     expected = template.rstrip('\n').format(**substitutions)
-    assert version.version_info() == expected
+    assert version.version_info().split() == expected.split()
 
 
 class TestOpenGLInfo:

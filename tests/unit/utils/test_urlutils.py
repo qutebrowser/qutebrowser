@@ -89,7 +89,7 @@ def fake_dns(monkeypatch):
     fromname_mock will be called without answer being set.
     """
     dns = FakeDNS()
-    monkeypatch.setattr(urlutils.QHostInfo, 'fromName', dns.fromname_mock)
+    monkeypatch.setattr(urlutils.QtNetwork.QHostInfo, 'fromName', dns.fromname_mock)
     return dns
 
 

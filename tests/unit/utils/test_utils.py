@@ -648,7 +648,7 @@ class TestGetSetClipboard:
 
     @pytest.fixture(autouse=True)
     def clipboard_mock(self, mocker):
-        m = mocker.patch('qutebrowser.utils.utils.QApplication.clipboard',
+        m = mocker.patch('qutebrowser.utils.utils.QtWidgets.QApplication.clipboard',
                          autospec=True)
         clipboard = m()
         clipboard.text.return_value = 'mocked clipboard text'

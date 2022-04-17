@@ -111,9 +111,7 @@ def test_no_webengine_available(monkeypatch, config_stub, parser, stubs):
     here.
     """
     monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
-
-    fake = stubs.ImportFake({'qutebrowser.browser.webengine': False}, monkeypatch)
-    fake.patch()
+    monkeypatch.setattr(qtargs, 'QtWebEngine', None)
 
     parsed = parser.parse_args([])
     args = qtargs.qt_args(parsed)
@@ -536,7 +534,7 @@ class TestWebEngineArgs:
                 return 'de-CH'
 
         monkeypatch.setattr(qtargs.utils, 'is_linux', True)  # patched in reduce_args
-        monkeypatch.setattr(qtargs, 'QLocale', FakeLocale)
+        monkeypatch.setattr(qtargs.QtCore, 'QLocale', FakeLocale)
         version_patcher('5.15.3')
 
         config_stub.val.qt.workarounds.locale = True

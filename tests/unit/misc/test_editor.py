@@ -34,7 +34,7 @@ from qutebrowser.utils import usertypes
 
 @pytest.fixture(autouse=True)
 def patch_fake_process(config_stub, monkeypatch, stubs):
-    monkeypatch.setattr(editormod.guiprocess, 'QProcess', stubs.FakeProcess)
+    monkeypatch.setattr(editormod.guiprocess.QtCore, 'QProcess', stubs.FakeProcess)
 
 
 @pytest.fixture(params=[True, False])
