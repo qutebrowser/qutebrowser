@@ -27,11 +27,11 @@ from qutebrowser.browser import greasemonkey
 from qutebrowser.utils import usertypes
 from helpers import testutils
 
-QtWebEngineWidgets = testutils.importorskip_ifnull("qutebrowser.qt.QtWebEngineWidgets")
+QtWebEngineWidgets = testutils.qt_module_skip("QtWebEngineWidgets")
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
 QWebEngineScript = QtWebEngineWidgets.QWebEngineScript
-webenginetab = testutils.importorskip_ifnull(
+webenginetab = pytest.importorskip(
     "qutebrowser.browser.webengine.webenginetab")
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')

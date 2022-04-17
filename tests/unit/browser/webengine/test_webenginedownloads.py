@@ -24,7 +24,7 @@ import dataclasses
 import pytest
 
 from helpers import testutils
-testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
+testutils.qt_module_skip('QtWebEngineWidgets')
 
 from qutebrowser.qt import QtWebEngineWidgets
 from qutebrowser.utils import urlutils, usertypes, utils

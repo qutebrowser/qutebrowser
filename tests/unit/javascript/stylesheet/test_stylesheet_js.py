@@ -25,7 +25,7 @@ import pytest
 from qutebrowser.utils import javascript
 from helpers import testutils
 
-QtWebEngineWidgets = testutils.importorskip_ifnull("qutebrowser.qt.QtWebEngineWidgets")
+QtWebEngineWidgets = testutils.qt_module_skip("QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
 
 

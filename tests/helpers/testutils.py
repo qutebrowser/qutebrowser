@@ -32,6 +32,7 @@ from typing import Optional, Any
 
 import pytest
 
+import qutebrowser.qt
 from qutebrowser.qt import QtWebEngine, QtGui
 
 from qutebrowser.utils import qtutils, log, utils, version
@@ -311,11 +312,12 @@ def import_userscript(name):
     return module
 
 
-def importorskip_ifnull(
-    modname: str, minversion: Optional[str] = None, reason: Optional[str] = None
-) -> Any:
-    """Wraps pytest.importorskip and also skips if the target is None."""
-    result = pytest.importorskip(modname, minversion, reason)
+def qt_module_skip(modname: str, reason: Optional[str] = None) -> Any:
+    """Wraps return a PyQt module if is exists, else pytest.skip()."""
+    result = getattr(qutebrowser.qt, modname)
     if result is None:
-        raise pytest.Skipped
+        pytest.skip(
+            reason or f"Couldn't import {modname} from qutebrowser.qt",
+            allow_module_level=True,
+        )
     return result

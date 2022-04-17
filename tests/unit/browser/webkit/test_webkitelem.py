@@ -29,7 +29,7 @@ import dataclasses
 import pytest
 
 from helpers import testutils
-QWebElement = testutils.importorskip_ifnull('qutebrowser.qt.QtWebKit').QWebElement
+QWebElement = testutils.qt_module_skip('QtWebKit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem

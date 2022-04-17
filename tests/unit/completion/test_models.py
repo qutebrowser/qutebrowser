@@ -1343,7 +1343,7 @@ def test_url_completion_benchmark(benchmark, info,
 @pytest.fixture
 def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
-    testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
+    testutils.qt_module_skip('QtWebEngineWidgets')
     tab = fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0)
     current_idx = 2
     monkeypatch.setattr(

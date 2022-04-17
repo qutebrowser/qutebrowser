@@ -25,7 +25,7 @@ import pytest
 import yaml
 
 from helpers import testutils
-QWebView = testutils.importorskip_ifnull('qutebrowser.qt.QtWebKitWidgets').QWebView
+QWebView = testutils.qt_module_skip('QtWebKitWidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item

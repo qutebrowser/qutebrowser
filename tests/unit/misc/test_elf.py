@@ -58,7 +58,7 @@ def test_result(qapp, caplog):
 
     If that happens, please report a bug about it!
     """
-    testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineCore')
+    testutils.qt_module_skip('QtWebEngineCore')
 
     versions = elf.parse_webenginecore()
     assert versions is not None

@@ -20,7 +20,7 @@
 import pytest
 
 from helpers import testutils
-testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineCore')
+testutils.qt_module_skip('QtWebEngineCore')
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch

@@ -186,7 +186,7 @@ class TestQFlagsKey:
 
         No idea what's happening here exactly...
         """
-        qwebpage = testutils.importorskip_ifnull("qutebrowser.qt.QtWebKitWidgets").QWebPage
+        qwebpage = testutils.qt_module_skip("QtWebKitWidgets").QWebPage
 
         flags = qwebpage.FindWrapsAroundDocument
         flags |= qwebpage.FindBackward

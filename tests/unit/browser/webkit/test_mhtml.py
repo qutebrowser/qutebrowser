@@ -27,8 +27,8 @@ import pytest
 
 from helpers import testutils
 
-testutils.importorskip_ifnull('qutebrowser.qt.QtWebKit')
-mhtml = testutils.importorskip_ifnull('qutebrowser.browser.webkit.mhtml')
+testutils.qt_module_skip('QtWebKit')
+mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
 
 
 @pytest.fixture(autouse=True)

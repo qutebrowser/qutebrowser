@@ -20,7 +20,11 @@
 import pytest
 
 from helpers import testutils
-webview = testutils.importorskip_ifnull('qutebrowser.qt.QtWebKit')
+
+
+webkit = testutils.qt_module_skip('QtWebKit')
+if webkit:
+    from qutebrowser.browser.webkit import webview
 
 
 @pytest.fixture

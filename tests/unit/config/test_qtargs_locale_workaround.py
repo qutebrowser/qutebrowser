@@ -27,7 +27,7 @@ from qutebrowser.config import qtargs
 from helpers import testutils
 
 
-testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
+testutils.qt_module_skip('QtWebEngineWidgets')
 
 
 @pytest.fixture(autouse=True)

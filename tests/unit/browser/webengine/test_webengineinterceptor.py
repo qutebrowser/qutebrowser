@@ -21,7 +21,7 @@
 
 
 from helpers import testutils
-testutils.importorskip_ifnull('qutebrowser.qt.QtWebEngineWidgets')
+testutils.qt_module_skip('QtWebEngineWidgets')
 
 from qutebrowser.qt import QtWebEngineCore
 from qutebrowser.browser.webengine import interceptor
