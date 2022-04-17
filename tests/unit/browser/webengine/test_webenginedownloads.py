@@ -22,8 +22,8 @@ import base64
 import dataclasses
 
 import pytest
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
-from qutebrowser.qt.webengineWidgets import QWebEngineProfile
+pytest.importorskip('qutebrowser.qt.webenginecore')
+from qutebrowser.qt.webenginecore import QWebEngineProfile
 
 from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads

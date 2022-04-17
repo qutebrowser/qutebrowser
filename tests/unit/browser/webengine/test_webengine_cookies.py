@@ -19,9 +19,8 @@
 
 import pytest
 from qutebrowser.qt.core import QUrl
-pytest.importorskip('PyQt5.QtWebEngineCore')
-from qutebrowser.qt.webengineCore import QWebEngineCookieStore
-from qutebrowser.qt.webengineWidgets import QWebEngineProfile
+pytest.importorskip('qutebrowser.qt.webenginecore')
+from qutebrowser.qt.webenginecore import QWebEngineCookieStore, QWebEngineProfile
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch

@@ -28,7 +28,7 @@ import dataclasses
 
 import pytest
 from qutebrowser.qt.core import QRect, QPoint, QUrl
-QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+QWebElement = pytest.importorskip('qutebrowser.qt.webkit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem

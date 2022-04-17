@@ -33,7 +33,7 @@ import hypothesis.strategies as hst
 import pytest
 from qutebrowser.qt.core import QUrl, QDateTime, QProcess
 try:
-    from qutebrowser.qt.webengineWidgets import (
+    from qutebrowser.qt.webenginewidgets import (
         QWebEngineHistory, QWebEngineHistoryItem
     )
 except ImportError:
@@ -1348,7 +1348,7 @@ def test_url_completion_benchmark(benchmark, info,
 @pytest.fixture
 def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    pytest.importorskip('qutebrowser.qt.webenginewidgets')
     tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
     current_idx = 2
     monkeypatch.setattr(

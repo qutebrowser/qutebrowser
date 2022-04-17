@@ -24,7 +24,7 @@ import logging
 import pytest
 import yaml
 from qutebrowser.qt.core import QUrl, QPoint, QByteArray, QObject
-QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
+QWebView = pytest.importorskip('qutebrowser.qt.webkitwidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item

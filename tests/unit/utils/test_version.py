@@ -1063,7 +1063,7 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
+        pytest.importorskip('qutebrowser.qt.webenginewidgets')
         if webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
@@ -1345,7 +1345,7 @@ class TestOpenGLInfo:
 
     def test_func(self, qapp):
         """Simply call version.opengl_info() and see if it doesn't crash."""
-        pytest.importorskip("PyQt5.QtOpenGL")
+        pytest.importorskip("qutebrowser.qt.opengl")
         version.opengl_info()
 
     def test_func_fake(self, qapp, monkeypatch):

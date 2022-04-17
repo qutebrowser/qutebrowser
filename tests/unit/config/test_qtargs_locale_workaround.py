@@ -26,7 +26,7 @@ from qutebrowser.utils import utils
 from qutebrowser.config import qtargs
 
 
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
+pytest.importorskip('qutebrowser.qt.webenginewidgets')
 
 
 @pytest.fixture(autouse=True)

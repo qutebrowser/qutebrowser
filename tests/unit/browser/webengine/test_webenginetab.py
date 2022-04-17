@@ -23,10 +23,10 @@ import logging
 import textwrap
 
 import pytest
-QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
-QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
-QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
-QWebEngineScript = QtWebEngineWidgets.QWebEngineScript
+QtWebEngineCore = pytest.importorskip("qutebrowser.qt.webenginecore")
+QWebEnginePage = QtWebEngineCore.QWebEnginePage
+QWebEngineScriptCollection = QtWebEngineCore.QWebEngineScriptCollection
+QWebEngineScript = QtWebEngineCore.QWebEngineScript
 
 from qutebrowser.browser import greasemonkey
 from qutebrowser.utils import usertypes

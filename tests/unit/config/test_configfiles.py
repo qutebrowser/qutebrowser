@@ -223,7 +223,7 @@ def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
 
 
 def test_qtwe_version_changed_webkit(stubs, monkeypatch, state_writer):
-    fake = stubs.ImportFake({'PyQt5.QtWebEngineWidgets': False}, monkeypatch)
+    fake = stubs.ImportFake({'qutebrowser.qt.webenginewidgets': False}, monkeypatch)
     fake.patch()
 
     state_writer('qtwe_version', 'no')

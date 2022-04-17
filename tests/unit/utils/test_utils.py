@@ -767,7 +767,7 @@ class TestOpenFile:
 
     @pytest.fixture
     def openurl_mock(self, mocker):
-        return mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+        return mocker.patch('qutebrowser.qt.gui.QDesktopServices.openUrl', spec={},
                             new_callable=mocker.Mock)
 
     def test_system_default_application(self, caplog, config_stub,

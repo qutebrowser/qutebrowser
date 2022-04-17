@@ -276,7 +276,7 @@ class TestHistoryInterface:
     @pytest.fixture
     def hist_interface(self, web_history):
         # pylint: disable=invalid-name
-        QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
+        QtWebKit = pytest.importorskip('qutebrowser.qt.webkit')
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
@@ -313,7 +313,7 @@ class TestInit:
                                          usertypes.Backend.QtWebKit])
     def test_init(self, backend, qapp, tmpdir, data_tmpdir, monkeypatch, cleanup_init):
         if backend == usertypes.Backend.QtWebKit:
-            pytest.importorskip('PyQt5.QtWebKitWidgets')
+            pytest.importorskip('qutebrowser.qt.webkitwidgets')
         else:
             assert backend == usertypes.Backend.QtWebEngine
 

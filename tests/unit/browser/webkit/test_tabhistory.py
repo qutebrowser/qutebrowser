@@ -23,7 +23,7 @@ import dataclasses
 from typing import Any
 
 import pytest
-pytest.importorskip('PyQt5.QtWebKit')
+pytest.importorskip('qutebrowser.qt.webkit')
 from qutebrowser.qt.core import QUrl, QPoint
 from qutebrowser.qt.webkit import QWebHistory
 

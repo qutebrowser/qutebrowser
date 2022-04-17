@@ -177,7 +177,7 @@ def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
-        from qutebrowser.qt.webengineWidgets import QWebEngineProfile
+        from qutebrowser.qt.webenginecore import QWebEngineProfile
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
@@ -441,7 +441,7 @@ def qnam(qapp):
 @pytest.fixture
 def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
-    QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    QtWebEngineWidgets = pytest.importorskip('qutebrowser.qt.webenginewidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
@@ -452,7 +452,7 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 @pytest.fixture
 def webpage(qnam, monkeypatch):
     """Get a new QWebPage object."""
-    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     class WebPageStub(QtWebKitWidgets.QWebPage):
@@ -477,7 +477,7 @@ def webpage(qnam, monkeypatch):
 @pytest.fixture
 def webview(qtbot, webpage):
     """Get a new QWebView object."""
-    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
@@ -734,7 +734,7 @@ def webengine_versions(testdata_scheme):
     Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
     testdata_scheme here, to make sure that happens before.
     """
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    pytest.importorskip('qutebrowser.qt.webenginewidgets')
     return version.qtwebengine_versions()
 
 
