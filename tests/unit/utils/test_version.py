@@ -1097,7 +1097,7 @@ class TestChromiumVersion:
     @pytest.fixture
     def patch_old_pyqt(self, monkeypatch):
         """Simulate an old PyQt without PYQT_WEBENGINE_VERSION_STR."""
-        monkeypatch.setattr(version.QtWebEngine, 'PYQT_WEBENGINE_VERSION_STR', None)
+        monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
 
     @pytest.fixture
     def patch_no_importlib(self, monkeypatch, stubs):

@@ -42,7 +42,7 @@ if QtWebKit:
     qWebKitVersion = QtWebKit.qWebKitVersion  # noqa: N816
 else:
     qWebKitVersion = None  # noqa: N816
-if QtWebEngine:
+if QtWebEngine and hasattr(QtWebEngine, 'PYQT_WEBENGINE_VERSION_STR'):
     PYQT_WEBENGINE_VERSION_STR = QtWebEngine.PYQT_WEBENGINE_VERSION_STR
 else:
     # Added in PyQt 5.13
@@ -758,8 +758,8 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     if pyqt_webengine_qt_version is not None:
         return WebEngineVersions.from_importlib(pyqt_webengine_qt_version)
 
-    if QtWebEngine.PYQT_WEBENGINE_VERSION_STR is not None:
-        return WebEngineVersions.from_pyqt(QtWebEngine.PYQT_WEBENGINE_VERSION_STR)
+    if PYQT_WEBENGINE_VERSION_STR is not None:
+        return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
 
     return WebEngineVersions.from_qt(QtCore.qVersion())  # type: ignore[unreachable]
 

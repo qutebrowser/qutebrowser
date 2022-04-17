@@ -118,7 +118,7 @@ def _get_version_tag(tag):
             reason='Needs ' + tag,
         )
     elif package == 'pyqtwebengine':
-        if QtWebEngine:
+        if QtWebEngine and hasattr(QtWebEngine, 'PYQT_WEBENGINE_VERSION_STR'):
             running_version = QtWebEngine.PYQT_WEBENGINE_VERSION
         else:
             running_version = QtCore.PYQT_VERSION
