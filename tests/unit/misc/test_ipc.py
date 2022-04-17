@@ -661,12 +661,21 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalsocket_mock(self, mocker):
+        original_errors = {
+            name: getattr(QtNetwork.QLocalSocket, name)
+            for name in
+            [
+                'UnknownSocketError',
+                'UnconnectedState',
+                'ConnectionRefusedError',
+                'ServerNotFoundError',
+                'PeerClosedError'
+            ]
+        }
         m = mocker.patch('qutebrowser.misc.ipc.QtNetwork.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
-        for name in ['UnknownSocketError', 'UnconnectedState',
-                     'ConnectionRefusedError', 'ServerNotFoundError',
-                     'PeerClosedError']:
-            setattr(m, name, getattr(QtNetwork.QLocalSocket, name))
+        for name, error in original_errors.items():
+            setattr(m, name, error)
         return m
 
     @pytest.mark.linux(reason="Flaky on Windows and macOS")

@@ -42,9 +42,9 @@ from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
 from helpers import testutils
 
-try:
+if QtWebEngine:
     from qutebrowser.browser.webengine import webenginesettings
-except ImportError:
+else:
     webenginesettings = None
 
 

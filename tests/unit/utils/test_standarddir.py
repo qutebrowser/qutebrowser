@@ -471,7 +471,10 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
-        from PyQt5.QtWidgets import QApplication
+        try:
+            from PyQt5.QtWidgets import QApplication
+        except ImportError:
+            from PyQt6.QtWidgets import QApplication
         from qutebrowser.utils import standarddir
 
         assert QApplication.instance() is None

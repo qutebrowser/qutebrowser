@@ -28,7 +28,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, qtutils, utils, log, version
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtWebEngine
 
 
 _ENABLE_FEATURES = '--enable-features='
@@ -60,10 +60,7 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
         return argv
 
-    try:
-        # pylint: disable=unused-import
-        from qutebrowser.browser.webengine import webenginesettings
-    except ImportError:
+    if not QtWebEngine:
         # This code runs before a QApplication is available, so before
         # backendproblem.py is run to actually inform the user of the missing
         # backend. Thus, we could end up in a situation where we're here, but

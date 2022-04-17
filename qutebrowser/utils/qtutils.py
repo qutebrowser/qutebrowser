@@ -34,7 +34,9 @@ import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
 from qutebrowser.qt import QtWebKit, QtGui
-if not QtWebKit:
+if QtWebKit:
+    qWebKitVersion = QtWebKit.qWebKitVersion  # noqa: N816
+else:
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
     from qutebrowser.qt import QWebHistory
@@ -111,8 +113,8 @@ MAX_WORLD_ID = 256
 
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
-    assert QtWebKit.qWebKitVersion is not None
-    return (utils.VersionNumber.parse(QtWebKit.qWebKitVersion()) >
+    assert qWebKitVersion is not None
+    return (utils.VersionNumber.parse(qWebKitVersion()) >
             utils.VersionNumber.parse('538.1'))
 
 
