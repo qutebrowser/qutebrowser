@@ -471,7 +471,7 @@ class KeySequence:
 
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
-        for key_and_modifiers in self._iter_keys():
+        for key_and_modifiers in self.iter_keys():
             key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifierMask)
             modifiers = Qt.KeyboardModifiers(  # type: ignore[call-overload]
                 int(key_and_modifiers) & Qt.KeyboardModifierMask)
@@ -521,13 +521,13 @@ class KeySequence:
 
     def __getitem__(self, item: Union[int, slice]) -> Union[KeyInfo, 'KeySequence']:
         if isinstance(item, slice):
-            keys = list(self._iter_keys())
+            keys = list(self.iter_keys())
             return self.__class__(*keys[item])
         else:
             infos = list(self)
             return infos[item]
 
-    def _iter_keys(self) -> Iterator[int]:
+    def iter_keys(self) -> Iterator[int]:
         sequences = cast(Iterable[Iterable[int]], self._sequences)
         return itertools.chain.from_iterable(sequences)
 
@@ -628,7 +628,7 @@ class KeySequence:
                 modifiers &= ~Qt.MetaModifier
                 modifiers |= Qt.ControlModifier
 
-        keys = list(self._iter_keys())
+        keys = list(self.iter_keys())
         keys.append(key | int(modifiers))
 
         return self.__class__(*keys)
@@ -636,7 +636,7 @@ class KeySequence:
     def strip_modifiers(self) -> 'KeySequence':
         """Strip optional modifiers from keys."""
         modifiers = Qt.KeypadModifier
-        keys = [key & ~modifiers for key in self._iter_keys()]
+        keys = [key & ~modifiers for key in self.iter_keys()]
         return self.__class__(*keys)
 
     def with_mappings(
@@ -645,7 +645,7 @@ class KeySequence:
     ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
         keys = []
-        for key in self._iter_keys():
+        for key in self.iter_keys():
             key_seq = KeySequence(key)
             if key_seq in mappings:
                 keys += [info.to_int() for info in mappings[key_seq]]

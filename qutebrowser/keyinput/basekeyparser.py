@@ -228,7 +228,12 @@ class BaseKeyParser(QObject):
                          - The found binding with Match.definitive.
         """
         assert sequence
-        return self.bindings.matches(sequence)
+        while len(sequence) > 0:
+            result = self.bindings.matches(sequence)
+            if result.match_type != QKeySequence.NoMatch:
+                break
+            sequence = keyutils.KeySequence(*list(sequence.iter_keys())[1:])
+        return result
 
     def _match_without_modifiers(
             self, sequence: keyutils.KeySequence) -> MatchResult:
