@@ -19,6 +19,7 @@ manhole==1.8.0
 packaging==21.3
 pep517==0.12.0
 pkginfo==1.8.2
+ply==3.11
 pycparser==2.21
 Pygments==2.11.2
 PyJWT==2.3.0
@@ -32,12 +33,12 @@ requests-toolbelt==0.9.1
 rfc3986==2.0.0
 rich==12.2.0
 SecretStorage==3.3.1
-sip==6.5.1
+sip==6.6.1
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
 twine==4.0.0
-typing_extensions==4.1.1
+typing_extensions==4.2.0
 uritemplate==4.1.1
 # urllib3==1.26.9
 webencodings==0.5.1
