@@ -72,7 +72,7 @@ class Modifier:
     member: Optional[int] = None
 
     def __post_init__(self):
-        self.member = getattr(Qt, self.attribute + 'Modifier')
+        self.member = getattr(Qt.KeyboardModifier, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute
 

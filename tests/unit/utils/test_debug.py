@@ -167,11 +167,11 @@ class TestQFlagsKey:
         pytest.param(Qt, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, None,
                      'AlignLeft|AlignTop', marks=fixme),
         (Qt, Qt.AlignmentFlag.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
-        pytest.param(Qt, 0x0021, Qt.Alignment, 'AlignLeft|AlignTop',
+        pytest.param(Qt, 0x0021, Qt.AlignmentFlag, 'AlignLeft|AlignTop',
                      marks=fixme),
-        (Qt, 0x1100, Qt.Alignment, '0x0100|0x1000'),
-        (Qt, Qt.DockWidgetAreas(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
-        (Qt, Qt.DockWidgetAreas(0), None, '0x0000'),
+        (Qt, 0x1100, Qt.AlignmentFlag, '0x0100|0x1000'),
+        (Qt, Qt.DockWidgetArea(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
+        (Qt, Qt.DockWidgetArea(0), None, '0x0000'),
     ])
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)
