@@ -1,23 +1,23 @@
 import sys
 import pathlib
-from typed_ast import ast3
+import ast
 
 
 def add_parents(tree):
-    for node in ast3.walk(tree):
+    for node in ast.walk(tree):
         for child in ast.iter_child_nodes(node):
             child.parent = node
 
 
 def find_enums(tree):
-    for node in ast3.walk(tree):
-        if not isinstance(node, ast3.Assign):
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
             continue
         if node.type_comment is None:
             continue
         if '.' not in node.type_comment:
             continue
-        if not node.type_comment.startswith("'"):
+        if not node.type_comment.startswith("Q"):
             continue
         comment = node.type_comment.strip("'")
         mod, cls = comment.rsplit(".", maxsplit=1)
@@ -28,7 +28,14 @@ def find_enums(tree):
 
 def main():
     for filename in sys.argv[1:]:
-        tree = ast3.parse(pathlib.Path(filename).read_text())
+        path = pathlib.Path(filename)
+        assert path.exists(), path
+        print(f"# {path.stem}")
+        tree = ast.parse(
+            path.read_text(),
+            filename=filename,
+            type_comments=True,
+        )
         for mod, cls, name in find_enums(tree):
             old = f"{mod}.{name}"
             new = f"{mod}.{cls}.{name}"
