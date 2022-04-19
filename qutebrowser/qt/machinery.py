@@ -2,7 +2,13 @@ import os
 import importlib
 
 
-_WRAPPERS = ["PyQt6", "PyQt5", "PySide6", "PySide2"]
+_WRAPPERS = [
+    "PyQt6",
+    "PyQt5",
+    # Need more work, PySide2 might not be usable at all
+    # "PySide6",
+    # "PySide2",
+]
 
 
 class Error(Exception):
