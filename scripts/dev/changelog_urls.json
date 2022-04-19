@@ -156,5 +156,6 @@
   "webencodings": "https://github.com/gsnedders/python-webencodings/commits/master",
   "PyJWT": "https://github.com/jpadilla/pyjwt/blob/master/CHANGELOG.rst",
   "commonmark": "https://github.com/readthedocs/commonmark.py/blob/master/CHANGELOG.md",
-  "rich": "https://github.com/Textualize/rich/blob/master/CHANGELOG.md"
+  "rich": "https://github.com/Textualize/rich/blob/master/CHANGELOG.md",
+  "ply": "https://github.com/dabeaz/ply/blob/master/CHANGES"
 }
