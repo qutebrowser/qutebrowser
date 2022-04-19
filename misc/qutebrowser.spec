@@ -2,6 +2,7 @@
 
 import sys
 import os
+import pathlib
 
 sys.path.insert(0, os.getcwd())
 from scripts import setupcommon
@@ -41,7 +42,10 @@ setupcommon.write_git_file()
 
 
 if os.name == 'nt':
-    icon = '../qutebrowser/icons/qutebrowser.ico'
+    # WORKAROUND for PyInstaller 5.0 bug:
+    # https://github.com/pyinstaller/pyinstaller/issues/6759
+    icons_path = pathlib.Path.cwd() / 'qutebrowser' / 'icons'
+    icon = str(icons_path / 'qutebrowser.ico')
 elif sys.platform == 'darwin':
     icon = '../qutebrowser/icons/qutebrowser.icns'
 else:
