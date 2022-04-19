@@ -19,6 +19,7 @@
 
 """Event handling for a browser tab."""
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
@@ -102,7 +103,10 @@ class TabEventFilter(QObject):
                              e.buttons() == Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton)
 
         if e.button() in [Qt.MouseButton.XButton1, Qt.MouseButton.XButton2] or is_rocker_gesture:
-            self._mousepress_backforward(e)
+            if not machinery.IS_QT6:
+                self._mousepress_backforward(e)
+            # FIXME:qt6 For some reason, this doesn't filter the action on
+            # Qt 6...
             return True
 
         self._ignore_wheel_event = True
