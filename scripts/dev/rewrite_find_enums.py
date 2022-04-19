@@ -2,6 +2,8 @@ import sys
 import pathlib
 import ast
 
+import PyQt5
+
 
 def add_parents(tree):
     for node in ast.walk(tree):
@@ -27,13 +29,15 @@ def find_enums(tree):
 
 
 def main():
-    for filename in sys.argv[1:]:
-        path = pathlib.Path(filename)
-        assert path.exists(), path
+    pyqt5_path = pathlib.Path(PyQt5.__file__).parent
+    pyi_files = list(pyqt5_path.glob("*.pyi"))
+    if not pyi_files:
+        print("No .pyi-files found for your PyQt installation!")
+    for path in pyi_files:
         print(f"# {path.stem}")
         tree = ast.parse(
             path.read_text(),
-            filename=filename,
+            filename=str(path),
             type_comments=True,
         )
         for mod, cls, name in find_enums(tree):
