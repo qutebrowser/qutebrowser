@@ -239,7 +239,11 @@ class NetworkManager(QNetworkAccessManager):
 
     def shutdown(self):
         """Abort all running requests."""
-        self.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+        try:
+            self.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+        except AttributeError:
+            # Qt 5 only, deprecated seemingly without replacement.
+            pass
         self.shutting_down.emit()
 
     # No @pyqtSlot here, see
