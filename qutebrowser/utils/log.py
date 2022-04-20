@@ -483,6 +483,11 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
 
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
+    elif context.category == "qt.webenginecontext" and (
+        msg.strip().startswith("GL Type: ") or  # Qt 6.3
+        msg.strip().startswith("GLImplementation:")  # Qt 6.2
+    ):
+        level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]
 
