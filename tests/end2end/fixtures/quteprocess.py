@@ -598,11 +598,11 @@ class QuteProc(testprocess.Process):
             raise ValueError("Either both x/y or neither must be given!")
 
         if x is None and y is None:
-            point = 'PyQt5.QtCore.QPoint(*, *)'  # not counting 0/0 here
+            point = 'Py*.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':
-            point = 'PyQt5.QtCore.QPoint()'
+            point = 'Py*.QtCore.QPoint()'
         else:
-            point = 'PyQt5.QtCore.QPoint({}, {})'.format(x, y)
+            point = 'Py*.QtCore.QPoint({}, {})'.format(x, y)
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
@@ -855,7 +855,7 @@ class QuteProc(testprocess.Process):
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\..* "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+            r"Py.*\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
 
         try:

@@ -179,7 +179,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -188,7 +188,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen

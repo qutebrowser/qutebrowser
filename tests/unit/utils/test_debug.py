@@ -297,6 +297,6 @@ class TestGetAllObjects:
     def test_get_all_objects_qapp(self, qapp, monkeypatch):
         monkeypatch.setattr(objects, 'qapp', qapp)
         objs = debug.get_all_objects()
-        event_dispatcher = '<PyQt5.QtCore.QAbstractEventDispatcher object at'
-        session_manager = '<PyQt5.QtGui.QSessionManager object at'
+        event_dispatcher = 'QtCore.QAbstractEventDispatcher object at'
+        session_manager = 'QtGui.QSessionManager object at'
         assert event_dispatcher in objs or session_manager in objs

@@ -1006,7 +1006,7 @@ class TestWebEngineVersions:
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
             if '.dev' in PYQT_VERSION_STR:
-                pytest.skip("dev version of PyQt5")
+                pytest.skip("dev version of PyQt")
 
             try:
                 from qutebrowser.qt.webenginecore import (

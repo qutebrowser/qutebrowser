@@ -338,7 +338,7 @@ Feature: Downloading things from a website.
     Scenario: Cancelling an MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
         And I run :download --mhtml
-        And I wait for "fetch: PyQt5.QtCore.QUrl('http://localhost:*/drip?numbytes=128&duration=2') -> drip" in the log
+        And I wait for "fetch: Py*.QtCore.QUrl('http://localhost:*/drip?numbytes=128&duration=2') -> drip" in the log
         And I run :download-cancel
         Then no crash should happen
 
