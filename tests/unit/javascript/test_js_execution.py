@@ -63,7 +63,7 @@ def test_simple_js_webengine(qtbot, webengineview, qapp,
     """With QtWebEngine, runJavaScript works even when JS is off."""
     # If we get there (because of the webengineview fixture) we can be certain
     # QtWebEngine is available
-    from qutebrowser.qt.webenginewidgets import QWebEngineSettings, QWebEngineScript
+    from qutebrowser.qt.webenginecore import QWebEngineSettings, QWebEngineScript
 
     assert world in [QWebEngineScript.ScriptWorldId.MainWorld,
                      QWebEngineScript.ScriptWorldId.ApplicationWorld,

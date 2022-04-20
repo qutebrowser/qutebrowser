@@ -33,7 +33,7 @@ import hypothesis.strategies as hst
 import pytest
 from qutebrowser.qt.core import QUrl, QDateTime, QProcess
 try:
-    from qutebrowser.qt.webenginewidgets import (
+    from qutebrowser.qt.webenginecore import (
         QWebEngineHistory, QWebEngineHistoryItem
     )
 except ImportError:
