@@ -34,6 +34,9 @@ def _autoselect_wrapper():
         # FIXME:qt6 what to do if none are available?
         return wrapper
 
+    wrappers = ", ".join(_WRAPPERS)
+    raise Error(f"No Qt wrapper found, tried {wrappers}")
+
 
 def _select_wrapper():
     env_var = "QUTE_QT_WRAPPER"
