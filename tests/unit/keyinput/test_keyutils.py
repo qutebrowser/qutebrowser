@@ -22,6 +22,7 @@ import operator
 import hypothesis
 from hypothesis import strategies
 import pytest
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent, pyqtSignal
 from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 from qutebrowser.qt.widgets import QWidget
@@ -138,6 +139,7 @@ class TestKeyToString:
         expected = qt_mod.name + '+'
         assert keyutils._modifiers_to_string(qt_mod.member) == expected
 
+    @pytest.mark.skipif(machinery.IS_QT6, reason="Can't delete enum members on PyQt 6")
     def test_missing(self, monkeypatch):
         monkeypatch.delattr(keyutils.Qt, 'Key_AltGr')
         # We don't want to test the key which is actually missing - we only
@@ -193,7 +195,7 @@ def test_hash(info1, info2, equal):
     (0xd867, Qt.KeyboardModifier.ShiftModifier, '𩷶', '<Shift+𩷶>'),
 ])
 def test_surrogates(key, modifiers, text, expected):
-    evt = QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
+    evt = QKeyEvent(QEvent.Type.KeyPress, key, modifiers, text)
     assert str(keyutils.KeyInfo.from_event(evt)) == expected
 
 

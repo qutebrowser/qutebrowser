@@ -50,7 +50,7 @@ class Key:
 
     def __post_init__(self):
         if self.attribute:
-            self.member = getattr(Qt, 'Key_' + self.attribute, None)
+            self.member = getattr(Qt.Key, 'Key_' + self.attribute, None)
         if self.name is None:
             self.name = self.attribute
 
