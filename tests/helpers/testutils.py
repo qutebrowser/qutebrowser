@@ -21,6 +21,7 @@
 
 import io
 import re
+import enum
 import gzip
 import pprint
 import os.path
@@ -311,3 +312,17 @@ def import_userscript(name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def enum_members(base, enumtype):
+    """Get all members of a Qt enum."""
+    if issubclass(enumtype, enum.Enum):
+        # PyQt 6
+        return {m.name: m for m in enumtype}
+    else:
+        # PyQt 5
+        return {
+            name: value
+            for name, value in vars(base).items()
+            if isinstance(value, enumtype)
+        }

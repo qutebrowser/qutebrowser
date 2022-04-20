@@ -232,8 +232,7 @@ def test_check_qdatastream(status, raising, message):
 
 def test_qdatastream_status_count():
     """Make sure no new members are added to QDataStream.Status."""
-    values = vars(QDataStream).values()
-    status_vals = [e for e in values if isinstance(e, QDataStream.Status)]
+    status_vals = testutils.enum_members(QDataStream, QDataStream.Status)
     assert len(status_vals) == 4
 
 
