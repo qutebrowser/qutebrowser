@@ -974,7 +974,13 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vp.setVersion(2, 0)
 
         try:
-            vf = ctx.versionFunctions(vp)
+            try:
+                # Qt 5
+                vf = ctx.versionFunctions(vp)
+            except AttributeError:
+                # Qt 6
+                from qutebrowser.qt.opengl import QOpenGLVersionFunctionsFactory
+                vf = QOpenGLVersionFunctionsFactory.get(vp, ctx)
         except ImportError as e:
             log.init.debug("Importing version functions failed: {}".format(e))
             return None
