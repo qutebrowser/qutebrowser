@@ -578,9 +578,29 @@ class WebEngineVersions:
         #                  Security fixes up to 86.0.4240.183 (2020-11-02)
         #          5.15.3: Updated to 87.0.4280.144           (~2020-12-02)
         #                  Security fixes up to 88.0.4324.150 (2021-02-04)
+        #          5.15.4: Security fixes up to ???
+        #          5.15.5: Security fixes up to ???
+        #          5.15.6: Security fixes up to ???
+        #          5.15.7: Security fixes up to 94.0.4606.61  (2021-09-24)
+        #          5.15.8: Security fixes up to 96.0.4664.110 (2021-12-13)
+        #          5.15.9: Security fixes up to 98.0.4758.102 (2022-02-14)
         utils.VersionNumber(5, 15): '80.0.3987.163',
         utils.VersionNumber(5, 15, 2): '83.0.4103.122',
         utils.VersionNumber(5, 15, 3): '87.0.4280.144',
+
+        # Qt 6.2: Chromium 90
+        #         90.0.4430.228 (2021-06-22)
+        #         6.2.0: Security fixes up to 93.0.4577.63 (2021-08-31)
+        #         6.2.1: Security fixes up to 94.0.4606.61 (2021-09-24)
+        #         6.2.2: Security fixes up to 96.0.4664.45 (2021-11-15)
+        #         6.2.3: Security fixes up to 96.0.4664.45 (2021-11-15)
+        #         6.2.4: Security fixes up to 98.0.4758.102 (2022-02-14)
+        utils.VersionNumber(6, 2): '90.0.4430.228',
+
+        # Qt 6.3: Chromium 94
+        #         94.0.4606.126 (2021-11-17)
+        #         6.3.0: Security fixes up to 99.0.4844.84 (2022-03-25)
+        utils.VersionNumber(6, 3): '94.0.4606.126',
     }
 
     def __post_init__(self) -> None:
