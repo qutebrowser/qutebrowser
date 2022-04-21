@@ -283,52 +283,53 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args(versions)
 
 
-def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
-    settings: Dict[str, Dict[Any, Optional[str]]] = {
-        'qt.force_software_rendering': {
-            'software-opengl': None,
-            'qt-quick': None,
-            'chromium': '--disable-gpu',
-            'none': None,
-        },
-        'content.canvas_reading': {
-            True: None,
-            False: '--disable-reading-from-canvas',
-        },
-        'content.webrtc_ip_handling_policy': {
-            'all-interfaces': None,
-            'default-public-and-private-interfaces':
-                '--force-webrtc-ip-handling-policy='
-                'default_public_and_private_interfaces',
-            'default-public-interface-only':
-                '--force-webrtc-ip-handling-policy='
-                'default_public_interface_only',
-            'disable-non-proxied-udp':
-                '--force-webrtc-ip-handling-policy='
-                'disable_non_proxied_udp',
-        },
-        'qt.chromium.process_model': {
-            'process-per-site-instance': None,
-            'process-per-site': '--process-per-site',
-            'single-process': '--single-process',
-        },
-        'qt.chromium.low_end_device_mode': {
-            'auto': None,
-            'always': '--enable-low-end-device-mode',
-            'never': '--disable-low-end-device-mode',
-        },
-        'content.prefers_reduced_motion': {
-            True: '--force-prefers-reduced-motion',
-            False: None,
-        },
-        'qt.chromium.sandboxing': {
-            'enable-all': None,
-            'disable-seccomp-bpf': '--disable-seccomp-filter-sandbox',
-            'disable-all': '--no-sandbox',
-        }
+_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
+    'qt.force_software_rendering': {
+        'software-opengl': None,
+        'qt-quick': None,
+        'chromium': '--disable-gpu',
+        'none': None,
+    },
+    'content.canvas_reading': {
+        True: None,
+        False: '--disable-reading-from-canvas',
+    },
+    'content.webrtc_ip_handling_policy': {
+        'all-interfaces': None,
+        'default-public-and-private-interfaces':
+            '--force-webrtc-ip-handling-policy='
+            'default_public_and_private_interfaces',
+        'default-public-interface-only':
+            '--force-webrtc-ip-handling-policy='
+            'default_public_interface_only',
+        'disable-non-proxied-udp':
+            '--force-webrtc-ip-handling-policy='
+            'disable_non_proxied_udp',
+    },
+    'qt.chromium.process_model': {
+        'process-per-site-instance': None,
+        'process-per-site': '--process-per-site',
+        'single-process': '--single-process',
+    },
+    'qt.chromium.low_end_device_mode': {
+        'auto': None,
+        'always': '--enable-low-end-device-mode',
+        'never': '--disable-low-end-device-mode',
+    },
+    'content.prefers_reduced_motion': {
+        True: '--force-prefers-reduced-motion',
+        False: None,
+    },
+    'qt.chromium.sandboxing': {
+        'enable-all': None,
+        'disable-seccomp-bpf': '--disable-seccomp-filter-sandbox',
+        'disable-all': '--no-sandbox',
     }
+}
 
-    for setting, args in sorted(settings.items()):
+
+def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
+    for setting, args in sorted(_WEBENGINE_SETTINGS.items()):
         arg = args[config.instance.get(setting)]
         if arg is not None:
             yield arg

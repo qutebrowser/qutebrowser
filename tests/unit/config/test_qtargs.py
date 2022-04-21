@@ -23,7 +23,7 @@ import logging
 import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.config import qtargs
+from qutebrowser.config import qtargs, configdata
 from qutebrowser.utils import usertypes, version
 from helpers import testutils
 
@@ -128,6 +128,12 @@ class TestWebEngineArgs:
         """Skip all tests if QtWebEngine is unavailable."""
         pytest.importorskip("qutebrowser.qt.webenginecore")
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
+
+    @pytest.mark.parametrize("setting, values", qtargs._WEBENGINE_SETTINGS.items())
+    def test_settings_exist(self, setting, values, configdata_init):
+        option = configdata.DATA[setting]
+        for value in values:
+            option.typ.to_py(value)  # for validation
 
     @pytest.mark.parametrize('backend, qt_version, debug_flag, expected', [
         # QtWebEngine: Enable with -D stack, do nothing without it.

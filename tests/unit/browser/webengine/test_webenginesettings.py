@@ -26,6 +26,7 @@ QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
+from qutebrowser.config import configdata
 
 
 @pytest.fixture
@@ -164,3 +165,8 @@ def test_parsed_user_agent(qapp):
     parsed = webenginesettings.parsed_user_agent
     assert parsed.upstream_browser_key == 'Chrome'
     assert parsed.qt_key == 'QtWebEngine'
+
+
+def test_profile_setter_settings(private_profile, configdata_init):
+    for setting in private_profile.setter._name_to_method:
+        assert setting in configdata.DATA.keys()
