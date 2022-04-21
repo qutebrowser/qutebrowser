@@ -102,14 +102,12 @@ _EnumValueType = Union[sip.simplewrapper, int]
 
 def qenum_key(base: Type[_EnumValueType],
               value: _EnumValueType,
-              add_base: bool = False,
               klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt Enum value to its key as a string.
 
     Args:
         base: The object the enum is in, e.g. QFrame.
         value: The value to get.
-        add_base: Whether the base should be added to the printed name.
         klass: The enum class the value belongs to.
                If None, the class will be auto-guessed.
 
@@ -130,27 +128,20 @@ def qenum_key(base: Type[_EnumValueType],
         meta_obj = base.staticMetaObject  # type: ignore[union-attr]
         idx = meta_obj.indexOfEnumerator(klass.__name__)
         meta_enum = meta_obj.enumerator(idx)
-        ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        key = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        if key is not None:
+            return key
     except AttributeError:
-        ret = None
+        pass
 
-    if ret is None:
-        for name, obj in vars(base).items():
-            if isinstance(obj, klass) and obj == value:
-                ret = name
-                break
-        else:
-            ret = '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
-
-    if add_base and hasattr(base, '__name__'):
-        return '.'.join([base.__name__, ret])
-    else:
-        return ret
+    for name, obj in vars(base).items():
+        if isinstance(obj, klass) and obj == value:
+            return name
+    return '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
 
 
 def qflags_key(base: Type[_EnumValueType],
                value: _EnumValueType,
-               add_base: bool = False,
                klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
@@ -162,7 +153,6 @@ def qflags_key(base: Type[_EnumValueType],
     Args:
         base: The object the flags are in, e.g. QtCore.Qt
         value: The value to get.
-        add_base: Whether the base should be added to the printed names.
         klass: The flags class the value belongs to.
                If None, the class will be auto-guessed.
 
@@ -185,7 +175,7 @@ def qflags_key(base: Type[_EnumValueType],
             raise TypeError("Can't guess enum class of an int!")
 
     if not value:
-        return qenum_key(base, value, add_base, klass)
+        return qenum_key(base, value, klass)
 
     bits = []
     names = []
@@ -199,7 +189,7 @@ def qflags_key(base: Type[_EnumValueType],
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
         enum_value = klass(bit)  # type: ignore[call-arg]
-        names.append(qenum_key(base, enum_value, add_base))
+        names.append(qenum_key(base, enum_value))
     return '|'.join(names)
 
 

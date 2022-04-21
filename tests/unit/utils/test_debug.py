@@ -143,10 +143,6 @@ class TestQEnumKey:
         key = debug.qenum_key(base, value, klass=klass)
         assert key == expected
 
-    def test_add_base(self):
-        key = debug.qenum_key(QFrame, QFrame.Shadow.Sunken, add_base=True)
-        assert key == 'QFrame.Shadow.Sunken'
-
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
         with pytest.raises(TypeError):
@@ -196,11 +192,6 @@ class TestQFlagsKey:
         debug.qflags_key(qwebpage,
                          flags,
                          klass=qwebpage.FindFlag)
-
-    def test_add_base(self):
-        """Test with add_base=True."""
-        flags = debug.qflags_key(Qt, Qt.AlignmentFlag.AlignTop, add_base=True)
-        assert flags == 'Qt.AlignmentFlag.AlignTop'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""

@@ -46,8 +46,7 @@ class Font(QFont):
     """A QFont with a nicer repr()."""
 
     def __repr__(self):
-        weight = debug.qenum_key(QFont, self.weight(), add_base=True,
-                                 klass=QFont.Weight)
+        weight = debug.qenum_key(QFont, self.weight(), klass=QFont.Weight)
         kwargs = {
             'family': self.family(),
             'pt': self.pointSize(),
