@@ -299,7 +299,7 @@ class Query:
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
-        self.placeholders = []
+        self._placeholders: List[str] = []
 
     def __iter__(self) -> Iterator[Any]:
         if not self.query.isActive():
@@ -334,7 +334,7 @@ class Query:
             raise BugError("Missing bound values!")
 
     def _bind_values(self, values: Mapping[str, Any]) -> Dict[str, Any]:
-        self.placeholders = list(values)
+        self._placeholders = list(values)
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
 
@@ -390,12 +390,10 @@ class Query:
         return rows
 
     def bound_values(self) -> Dict[str, Any]:
-        binds = {}
-        for key in self.placeholders:
-            key_s = f":{key}"
-            val = self.query.boundValue(key_s)
-            binds[key_s] = val
-        return binds
+        return {
+            f":{key}": self.query.boundValue(f":{key}")
+            for key in self._placeholders
+        }
 
 
 class SqlTable(QObject):
