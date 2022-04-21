@@ -657,6 +657,7 @@ class TestSendOrListen:
     def qlocalserver_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalServer', autospec=True)
         m().errorString.return_value = "Error string"
+        m.SocketOption = QLocalServer.SocketOption
         m().newConnection = stubs.FakeSignal()
         return m
 
@@ -664,10 +665,8 @@ class TestSendOrListen:
     def qlocalsocket_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
-        for name in ['UnknownSocketError', 'UnconnectedState',
-                     'ConnectionRefusedError', 'ServerNotFoundError',
-                     'PeerClosedError']:
-            setattr(m, name, getattr(QLocalSocket, name))
+        m.LocalSocketError = QLocalSocket.LocalSocketError
+        m.LocalSocketState = QLocalSocket.LocalSocketState
         return m
 
     @pytest.mark.linux(reason="Flaky on Windows and macOS")
