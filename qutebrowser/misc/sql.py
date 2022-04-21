@@ -320,16 +320,26 @@ class Query:
             msg = f'Failed to {step} query "{query}": "{error.text()}"'
             raise_sqlite_error(msg, error)
 
+    def _validate_bound_values(self):
+        """Make sure all placeholders are bound."""
+        qt_bound_values = self.query.boundValues()
+        try:
+            # Qt 5: Returns a dict
+            values = qt_bound_values.values()
+        except AttributeError:
+            # Qt 6: Returns a list
+            values = qt_bound_values
+
+        if None in values:
+            raise BugError("Missing bound values!")
+
     def _bind_values(self, values: Mapping[str, Any]) -> Dict[str, Any]:
         self.placeholders = list(values)
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
 
-        bound_values = self.bound_values()
-        if None in bound_values.values():
-            raise BugError("Missing bound values!")
-
-        return bound_values
+        self._validate_bound_values()
+        return self.bound_values()
 
     def run(self, **values: Any) -> 'Query':
         """Execute the prepared query."""
