@@ -1036,18 +1036,32 @@ class TestLibraryPath:
     def test_simple(self):
         try:
             # Qt 6
-            path = QLibraryInfo.path(QLibraryInfo.LibraryPath.DataLocation)
+            path = QLibraryInfo.path(QLibraryInfo.LibraryPath.DataPath)
         except AttributeError:
             # Qt 5
-            path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataLocation)
+            path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath)
 
         assert path
-        assert str(qtutils.library_path(qtutils.LibraryPath.data)) == path
+        assert qtutils.library_path(qtutils.LibraryPath.data).as_posix() == path
 
     @pytest.mark.parametrize("which", list(qtutils.LibraryPath))
     def test_all(self, which):
-        path = qtutils.library_path(which)
-        assert path.exists()
+        if utils.is_windows and which == qtutils.LibraryPath.settings:
+            pytest.skip("Settings path not supported on Windows")
+        qtutils.library_path(which)
+        # The returned path doesn't necessarily exist.
+
+    def test_values_match_qt(self):
+        try:
+            # Qt 6
+            enumtype = QLibraryInfo.LibraryPath
+        except AttributeError:
+            enumtype = QLibraryInfo.LibraryLocation
+
+        our_names = set(member.value for member in qtutils.LibraryPath)
+        qt_names = set(testutils.enum_members(QLibraryInfo, enumtype))
+        qt_names.discard("ImportsPath")  # Moved to QmlImportsPath in Qt 6
+        assert qt_names == our_names
 
 
 def test_extract_enum_val():
