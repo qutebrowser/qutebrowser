@@ -43,8 +43,10 @@ def log_events(klass: Type[QObject]) -> Type[QObject]:
     @functools.wraps(old_event)
     def new_event(self: Any, e: QEvent) -> bool:
         """Wrapper for event() which logs events."""
-        log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
-                                                qenum_key(QEvent, e.type())))
+        # Passing klass as a WORKAROUND because with PyQt6, QEvent.type() returns int:
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044583.html
+        log.misc.debug("Event in {}: {}".format(
+            utils.qualname(klass), qenum_key(QEvent, e.type(), klass=QEvent.Type)))
         return old_event(self, e)
 
     klass.event = new_event  # type: ignore[assignment]
