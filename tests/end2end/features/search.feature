@@ -203,6 +203,8 @@ Feature: Searching on a page
         Then "Foo" should be found
 
     # This makes sure we don't mutate the original flags
+    # Seems to be broken with QtWebKit, wontfix
+    @qtwebkit_skip
     Scenario: Jumping to previous match with --reverse twice
         When I set search.ignore_case to always
         And I run :search --reverse baz
