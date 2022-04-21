@@ -16,7 +16,9 @@ class Error(Exception):
 
 
 class Unavailable(Error, ImportError):
-    pass
+
+    def __init__(self) -> None:
+        super().__init__(f"Unavailable with {WRAPPER}")
 
 
 class UnknownWrapper(Error):

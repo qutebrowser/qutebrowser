@@ -273,6 +273,7 @@ class _BackendProblemChecker:
             from qutebrowser.qt import webkit, webkitwidgets
         except (ImportError, ValueError) as e:
             results.webkit_error = str(e)
+            assert results.webkit_error
         else:
             if not qtutils.is_new_qtwebkit():
                 results.webkit_error = "Unsupported legacy QtWebKit found"
@@ -281,6 +282,7 @@ class _BackendProblemChecker:
             from qutebrowser.qt import webenginecore, webenginewidgets
         except (ImportError, ValueError) as e:
             results.webengine_error = str(e)
+            assert results.webengine_error
 
         return results
 
