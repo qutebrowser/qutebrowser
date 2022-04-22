@@ -248,7 +248,7 @@ class NetworkManager(QNetworkAccessManager):
 
     # No @pyqtSlot here, see
     # https://github.com/qutebrowser/qutebrowser/issues/2213
-    def on_ssl_errors(self, reply, qt_errors):  # noqa: C901 pragma: no mccabe
+    def on_ssl_errors(self, reply, qt_errors):
         """Decide if SSL errors should be ignored or not.
 
         This slot is called on SSL/TLS errors by the self.sslErrors signal.
@@ -257,7 +257,7 @@ class NetworkManager(QNetworkAccessManager):
             reply: The QNetworkReply that is encountering the errors.
             qt_errors: A list of errors.
         """
-        errors = certificateerror.CertificateErrorWrapper(qt_errors)
+        errors = certificateerror.CertificateErrorWrapper(reply, qt_errors)
         log.network.debug("Certificate errors: {!r}".format(errors))
         try:
             host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
@@ -285,14 +285,14 @@ class NetworkManager(QNetworkAccessManager):
         tab = self._get_tab()
         first_party_url = QUrl() if tab is None else tab.data.last_navigation.url
 
-        ignore = shared.ignore_certificate_error(
+        shared.handle_certificate_error(
             request_url=reply.url(),
             first_party_url=first_party_url,
             error=errors,
             abort_on=abort_on,
         )
-        if ignore:
-            reply.ignoreSslErrors()
+
+        if errors.certificate_was_accepted():
             if host_tpl is not None:
                 self._accepted_ssl_errors[host_tpl].add(errors)
         elif host_tpl is not None:

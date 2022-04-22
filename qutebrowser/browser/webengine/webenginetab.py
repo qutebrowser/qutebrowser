@@ -1570,7 +1570,7 @@ class WebEngineTab(browsertab.AbstractTab):
         log.network.debug("First party URL: {}".format(first_party_url))
 
         if error.is_overridable():
-            error.ignore = shared.ignore_certificate_error(
+            shared.handle_certificate_error(
                 request_url=url,
                 first_party_url=first_party_url,
                 error=error,

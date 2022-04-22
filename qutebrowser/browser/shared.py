@@ -205,13 +205,13 @@ def javascript_log_message(
     logger(logstring)
 
 
-def ignore_certificate_error(
+def handle_certificate_error(
         *,
         request_url: QUrl,
         first_party_url: QUrl,
         error: usertypes.AbstractCertificateErrorWrapper,
         abort_on: Iterable[pyqtBoundSignal],
-) -> bool:
+) -> None:
     """Display a certificate error question.
 
     Args:
@@ -219,9 +219,6 @@ def ignore_certificate_error(
         first_party_url: The URL of the page we're visiting. Might be an invalid QUrl.
         error: A single error.
         abort_on: Signals aborting a question.
-
-    Return:
-        True if the error should be ignored, False otherwise.
     """
     conf = config.instance.get('content.tls.certificate_errors', url=request_url)
     log.network.debug(f"Certificate error {error!r}, config {conf}")
@@ -263,28 +260,46 @@ def ignore_certificate_error(
             is_resource=is_resource,
             error=error,
         )
-
         urlstr = request_url.toString(
             QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
-        ignore = message.ask(title="Certificate error", text=msg,
-                             mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on, url=urlstr)
-        if ignore is None:
-            # prompt aborted
-            ignore = False
-        return ignore
+        title = "Certificate error"
+
+        try:
+            error.defer()
+        except usertypes.UndeferrableError:
+            # QtNetwork / QtWebKit and buggy PyQt versions
+            # Show blocking question prompt
+            ignore = message.ask(title=title, text=msg,
+                                 mode=usertypes.PromptMode.yesno, default=False,
+                                 abort_on=abort_on, url=urlstr)
+            if ignore:
+                error.accept_certificate()
+            else:  # includes None, i.e. prompt aborted
+                error.reject_certificate()
+        else:
+            # Show non-blocking question prompt
+            message.confirm_async(
+                title=title,
+                text=msg,
+                abort_on=abort_on,
+                url=urlstr,
+                yes_action=error.accept_certificate,
+                no_action=error.reject_certificate,
+                cancel_action=error.reject_certificate,
+            )
     elif conf == 'load-insecurely':
         message.error(f'Certificate error: {error}')
-        return True
+        error.accept_certificate()
     elif conf == 'block':
-        return False
+        error.reject_certificate()
     elif conf == 'ask-block-thirdparty' and is_resource:
         log.network.error(
             f"Certificate error in resource load: {error}\n"
             f"  request URL:     {request_url.toDisplayString()}\n"
             f"  first party URL: {first_party_url.toDisplayString()}")
-        return False
-    raise utils.Unreachable(conf, is_resource)
+        error.reject_certificate()
+    else:
+        raise utils.Unreachable(conf, is_resource)
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on,

@@ -481,9 +481,17 @@ class Timer(QTimer):
             super().start()
 
 
+class UndeferrableError(Exception):
+
+    """An AbstractCertificateErrorWrapper isn't deferrable."""
+
+
 class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
+
+    def __init__(self) -> None:
+        self._certificate_accepted = None
 
     def __str__(self) -> str:
         raise NotImplementedError
@@ -496,6 +504,22 @@ class AbstractCertificateErrorWrapper:
 
     def html(self) -> str:
         return f'<p>{html.escape(str(self))}</p>'
+
+    def accept_certificate(self) -> None:
+        self._certificate_accepted = True
+
+    def reject_certificate(self) -> None:
+        self._certificate_accepted = False
+
+    def defer(self) -> None:
+        raise NotImplementedError
+
+    def certificate_was_accepted(self) -> None:
+        if not self.is_overridable():
+            return False
+        if self._certificate_accepted is None:
+            raise ValueError("No decision taken yet")
+        return self._certificate_accepted
 
 
 @dataclasses.dataclass
