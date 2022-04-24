@@ -18,7 +18,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # Because every method needs to have a log_stack argument
-# pylint: disable=unused-argument
+# and because we use *args a lot
+# pylint: disable=unused-argument,differing-param-doc
 
 """Message singleton so we don't have to define unneeded signals."""
 
@@ -125,7 +126,7 @@ def ask(*args: Any, **kwargs: Any) -> Any:
     Return:
         The answer the user gave or None if the prompt was cancelled.
     """
-    question = _build_question(*args, **kwargs)  # pylint: disable=missing-kwoa
+    question = _build_question(*args, **kwargs)
     global_bridge.ask(question, blocking=True)
     answer = question.answer
     question.deleteLater()
@@ -139,7 +140,7 @@ def ask_async(title: str,
     """Ask an async question in the statusbar.
 
     Args:
-        message: The message to display to the user.
+        title: The message to display to the user.
         mode: A PromptMode.
         handler: The function to get called with the answer as argument.
         default: The default value to display.
@@ -174,7 +175,7 @@ def confirm_async(*, yes_action: _ActionType,
         The question object.
     """
     kwargs['mode'] = usertypes.PromptMode.yesno
-    question = _build_question(**kwargs)  # pylint: disable=missing-kwoa
+    question = _build_question(**kwargs)
     question.answered_yes.connect(yes_action)
     if no_action is not None:
         question.answered_no.connect(no_action)

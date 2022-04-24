@@ -4,7 +4,7 @@ recursive-include qutebrowser/javascript *.js
 graft tests
 graft qutebrowser/html
 graft qutebrowser/3rdparty
-graft icons
+graft qutebrowser/icons
 graft doc/img
 graft misc/apparmor
 graft misc/userscripts

@@ -51,7 +51,9 @@ def custom_headers(url):
 
     conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
-        headers[header.encode('ascii')] = value.encode('ascii')
+        encoded_header = header.encode('ascii')
+        encoded_value = b"" if value is None else value.encode('ascii')
+        headers[encoded_header] = encoded_value
 
     accept_language = config.instance.get('content.headers.accept_language',
                                           url=url)
@@ -418,12 +420,11 @@ def choose_file(qb_mode: FileSelectionMode) -> List[str]:
     }[qb_mode]
     use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
-        handle = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix='qutebrowser-fileselect-',
             delete=False,
-        )
-        handle.close()
-        tmpfilename = handle.name
+        ) as handle:
+            tmpfilename = handle.name
         with utils.cleanup_file(tmpfilename):
             command = (
                 command[:1] +
@@ -509,6 +510,7 @@ def _validated_selected_files(
                 )
                 continue
         else:
+            # pylint: disable=else-if-used
             if not os.path.isfile(selected_file):
                 message.warning(
                     f"Expected file but got folder, ignoring '{selected_file}'"

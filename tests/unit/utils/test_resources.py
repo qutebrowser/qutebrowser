@@ -65,7 +65,7 @@ class TestReadFile:
                 'qutebrowser/html/unrelatedhtml',
             ]
 
-        yield zipfile.Path(zip_path) / 'qutebrowser'
+        return zipfile.Path(zip_path) / 'qutebrowser'
 
     @pytest.fixture(params=['pathlib', 'zipfile'])
     def resource_root(self, request):

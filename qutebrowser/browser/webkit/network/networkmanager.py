@@ -25,7 +25,7 @@ import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
                              QNetworkProxy)
 
 from qutebrowser.config import config
@@ -103,7 +103,8 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    default_ciphers = QSslSocket.defaultCiphers()
+    sslconfig = QSslConfiguration.defaultConfiguration()
+    default_ciphers = sslconfig.ciphers()
     log.init.vdebug(  # type: ignore[attr-defined]
         "Default Qt ciphers: {}".format(
             ', '.join(c.name() for c in default_ciphers)))
@@ -119,7 +120,7 @@ def init():
     if bad_ciphers:
         log.init.debug("Disabling bad ciphers: {}".format(
             ', '.join(c.name() for c in bad_ciphers)))
-        QSslSocket.setDefaultCiphers(good_ciphers)
+        sslconfig.setCiphers(good_ciphers)
 
 
 _SavedErrorsType = MutableMapping[
@@ -379,10 +380,10 @@ class NetworkManager(QNetworkAccessManager):
             if referer_header_conf == 'never':
                 # Note: using ''.encode('ascii') sends a header with no value,
                 # instead of no header at all
-                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+                req.setRawHeader(b'Referer', QByteArray())
             elif (referer_header_conf == 'same-domain' and
                   not urlutils.same_domain(req.url(), current_url)):
-                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+                req.setRawHeader(b'Referer', QByteArray())
             # If refer_header_conf is set to 'always', we leave the header
             # alone as QtWebKit did set it.
         except urlutils.InvalidUrlError:

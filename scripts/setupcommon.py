@@ -43,7 +43,7 @@ def _call_git(gitpath, *args):
     return subprocess.run(
         ['git'] + list(args),
         cwd=gitpath, check=True,
-        stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+        stdout=subprocess.PIPE, text=True).stdout.strip()
 
 
 def _git_str():

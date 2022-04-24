@@ -346,3 +346,14 @@ def test_clear_keystring_empty(qtbot, keyparser):
     keyparser._sequence = keyseq('')
     with qtbot.assert_not_emitted(keyparser.keystring_updated):
         keyparser.clear_keystring()
+
+
+def test_respect_config_when_matching_counts(keyparser, config_stub):
+    """Don't match counts if disabled in the config."""
+    config_stub.val.input.match_counts = False
+
+    info = keyutils.KeyInfo(Qt.Key_1, Qt.NoModifier)
+    keyparser.handle(info.to_event())
+
+    assert not keyparser._sequence
+    assert not keyparser._count

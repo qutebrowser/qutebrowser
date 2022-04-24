@@ -76,7 +76,7 @@ def _check_completions(model, expected):
     assert sum(model.column_widths) == 100
 
 
-@pytest.fixture()
+@pytest.fixture
 def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
     return monkeypatch.setattr(objects, 'commands', {
@@ -93,7 +93,7 @@ def cmdutils_stub(monkeypatch, stubs):
     })
 
 
-@pytest.fixture()
+@pytest.fixture
 def configdata_stub(config_stub, monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
     monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
@@ -860,6 +860,34 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
     # sanity checks
     assert model.data(parent) == "0"
     assert model.data(idx) == '0/2'
+
+    model.delete_cur_item(idx)
+    actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
+    assert actual == [QUrl('https://github.com'),
+                      QUrl('https://duckduckgo.com')]
+
+
+def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
+                              tabbed_browser_stubs, info):
+    """Verify closing a tab by deleting it from the completion widget."""
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    model = miscmodels.tab_focus(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "Tabs"
+    assert model.data(idx) == '2'
 
     model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]

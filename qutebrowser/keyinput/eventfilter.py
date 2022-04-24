@@ -35,7 +35,7 @@ class EventFilter(QObject):
 
     Attributes:
         _activated: Whether the EventFilter is currently active.
-        _handlers; A {QEvent.Type: callable} dict with the handlers for an
+        _handlers: A {QEvent.Type: callable} dict with the handlers for an
                    event.
     """
 

@@ -15,7 +15,7 @@ jobs:
     container:
       image: "qutebrowser/ci:archlinux-webengine-unstable"
       env:
-        PY_COLORS: "1"
+        FORCE_COLOR: "1"
         DOCKER: "archlinux-webengine-unstable"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
@@ -58,7 +58,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: "3.10"
       - name: Get asciidoc
         uses: actions/checkout@v2
         with:

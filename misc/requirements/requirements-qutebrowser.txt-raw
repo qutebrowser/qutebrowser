@@ -3,7 +3,6 @@ PyYAML
 
 ## stdlib backports
 importlib-resources
-dataclasses
 
 ## Optional dependencies
 Pygments  # For :view-source --pygments or on QtWebKit
@@ -14,7 +13,6 @@ adblock  # Improved adblocking
 importlib-metadata  # Determining PyQt version
 typing_extensions  # from importlib-metadata
 
-#@ markers: importlib-resources python_version<"3.9"
-#@ markers: importlib-metadata python_version<"3.8"
+#@ markers: importlib-resources python_version=="3.7.*" or python_version=="3.8.*"
+#@ markers: importlib-metadata python_version=="3.7.*"
 #@ markers: typing_extensions python_version<"3.8"
-#@ markers: dataclasses python_version<"3.7"

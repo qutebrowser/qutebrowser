@@ -100,7 +100,7 @@ class CrashHandler(QObject):
                 # There's no log file, so we can use this to display crashes to
                 # the user on the next start.
                 self._init_crashlogfile()
-        except OSError:
+        except (OSError, UnicodeDecodeError):
             log.init.exception("Error while handling crash log file!")
             self._init_crashlogfile()
 
@@ -150,6 +150,7 @@ class CrashHandler(QObject):
         """Start a new logfile and redirect faulthandler to it."""
         logname = os.path.join(standarddir.data(), 'crash.log')
         try:
+            # pylint: disable=consider-using-with
             self._crash_log_file = open(logname, 'w', encoding='ascii')
         except OSError:
             log.init.exception("Error while opening crash log file!")
@@ -244,7 +245,7 @@ class CrashHandler(QObject):
 
         if 'pdb-postmortem' in objects.debug_flags:
             if tb is None:
-                pdb.set_trace()  # noqa: T100
+                pdb.set_trace()  # noqa: T100 pylint: disable=forgotten-debug-statement
             else:
                 pdb.post_mortem(tb)
 

@@ -38,7 +38,7 @@ class TestCommandLineEdit:
         cmd_edit.set_prompt(':')
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''
-        yield cmd_edit
+        return cmd_edit
 
     def test_position(self, qtbot, cmd_edit):
         """Test cursor position based on the prompt."""

@@ -26,7 +26,8 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
+                          QObject)
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -200,6 +201,14 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def _empty_flags(self):
         return QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
 
+    def _args_to_flags(self, reverse, ignore_case):
+        flags = self._empty_flags()
+        if self._is_case_sensitive(ignore_case):
+            flags |= QWebEnginePage.FindCaseSensitively
+        if reverse:
+            flags |= QWebEnginePage.FindBackward
+        return flags
+
     def connect_signals(self):
         self._wrap_handler.connect_signal(self._widget.page())
 
@@ -246,17 +255,14 @@ class WebEngineSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}, but resetting flags".format(text))
+            self._flags = self._args_to_flags(reverse, ignore_case)
             return
 
         self.text = text
-        self._flags = self._empty_flags()
+        self._flags = self._args_to_flags(reverse, ignore_case)
         self._wrap_handler.reset_match_data()
         self._wrap_handler.flag_wrap = wrap
-        if self._is_case_sensitive(ignore_case):
-            self._flags |= QWebEnginePage.FindCaseSensitively
-        if reverse:
-            self._flags |= QWebEnginePage.FindBackward
 
         self._find(text, self._flags, result_cb, 'search')
 
@@ -797,12 +803,37 @@ class WebEngineAudio(browsertab.AbstractAudio):
         super().__init__(tab, parent)
         self._overridden = False
 
+        # Implements the intended two-second delay specified at
+        # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
+        delay_ms = 2000
+        self._silence_timer = QTimer(self)
+        self._silence_timer.setSingleShot(True)
+        self._silence_timer.setInterval(delay_ms)
+
     def _connect_signals(self):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
-        page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+        page.recentlyAudibleChanged.connect(self._delayed_recently_audible_changed)
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
+
+    # WORKAROUND for recentlyAudibleChanged being emitted without delay from the moment
+    # that audio is dropped.
+    def _delayed_recently_audible_changed(self, recently_audible):
+        timer = self._silence_timer
+        # Stop any active timer and immediately display [A] if tab is audible,
+        # otherwise start a timer to update audio field
+        if recently_audible:
+            if timer.isActive():
+                timer.stop()
+            self.recently_audible_changed.emit(recently_audible)
+        else:
+            # Ignore all subsequent calls while the tab is muted with an active timer
+            if timer.isActive():
+                return
+            timer.timeout.connect(
+                functools.partial(self.recently_audible_changed.emit, recently_audible))
+            timer.start()
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
         was_muted = self.is_muted()
@@ -1499,7 +1530,6 @@ class WebEngineTab(browsertab.AbstractTab):
         displayed.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
-        WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=882805
         """
         match = re.search(r'"errorCode":"([^"]*)"', html)
         if match is None:
@@ -1508,8 +1538,7 @@ class WebEngineTab(browsertab.AbstractTab):
         error = match.group(1)
         log.webview.error("Load error: {}".format(error))
 
-        missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
-        if js_enabled and not missing_jst:
+        if js_enabled:
             return
 
         self._show_error_page(self.url(), error=error)

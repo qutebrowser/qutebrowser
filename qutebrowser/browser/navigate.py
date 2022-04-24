@@ -92,9 +92,6 @@ def incdec(url, count, inc_or_dec):
         url: The current url.
         count: How much to increment or decrement by.
         inc_or_dec: Either 'increment' or 'decrement'.
-        tab: Whether to open the link in a new tab.
-        background: Open the link in a new background tab.
-        window: Open the link in a new window.
     """
     urlutils.ensure_valid(url)
     segments: Optional[Set[str]] = (

@@ -147,7 +147,7 @@ def run_venv(
         return subprocess.run(
             [str(venv_dir / subdir / executable)] + [str(arg) for arg in args],
             check=True,
-            universal_newlines=capture_output or capture_error,
+            text=capture_output or capture_error,
             stdout=subprocess.PIPE if capture_output else None,
             stderr=subprocess.PIPE if capture_error else None,
             env=proc_env,

@@ -64,9 +64,10 @@ def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
     byte_io.seek(0)  # rewind downloaded file
     if zipfile.is_zipfile(byte_io):
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
-        zf = zipfile.ZipFile(byte_io)
-        filename = _guess_zip_filename(zf)
-        byte_io = zf.open(filename, mode="r")
+        with zipfile.ZipFile(byte_io) as zf:
+            filename = _guess_zip_filename(zf)
+            # pylint: disable=consider-using-with
+            byte_io = zf.open(filename, mode="r")
     else:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
     return byte_io

@@ -238,6 +238,7 @@ def user_agent(url: QUrl = None) -> str:
 
 def init(args: argparse.Namespace) -> None:
     """Initialize all QWeb(Engine)Settings."""
+    utils.unused(args)
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init()

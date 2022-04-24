@@ -81,7 +81,7 @@ def log_signals(obj: QObject) -> QObject:
                         pass
 
     if inspect.isclass(obj):
-        old_init = obj.__init__  # type: ignore[misc]
+        old_init = obj.__init__
 
         @functools.wraps(old_init)
         def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
@@ -89,7 +89,7 @@ def log_signals(obj: QObject) -> QObject:
             old_init(self, *args, **kwargs)
             connect_log_slot(self)
 
-        obj.__init__ = new_init  # type: ignore[misc]
+        obj.__init__ = new_init
     else:
         connect_log_slot(obj)
 

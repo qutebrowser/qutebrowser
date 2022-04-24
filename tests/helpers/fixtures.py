@@ -186,7 +186,7 @@ def testdata_scheme(qapp):
         pass
 
     @qutescheme.add_handler('testdata')
-    def handler(url):  # pylint: disable=unused-variable
+    def handler(url):
         file_abs = os.path.abspath(os.path.dirname(__file__))
         filename = os.path.join(file_abs, os.pardir, 'end2end',
                                 url.path().lstrip('/'))
@@ -632,7 +632,7 @@ def redirect_webengine_data(data_tmpdir, monkeypatch):
     monkeypatch.setenv('HOME', str(data_tmpdir))
 
 
-@pytest.fixture()
+@pytest.fixture
 def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:

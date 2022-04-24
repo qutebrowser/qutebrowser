@@ -427,7 +427,7 @@ def test_invalid_utf8(config_stub, tmp_path, caplog, host_blocker_factory, locat
         with caplog.at_level(logging.ERROR):
             current_download.successful = True
             current_download.finished.emit()
-        expected = r"Failed to decode: " r"b'https://www.example.org/\xa0localhost"
+        expected = r"Failed to decode: b'https://www.example.org/\xa0localhost"
         assert caplog.messages[-2].startswith(expected)
     else:
         current_download.successful = True

@@ -157,6 +157,7 @@ class SaveManager(QObject):
         """Save a saveable by name.
 
         Args:
+            name: The name of the saveable to save.
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether this save operation was triggered explicitly.
             silent: Don't write information to log. Used to reduce log spam

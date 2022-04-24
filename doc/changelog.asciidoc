@@ -15,9 +15,191 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v2.4.0]]
-v2.4.0 (unreleased)
+[[v3.0.0]]
+v3.0.0 (unreleased)
 -------------------
+
+Removed
+~~~~~~~
+
+- Support for Python 3.6 is dropped, as it's been
+  https://discuss.python.org/t/python-3-6-rides-into-the-sunset/12964[end-of-life upstream]
+  since December 2021. Python 3.7.0 or newer is now required.
+- It's planned to drop support for various legacy platforms and libraries which
+  are unsupported upstream, such as:
+  * Qt before 5.15 LTS (plus adding support for Qt 6.2+)
+  * The QtWebKit backend
+  * macOS 10.14 (via Homebrew)
+  * 32-bit Windows (via Qt)
+  * Windows 8 (via Qt)
+  * Windows 10 before 1809 (via Qt)
+  * Possibly other more minor dependency changes
+
+Changed
+~~~~~~~
+
+- The qutebrowser icons got moved from `icons/` to `qutebrowser/icons` in the
+  repository, so that it's possible for qutebrowser to load them using Python's
+  resource system (rather than compiling them into a Qt resource file).
+  Packagers are advised to use `misc/Makefile` if possible, which has been
+  updated with the new paths.
+
+[[v2.5.1]]
+v2.5.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- The `qute-pass` userscript is marked as executable again.
+- PDF.js now works properly again with the macOS and Windows releases.
+
+[[v2.5.0]]
+v2.5.0 (2022-04-01)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- v2.5.x will be the last release of qutebrowser 2.
+  **For the upcoming 3.0.0 release**, it's planned to drop support for various
+  legacy platforms and libraries which are unsupported upstream, such as:
+  * Qt before 5.15 LTS (plus adding support for Qt 6.2+)
+  * Python 3.6
+  * The QtWebKit backend
+  * macOS 10.14 (via Homebrew)
+  * 32-bit Windows (via Qt)
+  * Windows 8 (via Qt)
+  * Windows 10 before 1809 (via Qt)
+  * Possibly other more minor dependency changes
+- The `:rl-unix-word-rubout` command (`<Ctrl-W>` in command/prompt modes) has
+  been deprecated. Use `:rl-rubout " "` instead.
+- The `:rl-unix-filename-rubout` command has been deprecated. Use either
+  `:rl-rubout "/ "` (classic readline behavior) or `:rl-filename-rubout` (using
+  OS path separator and ignoring spaces) instead.
+
+Changed
+~~~~~~~
+
+- Improved message if a spawned process wasn't found and a Flatpak container is
+  in use.
+- The `:tab-move` command now takes `start` and `end` as `index` to move a tab
+  to the first/last position.
+- Tests now automatically pick the backend (QtWebKit/QtWebEngine) based on
+  what's available. The `QUTE_BDD_WEBENGINE` environment variable and
+  `--qute-bdd-webengine` argument got replaced by `QUTE_TESTS_BACKEND` and
+  `--qute-backend` respectively, which can be set to either `webengine` or
+  `webkit`.
+- Using `:tab-give` or `:tab-take` on the last tab in a window now always
+  closes that window, no matter what `tabs.last_close` is set to.
+- Redesigned `qute://settings` (`:set`) page with buttons for options with
+  fixed values.
+- The default `hint.selectors` now match more ARIA roles (`tab`, `checkbox`,
+  `menuitem`, `menuitemcheckbox` and `menuitemradio`).
+- Using e.g. `:bind --mode=passthrough` now scrolls to the passthrough section
+  on the `qute://bindings` page.
+- Clicking on a notification now tries to focus the tab where the notification
+  is coming from. Note this might not work properly if there is more than one
+  tab from the same host open.
+- Improvements to userscripts:
+  * `qute-bitwarden` understands a new `--password-prompt-invocation`, which can
+    be used to specify a tool other than `rofi` to ask for a password.
+  * `cast` now uses `yt-dlp` if available (falling back to `youtube-dl` if not).
+    It also lets users override the tool to use via a `QUTE_CAST_YTDL_PROGRAM`
+    environment variable.
+  * `qute-pass` now understands a new `--prefix` argument if used in gopass
+    mode, which gets passed as subfolder prefix to `gopass`.
+  * `open_download` now supports Flatpak by using its XDG Desktop Portal.
+  * `open_download` now waits for the exit status of `xdg-open`, causing
+    qutebrowser to report any issues with it.
+- The `content.headers.custom` setting now accepts empty strings as values,
+  resulting in an empty header being sent.
+- Renamed settings:
+  * `qt.low_end_device_mode` -> `qt.chromium.low_end_device_mode`
+  * `qt.process_model` -> `qt.chromium.process_model`
+- System-wide userscripts are now discovered from the correct location when
+  running via Flatpak (`/app/share` rather than `/usr/share`).
+- Filename prompts now don't display a `..` entry in the list of files anymore.
+  To get back to the parent directory, either type `../` manually, or use the new
+  `:rl-filename-rubout` command, bound to `<Ctrl-Shift-W>` by default.
+
+Added
+~~~~~
+
+- New `input.match_counts` option which allows to turn off count matching for
+  more emacs-like bindings.
+- New `{relative_index}` field for `tabs.title.format` (and `.pinned_format`)
+  which shows relative tab numbers.
+- New `input.mode_override` option which allows overriding the current mode
+  based on the new URL when navigating or switching tabs.
+- New `qt.chromium.sandboxing` setting which allows to disable Chromium's
+  sandboxing (mainly intended for development and testing).
+- New `QUTE_TAB_INDEX` variable for userscripts, containing the index of the
+  current tab.
+- New `editor.remove_file` setting which can be set to `False` to keep all
+  temporary editor files after closing the external editor.
+- New `:rl-rubout` command replacing `:rl-unix-word-rubout` (and optionally
+  `:rl-unix-filename-rubout`), taking a delimiter as argument.
+- New `:rl-filename-rubout` command, using the OS path separator and ignoring
+  spaces. The command also gets shown in the suggested commands for a download
+  filename prompt now.
+
+Fixed
+~~~~~
+
+- When `search.incremental` is disabled, searching using `/text` followed by a
+  backwards search via `?text` (or vice-versa) now correctly changes the search
+  direction.
+- Elements getting a hint due to a `tabindex` now are skipped if it's set to
+  `-1`, reducing some false-positives.
+- The audible indicator (`[A]`) now uses a 2s cooldown when the audio goes
+  silent, equivalent with the behavior of older QtWebEngine versions.
+- With `confirm_quit` set to `downloads`, the confirmation dialog is now only
+  shown when closing the last window (rather than closing any window, which
+  would continue running that window's downloads). Unfortunately, more issues
+  with `confirm_quit` and multiple windows remain.
+- Crash when a previous crash-log file contains non-ASCII characters (which
+  should never happen unless it was edited manually)
+- Due to changes in Debian, an old workaround (for broken QtWebEngine patching
+  on Debian) caused the inferior qutebrowser error page to be displayed, when
+  Chromium's would have worked fine. The workaround was now dropped.
+- Crash when using `<Ctrl-D>` (`:completion-item-del`) in the `:tab-focus`
+  list, rather than `:tab-select`.
+- Work around a Qt issue causing `:spawn` to run executables from the current
+  directory if no system-wide executable was found. The underlying Qt bug is
+  tracked as https://lists.qt-project.org/pipermail/announce/2022-February/000333.html[CVE-2022-25255],
+  though the impact with typical qutebrowser usage is low: Normally,
+  qutebrowser is run from a fixed location (usually the users home directory),
+  and `:spawn` is not typically used with executables that don't exist. The main
+  security impact of this bug is in tools like text editors, which are often
+  executed in untrusted directories and might attempt to run auxiliary tools
+  automatically.
+- When `:rl-rubout` or `:rl-filename-rubout` (formerly `:rl-unix-word-rubout`
+  and `:rl-unix-filename-rubout`) were used on a string not starting with the
+  given delimiter, they failed to delete the first character, which is now fixed.
+- Fixes in userscripts:
+  * `ripbang` now works again (it got blocked due to a missing user agent and
+    used outdated qutebrowser commands before)
+  * `keepassxc` now has a properly working `--insecure` flag
+- Speculative fix for an immediate crash at start with the macOS/Windows
+  binaries (in certain rare environments).
+- Speculative fix for a qutebrowser crash when the notification daemon crashes
+  while showing the notification.
+- Fix crash when using `:screenshot` with an invalid `--rect` argument.
+- Added a site-specific quirk to make cookie dialogs on StackExchange pages
+  (such as Stack Overflow) work on Qt 5.12.
+
+[[v2.4.0]]
+v2.4.0 (2021-10-21)
+-------------------
+
+Security
+~~~~~~~~
+
+- **CVE-2021-41146**: Fix arbitrary command execution on Windows via URL handler
+  argument injection. See the
+  https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-vw27-fwjf-5qxm[security advisory]
+  for details.
 
 Added
 ~~~~~
@@ -25,12 +207,18 @@ Added
 - New `content.blocking.hosts.block_subdomains` setting which can be used to
   disable the subdomain blocking for the hosts-based adblocker introduced in
   v2.3.0.
+- New `downloads.prevent_mixed_content` setting to prevent insecure
+  mixed-content downloads (true by default).
+- New `--private` flag for `:tab-clone`, which clones a tab into a new private
+  window, mirroring the same flags for `:open` and `:tab-give`.
 
 Fixed
 ~~~~~
 
 - Switching tabs via mouse wheel scrolling now works properly on macOS. Set
   `tabs.mousewheel_switching` to false if you prefer the previous behavior.
+- Speculative fix for a crash when closing qutebrowser while a systray
+  notification is shown.
 
 Changed
 ~~~~~~~
@@ -41,6 +229,17 @@ Changed
   displaying a download prompt.
 - In Greasemonkey scripts, using "overrideMimeType" with GM_xmlhttpRequest is
   now supported.
+- `:hint --rapid` is now supported for the `tab` hinting target no matter what
+  `tabs.background` is set to, as there are various scenarios where tabs can
+  open in the background.
+- New flags for the `qute-pass` userscript:
+  * `--unfiltered` to show all secrets, not just the one matching the current
+    URL.
+  * `--always-show-selection` to confirm the password to be entered even if
+    there's only a single match.
+- In insert mode, `<Shift-Escape>` is now bound to `fake-key <Escape>` by
+  default, i.e., sends an Escape keypress to the website.
+- Using `GM_setClipboard` in Greasemonkey scripts is now supported.
 
 [[v2.3.1]]
 v2.3.1 (2021-07-28)
@@ -4150,7 +4349,7 @@ v0.1.4 (2015-03-19)
 Changed
 ~~~~~~~
 
-* The Windows builds come with Qt 5.4.1 which has some https://lists.schokokeks.org/pipermail/qutebrowser/2015-March/000054.html[related bugfixes].
+* The Windows builds come with Qt 5.4.1 which has some https://listi.jpberlin.de/pipermail/qutebrowser/2015-March/000054.html[related bugfixes].
 * Improvements to CPU usage when idle.
 * Ensure there's no size for `font-family` settings.
 * Handle URLs with double-colon as search strings.

@@ -31,14 +31,9 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtCore import qVersion
 from PyQt5.QtGui import QColor
-try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
-except ImportError:
-    PYQT_WEBENGINE_VERSION_STR = None
 
-from qutebrowser.utils import qtutils, log, utils
+from qutebrowser.utils import qtutils, log, utils, version
 
 ON_CI = 'CI' in os.environ
 
@@ -267,35 +262,38 @@ def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
 
 
-def seccomp_args(qt_flag):
-    """Get necessary flags to disable the seccomp BPF sandbox.
+DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
+DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
+
+
+def disable_seccomp_bpf_sandbox():
+    """Check whether we need to disable the seccomp BPF sandbox.
 
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
-
-    Args:
-        qt_flag: Add a '--qt-flag' argument.
     """
+    try:
+        from PyQt5 import QtWebEngine  # pylint: disable=unused-import
+    except ImportError:
+        # no QtWebEngine available
+        return False
+
     affected_versions = set()
     for base, patch_range in [
-            # 5.12.0 to 5.12.7 (inclusive)
-            ('5.12', range(0, 8)),
+            # 5.12.0 to 5.12.10 (inclusive)
+            ('5.12', range(0, 11)),
             # 5.13.0 to 5.13.2 (inclusive)
             ('5.13', range(0, 3)),
             # 5.14.0
             ('5.14', [0]),
+            # 5.15.0 to 5.15.2 (inclusive)
+            ('5.15', range(0, 3)),
     ]:
         for patch in patch_range:
-            affected_versions.add('{}.{}'.format(base, patch))
+            affected_versions.add(utils.VersionNumber.parse(f'{base}.{patch}'))
 
-    version = (PYQT_WEBENGINE_VERSION_STR
-               if PYQT_WEBENGINE_VERSION_STR is not None
-               else qVersion())
-    if version in affected_versions:
-        disable_arg = 'disable-seccomp-filter-sandbox'
-        return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
-
-    return []
+    versions = version.qtwebengine_versions(avoid_init=True)
+    return versions.webengine in affected_versions
 
 
 def import_userscript(name):

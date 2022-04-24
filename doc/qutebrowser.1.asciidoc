@@ -10,14 +10,14 @@
 :homepage: https://www.qutebrowser.org/
 
 == NAME
-qutebrowser - a keyboard-driven, vim-like browser based on PyQt5.
+qutebrowser - a keyboard-driven, vim-like browser based on Python and Qt.
 
 == SYNOPSIS
 *qutebrowser* ['-OPTION' ['...']] [':COMMAND' ['...']] ['URL' ['...']]
 
 == DESCRIPTION
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
-on Python and Qt5 and is free software, licensed under the GPL.
+on Python and Qt and is free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
@@ -32,9 +32,9 @@ show it.
     Commands to execute on startup.
 
 *'URL'*::
-    URLs or search terms to open on startup (empty as a window separator).
+    URLs to open on startup (empty as a window separator).
 
-=== optional arguments
+=== options
 *-h*, *--help*::
     show this help message and exit
 
@@ -64,6 +64,9 @@ show it.
 
 *--desktop-file-name* 'DESKTOP_FILE_NAME'::
     Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop
+
+*--untrusted-args*::
+    Mark all following arguments as untrusted, which enforces that they are URLs/search terms (and not flags or commands)
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
@@ -127,7 +130,7 @@ If you found a bug, use the built-in ':report' command to create a bug report
 with all information needed.
 
 If you prefer, you can also write to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
 For security bugs, please contact me directly at me@the-compiler.org, GPG ID
@@ -149,9 +152,9 @@ this program.  If not, see <https://www.gnu.org/licenses/>.
 == RESOURCES
 * Website: https://www.qutebrowser.org/
 * Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] /
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser
 * Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser-announce
 * IRC: link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
 https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat],
 https://matrix.to/#qutebrowser:libera.chat[via Matrix])

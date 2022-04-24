@@ -65,7 +65,10 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug, message, version
+from qutebrowser.utils import (
+    qtutils, log, utils, debug, message, version, objreg, resources,
+)
+from qutebrowser.qt import sip
 
 
 bridge: Optional['NotificationBridgePresenter'] = None
@@ -367,6 +370,17 @@ class NotificationBridgePresenter(QObject):
             # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
+            return
+        self._focus_first_matching_tab(notification)
+
+    def _focus_first_matching_tab(self, notification: "QWebEngineNotification") -> None:
+        for win_id in objreg.window_registry:
+            tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
+            for idx, tab in enumerate(tabbedbrowser.widgets()):
+                if tab.url().matches(notification.origin(), QUrl.RemovePath):
+                    tabbedbrowser.widget.setCurrentIndex(idx)
+                    return
+        log.misc.debug(f"No matching tab found for {notification.origin()}")
 
     def _drop_adapter(self) -> None:
         """Drop the currently active adapter (if any).
@@ -477,7 +491,9 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
         assert notification_id == self.NOTIFICATION_ID, notification_id
-        self._systray.hide()
+        if not sip.isdeleted(self._systray):
+            # This can get called during shutdown
+            self._systray.hide()
 
 
 class MessagesNotificationAdapter(AbstractNotificationAdapter):
@@ -712,10 +728,14 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         # https://github.com/KDE/plasma-workspace/blob/v5.21.4/libnotificationmanager/server_p.cpp#L227-L237
         # Created too many similar notifications in quick succession
         "org.freedesktop.Notifications.Error.ExcessNotificationGeneration",
+
+        # From https://crashes.qutebrowser.org/view/b8c9838a - probably when
+        # notification daemon crashes?
+        "org.freedesktop.DBus.Error.Spawn.ChildSignaled",
     }
 
     def __init__(self, parent: QObject = None) -> None:
-        super().__init__(bridge)
+        super().__init__(parent)
         assert _notifications_supported()
 
         if utils.is_windows:
@@ -947,8 +967,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         icon = qt_notification.icon()
         if icon.isNull():
-            filename = ':/icons/qutebrowser-64x64.png'
-            icon = QImage(filename)
+            filename = 'icons/qutebrowser-64x64.png'
+            icon = QImage.fromData(resources.read_file_binary(filename))
 
         key = self._quirks.icon_key or "image-data"
         data = self._convert_image(icon)

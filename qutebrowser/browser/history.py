@@ -405,6 +405,7 @@ class WebHistory(sql.SqlTable):
 
         Args:
             url: A url (as QUrl) to add to the history.
+            title: The tab title to add.
             redirect: Whether the entry was redirected to another URL
                       (hidden in completion)
             atime: Override the atime used to add the entry

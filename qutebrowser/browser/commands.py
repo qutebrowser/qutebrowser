@@ -417,17 +417,18 @@ class CommandDispatcher:
                 yield parsed
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_clone(self, bg=False, window=False):
+    def tab_clone(self, bg=False, window=False, private=False):
         """Duplicate the current tab.
 
         Args:
             bg: Open in a background tab.
             window: Open in a new window.
+            private: Open in a new private window.
 
         Return:
             The new QWebView.
         """
-        cmdutils.check_exclusive((bg, window), 'bw')
+        cmdutils.check_exclusive((bg, window, private), 'bwp')
         curtab = self._current_widget()
         cur_title = self._tabbed_browser.widget.page_title(
             self._current_index())
@@ -438,9 +439,9 @@ class CommandDispatcher:
 
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs.tabs_are_windows being set)
-        if window:
+        if window or private:
             new_tabbed_browser = self._new_tabbed_browser(
-                private=self._tabbed_browser.is_private)
+                private=self._tabbed_browser.is_private or private)
         else:
             new_tabbed_browser = self._tabbed_browser
         newtab = new_tabbed_browser.tabopen(background=bg)
@@ -484,7 +485,7 @@ class CommandDispatcher:
 
         self._open(tab.url(), tab=True)
         if not keep:
-            tabbed_browser.close_tab(tab, add_undo=False)
+            tabbed_browser.close_tab(tab, add_undo=False, transfer=True)
 
     def _tree_tab_give(self, tabbed_browser, keep):
         """Helper function to simplify tab-give."""
@@ -511,7 +512,8 @@ class CommandDispatcher:
         if not keep:
             for _node in traversed:
                 self._tabbed_browser.close_tab(self._current_widget(),
-                                               add_undo=False)
+                                               add_undo=False,
+                                               transfer=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
@@ -565,7 +567,8 @@ class CommandDispatcher:
             tabbed_browser.tabopen(self._current_url())
             if not keep:
                 self._tabbed_browser.close_tab(self._current_widget(),
-                                               add_undo=False)
+                                               add_undo=False,
+                                               transfer=True)
 
     def _back_forward(self, tab, bg, window, count, forward, index=None):
         """Helper function for :back/:forward."""
@@ -1126,11 +1129,10 @@ class CommandDispatcher:
             raise cmdutils.CommandError("There's no tab with index {}!".format(
                 index))
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['+', '-'])
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_move(self, index: Union[str, int] = None,
-                 count: int = None) -> None:
+    @cmdutils.register(instance="command-dispatcher", scope="window")
+    @cmdutils.argument("index", choices=["+", "-", "start", "end"])
+    @cmdutils.argument("count", value=cmdutils.Value.count)
+    def tab_move(self, index: Union[str, int] = None, count: int = None) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1139,13 +1141,14 @@ class CommandDispatcher:
             index: `+` or `-` to move relative to the current tab by
                    count, or a default of 1 space.
                    A tab index to move to that index.
+                   `start` and `end` to move to the start and the end.
             count: If moving relatively: Offset.
                    If moving absolutely: New position (default: 0). This
                    overrides the index argument, if given.
         """
         # pylint: disable=invalid-unary-operand-type
         # https://github.com/PyCQA/pylint/issues/1472
-        if index in ['+', '-']:
+        if index in ["+", "-"]:
             # relative moving
             new_idx = self._current_index()
             delta = 1 if count is None else count
@@ -1169,8 +1172,13 @@ class CommandDispatcher:
                 if config.val.tabs.wrap:
                     new_idx %= self._count()
         else:
+            # pylint: disable=else-if-used
             # absolute moving
-            if count is not None:
+            if index == "start":
+                new_idx = 0
+            elif index == "end":
+                new_idx = self._count() - 1
+            elif count is not None:
                 new_idx = count - 1
             elif index is not None:
                 assert isinstance(index, int)
@@ -1309,6 +1317,7 @@ class CommandDispatcher:
 
         idx = self._current_index()
         if idx != -1:
+            env['QUTE_TAB_INDEX'] = str(idx + 1)
             env['QUTE_TITLE'] = self._tabbed_browser.widget.page_title(idx)
 
         # FIXME:qtwebengine: If tab is None, run_async will fail!
@@ -1678,6 +1687,7 @@ class CommandDispatcher:
         Callback for GUIProcess when the edited text was updated.
 
         Args:
+            ed: The editor.ExternalEditor instance
             elem: The WebElementWrapper which was modified.
             text: The new text to insert.
         """

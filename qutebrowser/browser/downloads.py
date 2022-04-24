@@ -611,7 +611,11 @@ class AbstractDownloadItem(QObject):
             message.error(str(e))
 
     def url(self) -> QUrl:
-        """Get the download's origin URL."""
+        """Get the download's URL (i.e. where the file is downloaded from)."""
+        raise NotImplementedError
+
+    def origin(self) -> QUrl:
+        """Get the download's origin URL (i.e. the page starting the download)."""
         raise NotImplementedError
 
     def _get_open_filename(self):
@@ -818,6 +822,34 @@ class AbstractDownloadItem(QObject):
             return
         self.pdfjs_requested.emit(os.path.basename(filename),
                                   self.url())
+
+    def cancel_for_origin(self) -> bool:
+        """Cancel the download based on URL/origin.
+
+        For some special cases, we want to cancel downloads immediately, before
+        downloading:
+
+        - file:// downloads from file:// URLs (open the file instead)
+        - http:// downloads from https:// URLs (mixed content)
+        """
+        origin = self.origin()
+        url = self.url()
+        if not origin.isValid():
+            return False
+
+        if url.scheme() == "file" and origin.scheme() == "file":
+            utils.open_file(url.toLocalFile())
+            self.cancel()
+            return True
+
+        if (url.scheme() == "http" and
+                origin.isValid() and origin.scheme() == "https" and
+                config.instance.get("downloads.prevent_mixed_content", url=origin)):
+            self._die("Aborting insecure download from secure page "
+                      "(see downloads.prevent_mixed_content).")
+            return True
+
+        return False
 
     def set_target(self, target):
         """Set the target for a given download.
@@ -1320,6 +1352,7 @@ class TempDownloadManager:
             The tempfile.TemporaryDirectory that is used.
         """
         if self._tmpdir is None:
+            # pylint: disable=consider-using-with
             self._tmpdir = tempfile.TemporaryDirectory(
                 prefix='qutebrowser-downloads-')
         return self._tmpdir
@@ -1341,6 +1374,7 @@ class TempDownloadManager:
         suggested_name = utils.sanitize_filename(suggested_name)
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
+        # pylint: disable=consider-using-with
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix='_' + suggested_name)
         self.files.append(fobj)

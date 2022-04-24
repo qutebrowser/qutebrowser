@@ -101,7 +101,7 @@ def type_conv(param, typ, value, *, str_choices=None):
 
     Args:
         param: The argparse.Parameter we're checking
-        types: The allowed type
+        typ: The allowed type
         value: The value to convert
         str_choices: The allowed choices if the type ends up being a string
 

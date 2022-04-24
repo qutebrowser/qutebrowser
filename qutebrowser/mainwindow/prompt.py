@@ -536,9 +536,11 @@ class _BasePrompt(QWidget):
             self.KEY_MODE.name)
         labels = []
 
+        has_bindings = False
         for cmd, text in self._allowed_commands():
             bindings = all_bindings.get(cmd, [])
             if bindings:
+                has_bindings = True
                 binding = None
                 preferred = ['<enter>', '<escape>']
                 for pref in preferred:
@@ -547,8 +549,11 @@ class _BasePrompt(QWidget):
                 if binding is None:
                     binding = bindings[0]
                 key_label = QLabel('<b>{}</b>'.format(html.escape(binding)))
-                text_label = QLabel(text)
-                labels.append((key_label, text_label))
+            else:
+                key_label = QLabel(f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)')
+
+            text_label = QLabel(text)
+            labels.append((key_label, text_label))
 
         for i, (key_label, text_label) in enumerate(labels):
             self._key_grid.addWidget(key_label, i, 0)
@@ -558,6 +563,14 @@ class _BasePrompt(QWidget):
         self._key_grid.addItem(spacer, 0, 2)
 
         self._vbox.addLayout(self._key_grid)
+
+        if not has_bindings:
+            label = QLabel(
+                "<b>Note:</b> You seem to have unbound all keys for this prompt "
+                f"(<tt>{self.KEY_MODE.name}</tt> key mode)."
+                "<br/>Run <tt>qutebrowser :CMD</tt> with a command from above to "
+                "close this prompt, then fix this in your config.")
+            self._vbox.addWidget(label)
 
     def _check_save_support(self, save):
         if save:
@@ -795,7 +808,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore[arg-type]
+            QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -818,6 +831,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
         cmds = [
             ('prompt-accept', 'Accept'),
             ('mode-leave', 'Abort'),
+            ('rl-filename-rubout', "Go to parent directory"),
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),

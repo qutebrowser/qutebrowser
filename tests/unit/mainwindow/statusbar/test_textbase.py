@@ -79,11 +79,11 @@ def test_text_elide_none(mocker, qtbot):
     label = TextBase()
     qtbot.add_widget(label)
     label.setText('')
-    mocker.patch('qutebrowser.mainwindow.statusbar.textbase.TextBase.'
-                 'fontMetrics')
+    mock = mocker.patch(
+        'qutebrowser.mainwindow.statusbar.textbase.TextBase.fontMetrics')
     label._update_elided_text(20)
 
-    assert not label.fontMetrics.called
+    assert not mock.called
 
 
 def test_unset_text(qtbot):

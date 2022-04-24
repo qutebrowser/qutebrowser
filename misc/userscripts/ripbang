@@ -9,26 +9,22 @@
 #   :spawn --userscript ripbang amazon maps
 #
 
-from __future__ import print_function
 import os, re, requests, sys
-
-try:
-    from urllib.parse import unquote
-except ImportError:
-    from urllib import unquote
+from urllib.parse import urlparse, parse_qs
 
 for argument in sys.argv[1:]:
     bang = '!' + argument
     r = requests.get('https://duckduckgo.com/',
-                     params={'q': bang + ' SEARCHTEXT'})
+                     params={'q': bang + ' SEARCHTEXT'},
+                     headers={'user-agent': 'qutebrowser ripbang'})
 
-    searchengine = unquote(re.search("url=[^']+", r.text).group(0))
-    searchengine = searchengine.replace('url=', '')
-    searchengine = searchengine.replace('/l/?kh=-1&uddg=', '')
+    searchengine = re.search("url=([^']+)", r.text).group(1)
+    searchengine = urlparse(searchengine).query
+    searchengine = parse_qs(searchengine)['uddg'][0]
     searchengine = searchengine.replace('SEARCHTEXT', '{}')
 
     if os.getenv('QUTE_FIFO'):
         with open(os.environ['QUTE_FIFO'], 'w') as fifo:
-            fifo.write('set searchengines %s %s' % (bang, searchengine))
+            fifo.write('config-dict-add url.searchengines %s %s' % (bang, searchengine))
     else:
         print('%s %s' % (bang, searchengine))

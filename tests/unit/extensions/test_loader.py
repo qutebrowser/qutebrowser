@@ -35,14 +35,8 @@ def test_on_walk_error():
 
 
 def test_walk_normal():
-    names = [info.name for info in loader._walk_normal()]
+    names = [info.name for info in loader.walk_components()]
     assert 'qutebrowser.components.scrollcommands' in names
-
-
-def test_walk_pyinstaller():
-    # We can't test whether we get something back without being frozen by
-    # PyInstaller, but at least we can test that we don't crash.
-    list(loader._walk_pyinstaller())
 
 
 def test_load_component(monkeypatch):

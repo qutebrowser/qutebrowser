@@ -333,7 +333,7 @@ def main_check():
         subprocess.run([sys.executable, '-m', 'coverage', 'report',
                         '--show-missing', '--include', filters], check=True)
         print()
-        print("To debug this, run 'tox -e py36-pyqt515-cov' "
+        print("To debug this, run 'tox -e py39-pyqt515-cov' "
               "(replace Python/Qt versions based on your system) locally and check "
               "htmlcov/index.html")
         print("or check https://codecov.io/github/qutebrowser/qutebrowser")
@@ -353,7 +353,7 @@ def main_check_all():
     tests.
 
     This runs pytest with the used executable, so check_coverage.py should be
-    called with something like ./.tox/py36/bin/python.
+    called with something like ./.tox/py39/bin/python.
     """
     for test_file, src_file in PERFECT_FILES:
         if test_file is None:

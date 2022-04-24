@@ -206,12 +206,11 @@ class SessionManager(QObject):
 
         if item.title():
             data['title'] = item.title()
-        else:
+        elif tab.history.current_idx() == idx:
             # https://github.com/qutebrowser/qutebrowser/issues/879
-            if tab.history.current_idx() == idx:
-                data['title'] = tab.title()
-            else:
-                data['title'] = data['url']
+            data['title'] = tab.title()
+        else:
+            data['title'] = data['url']
 
         if item.originalUrl() != item.url():
             encoded = item.originalUrl().toEncoded()

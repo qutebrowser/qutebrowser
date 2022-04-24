@@ -110,6 +110,22 @@
         }
     }
 
+    // Based on GreaseMonkey:
+    // https://github.com/greasemonkey/greasemonkey/blob/4.11/src/bg/api-provider-source.js#L232-L249
+    function GM_setClipboard(text) {
+        function onCopy(event) {
+            document.removeEventListener('copy', onCopy, true);
+
+            event.stopImmediatePropagation();
+            event.preventDefault();
+
+            event.clipboardData.setData('text/plain', text);
+        }
+
+        document.addEventListener('copy', onCopy, true);
+        document.execCommand('copy');
+    }
+
     // Stub these two so that the gm4 polyfill script doesn't try to
     // create broken versions as attributes of window.
     function GM_getResourceText(caption, commandFunc, accessKey) {
@@ -126,6 +142,7 @@
     const entries = {
         'log': GM_log,
         'addStyle': GM_addStyle,
+        'setClipboard': GM_setClipboard,
         'deleteValue': GM_deleteValue,
         'getValue': GM_getValue,
         'listValues': GM_listValues,

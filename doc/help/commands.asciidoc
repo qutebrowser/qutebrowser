@@ -300,7 +300,7 @@ Cycle an option between multiple values.
 * +'values'+: The values to cycle through.
 
 ==== optional arguments
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
@@ -397,7 +397,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
@@ -685,9 +685,8 @@ Start hinting.
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
 
 * +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
- open multiple links. This is only possible with targets
- `tab` (with `tabs.background=true`), `tab-bg`,
- `window`, `run`, `hover`, `userscript` and `spawn`.
+ open multiple links. Note this won't work with targets
+ `tab-fg`, `fill`, `delete` and `right-click`.
 
 * +*-f*+, +*--first*+: Click the first hinted element without prompting.
 
@@ -1294,7 +1293,7 @@ If the option name ends with '?' or no value is provided, the value of the optio
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 
 [[set-cmd-text]]
 === set-cmd-text
@@ -1365,13 +1364,14 @@ The tab index to stop.
 
 [[tab-clone]]
 === tab-clone
-Syntax: +:tab-clone [*--bg*] [*--window*]+
+Syntax: +:tab-clone [*--bg*] [*--window*] [*--private*]+
 
 Duplicate the current tab.
 
 ==== optional arguments
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-p*+, +*--private*+: Open in a new private window.
 
 [[tab-close]]
 === tab-close
@@ -1445,6 +1445,7 @@ If neither is given, move it to the first position.
 ==== positional arguments
 * +'index'+: `+` or `-` to move relative to the current tab by count, or a default of 1 space.
  A tab index to move to that index.
+ `start` and `end` to move to the start and the end.
 
 
 ==== count
@@ -1757,13 +1758,13 @@ How many steps to zoom out.
 |<<rl-beginning-of-line,rl-beginning-of-line>>|Move to the start of the line.
 |<<rl-delete-char,rl-delete-char>>|Delete the character after the cursor.
 |<<rl-end-of-line,rl-end-of-line>>|Move to the end of the line.
+|<<rl-filename-rubout,rl-filename-rubout>>|Delete backwards using the OS path separator as boundary.
 |<<rl-forward-char,rl-forward-char>>|Move forward a character.
 |<<rl-forward-word,rl-forward-word>>|Move forward to the end of the next word.
 |<<rl-kill-line,rl-kill-line>>|Remove chars from the cursor to the end of the line.
 |<<rl-kill-word,rl-kill-word>>|Remove chars from the cursor to the end of the current word.
-|<<rl-unix-filename-rubout,rl-unix-filename-rubout>>|Remove chars from the cursor to the previous path separator.
+|<<rl-rubout,rl-rubout>>|Delete backwards using the given characters as boundaries.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
-|<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
 |<<selection-drop,selection-drop>>|Drop selection and keep selection mode enabled.
 |<<selection-reverse,selection-reverse>>|Swap the stationary and moving end of the current selection.
@@ -2015,6 +2016,12 @@ Move to the end of the line.
 
 This acts like readline's end-of-line.
 
+[[rl-filename-rubout]]
+=== rl-filename-rubout
+Delete backwards using the OS path separator as boundary.
+
+For behavior that matches readline's `unix-filename-rubout` exactly, use `:rl-rubout "/ "` instead. This command uses the OS path separator (i.e. `\` on Windows) and ignores spaces.
+
 [[rl-forward-char]]
 === rl-forward-char
 Move forward a character.
@@ -2039,23 +2046,23 @@ Remove chars from the cursor to the end of the current word.
 
 This acts like readline's kill-word.
 
-[[rl-unix-filename-rubout]]
-=== rl-unix-filename-rubout
-Remove chars from the cursor to the previous path separator.
+[[rl-rubout]]
+=== rl-rubout
+Syntax: +:rl-rubout 'delim'+
 
-This acts like readline's unix-filename-rubout.
+Delete backwards using the given characters as boundaries.
+
+With " ", this acts like readline's `unix-word-rubout`. With " /", this acts like readline's `unix-filename-rubout`, but consider using `:rl-filename-rubout` instead: It uses the OS path separator (i.e. `\` on Windows) and ignores spaces.
+
+==== positional arguments
+* +'delim'+: A string of characters (or a single character) until which text will be deleted.
+
 
 [[rl-unix-line-discard]]
 === rl-unix-line-discard
 Remove chars backward from the cursor to the beginning of the line.
 
 This acts like readline's unix-line-discard.
-
-[[rl-unix-word-rubout]]
-=== rl-unix-word-rubout
-Remove chars from the cursor to the beginning of the word.
-
-This acts like readline's unix-word-rubout. Whitespace is used as a word delimiter.
 
 [[rl-yank]]
 === rl-yank

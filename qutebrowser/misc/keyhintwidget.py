@@ -87,6 +87,7 @@ class KeyHintView(QLabel):
         """Show hints for the given prefix (or hide if prefix is empty).
 
         Args:
+            mode: The key mode to show the keyhints for.
             prefix: The current partial keystring.
         """
         match = re.fullmatch(r'(\d*)(.*)', prefix)

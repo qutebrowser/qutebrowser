@@ -334,7 +334,6 @@ def test_get_search_url_open_base_url(config_stub, url, host):
     Args:
         url: The "URL" to enter.
         host: The expected search machine host.
-        query: The expected search query.
     """
     config_stub.val.url.open_base_url = True
     url = urlutils._get_search_url(url)

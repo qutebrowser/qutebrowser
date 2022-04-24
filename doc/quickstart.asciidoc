@@ -33,8 +33,8 @@ image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/c
 `scripts/asciidoc2html.py` to generate the documentation.
 * Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it.
 * Subscribe to
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist] or
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[the announce-only mailinglist].
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[the mailinglist] or
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser-announce[the announce-only mailinglist].
 * Let me know what features you are missing or things that need (even small!)
 improvements.
 
@@ -52,7 +52,7 @@ or https://matrix.to/#qutebrowser:libera.chat[via Matrix])
 * On Reddit: https://www.reddit.com/r/qutebrowser/[/r/qutebrowser]
 * Via https://github.com/qutebrowser/qutebrowser/discussions[GitHub Discussions]
 * Using the mailinglist: mailto:qutebrowser@lists.qutebrowser.org[]
-(https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe])
+(https://listi.jpberlin.de/mailman/listinfo/qutebrowser[subscribe])
 
 Donating
 --------

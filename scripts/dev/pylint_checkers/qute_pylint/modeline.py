@@ -31,9 +31,9 @@ class ModelineChecker(checkers.BaseChecker):
     __implements__ = interfaces.IRawChecker
 
     name = 'modeline'
-    msgs = {'W9002': ('Does not have vim modeline', 'modeline-missing', None),
-            'W9003': ('Modeline is invalid', 'invalid-modeline', None),
-            'W9004': ('Modeline position is wrong', 'modeline-position', None)}
+    msgs = {'W9102': ('Does not have vim modeline', 'modeline-missing', None),
+            'W9103': ('Modeline is invalid', 'invalid-modeline', None),
+            'W9104': ('Modeline position is wrong', 'modeline-position', None)}
     options = ()
     priority = -1
 
