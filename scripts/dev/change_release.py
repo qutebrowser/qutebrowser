@@ -56,9 +56,9 @@ def change_release_description(release, filename, description):
     """Change a release description to the given new one."""
     assets = [asset for asset in release.assets() if asset.name == filename]
     if not assets:
-        raise Error("No assets found for {filename}")
+        raise Error(f"No assets found for {filename}")
     if len(assets) > 1:
-        raise Error("Multiple assets found for {filename}: {assets}")
+        raise Error(f"Multiple assets found for {filename}: {assets}")
 
     asset = assets[0]
     asset.edit(filename, description)

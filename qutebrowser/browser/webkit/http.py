@@ -159,7 +159,7 @@ def parse_content_disposition(reply):
         # os.path.basename later.
         try:
             value = bytes(reply.rawHeader(content_disposition_header))
-            log.network.debug("Parsing Content-Disposition: {value!r}")
+            log.network.debug(f"Parsing Content-Disposition: {value!r}")
             content_disposition = ContentDisposition.parse(value)
             filename = content_disposition.filename()
         except ContentDispositionError as e:
