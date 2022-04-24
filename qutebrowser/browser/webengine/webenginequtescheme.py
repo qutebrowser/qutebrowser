@@ -138,6 +138,6 @@ def init():
         assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QWebEngineUrlScheme(b'qute')
         scheme.setFlags(
-            QWebEngineUrlScheme.LocalScheme |  # type: ignore[arg-type]
+            QWebEngineUrlScheme.LocalScheme |
             QWebEngineUrlScheme.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

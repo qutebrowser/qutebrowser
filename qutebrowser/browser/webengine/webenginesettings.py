@@ -332,9 +332,9 @@ class ProfileSetter:
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     _global_settings.update_setting(option)
-    default_profile.setter.update_setting(option)
+    default_profile.setter.update_setting(option)  # type: ignore[attr-defined]
     if private_profile:
-        private_profile.setter.update_setting(option)
+        private_profile.setter.update_setting(option)  # type: ignore[attr-defined]
 
 
 def _init_user_agent_str(ua):
@@ -352,8 +352,9 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     This currently only contains the steps which are shared between a private and a
     non-private profile (at the moment, only the default profile).
     """
+    # FIXME:mypy subclass QWebEngineProfile instead?
     profile.setter = ProfileSetter(profile)  # type: ignore[attr-defined]
-    profile.setter.init_profile()
+    profile.setter.init_profile()  # type: ignore[attr-defined]
 
     _qute_scheme_handler.install(profile)
     _req_interceptor.install(profile)

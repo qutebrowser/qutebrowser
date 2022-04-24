@@ -63,8 +63,7 @@ class _QtFIFOReader(QObject):
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(cast(sip.voidptr, fd),
                                          QSocketNotifier.Read, self)
-        self._notifier.activated.connect(  # type: ignore[attr-defined]
-            self.read_line)
+        self._notifier.activated.connect(self.read_line)
 
     @pyqtSlot()
     def read_line(self):

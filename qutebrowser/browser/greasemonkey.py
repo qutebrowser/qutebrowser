@@ -380,7 +380,7 @@ class GreasemonkeyManager(QObject):
         """
         # See if we are still waiting on any required scripts for this one
         for dl in self._in_progress_dls:
-            if dl.requested_url in script.requires:
+            if dl.requested_url in script.requires:  # type: ignore[attr-defined]
                 return False
 
         # Need to add the required scripts to the IIFE now
@@ -414,6 +414,7 @@ class GreasemonkeyManager(QObject):
                                                   force_overwrite=True)
             download = download_manager.get(QUrl(url), target=target,
                                             auto_remove=True)
+            # FIXME:mypy Build this into downloads instead of patching here?
             download.requested_url = url
             self._in_progress_dls.append(download)
             if download.successful:

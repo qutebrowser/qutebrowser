@@ -784,7 +784,7 @@ class FilenamePrompt(_BasePrompt):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
+            QItemSelectionModel.ClearAndSelect |
             QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
 
@@ -808,7 +808,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)  # type: ignore[arg-type]
+            QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)

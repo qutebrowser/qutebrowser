@@ -29,6 +29,7 @@ from qutebrowser.commands import parser, cmdexc
 from qutebrowser.misc import objects, split
 from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.completion import completionwidget
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -74,10 +75,15 @@ class Completer(QObject):
     def __repr__(self):
         return utils.get_repr(self)
 
+    def _completion(self) -> completionwidget.CompletionView:
+        """Convenience method to get the current completion."""
+        completion = self.parent()
+        assert isinstance(completion, completionwidget.CompletionView), completion
+        return completion
+
     def _model(self):
         """Convenience method to get the current completion model."""
-        completion = self.parent()
-        return completion.model()
+        return self._completion().model()
 
     def _get_new_completion(self, before_cursor, under_cursor):
         """Get the completion function based on the current command text.
@@ -230,7 +236,7 @@ class Completer(QObject):
     @pyqtSlot()
     def _update_completion(self):
         """Check if completions are available and activate them."""
-        completion = self.parent()
+        completion = self._completion()
 
         if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete

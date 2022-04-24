@@ -26,7 +26,7 @@ import argparse
 from typing import TYPE_CHECKING, Any, Dict, Set, Union, cast
 
 if TYPE_CHECKING:
-    from PyQt5.QtWidgets import QApplication
+    from qutebrowser import app
     from qutebrowser.utils import usertypes
     from qutebrowser.commands import command
 
@@ -47,4 +47,4 @@ backend: Union['usertypes.Backend', NoBackend] = NoBackend()
 commands: Dict[str, 'command.Command'] = {}
 debug_flags: Set[str] = set()
 args = cast(argparse.Namespace, None)
-qapp = cast('QApplication', None)
+qapp = cast('app.Application', None)

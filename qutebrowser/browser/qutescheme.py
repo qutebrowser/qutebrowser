@@ -128,9 +128,7 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
     Return:
         A (mimetype, data) tuple.
     """
-    norm_url = url.adjusted(
-        QUrl.NormalizePathSegments |  # type: ignore[arg-type]
-        QUrl.StripTrailingSlash)
+    norm_url = url.adjusted(QUrl.NormalizePathSegments | QUrl.StripTrailingSlash)
     if norm_url != url:
         raise Redirect(norm_url)
 

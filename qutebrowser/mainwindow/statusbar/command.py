@@ -19,6 +19,7 @@
 
 """The commandline in the statusbar."""
 
+from typing import Optional
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtGui import QKeyEvent
@@ -240,7 +241,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
 
-    def setText(self, text: str) -> None:
+    def setText(self, text: Optional[str]) -> None:
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
             pass

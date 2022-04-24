@@ -22,13 +22,13 @@
 import functools
 import contextlib
 import dataclasses
-from typing import Optional, cast
+from typing import Optional, Dict, Any
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QStyleFactory, QWidget)
+                             QStyleFactory)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -76,16 +76,29 @@ class TabWidget(QTabWidget):
     @config.change_filter('tabs')
     def _init_config(self):
         """Initialize attributes based on the config."""
-        tabbar = self.tabBar()
         self.setMovable(True)
         self.setTabsClosable(False)
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
-        tabbar.vertical = position in [  # type: ignore[attr-defined]
-            QTabWidget.West, QTabWidget.East]
+
+        tabbar = self.tab_bar()
+        tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
+
+    def tab_bar(self) -> "TabBar":
+        """Get the TabBar for this TabWidget."""
+        bar = self.tabBar()
+        assert isinstance(bar, TabBar), bar
+        return bar
+
+    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
+        """Get the tab at the given index."""
+        tab = self.widget(idx)
+        if tab is not None:
+            assert isinstance(tab, browsertab.AbstractTab), tab
+        return tab
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
@@ -94,17 +107,17 @@ class TabWidget(QTabWidget):
             idx: The tab index.
             color: A QColor.
         """
-        bar = self.tabBar()
+        bar = self.tab_bar()
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
-        return self.tabBar().tab_indicator_color(idx)
+        return self.tab_bar().tab_indicator_color(idx)
 
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
-        tabbar = self.tabBar()
+        tabbar = self.tab_bar()
 
         if config.cache['tabs.tooltips']:
             # always show only plain title in tooltips
@@ -115,7 +128,7 @@ class TabWidget(QTabWidget):
 
     def page_title(self, idx):
         """Get the tab title user data."""
-        return self.tabBar().page_title(idx)
+        return self.tab_bar().page_title(idx)
 
     def update_tab_title(self, idx, field=None):
         """Update the tab text for the given tab.
@@ -126,7 +139,8 @@ class TabWidget(QTabWidget):
                    is only set if the given field is in the template.
         """
         assert idx != -1
-        tab = self.widget(idx)
+        tab = self._tab_by_idx(idx)
+        assert tab is not None
         if tab.data.pinned:
             fmt = config.cache['tabs.title.format_pinned']
         else:
@@ -142,7 +156,7 @@ class TabWidget(QTabWidget):
         def left_align(num):
             return str(num).ljust(len(str(self.count())))
 
-        bar = self.tabBar()
+        bar = self.tab_bar()
         cur_idx = bar.currentIndex()
         if idx == cur_idx:
             rel_idx = left_align(idx + 1) + " "
@@ -164,14 +178,12 @@ class TabWidget(QTabWidget):
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
-        tab = self.widget(idx)
-        if tab is None:
-            log.misc.debug(  # type: ignore[unreachable]
-                "Got None-tab in get_tab_fields!")
+        tab = self._tab_by_idx(idx)
+        assert tab is not None
 
         page_title = self.page_title(idx)
 
-        fields = {}
+        fields: Dict[str, Any] = {}
         fields['id'] = tab.tab_id
         fields['current_title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
@@ -206,9 +218,7 @@ class TabWidget(QTabWidget):
             fields['protocol'] = url.scheme()
 
         y = tab.scroller.pos_perc()[1]
-        if y is None:
-            scroll_pos = '???'
-        elif y <= 0:
+        if y <= 0:
             scroll_pos = 'top'
         elif y >= 100:
             scroll_pos = 'bot'
@@ -228,7 +238,7 @@ class TabWidget(QTabWidget):
         non-visible. To avoid flickering, disable repaint updates while we
         work.
         """
-        bar = self.tabBar()
+        bar = self.tab_bar()
         toggle = (self.count() > 10 and
                   not bar.drag_in_progress and
                   bar.isVisible())
@@ -317,7 +327,7 @@ class TabWidget(QTabWidget):
     @pyqtSlot(int)
     def _on_current_changed(self, index):
         """Emit the tab_index_changed signal if the current tab changed."""
-        self.tabBar().on_current_changed()
+        self.tab_bar().on_current_changed()
         self.update_tab_titles()
         self.tab_index_changed.emit(index, self.count())
 
@@ -332,16 +342,13 @@ class TabWidget(QTabWidget):
         Return:
             The tab URL as QUrl.
         """
-        tab = self.widget(idx)
-        if tab is None:
-            url = QUrl()  # type: ignore[unreachable]
-        else:
-            url = tab.url()
+        tab = self._tab_by_idx(idx)
+        url = QUrl() if tab is None else tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: QWidget) -> None:
+    def update_tab_favicon(self, tab: browsertab.AbstractTab) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
@@ -353,11 +360,11 @@ class TabWidget(QTabWidget):
 
     def setTabIcon(self, idx: int, icon: QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
-        tab = cast(Optional[browsertab.AbstractTab], self.widget(idx))
+        tab = self._tab_by_idx(idx)
         if (icon.isNull() and
                 config.cache['tabs.favicons.show'] != 'never' and
                 config.cache['tabs.pinned.shrink'] and
-                not self.tabBar().vertical and
+                not self.tab_bar().vertical and
                 tab is not None and tab.data.pinned):
             icon = self.style().standardIcon(QStyle.SP_FileIcon)
         super().setTabIcon(idx, icon)
@@ -404,7 +411,10 @@ class TabBar(QTabBar):
         self._auto_hide_timer.timeout.connect(self.maybe_hide)
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
-        self.drag_in_progress = False
+        # FIXME:mypy Is it a mypy bug that we need to specify bool here?
+        # Otherwise, we get "Cannot determine type of "drag_in_progress" in
+        # TabWidget._toggle_visibility below.
+        self.drag_in_progress: bool = False
         stylesheet.set_register(self)
         self.ensurePolished()
         config.instance.changed.connect(self._on_config_changed)
@@ -423,9 +433,15 @@ class TabBar(QTabBar):
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
+    def _tab_widget(self):
+        """Get the TabWidget we're in."""
+        parent = self.parent()
+        assert isinstance(parent, TabWidget), parent
+        return parent
+
     def _current_tab(self):
         """Get the current tab object."""
-        return self.parent().currentWidget()
+        return self._tab_widget().currentWidget()
 
     @pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
@@ -627,7 +643,7 @@ class TabBar(QTabBar):
             raise IndexError("Tab index ({}) out of range ({})!".format(
                 index, self.count()))
 
-        widget = self.parent().widget(index)
+        widget = self._tab_widget().widget(index)
         if widget is None:
             # This could happen when Qt calls tabSizeHint while initializing
             # tabs.

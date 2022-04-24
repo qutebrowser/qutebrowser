@@ -42,7 +42,7 @@ class _ReadlineBridge:
         """Get the currently active QLineEdit."""
         # FIXME add this to api.utils or so
         qapp = QApplication.instance()
-        assert qapp is not None
+        assert isinstance(qapp, QApplication), qapp
         w = qapp.focusWidget()
 
         if isinstance(w, QLineEdit):

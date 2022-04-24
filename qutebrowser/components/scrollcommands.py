@@ -19,6 +19,7 @@
 
 """Scrolling-related commands."""
 
+from typing import Dict, Callable
 from qutebrowser.api import cmdutils, apitypes
 
 
@@ -54,7 +55,8 @@ def scroll(tab: apitypes.Tab, direction: str, count: int = 1) -> None:
                     (up/down/left/right/top/bottom).
         count: multiplier
     """
-    funcs = {
+    # FIXME:mypy Use a callback protocol to enforce having 'count'?
+    funcs: Dict[str, Callable[..., None]] = {
         'up': tab.scroller.up,
         'down': tab.scroller.down,
         'left': tab.scroller.left,

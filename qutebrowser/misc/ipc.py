@@ -191,8 +191,7 @@ class IPCServer(QObject):
             self._atime_timer.setTimerType(Qt.VeryCoarseTimer)
 
         self._server = QLocalServer(self)
-        self._server.newConnection.connect(  # type: ignore[attr-defined]
-            self.handle_connection)
+        self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
         self._old_socket = None
@@ -270,18 +269,16 @@ class IPCServer(QObject):
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
         self._socket = socket
         self._timer.start()
-        socket.readyRead.connect(  # type: ignore[attr-defined]
-            self.on_ready_read)
+        socket.readyRead.connect(self.on_ready_read)
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
-        socket.error.connect(self.on_error)  # type: ignore[attr-defined]
-        if socket.error() not in [QLocalSocket.UnknownSocketError,
-                                  QLocalSocket.PeerClosedError]:
+        socket.error.connect(self.on_error)
+        if socket.error() not in [  # type: ignore[operator]
+                QLocalSocket.UnknownSocketError, QLocalSocket.PeerClosedError]:
             log.ipc.debug("We got an error immediately.")
-            self.on_error(socket.error())
-        socket.disconnected.connect(  # type: ignore[attr-defined]
-            self.on_disconnected)
+            self.on_error(socket.error())  # type: ignore[operator]
+        socket.disconnected.connect(self.on_disconnected)
         if socket.state() == QLocalSocket.UnconnectedState:
             log.ipc.debug("Socket was disconnected immediately.")
             self.on_disconnected()

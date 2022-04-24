@@ -109,7 +109,9 @@ class WebView(QWebView):
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
-        self.page().shutdown()
+        page = self.page()
+        assert isinstance(page, webpage.BrowserPage), page
+        page.shutdown()
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.

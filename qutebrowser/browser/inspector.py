@@ -22,7 +22,7 @@
 import base64
 import binascii
 import enum
-from typing import cast, Optional
+from typing import cast, Optional, Union, TYPE_CHECKING
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
@@ -33,6 +33,14 @@ from qutebrowser.config import configfiles
 from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
+
+if TYPE_CHECKING:
+    from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage
+    from qutebrowser.browser.webengine import webengineinspector
+
+
+_WidgetType = Union["QWebInspector", "webengineinspector.WebEngineInspectorView"]
 
 
 class Position(enum.Enum):
@@ -93,7 +101,7 @@ class AbstractWebInspector(QWidget):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
         self._position: Optional[Position] = None
@@ -105,7 +113,7 @@ class AbstractWebInspector(QWidget):
             eventfilter=self._event_filter,
             parent=self)
 
-    def _set_widget(self, widget: QWidget) -> None:
+    def _set_widget(self, widget: _WidgetType) -> None:
         self._widget = widget
         self._widget.setWindowTitle("Web Inspector")
         self._widget.installEventFilter(self._child_event_filter)
@@ -198,7 +206,7 @@ class AbstractWebInspector(QWidget):
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['inspector']['window'] = geom
 
-    def inspect(self, page: QWidget) -> None:
+    def inspect(self, page: Union["QWebPage", "QWebEnginePage"]) -> None:
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 

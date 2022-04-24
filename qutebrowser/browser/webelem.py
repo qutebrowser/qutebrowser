@@ -19,7 +19,7 @@
 
 """Generic web element related code."""
 
-from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
+from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union, Dict
 import collections.abc
 
 from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
@@ -345,18 +345,19 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        target_modifiers = {
-            usertypes.ClickTarget.normal: Qt.NoModifier,
+        target_modifiers: Dict[usertypes.ClickTarget, Qt.KeyboardModifiers] = {
+            usertypes.ClickTarget.normal: cast(Qt.KeyboardModifiers, Qt.NoModifier),
             usertypes.ClickTarget.window: Qt.AltModifier | Qt.ShiftModifier,
-            usertypes.ClickTarget.tab: Qt.ControlModifier,
-            usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
+            usertypes.ClickTarget.tab: cast(Qt.KeyboardModifiers, Qt.ControlModifier),
+            usertypes.ClickTarget.tab_bg:
+                cast(Qt.KeyboardModifiers, Qt.ControlModifier),
         }
         if config.val.tabs.background:
             target_modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
         else:
             target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
 
-        modifiers = cast(Qt.KeyboardModifiers, target_modifiers[click_target])
+        modifiers = target_modifiers[click_target]
 
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier),

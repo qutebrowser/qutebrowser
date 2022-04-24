@@ -86,6 +86,15 @@ class DownloadView(QListView):
             count = model.rowCount()
         return utils.get_repr(self, count=count)
 
+    def _model(self) -> downloads.DownloadModel:
+        """Get the current download model.
+
+        Ensures the model is not None.
+        """
+        model = self.model()
+        assert isinstance(model, downloads.DownloadModel), model
+        return model
+
     @pyqtSlot()
     def _update_geometry(self):
         """Wrapper to call updateGeometry.
@@ -112,7 +121,7 @@ class DownloadView(QListView):
         """
         if not index.isValid():
             return
-        item = self.model().data(index, downloads.ModelRole.item)
+        item = self._model().data(index, downloads.ModelRole.item)
         if item.done and item.successful:
             item.open_file()
             item.remove()
@@ -126,7 +135,7 @@ class DownloadView(QListView):
         Args:
             item: The DownloadItem to get the actions for, or None.
         """
-        model = self.model()
+        model = self._model()
         actions: _ActionListType = []
         if item is None:
             pass
@@ -154,7 +163,7 @@ class DownloadView(QListView):
         """Show the context menu."""
         index = self.indexAt(point)
         if index.isValid():
-            item = self.model().data(index, downloads.ModelRole.item)
+            item = self._model().data(index, downloads.ModelRole.item)
         else:
             item = None
         self._menu = QMenu(self)
@@ -176,7 +185,7 @@ class DownloadView(QListView):
 
     def sizeHint(self):
         """Return sizeHint based on the view contents."""
-        idx = self.model().last_index()
+        idx = self._model().last_index()
         bottom = self.visualRect(idx).bottom()
         if bottom != -1:
             margins = self.contentsMargins()

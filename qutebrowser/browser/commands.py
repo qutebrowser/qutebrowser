@@ -913,6 +913,7 @@ class CommandDispatcher:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(
                     "No window specified and couldn't find active window!")
+            assert isinstance(active_win, mainwindow.MainWindow), active_win
             win_id = active_win.win_id
 
         if win_id not in objreg.window_registry:

@@ -24,7 +24,7 @@ import itertools
 import functools
 import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union)
+                    Sequence, Set, Type, Union, Tuple)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect)
@@ -35,12 +35,12 @@ from PyQt5.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
     from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
-    from PyQt5.QtWebKitWidgets import QWebPage
+    from PyQt5.QtWebKitWidgets import QWebPage, QWebView
     from PyQt5.QtWebEngineWidgets import (
-        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
+        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage, QWebEngineView)
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message, jinja)
 from qutebrowser.misc import miscwidgets, objects, sessions
@@ -53,6 +53,7 @@ if TYPE_CHECKING:
 
 
 tab_id_gen = itertools.count(0)
+_WidgetType = Union["QWebView", "QWebEngineView"]
 
 
 def create(win_id: int,
@@ -156,7 +157,7 @@ class AbstractAction:
     action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def exit_fullscreen(self) -> None:
@@ -172,6 +173,7 @@ class AbstractAction:
         member = getattr(self.action_class, name, None)
         if not isinstance(member, self.action_base):
             raise WebTabError("{} is not a valid web action!".format(name))
+        assert member is not None  # for mypy
         self._widget.triggerPageAction(member)
 
     def show_source(self, pygments: bool = False) -> None:
@@ -229,7 +231,7 @@ class AbstractPrinting:
     """Attribute ``printing`` of AbstractTab for printing the page."""
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def check_pdf_support(self) -> None:
@@ -308,7 +310,7 @@ class AbstractSearch(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self.text: Optional[str] = None
         self.search_displayed = False
 
@@ -372,7 +374,7 @@ class AbstractZoom(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         # Whether zoom was changed from the default.
         self._default_zoom_changed = False
         self._init_neighborlist()
@@ -466,7 +468,7 @@ class AbstractCaret(QObject):
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
@@ -559,7 +561,7 @@ class AbstractScroller(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         if 'log-scroll-pos' in objects.debug_flags:
             self.perc_changed.connect(self._log_scroll_pos_change)
 
@@ -568,16 +570,16 @@ class AbstractScroller(QObject):
         log.webview.vdebug(  # type: ignore[attr-defined]
             "Scroll position changed to {}".format(self.pos_px()))
 
-    def _init_widget(self, widget: QWidget) -> None:
+    def _init_widget(self, widget: _WidgetType) -> None:
         self._widget = widget
 
-    def pos_px(self) -> int:
+    def pos_px(self) -> QPoint:
         raise NotImplementedError
 
-    def pos_perc(self) -> int:
+    def pos_perc(self) -> Tuple[int, int]:
         raise NotImplementedError
 
-    def to_perc(self, x: int = None, y: int = None) -> None:
+    def to_perc(self, x: float = None, y: float = None) -> None:
         raise NotImplementedError
 
     def to_point(self, point: QPoint) -> None:
@@ -626,6 +628,8 @@ class AbstractScroller(QObject):
 class AbstractHistoryPrivate:
 
     """Private API related to the history."""
+
+    _history: Union["QWebHistory", "QWebEngineHistory"]
 
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
@@ -711,7 +715,7 @@ class AbstractElements:
     _ErrorCallback = Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def find_css(self, selector: str,
@@ -772,7 +776,7 @@ class AbstractAudio(QObject):
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
@@ -804,11 +808,11 @@ class AbstractTabPrivate:
 
     def __init__(self, mode_manager: modeman.ModeManager,
                  tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
         self._mode_manager = mode_manager
 
-    def event_target(self) -> QWidget:
+    def event_target(self) -> Optional[QWidget]:
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
@@ -848,7 +852,7 @@ class AbstractTabPrivate:
     def shutdown(self) -> None:
         raise NotImplementedError
 
-    def run_js_sync(self, code: str) -> None:
+    def run_js_sync(self, code: str) -> Any:
         """Run javascript sync.
 
         Result will be returned when running JS is complete.
@@ -867,7 +871,7 @@ class AbstractTabPrivate:
         self._tab.data.inspector = None
         self.toggle_inspector(inspector.Position.window)
 
-    def toggle_inspector(self, position: inspector.Position) -> None:
+    def toggle_inspector(self, position: Optional[inspector.Position]) -> None:
         """Show/hide (and if needed, create) the web inspector for this tab."""
         tabdata = self._tab.data
         if tabdata.inspector is None:
@@ -944,6 +948,19 @@ class AbstractTab(QWidget):
     # for a given hostname anyways.
     _insecure_hosts: Set[str] = set()
 
+    # Sub-APIs initialized by subclasses
+    history: AbstractHistory
+    scroller: AbstractScroller
+    caret: AbstractCaret
+    zoom: AbstractZoom
+    search: AbstractSearch
+    printing: AbstractPrinting
+    action: AbstractAction
+    elements: AbstractElements
+    audio: AbstractAudio
+    private_api: AbstractTabPrivate
+    settings: websettings.AbstractSettings
+
     def __init__(self, *, win_id: int,
                  mode_manager: 'modeman.ModeManager',
                  private: bool,
@@ -962,7 +979,7 @@ class AbstractTab(QWidget):
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._progress = 0
         self._load_status = usertypes.LoadStatus.none
         self._tab_event_filter = eventfilter.TabEventFilter(
@@ -976,7 +993,7 @@ class AbstractTab(QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
-    def _set_widget(self, widget: QWidget) -> None:
+    def _set_widget(self, widget: Union["QWebView", "QWebEngineView"]) -> None:
         # pylint: disable=protected-access
         self._widget = widget
         self.data.splitter = miscwidgets.InspectorSplitter(
@@ -1195,7 +1212,7 @@ class AbstractTab(QWidget):
     def title(self) -> str:
         raise NotImplementedError
 
-    def icon(self) -> None:
+    def icon(self) -> QIcon:
         raise NotImplementedError
 
     def set_html(self, html: str, base_url: QUrl = QUrl()) -> None:

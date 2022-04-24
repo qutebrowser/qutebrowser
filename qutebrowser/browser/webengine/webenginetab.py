@@ -29,8 +29,8 @@ from typing import cast, Union, Optional
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
                           QObject)
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
+from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineView, QWebEngineScript,
+                                      QWebEngineHistory)
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -57,6 +57,8 @@ class WebEngineAction(browsertab.AbstractAction):
 
     """QtWebEngine implementations related to web actions."""
 
+    _widget: webview.WebEngineView
+
     action_class = QWebEnginePage
     action_base = QWebEnginePage.WebAction
 
@@ -78,6 +80,8 @@ class WebEngineAction(browsertab.AbstractAction):
 class WebEnginePrinting(browsertab.AbstractPrinting):
 
     """QtWebEngine implementations related to printing."""
+
+    _widget: webview.WebEngineView
 
     def check_pdf_support(self):
         pass
@@ -191,6 +195,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
+    _widget: webview.WebEngineView
+
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._flags = self._empty_flags()
@@ -199,7 +205,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._wrap_handler = _WebEngineSearchWrapHandler()
 
     def _empty_flags(self):
-        return QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
+        return QWebEnginePage.FindFlags(0)
 
     def _args_to_flags(self, reverse, ignore_case):
         flags = self._empty_flags()
@@ -275,8 +281,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebEnginePage.FindFlags(
-            int(self._flags))  # type: ignore[call-overload]
+        flags = QWebEnginePage.FindFlags(int(self._flags))
         if flags & QWebEnginePage.FindBackward:
             if self._wrap_handler.prevent_wrapping(going_up=False):
                 return
@@ -492,6 +497,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
 class WebEngineScroller(browsertab.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
+
+    _widget: webview.WebEngineView
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
@@ -713,6 +720,8 @@ class WebEngineZoom(browsertab.AbstractZoom):
 
     """QtWebEngine implementations related to zooming."""
 
+    _widget: webview.WebEngineView
+
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
 
@@ -799,6 +808,8 @@ class WebEngineAudio(browsertab.AbstractAudio):
                      If that's the case, we leave it alone.
     """
 
+    _widget: webview.WebEngineView
+
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._overridden = False
@@ -870,6 +881,8 @@ class _WebEnginePermissions(QObject):
 
     """Handling of various permission-related signals."""
 
+    _widget: webview.WebEngineView
+
     # Using 0 as WORKAROUND for:
     # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
 
@@ -898,7 +911,7 @@ class _WebEnginePermissions(QObject):
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(webview.WebEngineView, None)
         assert self._options.keys() == self._messages.keys()
 
     def connect_signals(self):
@@ -1033,10 +1046,12 @@ class _Quirk:
 
 class _WebEngineScripts(QObject):
 
+    _widget: webview.WebEngineView
+
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(webview.WebEngineView, None)
         self._greasemonkey = greasemonkey.gm_manager
 
     def connect_signals(self):
@@ -1240,6 +1255,8 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
     """QtWebEngine-related methods which aren't part of the public API."""
 
+    _widget: webview.WebEngineView
+
     def networkaccessmanager(self):
         return None
 
@@ -1274,6 +1291,10 @@ class WebEngineTab(browsertab.AbstractTab):
     """
 
     abort_questions = pyqtSignal()
+
+    _widget: QWebEngineView
+    search: WebEngineSearch
+    audio: WebEngineAudio
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,
@@ -1685,6 +1706,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _connect_signals(self):
         view = self._widget
         page = view.page()
+        assert isinstance(page, webview.WebEnginePage), page
 
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)

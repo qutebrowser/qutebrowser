@@ -30,6 +30,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
+from qutebrowser.completion.models import completionmodel
 from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
 if TYPE_CHECKING:
@@ -148,6 +149,15 @@ class CompletionView(QTreeView):
     def __repr__(self):
         return utils.get_repr(self)
 
+    def _model(self) -> completionmodel.CompletionModel:
+        """Get the current completion model.
+
+        Ensures the model is not None.
+        """
+        model = self.model()
+        assert isinstance(model, completionmodel.CompletionModel), model
+        return model
+
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['completion.height', 'completion.shrink']:
@@ -158,7 +168,7 @@ class CompletionView(QTreeView):
         if self.model() is None:
             return
         width = self.size().width()
-        column_widths = self.model().column_widths
+        column_widths = self._model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
         delta = self.verticalScrollBar().sizeHint().width()
@@ -182,21 +192,22 @@ class CompletionView(QTreeView):
         Return:
             A QModelIndex.
         """
+        model = self._model()
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
             if upwards:
-                return self.model().last_item()
+                return model.last_item()
             else:
-                return self.model().first_item()
+                return model.first_item()
 
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
-                return self.model().last_item()
+                return model.last_item()
             elif not idx.isValid() and not upwards:
-                idx = self.model().first_item()
+                idx = model.first_item()
                 self.scrollTo(idx.parent())
                 return idx
             elif idx.parent().isValid():
@@ -216,7 +227,7 @@ class CompletionView(QTreeView):
         """
         old_idx = self.selectionModel().currentIndex()
         idx = old_idx
-        model = self.model()
+        model = self._model()
 
         if not idx.isValid():
             # No item selected yet
@@ -259,6 +270,7 @@ class CompletionView(QTreeView):
             A QModelIndex.
         """
         idx = self.selectionModel().currentIndex()
+        model = self._model()
         if not idx.isValid():
             return self._next_idx(upwards).sibling(0, 0)
         idx = idx.parent()
@@ -267,10 +279,10 @@ class CompletionView(QTreeView):
             idx = idx.sibling(idx.row() + direction, 0)
             if not idx.isValid() and upwards:
                 # wrap around to the first item of the last category
-                return self.model().last_item().sibling(0, 0)
+                return model.last_item().sibling(0, 0)
             elif not idx.isValid() and not upwards:
                 # wrap around to the first item of the first category
-                idx = self.model().first_item()
+                idx = model.first_item()
                 self.scrollTo(idx.parent())
                 return idx
             elif idx.isValid() and idx.child(0, 0).isValid():
@@ -327,7 +339,7 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
+            QItemSelectionModel.ClearAndSelect |
             QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more
@@ -335,7 +347,7 @@ class CompletionView(QTreeView):
         if not self.visualRect(next_idx).isValid():
             self.expandAll()
 
-        count = self.model().count()
+        count = self._model().count()
         if count == 0:
             self.hide()
         elif count == 1 and config.val.completion.quick:
@@ -382,14 +394,14 @@ class CompletionView(QTreeView):
             return
         self.pattern = pattern
         with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
-            self.model().set_pattern(pattern)
+            self._model().set_pattern(pattern)
             self.selectionModel().clear()
             self._maybe_update_geometry()
             self._maybe_show()
 
     def _maybe_show(self):
         if (config.val.completion.show == 'always' and
-                self.model().count() > 0):
+                self._model().count() > 0):
             self.show()
         else:
             self.hide()
@@ -435,7 +447,7 @@ class CompletionView(QTreeView):
         indexes = selected.indexes()
         if not indexes:
             return
-        data = str(self.model().data(indexes[0]))
+        data = str(self._model().data(indexes[0]))
         self.selection_changed.emit(data)
 
     def resizeEvent(self, e):
@@ -458,7 +470,7 @@ class CompletionView(QTreeView):
         index = self.currentIndex()
         if not index.isValid():
             raise cmdutils.CommandError("No item selected!")
-        self.model().delete_cur_item(index)
+        self._model().delete_cur_item(index)
 
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -473,7 +485,7 @@ class CompletionView(QTreeView):
             index = self.currentIndex()
             if not index.isValid():
                 raise cmdutils.CommandError("No item selected!")
-            text = self.model().data(index)
+            text = self._model().data(index)
 
         if not utils.supports_selection():
             sel = False

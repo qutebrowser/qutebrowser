@@ -31,6 +31,8 @@ class WebKitInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebKit."""
 
+    _widget = QWebInspector
+
     def __init__(self, splitter: miscwidgets.InspectorSplitter,
                  win_id: int,
                  parent: QWidget = None) -> None:
@@ -38,7 +40,7 @@ class WebKitInspector(inspector.AbstractWebInspector):
         qwebinspector = QWebInspector()
         self._set_widget(qwebinspector)
 
-    def inspect(self, page: QWebPage) -> None:  # type: ignore[override]
+    def inspect(self, page: QWebPage) -> None:
         settings = QWebSettings.globalSettings()
         settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)

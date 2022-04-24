@@ -288,7 +288,7 @@ class NotificationBridgePresenter(QObject):
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification
 
-        qt_notification.closed.connect(  # type: ignore[attr-defined]
+        qt_notification.closed.connect(
             functools.partial(self._adapter.on_web_closed, notification_id))
 
     def _find_replaces_id(
@@ -632,6 +632,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
             self.close_id.emit(pid)
         else:
             proc = self.sender()
+            assert isinstance(proc, QProcess), proc
             stderr = proc.readAllStandardError()
             raise Error(f'herbe exited with status {code}: {stderr}')
 
@@ -757,8 +758,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             QDBusServiceWatcher.WatchForUnregistration,
             self,
         )
-        self._watcher.serviceUnregistered.connect(  # type: ignore[attr-defined]
-            self._on_service_unregistered)
+        self._watcher.serviceUnregistered.connect(self._on_service_unregistered)
 
         test_service = 'test-notification-service' in objects.debug_flags
         service = self.TEST_SERVICE if test_service else self.SERVICE

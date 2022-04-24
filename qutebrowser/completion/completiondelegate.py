@@ -33,6 +33,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 
 from qutebrowser.config import config
 from qutebrowser.utils import qtutils
+from qutebrowser.completion import completionwidget
 
 
 class _Highlighter(QSyntaxHighlighter):
@@ -233,6 +234,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         if index.parent().isValid():
             view = self.parent()
+            assert isinstance(view, completionwidget.CompletionView), view
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
@@ -299,7 +301,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
         qtutils.ensure_valid(size)
-        return size + QSize(10, 3)  # type: ignore[operator]
+        return size + QSize(10, 3)
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function.
