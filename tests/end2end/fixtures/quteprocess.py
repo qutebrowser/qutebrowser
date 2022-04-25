@@ -597,11 +597,11 @@ class QuteProc(testprocess.Process):
             raise ValueError("Either both x/y or neither must be given!")
 
         if x is None and y is None:
-            point = 'qutebrowser.qt.QtCore.QPoint(*, *)'  # not counting 0/0 here
+            point = '*.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':
-            point = 'qutebrowser.qt.QtCore.QPoint()'
+            point = '*.QtCore.QPoint()'
         else:
-            point = 'qutebrowser.qt.QtCore.QPoint({}, {})'.format(x, y)
+            point = '*.QtCore.QPoint({}, {})'.format(x, y)
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
