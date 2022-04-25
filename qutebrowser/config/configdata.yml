@@ -239,6 +239,9 @@ qt.force_platformtheme:
     based on the desktop environment.
 
 qt.process_model:
+  renamed: qt.chromium.process_model
+
+qt.chromium.process_model:
   type:
     name: String
     valid_values:
@@ -268,6 +271,9 @@ qt.process_model:
       - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
 
 qt.low_end_device_mode:
+  renamed: qt.chromium.low_end_device_mode
+
+qt.chromium.low_end_device_mode:
   type:
     name: String
     valid_values:
@@ -283,6 +289,39 @@ qt.low_end_device_mode:
 
     This improves the RAM usage of renderer processes, at the expense of
     performance.
+
+qt.chromium.sandboxing:
+  type:
+    name: String
+    valid_values:
+      - enable-all: Enable all available sandboxing mechanisms.
+      - disable-seccomp-bpf: Disable the Seccomp BPF filter sandbox (Linux only).
+      - disable-all: Disable all sandboxing (**not recommended!**).
+  default: enable-all
+  backend: QtWebEngine
+  restart: true
+  no_autoconfig: true  # due to it being dangerous
+  # yamllint disable rule:line-length
+  desc: >-
+    What sandboxing mechanisms in Chromium to use.
+
+    Chromium has various sandboxing layers, which should be enabled for normal
+    browser usage. Mainly for testing and development, it's possible to disable
+    individual sandboxing layers via this setting.
+
+    Open `chrome://sandbox` to see the current sandbox status.
+
+    Changing this setting is only recommended if you know what you're doing, as
+    it **disables one of Chromium's security layers**. To avoid sandboxing being
+    accidentally disabled persistently, this setting can only be set via
+    `config.py`, not via `:set`.
+
+    See the Chromium documentation for more details:
+
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
+  # yamllint enable rule:line-length
 
 qt.highdpi:
   type: Bool
@@ -616,6 +655,7 @@ content.headers.custom:
     valtype:
       name: String
       encoding: ascii
+      none_ok: true
     none_ok: true
   supports_pattern: true
   desc: Custom headers for qutebrowser HTTP requests.
@@ -679,14 +719,14 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/90.0.4430.93 Safari/537.36"
-        - Chrome 90 Win10
+          like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+        - Chrome 97 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
-        - Chrome 90 macOS
+          (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+        - Chrome 97 macOS
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/90.0.4430.93 Safari/537.36"
-        - Chrome 90 Linux
+          Gecko) Chrome/97.0.4692.99 Safari/537.36"
+        - Chrome 97 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -1060,7 +1100,8 @@ content.proxy:
     `http://...` URL.
 
     Note that with QtWebEngine, it will take a couple of seconds until the
-    change is applied, if this value is changed at runtime.
+    change is applied, if this value is changed at runtime. Authentication for
+    SOCKS proxies isn't supported due to Chromium limitations.
 
 content.proxy_dns_requests:
   default: true
@@ -1355,6 +1396,18 @@ downloads.position:
   default: top
   desc: Where to show the downloaded files.
 
+downloads.prevent_mixed_content:
+  type: Bool
+  default: true
+  supports_pattern: true
+  desc:
+    Automatically abort insecure (HTTP) downloads originating from secure
+    (HTTPS) pages.
+
+    For per-domain settings, the relevant URL is the URL initiating the
+    download, not the URL the download itself is coming from. It's not
+    recommended to set this setting to false globally.
+
 downloads.remove_finished:
   default: -1
   type:
@@ -1382,11 +1435,15 @@ editor.command:
     * `{line0}`: Same as `{line}`, but starting from index 0.
     * `{column0}`: Same as `{column}`, but starting from index 0.
 
-
 editor.encoding:
   type: Encoding
   default: utf-8
   desc: Encoding to use for the editor.
+
+editor.remove_file:
+  default: true
+  type: Bool
+  desc: Delete the temporary file upon closing the editor.
 
 ## fileselect
 
@@ -1616,11 +1673,16 @@ hints.selectors:
       - '[role="link"]'
       - '[role="option"]'
       - '[role="button"]'
+      - '[role="tab"]'
+      - '[role="checkbox"]'
+      - '[role="menuitem"]'
+      - '[role="menuitemcheckbox"]'
+      - '[role="menuitemradio"]'
       - '[ng-click]'
       - '[ngClick]'
       - '[data-ng-click]'
       - '[x-ng-click]'
-      - '[tabindex]'
+      - '[tabindex]:not([tabindex="-1"])'
     links:
       - 'a[href]'
       - 'area[href]'
@@ -1764,10 +1826,10 @@ input.spatial_navigation:
     Enable spatial navigation.
 
     Spatial navigation consists in the ability to navigate between focusable
-    elements in a Web page, such as hyperlinks and form controls, by using
-    Left, Right, Up and Down arrow keys. For example, if the user presses the
-    Right key, heuristics determine whether there is an element he might be
-    trying to reach towards the right and which element he probably wants.
+    elements, such as hyperlinks and form controls, on a web page by using the
+    Left, Right, Up and Down arrow keys. For example, if a user presses the
+    Right key, heuristics determine whether there is an element they might be
+    trying to reach towards the right and which element they probably want.
 
 input.media_keys:
   default: true
@@ -1780,6 +1842,29 @@ input.media_keys:
     Whether the underlying Chromium should handle media keys.
 
     On Linux, disabling this also disables Chromium's MPRIS integration.
+
+input.match_counts:
+  default: true
+  type: Bool
+  desc: >-
+    Interpret number prefixes as counts for bindings.
+
+    This enables for vi-like bindings that can be prefixed with a number to
+    indicate a count.
+    Disabling it allows for emacs-like bindings where number keys are passed
+    through (according to `input.forward_unbound_keys`) instead.
+
+input.mode_override:
+  default: null
+  type:
+    name: String
+    none_ok: true
+    valid_values:
+      - normal
+      - insert
+      - passthrough
+  supports_pattern: true
+  desc: Mode to change to when focusing on a tab/URL changes.
 
 ## keyhint
 
@@ -2169,6 +2254,7 @@ tabs.title.format:
       - title_sep
       - index
       - aligned_index
+      - relative_index
       - id
       - scroll_pos
       - host
@@ -2188,6 +2274,7 @@ tabs.title.format:
     * `{index}`: Index of this tab.
     * `{aligned_index}`: Index of this tab padded with spaces to have the same
       width.
+    * `{relative_index}`: Index of this tab relative to the current tab.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
@@ -2208,6 +2295,7 @@ tabs.title.format_pinned:
       - title_sep
       - index
       - aligned_index
+      - relative_index
       - id
       - scroll_pos
       - host
@@ -3668,6 +3756,7 @@ bindings.default:
       <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}
       <Escape>: mode-leave
+      <Shift-Escape>: fake-key <Escape>
     hint:
       <Return>: hint-follow
       <Ctrl-R>: hint --rapid links tab-bg
@@ -3702,7 +3791,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
@@ -3727,7 +3817,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
@@ -3864,9 +3955,7 @@ bindings.commands:
       that single keys can't be bound in this mode.
 
     * passthrough: Similar to insert mode, but passes through all keypresses
-      except `<Escape>` to leave the mode. It might be useful to bind
-      `<Escape>` to some other key in this mode if you want to be able to send
-      an Escape key to the website as well. Note that single keys can't be
+      except `<Shift+Escape>` to leave the mode. Note that single keys can't be
       bound in this mode.
 
     * command: Entered when pressing the `:` key in order to enter a command.

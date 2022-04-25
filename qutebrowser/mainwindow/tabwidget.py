@@ -136,18 +136,31 @@ class TabWidget(QTabWidget):
                 (fmt is None or ('{' + field + '}') not in fmt)):
             return
 
+        def right_align(num):
+            return str(num).rjust(len(str(self.count())))
+
+        def left_align(num):
+            return str(num).ljust(len(str(self.count())))
+
+        bar = self.tabBar()
+        cur_idx = bar.currentIndex()
+        if idx == cur_idx:
+            rel_idx = left_align(idx + 1) + " "
+        else:
+            rel_idx = " " + right_align(abs(idx - cur_idx))
+
         fields = self.get_tab_fields(idx)
         fields['current_title'] = fields['current_title'].replace('&', '&&')
         fields['index'] = idx + 1
-        fields['aligned_index'] = str(idx + 1).rjust(len(str(self.count())))
+        fields['aligned_index'] = right_align(idx + 1)
+        fields['relative_index'] = rel_idx
 
         title = '' if fmt is None else fmt.format(**fields)
-        tabbar = self.tabBar()
 
         # Only change the tab title if it changes, setting the tab title causes
         # a size recalculation which is slow.
-        if tabbar.tabText(idx) != title:
-            tabbar.setTabText(idx, title)
+        if bar.tabText(idx) != title:
+            bar.setTabText(idx, title)
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
@@ -305,6 +318,7 @@ class TabWidget(QTabWidget):
     def _on_current_changed(self, index):
         """Emit the tab_index_changed signal if the current tab changed."""
         self.tabBar().on_current_changed()
+        self.update_tab_titles()
         self.tab_index_changed.emit(index, self.count())
 
     @pyqtSlot()
@@ -396,6 +410,15 @@ class TabBar(QTabBar):
         config.instance.changed.connect(self._on_config_changed)
         self._set_icon_size()
         QTimer.singleShot(0, self.maybe_hide)
+        self._minimum_tab_size_hint_helper = functools.lru_cache(maxsize=2**9)(
+            self._minimum_tab_size_hint_helper_uncached
+        )
+        debugcachestats.register(name=f'tab width cache (win_id={win_id})')(
+            self._minimum_tab_size_hint_helper
+        )
+        self._minimum_tab_height = functools.lru_cache(maxsize=1)(
+            self._minimum_tab_height_uncached
+        )
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -486,7 +509,6 @@ class TabBar(QTabBar):
 
         Args:
             idx: The tab index to get the title for.
-            handle_unset: Whether to return an empty string on KeyError.
         """
         try:
             return self.tab_data(idx, 'page-title')
@@ -562,11 +584,9 @@ class TabBar(QTabBar):
                                                   icon_width, ellipsis,
                                                   pinned)
 
-    @debugcachestats.register(name='tab width cache')
-    @functools.lru_cache(maxsize=2**9)
-    def _minimum_tab_size_hint_helper(self, tab_text: str,
-                                      icon_width: int,
-                                      ellipsis: bool, pinned: bool) -> QSize:
+    def _minimum_tab_size_hint_helper_uncached(self, tab_text: str,
+                                               icon_width: int,
+                                               ellipsis: bool, pinned: bool) -> QSize:
         """Helper function to cache tab results.
 
         Config values accessed in here should be added to _on_config_changed to
@@ -597,8 +617,7 @@ class TabBar(QTabBar):
             width = max(min_width, width)
         return QSize(width, height)
 
-    @functools.lru_cache(maxsize=1)
-    def _minimum_tab_height(self):
+    def _minimum_tab_height_uncached(self):
         padding = config.cache['tabs.padding']
         return self.fontMetrics().height() + padding.top + padding.bottom
 

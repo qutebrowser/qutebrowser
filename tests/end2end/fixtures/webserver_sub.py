@@ -231,7 +231,7 @@ def drip():
 
     def generate_bytes():
         for _ in range(numbytes):
-            yield "*".encode('utf-8')
+            yield b"*"
             time.sleep(pause)
 
     response = flask.Response(generate_bytes(), headers={
@@ -292,7 +292,9 @@ def view_user_agent():
 
 @app.route('/favicon.ico')
 def favicon():
-    icon_dir = END2END_DIR.parents[1] / 'icons'
+    # WORKAROUND for https://github.com/PyCQA/pylint/issues/5783
+    # pylint: disable-next=no-member,useless-suppression
+    icon_dir = END2END_DIR.parents[1] / 'qutebrowser' / 'icons'
     return flask.send_from_directory(
         icon_dir, 'qutebrowser.ico', mimetype='image/vnd.microsoft.icon')
 

@@ -249,7 +249,7 @@ class TestWebEngineArgs:
         ('single-process', True),
     ])
     def test_process_model(self, config_stub, parser, process_model, added):
-        config_stub.val.qt.process_model = process_model
+        config_stub.val.qt.chromium.process_model = process_model
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
@@ -267,7 +267,7 @@ class TestWebEngineArgs:
         ('never', '--disable-low-end-device-mode'),
     ])
     def test_low_end_device_mode(self, config_stub, parser, low_end_device_mode, arg):
-        config_stub.val.qt.low_end_device_mode = low_end_device_mode
+        config_stub.val.qt.chromium.low_end_device_mode = low_end_device_mode
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
@@ -276,6 +276,28 @@ class TestWebEngineArgs:
             assert '--disable-low-end-device-mode' not in args
         else:
             assert arg in args
+
+    @pytest.mark.parametrize('sandboxing, arg', [
+        ('enable-all', None),
+        ('disable-seccomp-bpf', '--disable-seccomp-filter-sandbox'),
+        ('disable-all', '--no-sandbox'),
+    ])
+    def test_sandboxing(self, config_stub, parser, sandboxing, arg):
+        config_stub.val.qt.chromium.sandboxing = sandboxing
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+
+        remaining_flags = {
+            '--no-sandbox',
+            '--disable-seccomp-filter-sandbox',
+        }
+        if arg is not None:
+            remaining_flags.remove(arg)
+
+        if arg is not None:
+            assert arg in args
+
+        assert not set(args) & remaining_flags
 
     @pytest.mark.parametrize('qt_version, referer, arg', [
         # 'always' -> no arguments
@@ -324,7 +346,6 @@ class TestWebEngineArgs:
         ("light", "5.15.0", False),
         ("light", "5.15.1", False),
         ("light", "5.15.2", False),
-        ("light", "5.15.2", False),
         ("light", "5.15.3", False),
         ("light", "6.0.0", False),
 
@@ -332,7 +353,6 @@ class TestWebEngineArgs:
         ("auto", "5.14", False),
         ("auto", "5.15.0", False),
         ("auto", "5.15.1", False),
-        ("auto", "5.15.2", False),
         ("auto", "5.15.2", False),
         ("auto", "5.15.3", False),
         ("auto", "6.0.0", False),

@@ -48,10 +48,7 @@ instance_counter = itertools.count()
 def is_ignored_qt_message(pytestconfig, message):
     """Check if the message is listed in qt_log_ignore."""
     regexes = pytestconfig.getini('qt_log_ignore')
-    for regex in regexes:
-        if re.search(regex, message):
-            return True
-    return False
+    return any(re.search(regex, message) for regex in regexes)
 
 
 def is_ignored_lowlevel_message(message):
@@ -552,8 +549,8 @@ class QuteProc(testprocess.Process):
                 '--debug-flag', 'werror', '--debug-flag',
                 'test-notification-service']
 
-        if self.request.config.webengine:
-            args += testutils.seccomp_args(qt_flag=True)
+        if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
+            args += testutils.DISABLE_SECCOMP_BPF_ARGS
 
         args.append('about:blank')
         return args
@@ -609,8 +606,7 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
-    def wait_for(self, timeout=None,  # pylint: disable=arguments-differ
-                 **kwargs):
+    def wait_for(self, timeout=None, **kwargs):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
@@ -716,7 +712,7 @@ class QuteProc(testprocess.Process):
                                          target_arg)
             self._wait_for_ipc()
 
-    def start(self, *args, **kwargs):  # pylint: disable=arguments-differ
+    def start(self, *args, **kwargs):
         try:
             super().start(*args, **kwargs)
         except testprocess.ProcessExited:
@@ -913,8 +909,8 @@ class QuteProc(testprocess.Process):
         """Get a screenshot of the current page.
 
         Arguments:
-            probe: If given, only continue if the pixel at the given position isn't
-                   black (or whatever is specified by probe_color).
+            probe_pos: If given, only continue if the pixel at the given
+                       position isn't black (or whatever is specified by probe_color).
         """
         for _ in range(5):
             tmp_path = self.request.getfixturevalue('tmp_path')

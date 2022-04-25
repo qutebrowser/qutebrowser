@@ -70,6 +70,7 @@ class CompletionModel(QAbstractItemModel):
 
         Args:
             index: The QModelIndex to get item flags for.
+            role: The Qt ItemRole to get the data for.
 
         Return: The item data, or None on an invalid index.
         """

@@ -10,7 +10,6 @@
 # Usage:
 #   :spawn --userscript readability
 #
-from __future__ import absolute_import
 import codecs, os
 
 tmpfile = os.path.join(

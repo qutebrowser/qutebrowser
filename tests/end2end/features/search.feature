@@ -71,7 +71,25 @@ Feature: Searching on a page
         When I run :search foo
         And I wait for "search found foo" in the log
         And I run :search foo
-        Then "Ignoring duplicate search request for foo" should be logged
+        Then "Ignoring duplicate search request for foo, but resetting flags" should be logged
+
+    Scenario: Reset search direction on duplicate search, forward-to-back
+        When I run :search baz
+        And I wait for "search found baz" in the log
+        And I run :search -r baz
+        And I wait for "Ignoring duplicate search request for baz, but resetting flags" in the log
+        And I run :search-next
+        And I wait for "next_result found baz with flags FindBackward" in the log
+        Then "BAZ" should be found
+
+    Scenario: Reset search direction on duplicate search, back-to-forward
+        When I run :search -r baz
+        And I wait for "search found baz with flags FindBackward" in the log
+        And I run :search baz
+        And I wait for "Ignoring duplicate search request for baz, but resetting flags" in the log
+        And I run :search-next
+        And I wait for "next_result found baz" in the log
+        Then "baz" should be found
 
     ## search.ignore_case
 

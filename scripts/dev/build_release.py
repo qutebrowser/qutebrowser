@@ -26,6 +26,7 @@ import os.path
 import sys
 import time
 import shutil
+import pathlib
 import plistlib
 import subprocess
 import argparse
@@ -227,7 +228,7 @@ def patch_mac_app():
 
     # Replace some duplicate files by symlinks
     framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
-                                  'Qt', 'lib', 'QtWebEngineCore.framework')
+                                  'Qt5', 'lib', 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
     os.remove(core_lib)
@@ -301,7 +302,9 @@ def build_mac(*, gh_token, debug):
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False, gh_token=gh_token)
+    # FIXME:qt6 Use modern PDF.js version here
+    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=True, fancy_dmg=False,
+                        gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
@@ -394,8 +397,9 @@ def _build_windows_single(*, x64, skip_packaging, debug):
 def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False,
-                        gh_token=gh_token)
+    # FIXME:qt6 Use modern PDF.js version here
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=True,
+                        fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
 
@@ -480,24 +484,27 @@ def build_sdist():
     """Build an sdist and list the contents."""
     utils.print_title("Building sdist")
 
-    _maybe_remove('dist')
+    dist_path = pathlib.Path('dist')
+    _maybe_remove(dist_path)
 
-    subprocess.run([sys.executable, 'setup.py', 'sdist'], check=True)
-    dist_files = os.listdir(os.path.abspath('dist'))
-    assert len(dist_files) == 1
+    subprocess.run([sys.executable, '-m', 'build'], check=True)
 
-    dist_file = os.path.join('dist', dist_files[0])
-    subprocess.run(['gpg', '--detach-sign', '-a', dist_file], check=True)
+    dist_files = list(dist_path.glob('*.tar.gz'))
+    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
+    assert dist_files == [dist_path / filename], dist_files
+    dist_file = dist_files[0]
 
-    tar = tarfile.open(dist_file)
+    subprocess.run(['gpg', '--detach-sign', '-a', str(dist_file)], check=True)
+
     by_ext = collections.defaultdict(list)
 
-    for tarinfo in tar.getmembers():
-        if not tarinfo.isfile():
-            continue
-        name = os.sep.join(tarinfo.name.split(os.sep)[1:])
-        _base, ext = os.path.splitext(name)
-        by_ext[ext].append(name)
+    with tarfile.open(dist_file) as tar:
+        for tarinfo in tar.getmembers():
+            if not tarinfo.isfile():
+                continue
+            name = os.sep.join(tarinfo.name.split(os.sep)[1:])
+            _base, ext = os.path.splitext(name)
+            by_ext[ext].append(name)
 
     assert '.pyc' not in by_ext
 
@@ -507,11 +514,13 @@ def build_sdist():
         utils.print_subtitle(ext)
         print('\n'.join(files))
 
-    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
     artifacts = [
-        (os.path.join('dist', filename), 'application/gzip', 'Source release'),
-        (os.path.join('dist', filename + '.asc'), 'application/pgp-signature',
-         'Source release - PGP signature'),
+        (str(dist_file), 'application/gzip', 'Source release'),
+        (
+            str(dist_file.with_suffix(dist_file.suffix + '.asc')),
+            'application/pgp-signature',
+            'Source release - PGP signature',
+        ),
     ]
 
     return artifacts
@@ -550,6 +559,7 @@ def github_upload(artifacts, tag, gh_token):
     Args:
         artifacts: A list of (filename, mimetype, description) tuples
         tag: The name of the release tag
+        gh_token: The GitHub token to use
     """
     import github3
     import github3.exceptions
@@ -589,9 +599,9 @@ def github_upload(artifacts, tag, gh_token):
                 assets = [asset for asset in release.assets()
                           if asset.name == basename]
                 if assets:
-                    asset = assets[0]
-                    print("Deleting stray asset {}".format(asset.name))
-                    asset.delete()
+                    stray_asset = assets[0]
+                    print("Deleting stray asset {}".format(stray_asset.name))
+                    stray_asset.delete()
             else:
                 break
 
@@ -599,15 +609,19 @@ def github_upload(artifacts, tag, gh_token):
 def pypi_upload(artifacts):
     """Upload the given artifacts to PyPI using twine."""
     utils.print_title("Uploading to PyPI...")
+    run_twine('upload', artifacts)
+
+
+def twine_check(artifacts):
+    """Check packages using 'twine check'."""
+    utils.print_title("Running twine check...")
+    run_twine('check', artifacts, '--strict')
+
+
+def run_twine(command, artifacts, *args):
     filenames = [a[0] for a in artifacts]
-    subprocess.run([sys.executable, '-m', 'twine', 'upload'] + filenames,
+    subprocess.run([sys.executable, '-m', 'twine', command] + list(args) + filenames,
                    check=True)
-
-
-def upgrade_sdist_dependencies():
-    """Make sure we have the latest tools for an sdist release."""
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '-U', 'twine',
-                    'pip', 'wheel', 'setuptools'], check=True)
 
 
 def main():
@@ -667,9 +681,9 @@ def main():
     elif sys.platform == 'darwin':
         artifacts = build_mac(gh_token=gh_token, debug=args.debug)
     else:
-        upgrade_sdist_dependencies()
         test_makefile()
         artifacts = build_sdist()
+        twine_check(artifacts)
         upload_to_pypi = True
 
     if args.upload:

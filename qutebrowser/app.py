@@ -51,7 +51,6 @@ from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
 
 import qutebrowser
-import qutebrowser.resources
 from qutebrowser.commands import runners
 from qutebrowser.config import (config, websettings, configfiles, configinit,
                                 qtargs)
@@ -182,8 +181,9 @@ def _init_icon():
     """Initialize the icon of qutebrowser."""
     fallback_icon = QIcon()
     for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
-        filename = ':/icons/qutebrowser-{size}x{size}.png'.format(size=size)
-        pixmap = QPixmap(filename)
+        filename = 'icons/qutebrowser-{size}x{size}.png'.format(size=size)
+        pixmap = QPixmap()
+        pixmap.loadFromData(resources.read_file_binary(filename))
         if pixmap.isNull():
             log.init.warning("Failed to load {}".format(filename))
         else:

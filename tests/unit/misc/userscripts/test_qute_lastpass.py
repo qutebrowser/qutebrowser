@@ -122,7 +122,7 @@ class TestQuteLastPassComponents:
 
         subprocess_mock.assert_called_once_with(
             ['lpass', 'show', '-x', '-j', '-G', '\\bexample\\.com'],
-            stdout=ANY, stderr=ANY)
+            capture_output=True)
 
     def test_pass_returns_candidates(self, subprocess_mock):
         """Test if pass_ returns expected lpass site entry."""
@@ -263,7 +263,7 @@ class TestQuteLastPassMain:
 
         subprocess_mock.assert_has_calls([
             call(['lpass', 'show', '-x', '-j', '-G', '\\bwww\\.example\\.com'],
-                 stdout=ANY, stderr=ANY),
+                 capture_output=True),
             call(['rofi', '-dmenu'],
                  input=b'12345 | www.example.com | https://www.example.com | fake@fake.com\n23456 | Sites/www.example.com | https://www.example.com | john.doe@fake.com',
                  stdout=ANY)
@@ -328,13 +328,13 @@ class TestQuteLastPassMain:
 
         subprocess_mock.assert_has_calls([
             call(['lpass', 'show', '-x', '-j', '-G', '\\bwww\\.example\\.com'],
-                 stdout=ANY, stderr=ANY),
+                 capture_output=True),
             call(['lpass', 'show', '-x', '-j', '-G', '\\bexample\\.com'],
-                 stdout=ANY, stderr=ANY),
+                 capture_output=True),
             call(['lpass', 'show', '-x', '-j', '-G', '\\bwwwexample'],
-                 stdout=ANY, stderr=ANY),
+                 capture_output=True),
             call(['lpass', 'show', '-x', '-j', '-G', '\\bexample'],
-                 stdout=ANY, stderr=ANY),
+                 capture_output=True),
             call(['rofi', '-dmenu'],
                  input=b'12345 | www.example.com | https://www.example.com | fake@fake.com\n23456 | Sites/www.example.com | https://www.example.com | john.doe@fake.com\n345 | example.com | https://example.com | joe.doe@fake.com\n456 | Sites/example.com | http://example.com | jane.doe@fake.com',
                  stdout=ANY)

@@ -318,13 +318,11 @@ class TestFontFamilies:
     @pytest.mark.parametrize('families, quote, expected', [
         (['family'], True, 'family'),
         (['family1', 'family2'], True, 'family1, family2'),
-        (['family'], True, 'family'),
         (['space family', 'alien'], True, '"space family", alien'),
         (['comma,family', 'period'], True, '"comma,family", period'),
 
         (['family'], False, 'family'),
         (['family1', 'family2'], False, 'family1, family2'),
-        (['family'], False, 'family'),
         (['space family', 'alien'], False, 'space family, alien'),
         (['comma,family', 'period'], False, 'comma,family, period'),
     ])
@@ -367,9 +365,13 @@ class TestFontFamilies:
         # Check the requested font to make sure CSS parsing worked
         assert label.font().family() == families.family
 
+        # Skipping the rest of the test as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-94090
+        return
+
         # Try to find out whether the monospace font did a fallback on a non-monospace
         # font...
-        fallback_label = QLabel()
+        fallback_label = QLabel()  # pylint: disable=unreachable
         qtbot.add_widget(label)
         fallback_label.setText("fallback")
 
@@ -380,10 +382,6 @@ class TestFontFamilies:
         fallback_family = fallback_label.fontInfo().family()
         print(f'fallback: {fallback_family}')
         if info.family() == fallback_family:
-            return
-
-        if info.family() == 'Noto Sans Mono':
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-94090
             return
 
         # If we didn't fall back, we should've gotten a fixed-pitch font.

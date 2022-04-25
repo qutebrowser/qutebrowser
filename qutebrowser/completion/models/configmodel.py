@@ -78,7 +78,7 @@ def value(optname, *values, info):
 
     Args:
         optname: The name of the config option this model shows.
-        values: The values already provided on the command line.
+        *values: The values already provided on the command line.
         info: A CompletionInfo instance.
     """
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
@@ -137,6 +137,7 @@ def bind(key, *, info):
 
     Args:
         key: the key being bound.
+        info: A CompletionInfo instance.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     data = _bind_current_default(key, info)

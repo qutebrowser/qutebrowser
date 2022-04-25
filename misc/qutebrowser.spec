@@ -2,6 +2,7 @@
 
 import sys
 import os
+import pathlib
 
 sys.path.insert(0, os.getcwd())
 from scripts import setupcommon
@@ -15,6 +16,7 @@ def get_data_files():
     data_files = [
         ('../qutebrowser/html', 'html'),
         ('../qutebrowser/img', 'img'),
+        ('../qutebrowser/icons', 'icons'),
         ('../qutebrowser/javascript', 'javascript'),
         ('../qutebrowser/html/doc', 'html/doc'),
         ('../qutebrowser/git-commit-id', '.'),
@@ -40,9 +42,12 @@ setupcommon.write_git_file()
 
 
 if os.name == 'nt':
-    icon = '../icons/qutebrowser.ico'
+    # WORKAROUND for PyInstaller 5.0 bug:
+    # https://github.com/pyinstaller/pyinstaller/issues/6759
+    icons_path = pathlib.Path.cwd() / 'qutebrowser' / 'icons'
+    icon = str(icons_path / 'qutebrowser.ico')
 elif sys.platform == 'darwin':
-    icon = '../icons/qutebrowser.icns'
+    icon = '../qutebrowser/icons/qutebrowser.icns'
 else:
     icon = None
 

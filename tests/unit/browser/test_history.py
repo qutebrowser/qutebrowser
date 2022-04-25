@@ -141,7 +141,7 @@ class TestDelete:
 
 class TestAdd:
 
-    @pytest.fixture()
+    @pytest.fixture
     def mock_time(self, mocker):
         m = mocker.patch('qutebrowser.browser.history.time')
         m.time.return_value = 12345

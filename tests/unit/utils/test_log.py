@@ -27,7 +27,7 @@ import warnings
 import dataclasses
 
 import pytest
-import _pytest.logging
+import _pytest.logging  # pylint: disable=import-private-name
 from PyQt5 import QtCore
 
 from qutebrowser import qutebrowser
@@ -53,8 +53,7 @@ def restore_loggers():
         saved_level_to_name = logging._levelToName.copy()
         logger_states = {}
         for name in saved_loggers:
-            logger_states[name] = getattr(saved_loggers[name], 'disabled',
-                                          None)
+            logger_states[name] = getattr(saved_loggers[name], 'disabled', None)
     finally:
         logging._releaseLock()
 
@@ -86,9 +85,9 @@ def restore_loggers():
         logger_dict = logging.getLogger().manager.loggerDict
         logger_dict.clear()
         logger_dict.update(saved_loggers)
-        for name in logger_states:
-            if logger_states[name] is not None:
-                saved_loggers[name].disabled = logger_states[name]
+        for name, state in logger_states.items():
+            if state is not None:
+                saved_loggers[name].disabled = state
     finally:
         logging._releaseLock()
 
@@ -349,7 +348,7 @@ class TestHideQtWarning:
 
     """Tests for hide_qt_warning/QtWarningFilter."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def qt_logger(self):
         return logging.getLogger('qt-tests')
 

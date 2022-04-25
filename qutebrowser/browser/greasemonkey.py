@@ -324,6 +324,7 @@ class GreasemonkeyManager(QObject):
         """Add a GreasemonkeyScript to this manager.
 
         Args:
+            script: The GreasemonkeyScript to add.
             force: Fetch and overwrite any dependencies which are
                    already locally cached.
         """

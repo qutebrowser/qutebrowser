@@ -620,13 +620,15 @@ class MainWindow(QWidget):
             True if closing is okay, False if a closeEvent should be ignored.
         """
         tab_count = self.tabbed_browser.widget.count()
+        window_count = len(objreg.window_registry)
         download_count = self._download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
             quit_texts.append("{} tabs are open.".format(tab_count))
-        # Ask if multiple downloads running
-        if 'downloads' in config.val.confirm_quit and download_count > 0:
+        # Ask if downloads running
+        if ('downloads' in config.val.confirm_quit and download_count > 0 and
+                window_count <= 1):
             quit_texts.append("{} {} running.".format(
                 download_count,
                 "download is" if download_count == 1 else "downloads are"))

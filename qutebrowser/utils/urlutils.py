@@ -95,6 +95,7 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
             engine = None
             term = s
     else:
+        # pylint: disable=else-if-used
         if config.val.url.open_base_url and s in config.val.url.searchengines:
             engine = s
             term = None
@@ -328,6 +329,7 @@ def invalid_url_error(url: QUrl, action: str) -> None:
     """Display an error message for a URL.
 
     Args:
+        url: The URL to display a message for.
         action: The action which was interrupted by the error.
     """
     if url.isValid():

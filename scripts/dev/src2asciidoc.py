@@ -444,7 +444,7 @@ def _generate_setting_option(f, opt):
     if opt.restart:
         f.write("\nThis setting requires a restart.\n")
     if opt.supports_pattern:
-        f.write("\nThis setting supports URL patterns.\n")
+        f.write("\nThis setting supports link:configuring{outfilesuffix}#patterns[URL patterns].\n")
     if opt.no_autoconfig:
         f.write("\nThis setting can only be set in config.py.\n")
     _generate_setting_backend_info(f, opt)
@@ -536,7 +536,9 @@ def regenerate_manpage(filename):
     # pylint: disable=protected-access
     for group in parser._action_groups:
         groupdata = []
-        groupdata.append('=== {}'.format(group.title))
+        # https://bugs.python.org/issue9694 backport
+        title = "options" if group.title == "optional arguments" else group.title
+        groupdata.append('=== {}'.format(title))
         if group.description is not None:
             groupdata.append(group.description)
         for action in group._group_actions:

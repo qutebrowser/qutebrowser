@@ -809,8 +809,11 @@ class TestYaml:
         assert utils.yaml_load("[1, 2]") == [1, 2]
 
     def test_load_float_bug(self):
-        with pytest.raises(yaml.YAMLError):
+        try:
             utils.yaml_load("._")
+        except yaml.YAMLError:
+            # Either no exception or YAMLError, not ValueError
+            pass
 
     def test_load_file(self, tmp_path):
         tmpfile = tmp_path / 'foo.yml'
@@ -928,7 +931,7 @@ def test_parse_duration_hypothesis(duration):
 
 @pytest.mark.parametrize('mimetype, extension', [
     ('application/pdf', '.pdf'),  # handled by Python
-    ('text/plain', '.txt'),  # wrong in Python 3.6, overridden
+    ('text/plain', '.txt'),  # was wrong in Python 3.6, handled now
     ('application/manifest+json', '.webmanifest'),  # newer
     ('text/xul', '.xul'),  # strict=False
     ('doesnot/exist', None),

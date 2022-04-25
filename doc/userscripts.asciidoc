@@ -56,6 +56,7 @@ In `command` mode:
 - `QUTE_TITLE`: The title of the current page.
 - `QUTE_SELECTED_TEXT`: The text currently selected on the page.
 - `QUTE_COUNT`: The `count` from the spawn command running the userscript.
+- `QUTE_TAB_INDEX`: The current tab's index.
 
 In `hints` mode:
 

@@ -51,9 +51,7 @@ else:
     test_file = None
 
 
-# pylint: disable=bad-continuation
-@pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
-                          'expected'], [
+@pytest.mark.parametrize('qversion, compiled, pyqt, version, exact, expected', [
     # equal versions
     ('5.14.0', None, None, '5.14.0', False, True),
     ('5.14.0', None, None, '5.14.0', True, True),  # exact=True
@@ -75,7 +73,6 @@ else:
     # dev suffix
     ('5.15.1', '5.15.1', '5.15.2.dev2009281246', '5.15.0', False, True),
 ])
-# pylint: enable=bad-continuation
 def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
                        expected):
     """Test for version_check().
@@ -559,7 +556,8 @@ if test_file is not None:
             qiodev.mode = mode
             # Create empty TESTFN file because the Python tests try to unlink
             # it.after the test.
-            open(test_file.TESTFN, 'w', encoding='utf-8').close()
+            with open(test_file.TESTFN, 'w', encoding='utf-8'):
+                pass
             return qiodev
 
     class PyAutoFileTests(PyIODeviceTestMixin, test_file.AutoFileTests,
@@ -742,7 +740,7 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
 
-    @pytest.mark.flaky()
+    @pytest.mark.flaky
     def test_qprocess(self, py_proc):
         """Test PyQIODevice with a QProcess which is non-sequential.
 

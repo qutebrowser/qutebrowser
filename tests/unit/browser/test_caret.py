@@ -70,7 +70,7 @@ class Selection:
 
             self._qtbot.wait(50)
 
-        assert False, 'Failed to get selection!'
+        pytest.fail('Failed to get selection!')
 
     def check_multiline(self, expected, *, strip=False):
         self.check(textwrap.dedent(expected).strip(), strip=strip)

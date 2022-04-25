@@ -4,7 +4,8 @@ coverage
 Flask
 hypothesis
 pytest
-pytest-bdd
+# https://github.com/pytest-dev/pytest-bdd/issues/447
+pytest-bdd<5
 pytest-benchmark
 pytest-instafail
 pytest-mock

@@ -21,12 +21,11 @@
 
 import pkgutil
 import types
-import sys
 import pathlib
 import importlib
 import argparse
 import dataclasses
-from typing import Callable, Iterator, List, Optional, Set, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple
 
 from PyQt5.QtCore import pyqtSlot
 
@@ -84,7 +83,7 @@ def add_module_info(module: types.ModuleType) -> ModuleInfo:
     # pylint: disable=protected-access
     if not hasattr(module, '__qute_module_info'):
         module.__qute_module_info = ModuleInfo()  # type: ignore[attr-defined]
-    return module.__qute_module_info  # type: ignore[attr-defined]
+    return module.__qute_module_info
 
 
 def load_components(*, skip_hooks: bool = False) -> None:
@@ -95,22 +94,8 @@ def load_components(*, skip_hooks: bool = False) -> None:
 
 def walk_components() -> Iterator[ExtensionInfo]:
     """Yield ExtensionInfo objects for all modules."""
-    if hasattr(sys, 'frozen'):
-        yield from _walk_pyinstaller()
-    else:
-        yield from _walk_normal()
-
-
-def _on_walk_error(name: str) -> None:
-    raise ImportError("Failed to import {}".format(name))
-
-
-def _walk_normal() -> Iterator[ExtensionInfo]:
-    """Walk extensions when not using PyInstaller."""
     for _finder, name, ispkg in pkgutil.walk_packages(
-            # Only packages have a __path__ attribute,
-            # but we're sure this is one.
-            path=components.__path__,  # type: ignore[attr-defined]
+            path=components.__path__,
             prefix=components.__name__ + '.',
             onerror=_on_walk_error):
         if ispkg:
@@ -121,23 +106,6 @@ def _walk_normal() -> Iterator[ExtensionInfo]:
             log.extensions.debug("Ignoring stale 'adblock' component")
             continue
         yield ExtensionInfo(name=name)
-
-
-def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
-    """Walk extensions when using PyInstaller.
-
-    See https://github.com/pyinstaller/pyinstaller/issues/1905
-
-    Inspired by:
-    https://github.com/webcomics/dosage/blob/master/dosagelib/loader.py
-    """
-    toc: Set[str] = set()
-    for importer in pkgutil.iter_importers('qutebrowser'):
-        if hasattr(importer, 'toc'):
-            toc |= importer.toc  # type: ignore[union-attr]
-    for name in toc:
-        if name.startswith(components.__name__ + '.'):
-            yield ExtensionInfo(name=name)
 
 
 def _get_init_context() -> InitContext:
@@ -190,3 +158,7 @@ def _on_config_changed(changed_name: str) -> None:
 
 def init() -> None:
     config.instance.changed.connect(_on_config_changed)
+
+
+def _on_walk_error(name: str) -> None:
+    raise ImportError("Failed to import {}".format(name))

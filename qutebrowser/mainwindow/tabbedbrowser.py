@@ -223,6 +223,10 @@ class TabbedBrowser(QWidget):
         # https://bugreports.qt.io/browse/QTBUG-65223
         self.cur_load_finished.connect(self._leave_modes_on_load)
 
+        # handle mode_override
+        self.current_tab_changed.connect(lambda tab: self._mode_override(tab.url()))
+        self.cur_url_changed.connect(self._mode_override)
+
         # This init is never used, it is immediately thrown away in the next
         # line.
         self.undo_stack: UndoStackType = collections.deque()
@@ -406,15 +410,16 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True, new_undo=True):
+    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
+            transfer: Whether the tab is closing because it is moving to a new window.
         """
-        if config.val.tabs.tabs_are_windows:
+        if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
         else:
             last_close = config.val.tabs.last_close
@@ -508,8 +513,7 @@ class TabbedBrowser(QWidget):
             last_close_urlstr = urls[last_close].toString().rstrip('/')
             first_tab_urlstr = first_tab_url.toString().rstrip('/')
             last_close_url_used = first_tab_urlstr == last_close_urlstr
-            use_current_tab = (only_one_tab_open and no_history and
-                               last_close_url_used)
+            use_current_tab = no_history and last_close_url_used
 
         entries = self.undo_stack[-depth]
         del self.undo_stack[-depth]
@@ -697,10 +701,9 @@ class TabbedBrowser(QWidget):
         """
         if tab.data.keep_icon:
             tab.data.keep_icon = False
-        else:
-            if (config.cache['tabs.tabs_are_windows'] and
-                    tab.data.should_show_icon()):
-                self.widget.window().setWindowIcon(self.default_window_icon)
+        elif (config.cache['tabs.tabs_are_windows'] and
+              tab.data.should_show_icon()):
+            self.widget.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def _on_load_status_changed(self, tab):
@@ -776,6 +779,23 @@ class TabbedBrowser(QWidget):
 
         if not self.widget.page_title(idx):
             self.widget.set_page_title(idx, url.toDisplayString())
+
+    def _mode_override(self, url: QUrl) -> None:
+        """Override mode if url matches pattern.
+
+        Args:
+            url: The QUrl to match for
+        """
+        if not url.isValid():
+            return
+        mode = config.instance.get('input.mode_override', url=url)
+        if mode:
+            log.modes.debug(f"Mode change to {mode} triggered for url {url}")
+            modeman.enter(
+                self._win_id,
+                usertypes.KeyMode[mode],
+                reason='mode_override',
+            )
 
     @pyqtSlot(browsertab.AbstractTab)
     def _on_icon_changed(self, tab):

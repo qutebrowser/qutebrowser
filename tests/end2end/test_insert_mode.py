@@ -22,7 +22,7 @@
 import pytest
 
 
-@pytest.mark.parametrize(['file_name', 'elem_id', 'source', 'input_text'], [
+@pytest.mark.parametrize('file_name, elem_id, source, input_text', [
     ('textarea.html', 'qute-textarea', 'clipboard', 'qutebrowser'),
     ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser'),
     ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser'),

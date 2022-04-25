@@ -382,7 +382,7 @@ def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
         obj: The object to get a repr for.
         constructor: If True, show the Foo(one=1, two=2) form instead of
                      <Foo one=1 two=2>.
-        attrs: The attributes to add.
+        **attrs: The attributes to add.
     """
     cls = qualname(obj.__class__)
     parts = []
@@ -391,11 +391,10 @@ def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
         parts.append('{}={!r}'.format(name, val))
     if constructor:
         return '{}({})'.format(cls, ', '.join(parts))
+    elif parts:
+        return '<{} {}>'.format(cls, ' '.join(parts))
     else:
-        if parts:
-            return '<{} {}>'.format(cls, ' '.join(parts))
-        else:
-            return '<{}>'.format(cls)
+        return '<{}>'.format(cls)
 
 
 def qualname(obj: Any) -> str:
@@ -669,11 +668,12 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
             r"of from 'collections\.abc' is deprecated.*"):
         try:
             data = yaml.load(f, Loader=YamlLoader)
-        except ValueError as e:
-            if str(e).startswith('could not convert string to float'):
+        except ValueError as e:  # pragma: no cover
+            pyyaml_error = 'could not convert string to float'
+            if str(e).startswith(pyyaml_error):
                 # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
                 raise yaml.YAMLError(e)
-            raise  # pragma: no cover
+            raise
 
     end = datetime.datetime.now()
 
@@ -784,30 +784,13 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
 
     This mostly delegates to Python's mimetypes.guess_extension(), but backports some
     changes (via a simple override dict) which are missing from earlier Python versions.
-    Most likely, this can be dropped once the minimum Python version is raised to 3.7.
+    Most likely, this can be dropped once the minimum Python version is raised to 3.10.
     """
     overrides = {
+        # Added in 3.10
+        "application/x-hdf5": ".h5",
         # Added around 3.8
         "application/manifest+json": ".webmanifest",
-        "application/x-hdf5": ".h5",
-
-        # Added in Python 3.7
-        "application/wasm": ".wasm",
-
-        # Wrong values for Python 3.6
-        # https://bugs.python.org/issue1043134
-        # https://github.com/python/cpython/pull/14375
-        "application/octet-stream": ".bin",  # not .a
-        "application/postscript": ".ps",  # not .ai
-        "application/vnd.ms-excel": ".xls",  # not .xlb
-        "application/vnd.ms-powerpoint": ".ppt",  # not .pot
-        "application/xml": ".xsl",  # not .rdf
-        "audio/mpeg": ".mp3",  # not .mp2
-        "image/jpeg": ".jpg",  # not .jpe
-        "image/tiff": ".tiff",  # not .tif
-        "text/html": ".html",  # not .htm
-        "text/plain": ".txt",  # not .bat
-        "video/mpeg": ".mpeg",  # not .m1v
     }
     if mimetype in overrides:
         return overrides[mimetype]

@@ -5,11 +5,11 @@ open pull requests.
 - Before you start to work on something, please leave a comment on the relevant
   issue (or open one). This makes sure there is no duplicate work done.
 
-- Either run the testsuite locally, or keep an eye on Travis CI / AppVeyor
-  after pushing changes.
+- Either run the testsuite locally, or keep an eye on the CI at the end of the
+  pull request page after pushing changes.
 
 - If you are stuck somewhere or have questions,
-  https://github.com/qutebrowser/qutebrowser#getting-help[please ask]!
+  https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/index.asciidoc#getting-help[please ask]!
 
 See the link:../doc/contributing.asciidoc[full contribution documentation] for
 details and other useful hints.

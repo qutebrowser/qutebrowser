@@ -873,7 +873,7 @@ class TestConfigPyModules:
         confpy.read()
         expected = {'normal': {',a': 'message-info foo'}}
         assert config.instance.get_obj('bindings.commands') == expected
-        assert "qbmodule" not in sys.modules.keys()
+        assert "qbmodule" not in sys.modules
         assert tmp_path not in sys.path
 
     def test_restore_sys_on_err(self, confpy, qbmodulepy, tmp_path):
@@ -884,7 +884,7 @@ class TestConfigPyModules:
 
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ZeroDivisionError)
-        assert "qbmodule" not in sys.modules.keys()
+        assert "qbmodule" not in sys.modules
         assert tmp_path not in sys.path
 
     def test_fail_on_nonexistent_module(self, confpy, qbmodulepy, tmp_path):
@@ -1481,7 +1481,6 @@ class TestConfigPyWriter:
 def init_patch(qapp, fake_save_manager, config_tmpdir, data_tmpdir,
                config_stub, monkeypatch):
     monkeypatch.setattr(configfiles, 'state', None)
-    yield
 
 
 def test_init(init_patch, config_tmpdir):
