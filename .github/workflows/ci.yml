@@ -108,41 +108,41 @@ jobs:
           ### PyQt 5.12 (Python 3.7)
           - testenv: py37-pyqt512
             os: ubuntu-18.04
-            python: 3.7
+            python: "3.7"
           ### PyQt 5.13 (Python 3.7)
           - testenv: py37-pyqt513
             os: ubuntu-20.04
-            python: 3.7
+            python: "3.7"
           ### PyQt 5.14 (Python 3.8)
           - testenv: py38-pyqt514
             os: ubuntu-20.04
-            python: 3.8
+            python: "3.8"
           ### PyQt 5.15.0 (Python 3.9)
           - testenv: py39-pyqt5150
             os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.9, with coverage)
-          - testenv: py39-pyqt515-cov
+            python: "3.9"
+          ### PyQt 5.15 (Python 3.10, with coverage)
+          - testenv: py310-pyqt515-cov
             os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.10)
-          - testenv: py310-pyqt515
+            python: "3.10"
+          ### PyQt 5.15 (Python 3.11)
+          - testenv: py311-pyqt515
             os: ubuntu-20.04
-            python: 3.10-dev
+            python: "3.11-dev"
           ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-10.15
-            python: 3.7
+            python: "3.9"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Big Sur
           # - testenv: py39-pyqt515
           #   os: macos-11.0
-          #   python: 3.9
+          #   python: "3.9"
           #   args: "tests/unit"  # Only run unit tests on macOS
           ### Windows: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: windows-2019
-            python: 3.9
+            python: "3.9"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
