@@ -44,6 +44,15 @@ Changed
   Packagers are advised to use `misc/Makefile` if possible, which has been
   updated with the new paths.
 
+Fixed
+~~~~~
+
+- Fixes in userscripts:
+  * The `qute-bitwarden` userscript now correctly searches for entries for
+    sites on a subdomain of an unrecognized TLD. subdomain names. Previously
+    `my.site.local` would have searched in bitwarden for `my.sitelocal`,
+    losing the rightmost dot.
+
 [[v2.5.1]]
 v2.5.1 (unreleased)
 -------------------
