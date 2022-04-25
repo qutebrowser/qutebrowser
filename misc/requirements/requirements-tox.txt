@@ -4,7 +4,7 @@ distlib==0.3.4
 filelock==3.6.0
 packaging==21.3
 pip==22.0.4
-platformdirs==2.5.1
+platformdirs==2.5.2
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.8
