@@ -1,4 +1,6 @@
 pylint
+# WORKAROUND for https://github.com/PyCQA/pylint/issues/6438#issuecomment-1108747642
+astroid != 2.11.3
 ./scripts/dev/pylint_checkers
 requests
 github3.py
