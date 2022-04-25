@@ -90,7 +90,7 @@ class UrlText(textbase.TextBase):
         self._normal_url = None
         self._normal_url_type = UrlType.normal
 
-    @QtCore.pyqtProperty(str)
+    @QtCore.pyqtProperty(str)  # type: ignore[attr-defined]
     def urltype(self):
         """Getter for self.urltype, so it can be used as Qt property.
 

@@ -41,7 +41,7 @@ from qutebrowser.qt import QtWidgets, QtWebKit, QtWebEngine, QtNetwork
 if QtWebKit:
     qWebKitVersion = QtWebKit.qWebKitVersion  # noqa: N816
 else:
-    qWebKitVersion = None  # noqa: N816
+    qWebKitVersion = None  # type: ignore[assignment] # noqa: N816
 if QtWebEngine and hasattr(QtWebEngine, 'PYQT_WEBENGINE_VERSION_STR'):
     PYQT_WEBENGINE_VERSION_STR = QtWebEngine.PYQT_WEBENGINE_VERSION_STR
 else:

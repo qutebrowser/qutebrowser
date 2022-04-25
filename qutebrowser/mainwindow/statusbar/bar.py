@@ -297,7 +297,7 @@ class StatusBar(QtWidgets.QWidget):
         padding = config.val.statusbar.padding
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
-    @QtCore.pyqtProperty('QStringList')
+    @QtCore.pyqtProperty('QStringList')  # type: ignore[attr-defined]
     def color_flags(self):
         """Getter for self.color_flags, so it can be used as Qt property."""
         return self._color_flags.to_stringlist()
