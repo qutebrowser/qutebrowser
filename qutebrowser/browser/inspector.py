@@ -22,7 +22,7 @@
 import base64
 import binascii
 import enum
-from typing import cast, Optional, Union, TYPE_CHECKING
+from typing import cast, Optional, Any, TYPE_CHECKING
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
@@ -34,13 +34,9 @@ from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
 
-if TYPE_CHECKING:
-    from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage
-    from qutebrowser.browser.webengine import webengineinspector
 
-
-_WidgetType = Union["QWebInspector", "webengineinspector.WebEngineInspectorView"]
+# FIXME:mypy How to annotate this properly without running into Liskov issues?
+_WidgetType = Any
 
 
 class Position(enum.Enum):
@@ -206,7 +202,8 @@ class AbstractWebInspector(QWidget):
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['inspector']['window'] = geom
 
-    def inspect(self, page: Union["QWebPage", "QWebEnginePage"]) -> None:
+    # FIXME:mypy How to annotate 'page' properly without running into Liskov issues?
+    def inspect(self, page: Any) -> None:
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 
