@@ -68,7 +68,7 @@
   "more-itertools": "https://github.com/erikrose/more-itertools/blob/master/docs/versions.rst",
   "pydocstyle": "https://www.pydocstyle.org/en/latest/release_notes.html",
   "Sphinx": "https://www.sphinx-doc.org/en/master/changes.html",
-  "Babel": "https://github.com/python-babel/babel/blob/master/CHANGES",
+  "Babel": "https://github.com/python-babel/babel/blob/master/CHANGES.rst",
   "alabaster": "https://alabaster.readthedocs.io/en/latest/changelog.html",
   "imagesize": "https://github.com/shibukawa/imagesize_py/commits/master",
   "pytz": "https://mm.icann.org/pipermail/tz-announce/",
