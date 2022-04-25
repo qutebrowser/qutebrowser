@@ -49,20 +49,18 @@ import itertools
 import functools
 import subprocess
 from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
-from qutebrowser.qt import QtWidgets
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
     # on installs that don't have these
-    from qutebrowser.qt import QtWebEngineWidgets, QtWebEngineCore, QWebEngineNotification
-    from qutebrowser.qt import QWebEngineProfile
+    from qutebrowser.qt import QtWebEngineWidgets, QtWebEngineCore
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import (
     qtutils, log, utils, debug, message, version, objreg, resources,
 )
-from qutebrowser.qt import QtWebEngine, QtGui, QtDBus, QtCore, sip
+from qutebrowser.qt import QtWidgets, QtWebEngine, QtGui, QtDBus, QtCore, sip
 
 
 bridge: Optional['NotificationBridgePresenter'] = None
@@ -123,7 +121,7 @@ class AbstractNotificationAdapter(QtCore.QObject):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "QtWebEngineCore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -169,7 +167,7 @@ class NotificationBridgePresenter(QtCore.QObject):
         super().__init__(parent)
         assert _notifications_supported()
 
-        self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
+        self._active_notifications: Dict[int, 'QtWebEngineCore.QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
 
         config.instance.changed.connect(self._init_adapter)
@@ -227,7 +225,7 @@ class NotificationBridgePresenter(QtCore.QObject):
         self._adapter.error.connect(self._on_adapter_error)
         self._adapter.clear_all.connect(self._on_adapter_clear_all)
 
-    def install(self, profile: "QWebEngineProfile") -> None:
+    def install(self, profile: "QtWebEngineWidgets.QWebEngineProfile") -> None:
         """Set the profile to use this bridge as the presenter."""
         if QtWebEngine.PYQT_WEBENGINE_VERSION < 0x050F00:
             # PyQtWebEngine unrefs the callback after it's called, for some
@@ -235,14 +233,14 @@ class NotificationBridgePresenter(QtCore.QObject):
             # its refcount to prevent it from getting GC'd. Otherwise, random
             # methods start getting called with the notification as `self`, or
             # segfaults happen, or other badness.
-            def _present_and_reset(qt_notification: "QWebEngineNotification") -> None:
+            def _present_and_reset(qt_notification: "QtWebEngineCore.QWebEngineNotification") -> None:
                 profile.setNotificationPresenter(_present_and_reset)
                 self.present(qt_notification)
             profile.setNotificationPresenter(_present_and_reset)
         else:
             profile.setNotificationPresenter(self.present)
 
-    def present(self, qt_notification: "QWebEngineNotification") -> None:
+    def present(self, qt_notification: "QtWebEngineCore.QWebEngineNotification") -> None:
         """Show a notification using the configured adapter.
 
         Lazily initializes a suitable adapter if none exists yet.
@@ -281,7 +279,7 @@ class NotificationBridgePresenter(QtCore.QObject):
 
     def _find_replaces_id(
         self,
-        new_notification: "QWebEngineNotification",
+        new_notification: "QtWebEngineCore.QWebEngineNotification",
     ) -> Optional[int]:
         """Find an existing notification to replace.
 
@@ -361,7 +359,7 @@ class NotificationBridgePresenter(QtCore.QObject):
             return
         self._focus_first_matching_tab(notification)
 
-    def _focus_first_matching_tab(self, notification: "QWebEngineNotification") -> None:
+    def _focus_first_matching_tab(self, notification: "QtWebEngineCore.QWebEngineNotification") -> None:
         for win_id in objreg.window_registry:
             tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
             for idx, tab in enumerate(tabbedbrowser.widgets()):
@@ -441,7 +439,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "QtWebEngineCore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -503,7 +501,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "QtWebEngineCore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -522,7 +520,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
 
-    def _format_message(self, qt_notification: "QWebEngineNotification") -> str:
+    def _format_message(self, qt_notification: "QtWebEngineCore.QWebEngineNotification") -> str:
         title = html.escape(qt_notification.title())
         body = html.escape(qt_notification.message())
         hint = "" if qt_notification.icon().isNull() else " (image not shown)"
@@ -563,7 +561,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "QtWebEngineCore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -584,7 +582,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     def _message_lines(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "QtWebEngineCore.QWebEngineNotification",
     ) -> Iterator[str]:
         """Get the lines to display for this notification."""
         yield qt_notification.title()
@@ -928,7 +926,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "QtWebEngineCore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
