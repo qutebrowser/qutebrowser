@@ -22,7 +22,7 @@
 import base64
 import binascii
 import enum
-from typing import cast, Optional, Any, TYPE_CHECKING
+from typing import cast, Optional, Any
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
