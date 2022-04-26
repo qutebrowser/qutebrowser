@@ -483,7 +483,7 @@ class SqlTable(QObject):
         q = self.database.query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)
         if not q.rows_affected():
-            raise KeyError(f'No row with {field} = "{value}"')
+            raise KeyError(f'No row with {field} = "{value!r}"')
         self.changed.emit()
 
     def _insert_query(self, values: Mapping[str, Any], replace: bool) -> Query:
