@@ -126,10 +126,10 @@ jobs:
             os: ubuntu-20.04
             python: "3.10"
           ### PyQt 5.15 (Python 3.11)
-          - testenv: py311-pyqt515
-            os: ubuntu-20.04
-            python: "3.11-dev"
-            experimental: true
+          # - testenv: py311-pyqt515
+          #   os: ubuntu-20.04
+          #   python: "3.11-dev"
+          #   experimental: true
           ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-10.15
