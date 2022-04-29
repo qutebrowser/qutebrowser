@@ -20,6 +20,7 @@
 import pytest
 
 from qutebrowser.qt.core import Qt, QObject, pyqtSignal
+from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
 from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import keyutils
@@ -37,8 +38,13 @@ class FakeKeyparser(QObject):
         super().__init__()
         self.passthrough = False
 
-    def handle(self, evt, *, dry_run=False):
-        return False
+    def handle(
+        self,
+        evt: QKeyEvent,
+        *,
+        dry_run: bool = False,
+    ) -> QKeySequence.SequenceMatch:
+        return QKeySequence.SequenceMatch.NoMatch
 
 
 @pytest.fixture
