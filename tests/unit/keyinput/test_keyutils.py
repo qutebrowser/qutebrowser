@@ -284,10 +284,14 @@ class TestKeySequence:
         seq = keyutils.KeySequence()
         assert not seq
 
-    @pytest.mark.parametrize('key', [Qt.Key.Key_unknown, -1, 0])
+    @pytest.mark.parametrize('key', [Qt.Key.Key_unknown, keyutils._NIL_KEY])
     def test_init_unknown(self, key):
         with pytest.raises(keyutils.KeyParseError):
             keyutils.KeySequence(keyutils.KeyInfo(key))
+
+    def test_init_invalid(self):
+        with pytest.raises(AssertionError):
+            keyutils.KeyInfo(-1)
 
     def test_parse_unknown(self):
         with pytest.raises(keyutils.KeyParseError):
@@ -643,6 +647,7 @@ def test_is_modifier_key(key, ismodifier):
     keyutils.is_modifier_key,
     keyutils._key_to_string,
     keyutils._modifiers_to_string,
+    keyutils.KeyInfo,
 ])
 def test_non_plain(func):
     comb = Qt.Key.Key_X | Qt.KeyboardModifier.ControlModifier

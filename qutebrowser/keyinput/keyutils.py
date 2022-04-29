@@ -364,15 +364,14 @@ class KeyInfo:
     modifiers: _ModifierType = Qt.KeyboardModifier.NoModifier
 
     def __post_init__(self) -> None:
-        """Make sure we're not dealing with keys as ints.
-
-        This is mainly useful while porting from Qt 5 to 6.
-
-        FIXME:qt6 do we want to remove or keep this (and fix the remaining
-        issues) when done?
-        """
+        """Run some validation on the key/modifier values."""
+        # This is mainly useful while porting from Qt 5 to 6.
+        # FIXME:qt6 do we want to remove or keep this (and fix the remaining
+        # issues) when done?
         # assert isinstance(self.key, Qt.Key), self.key
         # assert isinstance(self.modifiers, Qt.KeyboardModifier), self.modifiers
+        _assert_plain_key(self.key)
+        _assert_plain_modifier(self.modifiers)
 
     def __repr__(self) -> str:
         return utils.get_repr(
@@ -395,8 +394,6 @@ class KeyInfo:
             raise InvalidKeyError(str(e))
         key = _remap_unicode(key, e.text())
         modifiers = e.modifiers()
-        _assert_plain_key(key)
-        _assert_plain_modifier(modifiers)
         return cls(key, modifiers)
 
     @classmethod
