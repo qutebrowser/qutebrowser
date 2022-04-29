@@ -173,6 +173,14 @@ def test_key_info_str(key, modifiers, expected):
     assert str(keyutils.KeyInfo(key, modifiers)) == expected
 
 
+def test_key_info_repr():
+    info = keyutils.KeyInfo(Qt.Key.Key_A, Qt.KeyboardModifier.ShiftModifier)
+    expected = (
+        "<qutebrowser.keyinput.keyutils.KeyInfo "
+        "key='Key_A' modifiers='ShiftModifier' text='A'>")
+    assert repr(info) == expected
+
+
 @pytest.mark.parametrize('info1, info2, equal', [
     (keyutils.KeyInfo(Qt.Key.Key_A, Qt.KeyboardModifier.NoModifier),
      keyutils.KeyInfo(Qt.Key.Key_A, Qt.KeyboardModifier.NoModifier),

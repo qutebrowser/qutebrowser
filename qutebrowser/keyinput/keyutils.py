@@ -42,7 +42,7 @@ try:
 except ImportError:
     QKeyCombination = None  # Qt 6 only
 
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import utils, qtutils, debug
 
 
 class InvalidKeyError(Exception):
@@ -360,6 +360,14 @@ class KeyInfo:
 
     key: Qt.Key
     modifiers: _ModifierType = Qt.KeyboardModifier.NoModifier
+
+    def __repr__(self) -> str:
+        return utils.get_repr(
+            self,
+            key=debug.qenum_key(Qt, self.key, klass=Qt.Key),
+            modifiers=debug.qflags_key(Qt, self.modifiers, klass=Qt.KeyboardModifier),
+            text=str(self),
+        )
 
     @classmethod
     def from_event(cls, e: QKeyEvent) -> 'KeyInfo':

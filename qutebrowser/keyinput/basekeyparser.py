@@ -292,10 +292,7 @@ class BaseKeyParser(QObject):
             log.keyboard.debug("Got invalid key")
             return QKeySequence.SequenceMatch.NoMatch
 
-        self._debug_log(
-            f"Got key: {debug.qenum_key(Qt.Key, info.key)} / "
-            f"modifiers: {debug.qflags_key(Qt.KeyboardModifier, e.modifiers())} / "
-            f"text: '{info}' / dry_run {dry_run}")
+        self._debug_log(f"Got key: {info!r} (dry_run {dry_run})")
 
         if keyutils.is_modifier_key(info.key):
             self._debug_log("Ignoring, only modifier")
