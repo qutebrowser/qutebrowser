@@ -913,6 +913,7 @@ class CommandDispatcher:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(
                     "No window specified and couldn't find active window!")
+            assert isinstance(active_win, mainwindow.MainWindow), active_win
             win_id = active_win.win_id
 
         if win_id not in objreg.window_registry:
@@ -1152,6 +1153,7 @@ class CommandDispatcher:
 
         idx = self._current_index()
         if idx != -1:
+            env['QUTE_TAB_INDEX'] = str(idx + 1)
             env['QUTE_TITLE'] = self._tabbed_browser.widget.page_title(idx)
 
         # FIXME:qtwebengine: If tab is None, run_async will fail!

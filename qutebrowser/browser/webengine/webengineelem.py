@@ -37,6 +37,8 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     """A web element for QtWebEngine, using JS under the hood."""
 
+    _tab: "webenginetab.WebEngineTab"
+
     def __init__(self, js_dict: Dict[str, Any],
                  tab: 'webenginetab.WebEngineTab') -> None:
         super().__init__(tab)
@@ -248,7 +250,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         # (it does so with a 0ms QTimer...)
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
-        QApplication.processEvents(  # type: ignore[call-overload]
+        QApplication.processEvents(
             QEventLoop.ExcludeSocketNotifiers |
             QEventLoop.ExcludeUserInputEvents)
 

@@ -22,8 +22,7 @@
 import enum
 import dataclasses
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
-                          pyqtProperty, Qt, QSize, QTimer)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
@@ -300,7 +299,7 @@ class StatusBar(QWidget):
         padding = config.val.statusbar.padding
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
-    @pyqtProperty('QStringList')
+    @pyqtProperty('QStringList')  # type: ignore[type-var]
     def color_flags(self):
         """Getter for self.color_flags, so it can be used as Qt property."""
         return self._color_flags.to_stringlist()

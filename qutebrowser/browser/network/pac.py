@@ -270,8 +270,7 @@ class PACFetcher(QObject):
         """Fetch the proxy from the remote URL."""
         assert self._manager is not None
         self._reply = self._manager.get(QNetworkRequest(self._pac_url))
-        self._reply.finished.connect(  # type: ignore[attr-defined]
-            self._finish)
+        self._reply.finished.connect(self._finish)
 
     @pyqtSlot()
     def _finish(self):

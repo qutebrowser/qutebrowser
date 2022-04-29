@@ -21,7 +21,6 @@
 
 import html
 import functools
-from typing import cast
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
@@ -241,6 +240,7 @@ class BrowserPage(QWebPage):
         if download_manager.has_downloads_with_nam(nam):
             nam.setParent(download_manager)
         else:
+            assert isinstance(nam, networkmanager.NetworkManager), nam
             nam.shutdown()
 
     def display_content(self, reply, mimetype):
@@ -371,11 +371,10 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
-                                        QUrl.RemoveUserInfo |
-                                        QUrl.RemovePath |
-                                        QUrl.RemoveQuery |
-                                        QUrl.RemoveFragment))
+        url = frame.url().adjusted(QUrl.RemoveUserInfo |  # type: ignore[operator]
+                                   QUrl.RemovePath |
+                                   QUrl.RemoveQuery |
+                                   QUrl.RemoveFragment)
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],

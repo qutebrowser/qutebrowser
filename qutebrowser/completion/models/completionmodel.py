@@ -180,10 +180,11 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
-        self.layoutAboutToBeChanged.emit()  # type: ignore[attr-defined]
+        self.layoutAboutToBeChanged.emit()
         for cat in self._categories:
-            cat.set_pattern(pattern)
-        self.layoutChanged.emit()  # type: ignore[attr-defined]
+            # FIXME:mypy define a Protocol for set_pattern?
+            cat.set_pattern(pattern)  # type: ignore[attr-defined]
+        self.layoutChanged.emit()
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""

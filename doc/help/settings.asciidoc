@@ -213,6 +213,7 @@
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
 |<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
+|<<editor.remove_file,editor.remove_file>>|Delete the temporary file upon closing the editor.
 |<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
 |<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
@@ -440,9 +441,7 @@ The following modes are available:
   that single keys can't be bound in this mode.
 
 * passthrough: Similar to insert mode, but passes through all keypresses
-  except `<Escape>` to leave the mode. It might be useful to bind
-  `<Escape>` to some other key in this mode if you want to be able to send
-  an Escape key to the website as well. Note that single keys can't be
+  except `<Shift+Escape>` to leave the mode. Note that single keys can't be
   bound in this mode.
 
 * command: Entered when pressing the `:` key in order to enter a command.
@@ -525,9 +524,10 @@ Default:
 * +pass:[&lt;Ctrl-Return&gt;]+: +pass:[command-accept --rapid]+
 * +pass:[&lt;Ctrl-Shift-C&gt;]+: +pass:[completion-item-yank --sel]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[rl-filename-rubout]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
-* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-rubout &quot; &quot;]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
@@ -761,8 +761,9 @@ Default:
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
 * +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-open-download --pdfjs]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[rl-filename-rubout]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
-* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-rubout &quot; &quot;]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
@@ -2943,6 +2944,14 @@ Type: <<types,Encoding>>
 
 Default: +pass:[utf-8]+
 
+[[editor.remove_file]]
+=== editor.remove_file
+Delete the temporary file upon closing the editor.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[fileselect.folder.command]]
 === fileselect.folder.command
 Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
@@ -3635,7 +3644,7 @@ Default: +pass:[0]+
 [[input.spatial_navigation]]
 === input.spatial_navigation
 Enable spatial navigation.
-Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if the user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
+Spatial navigation consists in the ability to navigate between focusable elements, such as hyperlinks and form controls, on a web page by using the Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element they might be trying to reach towards the right and which element they probably want.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 

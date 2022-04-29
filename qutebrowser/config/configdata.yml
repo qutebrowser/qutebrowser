@@ -719,14 +719,14 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/92.0.4515.131 Safari/537.36"
-        - Chrome 92 Win10
+          like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+        - Chrome 97 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36"
-        - Chrome 92 macOS
+          (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+        - Chrome 97 macOS
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/92.0.4515.131 Safari/537.36"
-        - Chrome 92 Linux
+          Gecko) Chrome/97.0.4692.99 Safari/537.36"
+        - Chrome 97 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -1435,11 +1435,15 @@ editor.command:
     * `{line0}`: Same as `{line}`, but starting from index 0.
     * `{column0}`: Same as `{column}`, but starting from index 0.
 
-
 editor.encoding:
   type: Encoding
   default: utf-8
   desc: Encoding to use for the editor.
+
+editor.remove_file:
+  default: true
+  type: Bool
+  desc: Delete the temporary file upon closing the editor.
 
 ## fileselect
 
@@ -1822,10 +1826,10 @@ input.spatial_navigation:
     Enable spatial navigation.
 
     Spatial navigation consists in the ability to navigate between focusable
-    elements in a Web page, such as hyperlinks and form controls, by using
-    Left, Right, Up and Down arrow keys. For example, if the user presses the
-    Right key, heuristics determine whether there is an element he might be
-    trying to reach towards the right and which element he probably wants.
+    elements, such as hyperlinks and form controls, on a web page by using the
+    Left, Right, Up and Down arrow keys. For example, if a user presses the
+    Right key, heuristics determine whether there is an element they might be
+    trying to reach towards the right and which element they probably want.
 
 input.media_keys:
   default: true
@@ -3760,7 +3764,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
@@ -3785,7 +3790,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
@@ -3922,9 +3928,7 @@ bindings.commands:
       that single keys can't be bound in this mode.
 
     * passthrough: Similar to insert mode, but passes through all keypresses
-      except `<Escape>` to leave the mode. It might be useful to bind
-      `<Escape>` to some other key in this mode if you want to be able to send
-      an Escape key to the website as well. Note that single keys can't be
+      except `<Shift+Escape>` to leave the mode. Note that single keys can't be
       bound in this mode.
 
     * command: Entered when pressing the `:` key in order to enter a command.

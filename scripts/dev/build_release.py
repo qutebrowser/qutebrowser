@@ -302,7 +302,9 @@ def build_mac(*, gh_token, debug):
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False, gh_token=gh_token)
+    # FIXME:qt6 Use modern PDF.js version here
+    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=True, fancy_dmg=False,
+                        gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
@@ -395,8 +397,9 @@ def _build_windows_single(*, x64, skip_packaging, debug):
 def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False,
-                        gh_token=gh_token)
+    # FIXME:qt6 Use modern PDF.js version here
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=True,
+                        fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
 
@@ -596,9 +599,9 @@ def github_upload(artifacts, tag, gh_token):
                 assets = [asset for asset in release.assets()
                           if asset.name == basename]
                 if assets:
-                    asset = assets[0]
-                    print("Deleting stray asset {}".format(asset.name))
-                    asset.delete()
+                    stray_asset = assets[0]
+                    print("Deleting stray asset {}".format(stray_asset.name))
+                    stray_asset.delete()
             else:
                 break
 

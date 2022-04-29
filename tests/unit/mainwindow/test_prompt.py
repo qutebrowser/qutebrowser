@@ -48,9 +48,9 @@ class TestFileCompletion:
         return _get_prompt_func
 
     @pytest.mark.parametrize('steps, where, subfolder', [
-        (1, 'next', '..'),
+        (1, 'next', 'a'),
         (1, 'prev', 'c'),
-        (2, 'next', 'a'),
+        (2, 'next', 'b'),
         (2, 'prev', 'b'),
     ])
     def test_simple_completion(self, tmp_path, get_prompt, steps, where,
@@ -84,9 +84,7 @@ class TestFileCompletion:
         # For some reason, this isn't always called when using qtbot.keyPress.
         prompt._set_fileview_root(prompt._lineedit.text())
 
-        # '..' and 'foo' should get completed from 'f'
-        prompt.item_focus('next')
-        assert prompt._lineedit.text() == str(tmp_path)
+        # 'foo' should get completed from 'f'
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(testdir / 'foo')
 
@@ -94,15 +92,15 @@ class TestFileCompletion:
         for _ in range(3):
             qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
 
-        # We should now show / again, so tabbing twice gives us .. -> bar
+        # We should now show / again, so tabbing twice gives us bar -> foo
         prompt.item_focus('next')
         prompt.item_focus('next')
-        assert prompt._lineedit.text() == str(testdir / 'bar')
+        assert prompt._lineedit.text() == str(testdir / 'foo')
 
     @pytest.mark.parametrize("keys, expected", [
-        ([], ['..', 'bar', 'bat', 'foo']),
-        ([Qt.Key_F], ['..', 'foo']),
-        ([Qt.Key_A], ['..', 'bar', 'bat']),
+        ([], ['bar', 'bat', 'foo']),
+        ([Qt.Key_F], ['foo']),
+        ([Qt.Key_A], ['bar', 'bat']),
     ])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'

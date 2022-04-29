@@ -931,7 +931,7 @@ def test_parse_duration_hypothesis(duration):
 
 @pytest.mark.parametrize('mimetype, extension', [
     ('application/pdf', '.pdf'),  # handled by Python
-    ('text/plain', '.txt'),  # wrong in Python 3.6, overridden
+    ('text/plain', '.txt'),  # was wrong in Python 3.6, handled now
     ('application/manifest+json', '.webmanifest'),  # newer
     ('text/xul', '.xul'),  # strict=False
     ('doesnot/exist', None),

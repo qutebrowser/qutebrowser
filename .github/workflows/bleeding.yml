@@ -15,7 +15,7 @@ jobs:
     container:
       image: "qutebrowser/ci:archlinux-webengine-unstable"
       env:
-        PY_COLORS: "1"
+        FORCE_COLOR: "1"
         DOCKER: "archlinux-webengine-unstable"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"

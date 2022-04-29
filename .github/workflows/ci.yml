@@ -6,7 +6,7 @@ on:
       - 'dependabot/*'
   pull_request:
 env:
-  PY_COLORS: "1"
+  FORCE_COLOR: "1"
   MYPY_FORCE_TERMINAL_WIDTH: "180"
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('scripts/dev/pylint_checkers/qute_pylint/*.py') }}"
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '12.x'
@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get install --no-install-recommends asciidoc
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
@@ -105,44 +105,45 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.12 (Python 3.6)
-          - testenv: py36-pyqt512
+          ### PyQt 5.12 (Python 3.7)
+          - testenv: py37-pyqt512
             os: ubuntu-18.04
-            python: 3.6
+            python: "3.7"
           ### PyQt 5.13 (Python 3.7)
           - testenv: py37-pyqt513
             os: ubuntu-20.04
-            python: 3.7
+            python: "3.7"
           ### PyQt 5.14 (Python 3.8)
           - testenv: py38-pyqt514
             os: ubuntu-20.04
-            python: 3.8
+            python: "3.8"
           ### PyQt 5.15.0 (Python 3.9)
           - testenv: py39-pyqt5150
             os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.9, with coverage)
-          - testenv: py39-pyqt515-cov
+            python: "3.9"
+          ### PyQt 5.15 (Python 3.10, with coverage)
+          - testenv: py310-pyqt515-cov
             os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.10)
-          - testenv: py310-pyqt515
-            os: ubuntu-20.04
-            python: 3.10-dev
+            python: "3.10"
+          ### PyQt 5.15 (Python 3.11)
+          # - testenv: py311-pyqt515
+          #   os: ubuntu-20.04
+          #   python: "3.11-dev"
+          #   experimental: true
           ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-10.15
-            python: 3.7
+            python: "3.9"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Big Sur
           # - testenv: py39-pyqt515
           #   os: macos-11.0
-          #   python: 3.9
+          #   python: "3.9"
           #   args: "tests/unit"  # Only run unit tests on macOS
           ### Windows: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: windows-2019
-            python: 3.9
+            python: "3.9"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2

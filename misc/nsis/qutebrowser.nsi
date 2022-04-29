@@ -57,7 +57,7 @@ ShowUninstDetails hide
 !define URL_UPDATE "https://qutebrowser.org/doc/install.html"
 !define HELP_LINK "https://qutebrowser.org/doc/help/"
 !define CONTACT "mail@qutebrowser.org"
-!define COMMENTS "A keyboard-driven, vim-like browser based on PyQt5."
+!define COMMENTS "A keyboard-driven, vim-like browser based on Python and Qt."
 !define LANGID "1033" ; U.S. English
 !define MIN_WIN_VER "8"
 !define SETUP_MUTEX "${PRODUCT_NAME} Setup Mutex" ; do not change this between program versions!

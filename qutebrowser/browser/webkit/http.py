@@ -91,6 +91,7 @@ class ContentDisposition:
         except IndexError:  # pragma: no cover
             # WORKAROUND for https://bugs.python.org/issue37491
             # Fixed in Python 3.7.5 and 3.8.0.
+            # Still getting failures on 3.10 on CI though
             raise ContentDispositionError("Missing closing quote character")
         except ValueError:  # pragma: no cover
             # WORKAROUND for https://bugs.python.org/issue42946
@@ -101,8 +102,15 @@ class ContentDisposition:
             if defects != [cls._IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
                 raise ContentDispositionError(defects)
 
-        assert isinstance(parsed, email.headerregistry.ContentDispositionHeader), parsed
-        return cls(disposition=parsed.content_disposition, params=parsed.params)
+        # https://github.com/python/mypy/issues/12314
+        assert isinstance(
+            parsed,  # type: ignore[unreachable]
+            email.headerregistry.ContentDispositionHeader,
+        ), parsed
+        return cls(  # type: ignore[unreachable]
+            disposition=parsed.content_disposition,
+            params=parsed.params,
+        )
 
     def filename(self):
         """The filename from the Content-Disposition header or None.
@@ -143,7 +151,7 @@ def parse_content_disposition(reply):
     """
     is_inline = True
     filename = None
-    content_disposition_header = 'Content-Disposition'.encode('iso-8859-1')
+    content_disposition_header = b'Content-Disposition'
     # First check if the Content-Disposition header has a filename
     # attribute.
     if reply.hasRawHeader(content_disposition_header):
@@ -151,7 +159,7 @@ def parse_content_disposition(reply):
         # os.path.basename later.
         try:
             value = bytes(reply.rawHeader(content_disposition_header))
-            log.network.debug("Parsing Content-Disposition: {value!r}")
+            log.network.debug(f"Parsing Content-Disposition: {value!r}")
             content_disposition = ContentDisposition.parse(value)
             filename = content_disposition.filename()
         except ContentDispositionError as e:

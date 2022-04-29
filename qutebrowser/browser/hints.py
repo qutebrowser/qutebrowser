@@ -254,8 +254,8 @@ class HintActions:
 
         flags = QUrl.FullyEncoded | QUrl.RemovePassword
         if url.scheme() == 'mailto':
-            flags |= QUrl.RemoveScheme
-        urlstr = url.toString(flags)  # type: ignore[arg-type]
+            flags |= QUrl.RemoveScheme  # type: ignore[operator]
+        urlstr = url.toString(flags)
 
         new_content = urlstr
 
@@ -356,8 +356,7 @@ class HintActions:
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
-        urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
+        urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
@@ -657,6 +656,7 @@ class HintManager(QObject):
             self._context.labels[string] = label
 
         keyparser = self._get_keyparser(usertypes.KeyMode.hint)
+        assert isinstance(keyparser, modeparsers.HintKeyParser), keyparser
         keyparser.update_bindings(strings)
 
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
@@ -852,6 +852,7 @@ class HintManager(QObject):
             # apply auto_follow_timeout
             timeout = config.val.hints.auto_follow_timeout
             normal_parser = self._get_keyparser(usertypes.KeyMode.normal)
+            assert isinstance(normal_parser, modeparsers.NormalKeyParser), normal_parser
             normal_parser.set_inhibited_timeout(timeout)
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
@@ -927,6 +928,7 @@ class HintManager(QObject):
                 self._context.labels[string] = label
 
             keyparser = self._get_keyparser(usertypes.KeyMode.hint)
+            assert isinstance(keyparser, modeparsers.HintKeyParser), keyparser
             keyparser.update_bindings(strings, preserve_filter=True)
 
             # Note: filter_hints can be called with non-None filterstr only

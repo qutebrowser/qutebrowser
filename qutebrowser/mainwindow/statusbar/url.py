@@ -21,8 +21,7 @@
 
 import enum
 
-from PyQt5.QtCore import (pyqtSlot, pyqtProperty,  # type: ignore[attr-defined]
-                          QUrl)
+from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import stylesheet
@@ -92,7 +91,7 @@ class UrlText(textbase.TextBase):
         self._normal_url = None
         self._normal_url_type = UrlType.normal
 
-    @pyqtProperty(str)
+    @pyqtProperty(str)  # type: ignore[type-var]
     def urltype(self):
         """Getter for self.urltype, so it can be used as Qt property.
 

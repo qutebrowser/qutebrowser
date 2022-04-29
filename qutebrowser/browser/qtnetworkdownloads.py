@@ -601,6 +601,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         assert nam.adopted_downloads == 0
         for download in self.downloads:
+            assert isinstance(download, DownloadItem), download
             if download._uses_nam(nam):  # pylint: disable=protected-access
                 nam.adopt_download(download)
         return nam.adopted_downloads

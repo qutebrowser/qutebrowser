@@ -7,7 +7,7 @@ qutebrowser
 ===========
 
 // QUTE_WEB_HIDE
-image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
+image:qutebrowser/icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on Python and Qt.*
 
 image:https://github.com/qutebrowser/qutebrowser/workflows/CI/badge.svg["Build Status", link="https://github.com/qutebrowser/qutebrowser/actions?query=workflow%3ACI"]
 image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
@@ -16,7 +16,7 @@ link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[bl
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
-on Python and PyQt5 and free software, licensed under the GPL.
+on Python and Qt and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
@@ -63,7 +63,7 @@ ways:
 * Use the built-in `:report` command or the automatic crash dialog.
 * Open an issue in the Github issue tracker.
 * Write a mail to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
@@ -74,7 +74,7 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.6.1 or newer
+* https://www.python.org/[Python] 3.7 or newer
 * https://www.qt.io/[Qt] 5.12.0 or newer (5.12 LTS or 5.15 recommended, Qt 6 is
   not supported yet) with the following modules:
   - QtCore / qtbase
@@ -96,10 +96,9 @@ websites and using it for transmission of sensitive data._
 * https://palletsprojects.com/p/jinja/[jinja2]
 * https://github.com/yaml/pyyaml[PyYAML]
 
-On older Python versions (3.6/3.7/3.8), the following backports are also required:
+On older Python versions (3.7/3.8), the following backports are also required:
 
-* https://importlib-resources.readthedocs.io/[importlib_resources] (Python 3.8 or older)
-* https://github.com/ericvsmith/dataclasses[dataclasses] (Python 3.6 only)
+* https://importlib-resources.readthedocs.io/[importlib_resources]
 
 The following libraries are optional:
 
@@ -109,8 +108,8 @@ The following libraries are optional:
   QtWebEngine backend.
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
-* https://importlib-metadata.readthedocs.io/[importlib_resources] on Python 3.7
-  or older, to improve QtWebEngine version detection when PyQtWebEngine is
+* https://importlib-metadata.readthedocs.io/[importlib_metadata] on Python 3.7,
+  to improve QtWebEngine version detection when PyQtWebEngine is
   installed via pip (thus, this dependency usually isn't relevant for
   packagers).
 * https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`

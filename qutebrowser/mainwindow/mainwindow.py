@@ -92,7 +92,7 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
-    QCoreApplication.processEvents(  # type: ignore[call-overload]
+    QCoreApplication.processEvents(
         QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
 
     if not sip.isdeleted(window):
@@ -561,11 +561,11 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags: int = Qt.Window
+        window_flags = cast(Qt.WindowFlags, Qt.Window)
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
-        self.setWindowFlags(cast(Qt.WindowFlags, window_flags))
+        self.setWindowFlags(window_flags)
         if refresh_window:
             self.show()
 
@@ -574,9 +574,7 @@ class MainWindow(QWidget):
         if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(
-                    Qt.WindowFullScreen |  # type: ignore[arg-type]
-                    self.state_before_fullscreen)  # type: ignore[operator]
+                self.setWindowState(Qt.WindowFullScreen | self.state_before_fullscreen)
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
@@ -602,7 +600,7 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self._update_overlay_geometries()
         self._downloadview.updateGeometry()
-        self.tabbed_browser.widget.tabBar().refresh()
+        self.tabbed_browser.widget.tab_bar().refresh()
 
     def showEvent(self, e):
         """Extend showEvent to register us as the last-visible-main-window.

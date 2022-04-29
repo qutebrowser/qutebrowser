@@ -1,4 +1,6 @@
 pylint
+# WORKAROUND for https://github.com/PyCQA/pylint/issues/6438#issuecomment-1108747642
+astroid != 2.11.3
 ./scripts/dev/pylint_checkers
 requests
 github3.py
@@ -10,10 +12,3 @@ pefile
 
 # Already included via test requirements
 #@ ignore: urllib3
-
-# For pylint_checkers
-#@ pip_args: --use-feature=in-tree-build
-
-# Python 3.6
-#@ markers: platformdirs python_version>="3.7"
-#@ add: platformdirs==2.4.0 ; python_version=="3.6.*"

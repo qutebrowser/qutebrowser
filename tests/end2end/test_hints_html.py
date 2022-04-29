@@ -59,7 +59,7 @@ def _parse_file(test_name):
     with file_path.open('r', encoding='utf-8') as html:
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
-    comment = str(soup.find(text=lambda text: isinstance(text, bs4.Comment)))
+    comment = str(soup.find(string=lambda text: isinstance(text, bs4.Comment)))
 
     if comment is None:
         raise InvalidFile(test_name, "no comment found")

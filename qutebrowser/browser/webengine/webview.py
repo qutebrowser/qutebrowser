@@ -70,7 +70,10 @@ class WebEngineView(QWebEngineView):
         return self.focusProxy()
 
     def shutdown(self):
-        self.page().shutdown()
+        """Shut down the underlying page."""
+        page = self.page()
+        assert isinstance(page, WebEnginePage), page
+        page.shutdown()
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.

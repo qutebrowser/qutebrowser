@@ -32,8 +32,9 @@ from PyQt5.QtWebKit import QWebSettings, QWebHistory, QWebElement
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
-from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
+from qutebrowser.browser.webkit import (webview, webpage, tabhistory, webkitelem,
                                         webkitsettings, webkitinspector)
+from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug, resources
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
@@ -45,6 +46,8 @@ class WebKitAction(browsertab.AbstractAction):
 
     action_class = QWebPage
     action_base = QWebPage.WebAction
+
+    _widget: webview.WebView
 
     def exit_fullscreen(self):
         raise browsertab.UnsupportedOperationError
@@ -69,7 +72,7 @@ class WebKitAction(browsertab.AbstractAction):
             'Unselect': QWebPage.ToggleVideoFullscreen + 2,
         }
         if name in new_actions:
-            self._widget.triggerPageAction(new_actions[name])
+            self._widget.triggerPageAction(new_actions[name])  # type: ignore[arg-type]
             return
 
         super().run_string(name)
@@ -78,6 +81,8 @@ class WebKitAction(browsertab.AbstractAction):
 class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""
+
+    _widget: webview.WebView
 
     def check_pdf_support(self):
         pass
@@ -100,6 +105,8 @@ class WebKitPrinting(browsertab.AbstractPrinting):
 class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
+
+    _widget: webview.WebView
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
@@ -153,7 +160,8 @@ class WebKitSearch(browsertab.AbstractSearch):
         self.search_displayed = False
         # We first clear the marked text, then the highlights
         self._widget.findText('')
-        self._widget.findText('', QWebPage.HighlightAllOccurrences)
+        self._widget.findText(
+            '', QWebPage.HighlightAllOccurrences)  # type: ignore[arg-type]
 
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
                reverse=False, wrap=True, result_cb=None):
@@ -179,7 +187,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def next_result(self, *, result_cb=None):
         self.search_displayed = True
-        found = self._widget.findText(self.text, self._flags)
+        found = self._widget.findText(self.text, self._flags)  # type: ignore[arg-type]
         self._call_cb(result_cb, found, self.text, self._flags, 'next_result')
 
     def prev_result(self, *, result_cb=None):
@@ -191,13 +199,15 @@ class WebKitSearch(browsertab.AbstractSearch):
             flags &= ~QWebPage.FindBackward
         else:
             flags |= QWebPage.FindBackward
-        found = self._widget.findText(self.text, flags)
+        found = self._widget.findText(self.text, flags)  # type: ignore[arg-type]
         self._call_cb(result_cb, found, self.text, flags, 'prev_result')
 
 
 class WebKitCaret(browsertab.AbstractCaret):
 
     """QtWebKit implementations related to moving the cursor/selection."""
+
+    _widget: webview.WebView
 
     def __init__(self,
                  tab: 'WebKitTab',
@@ -515,6 +525,8 @@ class WebKitZoom(browsertab.AbstractZoom):
 
     """QtWebKit implementations related to zooming."""
 
+    _widget: webview.WebView
+
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
 
@@ -524,6 +536,8 @@ class WebKitScroller(browsertab.AbstractScroller):
     """QtWebKit implementations related to scrolling."""
 
     # FIXME:qtwebengine When to use the main frame, when the current one?
+
+    _widget: webview.WebView
 
     def pos_px(self):
         return self._widget.page().mainFrame().scrollPosition()
@@ -624,6 +638,8 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
 
+    _history: QWebHistory
+
     def __init__(self, tab: 'WebKitTab') -> None:
         self._tab = tab
         self._history = cast(QWebHistory, None)
@@ -695,6 +711,7 @@ class WebKitElements(browsertab.AbstractElements):
     """QtWebKit implementations related to elements on the page."""
 
     _tab: 'WebKitTab'
+    _widget: webview.WebView
 
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)
@@ -730,7 +747,7 @@ class WebKitElements(browsertab.AbstractElements):
         self.find_css('#' + elem_id, find_id_cb, error_cb=lambda exc: None)
 
     def find_focused(self, callback):
-        frame = self._widget.page().currentFrame()
+        frame = cast(Optional[QWebFrame], self._widget.page().currentFrame())
         if frame is None:
             callback(None)
             return
@@ -744,7 +761,7 @@ class WebKitElements(browsertab.AbstractElements):
     def find_at_pos(self, pos, callback):
         assert pos.x() >= 0
         assert pos.y() >= 0
-        frame = self._widget.page().frameAt(pos)
+        frame = cast(Optional[QWebFrame], self._widget.page().frameAt(pos))
         if frame is None:
             # This happens when we click inside the webview, but not actually
             # on the QWebPage - for example when clicking the scrollbar
@@ -796,6 +813,8 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
 
     """QtWebKit-related methods which aren't part of the public API."""
 
+    _widget: webview.WebView
+
     def networkaccessmanager(self):
         return self._widget.page().networkAccessManager()
 
@@ -820,6 +839,8 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
+
+    _widget: webview.WebView
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,
@@ -912,6 +933,7 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_load_started(self):
         super()._on_load_started()
         nam = self._widget.page().networkAccessManager()
+        assert isinstance(nam, networkmanager.NetworkManager), nam
         nam.netrc_used = False
         # Make sure the icon is cleared when navigating to a page without one.
         self.icon_changed.emit(QIcon())
@@ -929,7 +951,9 @@ class WebKitTab(browsertab.AbstractTab):
         when using error pages... See
         https://github.com/qutebrowser/qutebrowser/issues/84
         """
-        self._on_load_finished(not self._widget.page().error_occurred)
+        page = self._widget.page()
+        assert isinstance(page, webpage.BrowserPage), page
+        self._on_load_finished(not page.error_occurred)
 
     @pyqtSlot()
     def _on_webkit_icon_changed(self):
@@ -984,18 +1008,30 @@ class WebKitTab(browsertab.AbstractTab):
         view = self._widget
         page = view.page()
         frame = page.mainFrame()
-        page.windowCloseRequested.connect(self.window_close_requested)
-        page.linkHovered.connect(self.link_hovered)
-        page.loadProgress.connect(self._on_load_progress)
-        frame.loadStarted.connect(self._on_load_started)
+        page.windowCloseRequested.connect(  # type: ignore[attr-defined]
+            self.window_close_requested)
+        page.linkHovered.connect(  # type: ignore[attr-defined]
+            self.link_hovered)
+        page.loadProgress.connect(  # type: ignore[attr-defined]
+            self._on_load_progress)
+        frame.loadStarted.connect(  # type: ignore[attr-defined]
+            self._on_load_started)
         view.scroll_pos_changed.connect(self.scroller.perc_changed)
-        view.titleChanged.connect(self.title_changed)
-        view.urlChanged.connect(self._on_url_changed)
+        view.titleChanged.connect(  # type: ignore[attr-defined]
+            self.title_changed)
+        view.urlChanged.connect(  # type: ignore[attr-defined]
+            self._on_url_changed)
         view.shutting_down.connect(self.shutting_down)
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
-        frame.loadFinished.connect(self._on_frame_load_finished)
-        view.iconChanged.connect(self._on_webkit_icon_changed)
-        page.frameCreated.connect(self._on_frame_created)
-        frame.contentsSizeChanged.connect(self._on_contents_size_changed)
-        frame.initialLayoutCompleted.connect(self._on_history_trigger)
-        page.navigation_request.connect(self._on_navigation_request)
+        frame.loadFinished.connect(  # type: ignore[attr-defined]
+            self._on_frame_load_finished)
+        view.iconChanged.connect(  # type: ignore[attr-defined]
+            self._on_webkit_icon_changed)
+        page.frameCreated.connect(  # type: ignore[attr-defined]
+            self._on_frame_created)
+        frame.contentsSizeChanged.connect(  # type: ignore[attr-defined]
+            self._on_contents_size_changed)
+        frame.initialLayoutCompleted.connect(  # type: ignore[attr-defined]
+            self._on_history_trigger)
+        page.navigation_request.connect(  # type: ignore[attr-defined]
+            self._on_navigation_request)

@@ -65,7 +65,9 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug, message, version, objreg
+from qutebrowser.utils import (
+    qtutils, log, utils, debug, message, version, objreg, resources,
+)
 from qutebrowser.qt import sip
 
 
@@ -286,7 +288,7 @@ class NotificationBridgePresenter(QObject):
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification
 
-        qt_notification.closed.connect(  # type: ignore[attr-defined]
+        qt_notification.closed.connect(
             functools.partial(self._adapter.on_web_closed, notification_id))
 
     def _find_replaces_id(
@@ -630,6 +632,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
             self.close_id.emit(pid)
         else:
             proc = self.sender()
+            assert isinstance(proc, QProcess), proc
             stderr = proc.readAllStandardError()
             raise Error(f'herbe exited with status {code}: {stderr}')
 
@@ -755,8 +758,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             QDBusServiceWatcher.WatchForUnregistration,
             self,
         )
-        self._watcher.serviceUnregistered.connect(  # type: ignore[attr-defined]
-            self._on_service_unregistered)
+        self._watcher.serviceUnregistered.connect(self._on_service_unregistered)
 
         test_service = 'test-notification-service' in objects.debug_flags
         service = self.TEST_SERVICE if test_service else self.SERVICE
@@ -965,8 +967,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         icon = qt_notification.icon()
         if icon.isNull():
-            filename = ':/icons/qutebrowser-64x64.png'
-            icon = QImage(filename)
+            filename = 'icons/qutebrowser-64x64.png'
+            icon = QImage.fromData(resources.read_file_binary(filename))
 
         key = self._quirks.icon_key or "image-data"
         data = self._convert_image(icon)

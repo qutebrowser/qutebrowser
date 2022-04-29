@@ -26,10 +26,10 @@ link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
 https://libera.chat/[Libera Chat]
 (https://web.libera.chat/#qutebrowser[webchat], https://matrix.to/#qutebrowser:libera.chat[via Matrix]),
 or by writing a message to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
-There's also an https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
+There's also an https://listi.jpberlin.de/mailman/listinfo/qutebrowser-announce[announce-only mailinglist]
 at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
 get sent to the general qutebrowser@ list).
 
@@ -49,7 +49,7 @@ ways:
 * Use the built-in `:report` command or the automatic crash dialog.
 * Open an issue in the Github issue tracker.
 * Write a mail to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 Other resources

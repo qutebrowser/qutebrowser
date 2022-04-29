@@ -50,7 +50,7 @@ def _get_files(
     filenames = subprocess.run(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
         stdout=subprocess.PIPE,
-        universal_newlines=True,
+        text=True,
         check=True,
     )
     all_ignored = ignored or []
@@ -199,11 +199,6 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
         ),
         (
-            re.compile(r'# type: ignore[^\[]'),
-            ("Don't use a blanket 'type: ignore', use something like "
-             "'type: ignore[error-code]' instead."),
-        ),
-        (
             re.compile(r'# type: (?!ignore(\[|$))'),
             "Don't use type comments, use type annotations instead.",
         ),
@@ -342,13 +337,17 @@ def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
 
 
 def check_userscript_shebangs(_args: argparse.Namespace) -> bool:
-    """Check that we're using /usr/bin/env in shebangs."""
+    """Check that we're using /usr/bin/env in shebangs and scripts are executable."""
     ok = True
     folder = pathlib.Path('misc/userscripts')
 
     for sub in folder.iterdir():
         if sub.is_dir() or sub.name == 'README.md':
             continue
+
+        if not os.access(sub, os.X_OK):
+            print(f"{sub} is not marked as executable")
+            ok = False
 
         with sub.open('r', encoding='utf-8') as f:
             shebang = f.readline().rstrip('\n')

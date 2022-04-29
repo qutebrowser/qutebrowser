@@ -23,13 +23,14 @@ import functools
 from typing import Optional, FrozenSet
 
 from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.misc import debugcachestats
 from qutebrowser.utils import jinja, log
 
 
-def set_register(obj: QObject,
+def set_register(obj: QWidget,
                  stylesheet: str = None, *,
                  update: bool = True) -> None:
     """Set the stylesheet for an object.
@@ -71,7 +72,7 @@ class _StyleSheetObserver(QObject):
                   None.
     """
 
-    def __init__(self, obj: QObject,
+    def __init__(self, obj: QWidget,
                  stylesheet: Optional[str], update: bool) -> None:
         super().__init__()
         self._obj = obj
@@ -81,7 +82,7 @@ class _StyleSheetObserver(QObject):
         if update:
             self.setParent(self._obj)
         if stylesheet is None:
-            self._stylesheet: str = obj.STYLESHEET
+            self._stylesheet: str = obj.STYLESHEET  # type: ignore[attr-defined]
         else:
             self._stylesheet = stylesheet
 

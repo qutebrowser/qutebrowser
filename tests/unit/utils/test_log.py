@@ -27,7 +27,7 @@ import warnings
 import dataclasses
 
 import pytest
-import _pytest.logging
+import _pytest.logging  # pylint: disable=import-private-name
 from PyQt5 import QtCore
 
 from qutebrowser import qutebrowser

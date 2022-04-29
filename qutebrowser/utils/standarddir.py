@@ -147,7 +147,8 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
     # system_data
     _locations.pop(_Location.system_data, None)  # Remove old state
     if utils.is_linux:
-        path = '/usr/share/' + APPNAME
+        prefix = '/app' if version.is_flatpak() else '/usr'
+        path = f'{prefix}/share/{APPNAME}'
         if os.path.exists(path):
             _locations[_Location.system_data] = path
 

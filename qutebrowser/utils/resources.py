@@ -24,19 +24,25 @@ import sys
 import contextlib
 import posixpath
 import pathlib
-from typing import Iterator, Iterable
+from typing import Iterator, Iterable, Union
 
 
 # We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
 if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
+    from importlib.abc import Traversable
 else:  # pragma: no cover
     import importlib_resources
+    from importlib_resources.abc import Traversable
 
 import qutebrowser
 _cache = {}
 
-def _path(filename: str) -> pathlib.Path:
+
+_ResourceType = Union[Traversable, pathlib.Path]
+
+
+def _path(filename: str) -> _ResourceType:
     """Get a pathlib.Path object for a resource."""
     assert not posixpath.isabs(filename), filename
     assert os.path.pardir not in filename.split(posixpath.sep), filename
@@ -64,7 +70,7 @@ def _keyerror_workaround() -> Iterator[None]:
 
 
 def _glob(
-    resource_path: pathlib.Path,
+    resource_path: _ResourceType,
     subdir: str,
     ext: str,
 ) -> Iterable[str]:
@@ -77,14 +83,11 @@ def _glob(
     glob_path = resource_path / subdir
 
     if isinstance(resource_path, pathlib.Path):
+        assert isinstance(glob_path, pathlib.Path)
         for full_path in glob_path.glob(f'*{ext}'):  # . is contained in ext
             yield full_path.relative_to(resource_path).as_posix()
-    else:  # zipfile.Path or importlib_resources compat object
-        # Unfortunately, we can't tell mypy about resource_path being of type
-        # Union[pathlib.Path, zipfile.Path] because we set "python_version = 3.6" in
-        # .mypy.ini, but the zipfile stubs (correctly) only declare zipfile.Path with
-        # Python 3.8...
-        assert glob_path.is_dir(), glob_path  # type: ignore[unreachable]
+    else:  # zipfile.Path or other importlib_resources.abc.Traversable
+        assert glob_path.is_dir(), glob_path
         for subpath in glob_path.iterdir():
             if subpath.name.endswith(ext):
                 yield posixpath.join(subdir, subpath.name)

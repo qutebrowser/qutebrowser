@@ -74,6 +74,8 @@ class UrlMarkManager(QObject):
 
     changed = pyqtSignal()
 
+    _lineparser: lineparser.LineParser
+
     def __init__(self, parent=None):
         """Initialize and read quickmarks."""
         super().__init__(parent)

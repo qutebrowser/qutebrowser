@@ -336,7 +336,7 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-@pytest.mark.parametrize('python', ['python2', 'python3.5'])
+@pytest.mark.parametrize('python', ['python2', 'python3.6'])
 def test_launching_with_old_python(python):
     try:
         proc = subprocess.run(
@@ -346,7 +346,7 @@ def test_launching_with_old_python(python):
     except FileNotFoundError:
         pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.6.1 is required to run qutebrowser"
+    error = "At least Python 3.7 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
