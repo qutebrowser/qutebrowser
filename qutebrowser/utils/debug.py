@@ -174,13 +174,6 @@ def qflags_key(base: Type[_EnumValueType],
         The keys associated with the flags as a '|' separated string if they
         could be found. Hex values as a string if not.
     """
-    if isinstance(value, enum.Flag):
-        # New-style PyQt 6
-        if value.name is None:
-            # FIXME:qt6 can we do something better here?
-            return repr(value)
-        return value.name
-
     if klass is None:
         # We have to store klass here because it will be lost when iterating
         # over the bits.
@@ -194,7 +187,7 @@ def qflags_key(base: Type[_EnumValueType],
     bits = []
     names = []
     mask = 0x01
-    value = int(value)  # type: ignore[arg-type]
+    value = qtutils.extract_enum_val(value)
     while mask <= value:
         if value & mask:
             bits.append(mask)
@@ -203,7 +196,7 @@ def qflags_key(base: Type[_EnumValueType],
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
         enum_value = klass(bit)  # type: ignore[call-arg]
-        names.append(qenum_key(base, enum_value))
+        names.append(qenum_key(base, enum_value, klass))
     return '|'.join(names)
 
 
