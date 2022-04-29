@@ -55,6 +55,8 @@ class KeyEvent:
         text: A string (QKeyEvent::text).
     """
 
+    # int instead of Qt.Key:
+    # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
     key: int
     text: str
 

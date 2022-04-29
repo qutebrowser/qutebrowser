@@ -285,20 +285,19 @@ class BaseKeyParser(QObject):
             A QKeySequence match.
         """
         try:
-            key = Qt.Key(e.key())
-        except ValueError:
+            info = keyutils.KeyInfo.from_event(e)
+        except keyutils.InvalidKeyError as e:
             # FIXME:qt6 What should we do in this case?
             # See https://github.com/qutebrowser/qutebrowser/issues/7047
-            log.keyboard.exception("Got invalid key")
+            log.keyboard.debug("Got invalid key")
             return QKeySequence.SequenceMatch.NoMatch
 
-        txt = str(keyutils.KeyInfo.from_event(e))
         self._debug_log(
-            f"Got key: {debug.qenum_key(Qt.Key, key)} / "
+            f"Got key: {debug.qenum_key(Qt.Key, info.key)} / "
             f"modifiers: {debug.qflags_key(Qt.KeyboardModifier, e.modifiers())} / "
-            f"text: '{txt}' / dry_run {dry_run}")
+            f"text: '{info}' / dry_run {dry_run}")
 
-        if keyutils.is_modifier_key(key):
+        if keyutils.is_modifier_key(info.key):
             self._debug_log("Ignoring, only modifier")
             return QKeySequence.SequenceMatch.NoMatch
 
@@ -335,7 +334,7 @@ class BaseKeyParser(QObject):
             self.execute(result.command, count)
         elif result.match_type == QKeySequence.SequenceMatch.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
-                result.sequence, txt))
+                result.sequence, info))
             self.keystring_updated.emit(self._count + str(result.sequence))
         elif result.match_type == QKeySequence.SequenceMatch.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(

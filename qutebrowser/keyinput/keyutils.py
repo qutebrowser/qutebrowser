@@ -45,6 +45,12 @@ except ImportError:
 from qutebrowser.utils import utils, qtutils
 
 
+class InvalidKeyError(Exception):
+
+    # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    pass
+
+
 # Map Qt::Key values to their Qt::KeyboardModifier value.
 _MODIFIER_MAP = {
     Qt.Key.Key_Shift: Qt.KeyboardModifier.ShiftModifier,
@@ -362,7 +368,11 @@ class KeyInfo:
         This makes sure that key/modifiers are never mixed and also remaps
         UTF-16 surrogates to work around QTBUG-72776.
         """
-        key = _remap_unicode(Qt.Key(e.key()), e.text())
+        try:
+            key = Qt.Key(e.key())
+        except ValueError as e:
+            raise InvalidKeyError(str(e))
+        key = _remap_unicode(key, e.text())
         modifiers = e.modifiers()
         _assert_plain_key(key)
         _assert_plain_modifier(modifiers)
@@ -380,8 +390,12 @@ class KeyInfo:
         else:
             # QKeyCombination is now guaranteed to be available here
             assert isinstance(combination, QKeyCombination)  
+            try:
+                key = combination.key()
+            except ValueError as e:
+                raise InvalidKeyError(str(e))
             return cls(
-                key=combination.key(),
+                key=key,
                 modifiers=combination.keyboardModifiers(),
             )
 
@@ -547,9 +561,12 @@ class KeySequence:
             return infos[item]
 
     def _validate(self, keystr: str = None) -> None:
-        for info in self:
-            if info.key < Qt.Key.Key_Space or info.key >= Qt.Key.Key_unknown:
-                raise KeyParseError(keystr, "Got invalid key!")
+        try:
+            for info in self:
+                if info.key < Qt.Key.Key_Space or info.key >= Qt.Key.Key_unknown:
+                    raise KeyParseError(keystr, "Got invalid key!")
+        except InvalidKeyError as e:
+            raise KeyParseError(keystr, f"Got invalid key: {e}")
 
         for seq in self._sequences:
             if not seq:
