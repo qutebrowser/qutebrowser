@@ -361,6 +361,17 @@ class KeyInfo:
     key: Qt.Key
     modifiers: _ModifierType = Qt.KeyboardModifier.NoModifier
 
+    def __post_init__(self) -> None:
+        """Make sure we're not dealing with keys as ints.
+
+        This is mainly useful while porting from Qt 5 to 6.
+
+        FIXME:qt6 do we want to remove or keep this (and fix the remaining
+        issues) when done?
+        """
+        # assert isinstance(self.key, Qt.Key), self.key
+        # assert isinstance(self.modifiers, Qt.KeyboardModifier), self.modifiers
+
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
