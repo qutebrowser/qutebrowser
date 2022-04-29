@@ -369,7 +369,7 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_readable()
 
         if size is None or size < 0:
-            qt_size = 0  # no maximum size
+            qt_size = None  # no maximum size
         elif size == 0:
             return b''
         else:
@@ -377,7 +377,10 @@ class PyQIODevice(io.BufferedIOBase):
 
         buf: Union[QByteArray, bytes, None] = None
         if self.dev.canReadLine():
-            buf = self.dev.readLine(qt_size)
+            if qt_size is None:
+                buf = self.dev.readLine()
+            else:
+                buf = self.dev.readLine(qt_size)
         elif size is None or size < 0:
             buf = self.dev.readAll()
         else:
