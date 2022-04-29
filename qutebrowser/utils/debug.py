@@ -117,15 +117,24 @@ def qenum_key(base: Type[_EnumValueType],
         The key associated with the value as a string if it could be found.
         The original value as a string if not.
     """
-    if isinstance(value, enum.Enum):
-        # New-style PyQt 6
-        return value.name
-
     if klass is None:
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
 
+    # New-style PyQt6: Try getting value from Python enum
+    if isinstance(value, enum.Enum):
+        return value.name
+
+    # PyQt6, but we got an int with klass passed: Try asking Python enum for member
+    if issubclass(klass, enum.Enum):
+        try:
+            return klass(value).name
+        except ValueError:
+            pass
+
+    # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
+    # However, not every Qt enum value has a staticMetaObject
     try:
         meta_obj = base.staticMetaObject  # type: ignore[union-attr]
         idx = meta_obj.indexOfEnumerator(klass.__name__)
@@ -136,9 +145,12 @@ def qenum_key(base: Type[_EnumValueType],
     except AttributeError:
         pass
 
+    # PyQt5: Try finding value match in class
     for name, obj in vars(base).items():
         if isinstance(obj, klass) and obj == value:
             return name
+
+    # Last resort fallback: Hex value
     return '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
 
 

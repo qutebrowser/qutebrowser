@@ -28,7 +28,7 @@ import pytest
 from qutebrowser.qt.core import pyqtSignal, Qt, QEvent, QObject, QTimer
 from qutebrowser.qt.widgets import QStyle, QFrame, QSpinBox
 
-from qutebrowser.utils import debug
+from qutebrowser.utils import debug, qtutils
 from qutebrowser.misc import objects
 
 
@@ -138,6 +138,9 @@ class TestQEnumKey:
         (QFrame, 0x0030, QFrame.Shadow, 'Sunken'),
         (QFrame, 0x1337, QFrame.Shadow, '0x1337'),
         (Qt, Qt.AnchorPoint.AnchorLeft, None, 'AnchorLeft'),
+
+        # No static meta object, passing in an int on Qt 6
+        (QEvent, qtutils.extract_enum_val(QEvent.Type.User), QEvent.Type, 'User'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
