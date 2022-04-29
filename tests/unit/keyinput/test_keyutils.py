@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import operator
+import contextlib
 
 import hypothesis
 from hypothesis import strategies
@@ -31,6 +32,16 @@ from helpers import testutils
 from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import utils
+
+
+@contextlib.contextmanager
+def pyqt_enum_workaround():
+    try:
+        yield
+    except (keyutils.InvalidKeyError, keyutils.KeyParseError) as e:
+        # WORKAROUND for
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+        pytest.skip(f"PyQt enum workaround: {e}")
 
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
@@ -203,7 +214,9 @@ def test_hash(info1, info2, equal):
 ])
 def test_surrogates(key, modifiers, text, expected):
     evt = QKeyEvent(QEvent.Type.KeyPress, key, modifiers, text)
-    assert str(keyutils.KeyInfo.from_event(evt)) == expected
+    with pyqt_enum_workaround():
+        info = keyutils.KeyInfo.from_event(evt)
+    assert str(info) == expected
 
 
 @pytest.mark.parametrize('keys, expected', [
@@ -214,14 +227,15 @@ def test_surrogates(key, modifiers, text, expected):
 ])
 def test_surrogate_sequences(keys, expected):
     infos = [keyutils.KeyInfo(key) for key in keys]
-    seq = keyutils.KeySequence(*infos)
+    with pyqt_enum_workaround():
+        seq = keyutils.KeySequence(*infos)
     assert str(seq) == expected
 
 
 # This shouldn't happen, but if it does we should handle it well
 def test_surrogate_error():
     evt = QKeyEvent(QEvent.Type.KeyPress, 0xd83e, Qt.KeyboardModifier.NoModifier, '🤞🏻')
-    with pytest.raises(keyutils.KeyParseError):
+    with pytest.raises(keyutils.KeyParseError), pyqt_enum_workaround():
         keyutils.KeyInfo.from_event(evt)
 
 

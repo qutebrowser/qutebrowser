@@ -473,7 +473,17 @@ class KeyInfo:
         if QKeyCombination is None:
             # Qt 5
             return int(self.key) | int(self.modifiers)
-        return QKeyCombination(self.modifiers, self.key)
+
+        try:
+            # FIXME:qt6 We might want to consider only supporting KeyInfo to be
+            # instanciated with a real Qt.Key, not with ints. See __post_init__.
+            key = Qt.Key(self.key)
+        except ValueError as e:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+            raise InvalidKeyError(e)
+
+        return QKeyCombination(self.modifiers, key)
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
         return KeyInfo(key=self.key, modifiers=self.modifiers & ~modifiers)
@@ -501,7 +511,11 @@ class KeySequence:
     def __init__(self, *keys: KeyInfo) -> None:
         self._sequences: List[QKeySequence] = []
         for sub in utils.chunk(keys, self._MAX_LEN):
-            args = [info.to_qt() for info in sub]
+            try:
+                args = [info.to_qt() for info in sub]
+            except InvalidKeyError as e:
+                raise KeyParseError(keystr=None, error=f"Got invalid key: {e}")
+
             sequence = QKeySequence(*args)
             self._sequences.append(sequence)
         if keys:
@@ -617,7 +631,10 @@ class KeySequence:
 
     def append_event(self, ev: QKeyEvent) -> 'KeySequence':
         """Create a new KeySequence object with the given QKeyEvent added."""
-        key = Qt.Key(ev.key())
+        try:
+            key = Qt.Key(ev.key())
+        except ValueError as e:
+            raise KeyParseError(None, f"Got invalid key: {e}")
 
         _assert_plain_key(key)
         _assert_plain_modifier(ev.modifiers())
