@@ -206,11 +206,11 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
 @pytest.mark.parametrize('status, raising, message', [
     (QtCore.QDataStream.Ok, False, None),
     (QtCore.QDataStream.ReadPastEnd, True, "The data stream has read past the end of "
-                                    "the data in the underlying device."),
+                                           "the data in the underlying device."),
     (QtCore.QDataStream.ReadCorruptData, True, "The data stream has read corrupt "
-                                        "data."),
+                                               "data."),
     (QtCore.QDataStream.WriteFailed, True, "The data stream cannot write to the "
-                                    "underlying device."),
+                                           "underlying device."),
 ])
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
