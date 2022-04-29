@@ -34,16 +34,6 @@ from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import utils
 
 
-@contextlib.contextmanager
-def pyqt_enum_workaround():
-    try:
-        yield
-    except (keyutils.InvalidKeyError, keyutils.KeyParseError) as e:
-        # WORKAROUND for
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-        pytest.skip(f"PyQt enum workaround: {e}")
-
-
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
 def qt_key(request):
     """Get all existing keys from key_data.py.
@@ -212,7 +202,7 @@ def test_hash(info1, info2, equal):
     (0xd867, Qt.KeyboardModifier.NoModifier, '𩷶', '<𩷶>'),
     (0xd867, Qt.KeyboardModifier.ShiftModifier, '𩷶', '<Shift+𩷶>'),
 ])
-def test_surrogates(key, modifiers, text, expected):
+def test_surrogates(key, modifiers, text, expected, pyqt_enum_workaround):
     evt = QKeyEvent(QEvent.Type.KeyPress, key, modifiers, text)
     with pyqt_enum_workaround():
         info = keyutils.KeyInfo.from_event(evt)
@@ -225,15 +215,15 @@ def test_surrogates(key, modifiers, text, expected):
     ([Qt.Key.Key_Shift, 0x29df6], '<Shift><𩷶>'),
     ([0x1f468, 0x200d, 0x1f468, 0x200d, 0x1f466], '<👨><‍><👨><‍><👦>'),
 ])
-def test_surrogate_sequences(keys, expected):
+def test_surrogate_sequences(keys, expected, pyqt_enum_workaround):
     infos = [keyutils.KeyInfo(key) for key in keys]
-    with pyqt_enum_workaround():
+    with pyqt_enum_workaround(keyutils.KeyParseError):
         seq = keyutils.KeySequence(*infos)
     assert str(seq) == expected
 
 
 # This shouldn't happen, but if it does we should handle it well
-def test_surrogate_error():
+def test_surrogate_error(pyqt_enum_workaround):
     evt = QKeyEvent(QEvent.Type.KeyPress, 0xd83e, Qt.KeyboardModifier.NoModifier, '🤞🏻')
     with pytest.raises(keyutils.KeyParseError), pyqt_enum_workaround():
         keyutils.KeyInfo.from_event(evt)

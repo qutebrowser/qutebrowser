@@ -25,6 +25,7 @@ from qutebrowser.qt.gui import QKeySequence
 import pytest
 
 from qutebrowser.keyinput import modeparsers, keyutils
+from qutebrowser.config import configexc
 
 
 @pytest.fixture
@@ -122,8 +123,9 @@ class TestHintKeyParser:
         ),
     ])
     def test_match(self, keyparser, hintmanager,
-                   bindings, keychain, prefix, hint):
-        keyparser.update_bindings(bindings)
+                   bindings, keychain, prefix, hint, pyqt_enum_workaround):
+        with pyqt_enum_workaround(keyutils.KeyParseError):
+            keyparser.update_bindings(bindings)
 
         seq = keyutils.KeySequence.parse(keychain)
         assert len(seq) == 2
@@ -136,8 +138,10 @@ class TestHintKeyParser:
         assert match == QKeySequence.SequenceMatch.ExactMatch
         assert hintmanager.keystr == hint
 
-    def test_match_key_mappings(self, config_stub, keyparser, hintmanager):
-        config_stub.val.bindings.key_mappings = {'α': 'a', 'σ': 's'}
+    def test_match_key_mappings(self, config_stub, keyparser, hintmanager,
+                                pyqt_enum_workaround):
+        with pyqt_enum_workaround(configexc.ValidationError):
+            config_stub.val.bindings.key_mappings = {'α': 'a', 'σ': 's'}
         keyparser.update_bindings(['aa', 'as'])
 
         seq = keyutils.KeySequence.parse('ασ')
