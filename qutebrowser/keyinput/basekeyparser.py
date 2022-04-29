@@ -290,6 +290,7 @@ class BaseKeyParser(QObject):
             # FIXME:qt6 What should we do in this case?
             # See https://github.com/qutebrowser/qutebrowser/issues/7047
             log.keyboard.debug("Got invalid key")
+            self.clear_keystring()
             return QKeySequence.SequenceMatch.NoMatch
 
         self._debug_log(f"Got key: {info!r} (dry_run {dry_run})")
