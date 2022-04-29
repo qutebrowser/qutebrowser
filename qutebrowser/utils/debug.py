@@ -123,13 +123,15 @@ def qenum_key(base: Type[_EnumValueType],
             raise TypeError("Can't guess enum class of an int!")
 
     # New-style PyQt6: Try getting value from Python enum
-    if isinstance(value, enum.Enum):
+    if isinstance(value, enum.Enum) and value.name:
         return value.name
 
     # PyQt6, but we got an int with klass passed: Try asking Python enum for member
     if issubclass(klass, enum.Enum):
         try:
-            return klass(value).name
+            name = klass(value).name
+            if name is not None:
+                return name
         except ValueError:
             pass
 

@@ -141,6 +141,9 @@ class TestQEnumKey:
 
         # No static meta object, passing in an int on Qt 6
         (QEvent, qtutils.extract_enum_val(QEvent.Type.User), QEvent.Type, 'User'),
+
+        # Unknown value with IntFlags
+        (Qt, Qt.AlignmentFlag(1024), None, '0x0400'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
