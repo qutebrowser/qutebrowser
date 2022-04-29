@@ -270,10 +270,10 @@ class TestExceptions:
     def test_listen_error(self, qlocalserver):
         qlocalserver.listen(None)
         exc = ipc.ListenError(qlocalserver)
-        assert exc.code == 2
+        assert exc.code == QAbstractSocket.SocketError.HostNotFoundError
         assert exc.message == "QLocalServer::listen: Name error"
         msg = ("Error while listening to IPC server: QLocalServer::listen: "
-               "Name error (error 2)")
+               "Name error (HostNotFoundError)")
         assert str(exc) == msg
 
         with pytest.raises(ipc.Error):
@@ -284,7 +284,7 @@ class TestExceptions:
         exc = ipc.SocketError("testing", socket)
         assert exc.code == QLocalSocket.LocalSocketError.ConnectionRefusedError
         assert exc.message == "Error string"
-        assert str(exc) == "Error while testing: Error string (error 0)"
+        assert str(exc) == "Error while testing: Error string (ConnectionRefusedError)"
 
         with pytest.raises(ipc.Error):
             raise exc
@@ -419,7 +419,7 @@ class TestOnError:
         socket.setErrorString("Connection refused.")
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
-                           r"connection: Connection refused \(error 0\)"):
+                           r"connection: Connection refused \(ConnectionRefusedError\)"):
             ipc_server.on_error(QLocalSocket.LocalSocketError.ConnectionRefusedError)
 
 
@@ -454,7 +454,7 @@ class TestHandleConnection:
         ipc_server._server = FakeServer(socket)
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
-                           r"connection: Error string \(error 7\)"):
+                           r"connection: Error string \(ConnectionError\)"):
             ipc_server.handle_connection()
 
         assert "We got an error immediately." in caplog.messages
@@ -552,7 +552,8 @@ class TestSendToRunningInstance:
     def test_no_server(self, caplog):
         sent = ipc.send_to_running_instance('qute-test', [], None)
         assert not sent
-        assert caplog.messages[-1] == "No existing instance present (error 2)"
+        expected = "No existing instance present (ServerNotFoundError)"
+        assert caplog.messages[-1] == expected
 
     @pytest.mark.parametrize('has_cwd', [True, False])
     @pytest.mark.linux(reason="Causes random trouble on Windows and macOS")
@@ -590,7 +591,7 @@ class TestSendToRunningInstance:
     def test_socket_error(self):
         socket = FakeSocket(error=QLocalSocket.LocalSocketError.ConnectionError)
         with pytest.raises(ipc.Error, match=r"Error while writing to running "
-                           r"instance: Error string \(error 7\)"):
+                           r"instance: Error string \(ConnectionError\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
     def test_not_disconnected_immediately(self):
@@ -601,7 +602,7 @@ class TestSendToRunningInstance:
         socket = FakeSocket(error=QLocalSocket.LocalSocketError.ConnectionError,
                             connect_successful=False)
         with pytest.raises(ipc.Error, match=r"Error while connecting to "
-                           r"running instance: Error string \(error 7\)"):
+                           r"running instance: Error string \(ConnectionError\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
 
@@ -716,9 +717,9 @@ class TestSendOrListen:
 
     @pytest.mark.parametrize('has_error, exc_name, exc_msg', [
         (True, 'SocketError',
-         'Error while writing to running instance: Error string (error 0)'),
+         'Error while writing to running instance: Error string (ConnectionRefusedError)'),
         (False, 'AddressInUseError',
-         'Error while listening to IPC server: Error string (error 8)'),
+         'Error while listening to IPC server: Error string (AddressInUseError)'),
     ])
     def test_address_in_use_error(self, qlocalserver_mock, qlocalsocket_mock,
                                   stubs, caplog, args, has_error, exc_name,
@@ -745,6 +746,10 @@ class TestSendOrListen:
             QLocalSocket.LocalSocketError.ConnectionRefusedError,
             QLocalSocket.LocalSocketError.ConnectionRefusedError,  # error() gets called twice
         ]
+        # For debug.qenum_key() on Qt 5
+        value_to_key = qlocalsocket_mock.staticMetaObject.enumerator().valueToKey
+        value_to_key.return_value = "ConnectionRefusedError"
+
 
         with caplog.at_level(logging.ERROR):
             with pytest.raises(ipc.Error):
@@ -779,7 +784,7 @@ class TestSendOrListen:
             'pre_text: ',
             'post_text: ',
             ('exception text: Error while listening to IPC server: Error '
-             'string (error 4)'),
+             'string (SocketResourceError)'),
         ]
         assert caplog.messages[-1] == '\n'.join(error_msgs)
 

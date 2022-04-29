@@ -30,7 +30,7 @@ from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt
 from qutebrowser.qt.network import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, standarddir, utils
+from qutebrowser.utils import log, usertypes, error, standarddir, utils, debug
 from qutebrowser.qt import sip
 
 
@@ -107,12 +107,12 @@ class SocketError(Error):
         """
         super().__init__()
         self.action = action
-        self.code = socket.error()
-        self.message = socket.errorString()
+        self.code: QLocalSocket.LocalSocketError = socket.error()
+        self.message: str = socket.errorString()
 
     def __str__(self):
-        return "Error while {}: {} (error {})".format(
-            self.action, self.message, self.code)
+        return "Error while {}: {} ({})".format(
+            self.action, self.message, debug.qenum_key(QLocalSocket, self.code))
 
 
 class ListenError(Error):
@@ -131,12 +131,12 @@ class ListenError(Error):
             local_server: The QLocalServer which has the error set.
         """
         super().__init__()
-        self.code = local_server.serverError()
-        self.message = local_server.errorString()
+        self.code: QAbstractSocket.SocketError = local_server.serverError()
+        self.message: str = local_server.errorString()
 
     def __str__(self):
-        return "Error while listening to IPC server: {} (error {})".format(
-            self.message, self.code)
+        return "Error while listening to IPC server: {} ({})".format(
+            self.message, debug.qenum_key(QAbstractSocket, self.code))
 
 
 class AddressInUseError(ListenError):
@@ -504,8 +504,8 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
         if socket.error() not in [QLocalSocket.LocalSocketError.ConnectionRefusedError,
                                   QLocalSocket.LocalSocketError.ServerNotFoundError]:
             raise SocketError("connecting to running instance", socket)
-        log.ipc.debug("No existing instance present (error {})".format(
-            socket.error()))
+        log.ipc.debug("No existing instance present ({})".format(
+            debug.qenum_key(QLocalSocket, socket.error())))
         return False
 
 
