@@ -638,6 +638,7 @@ class TestInvalidUrlError:
     (False, 'http://example.org', 'https://example.org'),  # different scheme
     (False, 'http://example.org:80', 'http://example.org:8080'),  # different port
 ])
+@pytest.mark.qt5_only  # https://bugreports.qt.io/browse/QTBUG-80308
 def test_same_domain(are_same, url1, url2):
     """Test same_domain."""
     assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same

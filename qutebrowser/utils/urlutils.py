@@ -493,6 +493,19 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     if url1.port() != url2.port():
         return False
 
+    # QUrl.topLevelDomain() got removed in Qt 6:
+    # https://bugreports.qt.io/browse/QTBUG-80308
+    #
+    # However, we should never land here if we are on Qt 6:
+    #
+    # On QtWebEngine, we don't have a QNetworkAccessManager attached to a tab
+    # (all tab-specific downloads happen via the QtWebEngine network stack).
+    # Thus, ensure_valid(url2) above will raise InvalidUrlError, which is
+    # handled in NetworkManager.
+    #
+    # There are no other callers of same_domain, and url2 will only be ever valid when
+    # we use a NetworkManager from QtWebKit. However, QtWebKit is Qt 5 only.
+
     suffix1 = url1.topLevelDomain()
     suffix2 = url2.topLevelDomain()
     if not suffix1:
