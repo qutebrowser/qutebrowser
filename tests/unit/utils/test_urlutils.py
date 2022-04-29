@@ -32,7 +32,7 @@ import hypothesis.strategies
 
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
-from qutebrowser.utils import utils, urlutils, usertypes
+from qutebrowser.utils import utils, urlutils, usertypes, qtutils
 
 
 class FakeDNS:
@@ -675,6 +675,18 @@ def test_data_url():
     assert url == QUrl('data:text/plain;base64,Zm9v')
 
 
+qurl_idna2003 = pytest.mark.skipif(
+    qtutils.version_check("6.3.0", compiled=False),
+    reason="Different result with Qt >= 6.3.0: "
+    "https://bugreports.qt.io/browse/QTBUG-85371"
+)
+qurl_uts46 = pytest.mark.xfail(
+    not qtutils.version_check("6.3.0", compiled=False),
+    reason="Different result with Qt < 6.3.0: "
+    "https://bugreports.qt.io/browse/QTBUG-85371"
+)
+
+
 @pytest.mark.parametrize('url, expected', [
     # No IDN
     (QUrl('http://www.example.com'), 'http://www.example.com'),
@@ -688,8 +700,16 @@ def test_data_url():
     (QUrl('http://www.example.xn--p1ai'),
      '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    (QUrl('http://www.xn--80ak6aa92e.com'),
-     'http://www.xn--80ak6aa92e.com'),
+    pytest.param(
+        QUrl('http://www.xn--80ak6aa92e.com'),
+        'http://www.xn--80ak6aa92e.com',
+        marks=qurl_idna2003,
+    ),
+    pytest.param(
+        QUrl('http://www.xn--80ak6aa92e.com'),
+        '(www.xn--80ak6aa92e.com) http://www.аррӏе.com',
+        marks=qurl_uts46,
+    ),
 ])
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected
