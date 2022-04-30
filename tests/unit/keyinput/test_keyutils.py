@@ -59,7 +59,7 @@ def qtest_key(request):
 def test_key_data_keys():
     """Make sure all possible keys are in key_data.KEYS."""
     key_names = {
-        name[len("Key_") :]
+        name[len("Key_"):]
         for name, value in sorted(vars(QtCore.Qt).items())
         if isinstance(value, QtCore.Qt.Key)
     }
