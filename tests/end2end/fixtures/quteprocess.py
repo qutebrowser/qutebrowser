@@ -854,7 +854,7 @@ class QuteProc(testprocess.Process):
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\..* "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-            r"qutebrowser.qt\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+            r".*.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
 
         try:
