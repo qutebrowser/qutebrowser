@@ -42,10 +42,12 @@ from qutebrowser.qt import QtNetwork, QtPrintSupport, QtWidgets
 if TYPE_CHECKING:
     from qutebrowser.qt import QtWebKit, QtWebKitWidgets, QtWebEngineWidgets
 
+# need to import miscwidgets ahead of inspector to prevent and import loop
+from qutebrowser.misc import miscwidgets  # isort:skip
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.misc import miscwidgets, objects, sessions
+from qutebrowser.misc import objects, sessions
 from qutebrowser.qt import QtCore, QtGui, sip
 from qutebrowser.utils import (
     jinja,

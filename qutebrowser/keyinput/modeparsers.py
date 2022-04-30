@@ -27,7 +27,6 @@ import enum
 import traceback
 from typing import TYPE_CHECKING, Sequence
 
-from qutebrowser.browser import hints
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils, macros
@@ -35,6 +34,7 @@ from qutebrowser.qt import QtCore, QtGui
 from qutebrowser.utils import log, message, objreg, usertypes, utils
 
 if TYPE_CHECKING:
+    from qutebrowser.browser import hints
     from qutebrowser.commands import runners
 
 
@@ -180,7 +180,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         *,
         win_id: int,
         commandrunner: 'runners.CommandRunner',
-        hintmanager: hints.HintManager,
+        hintmanager: 'hints.HintManager',
         parent: QtCore.QObject = None
     ) -> None:
         super().__init__(
