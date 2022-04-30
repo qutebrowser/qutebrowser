@@ -49,7 +49,6 @@ from typing import Iterable, Optional
 import qutebrowser
 from qutebrowser.browser import (
     browsertab,
-    commands,
     downloads,
     greasemonkey,
     history,
@@ -64,10 +63,6 @@ from qutebrowser.config import config, configfiles, configinit, qtargs, websetti
 from qutebrowser.extensions import loader
 from qutebrowser.keyinput import eventfilter, macros
 from qutebrowser.mainwindow import mainwindow, prompt, windowundo
-
-# pylint: disable=unused-import
-# We import those to run the cmdutils.register decorators.
-from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import (
     backendproblem,
     cmdhistory,
@@ -79,7 +74,6 @@ from qutebrowser.misc import (
     savemanager,
     sessions,
     sql,
-    utilcmds,
 )
 from qutebrowser.qt import QtCore, QtGui, QtWidgets
 from qutebrowser.utils import (
@@ -97,6 +91,11 @@ from qutebrowser.utils import (
     version,
 )
 
+# pylint: disable=unused-import
+# We import those to run the cmdutils.register decorators.
+from qutebrowser.browser import commands  # isort:skip
+from qutebrowser.mainwindow.statusbar import command  # isort:skip
+from qutebrowser.misc import utilcmds  # isort:skip
 # pylint: enable=unused-import
 
 

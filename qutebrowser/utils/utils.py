@@ -58,8 +58,6 @@ except ImportError:  # pragma: no cover
 
 import yaml
 
-from qutebrowser.qt import QtWidgets
-
 try:
     from yaml import CSafeDumper as YamlDumper
     from yaml import CSafeLoader as YamlLoader
@@ -69,7 +67,7 @@ except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader  # type: ignore[misc]
     YAML_C_EXT = False
 
-from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
 from qutebrowser.utils import log
 
 fake_clipboard = None
