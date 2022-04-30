@@ -92,12 +92,13 @@ class QuteSchemeHandler(QtWebEngineCore.QWebEngineUrlSchemeHandler):
         try:
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
+            url_request_job = QtWebEngineCore.QWebEngineUrlRequestJob
             errors = {
-                qutescheme.NotFoundError: QtWebEngineCore.QWebEngineUrlRequestJob.UrlNotFound,
-                qutescheme.UrlInvalidError: QtWebEngineCore.QWebEngineUrlRequestJob.UrlInvalid,
-                qutescheme.RequestDeniedError: QtWebEngineCore.QWebEngineUrlRequestJob.RequestDenied,
-                qutescheme.SchemeOSError: QtWebEngineCore.QWebEngineUrlRequestJob.UrlNotFound,
-                qutescheme.Error: QtWebEngineCore.QWebEngineUrlRequestJob.RequestFailed,
+                qutescheme.NotFoundError: url_request_job.UrlNotFound,
+                qutescheme.UrlInvalidError: url_request_job.UrlInvalid,
+                qutescheme.RequestDeniedError: url_request_job.RequestDenied,
+                qutescheme.SchemeOSError: url_request_job.UrlNotFound,
+                qutescheme.Error: url_request_job.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -125,11 +126,12 @@ def init():
     Note this needs to be called early, before constructing any QtWebEngine
     classes.
     """
-    if QtWebEngineCore.QWebEngineUrlScheme is not None:
-        assert not QtWebEngineCore.QWebEngineUrlScheme.schemeByName(b'qute').name()
-        scheme = QtWebEngineCore.QWebEngineUrlScheme(b'qute')
+    url_scheme = QtWebEngineCore.QWebEngineUrlScheme
+    if url_scheme is not None:
+        assert not url_scheme.schemeByName(b'qute').name()
+        scheme = url_scheme(b'qute')
         scheme.setFlags(
-            QtWebEngineCore.QWebEngineUrlScheme.LocalScheme
-            | QtWebEngineCore.QWebEngineUrlScheme.LocalAccessAllowed  # type: ignore[arg-type]
+            url_scheme.LocalScheme
+            | url_scheme.LocalAccessAllowed  # type: ignore[arg-type]
         )
-        QtWebEngineCore.QWebEngineUrlScheme.registerScheme(scheme)
+        url_scheme.registerScheme(scheme)

@@ -29,9 +29,12 @@ from qutebrowser.utils import log, debug, usertypes
 from qutebrowser.qt import QtCore
 
 
+QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
+
+
 _QB_FILESELECTION_MODES = {
-    QtWebEngineWidgets.QWebEnginePage.FileSelectOpen: shared.FileSelectionMode.single_file,
-    QtWebEngineWidgets.QWebEnginePage.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
+    QWebEnginePage.FileSelectOpen: shared.FileSelectionMode.single_file,
+    QWebEnginePage.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91489
     #
     # QtWebEngine doesn't expose this value from its internal
@@ -39,7 +42,7 @@ _QB_FILESELECTION_MODES = {
     # the public QWebEnginePage::FileSelectionMode enum).
     # However, QWebEnginePage::chooseFiles is still called with the matching value
     # (2) when a file input with "webkitdirectory" is used.
-    QtWebEngineWidgets.QWebEnginePage.FileSelectionMode(
+    QWebEnginePage.FileSelectionMode(
         2
     ): shared.FileSelectionMode.folder,
 }
@@ -97,27 +100,27 @@ class WebEngineView(QtWebEngineWidgets.QWebEngineView):
         Return:
             The new QWebEngineView object.
         """
-        debug_type = debug.qenum_key(QtWebEngineWidgets.QWebEnginePage, wintype)
+        debug_type = debug.qenum_key(QWebEnginePage, wintype)
         background = config.val.tabs.background
 
         log.webview.debug("createWindow with type {}, background {}".format(
             debug_type, background))
 
-        if wintype == QtWebEngineWidgets.QWebEnginePage.WebBrowserWindow:
+        if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
             target = usertypes.ClickTarget.window
-        elif wintype == QtWebEngineWidgets.QWebEnginePage.WebDialog:
+        elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
             target = usertypes.ClickTarget.tab
-        elif wintype == QtWebEngineWidgets.QWebEnginePage.WebBrowserTab:
+        elif wintype == QWebEnginePage.WebBrowserTab:
             # Middle-click / Ctrl-Click with Shift
             # FIXME:qtwebengine this also affects target=_blank links...
             if background:
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif wintype == QtWebEngineWidgets.QWebEnginePage.WebBrowserBackgroundTab:
+        elif wintype == QWebEnginePage.WebBrowserBackgroundTab:
             # Middle-click / Ctrl-Click
             if background:
                 target = usertypes.ClickTarget.tab_bg
@@ -137,7 +140,7 @@ class WebEngineView(QtWebEngineWidgets.QWebEngineView):
         super().contextMenuEvent(ev)
 
 
-class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
+class WebEnginePage(QWebEnginePage):
 
     """Custom QWebEnginePage subclass with qutebrowser-specific features.
 
@@ -214,46 +217,46 @@ class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
         level_map = {
-            QtWebEngineWidgets.QWebEnginePage.InfoMessageLevel: usertypes.JsLogLevel.info,
-            QtWebEngineWidgets.QWebEnginePage.WarningMessageLevel: usertypes.JsLogLevel.warning,
-            QtWebEngineWidgets.QWebEnginePage.ErrorMessageLevel: usertypes.JsLogLevel.error,
+            QWebEnginePage.InfoMessageLevel: usertypes.JsLogLevel.info,
+            QWebEnginePage.WarningMessageLevel: usertypes.JsLogLevel.warning,
+            QWebEnginePage.ErrorMessageLevel: usertypes.JsLogLevel.error,
         }
         shared.javascript_log_message(level_map[level], source, line, msg)
 
     def acceptNavigationRequest(
         self,
         url: QtCore.QUrl,
-        typ: QtWebEngineWidgets.QWebEnginePage.NavigationType,
+        typ: QWebEnginePage.NavigationType,
         is_main_frame: bool,
     ) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
+        nav_request_type = usertypes.NavigationRequest.Type
         type_map = {
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeLinkClicked: usertypes.NavigationRequest.Type.link_clicked,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeTyped: usertypes.NavigationRequest.Type.typed,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeFormSubmitted: usertypes.NavigationRequest.Type.form_submitted,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeBackForward: usertypes.NavigationRequest.Type.back_forward,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeReload: usertypes.NavigationRequest.Type.reloaded,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeOther: usertypes.NavigationRequest.Type.other,
+            QWebEnginePage.NavigationTypeLinkClicked: nav_request_type.link_clicked,
+            QWebEnginePage.NavigationTypeTyped: nav_request_type.typed,
+            QWebEnginePage.NavigationTypeFormSubmitted: nav_request_type.form_submitted,
+            QWebEnginePage.NavigationTypeBackForward: nav_request_type.back_forward,
+            QWebEnginePage.NavigationTypeReload: nav_request_type.reloaded,
+            QWebEnginePage.NavigationTypeOther: nav_request_type.other,
         }
         try:
             type_map[
-                QtWebEngineWidgets.QWebEnginePage.NavigationTypeRedirect
-            ] = usertypes.NavigationRequest.Type.redirect
+                QWebEnginePage.NavigationTypeRedirect
+            ] = nav_request_type.redirect
         except AttributeError:
             # Added in Qt 5.14
             pass
 
         navigation = usertypes.NavigationRequest(
             url=url,
-            navigation_type=type_map.get(
-                typ, usertypes.NavigationRequest.Type.other),
+            navigation_type=type_map.get(typ, nav_request_type.other),
             is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
 
     def chooseFiles(
         self,
-        mode: QtWebEngineWidgets.QWebEnginePage.FileSelectionMode,
+        mode: QWebEnginePage.FileSelectionMode,
         old_files: Iterable[str],
         accepted_mimetypes: Iterable[str],
     ) -> List[str]:

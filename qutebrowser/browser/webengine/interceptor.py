@@ -67,37 +67,39 @@ class RequestInterceptor(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        req_info = QtWebEngineCore.QWebEngineUrlRequestInfo
+        resource_type = interceptors.ResourceType
         # This dict should be from QWebEngine Resource Types to qutebrowser
         # extension ResourceTypes. If a ResourceType is added to Qt, this table
         # should be updated too.
         self._resource_types = {
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeMainFrame: interceptors.ResourceType.main_frame,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeSubFrame: interceptors.ResourceType.sub_frame,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeStylesheet: interceptors.ResourceType.stylesheet,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeScript: interceptors.ResourceType.script,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeImage: interceptors.ResourceType.image,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeFontResource: interceptors.ResourceType.font_resource,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeSubResource: interceptors.ResourceType.sub_resource,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeObject: interceptors.ResourceType.object,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeMedia: interceptors.ResourceType.media,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeWorker: interceptors.ResourceType.worker,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeSharedWorker: interceptors.ResourceType.shared_worker,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypePrefetch: interceptors.ResourceType.prefetch,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeFavicon: interceptors.ResourceType.favicon,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeXhr: interceptors.ResourceType.xhr,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypePing: interceptors.ResourceType.ping,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeServiceWorker: interceptors.ResourceType.service_worker,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeCspReport: interceptors.ResourceType.csp_report,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypePluginResource: interceptors.ResourceType.plugin_resource,
-            QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeUnknown: interceptors.ResourceType.unknown,
+            req_info.ResourceTypeMainFrame: resource_type.main_frame,
+            req_info.ResourceTypeSubFrame: resource_type.sub_frame,
+            req_info.ResourceTypeStylesheet: resource_type.stylesheet,
+            req_info.ResourceTypeScript: resource_type.script,
+            req_info.ResourceTypeImage: resource_type.image,
+            req_info.ResourceTypeFontResource: resource_type.font_resource,
+            req_info.ResourceTypeSubResource: resource_type.sub_resource,
+            req_info.ResourceTypeObject: resource_type.object,
+            req_info.ResourceTypeMedia: resource_type.media,
+            req_info.ResourceTypeWorker: resource_type.worker,
+            req_info.ResourceTypeSharedWorker: resource_type.shared_worker,
+            req_info.ResourceTypePrefetch: resource_type.prefetch,
+            req_info.ResourceTypeFavicon: resource_type.favicon,
+            req_info.ResourceTypeXhr: resource_type.xhr,
+            req_info.ResourceTypePing: resource_type.ping,
+            req_info.ResourceTypeServiceWorker: resource_type.service_worker,
+            req_info.ResourceTypeCspReport: resource_type.csp_report,
+            req_info.ResourceTypePluginResource: resource_type.plugin_resource,
+            req_info.ResourceTypeUnknown: resource_type.unknown,
         }
 
         try:
             preload_main_frame = (
-                QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeNavigationPreloadMainFrame
+                req_info.ResourceTypeNavigationPreloadMainFrame
             )
             preload_sub_frame = (
-                QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceTypeNavigationPreloadSubFrame
+                req_info.ResourceTypeNavigationPreloadSubFrame
             )
         except AttributeError:
             # Added in Qt 5.14

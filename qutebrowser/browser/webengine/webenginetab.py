@@ -39,6 +39,9 @@ from qutebrowser.qt import QtCore, sip
 from qutebrowser.misc import objects, miscwidgets
 
 
+QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
+
+
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
     usertypes.JsWorld.main: QtWebEngineWidgets.QWebEngineScript.MainWorld,
@@ -191,7 +194,9 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._wrap_handler = _WebEngineSearchWrapHandler()
 
     def _empty_flags(self):
-        return QtWebEngineWidgets.QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
+        return QtWebEngineWidgets.QWebEnginePage.FindFlags(
+            0
+        )  # type: ignore[call-overload]
 
     def _args_to_flags(self, reverse, ignore_case):
         flags = self._empty_flags()
@@ -874,24 +879,24 @@ class _WebEnginePermissions(QtCore.QObject):
 
     _options = {
         0: 'content.notifications.enabled',
-        QtWebEngineWidgets.QWebEnginePage.Geolocation: 'content.geolocation',
-        QtWebEngineWidgets.QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
-        QtWebEngineWidgets.QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
-        QtWebEngineWidgets.QWebEnginePage.MediaAudioVideoCapture: 'content.media.audio_video_capture',
-        QtWebEngineWidgets.QWebEnginePage.MouseLock: 'content.mouse_lock',
-        QtWebEngineWidgets.QWebEnginePage.DesktopVideoCapture: 'content.desktop_capture',
-        QtWebEngineWidgets.QWebEnginePage.DesktopAudioVideoCapture: 'content.desktop_capture',
+        QWebEnginePage.Geolocation: 'content.geolocation',
+        QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
+        QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
+        QWebEnginePage.MediaAudioVideoCapture: 'content.media.audio_video_capture',
+        QWebEnginePage.MouseLock: 'content.mouse_lock',
+        QWebEnginePage.DesktopVideoCapture: 'content.desktop_capture',
+        QWebEnginePage.DesktopAudioVideoCapture: 'content.desktop_capture',
     }
 
     _messages = {
         0: 'show notifications',
-        QtWebEngineWidgets.QWebEnginePage.Geolocation: 'access your location',
-        QtWebEngineWidgets.QWebEnginePage.MediaAudioCapture: 'record audio',
-        QtWebEngineWidgets.QWebEnginePage.MediaVideoCapture: 'record video',
-        QtWebEngineWidgets.QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
-        QtWebEngineWidgets.QWebEnginePage.MouseLock: 'hide your mouse pointer',
-        QtWebEngineWidgets.QWebEnginePage.DesktopVideoCapture: 'capture your desktop',
-        QtWebEngineWidgets.QWebEnginePage.DesktopAudioVideoCapture: 'capture your desktop and audio',
+        QWebEnginePage.Geolocation: 'access your location',
+        QWebEnginePage.MediaAudioCapture: 'record audio',
+        QWebEnginePage.MediaVideoCapture: 'record video',
+        QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+        QWebEnginePage.MouseLock: 'hide your mouse pointer',
+        QWebEnginePage.DesktopVideoCapture: 'capture your desktop',
+        QWebEnginePage.DesktopAudioVideoCapture: 'capture your desktop and audio',
     }
 
     def __init__(self, tab, parent=None):
@@ -1536,12 +1541,13 @@ class WebEngineTab(browsertab.AbstractTab):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58697
             status = QtWebEngineWidgets.QWebEnginePage.CrashedTerminationStatus
 
+        term_status = browsertab.TerminationStatus
         status_map = {
-            QtWebEngineWidgets.QWebEnginePage.NormalTerminationStatus: browsertab.TerminationStatus.normal,
-            QtWebEngineWidgets.QWebEnginePage.AbnormalTerminationStatus: browsertab.TerminationStatus.abnormal,
-            QtWebEngineWidgets.QWebEnginePage.CrashedTerminationStatus: browsertab.TerminationStatus.crashed,
-            QtWebEngineWidgets.QWebEnginePage.KilledTerminationStatus: browsertab.TerminationStatus.killed,
-            -1: browsertab.TerminationStatus.unknown,
+            QWebEnginePage.NormalTerminationStatus: term_status.normal,
+            QWebEnginePage.AbnormalTerminationStatus: term_status.abnormal,
+            QWebEnginePage.CrashedTerminationStatus: term_status.crashed,
+            QWebEnginePage.KilledTerminationStatus: term_status.killed,
+            -1: term_status.unknown,
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 

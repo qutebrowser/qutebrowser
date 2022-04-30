@@ -40,6 +40,10 @@ from qutebrowser.utils import (standarddir, qtutils, message, log,
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
+
+QWebEngineSettings = QtWebEngineWidgets.QWebEngineSettings
+
+
 # The default QWebEngineProfile
 default_profile = cast(QtWebEngineWidgets.QWebEngineProfile, None)
 # The QWebEngineProfile used for private (off-the-record) windows
@@ -108,93 +112,96 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.xss_auditing': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.XSSAuditingEnabled
+            QWebEngineSettings.XSSAuditingEnabled
         ),
-        'content.images': Attr(QtWebEngineWidgets.QWebEngineSettings.AutoLoadImages),
+        'content.images': Attr(QWebEngineSettings.AutoLoadImages),
         'content.javascript.enabled': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled
+            QWebEngineSettings.JavascriptEnabled
         ),
         'content.javascript.can_open_tabs_automatically': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.JavascriptCanOpenWindows
+            QWebEngineSettings.JavascriptCanOpenWindows
         ),
         'content.javascript.can_access_clipboard': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.JavascriptCanAccessClipboard
+            QWebEngineSettings.JavascriptCanAccessClipboard
         ),
-        'content.plugins': Attr(QtWebEngineWidgets.QWebEngineSettings.PluginsEnabled),
+        'content.plugins': Attr(QWebEngineSettings.PluginsEnabled),
         'content.hyperlink_auditing': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.HyperlinkAuditingEnabled
+            QWebEngineSettings.HyperlinkAuditingEnabled
         ),
         'content.local_content_can_access_remote_urls': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessRemoteUrls
+            QWebEngineSettings.LocalContentCanAccessRemoteUrls
         ),
         'content.local_content_can_access_file_urls': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls
+            QWebEngineSettings.LocalContentCanAccessFileUrls
         ),
-        'content.webgl': Attr(QtWebEngineWidgets.QWebEngineSettings.WebGLEnabled),
+        'content.webgl': Attr(QWebEngineSettings.WebGLEnabled),
         'content.local_storage': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled
+            QWebEngineSettings.LocalStorageEnabled
         ),
         'content.desktop_capture': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.ScreenCaptureEnabled,
+            QWebEngineSettings.ScreenCaptureEnabled,
             converter=lambda val: True if val == 'ask' else val,
         ),
         # 'ask' is handled via the permission system
         'input.spatial_navigation': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.SpatialNavigationEnabled
+            QWebEngineSettings.SpatialNavigationEnabled
         ),
         'input.links_included_in_focus_chain': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.LinksIncludedInFocusChain
+            QWebEngineSettings.LinksIncludedInFocusChain
         ),
         'scrolling.smooth': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.ScrollAnimatorEnabled
+            QWebEngineSettings.ScrollAnimatorEnabled
         ),
         'content.print_element_backgrounds': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.PrintElementBackgrounds
+            QWebEngineSettings.PrintElementBackgrounds
         ),
         'content.autoplay': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.PlaybackRequiresUserGesture,
+            QWebEngineSettings.PlaybackRequiresUserGesture,
             converter=operator.not_,
         ),
         'content.dns_prefetch': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.DnsPrefetchEnabled
+            QWebEngineSettings.DnsPrefetchEnabled
         ),
         'tabs.favicons.show': Attr(
-            QtWebEngineWidgets.QWebEngineSettings.AutoLoadIconsForPage,
+            QWebEngineSettings.AutoLoadIconsForPage,
             converter=lambda val: val != 'never',
         ),
     }
 
     _FONT_SIZES = {
-        'fonts.web.size.minimum': QtWebEngineWidgets.QWebEngineSettings.MinimumFontSize,
-        'fonts.web.size.minimum_logical': QtWebEngineWidgets.QWebEngineSettings.MinimumLogicalFontSize,
-        'fonts.web.size.default': QtWebEngineWidgets.QWebEngineSettings.DefaultFontSize,
-        'fonts.web.size.default_fixed': QtWebEngineWidgets.QWebEngineSettings.DefaultFixedFontSize,
+        'fonts.web.size.minimum': QWebEngineSettings.MinimumFontSize,
+        'fonts.web.size.minimum_logical': QWebEngineSettings.MinimumLogicalFontSize,
+        'fonts.web.size.default': QWebEngineSettings.DefaultFontSize,
+        'fonts.web.size.default_fixed': QWebEngineSettings.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
-        'fonts.web.family.standard': QtWebEngineWidgets.QWebEngineSettings.StandardFont,
-        'fonts.web.family.fixed': QtWebEngineWidgets.QWebEngineSettings.FixedFont,
-        'fonts.web.family.serif': QtWebEngineWidgets.QWebEngineSettings.SerifFont,
-        'fonts.web.family.sans_serif': QtWebEngineWidgets.QWebEngineSettings.SansSerifFont,
-        'fonts.web.family.cursive': QtWebEngineWidgets.QWebEngineSettings.CursiveFont,
-        'fonts.web.family.fantasy': QtWebEngineWidgets.QWebEngineSettings.FantasyFont,
+        'fonts.web.family.standard': QWebEngineSettings.StandardFont,
+        'fonts.web.family.fixed': QWebEngineSettings.FixedFont,
+        'fonts.web.family.serif': QWebEngineSettings.SerifFont,
+        'fonts.web.family.sans_serif': QWebEngineSettings.SansSerifFont,
+        'fonts.web.family.cursive': QWebEngineSettings.CursiveFont,
+        'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
     }
 
     _UNKNOWN_URL_SCHEME_POLICY = {
-        'disallow': QtWebEngineWidgets.QWebEngineSettings.DisallowUnknownUrlSchemes,
-        'allow-from-user-interaction': QtWebEngineWidgets.QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
-        'allow-all': QtWebEngineWidgets.QWebEngineSettings.AllowAllUnknownUrlSchemes,
+        'disallow': QWebEngineSettings.DisallowUnknownUrlSchemes,
+        'allow-from-user-interaction': getattr(  # noqa: B009
+            QWebEngineSettings,
+            "AllowUnknownUrlSchemesFromUserInteraction",
+        ),
+        'allow-all': QWebEngineSettings.AllowAllUnknownUrlSchemes,
     }
 
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
     _FONT_TO_QFONT = {
-        QtWebEngineWidgets.QWebEngineSettings.StandardFont: QtGui.QFont.Serif,
-        QtWebEngineWidgets.QWebEngineSettings.FixedFont: QtGui.QFont.Monospace,
-        QtWebEngineWidgets.QWebEngineSettings.SerifFont: QtGui.QFont.Serif,
-        QtWebEngineWidgets.QWebEngineSettings.SansSerifFont: QtGui.QFont.SansSerif,
-        QtWebEngineWidgets.QWebEngineSettings.CursiveFont: QtGui.QFont.Cursive,
-        QtWebEngineWidgets.QWebEngineSettings.FantasyFont: QtGui.QFont.Fantasy,
+        QWebEngineSettings.StandardFont: QtGui.QFont.Serif,
+        QWebEngineSettings.FixedFont: QtGui.QFont.Monospace,
+        QWebEngineSettings.SerifFont: QtGui.QFont.Serif,
+        QWebEngineSettings.SansSerifFont: QtGui.QFont.SansSerif,
+        QWebEngineSettings.CursiveFont: QtGui.QFont.Cursive,
+        QWebEngineSettings.FantasyFont: QtGui.QFont.Fantasy,
     }
 
     def set_unknown_url_scheme_policy(

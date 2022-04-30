@@ -186,7 +186,8 @@ def check_qt_version():
     from qutebrowser.qt import QtCore
     try:
         qt_ver = QtCore.QLibraryInfo.version().normalized()
-        recent_qt_runtime = qt_ver >= QtCore.QVersionNumber(5, 12)  # type: ignore[operator]
+        qt_512_ver = QtCore.QVersionNumber(5, 12)
+        recent_qt_runtime = qt_ver >= qt_512_ver  # type: ignore[operator]
     except (ImportError, AttributeError):
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False
