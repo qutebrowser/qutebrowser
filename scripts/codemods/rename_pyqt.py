@@ -53,9 +53,9 @@ def leave_import_decorator(
 class RenameCommand(VisitorBasedCodemodCommand):
     """Rename all instances of a local or imported object."""
 
-    DESCRIPTION: str = "Rename all instances of a local or imported object."
+    DESCRIPTION: str = "Rename all instances of a local or imported object."  # noqa: F841
 
-    METADATA_DEPENDENCIES = (QualifiedNameProvider,)
+    METADATA_DEPENDENCIES = (QualifiedNameProvider,)  # noqa: F841
 
     @staticmethod
     def add_args(arg_parser: argparse.ArgumentParser) -> None:
