@@ -19,15 +19,15 @@
 
 """Base class for vim-like key sequence parser."""
 
+import dataclasses
 import string
 import types
-import dataclasses
 from typing import Mapping, MutableMapping, Optional, Sequence
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.keyinput import keyutils
-from qutebrowser.qt import QtGui, QtCore
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import log, usertypes, utils
 
 
 @dataclasses.dataclass(frozen=True)

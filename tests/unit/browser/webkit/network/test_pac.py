@@ -18,14 +18,13 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import http.server
-import threading
 import logging
+import threading
+
 import pytest
 
-from qutebrowser.qt import QtNetwork, QtCore
-
 from qutebrowser.browser.network import pac
-
+from qutebrowser.qt import QtCore, QtNetwork
 
 pytestmark = pytest.mark.usefixtures('qapp')
 

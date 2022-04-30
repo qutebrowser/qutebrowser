@@ -22,7 +22,7 @@
 import pytest
 
 from qutebrowser.browser.webkit.network import networkreply
-from qutebrowser.qt import QtNetwork, QtCore
+from qutebrowser.qt import QtCore, QtNetwork
 
 
 @pytest.fixture

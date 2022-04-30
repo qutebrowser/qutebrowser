@@ -24,9 +24,8 @@
 import io
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
-from qutebrowser.utils import objreg
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import objreg
 
 UnsupportedAttribute = downloads.UnsupportedAttribute
 

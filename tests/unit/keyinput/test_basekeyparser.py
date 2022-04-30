@@ -21,11 +21,11 @@
 
 from unittest import mock
 
-from qutebrowser.qt import QtCore
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import usertypes, utils
 
 
 # Alias because we need this a lot in here.

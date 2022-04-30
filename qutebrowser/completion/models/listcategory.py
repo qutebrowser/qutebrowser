@@ -21,11 +21,10 @@
 
 import re
 from typing import Iterable, Tuple
-from qutebrowser.qt import QtWidgets
 
 from qutebrowser.completion.models import util
-from qutebrowser.utils import qtutils, log
-from qutebrowser.qt import QtGui, QtCore
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import log, qtutils
 
 
 class ListCategory(QtCore.QSortFilterProxyModel):

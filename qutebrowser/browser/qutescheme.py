@@ -24,24 +24,32 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import collections
 import html
 import json
 import os
-import time
-import textwrap
-import urllib
-import collections
 import secrets
-from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple
+import textwrap
+import time
+import urllib
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import qutebrowser
-from qutebrowser.browser import pdfjs, downloads, history
+from qutebrowser.browser import downloads, history, pdfjs
 from qutebrowser.config import config, configdata, configexc
-from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               resources, objreg, standarddir)
 from qutebrowser.misc import guiprocess, quitter
 from qutebrowser.qt import QtCore, sip
-
+from qutebrowser.utils import (
+    docutils,
+    jinja,
+    log,
+    message,
+    objreg,
+    resources,
+    standarddir,
+    utils,
+    version,
+)
 
 pyeval_output = ":pyeval was never called"
 csrf_token = None

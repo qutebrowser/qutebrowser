@@ -19,24 +19,24 @@
 
 """Handlers for crashes and OS signals."""
 
+import argparse
+import bdb
+import dataclasses
+import faulthandler
+import functools
 import os
 import os.path
-import sys
-import bdb
 import pdb  # noqa: T002
 import signal
-import argparse
-import functools
+import sys
 import threading
-import faulthandler
-import dataclasses
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
-from qutebrowser.qt import QtWidgets
+from typing import TYPE_CHECKING, List, MutableMapping, Optional, cast
 
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
-from qutebrowser.qt import QtCore, sip
+from qutebrowser.misc import crashdialog, earlyinit, ipc, objects
+from qutebrowser.qt import QtCore, QtWidgets, sip
+from qutebrowser.utils import debug, log, objreg, standarddir, usertypes, utils
+
 if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 

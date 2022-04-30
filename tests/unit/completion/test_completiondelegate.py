@@ -21,9 +21,9 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies
 import pytest
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
 
 from qutebrowser.completion import completiondelegate
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
 
 
 @pytest.mark.parametrize('pat,txt,segments', [

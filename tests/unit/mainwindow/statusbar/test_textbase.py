@@ -19,10 +19,10 @@
 
 
 """Test TextBase widget."""
-from qutebrowser.qt import QtCore
 import pytest
 
 from qutebrowser.mainwindow.statusbar.textbase import TextBase
+from qutebrowser.qt import QtCore
 
 
 @pytest.mark.parametrize(

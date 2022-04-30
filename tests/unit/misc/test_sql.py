@@ -19,14 +19,12 @@
 
 """Test the SQL API."""
 
-import pytest
-
 import hypothesis
+import pytest
 from hypothesis import strategies
 
 from qutebrowser.misc import sql
 from qutebrowser.qt import QtSql
-
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 

@@ -19,17 +19,16 @@
 
 """Utilities for IPC with existing instances."""
 
+import binascii
+import getpass
+import hashlib
+import json
 import os
 import time
-import json
-import getpass
-import binascii
-import hashlib
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, standarddir, utils
-from qutebrowser.qt import QtNetwork, QtCore, sip
-
+from qutebrowser.qt import QtCore, QtNetwork, sip
+from qutebrowser.utils import error, log, standarddir, usertypes, utils
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000

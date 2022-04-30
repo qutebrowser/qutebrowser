@@ -18,19 +18,18 @@
 
 """Tests for qutebrowser.config.configfiles."""
 
+import logging
 import os
 import sys
-import unittest.mock
 import textwrap
-import logging
+import unittest.mock
 
 import pytest
-from qutebrowser.qt import QtWebEngineWidgets, QtCore
 
-from qutebrowser.config import (config, configfiles, configexc, configdata,
-                                configtypes)
-from qutebrowser.utils import utils, usertypes, urlmatch, standarddir, version
+from qutebrowser.config import config, configdata, configexc, configfiles, configtypes
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import QtCore, QtWebEngineWidgets
+from qutebrowser.utils import standarddir, urlmatch, usertypes, utils, version
 
 
 @pytest.fixture(autouse=True)

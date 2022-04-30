@@ -19,18 +19,17 @@
 
 """Commands related to the configuration."""
 
-import os.path
 import contextlib
-from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
-
-from qutebrowser.qt import QtCore
+import os.path
+from typing import TYPE_CHECKING, Any, Iterator, List, Optional, Tuple
 
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
-from qutebrowser.utils import objreg, message, standarddir, urlmatch
-from qutebrowser.config import configtypes, configexc, configfiles, configdata
-from qutebrowser.misc import editor
+from qutebrowser.config import configdata, configexc, configfiles, configtypes
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import editor
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import message, objreg, standarddir, urlmatch
 
 if TYPE_CHECKING:
     from qutebrowser.config.config import Config, KeyConfig

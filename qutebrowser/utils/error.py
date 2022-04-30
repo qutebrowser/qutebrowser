@@ -20,7 +20,6 @@
 """Tools related to error printing/displaying."""
 
 from qutebrowser.qt import QtWidgets
-
 from qutebrowser.utils import log, utils
 
 

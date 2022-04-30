@@ -23,9 +23,9 @@ import os
 import tempfile
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log
 from qutebrowser.misc import guiprocess
 from qutebrowser.qt import QtCore, sip
+from qutebrowser.utils import log, message
 
 
 class ExternalEditor(QtCore.QObject):

@@ -42,28 +42,37 @@ Config types can do different conversations:
   This also validates whether the object is actually correct (type/value).
 """
 
-import re
-import html
 import codecs
-import os.path
-import itertools
-import functools
-import operator
-import json
 import dataclasses
-from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
-                    List as ListType, Optional, Pattern, Sequence, Tuple, Union)
+import functools
+import html
+import itertools
+import json
+import operator
+import os.path
+import re
+from typing import Any, Callable
+from typing import Dict as DictType
+from typing import Iterable, Iterator
+from typing import List as ListType
+from typing import Optional, Pattern, Sequence, Tuple, Union
 
 import yaml
-from qutebrowser.qt import QtWidgets, QtNetwork, QtGui
 
-from qutebrowser.misc import objects, debugcachestats
-from qutebrowser.config import configexc, configutils
-from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
-                               usertypes, log)
-from qutebrowser.keyinput import keyutils
 from qutebrowser.browser.network import pac
-from qutebrowser.qt import QtCore
+from qutebrowser.config import configexc, configutils
+from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import debugcachestats, objects
+from qutebrowser.qt import QtCore, QtGui, QtNetwork, QtWidgets
+from qutebrowser.utils import (
+    log,
+    qtutils,
+    standarddir,
+    urlmatch,
+    urlutils,
+    usertypes,
+    utils,
+)
 
 
 class _SystemProxy:

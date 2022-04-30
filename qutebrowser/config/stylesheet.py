@@ -20,12 +20,12 @@
 """Handling of Qt qss stylesheets."""
 
 import functools
-from typing import Optional, FrozenSet
+from typing import FrozenSet, Optional
 
 from qutebrowser.config import config
 from qutebrowser.misc import debugcachestats
-from qutebrowser.utils import jinja, log
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import jinja, log
 
 
 def set_register(

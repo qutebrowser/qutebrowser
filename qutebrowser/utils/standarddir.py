@@ -19,17 +19,16 @@
 
 """Utilities to get and initialize data/config paths."""
 
+import argparse
+import contextlib
+import enum
 import os
 import os.path
 import sys
-import contextlib
-import enum
-import argparse
 from typing import Iterator, Optional
 
-from qutebrowser.qt import QtWidgets, QtCore
-
-from qutebrowser.utils import log, debug, utils, version
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import debug, log, utils, version
 
 # The cached locations
 _locations = {}

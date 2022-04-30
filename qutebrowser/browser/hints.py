@@ -20,24 +20,34 @@
 """A HintManager to draw hints over links."""
 
 import collections
+import dataclasses
+import enum
 import functools
+import html
 import os
 import re
-import html
-import enum
-import dataclasses
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
-from qutebrowser.qt import QtWidgets
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Set,
+)
 
-from qutebrowser.config import config, configexc
-from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
-from qutebrowser.browser import webelem, history
-from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
-from qutebrowser.qt import QtCore
+from qutebrowser.browser import history, webelem
+from qutebrowser.commands import runners
+from qutebrowser.config import config, configexc
+from qutebrowser.keyinput import basekeyparser, modeman, modeparsers
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import log, message, objreg, qtutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab

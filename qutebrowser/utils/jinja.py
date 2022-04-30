@@ -19,21 +19,20 @@
 
 """Utilities related to jinja2."""
 
+import contextlib
+import functools
+import html
 import os
 import os.path
 import posixpath
-import functools
-import contextlib
-import html
 from typing import Any, Callable, FrozenSet, Iterator, List, Set, Tuple
 
 import jinja2
 import jinja2.nodes
-from qutebrowser.qt import QtCore
 
-from qutebrowser.utils import utils, urlutils, log, qtutils, resources
 from qutebrowser.misc import debugcachestats
-
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, qtutils, resources, urlutils, utils
 
 html_fallback = """
 <!DOCTYPE html>

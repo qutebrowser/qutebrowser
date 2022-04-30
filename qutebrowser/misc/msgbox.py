@@ -19,9 +19,8 @@
 
 """Convenience functions to show message boxes."""
 
-from qutebrowser.qt import QtWidgets, QtCore
-
 from qutebrowser.misc import objects
+from qutebrowser.qt import QtCore, QtWidgets
 from qutebrowser.utils import log
 
 

@@ -24,10 +24,10 @@
 """Message singleton so we don't have to define unneeded signals."""
 
 import traceback
-from typing import Any, Callable, Iterable, List, Tuple, Union, Optional
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
-from qutebrowser.utils import usertypes, log
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, usertypes
 
 
 def _log_stack(typ: str, stack: str) -> None:

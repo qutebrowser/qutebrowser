@@ -19,9 +19,9 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.misc import httpclient, pastebin
+from qutebrowser.qt import QtCore
 
 
 @pytest.fixture

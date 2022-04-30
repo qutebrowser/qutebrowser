@@ -19,12 +19,12 @@
 
 """Tests for the webelement utils."""
 
+import collections.abc
+import dataclasses
+import itertools
+import operator
 from typing import TYPE_CHECKING
 from unittest import mock
-import collections.abc
-import operator
-import itertools
-import dataclasses
 
 import pytest
 
@@ -35,8 +35,8 @@ QWebElement = testutils.qt_module_skip('QtWebKit').QWebElement
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import usertypes
 
 if TYPE_CHECKING:
     from helpers import stubs

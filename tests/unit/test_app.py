@@ -19,10 +19,9 @@
 
 """Tests for the qutebrowser.app module."""
 
-from qutebrowser.qt import QtCore
-
-from qutebrowser.misc import objects
 from qutebrowser import app
+from qutebrowser.misc import objects
+from qutebrowser.qt import QtCore
 
 
 def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):

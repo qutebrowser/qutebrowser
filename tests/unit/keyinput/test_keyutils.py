@@ -20,14 +20,13 @@
 import operator
 
 import hypothesis
-from hypothesis import strategies
 import pytest
-from qutebrowser.qt import QtWidgets
+from hypothesis import strategies
 
-from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
 from qutebrowser.utils import utils
-from qutebrowser.qt import QtGui, QtCore
+from unit.keyinput import key_data
 
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)

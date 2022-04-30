@@ -22,8 +22,7 @@
 from typing import Sequence
 
 from qutebrowser.qt import QtNetwork
-
-from qutebrowser.utils import usertypes, utils, debug, jinja
+from qutebrowser.utils import debug, jinja, usertypes, utils
 
 
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):

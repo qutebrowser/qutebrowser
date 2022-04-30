@@ -25,8 +25,8 @@ import functools
 import pytest
 
 from qutebrowser.mainwindow import tabwidget
-from qutebrowser.utils import usertypes
 from qutebrowser.qt import QtGui
+from qutebrowser.utils import usertypes
 
 
 class TestTabWidget:

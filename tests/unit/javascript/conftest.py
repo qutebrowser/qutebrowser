@@ -20,12 +20,12 @@
 """pytest conftest file for javascript tests."""
 
 import pathlib
-import pytest
-import jinja2
 
-from qutebrowser.qt import QtCore
+import jinja2
+import pytest
 
 import qutebrowser
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 JS_DIR = pathlib.Path(__file__).parent

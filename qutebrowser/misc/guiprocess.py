@@ -23,13 +23,12 @@ import dataclasses
 import locale
 import shlex
 import shutil
-from typing import Mapping, Sequence, Dict, Optional
+from typing import Dict, Mapping, Optional, Sequence
 
-from qutebrowser.utils import message, log, utils, usertypes, version
-from qutebrowser.api import cmdutils, apitypes
+from qutebrowser.api import apitypes, cmdutils
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import log, message, usertypes, utils, version
 
 all_processes: Dict[int, Optional['GUIProcess']] = {}
 last_pid: Optional[int] = None

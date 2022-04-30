@@ -22,8 +22,8 @@
 from typing import MutableSequence, Optional
 
 from qutebrowser.config import config, stylesheet
+from qutebrowser.qt import QtCore, QtWidgets
 from qutebrowser.utils import usertypes
-from qutebrowser.qt import QtWidgets, QtCore
 
 
 class Message(QtWidgets.QLabel):

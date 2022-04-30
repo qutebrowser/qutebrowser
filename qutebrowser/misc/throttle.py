@@ -24,7 +24,6 @@ import time
 from typing import Any, Callable, Mapping, Optional, Sequence
 
 from qutebrowser.qt import QtCore
-
 from qutebrowser.utils import usertypes
 
 

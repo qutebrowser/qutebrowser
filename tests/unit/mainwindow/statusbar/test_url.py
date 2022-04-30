@@ -22,10 +22,9 @@
 
 import pytest
 
-from qutebrowser.qt import QtCore
-
-from qutebrowser.utils import usertypes, urlutils
 from qutebrowser.mainwindow.statusbar import url
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import urlutils, usertypes
 
 
 @pytest.fixture

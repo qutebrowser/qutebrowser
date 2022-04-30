@@ -19,16 +19,14 @@
 
 """Tests for the BindingTrie."""
 
-import string
 import itertools
+import string
 import textwrap
 
 import pytest
 
+from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.qt import QtGui
-
-from qutebrowser.keyinput import basekeyparser
-from qutebrowser.keyinput import keyutils
 from unit.keyinput import test_keyutils
 
 

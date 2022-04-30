@@ -19,15 +19,15 @@
 
 """Tests for qutebrowser.utils.jinja."""
 
-import pathlib
 import logging
+import pathlib
 
 import jinja2.exceptions
 import pytest
-from qutebrowser.qt import QtCore
 
-from qutebrowser.utils import jinja
 from qutebrowser.config import configexc
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import jinja
 
 
 @pytest.fixture(autouse=True)

@@ -24,16 +24,14 @@ Module attributes:
                 constants.
 """
 
-from typing import cast
 import os.path
+from typing import cast
 
-from qutebrowser.qt import QtWebKitWidgets, QtWebKit, QtGui, QtCore
-
+from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
+from qutebrowser.qt import QtCore, QtGui, QtWebKit, QtWebKitWidgets
 from qutebrowser.utils import standarddir, urlutils
-from qutebrowser.browser import shared
-
 
 # The global WebKitSettings object
 global_settings = cast('WebKitSettings', None)

@@ -18,12 +18,12 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from qutebrowser.qt import QtWidgets
+
 import pytest
 
-from qutebrowser.misc import miscwidgets
 from qutebrowser.browser import inspector
-from qutebrowser.qt import QtCore
+from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import QtCore, QtWidgets
 
 
 class TestCommandLineEdit:

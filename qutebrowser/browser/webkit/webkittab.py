@@ -19,18 +19,30 @@
 
 """Wrapper over our (QtWebKit) WebView."""
 
-import re
 import functools
+import re
 import xml.etree.ElementTree
-from typing import cast, Iterable, Optional
-from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtWebKit, QtPrintSupport, QtGui
+from typing import Iterable, Optional, cast
 
 from qutebrowser.browser import browsertab, shared
-from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
-                                        webkitsettings, webkitinspector)
-from qutebrowser.utils import qtutils, usertypes, utils, log, debug, resources
+from qutebrowser.browser.webkit import (
+    tabhistory,
+    webkitelem,
+    webkitinspector,
+    webkitsettings,
+    webview,
+)
 from qutebrowser.keyinput import modeman
-from qutebrowser.qt import QtCore, sip
+from qutebrowser.qt import (
+    QtCore,
+    QtGui,
+    QtPrintSupport,
+    QtWebKit,
+    QtWebKitWidgets,
+    QtWidgets,
+    sip,
+)
+from qutebrowser.utils import debug, log, qtutils, resources, usertypes, utils
 
 
 class WebKitAction(browsertab.AbstractAction):

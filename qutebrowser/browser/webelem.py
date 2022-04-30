@@ -19,14 +19,13 @@
 
 """Generic web element related code."""
 
-from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
 import collections.abc
-from qutebrowser.qt import QtGui
+from typing import TYPE_CHECKING, Iterator, Optional, Set, Union, cast
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import log, objreg, qtutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab

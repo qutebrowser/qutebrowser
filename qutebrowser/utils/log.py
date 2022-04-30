@@ -19,21 +19,30 @@
 
 """Loggers and utilities related to logging."""
 
-import os
-import sys
-import html as pyhtml
-import logging
-import contextlib
+import argparse
 import collections
+import contextlib
 import copy
 import faulthandler
+import html as pyhtml
+import inspect
+import json
+import logging
+import os
+import sys
 import traceback
 import warnings
-import json
-import inspect
-import argparse
-from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterator,
+    Mapping,
+    MutableSequence,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 from qutebrowser.qt import QtCore
 
@@ -44,8 +53,9 @@ except ImportError:
     colorama = None
 
 if TYPE_CHECKING:
-    from qutebrowser.config import config as configmodule
     from typing import TextIO
+
+    from qutebrowser.config import config as configmodule
 
 _log_inited = False
 _args = None

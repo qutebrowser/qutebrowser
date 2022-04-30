@@ -19,18 +19,17 @@
 
 """Base class for a subprocess run for tests."""
 
+import dataclasses
 import re
 import time
 import warnings
-import dataclasses
 
 import pytest
 import pytestqt.wait_signal
 
 from helpers import testutils
-
-from qutebrowser.utils import utils as quteutils
 from qutebrowser.qt import QtCore, QtTest
+from qutebrowser.utils import utils as quteutils
 
 
 class InvalidLine(Exception):

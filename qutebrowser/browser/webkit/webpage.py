@@ -19,17 +19,24 @@
 
 """The main browser widgets."""
 
-import html
 import functools
+import html
 from typing import cast
-from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtPrintSupport, QtNetwork, QtGui
 
-from qutebrowser.config import websettings, config
-from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
+from qutebrowser.browser import downloads, greasemonkey, pdfjs, shared
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.utils import message, usertypes, log, jinja, objreg
-from qutebrowser.qt import QtCore, sip
+from qutebrowser.config import config, websettings
+from qutebrowser.qt import (
+    QtCore,
+    QtGui,
+    QtNetwork,
+    QtPrintSupport,
+    QtWebKitWidgets,
+    QtWidgets,
+    sip,
+)
+from qutebrowser.utils import jinja, log, message, objreg, usertypes
 
 
 class BrowserPage(QtWebKitWidgets.QWebPage):

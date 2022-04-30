@@ -19,14 +19,14 @@
 
 """Parser for line-based files like histories."""
 
+import contextlib
 import os
 import os.path
-import contextlib
 from typing import Sequence
 
-from qutebrowser.utils import log, utils, qtutils
 from qutebrowser.config import config
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, qtutils, utils
 
 
 class BaseLineParser(QtCore.QObject):

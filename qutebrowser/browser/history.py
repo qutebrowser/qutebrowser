@@ -19,18 +19,17 @@
 
 """Simple history which gets written to disk."""
 
-import os
-import time
 import contextlib
+import os
 import pathlib
-from typing import cast, Mapping, MutableSequence, Optional
+import time
+from typing import Mapping, MutableSequence, Optional, cast
 
-from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, log, usertypes, message, qtutils
+from qutebrowser.config import config
 from qutebrowser.misc import objects, sql
-from qutebrowser.qt import QtWidgets, QtCore
-
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import log, message, qtutils, usertypes, utils
 
 web_history = cast('WebHistory', None)
 

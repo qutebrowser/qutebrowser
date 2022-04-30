@@ -19,12 +19,11 @@
 
 """Handling of proxies."""
 
-from qutebrowser.config import config, configtypes
-from qutebrowser.utils import message, usertypes, urlutils, utils
-from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
-from qutebrowser.qt import QtNetwork, QtCore
-
+from qutebrowser.config import config, configtypes
+from qutebrowser.misc import objects
+from qutebrowser.qt import QtCore, QtNetwork
+from qutebrowser.utils import message, urlutils, usertypes, utils
 
 application_factory = None
 

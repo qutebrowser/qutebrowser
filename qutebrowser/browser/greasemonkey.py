@@ -19,23 +19,32 @@
 
 """Load, parse and make available Greasemonkey scripts."""
 
-import re
-import os
-import json
+import dataclasses
 import fnmatch
 import functools
 import glob
+import json
+import os
+import re
 import textwrap
-import dataclasses
-from typing import cast, List, Sequence
+from typing import List, Sequence, cast
 
-from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch, version, usertypes, message)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import (
+    javascript,
+    jinja,
+    log,
+    message,
+    objreg,
+    standarddir,
+    urlmatch,
+    usertypes,
+    utils,
+    version,
+)
 
 gm_manager = cast('GreasemonkeyManager', None)
 

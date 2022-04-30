@@ -17,17 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
+import logging
 import os
 import pathlib
-import json
-import time
-import logging
 import signal
+import time
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.commands import userscripts
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import utils
 
 

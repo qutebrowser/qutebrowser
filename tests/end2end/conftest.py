@@ -19,12 +19,12 @@
 
 """Things needed for end2end testing."""
 
-import re
-import pathlib
-import sys
-import shutil
-import pstats
 import operator
+import pathlib
+import pstats
+import re
+import shutil
+import sys
 
 import pytest
 
@@ -32,13 +32,13 @@ pytest.register_assert_rewrite('end2end.fixtures')
 
 # pylint: disable=unused-import
 from end2end.fixtures.notificationserver import notification_server
-from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
-from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
-                                          quteproc_new)
+from end2end.fixtures.quteprocess import quteproc, quteproc_new, quteproc_process
 from end2end.fixtures.testprocess import pytest_runtest_makereport
+from end2end.fixtures.webserver import server, server2, server_per_test, ssl_server
+from qutebrowser.qt import QtCore, QtWebEngine
+
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
-from qutebrowser.qt import QtWebEngine, QtCore
 
 
 def pytest_configure(config):

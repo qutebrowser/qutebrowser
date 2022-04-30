@@ -19,9 +19,8 @@
 
 """QWebHistory serializer for QtWebEngine."""
 
-from qutebrowser.utils import qtutils
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import qtutils
 
 # kHistoryStreamVersion = 3 was originally set when history serializing was
 # implemented in QtWebEngine:

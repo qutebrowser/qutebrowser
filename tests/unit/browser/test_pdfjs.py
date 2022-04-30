@@ -21,11 +21,10 @@ import logging
 import os.path
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import pdfjs
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import urlmatch
-
 
 pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
 

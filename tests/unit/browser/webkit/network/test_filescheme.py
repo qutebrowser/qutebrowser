@@ -18,17 +18,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import dataclasses
+import os
 from typing import List
 
-import pytest
 import bs4
-from qutebrowser.qt import QtNetwork, QtCore
+import pytest
 
-from qutebrowser.browser.webkit.network import filescheme
-from qutebrowser.utils import urlutils, utils
 from helpers import testutils
+from qutebrowser.browser.webkit.network import filescheme
+from qutebrowser.qt import QtCore, QtNetwork
+from qutebrowser.utils import urlutils, utils
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [

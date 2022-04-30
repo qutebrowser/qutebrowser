@@ -24,19 +24,32 @@ Module attributes:
                 constants.
 """
 
-import os
 import operator
-from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
-
-from qutebrowser.qt import QtWidgets, QtWebEngineWidgets, QtGui
+import os
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union, cast
 
 from qutebrowser.browser import history
-from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
-                                           webenginedownloads, notification)
+from qutebrowser.browser.webengine import (
+    cookies,
+    notification,
+    spell,
+    webenginedownloads,
+    webenginequtescheme,
+)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version)
+from qutebrowser.qt import QtGui, QtWebEngineWidgets, QtWidgets
+from qutebrowser.utils import (
+    log,
+    message,
+    objreg,
+    qtutils,
+    standarddir,
+    urlmatch,
+    usertypes,
+    version,
+)
+
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -111,13 +124,9 @@ class WebEngineSettings(websettings.AbstractSettings):
     """A wrapper for the config for QWebEngineSettings."""
 
     _ATTRIBUTES = {
-        'content.xss_auditing': Attr(
-            QWebEngineSettings.XSSAuditingEnabled
-        ),
+        'content.xss_auditing': Attr(QWebEngineSettings.XSSAuditingEnabled),
         'content.images': Attr(QWebEngineSettings.AutoLoadImages),
-        'content.javascript.enabled': Attr(
-            QWebEngineSettings.JavascriptEnabled
-        ),
+        'content.javascript.enabled': Attr(QWebEngineSettings.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically': Attr(
             QWebEngineSettings.JavascriptCanOpenWindows
         ),
@@ -125,9 +134,7 @@ class WebEngineSettings(websettings.AbstractSettings):
             QWebEngineSettings.JavascriptCanAccessClipboard
         ),
         'content.plugins': Attr(QWebEngineSettings.PluginsEnabled),
-        'content.hyperlink_auditing': Attr(
-            QWebEngineSettings.HyperlinkAuditingEnabled
-        ),
+        'content.hyperlink_auditing': Attr(QWebEngineSettings.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls': Attr(
             QWebEngineSettings.LocalContentCanAccessRemoteUrls
         ),
@@ -135,23 +142,17 @@ class WebEngineSettings(websettings.AbstractSettings):
             QWebEngineSettings.LocalContentCanAccessFileUrls
         ),
         'content.webgl': Attr(QWebEngineSettings.WebGLEnabled),
-        'content.local_storage': Attr(
-            QWebEngineSettings.LocalStorageEnabled
-        ),
+        'content.local_storage': Attr(QWebEngineSettings.LocalStorageEnabled),
         'content.desktop_capture': Attr(
             QWebEngineSettings.ScreenCaptureEnabled,
             converter=lambda val: True if val == 'ask' else val,
         ),
         # 'ask' is handled via the permission system
-        'input.spatial_navigation': Attr(
-            QWebEngineSettings.SpatialNavigationEnabled
-        ),
+        'input.spatial_navigation': Attr(QWebEngineSettings.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain': Attr(
             QWebEngineSettings.LinksIncludedInFocusChain
         ),
-        'scrolling.smooth': Attr(
-            QWebEngineSettings.ScrollAnimatorEnabled
-        ),
+        'scrolling.smooth': Attr(QWebEngineSettings.ScrollAnimatorEnabled),
         'content.print_element_backgrounds': Attr(
             QWebEngineSettings.PrintElementBackgrounds
         ),
@@ -159,9 +160,7 @@ class WebEngineSettings(websettings.AbstractSettings):
             QWebEngineSettings.PlaybackRequiresUserGesture,
             converter=operator.not_,
         ),
-        'content.dns_prefetch': Attr(
-            QWebEngineSettings.DnsPrefetchEnabled
-        ),
+        'content.dns_prefetch': Attr(QWebEngineSettings.DnsPrefetchEnabled),
         'tabs.favicons.show': Attr(
             QWebEngineSettings.AutoLoadIconsForPage,
             converter=lambda val: val != 'never',

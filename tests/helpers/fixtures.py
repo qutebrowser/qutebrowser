@@ -25,33 +25,38 @@ See https://pytest.org/latest/fixture.html
 """
 
 
-import sys
-import tempfile
+import dataclasses
 import itertools
-import textwrap
-import unittest.mock
-import types
 import mimetypes
 import os.path
-import dataclasses
+import sys
+import tempfile
+import textwrap
+import types
+import unittest.mock
 
-import pytest
 import py.path  # pylint: disable=no-name-in-module
-from qutebrowser.qt import QtWidgets, QtWebEngineWidgets, QtNetwork
+import pytest
 
 import helpers.stubs as stubsmod
 import qutebrowser
 from helpers import testutils
-from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes, version
 from qutebrowser.browser import greasemonkey, history, qutescheme
-from qutebrowser.browser.webkit import cookies, cache
-from qutebrowser.misc import savemanager, sql, objects, sessions
+from qutebrowser.browser.webkit import cache, cookies
+from qutebrowser.config import (
+    config,
+    configcache,
+    configdata,
+    configexc,
+    configfiles,
+    configtypes,
+    stylesheet,
+)
 from qutebrowser.keyinput import modeman
-from qutebrowser.qt import QtCore, sip
-
+from qutebrowser.misc import objects, savemanager, sessions, sql
+from qutebrowser.qt import QtCore, QtNetwork, QtWebEngineWidgets, QtWidgets, sip
+from qutebrowser.utils import objreg, standarddir, usertypes, utils, version
 
 _qute_scheme_handler = None
 

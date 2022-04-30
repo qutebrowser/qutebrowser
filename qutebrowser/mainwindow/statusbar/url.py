@@ -21,10 +21,10 @@
 
 import enum
 
-from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import stylesheet
-from qutebrowser.utils import usertypes, urlutils
+from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import urlutils, usertypes
 
 
 class UrlType(enum.Enum):

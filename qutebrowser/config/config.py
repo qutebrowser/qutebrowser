@@ -19,18 +19,30 @@
 
 """Configuration storage and config-related utilities."""
 
-import copy
 import contextlib
+import copy
 import functools
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
-                    MutableMapping, MutableSequence, Optional, Tuple, cast)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Tuple,
+    cast,
+)
 
 from qutebrowser.commands import cmdexc, parser
 from qutebrowser.config import configdata, configexc, configutils
-from qutebrowser.utils import utils, log, urlmatch
-from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import objects
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, urlmatch, utils
 
 if TYPE_CHECKING:
     from qutebrowser.config import configcache, configfiles

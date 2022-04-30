@@ -19,16 +19,16 @@
 
 """Tests for qutebrowser.misc.editor."""
 
+import logging
+import os
+import pathlib
 import sys
 import time
-import pathlib
-import os
-import logging
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.misc import editor as editormod
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 

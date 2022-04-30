@@ -41,14 +41,14 @@ Useful test pages:
 - tests/end2end/data/javascript/notifications.html
 """
 
+import dataclasses
+import functools
+import html
+import itertools
 import os
 import signal
-import html
-import dataclasses
-import itertools
-import functools
 import subprocess
-from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
@@ -57,11 +57,17 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
+from qutebrowser.qt import QtCore, QtDBus, QtGui, QtWebEngine, QtWidgets, sip
 from qutebrowser.utils import (
-    qtutils, log, utils, debug, message, version, objreg, resources,
+    debug,
+    log,
+    message,
+    objreg,
+    qtutils,
+    resources,
+    utils,
+    version,
 )
-from qutebrowser.qt import QtWidgets, QtWebEngine, QtGui, QtDBus, QtCore, sip
-
 
 bridge: Optional['NotificationBridgePresenter'] = None
 

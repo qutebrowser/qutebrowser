@@ -21,7 +21,8 @@
 
 
 import pytest
-from qutebrowser.qt import QtWebKit, QtWebEngineWidgets
+
+from qutebrowser.qt import QtWebEngineWidgets, QtWebKit
 
 
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, None)])

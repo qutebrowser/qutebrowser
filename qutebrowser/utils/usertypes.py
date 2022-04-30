@@ -19,15 +19,14 @@
 
 """Custom useful data types."""
 
+import dataclasses
+import enum
 import html
 import operator
-import enum
-import dataclasses
 from typing import Optional, Sequence, TypeVar, Union
+
 from qutebrowser.qt import QtCore
-
 from qutebrowser.utils import log, qtutils, utils
-
 
 _T = TypeVar('_T', bound=utils.Comparable)
 

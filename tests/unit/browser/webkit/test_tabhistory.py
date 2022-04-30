@@ -23,16 +23,15 @@ import dataclasses
 from typing import Any
 
 import pytest
+
 from helpers import testutils
 
 testutils.qt_module_skip('QtWebKit')
 
-from qutebrowser.qt import QtWebKit
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item
+from qutebrowser.qt import QtCore, QtWebKit
 from qutebrowser.utils import qtutils
-from qutebrowser.qt import QtCore
-
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 

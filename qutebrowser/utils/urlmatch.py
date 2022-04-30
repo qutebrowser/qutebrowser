@@ -29,14 +29,13 @@ https://chromium.googlesource.com/chromium/src/+/6f4a6681eae01c2036336c18b06303e
 (October 10 2020, newest commit as per October 28th 2020)
 """
 
-import ipaddress
 import fnmatch
+import ipaddress
 import urllib.parse
 from typing import Any, Optional, Tuple
 
 from qutebrowser.qt import QtCore
-
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import qtutils, utils
 
 
 class ParseError(Exception):

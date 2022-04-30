@@ -20,10 +20,10 @@
 """Event handling for a browser tab."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
-from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
+from qutebrowser.misc import objects
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, message, qtutils, usertypes
 
 
 class ChildEventFilter(QtCore.QObject):

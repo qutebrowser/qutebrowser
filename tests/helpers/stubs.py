@@ -21,20 +21,19 @@
 
 """Fake objects/stubs."""
 
+import builtins
+import contextlib
+import dataclasses
+import importlib
+import shutil
+import types
 from typing import Any, Callable, Tuple
 from unittest import mock
-import contextlib
-import shutil
-import dataclasses
-import builtins
-import importlib
-import types
-from qutebrowser.qt import QtWidgets, QtNetwork, QtGui
 
 from qutebrowser.browser import browsertab, downloads
-from qutebrowser.utils import usertypes
 from qutebrowser.commands import runners
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtGui, QtNetwork, QtWidgets
+from qutebrowser.utils import usertypes
 
 
 class FakeNetworkCache(QtNetwork.QAbstractNetworkCache):

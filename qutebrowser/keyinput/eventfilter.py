@@ -22,9 +22,9 @@
 from typing import cast
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.misc import quitter, objects
+from qutebrowser.misc import objects, quitter
+from qutebrowser.qt import QtCore, QtGui
 from qutebrowser.utils import objreg
-from qutebrowser.qt import QtGui, QtCore
 
 
 class EventFilter(QtCore.QObject):

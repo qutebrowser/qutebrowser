@@ -20,15 +20,15 @@
 """Tests for CompletionModel."""
 
 from unittest import mock
+
 import hypothesis
+import pytest
 from hypothesis import strategies
 
-import pytest
-from qutebrowser.qt import QtCore
-
-from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.utils import qtutils
 from qutebrowser.api import cmdutils
+from qutebrowser.completion.models import completionmodel, listcategory
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import qtutils
 
 
 @hypothesis.given(strategies.lists(

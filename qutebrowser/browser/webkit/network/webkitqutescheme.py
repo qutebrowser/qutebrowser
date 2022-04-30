@@ -19,10 +19,9 @@
 
 """QtWebKit specific qute://* handlers and glue code."""
 
-from qutebrowser.qt import QtNetwork, QtCore
-
 from qutebrowser.browser import qutescheme
 from qutebrowser.browser.webkit.network import networkreply
+from qutebrowser.qt import QtCore, QtNetwork
 from qutebrowser.utils import log, qtutils
 
 

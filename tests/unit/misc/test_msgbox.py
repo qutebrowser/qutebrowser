@@ -20,9 +20,8 @@
 
 import pytest
 
-from qutebrowser.qt import QtWidgets, QtCore
-
 from qutebrowser.misc import msgbox
+from qutebrowser.qt import QtCore, QtWidgets
 from qutebrowser.utils import utils
 
 

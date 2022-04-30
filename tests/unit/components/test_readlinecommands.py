@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import inspect
 import os
 import re
-import inspect
+
 import pytest
 
 from qutebrowser.components import readlinecommands
 from qutebrowser.qt import QtWidgets
-
 
 # Some functions aren't 100% readline compatible:
 # https://github.com/qutebrowser/qutebrowser/issues/678

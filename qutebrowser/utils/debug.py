@@ -19,18 +19,27 @@
 
 """Utilities used for debugging."""
 
-import re
+import datetime
+import functools
 import inspect
 import logging
-import functools
-import datetime
+import re
 import types
 from typing import (
-    Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
+    Any,
+    Callable,
+    List,
+    Mapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
 
-from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects
 from qutebrowser.qt import QtCore, sip
+from qutebrowser.utils import log, objreg, qtutils, utils
 
 
 def log_events(klass: Type[QtCore.QObject]) -> Type[QtCore.QObject]:

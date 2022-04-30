@@ -19,15 +19,22 @@
 
 """QtWebEngine specific code for downloads."""
 
-import re
-import os.path
 import functools
-from qutebrowser.qt import QtWebEngineWidgets
+import os.path
+import re
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
-                               utils, version)
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtWebEngineWidgets
+from qutebrowser.utils import (
+    debug,
+    log,
+    message,
+    objreg,
+    urlutils,
+    usertypes,
+    utils,
+    version,
+)
 
 
 class DownloadItem(downloads.AbstractDownloadItem):

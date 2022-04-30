@@ -31,13 +31,12 @@ Because of that, _assert_plain_key() and _assert_plain_modifier() make sure we
 handle what we actually think we do.
 """
 
-import itertools
 import dataclasses
-from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
+import itertools
+from typing import Iterable, Iterator, List, Mapping, Optional, Union, cast, overload
 
+from qutebrowser.qt import QtCore, QtGui
 from qutebrowser.utils import utils
-from qutebrowser.qt import QtGui, QtCore
-
 
 # Map Qt::Key values to their Qt::KeyboardModifier value.
 _MODIFIER_MAP = {

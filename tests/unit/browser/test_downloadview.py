@@ -20,9 +20,8 @@
 
 import pytest
 
+from qutebrowser.browser import downloads, downloadview, qtnetworkdownloads
 from qutebrowser.qt import QtCore
-
-from qutebrowser.browser import downloads, qtnetworkdownloads, downloadview
 
 
 class FakeDownload(downloads.AbstractDownloadItem):

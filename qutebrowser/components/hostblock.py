@@ -19,29 +19,20 @@
 
 """Functions related to host blocking."""
 
+import logging
 import os.path
+import pathlib
 import posixpath
 import zipfile
-import logging
-import pathlib
-from typing import cast, IO, Set
+from typing import IO, Set, cast
 
-from qutebrowser.qt import QtCore
-
-from qutebrowser.api import (
-    hook,
-    config,
-    message,
-    interceptor,
-    apitypes,
-    qtutils,
-)
+from qutebrowser.api import apitypes, config, hook, interceptor, message, qtutils
 from qutebrowser.components.utils import blockutils
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import (  # FIXME: Move needed parts into api namespace?
     urlutils,
-    version
+    version,
 )
-
 
 logger = logging.getLogger("network")
 host_blocker = cast("HostBlocker", None)

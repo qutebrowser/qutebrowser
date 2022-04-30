@@ -17,20 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import pathlib
-import logging
 import csv
+import logging
+import pathlib
 from typing import Iterable, Tuple
-
-from qutebrowser.qt import QtCore
 
 import pytest
 
+from helpers import testutils
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components import braveadblock
 from qutebrowser.components.utils import blockutils
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
-from helpers import testutils
 
 pytestmark = pytest.mark.usefixtures("qapp")
 

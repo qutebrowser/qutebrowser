@@ -19,17 +19,16 @@
 
 """Get arguments to pass to Qt."""
 
-import os
-import sys
 import argparse
+import os
 import pathlib
+import sys
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, qtutils, utils, log, version
 from qutebrowser.qt import QtCore, QtWebEngine
-
+from qutebrowser.utils import log, qtutils, usertypes, utils, version
 
 _ENABLE_FEATURES = '--enable-features='
 _DISABLE_FEATURES = '--disable-features='

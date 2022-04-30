@@ -21,12 +21,12 @@
 
 import logging
 
-import pytest
 import hypothesis
+import pytest
 from hypothesis import strategies
-from qutebrowser.qt import QtCore
 
 from qutebrowser.browser.webkit import http
+from qutebrowser.qt import QtCore
 
 
 @pytest.mark.parametrize('url, expected', [

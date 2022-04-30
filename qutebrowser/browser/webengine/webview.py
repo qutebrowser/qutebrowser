@@ -19,15 +19,13 @@
 
 """The main browser widget for QtWebEngine."""
 
-from typing import List, Iterable
-from qutebrowser.qt import QtWebEngineWidgets, QtGui
+from typing import Iterable, List
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import webenginesettings, certificateerror
+from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes
-from qutebrowser.qt import QtCore
-
+from qutebrowser.qt import QtCore, QtGui, QtWebEngineWidgets
+from qutebrowser.utils import debug, log, usertypes
 
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 
@@ -42,9 +40,7 @@ _QB_FILESELECTION_MODES = {
     # the public QWebEnginePage::FileSelectionMode enum).
     # However, QWebEnginePage::chooseFiles is still called with the matching value
     # (2) when a file input with "webkitdirectory" is used.
-    QWebEnginePage.FileSelectionMode(
-        2
-    ): shared.FileSelectionMode.folder,
+    QWebEnginePage.FileSelectionMode(2): shared.FileSelectionMode.folder,
 }
 
 
@@ -240,9 +236,7 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.NavigationTypeOther: nav_request_type.other,
         }
         try:
-            type_map[
-                QWebEnginePage.NavigationTypeRedirect
-            ] = nav_request_type.redirect
+            type_map[QWebEnginePage.NavigationTypeRedirect] = nav_request_type.redirect
         except AttributeError:
             # Added in Qt 5.14
             pass

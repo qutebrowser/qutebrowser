@@ -19,15 +19,15 @@
 
 """Tests for qutebrowser.misc.guiprocess."""
 
-import sys
 import logging
+import sys
 
 import pytest
 
-from qutebrowser.misc import guiprocess
-from qutebrowser.utils import usertypes, utils, version
 from qutebrowser.api import cmdutils
+from qutebrowser.misc import guiprocess
 from qutebrowser.qt import QtCore, sip
+from qutebrowser.utils import usertypes, utils, version
 
 
 @pytest.fixture

@@ -25,13 +25,21 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
-    MutableMapping)
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Set,
+    Union,
+)
 
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
-
-from qutebrowser.utils import utils, urlmatch, urlutils, usertypes, qtutils
 from qutebrowser.config import configexc
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import qtutils, urlmatch, urlutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.config import configdata

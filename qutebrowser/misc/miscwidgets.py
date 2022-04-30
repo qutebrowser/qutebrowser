@@ -21,12 +21,12 @@
 
 from typing import Optional
 
-from qutebrowser.config import config, configfiles
-from qutebrowser.utils import utils, log, usertypes
-from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
+from qutebrowser.config import config, configfiles
 from qutebrowser.keyinput import keyutils, modeman
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
+from qutebrowser.misc import cmdhistory
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import log, usertypes, utils
 
 
 class MinimalLineEditMixin:

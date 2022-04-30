@@ -20,10 +20,11 @@
 """Tests for stylesheet.js."""
 
 import pathlib
+
 import pytest
 
-from qutebrowser.utils import javascript
 from helpers import testutils
+from qutebrowser.utils import javascript
 
 QtWebEngineWidgets = testutils.qt_module_skip("QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile

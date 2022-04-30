@@ -19,27 +19,26 @@
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
+import collections
+import contextlib
+import datetime
+import itertools
+import json
+import logging
 import pathlib
 import re
 import sys
-import time
-import datetime
-import logging
 import tempfile
-import contextlib
-import itertools
-import collections
-import json
+import time
 
-import yaml
 import pytest
+import yaml
 
-from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript
-from helpers import testutils
 from end2end.fixtures import testprocess
-from qutebrowser.qt import QtGui, QtCore
-
+from helpers import testutils
+from qutebrowser.misc import ipc
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import javascript, log, utils
 
 instance_counter = itertools.count()
 

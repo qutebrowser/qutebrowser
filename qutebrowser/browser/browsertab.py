@@ -19,24 +19,44 @@
 
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
-import enum
-import itertools
-import functools
 import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union)
-from qutebrowser.qt import QtWidgets, QtPrintSupport, QtNetwork
+import enum
+import functools
+import itertools
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Type,
+    Union,
+    cast,
+)
+
+from qutebrowser.qt import QtNetwork, QtPrintSupport, QtWidgets
 
 if TYPE_CHECKING:
     from qutebrowser.qt import QtWebKit, QtWebKitWidgets, QtWebEngineWidgets
 
-from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
-from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message, jinja)
-from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
-from qutebrowser.qt import QtGui, QtCore, sip
+from qutebrowser.config import config
+from qutebrowser.keyinput import modeman
+from qutebrowser.misc import miscwidgets, objects, sessions
+from qutebrowser.qt import QtCore, QtGui, sip
+from qutebrowser.utils import (
+    jinja,
+    log,
+    message,
+    objreg,
+    qtutils,
+    urlutils,
+    usertypes,
+    utils,
+)
 
 if TYPE_CHECKING:
     from qutebrowser.browser import webelem
@@ -200,8 +220,8 @@ class AbstractAction:
             """Show source as soon as it's ready."""
             try:
                 import pygments
-                import pygments.lexers
                 import pygments.formatters
+                import pygments.lexers
             except ImportError:
                 # Pygments is an optional dependency
                 self._show_source_fallback(source)

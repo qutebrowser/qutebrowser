@@ -21,10 +21,10 @@
 import logging
 
 import pytest
-from qutebrowser.qt import QtWidgets, QtCore
 
-from qutebrowser.utils import error, utils
 from qutebrowser.misc import ipc
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import error, utils
 
 
 class Error(Exception):

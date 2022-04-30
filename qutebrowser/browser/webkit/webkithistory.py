@@ -21,10 +21,9 @@
 
 import functools
 
-from qutebrowser.qt import QtWebKit
-
-from qutebrowser.utils import debug
 from qutebrowser.misc import debugcachestats
+from qutebrowser.qt import QtWebKit
+from qutebrowser.utils import debug
 
 
 class WebHistoryInterface(QtWebKit.QWebHistoryInterface):

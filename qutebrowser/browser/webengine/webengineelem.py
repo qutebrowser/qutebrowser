@@ -20,13 +20,20 @@
 """QtWebEngine specific part of the web element API."""
 
 from typing import (
-    TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
-from qutebrowser.qt import QtWidgets
-from qutebrowser.qt import QtWebEngineWidgets
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
-from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtWebEngineWidgets, QtWidgets
+from qutebrowser.utils import javascript, log, urlutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import webenginetab

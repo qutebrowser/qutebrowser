@@ -24,8 +24,8 @@ from helpers import testutils
 
 testutils.qt_module_skip('QtWebEngineWidgets')
 
-from qutebrowser.qt import QtWebEngineCore
 from qutebrowser.browser.webengine import interceptor
+from qutebrowser.qt import QtWebEngineCore
 
 
 def test_no_missing_resource_types():

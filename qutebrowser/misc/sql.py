@@ -25,7 +25,7 @@ import dataclasses
 import types
 from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
 
-from qutebrowser.qt import QtSql, QtCore, sip
+from qutebrowser.qt import QtCore, QtSql, sip
 from qutebrowser.utils import debug, log
 
 

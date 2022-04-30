@@ -19,9 +19,8 @@
 
 """Keychain string displayed in the statusbar."""
 
-from qutebrowser.qt import QtCore
-
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 

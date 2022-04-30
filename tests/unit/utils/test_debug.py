@@ -21,15 +21,15 @@
 
 import logging
 import re
-import time
 import textwrap
+import time
 
 import pytest
 
-from qutebrowser.utils import debug
-from qutebrowser.misc import objects
-from qutebrowser.qt import QtWidgets, QtCore
 from helpers import testutils
+from qutebrowser.misc import objects
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import debug
 
 
 @debug.log_events

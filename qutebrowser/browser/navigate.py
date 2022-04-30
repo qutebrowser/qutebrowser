@@ -19,16 +19,15 @@
 
 """Implementation of :navigate."""
 
-import re
 import posixpath
+import re
 from typing import Optional, Set
-
-from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, urlutils, log, message, qtutils
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, message, objreg, qtutils, urlutils
 
 
 class Error(Exception):

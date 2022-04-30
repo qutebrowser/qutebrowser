@@ -21,9 +21,9 @@
 """Tests for qutebrowser.misc.autoupdate."""
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.misc import autoupdate, httpclient
+from qutebrowser.qt import QtCore
 
 INVALID_JSON = ['{"invalid": { "json"}', '{"wrong": "keys"}']
 

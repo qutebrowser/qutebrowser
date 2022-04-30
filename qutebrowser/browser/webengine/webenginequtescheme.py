@@ -20,8 +20,8 @@
 """QtWebEngine specific qute://* handlers and glue code."""
 
 from qutebrowser.browser import qutescheme
+from qutebrowser.qt import QtCore, QtWebEngineCore
 from qutebrowser.utils import log, qtutils
-from qutebrowser.qt import QtWebEngineCore, QtCore
 
 
 class QuteSchemeHandler(QtWebEngineCore.QWebEngineUrlSchemeHandler):

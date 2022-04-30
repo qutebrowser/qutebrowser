@@ -19,24 +19,30 @@
 
 """The dialog which gets shown when qutebrowser crashes."""
 
-import re
-import os
-import sys
-import html
-import getpass
-import fnmatch
-import traceback
 import datetime
 import enum
+import fnmatch
+import getpass
+import html
+import os
+import re
+import sys
+import traceback
 from typing import List, Tuple
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils
-from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin, objects)
-from qutebrowser.config import config, configfiles
 from qutebrowser.browser import history
-from qutebrowser.qt import QtWidgets, QtCore
+from qutebrowser.config import config, configfiles
+from qutebrowser.misc import (
+    autoupdate,
+    httpclient,
+    miscwidgets,
+    msgbox,
+    objects,
+    pastebin,
+)
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import log, utils, version
 
 
 class Result(enum.IntEnum):

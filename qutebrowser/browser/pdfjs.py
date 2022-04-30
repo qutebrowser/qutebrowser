@@ -22,10 +22,9 @@
 
 import os
 
-from qutebrowser.utils import resources, javascript, jinja, standarddir, log
 from qutebrowser.config import config
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import javascript, jinja, log, resources, standarddir
 
 _SYSTEM_PATHS = [
     # Debian pdf.js-common

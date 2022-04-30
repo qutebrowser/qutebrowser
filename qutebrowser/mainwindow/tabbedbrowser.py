@@ -20,21 +20,38 @@
 """The main tabbed browser widget."""
 
 import collections
+import dataclasses
+import datetime
 import functools
 import weakref
-import datetime
-import dataclasses
 from typing import (
-    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+    Any,
+    Deque,
+    List,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Tuple,
+)
 
+from qutebrowser.browser import browsertab, history, signalfilter
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.mainwindow import tabwidget, mainwindow
-from qutebrowser.browser import signalfilter, browsertab, history
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message, jinja, version)
+from qutebrowser.mainwindow import mainwindow, tabwidget
 from qutebrowser.misc import quitter
-from qutebrowser.qt import QtWidgets, QtCore
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import (
+    jinja,
+    log,
+    message,
+    objreg,
+    qtutils,
+    urlutils,
+    usertypes,
+    utils,
+    version,
+)
 
 
 @dataclasses.dataclass

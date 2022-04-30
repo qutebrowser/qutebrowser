@@ -20,20 +20,19 @@
 
 """Tests for qutebrowser.utils.qtutils."""
 
+import dataclasses
 import io
 import os
 import pathlib
-import dataclasses
 import unittest
 import unittest.mock
 
-import pytest
-from qutebrowser.qt import QtGui
-
-from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
+import pytest
+
 from helpers import testutils
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import qtutils, usertypes, utils
 
 if utils.is_linux:
     # Those are not run on macOS because that seems to cause a hang sometimes.
@@ -42,6 +41,7 @@ if utils.is_linux:
     try:
         # pylint: disable=no-name-in-module,useless-suppression
         from test import test_file
+
         # pylint: enable=no-name-in-module,useless-suppression
     except ImportError:
         # Debian patches Python to remove the tests...

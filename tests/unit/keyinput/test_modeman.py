@@ -19,10 +19,10 @@
 
 import pytest
 
-from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import keyutils
 from qutebrowser.misc import objects
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import usertypes
 
 
 class FakeKeyparser(QtCore.QObject):

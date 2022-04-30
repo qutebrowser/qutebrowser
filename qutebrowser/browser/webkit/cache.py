@@ -19,14 +19,12 @@
 
 """HTTP network cache."""
 
-from typing import cast
 import os.path
-
-from qutebrowser.qt import QtNetwork
+from typing import cast
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, standarddir
-
+from qutebrowser.qt import QtNetwork
+from qutebrowser.utils import standarddir, utils
 
 diskcache = cast('DiskCache', None)
 

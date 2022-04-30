@@ -21,13 +21,12 @@
 
 import pathlib
 
-from qutebrowser.qt import QtWidgets, QtWebEngineWidgets, QtCore
-
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
-from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import version, usertypes
 from qutebrowser.keyinput import modeman
+from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import QtCore, QtWebEngineWidgets, QtWidgets
+from qutebrowser.utils import usertypes, version
 
 
 class WebEngineInspectorView(QtWebEngineWidgets.QWebEngineView):

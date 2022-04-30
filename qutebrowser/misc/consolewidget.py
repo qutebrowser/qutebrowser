@@ -19,16 +19,14 @@
 
 """Debugging console."""
 
-import sys
 import code
+import sys
 from typing import MutableSequence
-from qutebrowser.qt import QtWidgets, QtGui
 
 from qutebrowser.config import stylesheet
 from qutebrowser.misc import cmdhistory, miscwidgets
-from qutebrowser.utils import utils, objreg
-from qutebrowser.qt import QtCore
-
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import objreg, utils
 
 console_widget = None
 

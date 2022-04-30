@@ -19,16 +19,16 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-import functools
 import contextlib
 import dataclasses
+import functools
 from typing import Optional, cast
 
-from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
-from qutebrowser.config import config, stylesheet
-from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.browser import browsertab
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
+from qutebrowser.config import config, stylesheet
+from qutebrowser.misc import debugcachestats, objects
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import log, objreg, qtutils, usertypes, utils
 
 
 class TabWidget(QtWidgets.QTabWidget):

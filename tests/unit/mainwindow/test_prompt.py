@@ -20,9 +20,9 @@
 import os
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.mainwindow import prompt as promptmod
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 

@@ -25,7 +25,7 @@
 # pylint: disable=unnecessary-lambda
 
 """Special network replies.."""
-from qutebrowser.qt import QtNetwork, QtCore
+from qutebrowser.qt import QtCore, QtNetwork
 
 
 class FixedDataNetworkReply(QtNetwork.QNetworkReply):

@@ -22,10 +22,9 @@
 from typing import Sequence
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, standarddir, objreg, log
 from qutebrowser.misc import lineparser, objects
-from qutebrowser.qt import QtNetwork, QtCore
-
+from qutebrowser.qt import QtCore, QtNetwork
+from qutebrowser.utils import log, objreg, standarddir, utils
 
 cookie_jar = None
 ram_cookie_jar = None

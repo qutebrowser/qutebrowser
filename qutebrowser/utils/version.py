@@ -19,32 +19,33 @@
 
 """Utilities to show various version information."""
 
-import re
-import sys
-import glob
-import os.path
-import platform
-import subprocess
-import importlib
 import collections
-import pathlib
 import configparser
-import enum
-import datetime
-import getpass
-import functools
 import dataclasses
+import datetime
+import enum
+import functools
+import getpass
+import glob
+import importlib
+import os.path
+import pathlib
+import platform
+import re
+import subprocess
+import sys
 from typing import (
+    TYPE_CHECKING,
+    ClassVar,
+    Dict,
     Mapping,
     Optional,
     Sequence,
     Tuple,
-    ClassVar,
-    Dict,
     cast,
-    TYPE_CHECKING,
 )
-from qutebrowser.qt import QtWidgets, QtWebKit, QtWebEngine, QtNetwork
+
+from qutebrowser.qt import QtNetwork, QtWebEngine, QtWebKit, QtWidgets
 
 if QtWebKit:
     qWebKitVersion = QtWebKit.qWebKitVersion  # noqa: N816
@@ -58,11 +59,11 @@ else:
 
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
-from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config
-from qutebrowser.qt import QtGui, QtCore, pyqt
+from qutebrowser.misc import earlyinit, elf, httpclient, objects, pastebin, sql
+from qutebrowser.qt import QtCore, QtGui, pyqt
+from qutebrowser.utils import log, message, resources, standarddir, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.config import websettings

@@ -19,27 +19,37 @@
 
 """Configuration files residing on disk."""
 
+import configparser
+import contextlib
 import enum
-import pathlib
-import types
 import os.path
+import pathlib
+import re
 import sys
 import textwrap
 import traceback
-import configparser
-import contextlib
-import re
-from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
-                    MutableMapping, Optional, Tuple, cast)
+import types
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Tuple,
+    cast,
+)
 
 import yaml
 
 import qutebrowser
-from qutebrowser.config import (configexc, config, configdata, configutils,
-                                configtypes)
+from qutebrowser.config import config, configdata, configexc, configtypes, configutils
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
-from qutebrowser.qt import QtWebEngineWidgets, QtCore
+from qutebrowser.qt import QtCore, QtWebEngineWidgets
+from qutebrowser.utils import log, qtutils, standarddir, urlmatch, utils, version
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager

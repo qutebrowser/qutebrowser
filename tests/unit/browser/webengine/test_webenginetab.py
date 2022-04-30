@@ -23,9 +23,10 @@ import logging
 import textwrap
 
 import pytest
+
+from helpers import testutils
 from qutebrowser.browser import greasemonkey
 from qutebrowser.utils import usertypes
-from helpers import testutils
 
 QtWebEngineWidgets = testutils.qt_module_skip("QtWebEngineWidgets")
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage

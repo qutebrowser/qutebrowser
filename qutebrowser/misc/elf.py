@@ -59,16 +59,15 @@ This is a "best effort" parser. If it errors out, we instead end up relying on t
 PyQtWebEngine version, which is the next best thing.
 """
 
-import struct
-import enum
-import re
 import dataclasses
+import enum
 import mmap
 import pathlib
-from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
+import re
+import struct
+from typing import IO, Any, ClassVar, Dict, Optional, Tuple, cast
 
 from qutebrowser.qt import QtCore
-
 from qutebrowser.utils import log, version
 
 

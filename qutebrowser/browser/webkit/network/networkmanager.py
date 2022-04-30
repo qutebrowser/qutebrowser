@@ -20,21 +20,23 @@
 """Our own QNetworkAccessManager."""
 
 import collections
-import html
 import dataclasses
+import html
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
-from qutebrowser.config import config
-from qutebrowser.utils import (message, log, usertypes, utils, objreg,
-                               urlutils, debug)
 from qutebrowser.browser import shared
 from qutebrowser.browser.network import proxy as proxymod
+from qutebrowser.browser.webkit import cache, certificateerror, cookies
+from qutebrowser.browser.webkit.network import (
+    filescheme,
+    networkreply,
+    webkitqutescheme,
+)
+from qutebrowser.config import config
 from qutebrowser.extensions import interceptors
-from qutebrowser.browser.webkit import certificateerror, cookies, cache
-from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
-                                                filescheme)
 from qutebrowser.misc import objects
-from qutebrowser.qt import QtNetwork, QtCore
+from qutebrowser.qt import QtCore, QtNetwork
+from qutebrowser.utils import debug, log, message, objreg, urlutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import prompt

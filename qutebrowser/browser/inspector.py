@@ -22,17 +22,14 @@
 import base64
 import binascii
 import enum
-from typing import cast, Optional
-
-from qutebrowser.qt import QtWidgets
-from qutebrowser.qt import QtGui
+from typing import Optional, cast
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
-from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import log, usertypes
 
 
 class Position(enum.Enum):

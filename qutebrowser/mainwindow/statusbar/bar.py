@@ -19,17 +19,24 @@
 
 """The main statusbar widget."""
 
-import enum
 import dataclasses
+import enum
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
-                                              keystring, percentage, url,
-                                              tabindex, textbase)
-from qutebrowser.qt import QtWidgets, QtCore
+from qutebrowser.mainwindow.statusbar import (
+    backforward,
+    command,
+    keystring,
+    percentage,
+    progress,
+    tabindex,
+    textbase,
+    url,
+)
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import log, objreg, usertypes, utils
 
 
 @dataclasses.dataclass

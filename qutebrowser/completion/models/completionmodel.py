@@ -21,9 +21,9 @@
 
 from typing import MutableSequence
 
-from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, qtutils, utils
 
 
 class CompletionModel(QtCore.QAbstractItemModel):

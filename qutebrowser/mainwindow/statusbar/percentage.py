@@ -21,8 +21,8 @@
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle
-from qutebrowser.utils import utils
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import utils
 
 
 class Percentage(textbase.TextBase):

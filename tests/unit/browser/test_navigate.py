@@ -20,9 +20,8 @@
 
 import pytest
 
-from qutebrowser.qt import QtCore
-
 from qutebrowser.browser import navigate
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import urlutils
 
 

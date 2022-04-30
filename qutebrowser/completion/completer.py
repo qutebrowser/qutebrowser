@@ -22,12 +22,12 @@
 import dataclasses
 from typing import TYPE_CHECKING
 
-from qutebrowser.config import config
-from qutebrowser.commands import parser, cmdexc
-from qutebrowser.misc import objects, split
-from qutebrowser.utils import log, utils, debug, objreg
+from qutebrowser.commands import cmdexc, parser
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.config import config
+from qutebrowser.misc import objects, split
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import debug, log, objreg, utils
 
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab

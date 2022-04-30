@@ -19,10 +19,9 @@
 
 import pytest
 
-from qutebrowser.qt import QtWidgets
-
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import QtWidgets
 
 
 class FakeInspector(inspector.AbstractWebInspector):

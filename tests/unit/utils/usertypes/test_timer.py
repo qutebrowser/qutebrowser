@@ -20,8 +20,8 @@
 """Tests for Timer."""
 
 import pytest
-from qutebrowser.qt import QtCore
 
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 

@@ -22,10 +22,10 @@
 import textwrap
 
 import pytest
-from qutebrowser.qt import QtCore
 
-from qutebrowser.utils import usertypes
 from qutebrowser.browser import browsertab
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture

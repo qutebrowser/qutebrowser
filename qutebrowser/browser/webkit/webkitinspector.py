@@ -19,10 +19,9 @@
 
 """Customized QWebInspector for QtWebKit."""
 
-from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtWebKit
-
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import QtWebKit, QtWebKitWidgets, QtWidgets
 
 
 class WebKitInspector(inspector.AbstractWebInspector):

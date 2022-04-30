@@ -18,9 +18,9 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.mainwindow import messageview
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 

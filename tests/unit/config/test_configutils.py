@@ -18,12 +18,12 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import hypothesis
-from hypothesis import strategies
 import pytest
-from qutebrowser.qt import QtWidgets, QtCore
+from hypothesis import strategies
 
-from qutebrowser.config import configutils, configdata, configtypes, configexc
-from qutebrowser.utils import urlmatch, usertypes, qtutils
+from qutebrowser.config import configdata, configexc, configtypes, configutils
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import qtutils, urlmatch, usertypes
 from tests.helpers import testutils
 
 

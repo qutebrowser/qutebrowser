@@ -19,27 +19,27 @@
 
 """Tests for qutebrowser.utils.utils."""
 
-import sys
 import enum
-import os
+import functools
 import io
 import logging
-import functools
-import re
-import shlex
 import math
 import operator
-from qutebrowser.qt import QtGui
-import pytest
+import os
+import re
+import shlex
+import sys
+
 import hypothesis
-from hypothesis import strategies
+import pytest
 import yaml
+from hypothesis import strategies
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import usertypes, utils
 from qutebrowser.utils.utils import VersionNumber
-from qutebrowser.qt import QtCore
 
 
 class TestVersionNumber:

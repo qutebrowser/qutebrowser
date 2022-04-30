@@ -26,9 +26,9 @@ import argparse
 from typing import TYPE_CHECKING, Any, Dict, Set, Union, cast
 
 if TYPE_CHECKING:
+    from qutebrowser.commands import command
     from qutebrowser.qt import QtWidgets
     from qutebrowser.utils import usertypes
-    from qutebrowser.commands import command
 
 
 class NoBackend:

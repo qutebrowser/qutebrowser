@@ -24,8 +24,8 @@ from helpers import testutils
 testutils.qt_module_skip('QtWebEngineCore')
 
 from qutebrowser.browser.webengine import cookies
+from qutebrowser.qt import QtCore, QtWebEngineCore, QtWebEngineWidgets
 from qutebrowser.utils import urlmatch
-from qutebrowser.qt import QtWebEngineWidgets, QtWebEngineCore, QtCore
 
 
 @pytest.fixture

@@ -28,12 +28,23 @@ Module attributes:
 """
 
 
+import contextlib
 import io
 import operator
-import contextlib
-from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
-                    Optional, Union, Tuple, cast)
-from qutebrowser.qt import QtWebKit, QtGui
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    BinaryIO,
+    Iterator,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
+
+from qutebrowser.qt import QtGui, QtWebKit
 
 if QtWebKit:
     qWebKitVersion = QtWebKit.qWebKitVersion  # noqa: N816
@@ -43,9 +54,8 @@ if TYPE_CHECKING:
     from qutebrowser.qt import QtWebEngineWidgets
 
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, utils
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import usertypes, utils
 
 MAXVALS = {
     'int': 2 ** 31 - 1,

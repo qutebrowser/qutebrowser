@@ -25,11 +25,11 @@ subclasses to provide completions.
 
 from typing import TYPE_CHECKING, Optional
 
-from qutebrowser.config import config, stylesheet
-from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
-from qutebrowser.qt import QtWidgets, QtCore
+from qutebrowser.completion import completiondelegate
+from qutebrowser.config import config, stylesheet
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import debug, log, qtutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow.statusbar import command

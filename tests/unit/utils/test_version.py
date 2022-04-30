@@ -19,28 +19,28 @@
 
 """Tests for qutebrowser.utils.version."""
 
+import contextlib
+import dataclasses
+import datetime
 import io
-import sys
+import logging
 import os
 import pathlib
 import subprocess
-import contextlib
-import logging
+import sys
 import textwrap
-import datetime
-import dataclasses
 
-import pytest
 import hypothesis
 import hypothesis.strategies
-from qutebrowser.qt import QtWebEngine, QtCore, pyqt
+import pytest
 
 import qutebrowser
-from qutebrowser.config import config, websettings
-from qutebrowser.utils import version, usertypes, utils, standarddir
-from qutebrowser.misc import pastebin, objects, elf
-from qutebrowser.browser import pdfjs
 from helpers import testutils
+from qutebrowser.browser import pdfjs
+from qutebrowser.config import config, websettings
+from qutebrowser.misc import elf, objects, pastebin
+from qutebrowser.qt import QtCore, QtWebEngine, pyqt
+from qutebrowser.utils import standarddir, usertypes, utils, version
 
 if QtWebEngine:
     from qutebrowser.browser.webengine import webenginesettings

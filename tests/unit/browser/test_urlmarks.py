@@ -22,9 +22,9 @@
 import unittest.mock
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.browser import urlmarks
+from qutebrowser.qt import QtCore
 
 
 @pytest.fixture

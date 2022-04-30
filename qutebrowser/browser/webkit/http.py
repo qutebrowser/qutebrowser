@@ -19,14 +19,13 @@
 
 """Parsing functions for various HTTP headers."""
 
-import email.headerregistry
-import email.errors
 import dataclasses
+import email.errors
+import email.headerregistry
 import os.path
 from typing import Type
 
 from qutebrowser.qt import QtNetwork
-
 from qutebrowser.utils import log, utils
 
 

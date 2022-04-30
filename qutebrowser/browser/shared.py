@@ -19,20 +19,28 @@
 
 """Various utilities shared between webpage/webview subclasses."""
 
+import enum
+import html
+import netrc
 import os
 import sys
-import html
-import enum
-import netrc
 import tempfile
-from typing import Callable, Mapping, List, Optional, Iterable, Iterator
+from typing import Callable, Iterable, Iterator, List, Mapping, Optional
 
 from qutebrowser.config import config
-from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
-                               qtutils, version)
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import guiprocess, objects
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import (
+    jinja,
+    log,
+    message,
+    objreg,
+    qtutils,
+    usertypes,
+    utils,
+    version,
+)
 
 
 class CallSuper(Exception):

@@ -21,11 +21,9 @@
 
 import argparse
 
-from qutebrowser.qt import QtCore
-
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils, objreg, log
-
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, objreg, utils
 
 SUPPRESS = argparse.SUPPRESS
 

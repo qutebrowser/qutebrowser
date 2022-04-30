@@ -24,9 +24,8 @@ from typing import Callable, MutableSequence, Tuple, Union
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import stylesheet
+from qutebrowser.qt import QtCore, QtWidgets
 from qutebrowser.utils import qtutils, utils
-from qutebrowser.qt import QtWidgets, QtCore
-
 
 _ActionListType = MutableSequence[
     Union[

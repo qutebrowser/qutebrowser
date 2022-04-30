@@ -20,8 +20,8 @@
 """The progress bar in the statusbar."""
 
 from qutebrowser.config import stylesheet
-from qutebrowser.utils import utils, usertypes
-from qutebrowser.qt import QtWidgets, QtCore
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import usertypes, utils
 
 
 class Progress(QtWidgets.QProgressBar):

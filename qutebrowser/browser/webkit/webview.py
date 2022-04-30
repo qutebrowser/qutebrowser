@@ -18,13 +18,11 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
-from qutebrowser.qt import QtWebKitWidgets, QtWebKit
-
+from qutebrowser.browser.webkit import webpage
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, objreg, debug
-from qutebrowser.browser.webkit import webpage
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtWebKit, QtWebKitWidgets
+from qutebrowser.utils import debug, log, objreg, usertypes, utils
 
 
 class WebView(QtWebKitWidgets.QWebView):

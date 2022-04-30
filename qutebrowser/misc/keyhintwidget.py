@@ -24,15 +24,15 @@ with each possible completion of that keystring and the corresponding command.
 It is intended to help discoverability of keybindings.
 """
 
-import html
 import fnmatch
+import html
 import re
 
 from qutebrowser.config import config, stylesheet
-from qutebrowser.utils import utils, usertypes
-from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
-from qutebrowser.qt import QtWidgets, QtCore
+from qutebrowser.misc import objects
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import usertypes, utils
 
 
 class KeyHintView(QtWidgets.QLabel):

@@ -19,21 +19,20 @@
 
 """Download manager."""
 
+import dataclasses
+import functools
 import io
 import os.path
 import shutil
-import functools
-import dataclasses
-from typing import Dict, IO, Optional
-from qutebrowser.qt import QtWidgets
+from typing import IO, Dict, Optional
 
-from qutebrowser.config import config, websettings
-from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
-from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.qt import QtNetwork, QtCore
+from qutebrowser.config import config, websettings
+from qutebrowser.misc import quitter
+from qutebrowser.qt import QtCore, QtNetwork, QtWidgets
+from qutebrowser.utils import debug, log, message, objreg, urlutils, usertypes, utils
 
 
 @dataclasses.dataclass

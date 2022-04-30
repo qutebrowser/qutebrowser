@@ -19,17 +19,17 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import logging
 import os
 import time
-import logging
 
 import py.path  # pylint: disable=no-name-in-module
 import pytest
 
-from qutebrowser.browser import qutescheme, pdfjs, downloads
-from qutebrowser.utils import resources
+from qutebrowser.browser import downloads, pdfjs, qutescheme
 from qutebrowser.misc import guiprocess
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import resources
 
 
 class TestJavascriptHandler:

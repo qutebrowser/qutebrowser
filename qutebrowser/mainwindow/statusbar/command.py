@@ -18,15 +18,13 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The commandline in the statusbar."""
-from qutebrowser.qt import QtWidgets, QtGui
-
-from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.api import cmdutils
+from qutebrowser.config import config
+from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg, message, utils
-from qutebrowser.config import config
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import log, message, objreg, usertypes, utils
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):

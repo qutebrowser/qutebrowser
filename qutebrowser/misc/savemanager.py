@@ -19,15 +19,15 @@
 
 """Saving things to disk periodically."""
 
-import os.path
 import collections
+import os.path
 from typing import MutableMapping
 
-from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, log, message, usertypes, error
+from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import error, log, message, usertypes, utils
 
 
 class Saveable:

@@ -29,11 +29,11 @@ is harder to achieve via pathlib.
 import glob
 import os
 import os.path
-from typing import List, Optional, Iterable
+from typing import Iterable, List, Optional
 
 from qutebrowser.config import config
-from qutebrowser.utils import log
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log
 
 
 class FilePathCategory(QtCore.QAbstractListModel):

@@ -21,11 +21,10 @@
 import io
 from typing import IO
 
-from qutebrowser.qt import QtCore
-
 import pytest
 
 from qutebrowser.components.utils import blockutils
+from qutebrowser.qt import QtCore
 
 
 @pytest.fixture

@@ -18,9 +18,8 @@
 
 import pytest
 
-from qutebrowser.qt import QtCore
-
 from qutebrowser.config import stylesheet
+from qutebrowser.qt import QtCore
 
 
 class StyleObj(QtCore.QObject):

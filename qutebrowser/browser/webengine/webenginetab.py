@@ -19,25 +19,44 @@
 
 """Wrapper over a QWebEngineView."""
 
-import math
-import functools
 import dataclasses
-import re
+import functools
 import html as html_utils
-from typing import cast, Union, Optional
-from qutebrowser.qt import QtWidgets, QtWebEngineWidgets, QtWebEngineCore, QtNetwork
+import math
+import re
+from typing import Optional, Union, cast
 
+from qutebrowser.browser import browsertab, eventfilter, greasemonkey, shared, webelem
+from qutebrowser.browser.webengine import (
+    certificateerror,
+    tabhistory,
+    webengineelem,
+    webengineinspector,
+    webenginesettings,
+    webview,
+)
 from qutebrowser.config import config
-from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
-from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           webenginesettings, certificateerror,
-                                           webengineinspector)
-
-from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               resources, message, jinja, debug, version)
-from qutebrowser.qt import QtCore, sip
-from qutebrowser.misc import objects, miscwidgets
-
+from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.qt import (
+    QtCore,
+    QtNetwork,
+    QtWebEngineCore,
+    QtWebEngineWidgets,
+    QtWidgets,
+    sip,
+)
+from qutebrowser.utils import (
+    debug,
+    javascript,
+    jinja,
+    log,
+    message,
+    qtutils,
+    resources,
+    usertypes,
+    utils,
+    version,
+)
 
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 

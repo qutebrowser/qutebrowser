@@ -19,11 +19,10 @@
 
 """Access to the qutebrowser configuration."""
 
-from typing import cast, Any
-
-from qutebrowser.qt import QtCore
+from typing import Any, cast
 
 from qutebrowser.config import config
+from qutebrowser.qt import QtCore
 
 #: Simplified access to config values using attribute access.
 #: For example, to access the ``content.javascript.enabled`` setting,

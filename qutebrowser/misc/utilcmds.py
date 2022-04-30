@@ -27,17 +27,19 @@ import sys
 import traceback
 from typing import Optional
 
-from qutebrowser.qt import QtWidgets, QtCore
-
-from qutebrowser.browser import qutescheme
-from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
-from qutebrowser.keyinput import modeman
-from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
+from qutebrowser.browser import qutescheme
+from qutebrowser.commands import runners
+from qutebrowser.keyinput import modeman
 from qutebrowser.misc import (  # pylint: disable=unused-import
-    consolewidget, debugcachestats, objects, miscwidgets)
+    consolewidget,
+    debugcachestats,
+    miscwidgets,
+    objects,
+)
+from qutebrowser.qt import QtCore, QtWidgets, sip
+from qutebrowser.utils import debug, log, message, objreg, usertypes, utils
 from qutebrowser.utils.version import pastebin_version
-from qutebrowser.qt import sip
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)

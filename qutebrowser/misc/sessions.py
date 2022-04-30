@@ -19,24 +19,32 @@
 
 """Management of sessions - saved tabs/windows."""
 
+import itertools
 import os
 import os.path
-import itertools
-import urllib
-import shutil
 import pathlib
+import shutil
+import urllib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
+
 import yaml
 
-from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils, usertypes, version)
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.qt import QtCore, sip
 from qutebrowser.misc import objects, throttle
-
+from qutebrowser.qt import QtCore, sip
+from qutebrowser.utils import (
+    log,
+    message,
+    objreg,
+    qtutils,
+    standarddir,
+    usertypes,
+    utils,
+    version,
+)
 
 _JsonType = MutableMapping[str, Any]
 

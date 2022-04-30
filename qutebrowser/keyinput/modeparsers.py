@@ -23,16 +23,16 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-import traceback
 import enum
+import traceback
 from typing import TYPE_CHECKING, Sequence
 
 from qutebrowser.browser import hints
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils, macros
-from qutebrowser.utils import usertypes, log, message, objreg, utils
-from qutebrowser.qt import QtGui, QtCore
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import log, message, objreg, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.commands import runners

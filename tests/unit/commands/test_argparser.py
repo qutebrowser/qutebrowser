@@ -19,13 +19,13 @@
 
 """Tests for qutebrowser.commands.argparser."""
 
-import inspect
 import enum
+import inspect
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from qutebrowser.commands import argparser, cmdexc
+from qutebrowser.qt import QtCore
 
 
 class Enum(enum.Enum):

@@ -21,7 +21,7 @@
 import pytest
 
 from qutebrowser.browser.webkit import cache
-from qutebrowser.qt import QtNetwork, QtCore
+from qutebrowser.qt import QtCore, QtNetwork
 
 
 @pytest.fixture

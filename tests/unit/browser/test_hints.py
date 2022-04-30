@@ -17,16 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import string
 import functools
 import itertools
 import operator
+import string
 
 import pytest
-from qutebrowser.qt import QtCore
 
-from qutebrowser.utils import usertypes
 import qutebrowser.browser.hints
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)

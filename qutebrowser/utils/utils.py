@@ -19,22 +19,33 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import contextlib
+import datetime
+import enum
+import functools
+import io
+import json
+import mimetypes
 import os
 import os.path
-import io
 import re
-import sys
-import enum
-import json
-import datetime
-import traceback
-import functools
-import contextlib
 import shlex
-import mimetypes
-from typing import (Any, Callable, IO, Iterator,
-                    Optional, Sequence, Tuple, Type, Union,
-                    TypeVar, TYPE_CHECKING)
+import sys
+import traceback
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterator,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
+
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
@@ -45,20 +56,21 @@ except ImportError:  # pragma: no cover
             """Empty stub at runtime."""
 
 
+import yaml
+
 from qutebrowser.qt import QtWidgets
 
-import yaml
 try:
-    from yaml import (CSafeLoader as YamlLoader,
-                      CSafeDumper as YamlDumper)
+    from yaml import CSafeDumper as YamlDumper
+    from yaml import CSafeLoader as YamlLoader
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import (SafeLoader as YamlLoader,  # type: ignore[misc]
-                      SafeDumper as YamlDumper)
+    from yaml import SafeDumper as YamlDumper
+    from yaml import SafeLoader as YamlLoader  # type: ignore[misc]
     YAML_C_EXT = False
 
+from qutebrowser.qt import QtCore, QtGui
 from qutebrowser.utils import log
-from qutebrowser.qt import QtGui, QtCore
 
 fake_clipboard = None
 log_clipboard = False
@@ -596,7 +608,7 @@ def open_file(filename: str, cmdline: str = None) -> None:
     #   cmdutils -> command -> message -> usertypes
     from qutebrowser.config import config
     from qutebrowser.misc import guiprocess
-    from qutebrowser.utils import version, message
+    from qutebrowser.utils import message, version
 
     # the default program to open downloads with - will be empty string
     # if we want to use the default

@@ -19,9 +19,8 @@
 
 """Wrapper over a QWebEngineCertificateError."""
 
-from qutebrowser.qt import QtWebEngineWidgets, QtCore
-
-from qutebrowser.utils import usertypes, utils, debug
+from qutebrowser.qt import QtCore, QtWebEngineWidgets
+from qutebrowser.utils import debug, usertypes, utils
 
 
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):

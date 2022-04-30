@@ -19,16 +19,16 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-import traceback
-import re
 import contextlib
+import re
+import traceback
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, parser
-from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.keyinput import macros, modeman
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser

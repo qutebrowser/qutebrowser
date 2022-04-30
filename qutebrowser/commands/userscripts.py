@@ -22,15 +22,15 @@
 import os
 import os.path
 import tempfile
-from typing import cast, Any, MutableMapping, Tuple
+from typing import Any, MutableMapping, Tuple, cast
 
 import qutebrowser
-from qutebrowser.utils import message, log, objreg, standarddir, utils
+from qutebrowser.browser import downloads
 from qutebrowser.commands import runners
 from qutebrowser.config import websettings
 from qutebrowser.misc import guiprocess
-from qutebrowser.browser import downloads
 from qutebrowser.qt import QtCore, sip
+from qutebrowser.utils import log, message, objreg, standarddir, utils
 
 
 class _QtFIFOReader(QtCore.QObject):

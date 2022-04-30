@@ -19,8 +19,7 @@
 
 """Base text widgets for statusbar."""
 
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
-
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
 from qutebrowser.utils import qtutils, utils
 
 

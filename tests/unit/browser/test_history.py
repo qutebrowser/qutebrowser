@@ -22,13 +22,13 @@
 import logging
 
 import pytest
-from qutebrowser.qt import QtWebKit, QtCore
 
 from helpers import testutils
-from qutebrowser.browser import history
-from qutebrowser.utils import urlutils, usertypes
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import sql, objects
+from qutebrowser.browser import history
+from qutebrowser.misc import objects, sql
+from qutebrowser.qt import QtCore, QtWebKit
+from qutebrowser.utils import urlutils, usertypes
 
 
 @pytest.fixture(autouse=True)

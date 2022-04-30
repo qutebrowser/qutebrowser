@@ -19,21 +19,19 @@
 
 """Showing prompts above the statusbar."""
 
-import os.path
-import html
 import collections
-import functools
 import dataclasses
+import functools
+import html
+import os.path
 from typing import Deque, MutableSequence, Optional, cast
 
-from qutebrowser.browser import downloads
-from qutebrowser.config import config, configtypes, configexc, stylesheet
-from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
-from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import urlmatch
-from qutebrowser.qt import QtWidgets, QtCore
-
+from qutebrowser.browser import downloads
+from qutebrowser.config import config, configexc, configtypes, stylesheet
+from qutebrowser.keyinput import modeman
+from qutebrowser.qt import QtCore, QtWidgets
+from qutebrowser.utils import log, message, objreg, qtutils, urlmatch, usertypes, utils
 
 prompt_queue = cast('PromptQueue', None)
 

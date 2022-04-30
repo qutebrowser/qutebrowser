@@ -19,21 +19,19 @@
 
 """Loader for qutebrowser extensions."""
 
-import pkgutil
-import types
-import pathlib
-import importlib
 import argparse
 import dataclasses
+import importlib
+import pathlib
+import pkgutil
+import types
 from typing import Callable, Iterator, List, Optional, Tuple
-
-from qutebrowser.qt import QtCore
 
 from qutebrowser import components
 from qutebrowser.config import config
-from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
-
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, standarddir
 
 # ModuleInfo objects for all loaded plugins
 _module_infos = []

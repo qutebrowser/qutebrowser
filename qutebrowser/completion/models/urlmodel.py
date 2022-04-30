@@ -21,14 +21,16 @@
 
 from typing import Dict, Sequence
 
-from qutebrowser.qt import QtCore
-
-from qutebrowser.completion.models import (completionmodel, filepathcategory,
-                                           listcategory, histcategory)
 from qutebrowser.browser import history
-from qutebrowser.utils import log, objreg
+from qutebrowser.completion.models import (
+    completionmodel,
+    filepathcategory,
+    histcategory,
+    listcategory,
+)
 from qutebrowser.config import config
-
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, objreg
 
 _URLCOL = 0
 _TEXTCOL = 1

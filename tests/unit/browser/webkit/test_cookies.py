@@ -18,13 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-from qutebrowser.qt import QtNetwork
-from qutebrowser.qt import QtCore
 import pytest
 
 from qutebrowser.browser.webkit import cookies
-from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import lineparser, objects
+from qutebrowser.qt import QtCore, QtNetwork
+from qutebrowser.utils import urlmatch, usertypes
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 

@@ -23,8 +23,8 @@ import functools
 import urllib.parse
 from typing import MutableMapping
 
+from qutebrowser.qt import QtCore, QtNetwork
 from qutebrowser.utils import log
-from qutebrowser.qt import QtNetwork, QtCore
 
 
 class HTTPRequest(QtNetwork.QNetworkRequest):

@@ -19,29 +19,27 @@
 
 """Dialogs shown when there was a problem with a backend choice."""
 
-import os
-import sys
-import functools
-import html
-import enum
-import shutil
 import argparse
 import dataclasses
-from typing import Any, List, Sequence, Tuple, Optional
-
-from qutebrowser.qt import (
-    QtWidgets,
-    QtWebKitWidgets,
-    QtWebKit,
-    QtWebEngineWidgets,
-    QtNetwork,
-    QtCore,
-)
+import enum
+import functools
+import html
+import os
+import shutil
+import sys
+from typing import Any, List, Optional, Sequence, Tuple
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
-                               standarddir)
-from qutebrowser.misc import objects, msgbox, savemanager, quitter
+from qutebrowser.misc import msgbox, objects, quitter, savemanager
+from qutebrowser.qt import (
+    QtCore,
+    QtNetwork,
+    QtWebEngineWidgets,
+    QtWebKit,
+    QtWebKitWidgets,
+    QtWidgets,
+)
+from qutebrowser.utils import log, qtutils, standarddir, usertypes, utils, version
 
 
 class _Result(enum.IntEnum):

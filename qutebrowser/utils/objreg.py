@@ -22,12 +22,19 @@
 
 import collections
 import functools
-from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
-                    Optional, Sequence, Union)
-from qutebrowser.qt import QtWidgets
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Union,
+)
 
+from qutebrowser.qt import QtCore, QtWidgets
 from qutebrowser.utils import log, usertypes, utils
-from qutebrowser.qt import QtCore
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow

@@ -19,23 +19,22 @@
 
 """Various utilities used inside tests."""
 
-import io
-import re
-import gzip
-import pprint
-import os.path
 import contextlib
-import pathlib
-import importlib.util
+import gzip
 import importlib.machinery
-from typing import Optional, Any
+import importlib.util
+import io
+import os.path
+import pathlib
+import pprint
+import re
+from typing import Any, Optional
 
 import pytest
 
 import qutebrowser.qt
-from qutebrowser.qt import QtWebEngine, QtGui
-
-from qutebrowser.utils import qtutils, log, utils, version
+from qutebrowser.qt import QtGui, QtWebEngine
+from qutebrowser.utils import log, qtutils, utils, version
 
 ON_CI = 'CI' in os.environ
 

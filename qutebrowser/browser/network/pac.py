@@ -19,12 +19,12 @@
 
 """Evaluation of PAC scripts."""
 
-import sys
 import functools
+import sys
 from typing import Optional
 
-from qutebrowser.utils import log, utils, qtutils, resources
-from qutebrowser.qt import QtQml, QtNetwork, QtCore
+from qutebrowser.qt import QtCore, QtNetwork, QtQml
+from qutebrowser.utils import log, qtutils, resources, utils
 
 
 class ParseProxyError(Exception):

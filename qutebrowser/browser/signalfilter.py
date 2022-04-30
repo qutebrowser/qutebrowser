@@ -22,7 +22,6 @@
 import functools
 
 from qutebrowser.qt import QtCore
-
 from qutebrowser.utils import debug, log, objreg
 
 

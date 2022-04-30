@@ -21,12 +21,11 @@
 
 from typing import Optional
 
-from qutebrowser.qt import QtWidgets, QtSql
-
-from qutebrowser.misc import sql
-from qutebrowser.utils import debug, message, log
-from qutebrowser.config import config
 from qutebrowser.completion.models import util
+from qutebrowser.config import config
+from qutebrowser.misc import sql
+from qutebrowser.qt import QtSql, QtWidgets
+from qutebrowser.utils import debug, log, message
 
 
 class HistoryCategory(QtSql.QSqlQueryModel):

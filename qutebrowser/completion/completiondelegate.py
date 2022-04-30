@@ -22,12 +22,12 @@
 We use this to be able to highlight parts of the text.
 """
 
-import re
 import html
+import re
 
 from qutebrowser.config import config
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
 from qutebrowser.utils import qtutils
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
 
 
 class _Highlighter(QtGui.QSyntaxHighlighter):

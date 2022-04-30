@@ -19,22 +19,20 @@
 
 """Utils regarding URL handling."""
 
-import re
 import base64
-import os.path
 import ipaddress
-import posixpath
-import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union, Iterable
-
-from qutebrowser.qt import QtNetwork, QtCore
+import os.path
+import posixpath
+import re
+import urllib.parse
+from typing import Iterable, Optional, Tuple, Union
 
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config
-from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.browser.network import pac
-
+from qutebrowser.config import config
+from qutebrowser.qt import QtCore, QtNetwork
+from qutebrowser.utils import log, message, qtutils, utils
 
 # FIXME: we probably could raise some exceptions on invalid URLs
 # https://github.com/qutebrowser/qutebrowser/issues/108

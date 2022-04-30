@@ -44,15 +44,17 @@ except ImportError:
 
 # pylint: disable=ungrouped-imports
 if PyQt5:
-    from PyQt5 import QtCore
-    from PyQt5 import QtDBus
-    from PyQt5 import QtGui
-    from PyQt5 import QtNetwork
-    from PyQt5 import QtPrintSupport
-    from PyQt5 import QtQml
-    from PyQt5 import QtSql
-    from PyQt5 import QtWidgets
-    from PyQt5 import QtTest
+    from PyQt5 import (
+        QtCore,
+        QtDBus,
+        QtGui,
+        QtNetwork,
+        QtPrintSupport,
+        QtQml,
+        QtSql,
+        QtTest,
+        QtWidgets,
+    )
 elif PyQt6:
     from PyQt6 import QtCore  # type: ignore[no-redef]
     from PyQt6 import QtDBus  # type: ignore[no-redef]
@@ -61,14 +63,12 @@ elif PyQt6:
     from PyQt6 import QtPrintSupport  # type: ignore[no-redef]
     from PyQt6 import QtQml  # type: ignore[no-redef]
     from PyQt6 import QtSql  # type: ignore[no-redef]
-    from PyQt6 import QtWidgets  # type: ignore[no-redef]
     from PyQt6 import QtTest  # type: ignore[no-redef]
+    from PyQt6 import QtWidgets  # type: ignore[no-redef]
 
 try:
     if PyQt5:
-        from PyQt5 import QtWebEngine
-        from PyQt5 import QtWebEngineCore
-        from PyQt5 import QtWebEngineWidgets
+        from PyQt5 import QtWebEngine, QtWebEngineCore, QtWebEngineWidgets
     elif PyQt6:
         from PyQt6 import QtWebEngine  # type: ignore[no-redef]
         from PyQt6 import QtWebEngineCore  # type: ignore[no-redef]
@@ -80,8 +80,7 @@ except ImportError:
 
 try:
     if PyQt5:
-        from PyQt5 import QtWebKit
-        from PyQt5 import QtWebKitWidgets
+        from PyQt5 import QtWebKit, QtWebKitWidgets
     elif PyQt6:
         from PyQt6 import QtWebKit  # type: ignore[no-redef]
         from PyQt6 import QtWebKitWidgets  # type: ignore[no-redef]

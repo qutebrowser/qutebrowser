@@ -19,19 +19,18 @@
 
 """Mode manager (per window) which handles the current keyboard mode."""
 
-import functools
 import dataclasses
-from typing import Mapping, Callable, MutableMapping, Union, Set, cast
-from qutebrowser.qt import QtGui
+import functools
+from typing import Callable, Mapping, MutableMapping, Set, Union, cast
 
-from qutebrowser.commands import runners
-from qutebrowser.keyinput import modeparsers, basekeyparser
-from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.browser import hints
+from qutebrowser.commands import runners
+from qutebrowser.config import config
+from qutebrowser.keyinput import basekeyparser, modeparsers
 from qutebrowser.misc import objects
-from qutebrowser.qt import QtCore
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import log, objreg, usertypes, utils
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]

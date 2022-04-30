@@ -19,13 +19,13 @@
 
 """pytest helper to monkeypatch the message module."""
 
-import logging
 import dataclasses
+import logging
 
 import pytest
 
-from qutebrowser.utils import usertypes, message
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import message, usertypes
 
 
 @dataclasses.dataclass

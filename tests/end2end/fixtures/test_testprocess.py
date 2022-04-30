@@ -19,15 +19,15 @@
 
 """Test testprocess.Process."""
 
-import sys
-import time
 import contextlib
 import datetime
+import sys
+import time
 
 import pytest
-from qutebrowser.qt import QtCore
 
 from end2end.fixtures import testprocess
+from qutebrowser.qt import QtCore
 
 pytestmark = [pytest.mark.not_frozen]
 

@@ -18,9 +18,9 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from qutebrowser.qt import QtNetwork
 
 from qutebrowser.browser.webkit import certificateerror
+from qutebrowser.qt import QtNetwork
 
 
 class FakeError:

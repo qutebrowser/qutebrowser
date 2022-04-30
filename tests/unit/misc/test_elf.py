@@ -20,13 +20,13 @@
 import io
 import struct
 
-import pytest
 import hypothesis
+import pytest
 from hypothesis import strategies as hst
 
+from helpers import testutils
 from qutebrowser.misc import elf
 from qutebrowser.utils import utils
-from helpers import testutils
 
 
 @pytest.mark.parametrize('fmt, expected', [

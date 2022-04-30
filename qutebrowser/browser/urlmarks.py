@@ -25,18 +25,25 @@ OrderedDict. This is because we read them from a file at start and write them
 to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
+import collections
+import functools
+import html
 import os
 import os.path
-import html
-import functools
-import collections
 from typing import MutableMapping
 
-from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
-                               standarddir, objreg, log)
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import lineparser
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import (
+    log,
+    message,
+    objreg,
+    qtutils,
+    standarddir,
+    urlutils,
+    usertypes,
+)
 
 
 class Error(Exception):

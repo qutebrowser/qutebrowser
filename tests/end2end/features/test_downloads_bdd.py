@@ -18,12 +18,14 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import sys
 import shlex
+import sys
 
 import pytest
 import pytest_bdd as bdd
+
 from qutebrowser.qt import QtNetwork
+
 bdd.scenarios('downloads.feature')
 
 

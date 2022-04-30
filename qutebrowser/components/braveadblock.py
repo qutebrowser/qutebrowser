@@ -19,26 +19,18 @@
 
 """Functions related to the Brave adblocker."""
 
+import contextlib
+import functools
 import io
 import logging
 import pathlib
-import functools
-import contextlib
 import subprocess
-from typing import Optional, IO, Iterator
+from typing import IO, Iterator, Optional
 
-from qutebrowser.qt import QtCore
-
-from qutebrowser.api import (
-    hook,
-    config,
-    message,
-    interceptor,
-    apitypes,
-    qtutils,
-)
+from qutebrowser.api import apitypes, config, hook, interceptor, message, qtutils
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.utils import blockutils
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
 
 try:

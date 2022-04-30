@@ -32,15 +32,20 @@ import hypothesis
 import hypothesis.strategies as hst
 import pytest
 
-from qutebrowser.misc import objects, guiprocess
+from helpers import testutils
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import (
-    configmodel, listcategory, miscmodels, urlmodel, filepathcategory)
+    configmodel,
+    filepathcategory,
+    listcategory,
+    miscmodels,
+    urlmodel,
+)
 from qutebrowser.config import configdata, configtypes
-from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import tabbedbrowser
-from qutebrowser.qt import QtWebEngineWidgets, QtCore
-from helpers import testutils
+from qutebrowser.misc import guiprocess, objects
+from qutebrowser.qt import QtCore, QtWebEngineWidgets
+from qutebrowser.utils import usertypes
 
 
 def _check_completions(model, expected):

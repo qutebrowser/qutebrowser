@@ -19,18 +19,17 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
-import re
 import argparse
-import functools
 import dataclasses
+import functools
+import re
 from typing import Any, Callable, Dict, Optional, Union
-from qutebrowser.qt import QtGui
 
 import qutebrowser
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, urlmatch, qtutils, utils
-from qutebrowser.misc import objects, debugcachestats
-from qutebrowser.qt import QtCore
+from qutebrowser.misc import debugcachestats, objects
+from qutebrowser.qt import QtCore, QtGui
+from qutebrowser.utils import qtutils, urlmatch, usertypes, utils
 
 UNSET = object()
 

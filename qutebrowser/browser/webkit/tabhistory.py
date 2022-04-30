@@ -21,8 +21,8 @@
 
 from typing import Any, List, Mapping
 
-from qutebrowser.utils import qtutils
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import qtutils
 
 
 def _serialize_items(items, current_idx, stream):

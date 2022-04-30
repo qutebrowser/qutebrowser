@@ -19,12 +19,12 @@
 
 """A request interceptor taking care of adblocking and custom headers."""
 
-from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
-from qutebrowser.utils import utils, log, debug, qtutils
+from qutebrowser.config import config, websettings
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
-from qutebrowser.qt import QtWebEngineCore, QtCore
+from qutebrowser.qt import QtCore, QtWebEngineCore
+from qutebrowser.utils import debug, log, qtutils, utils
 
 
 class WebEngineRequest(interceptors.Request):
@@ -95,12 +95,8 @@ class RequestInterceptor(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
         }
 
         try:
-            preload_main_frame = (
-                req_info.ResourceTypeNavigationPreloadMainFrame
-            )
-            preload_sub_frame = (
-                req_info.ResourceTypeNavigationPreloadSubFrame
-            )
+            preload_main_frame = req_info.ResourceTypeNavigationPreloadMainFrame
+            preload_sub_frame = req_info.ResourceTypeNavigationPreloadSubFrame
         except AttributeError:
             # Added in Qt 5.14
             pass

@@ -19,17 +19,18 @@
 
 """Helpers related to quitting qutebrowser cleanly."""
 
+import argparse
+import atexit
+import functools
+import json
 import os
 import os.path
-import sys
-import json
-import atexit
 import shutil
-import argparse
-import tokenize
-import functools
 import subprocess
+import sys
+import tokenize
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
+
 try:
     import hunter
 except ImportError:
@@ -37,12 +38,11 @@ except ImportError:
 
 import qutebrowser
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import log
-from qutebrowser.misc import sessions, ipc, objects
-from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.mainwindow import prompt
+from qutebrowser.misc import ipc, objects, sessions
 from qutebrowser.qt import QtCore
-
+from qutebrowser.utils import log
 
 instance = cast('Quitter', None)
 

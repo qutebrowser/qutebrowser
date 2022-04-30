@@ -19,21 +19,21 @@
 
 """Tests for qutebrowser.utils.log."""
 
-import logging
 import argparse
+import dataclasses
 import itertools
+import logging
 import sys
 import warnings
-import dataclasses
 
-import pytest
 import _pytest.logging  # pylint: disable=import-private-name
+import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.utils import log
-from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils
+from qutebrowser.misc import utilcmds
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log
 
 
 @pytest.fixture(autouse=True)

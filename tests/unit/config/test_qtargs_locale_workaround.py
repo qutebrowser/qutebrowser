@@ -20,12 +20,11 @@ import os
 import pathlib
 
 import pytest
-from qutebrowser.qt import QtCore
 
-from qutebrowser.utils import utils
-from qutebrowser.config import qtargs
 from helpers import testutils
-
+from qutebrowser.config import qtargs
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import utils
 
 testutils.qt_module_skip('QtWebEngineWidgets')
 

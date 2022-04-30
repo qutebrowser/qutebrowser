@@ -20,10 +20,10 @@
 """Tests for qutebrowser.misc.utilcmds."""
 
 import pytest
-from qutebrowser.qt import QtCore
 
-from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils
+from qutebrowser.misc import utilcmds
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import objreg
 
 

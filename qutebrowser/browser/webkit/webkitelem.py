@@ -19,13 +19,12 @@
 
 """QtWebKit specific part of the web element API."""
 
-from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
-from qutebrowser.qt import QtWebKitWidgets
+from typing import TYPE_CHECKING, Iterator, List, Optional, Set, cast
 
-from qutebrowser.config import config
-from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
-from qutebrowser.qt import QtWebKit, QtCore
+from qutebrowser.config import config
+from qutebrowser.qt import QtCore, QtWebKit, QtWebKitWidgets
+from qutebrowser.utils import javascript, log, usertypes, utils
 
 if TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab

@@ -20,18 +20,16 @@
 
 """Test the built-in directory browser."""
 
-import pathlib
 import dataclasses
+import pathlib
 from typing import List
 
-import pytest
 import bs4
+import pytest
 
-from qutebrowser.qt import QtCore
-
-from qutebrowser.utils import urlutils
 from helpers import testutils
-
+from qutebrowser.qt import QtCore
+from qutebrowser.utils import urlutils
 
 pytestmark = pytest.mark.qtwebengine_skip("Title is empty when parsing for "
                                           "some reason?")

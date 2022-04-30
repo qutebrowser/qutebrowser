@@ -22,11 +22,11 @@
 
 """Various commands."""
 
-import os
-import signal
 import functools
 import logging
+import os
 import pathlib
+import signal
 from typing import Optional
 
 try:
@@ -34,14 +34,12 @@ try:
 except ImportError:
     hunter = None
 
-from qutebrowser.qt import QtPrintSupport, QtCore
-
-from qutebrowser.api import cmdutils, apitypes, message, config
+from qutebrowser.api import apitypes, cmdutils, config, message
 
 # FIXME should be part of qutebrowser.api?
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.qt import QtCore, QtPrintSupport
 from qutebrowser.utils import utils
-
 
 _LOGGER = logging.getLogger('misc')
 

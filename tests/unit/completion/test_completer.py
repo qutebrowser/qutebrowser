@@ -22,11 +22,11 @@
 import unittest.mock
 
 import pytest
-from qutebrowser.qt import QtGui, QtCore
 
-from qutebrowser.completion import completer
-from qutebrowser.commands import command
 from qutebrowser.api import cmdutils
+from qutebrowser.commands import command
+from qutebrowser.completion import completer
+from qutebrowser.qt import QtCore, QtGui
 
 
 @pytest.fixture(autouse=True)

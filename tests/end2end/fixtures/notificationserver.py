@@ -20,13 +20,13 @@
 import dataclasses
 import itertools
 from typing import Dict, List
-from qutebrowser.qt import QtGui
+
 import pytest
 
 from qutebrowser.browser.webengine import notification
+from qutebrowser.qt import QtCore, QtDBus, QtGui
 from qutebrowser.utils import utils
 from tests.helpers import testutils
-from qutebrowser.qt import QtDBus, QtCore
 
 
 @dataclasses.dataclass

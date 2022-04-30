@@ -29,12 +29,13 @@ try:
 except ImportError:
     hunter = None
 
-import sys
-import faulthandler
-import traceback
-import signal
-import importlib
 import datetime
+import faulthandler
+import importlib
+import signal
+import sys
+import traceback
+
 try:
     import tkinter
 except ImportError:
@@ -78,7 +79,7 @@ def _die(message, exception=None):
         message: The message to display.
         exception: The exception object if we're handling an exception.
     """
-    from qutebrowser.qt import QtWidgets, QtCore
+    from qutebrowser.qt import QtCore, QtWidgets
     if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
             exception is not None):
         print(file=sys.stderr)

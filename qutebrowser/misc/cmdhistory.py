@@ -21,9 +21,9 @@
 
 from typing import MutableSequence
 
-from qutebrowser.utils import usertypes, log, standarddir, objreg
 from qutebrowser.misc import lineparser
 from qutebrowser.qt import QtCore
+from qutebrowser.utils import log, objreg, standarddir, usertypes
 
 
 class HistoryEmptyError(Exception):

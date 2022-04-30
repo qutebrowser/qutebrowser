@@ -37,39 +37,65 @@ After all initialization is done, the qt_mainloop() function is called, which
 blocks and spins the Qt mainloop.
 """
 
-import os
-import sys
-import functools
-import tempfile
-import pathlib
-import datetime
 import argparse
+import datetime
+import functools
+import os
+import pathlib
+import sys
+import tempfile
 from typing import Iterable, Optional
 
 import qutebrowser
-from qutebrowser.commands import runners
-from qutebrowser.config import (config, websettings, configfiles, configinit,
-                                qtargs)
-from qutebrowser.browser import (urlmarks, history, browsertab,
-                                 qtnetworkdownloads, downloads, greasemonkey)
+from qutebrowser.browser import (
+    browsertab,
+    commands,
+    downloads,
+    greasemonkey,
+    history,
+    qtnetworkdownloads,
+    urlmarks,
+)
 from qutebrowser.browser.network import proxy
-from qutebrowser.browser.webkit import cookies, cache
+from qutebrowser.browser.webkit import cache, cookies
 from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.commands import runners
+from qutebrowser.config import config, configfiles, configinit, qtargs, websettings
 from qutebrowser.extensions import loader
-from qutebrowser.keyinput import macros, eventfilter
+from qutebrowser.keyinput import eventfilter, macros
 from qutebrowser.mainwindow import mainwindow, prompt, windowundo
-from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
-                              earlyinit, sql, cmdhistory, backendproblem,
-                              objects, quitter)
-from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               resources, usertypes, standarddir,
-                               error, qtutils, debug)
+
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
-from qutebrowser.misc import utilcmds
-from qutebrowser.browser import commands
-from qutebrowser.qt import QtWidgets, QtGui, QtCore
+from qutebrowser.misc import (
+    backendproblem,
+    cmdhistory,
+    crashsignal,
+    earlyinit,
+    ipc,
+    objects,
+    quitter,
+    savemanager,
+    sessions,
+    sql,
+    utilcmds,
+)
+from qutebrowser.qt import QtCore, QtGui, QtWidgets
+from qutebrowser.utils import (
+    debug,
+    error,
+    log,
+    message,
+    objreg,
+    qtutils,
+    resources,
+    standarddir,
+    urlutils,
+    usertypes,
+    utils,
+    version,
+)
 
 # pylint: enable=unused-import
 

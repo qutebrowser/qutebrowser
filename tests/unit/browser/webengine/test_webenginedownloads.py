@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os.path
 import base64
 import dataclasses
+import os.path
 
 import pytest
 
@@ -27,9 +27,9 @@ from helpers import testutils
 
 testutils.qt_module_skip('QtWebEngineWidgets')
 
+from qutebrowser.browser.webengine import webenginedownloads
 from qutebrowser.qt import QtWebEngineWidgets
 from qutebrowser.utils import urlutils, usertypes, utils
-from qutebrowser.browser.webengine import webenginedownloads
 
 
 @pytest.mark.parametrize('path, expected', [

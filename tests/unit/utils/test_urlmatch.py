@@ -30,11 +30,11 @@ Currently not tested:
 
 import string
 
-import pytest
 import hypothesis
 import hypothesis.strategies as hst
-from qutebrowser.qt import QtCore
+import pytest
 
+from qutebrowser.qt import QtCore
 from qutebrowser.utils import urlmatch
 
 # pylint: disable=line-too-long
