@@ -25,9 +25,11 @@ import importlib
 PyQt5 = PyQt6 = False
 try:
     import PyQt5 as pyqt  # noqa: N813
+
     PyQt5 = True
 except ImportError:
     import PyQt6 as pyqt  # type: ignore[import, no-redef] # noqa: N813
+
     PyQt6 = True
 
 # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some distributions

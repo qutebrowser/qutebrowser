@@ -301,9 +301,9 @@ class Config(QtCore.QObject):
     MUTABLE_TYPES = (dict, list)
     changed = QtCore.pyqtSignal(str)
 
-    def __init__(self,
-                 yaml_config: 'configfiles.YamlConfig',
-                 parent: QtCore.QObject = None) -> None:
+    def __init__(
+        self, yaml_config: 'configfiles.YamlConfig', parent: QtCore.QObject = None
+    ) -> None:
         super().__init__(parent)
         self._mutables: MutableMapping[str, Tuple[Any, Any]] = {}
         self._yaml = yaml_config
@@ -379,10 +379,7 @@ class Config(QtCore.QObject):
         """Raise NoOptionError if the given setting does not exist."""
         self.get_opt(name)
 
-    def get(self,
-            name: str,
-            url: QtCore.QUrl = None, *,
-            fallback: bool = True) -> Any:
+    def get(self, name: str, url: QtCore.QUrl = None, *, fallback: bool = True) -> Any:
         """Get the given setting converted for Python code.
 
         Args:
@@ -405,10 +402,9 @@ class Config(QtCore.QObject):
             assert value.__hash__ is not None, value
             return value
 
-    def get_obj(self,
-                name: str, *,
-                url: QtCore.QUrl = None,
-                fallback: bool = True) -> Any:
+    def get_obj(
+        self, name: str, *, url: QtCore.QUrl = None, fallback: bool = True
+    ) -> Any:
         """Get the given setting as object (for YAML/config.py).
 
         Note that the returned values are not watched for mutation.

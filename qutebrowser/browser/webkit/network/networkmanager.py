@@ -403,15 +403,18 @@ class NetworkManager(QtNetwork.QNetworkAccessManager):
             proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
-                    req, proxy_error, QtNetwork.QNetworkReply.UnknownProxyError,
-                    self)
+                    req, proxy_error, QtNetwork.QNetworkReply.UnknownProxyError, self
+                )
 
         if not req.url().isValid():
             log.network.debug("Ignoring invalid requested URL: {}".format(
                 req.url().errorString()))
             return networkreply.ErrorNetworkReply(
-                req, "Invalid request URL", QtNetwork.QNetworkReply.HostNotFoundError,
-                self)
+                req,
+                "Invalid request URL",
+                QtNetwork.QNetworkReply.HostNotFoundError,
+                self,
+            )
 
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
@@ -430,8 +433,11 @@ class NetworkManager(QtNetwork.QNetworkAccessManager):
         interceptors.run(request)
         if request.is_blocked:
             return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QtNetwork.QNetworkReply.ContentAccessDenied,
-                self)
+                req,
+                HOSTBLOCK_ERROR_STRING,
+                QtNetwork.QNetworkReply.ContentAccessDenied,
+                self,
+            )
 
         if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QtNetwork.QNetworkAccessManager, op)

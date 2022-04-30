@@ -46,62 +46,59 @@ class WebKitSettings(websettings.AbstractSettings):
     """A wrapper for the config for QWebSettings."""
 
     _ATTRIBUTES = {
-        'content.images':
-            Attr(QtWebKit.QWebSettings.AutoLoadImages),
-        'content.javascript.enabled':
-            Attr(QtWebKit.QWebSettings.JavascriptEnabled),
-        'content.javascript.can_open_tabs_automatically':
-            Attr(QtWebKit.QWebSettings.JavascriptCanOpenWindows),
-        'content.javascript.can_close_tabs':
-            Attr(QtWebKit.QWebSettings.JavascriptCanCloseWindows),
-        'content.javascript.can_access_clipboard':
-            Attr(QtWebKit.QWebSettings.JavascriptCanAccessClipboard),
-        'content.plugins':
-            Attr(QtWebKit.QWebSettings.PluginsEnabled),
-        'content.webgl':
-            Attr(QtWebKit.QWebSettings.WebGLEnabled),
-        'content.hyperlink_auditing':
-            Attr(QtWebKit.QWebSettings.HyperlinkAuditingEnabled),
-        'content.local_content_can_access_remote_urls':
-            Attr(QtWebKit.QWebSettings.LocalContentCanAccessRemoteUrls),
-        'content.local_content_can_access_file_urls':
-            Attr(QtWebKit.QWebSettings.LocalContentCanAccessFileUrls),
-        'content.dns_prefetch':
-            Attr(QtWebKit.QWebSettings.DnsPrefetchEnabled),
-        'content.frame_flattening':
-            Attr(QtWebKit.QWebSettings.FrameFlatteningEnabled),
-        'content.cache.appcache':
-            Attr(QtWebKit.QWebSettings.OfflineWebApplicationCacheEnabled),
-        'content.local_storage':
-            Attr(QtWebKit.QWebSettings.LocalStorageEnabled,
-                 QtWebKit.QWebSettings.OfflineStorageDatabaseEnabled),
-        'content.print_element_backgrounds':
-            Attr(QtWebKit.QWebSettings.PrintElementBackgrounds),
-        'content.xss_auditing':
-            Attr(QtWebKit.QWebSettings.XSSAuditingEnabled),
-        'content.site_specific_quirks.enabled':
-            Attr(QtWebKit.QWebSettings.SiteSpecificQuirksEnabled),
-
-        'input.spatial_navigation':
-            Attr(QtWebKit.QWebSettings.SpatialNavigationEnabled),
-        'input.links_included_in_focus_chain':
-            Attr(QtWebKit.QWebSettings.LinksIncludedInFocusChain),
-
-        'zoom.text_only':
-            Attr(QtWebKit.QWebSettings.ZoomTextOnly),
-        'scrolling.smooth':
-            Attr(QtWebKit.QWebSettings.ScrollAnimatorEnabled),
+        'content.images': Attr(QtWebKit.QWebSettings.AutoLoadImages),
+        'content.javascript.enabled': Attr(QtWebKit.QWebSettings.JavascriptEnabled),
+        'content.javascript.can_open_tabs_automatically': Attr(
+            QtWebKit.QWebSettings.JavascriptCanOpenWindows
+        ),
+        'content.javascript.can_close_tabs': Attr(
+            QtWebKit.QWebSettings.JavascriptCanCloseWindows
+        ),
+        'content.javascript.can_access_clipboard': Attr(
+            QtWebKit.QWebSettings.JavascriptCanAccessClipboard
+        ),
+        'content.plugins': Attr(QtWebKit.QWebSettings.PluginsEnabled),
+        'content.webgl': Attr(QtWebKit.QWebSettings.WebGLEnabled),
+        'content.hyperlink_auditing': Attr(
+            QtWebKit.QWebSettings.HyperlinkAuditingEnabled
+        ),
+        'content.local_content_can_access_remote_urls': Attr(
+            QtWebKit.QWebSettings.LocalContentCanAccessRemoteUrls
+        ),
+        'content.local_content_can_access_file_urls': Attr(
+            QtWebKit.QWebSettings.LocalContentCanAccessFileUrls
+        ),
+        'content.dns_prefetch': Attr(QtWebKit.QWebSettings.DnsPrefetchEnabled),
+        'content.frame_flattening': Attr(QtWebKit.QWebSettings.FrameFlatteningEnabled),
+        'content.cache.appcache': Attr(
+            QtWebKit.QWebSettings.OfflineWebApplicationCacheEnabled
+        ),
+        'content.local_storage': Attr(
+            QtWebKit.QWebSettings.LocalStorageEnabled,
+            QtWebKit.QWebSettings.OfflineStorageDatabaseEnabled,
+        ),
+        'content.print_element_backgrounds': Attr(
+            QtWebKit.QWebSettings.PrintElementBackgrounds
+        ),
+        'content.xss_auditing': Attr(QtWebKit.QWebSettings.XSSAuditingEnabled),
+        'content.site_specific_quirks.enabled': Attr(
+            QtWebKit.QWebSettings.SiteSpecificQuirksEnabled
+        ),
+        'input.spatial_navigation': Attr(
+            QtWebKit.QWebSettings.SpatialNavigationEnabled
+        ),
+        'input.links_included_in_focus_chain': Attr(
+            QtWebKit.QWebSettings.LinksIncludedInFocusChain
+        ),
+        'zoom.text_only': Attr(QtWebKit.QWebSettings.ZoomTextOnly),
+        'scrolling.smooth': Attr(QtWebKit.QWebSettings.ScrollAnimatorEnabled),
     }
 
     _FONT_SIZES = {
-        'fonts.web.size.minimum':
-            QtWebKit.QWebSettings.MinimumFontSize,
-        'fonts.web.size.minimum_logical':
-            QtWebKit.QWebSettings.MinimumLogicalFontSize,
-        'fonts.web.size.default':
-            QtWebKit.QWebSettings.DefaultFontSize,
-        'fonts.web.size.default_fixed':
-            QtWebKit.QWebSettings.DefaultFixedFontSize,
+        'fonts.web.size.minimum': QtWebKit.QWebSettings.MinimumFontSize,
+        'fonts.web.size.minimum_logical': QtWebKit.QWebSettings.MinimumLogicalFontSize,
+        'fonts.web.size.default': QtWebKit.QWebSettings.DefaultFontSize,
+        'fonts.web.size.default_fixed': QtWebKit.QWebSettings.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {

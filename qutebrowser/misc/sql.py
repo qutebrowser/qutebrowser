@@ -209,9 +209,13 @@ class Database:
         """Return a Query instance linked to this Database."""
         return Query(self, querystr, forward_only)
 
-    def table(self, name: str, fields: List[str],
-              constraints: Optional[Dict[str, str]] = None,
-              parent: Optional[QtCore.QObject] = None) -> 'SqlTable':
+    def table(
+        self,
+        name: str,
+        fields: List[str],
+        constraints: Optional[Dict[str, str]] = None,
+        parent: Optional[QtCore.QObject] = None,
+    ) -> 'SqlTable':
         """Return a SqlTable instance linked to this Database."""
         return SqlTable(self, name, fields, constraints, parent)
 
@@ -393,9 +397,14 @@ class SqlTable(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     database: Database
 
-    def __init__(self, database: Database, name: str, fields: List[str],
-                 constraints: Optional[Dict[str, str]] = None,
-                 parent: Optional[QtCore.QObject] = None) -> None:
+    def __init__(
+        self,
+        database: Database,
+        name: str,
+        fields: List[str],
+        constraints: Optional[Dict[str, str]] = None,
+        parent: Optional[QtCore.QObject] = None,
+    ) -> None:
         """Wrapper over a table in the SQL database.
 
         Args:

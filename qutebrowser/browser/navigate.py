@@ -41,25 +41,31 @@ class Error(Exception):
 # Note that the getters must not use FullyDecoded decoded mode to prevent loss
 # of information. (host and path use FullyDecoded by default)
 _URL_SEGMENTS = [
-    ('host',
-     lambda url: url.host(QtCore.QUrl.FullyEncoded),
-     lambda url, host: url.setHost(host, QtCore.QUrl.StrictMode)),
-
-    ('port',
-     lambda url: str(url.port()) if url.port() > 0 else '',
-     lambda url, x: url.setPort(int(x))),
-
-    ('path',
-     lambda url: url.path(QtCore.QUrl.FullyEncoded),
-     lambda url, path: url.setPath(path, QtCore.QUrl.StrictMode)),
-
-    ('query',
-     lambda url: url.query(QtCore.QUrl.FullyEncoded),
-     lambda url, query: url.setQuery(query, QtCore.QUrl.StrictMode)),
-
-    ('anchor',
-     lambda url: url.fragment(QtCore.QUrl.FullyEncoded),
-     lambda url, fragment: url.setFragment(fragment, QtCore.QUrl.StrictMode)),
+    (
+        'host',
+        lambda url: url.host(QtCore.QUrl.FullyEncoded),
+        lambda url, host: url.setHost(host, QtCore.QUrl.StrictMode),
+    ),
+    (
+        'port',
+        lambda url: str(url.port()) if url.port() > 0 else '',
+        lambda url, x: url.setPort(int(x)),
+    ),
+    (
+        'path',
+        lambda url: url.path(QtCore.QUrl.FullyEncoded),
+        lambda url, path: url.setPath(path, QtCore.QUrl.StrictMode),
+    ),
+    (
+        'query',
+        lambda url: url.query(QtCore.QUrl.FullyEncoded),
+        lambda url, query: url.setQuery(query, QtCore.QUrl.StrictMode),
+    ),
+    (
+        'anchor',
+        lambda url: url.fragment(QtCore.QUrl.FullyEncoded),
+        lambda url, fragment: url.setFragment(fragment, QtCore.QUrl.StrictMode),
+    ),
 ]
 
 

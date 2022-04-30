@@ -150,12 +150,16 @@ class PACResolver:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for PROXY")
             host, port = PACResolver._parse_proxy_host(config[1])
-            return QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.HttpProxy, host, port)
+            return QtNetwork.QNetworkProxy(
+                QtNetwork.QNetworkProxy.HttpProxy, host, port
+            )
         elif config[0] in ["SOCKS", "SOCKS5"]:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for SOCKS")
             host, port = PACResolver._parse_proxy_host(config[1])
-            return QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, host, port)
+            return QtNetwork.QNetworkProxy(
+                QtNetwork.QNetworkProxy.Socks5Proxy, host, port
+            )
         else:
             err = "Unknown proxy type: {}"
             raise ParseProxyError(err.format(config[0]))
@@ -249,7 +253,9 @@ class PACFetcher(QtCore.QObject):
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
-            self._manager: Optional[QtNetwork.QNetworkAccessManager] = QtNetwork.QNetworkAccessManager()
+            self._manager: Optional[
+                QtNetwork.QNetworkAccessManager
+            ] = QtNetwork.QNetworkAccessManager()
         self._manager.setProxy(QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None
@@ -330,4 +336,8 @@ class PACFetcher(QtCore.QObject):
             # Later NetworkManager.createRequest will detect this and display
             # an error message.
             error_host = "pac-resolve-error.qutebrowser.invalid"
-            return [QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.HttpProxy, error_host, 9)]
+            return [
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.HttpProxy, error_host, 9
+                )
+            ]

@@ -40,7 +40,9 @@ def _pac_common_test(test_str):
 
     fun_str = fun_str_f.format(test_str)
     res = pac.PACResolver(fun_str)
-    proxies = res.resolve(QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test")))
+    proxies = res.resolve(
+        QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test"))
+    )
     assert len(proxies) == 3
     assert proxies[0].type() == QtNetwork.QNetworkProxy.NoProxy
     assert proxies[1].type() == QtNetwork.QNetworkProxy.HttpProxy
@@ -98,6 +100,7 @@ def test_dnsResolve(monkeypatch, domain, expected):
         if host == "known.domain":
             info.setAddresses([QtNetwork.QHostAddress("1.2.3.4")])
         return info
+
     monkeypatch.setattr(QtNetwork.QHostInfo, 'fromName', mock_fromName)
     _pac_equality_test("dnsResolve('{}')".format(domain), expected)
 
@@ -128,7 +131,9 @@ def test_invalid_port():
 
     res = pac.PACResolver(test_str)
     with pytest.raises(pac.ParseProxyError):
-        res.resolve(QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test")))
+        res.resolve(
+            QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test"))
+        )
 
 
 @pytest.mark.parametrize('string', ["", "{"])
@@ -153,7 +158,9 @@ def test_fail_parse(value):
 
     res = pac.PACResolver(test_str_f.format(value))
     with pytest.raises(pac.ParseProxyError):
-        res.resolve(QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test")))
+        res.resolve(
+            QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test"))
+        )
 
 
 def test_fail_return():
@@ -165,7 +172,9 @@ def test_fail_return():
 
     res = pac.PACResolver(test_str)
     with pytest.raises(pac.EvalProxyError):
-        res.resolve(QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test")))
+        res.resolve(
+            QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test"))
+        )
 
 
 @pytest.mark.parametrize('url, has_secret', [
@@ -255,7 +264,9 @@ def test_fetch_success():
     """
 
     res = fetcher_test(test_str)
-    proxies = res.resolve(QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test")))
+    proxies = res.resolve(
+        QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test"))
+    )
     assert len(proxies) == 3
 
 
@@ -268,6 +279,8 @@ def test_fetch_evalerror(caplog):
 
     res = fetcher_test(test_str)
     with caplog.at_level(logging.ERROR):
-        proxies = res.resolve(QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test")))
+        proxies = res.resolve(
+            QtNetwork.QNetworkProxyQuery(QtCore.QUrl("https://example.com/test"))
+        )
     assert len(proxies) == 1
     assert proxies[0].port() == 9

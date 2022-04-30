@@ -90,8 +90,9 @@ def _die(message, exception=None):
     else:
         if exception is not None:
             message = message.replace('%ERROR%', str(exception))
-        msgbox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Critical, "qutebrowser: Fatal error!",
-                             message)
+        msgbox = QtWidgets.QMessageBox(
+            QtWidgets.QMessageBox.Critical, "qutebrowser: Fatal error!", message
+        )
         msgbox.setTextFormat(QtCore.Qt.RichText)
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec()
@@ -140,6 +141,7 @@ def check_pyqt():
     pyqt_name = "PyQt6"
     try:
         import PyQt5
+
         pyqt_name = PyQt5.__name__
     except ImportError:
         pass
@@ -189,10 +191,17 @@ def check_qt_version():
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False
 
-    if QtCore.QT_VERSION < 0x050C00 or QtCore.PYQT_VERSION < 0x050C00 or not recent_qt_runtime:
-        text = ("Fatal error: Qt >= 5.12.0 and PyQt >= 5.12.0 are required, "
-                "but Qt {} / PyQt {} is installed.".format(qt_version(),
-                                                           QtCore.PYQT_VERSION_STR))
+    if (
+        QtCore.QT_VERSION < 0x050C00
+        or QtCore.PYQT_VERSION < 0x050C00
+        or not recent_qt_runtime
+    ):
+        text = (
+            "Fatal error: Qt >= 5.12.0 and PyQt >= 5.12.0 are required, "
+            "but Qt {} / PyQt {} is installed.".format(
+                qt_version(), QtCore.PYQT_VERSION_STR
+            )
+        )
         _die(text)
 
     if qt_ver == QtCore.QVersionNumber(5, 12, 0):
@@ -204,6 +213,7 @@ def check_qt_version():
 def check_ssl_support():
     """Check if SSL support is available."""
     from qutebrowser.qt import QtNetwork
+
     if not QtNetwork or not QtNetwork.QSslSocket:
         _die("Fatal error: Your Qt is built without SSL support.")
 
@@ -238,9 +248,11 @@ def check_libraries():
     pyqt_name = None
     try:
         import PyQt5
+
         pyqt_name = PyQt5.__name__
     except ImportError:
         import PyQt6  # type: ignore[import]
+
         pyqt_name = PyQt6.__name__
 
     modules = {

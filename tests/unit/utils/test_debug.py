@@ -132,13 +132,21 @@ class TestQEnumKey:
         assert not hasattr(QtWidgets.QStyle.PrimitiveElement, 'staticMetaObject')
         assert hasattr(QtWidgets.QFrame, 'staticMetaObject')
 
-    @pytest.mark.parametrize('base, value, klass, expected', [
-        (QtWidgets.QStyle, QtWidgets.QStyle.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
-        (QtWidgets.QFrame, QtWidgets.QFrame.Sunken, None, 'Sunken'),
-        (QtWidgets.QFrame, 0x0030, QtWidgets.QFrame.Shadow, 'Sunken'),
-        (QtWidgets.QFrame, 0x1337, QtWidgets.QFrame.Shadow, '0x1337'),
-        (QtCore.Qt, QtCore.Qt.AnchorLeft, None, 'AnchorLeft'),
-    ])
+    @pytest.mark.parametrize(
+        'base, value, klass, expected',
+        [
+            (
+                QtWidgets.QStyle,
+                QtWidgets.QStyle.PE_PanelButtonCommand,
+                None,
+                'PE_PanelButtonCommand',
+            ),
+            (QtWidgets.QFrame, QtWidgets.QFrame.Sunken, None, 'Sunken'),
+            (QtWidgets.QFrame, 0x0030, QtWidgets.QFrame.Shadow, 'Sunken'),
+            (QtWidgets.QFrame, 0x1337, QtWidgets.QFrame.Shadow, '0x1337'),
+            (QtCore.Qt, QtCore.Qt.AnchorLeft, None, 'AnchorLeft'),
+        ],
+    )
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
         assert key == expected
@@ -162,17 +170,35 @@ class TestQFlagsKey:
 
     fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)
 
-    @pytest.mark.parametrize('base, value, klass, expected', [
-        (QtCore.Qt, QtCore.Qt.AlignTop, None, 'AlignTop'),
-        pytest.param(QtCore.Qt, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop, None,
-                     'AlignLeft|AlignTop', marks=fixme),
-        (QtCore.Qt, QtCore.Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
-        pytest.param(QtCore.Qt, 0x0021, QtCore.Qt.Alignment, 'AlignLeft|AlignTop',
-                     marks=fixme),
-        (QtCore.Qt, 0x1100, QtCore.Qt.Alignment, '0x0100|0x1000'),
-        (QtCore.Qt, QtCore.Qt.DockWidgetAreas(0), QtCore.Qt.DockWidgetArea, 'NoDockWidgetArea'),
-        (QtCore.Qt, QtCore.Qt.DockWidgetAreas(0), None, '0x0000'),
-    ])
+    @pytest.mark.parametrize(
+        'base, value, klass, expected',
+        [
+            (QtCore.Qt, QtCore.Qt.AlignTop, None, 'AlignTop'),
+            pytest.param(
+                QtCore.Qt,
+                QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop,
+                None,
+                'AlignLeft|AlignTop',
+                marks=fixme,
+            ),
+            (QtCore.Qt, QtCore.Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
+            pytest.param(
+                QtCore.Qt,
+                0x0021,
+                QtCore.Qt.Alignment,
+                'AlignLeft|AlignTop',
+                marks=fixme,
+            ),
+            (QtCore.Qt, 0x1100, QtCore.Qt.Alignment, '0x0100|0x1000'),
+            (
+                QtCore.Qt,
+                QtCore.Qt.DockWidgetAreas(0),
+                QtCore.Qt.DockWidgetArea,
+                'NoDockWidgetArea',
+            ),
+            (QtCore.Qt, QtCore.Qt.DockWidgetAreas(0), None, '0x0000'),
+        ],
+    )
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)
         assert flags == expected
@@ -208,12 +234,15 @@ class TestQFlagsKey:
             debug.qflags_key(QtCore.Qt, 42)
 
 
-@pytest.mark.parametrize('cls, signal', [
-    (SignalObject, 'signal1'),
-    (SignalObject, 'signal2'),
-    (QtCore.QTimer, 'timeout'),
-    (QtWidgets.QSpinBox, 'valueChanged'),  # Overloaded signal
-])
+@pytest.mark.parametrize(
+    'cls, signal',
+    [
+        (SignalObject, 'signal1'),
+        (SignalObject, 'signal2'),
+        (QtCore.QTimer, 'timeout'),
+        (QtWidgets.QSpinBox, 'valueChanged'),  # Overloaded signal
+    ],
+)
 @pytest.mark.parametrize('bound', [True, False])
 def test_signal_name(cls, signal, bound):
     base = cls() if bound else cls

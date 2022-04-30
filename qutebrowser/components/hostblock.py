@@ -115,7 +115,9 @@ class HostBlocker:
 
         self._config_hosts_file = str(config_dir / "blocked-hosts")
 
-    def _is_blocked(self, request_url: QtCore.QUrl, first_party_url: QtCore.QUrl = None) -> bool:
+    def _is_blocked(
+        self, request_url: QtCore.QUrl, first_party_url: QtCore.QUrl = None
+    ) -> bool:
         """Check whether the given request is blocked."""
         if not self.enabled:
             return False

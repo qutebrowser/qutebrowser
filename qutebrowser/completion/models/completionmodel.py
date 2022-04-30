@@ -99,8 +99,11 @@ class CompletionModel(QtCore.QAbstractItemModel):
             return QtCore.Qt.NoItemFlags
         if index.parent().isValid():
             # item
-            return (QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable |
-                    QtCore.Qt.ItemNeverHasChildren)
+            return (
+                QtCore.Qt.ItemIsEnabled
+                | QtCore.Qt.ItemIsSelectable
+                | QtCore.Qt.ItemNeverHasChildren
+            )
         else:
             # category
             return QtCore.Qt.NoItemFlags

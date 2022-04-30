@@ -129,22 +129,28 @@ class BindingTrie:
             try:
                 node = node.children[key]
             except KeyError:
-                return MatchResult(match_type=QtGui.QKeySequence.NoMatch,
-                                   command=None,
-                                   sequence=sequence)
+                return MatchResult(
+                    match_type=QtGui.QKeySequence.NoMatch,
+                    command=None,
+                    sequence=sequence,
+                )
 
         if node.command is not None:
-            return MatchResult(match_type=QtGui.QKeySequence.ExactMatch,
-                               command=node.command,
-                               sequence=sequence)
+            return MatchResult(
+                match_type=QtGui.QKeySequence.ExactMatch,
+                command=node.command,
+                sequence=sequence,
+            )
         elif node.children:
-            return MatchResult(match_type=QtGui.QKeySequence.PartialMatch,
-                               command=None,
-                               sequence=sequence)
+            return MatchResult(
+                match_type=QtGui.QKeySequence.PartialMatch,
+                command=None,
+                sequence=sequence,
+            )
         else:  # This can only happen when there are no bindings at all.
-            return MatchResult(match_type=QtGui.QKeySequence.NoMatch,
-                               command=None,
-                               sequence=sequence)
+            return MatchResult(
+                match_type=QtGui.QKeySequence.NoMatch, command=None, sequence=sequence
+            )
 
 
 class BaseKeyParser(QtCore.QObject):
@@ -177,12 +183,16 @@ class BaseKeyParser(QtCore.QObject):
     keystring_updated = QtCore.pyqtSignal(str)
     request_leave = QtCore.pyqtSignal(usertypes.KeyMode, str, bool)
 
-    def __init__(self, *, mode: usertypes.KeyMode,
-                 win_id: int,
-                 parent: QtCore.QObject = None,
-                 do_log: bool = True,
-                 passthrough: bool = False,
-                 supports_count: bool = True) -> None:
+    def __init__(
+        self,
+        *,
+        mode: usertypes.KeyMode,
+        win_id: int,
+        parent: QtCore.QObject = None,
+        do_log: bool = True,
+        passthrough: bool = False,
+        supports_count: bool = True
+    ) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._sequence = keyutils.KeySequence()
@@ -245,9 +255,9 @@ class BaseKeyParser(QtCore.QObject):
             self._debug_log("Mapped {} -> {}".format(
                 sequence, mapped))
             return self._match_key(mapped)
-        return MatchResult(match_type=QtGui.QKeySequence.NoMatch,
-                           command=None,
-                           sequence=sequence)
+        return MatchResult(
+            match_type=QtGui.QKeySequence.NoMatch, command=None, sequence=sequence
+        )
 
     def _match_count(self, sequence: keyutils.KeySequence,
                      dry_run: bool) -> bool:
@@ -266,8 +276,9 @@ class BaseKeyParser(QtCore.QObject):
             return True
         return False
 
-    def handle(self, e: QtGui.QKeyEvent, *,
-               dry_run: bool = False) -> QtGui.QKeySequence.SequenceMatch:
+    def handle(
+        self, e: QtGui.QKeyEvent, *, dry_run: bool = False
+    ) -> QtGui.QKeySequence.SequenceMatch:
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches

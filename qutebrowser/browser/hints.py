@@ -357,7 +357,8 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword)  # type: ignore[arg-type]
+            QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword
+        )  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))

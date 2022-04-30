@@ -127,8 +127,9 @@ def data_for_url(url: QtCore.QUrl) -> Tuple[str, bytes]:
         A (mimetype, data) tuple.
     """
     norm_url = url.adjusted(
-        QtCore.QUrl.NormalizePathSegments |  # type: ignore[arg-type]
-        QtCore.QUrl.StripTrailingSlash)
+        QtCore.QUrl.NormalizePathSegments
+        | QtCore.QUrl.StripTrailingSlash  # type: ignore[arg-type]
+    )
     if norm_url != url:
         raise Redirect(norm_url)
 
@@ -200,7 +201,10 @@ def qute_tabs(_url: QtCore.QUrl) -> _HandlerRet:
                                     scope='window',
                                     window=win_id)
         for tab in tabbed_browser.widgets():
-            if tab.url() not in [QtCore.QUrl("qute://tabs/"), QtCore.QUrl("qute://tabs")]:
+            if tab.url() not in [
+                QtCore.QUrl("qute://tabs/"),
+                QtCore.QUrl("qute://tabs"),
+            ]:
                 urlstr = tab.url().toDisplayString()
                 tabs[str(win_id)].append((tab.title(), urlstr))
 

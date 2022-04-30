@@ -900,10 +900,10 @@ class QuteProc(testprocess.Process):
             return path.read_text(encoding='utf-8')
 
     def get_screenshot(
-            self,
-            *,
-            probe_pos: QtCore.QPoint = None,
-            probe_color: QtGui.QColor = testutils.Color(0, 0, 0),
+        self,
+        *,
+        probe_pos: QtCore.QPoint = None,
+        probe_color: QtGui.QColor = testutils.Color(0, 0, 0),
     ) -> QtGui.QImage:
         """Get a screenshot of the current page.
 

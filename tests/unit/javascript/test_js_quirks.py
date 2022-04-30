@@ -30,38 +30,41 @@ from qutebrowser.qt import QtCore
 from qutebrowser.utils import usertypes
 
 
-@pytest.mark.parametrize('base_url, source, expected', [
-    pytest.param(
-        QtCore.QUrl(),
-        '"This is a test".replaceAll("test", "fest")',
-        "This is a fest",
-        id='replace-all',
-    ),
-    pytest.param(
-        QtCore.QUrl(),
-        '"This is a test".replaceAll(/[tr]est/g, "fest")',
-        "This is a fest",
-        id='replace-all-regex',
-    ),
-    pytest.param(
-        QtCore.QUrl(),
-        '"This is a [test[".replaceAll("[", "<")',
-        "This is a <test<",
-        id='replace-all-reserved-string',
-    ),
-    pytest.param(
-        QtCore.QUrl('https://test.qutebrowser.org/test'),
-        'typeof globalThis.setTimeout === "function"',
-        True,
-        id='global-this',
-    ),
-    pytest.param(
-        QtCore.QUrl(),
-        'Object.fromEntries([["0", "a"], ["1", "b"]])',
-        {'0': 'a', '1': 'b'},
-        id='object-fromentries',
-    ),
-])
+@pytest.mark.parametrize(
+    'base_url, source, expected',
+    [
+        pytest.param(
+            QtCore.QUrl(),
+            '"This is a test".replaceAll("test", "fest")',
+            "This is a fest",
+            id='replace-all',
+        ),
+        pytest.param(
+            QtCore.QUrl(),
+            '"This is a test".replaceAll(/[tr]est/g, "fest")',
+            "This is a fest",
+            id='replace-all-regex',
+        ),
+        pytest.param(
+            QtCore.QUrl(),
+            '"This is a [test[".replaceAll("[", "<")',
+            "This is a <test<",
+            id='replace-all-reserved-string',
+        ),
+        pytest.param(
+            QtCore.QUrl('https://test.qutebrowser.org/test'),
+            'typeof globalThis.setTimeout === "function"',
+            True,
+            id='global-this',
+        ),
+        pytest.param(
+            QtCore.QUrl(),
+            'Object.fromEntries([["0", "a"], ["1", "b"]])',
+            {'0': 'a', '1': 'b'},
+            id='object-fromentries',
+        ),
+    ],
+)
 def test_js_quirks(config_stub, js_tester_webengine, base_url, source, expected):
     config_stub.val.content.site_specific_quirks.skip = []
     js_tester_webengine.tab._scripts._inject_site_specific_quirks()

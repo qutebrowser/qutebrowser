@@ -44,10 +44,9 @@ class Throttle(QtCore.QObject):
     ends. If another request comes in, it will update the pending request.
     """
 
-    def __init__(self,
-                 func: Callable[..., None],
-                 delay_ms: int,
-                 parent: QtCore.QObject = None) -> None:
+    def __init__(
+        self, func: Callable[..., None], delay_ms: int, parent: QtCore.QObject = None
+    ) -> None:
         """Constructor.
 
         Args:

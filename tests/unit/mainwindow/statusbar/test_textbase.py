@@ -25,12 +25,15 @@ import pytest
 from qutebrowser.mainwindow.statusbar.textbase import TextBase
 
 
-@pytest.mark.parametrize('elidemode, check', [
-    (QtCore.Qt.ElideRight, lambda s: s.endswith('…') or s.endswith('...')),
-    (QtCore.Qt.ElideLeft, lambda s: s.startswith('…') or s.startswith('...')),
-    (QtCore.Qt.ElideMiddle, lambda s: '…' in s or '...' in s),
-    (QtCore.Qt.ElideNone, lambda s: '…' not in s and '...' not in s),
-])
+@pytest.mark.parametrize(
+    'elidemode, check',
+    [
+        (QtCore.Qt.ElideRight, lambda s: s.endswith('…') or s.endswith('...')),
+        (QtCore.Qt.ElideLeft, lambda s: s.startswith('…') or s.startswith('...')),
+        (QtCore.Qt.ElideMiddle, lambda s: '…' in s or '...' in s),
+        (QtCore.Qt.ElideNone, lambda s: '…' not in s and '...' not in s),
+    ],
+)
 def test_elided_text(fake_statusbar, qtbot, elidemode, check):
     """Ensure that a widget too small to hold the entire label text will elide.
 

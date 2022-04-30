@@ -90,8 +90,9 @@ class CompletionMetaInfo(sql.SqlTable):
         'force_rebuild': False,
     }
 
-    def __init__(self, database: sql.Database,
-                 parent: Optional[QtCore.QObject] = None) -> None:
+    def __init__(
+        self, database: sql.Database, parent: Optional[QtCore.QObject] = None
+    ) -> None:
         self._fields = ['key', 'value']
         self._constraints = {'key': 'PRIMARY KEY'}
         super().__init__(database, "CompletionMetaInfo", self._fields,
@@ -138,13 +139,20 @@ class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
 
-    def __init__(self, database: sql.Database,
-                 parent: Optional[QtCore.QObject] = None) -> None:
-        super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime'],
-                         constraints={'url': 'PRIMARY KEY',
-                                      'title': 'NOT NULL',
-                                      'last_atime': 'NOT NULL'},
-                         parent=parent)
+    def __init__(
+        self, database: sql.Database, parent: Optional[QtCore.QObject] = None
+    ) -> None:
+        super().__init__(
+            database,
+            "CompletionHistory",
+            ['url', 'title', 'last_atime'],
+            constraints={
+                'url': 'PRIMARY KEY',
+                'title': 'NOT NULL',
+                'last_atime': 'NOT NULL',
+            },
+            parent=parent,
+        )
         self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
 
 
@@ -163,14 +171,24 @@ class WebHistory(sql.SqlTable):
     # one url cleared
     url_cleared = QtCore.pyqtSignal(QtCore.QUrl)
 
-    def __init__(self, database: sql.Database, progress: HistoryProgress,
-                 parent: Optional[QtCore.QObject] = None) -> None:
-        super().__init__(database, "History", ['url', 'title', 'atime', 'redirect'],
-                         constraints={'url': 'NOT NULL',
-                                      'title': 'NOT NULL',
-                                      'atime': 'NOT NULL',
-                                      'redirect': 'NOT NULL'},
-                         parent=parent)
+    def __init__(
+        self,
+        database: sql.Database,
+        progress: HistoryProgress,
+        parent: Optional[QtCore.QObject] = None,
+    ) -> None:
+        super().__init__(
+            database,
+            "History",
+            ['url', 'title', 'atime', 'redirect'],
+            constraints={
+                'url': 'NOT NULL',
+                'title': 'NOT NULL',
+                'atime': 'NOT NULL',
+                'redirect': 'NOT NULL',
+            },
+            parent=parent,
+        )
         self._progress = progress
         # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None

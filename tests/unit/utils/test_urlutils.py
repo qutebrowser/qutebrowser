@@ -158,10 +158,13 @@ class TestFuzzyUrl:
         assert not os_mock.path.exists.called
         assert url == QtCore.QUrl('http://foo')
 
-    @pytest.mark.parametrize('path, expected', [
-        ('/foo', QtCore.QUrl('file:///foo')),
-        ('/bar\n', QtCore.QUrl('file:///bar')),
-    ])
+    @pytest.mark.parametrize(
+        'path, expected',
+        [
+            ('/foo', QtCore.QUrl('file:///foo')),
+            ('/bar\n', QtCore.QUrl('file:///bar')),
+        ],
+    )
     def test_file_absolute(self, path, expected, os_mock):
         """Test with an absolute path."""
         os_mock.path.exists.return_value = True
@@ -543,61 +546,78 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
             urlutils.raise_cmdexc_if_invalid(qurl)
 
 
-@pytest.mark.parametrize('qurl, output', [
-    (QtCore.QUrl(), None),
-    (QtCore.QUrl('http://qutebrowser.org/test.html'), 'test.html'),
-    (QtCore.QUrl('http://qutebrowser.org/foo.html#bar'), 'foo.html'),
-    (QtCore.QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'), 'foo'),
-    (QtCore.QUrl('http://qutebrowser.org/'), 'qutebrowser.org.html'),
-    (QtCore.QUrl('qute://'), None),
-    # data URL support
-    (QtCore.QUrl('data:text/plain,'), 'download.txt'),
-    (QtCore.QUrl('data:application/pdf,'), 'download.pdf'),
-    (QtCore.QUrl('data:foo/bar,'), 'download'),  # unknown extension
-    (QtCore.QUrl('data:text/xul,'), 'download.xul'),  # strict=False
-    (QtCore.QUrl('data:'), None),  # invalid data URL
-])
+@pytest.mark.parametrize(
+    'qurl, output',
+    [
+        (QtCore.QUrl(), None),
+        (QtCore.QUrl('http://qutebrowser.org/test.html'), 'test.html'),
+        (QtCore.QUrl('http://qutebrowser.org/foo.html#bar'), 'foo.html'),
+        (QtCore.QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'), 'foo'),
+        (QtCore.QUrl('http://qutebrowser.org/'), 'qutebrowser.org.html'),
+        (QtCore.QUrl('qute://'), None),
+        # data URL support
+        (QtCore.QUrl('data:text/plain,'), 'download.txt'),
+        (QtCore.QUrl('data:application/pdf,'), 'download.pdf'),
+        (QtCore.QUrl('data:foo/bar,'), 'download'),  # unknown extension
+        (QtCore.QUrl('data:text/xul,'), 'download.xul'),  # strict=False
+        (QtCore.QUrl('data:'), None),  # invalid data URL
+    ],
+)
 def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
 
 
-@pytest.mark.parametrize('qurl', [QtCore.QUrl(), QtCore.QUrl('qute://'), QtCore.QUrl('data:')])
+@pytest.mark.parametrize(
+    'qurl', [QtCore.QUrl(), QtCore.QUrl('qute://'), QtCore.QUrl('data:')]
+)
 def test_filename_from_url_fallback(qurl):
     assert urlutils.filename_from_url(qurl, fallback='fallback') == 'fallback'
 
 
-@pytest.mark.parametrize('qurl, expected', [
-    (QtCore.QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
-    (QtCore.QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
-    (QtCore.QUrl('http://qutebrowser.org:8010/waterfall'),
-     ('http', 'qutebrowser.org', 8010)),
-    (QtCore.QUrl('https://example.com/'), ('https', 'example.com', 443)),
-    (QtCore.QUrl('https://example.com:4343/'), ('https', 'example.com', 4343)),
-    (QtCore.QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
-     ('http', 'qutebrowser.org', 80)),
-])
+@pytest.mark.parametrize(
+    'qurl, expected',
+    [
+        (QtCore.QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
+        (QtCore.QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
+        (
+            QtCore.QUrl('http://qutebrowser.org:8010/waterfall'),
+            ('http', 'qutebrowser.org', 8010),
+        ),
+        (QtCore.QUrl('https://example.com/'), ('https', 'example.com', 443)),
+        (QtCore.QUrl('https://example.com:4343/'), ('https', 'example.com', 4343)),
+        (
+            QtCore.QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
+            ('http', 'qutebrowser.org', 80),
+        ),
+    ],
+)
 def test_host_tuple_valid(qurl, expected):
     assert urlutils.host_tuple(qurl) == expected
 
 
-@pytest.mark.parametrize('qurl, expected', [
-    (QtCore.QUrl(), urlutils.InvalidUrlError),
-    (QtCore.QUrl('qute://'), ValueError),
-    (QtCore.QUrl('qute://foobar'), ValueError),
-    (QtCore.QUrl('mailto:nobody'), ValueError),
-])
+@pytest.mark.parametrize(
+    'qurl, expected',
+    [
+        (QtCore.QUrl(), urlutils.InvalidUrlError),
+        (QtCore.QUrl('qute://'), ValueError),
+        (QtCore.QUrl('qute://foobar'), ValueError),
+        (QtCore.QUrl('mailto:nobody'), ValueError),
+    ],
+)
 def test_host_tuple_invalid(qurl, expected):
     with pytest.raises(expected):
         urlutils.host_tuple(qurl)
 
 
 class TestInvalidUrlError:
-
-    @pytest.mark.parametrize('url, raising, has_err_string', [
-        (QtCore.QUrl(), False, False),
-        (QtCore.QUrl('http://www.example.com/'), True, False),
-        (QtCore.QUrl('://'), False, True),
-    ])
+    @pytest.mark.parametrize(
+        'url, raising, has_err_string',
+        [
+            (QtCore.QUrl(), False, False),
+            (QtCore.QUrl('http://www.example.com/'), True, False),
+            (QtCore.QUrl('://'), False, True),
+        ],
+    )
     def test_invalid_url_error(self, url, raising, has_err_string):
         """Test InvalidUrlError.
 
@@ -673,22 +693,26 @@ def test_data_url():
     assert url == QtCore.QUrl('data:text/plain;base64,Zm9v')
 
 
-@pytest.mark.parametrize('url, expected', [
-    # No IDN
-    (QtCore.QUrl('http://www.example.com'), 'http://www.example.com'),
-    # IDN in domain
-    (QtCore.QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
-    # IDN with non-whitelisted TLD
-    (QtCore.QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
-    # Unicode only in path
-    (QtCore.QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
-    # Unicode only in TLD (looks like Qt shows Punycode with рф...)
-    (QtCore.QUrl('http://www.example.xn--p1ai'),
-     '(www.example.xn--p1ai) http://www.example.рф'),
-    # https://bugreports.qt.io/browse/QTBUG-60364
-    (QtCore.QUrl('http://www.xn--80ak6aa92e.com'),
-     'http://www.xn--80ak6aa92e.com'),
-])
+@pytest.mark.parametrize(
+    'url, expected',
+    [
+        # No IDN
+        (QtCore.QUrl('http://www.example.com'), 'http://www.example.com'),
+        # IDN in domain
+        (QtCore.QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
+        # IDN with non-whitelisted TLD
+        (QtCore.QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
+        # Unicode only in path
+        (QtCore.QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
+        # Unicode only in TLD (looks like Qt shows Punycode with рф...)
+        (
+            QtCore.QUrl('http://www.example.xn--p1ai'),
+            '(www.example.xn--p1ai) http://www.example.рф',
+        ),
+        # https://bugreports.qt.io/browse/QTBUG-60364
+        (QtCore.QUrl('http://www.xn--80ak6aa92e.com'), 'http://www.xn--80ak6aa92e.com'),
+    ],
+)
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected
 
@@ -699,24 +723,52 @@ def test_safe_display_string_invalid():
 
 
 class TestProxyFromUrl:
-
-    @pytest.mark.parametrize('url, expected', [
-        ('socks://example.com/',
-         QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com')),
-        ('socks5://example.com',
-         QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com')),
-        ('socks5://example.com:2342',
-         QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
-        ('socks5://foo@example.com',
-         QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
-        ('socks5://foo:bar@example.com',
-         QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
-                       'bar')),
-        ('socks5://foo:bar@example.com:2323',
-         QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 2323,
-                       'foo', 'bar')),
-        ('direct://', QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.NoProxy)),
-    ])
+    @pytest.mark.parametrize(
+        'url, expected',
+        [
+            (
+                'socks://example.com/',
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com'
+                ),
+            ),
+            (
+                'socks5://example.com',
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com'
+                ),
+            ),
+            (
+                'socks5://example.com:2342',
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 2342
+                ),
+            ),
+            (
+                'socks5://foo@example.com',
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo'
+                ),
+            ),
+            (
+                'socks5://foo:bar@example.com',
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo', 'bar'
+                ),
+            ),
+            (
+                'socks5://foo:bar@example.com:2323',
+                QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.Socks5Proxy,
+                    'example.com',
+                    2323,
+                    'foo',
+                    'bar',
+                ),
+            ),
+            ('direct://', QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.NoProxy)),
+        ],
+    )
     def test_proxy_from_url_valid(self, url, expected):
         assert urlutils.proxy_from_url(QtCore.QUrl(url)) == expected
 
@@ -738,29 +790,46 @@ class TestProxyFromUrl:
 
 
 class TestParseJavascriptUrl:
-
-    @pytest.mark.parametrize('url, message', [
-        (QtCore.QUrl(), ""),
-        (QtCore.QUrl('https://example.com'), "Expected a javascript:... URL"),
-        (QtCore.QUrl('javascript://example.com'),
-         "URL contains unexpected components: example.com"),
-        (QtCore.QUrl('javascript://foo:bar@example.com:1234'),
-         "URL contains unexpected components: foo:bar@example.com:1234"),
-    ])
+    @pytest.mark.parametrize(
+        'url, message',
+        [
+            (QtCore.QUrl(), ""),
+            (QtCore.QUrl('https://example.com'), "Expected a javascript:... URL"),
+            (
+                QtCore.QUrl('javascript://example.com'),
+                "URL contains unexpected components: example.com",
+            ),
+            (
+                QtCore.QUrl('javascript://foo:bar@example.com:1234'),
+                "URL contains unexpected components: foo:bar@example.com:1234",
+            ),
+        ],
+    )
     def test_invalid(self, url, message):
         with pytest.raises(urlutils.Error, match=message):
             urlutils.parse_javascript_url(url)
 
-    @pytest.mark.parametrize('url, source', [
-        (QtCore.QUrl('javascript:"hello" %0a "world"'), '"hello" \n "world"'),
-        (QtCore.QUrl('javascript:/'), '/'),
-        (QtCore.QUrl('javascript:///'), '///'),
-        # https://github.com/web-platform-tests/wpt/blob/master/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-query-fragment-components.html
-        (QtCore.QUrl('javascript:"nope" ? "yep" : "what";'), '"nope" ? "yep" : "what";'),
-        (QtCore.QUrl('javascript:"wrong"; // # %0a "ok";'), '"wrong"; // # \n "ok";'),
-        (QtCore.QUrl('javascript:"%252525 ? %252525 # %252525"'),
-         '"%2525 ? %2525 # %2525"'),
-    ])
+    @pytest.mark.parametrize(
+        'url, source',
+        [
+            (QtCore.QUrl('javascript:"hello" %0a "world"'), '"hello" \n "world"'),
+            (QtCore.QUrl('javascript:/'), '/'),
+            (QtCore.QUrl('javascript:///'), '///'),
+            # https://github.com/web-platform-tests/wpt/blob/master/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-query-fragment-components.html
+            (
+                QtCore.QUrl('javascript:"nope" ? "yep" : "what";'),
+                '"nope" ? "yep" : "what";',
+            ),
+            (
+                QtCore.QUrl('javascript:"wrong"; // # %0a "ok";'),
+                '"wrong"; // # \n "ok";',
+            ),
+            (
+                QtCore.QUrl('javascript:"%252525 ? %252525 # %252525"'),
+                '"%2525 ? %2525 # %2525"',
+            ),
+        ],
+    )
     def test_valid(self, url, source):
         assert urlutils.parse_javascript_url(url) == source
 

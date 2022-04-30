@@ -337,7 +337,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
         if self._reply is None:
             error = "Unknown error: {}".format(
-                debug.qenum_key(QtNetwork.QNetworkReply, code))
+                debug.qenum_key(QtNetwork.QNetworkReply, code)
+            )
         else:
             error = self._reply.errorString()
 
@@ -370,7 +371,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """
         assert self._reply is not None
         redirect = self._reply.attribute(
-            QtNetwork.QNetworkRequest.RedirectionTargetAttribute)
+            QtNetwork.QNetworkRequest.RedirectionTargetAttribute
+        )
         if redirect is None or redirect.isEmpty():
             return False
         new_url = self._reply.url().resolved(redirect)
@@ -509,8 +511,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
-        request.setAttribute(QtNetwork.QNetworkRequest.CacheLoadControlAttribute,
-                             QtNetwork.QNetworkRequest.AlwaysNetwork)
+        request.setAttribute(
+            QtNetwork.QNetworkRequest.CacheLoadControlAttribute,
+            QtNetwork.QNetworkRequest.AlwaysNetwork,
+        )
 
         if suggested_fn is None:
             suggested_fn = self._get_suggested_filename(request)

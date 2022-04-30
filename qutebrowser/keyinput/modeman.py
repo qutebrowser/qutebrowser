@@ -269,8 +269,9 @@ class ModeManager(QtCore.QObject):
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)
 
-    def _handle_keypress(self, event: QtGui.QKeyEvent, *,
-                         dry_run: bool = False) -> bool:
+    def _handle_keypress(
+        self, event: QtGui.QKeyEvent, *, dry_run: bool = False
+    ) -> bool:
         """Handle filtering of KeyPress events.
 
         Args:
@@ -460,8 +461,9 @@ class ModeManager(QtCore.QObject):
         handlers: Mapping[QtCore.QEvent.Type, Callable[[QtGui.QKeyEvent], bool]] = {
             QtCore.QEvent.KeyPress: self._handle_keypress,
             QtCore.QEvent.KeyRelease: self._handle_keyrelease,
-            QtCore.QEvent.ShortcutOverride:
-                functools.partial(self._handle_keypress, dry_run=True),
+            QtCore.QEvent.ShortcutOverride: functools.partial(
+                self._handle_keypress, dry_run=True
+            ),
         }
         handler = handlers[event.type()]
         return handler(cast(QtGui.QKeyEvent, event))

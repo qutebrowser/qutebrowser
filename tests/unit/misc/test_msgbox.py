@@ -51,14 +51,22 @@ def test_attributes(qtbot):
     assert box.parent() is parent
 
 
-@pytest.mark.parametrize('plain_text, expected', [
-    (True, QtCore.Qt.PlainText),
-    (False, QtCore.Qt.RichText),
-    (None, QtCore.Qt.AutoText),
-])
+@pytest.mark.parametrize(
+    'plain_text, expected',
+    [
+        (True, QtCore.Qt.PlainText),
+        (False, QtCore.Qt.RichText),
+        (None, QtCore.Qt.AutoText),
+    ],
+)
 def test_plain_text(qtbot, plain_text, expected):
-    box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QtWidgets.QMessageBox.Information, plain_text=plain_text)
+    box = msgbox.msgbox(
+        parent=None,
+        title='foo',
+        text='foo',
+        icon=QtWidgets.QMessageBox.Information,
+        plain_text=plain_text,
+    )
     qtbot.add_widget(box)
     assert box.textFormat() == expected
 
@@ -71,8 +79,13 @@ def test_finished_signal(qtbot):
         nonlocal signal_triggered
         signal_triggered = True
 
-    box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QtWidgets.QMessageBox.Information, on_finished=on_finished)
+    box = msgbox.msgbox(
+        parent=None,
+        title='foo',
+        text='foo',
+        icon=QtWidgets.QMessageBox.Information,
+        on_finished=on_finished,
+    )
 
     qtbot.add_widget(box)
 

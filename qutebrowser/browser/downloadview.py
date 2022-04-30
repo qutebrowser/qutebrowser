@@ -62,7 +62,9 @@ class DownloadView(QtWidgets.QListView):
         stylesheet.set_register(self)
         self.setResizeMode(QtWidgets.QListView.Adjust)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
+        self.setSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed
+        )
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setFlow(QtWidgets.QListView.LeftToRight)
         self.setSpacing(1)

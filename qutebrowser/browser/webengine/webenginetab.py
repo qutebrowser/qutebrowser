@@ -229,8 +229,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
             found_text = 'found' if found else "didn't find"
             if flags:
-                flag_text = 'with flags {}'.format(debug.qflags_key(
-                    QtWebEngineWidgets.QWebEnginePage, flags, klass=QtWebEngineWidgets.QWebEnginePage.FindFlag))
+                flag_text = 'with flags {}'.format(
+                    debug.qflags_key(
+                        QtWebEngineWidgets.QWebEnginePage,
+                        flags,
+                        klass=QtWebEngineWidgets.QWebEnginePage.FindFlag,
+                    )
+                )
             else:
                 flag_text = ''
             log.webview.debug(' '.join([caller, found_text, text, flag_text])
@@ -659,8 +664,10 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         if cur_data is not None:
             if 'zoom' in cur_data:
                 self._tab.zoom.set_factor(cur_data['zoom'])
-            if ('scroll-pos' in cur_data and
-                    self._tab.scroller.pos_px() == QtCore.QPoint(0, 0)):
+            if (
+                'scroll-pos' in cur_data
+                and self._tab.scroller.pos_px() == QtCore.QPoint(0, 0)
+            ):
                 self._tab.load_finished.connect(_on_load_finished)
 
 
@@ -924,21 +931,27 @@ class _WebEnginePermissions(QtCore.QObject):
         """Ask the user for approval for geolocation/media/etc.."""
         page = self._widget.page()
         grant_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
-            QtWebEngineWidgets.QWebEnginePage.PermissionGrantedByUser)
+            page.setFeaturePermission,
+            url,
+            feature,
+            QtWebEngineWidgets.QWebEnginePage.PermissionGrantedByUser,
+        )
         deny_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
-            QtWebEngineWidgets.QWebEnginePage.PermissionDeniedByUser)
+            page.setFeaturePermission,
+            url,
+            feature,
+            QtWebEngineWidgets.QWebEnginePage.PermissionDeniedByUser,
+        )
 
         permission_str = debug.qenum_key(QtWebEngineWidgets.QWebEnginePage, feature)
 
         if not url.isValid():
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
-            is_qtbug = (qtutils.version_check('5.15.0',
-                                              compiled=False,
-                                              exact=True) and
-                        self._tab.is_private and
-                        feature == QtWebEngineWidgets.QWebEnginePage.Notifications)
+            is_qtbug = (
+                qtutils.version_check('5.15.0', compiled=False, exact=True)
+                and self._tab.is_private
+                and feature == QtWebEngineWidgets.QWebEnginePage.Notifications
+            )
             logger = log.webview.debug if is_qtbug else log.webview.warning
             logger("Ignoring feature permission {} for invalid URL {}".format(
                 permission_str, url))
@@ -952,10 +965,13 @@ class _WebEnginePermissions(QtCore.QObject):
             return
 
         if (
-                feature in [QtWebEngineWidgets.QWebEnginePage.DesktopVideoCapture,
-                            QtWebEngineWidgets.QWebEnginePage.DesktopAudioVideoCapture] and
-                qtutils.version_check('5.13', compiled=False) and
-                not qtutils.version_check('5.13.2', compiled=False)
+            feature
+            in [
+                QtWebEngineWidgets.QWebEnginePage.DesktopVideoCapture,
+                QtWebEngineWidgets.QWebEnginePage.DesktopAudioVideoCapture,
+            ]
+            and qtutils.version_check('5.13', compiled=False)
+            and not qtutils.version_check('5.13.2', compiled=False)
         ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-78016
             log.webview.warning("Ignoring desktop sharing request due to "
@@ -1013,8 +1029,11 @@ class _Quirk:
 
     filename: str
     injection_point: QtWebEngineWidgets.QWebEngineScript.InjectionPoint = (
-        QtWebEngineWidgets.QWebEngineScript.DocumentCreation)
-    world: QtWebEngineWidgets.QWebEngineScript.ScriptWorldId = QtWebEngineWidgets.QWebEngineScript.MainWorld
+        QtWebEngineWidgets.QWebEngineScript.DocumentCreation
+    )
+    world: QtWebEngineWidgets.QWebEngineScript.ScriptWorldId = (
+        QtWebEngineWidgets.QWebEngineScript.MainWorld
+    )
     predicate: bool = True
     name: Optional[str] = None
 
@@ -1052,10 +1071,15 @@ class _WebEngineScripts(QtCore.QObject):
         code = javascript.assemble('stylesheet', 'set_css', css)
         self._tab.run_js_async(code)
 
-    def _inject_js(self, name, js_code, *,
-                   world=QtWebEngineWidgets.QWebEngineScript.ApplicationWorld,
-                   injection_point=QtWebEngineWidgets.QWebEngineScript.DocumentCreation,
-                   subframes=False):
+    def _inject_js(
+        self,
+        name,
+        js_code,
+        *,
+        world=QtWebEngineWidgets.QWebEngineScript.ApplicationWorld,
+        injection_point=QtWebEngineWidgets.QWebEngineScript.DocumentCreation,
+        subframes=False,
+    ):
         """Inject the given script to run early on a page load."""
         script = QtWebEngineWidgets.QWebEngineScript()
         script.setInjectionPoint(injection_point)
@@ -1169,7 +1193,9 @@ class _WebEngineScripts(QtCore.QObject):
             # NOTE that this needs to be done before setSourceCode, so that
             # QtWebEngine's parsing of GreaseMonkey tags will override it if there is a
             # @run-at comment.
-            new_script.setInjectionPoint(QtWebEngineWidgets.QWebEngineScript.DocumentReady)
+            new_script.setInjectionPoint(
+                QtWebEngineWidgets.QWebEngineScript.DocumentReady
+            )
 
             new_script.setSourceCode(script.code())
             new_script.setName(script.full_name())
@@ -1177,8 +1203,11 @@ class _WebEngineScripts(QtCore.QObject):
 
             if script.needs_document_end_workaround():
                 log.greasemonkey.debug(
-                    f"Forcing @run-at document-end for {script.name}")
-                new_script.setInjectionPoint(QtWebEngineWidgets.QWebEngineScript.DocumentReady)
+                    f"Forcing @run-at document-end for {script.name}"
+                )
+                new_script.setInjectionPoint(
+                    QtWebEngineWidgets.QWebEngineScript.DocumentReady
+                )
 
             log.greasemonkey.debug(f'adding script: {new_script.name()}')
             page_scripts.insert(new_script)
@@ -1353,7 +1382,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def run_js_async(self, code, callback=None, *, world=None):
         world_id_type = Union[QtWebEngineWidgets.QWebEngineScript.ScriptWorldId, int]
         if world is None:
-            world_id: world_id_type = QtWebEngineWidgets.QWebEngineScript.ApplicationWorld
+            world_id: world_id_type = (
+                QtWebEngineWidgets.QWebEngineScript.ApplicationWorld
+            )
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1429,7 +1460,8 @@ class WebEngineTab(browsertab.AbstractTab):
         title_url = QtCore.QUrl(url)
         title_url.setScheme('')
         title_url_str = title_url.toDisplayString(
-            QtCore.QUrl.RemoveScheme)  # type: ignore[arg-type]
+            QtCore.QUrl.RemoveScheme
+        )  # type: ignore[arg-type]
         if title == title_url_str.strip('/'):
             title = ""
 
@@ -1492,25 +1524,24 @@ class WebEngineTab(browsertab.AbstractTab):
         log.webview.debug("Renderer process PID for tab {}: {}"
                           .format(self.tab_id, pid))
 
-    @QtCore.pyqtSlot(QtWebEngineWidgets.QWebEnginePage.RenderProcessTerminationStatus, int)
+    @QtCore.pyqtSlot(
+        QtWebEngineWidgets.QWebEnginePage.RenderProcessTerminationStatus, int
+    )
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
-        if (status == QtWebEngineWidgets.QWebEnginePage.AbnormalTerminationStatus and
-                exitcode == 256):
+        if (
+            status == QtWebEngineWidgets.QWebEnginePage.AbnormalTerminationStatus
+            and exitcode == 256
+        ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58697
             status = QtWebEngineWidgets.QWebEnginePage.CrashedTerminationStatus
 
         status_map = {
-            QtWebEngineWidgets.QWebEnginePage.NormalTerminationStatus:
-                browsertab.TerminationStatus.normal,
-            QtWebEngineWidgets.QWebEnginePage.AbnormalTerminationStatus:
-                browsertab.TerminationStatus.abnormal,
-            QtWebEngineWidgets.QWebEnginePage.CrashedTerminationStatus:
-                browsertab.TerminationStatus.crashed,
-            QtWebEngineWidgets.QWebEnginePage.KilledTerminationStatus:
-                browsertab.TerminationStatus.killed,
-            -1:
-                browsertab.TerminationStatus.unknown,
+            QtWebEngineWidgets.QWebEnginePage.NormalTerminationStatus: browsertab.TerminationStatus.normal,
+            QtWebEngineWidgets.QWebEnginePage.AbnormalTerminationStatus: browsertab.TerminationStatus.abnormal,
+            QtWebEngineWidgets.QWebEnginePage.CrashedTerminationStatus: browsertab.TerminationStatus.crashed,
+            QtWebEngineWidgets.QWebEnginePage.KilledTerminationStatus: browsertab.TerminationStatus.killed,
+            -1: browsertab.TerminationStatus.unknown,
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
@@ -1603,9 +1634,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
-        is_resource = (
-            first_party_url.isValid() and
-            url.matches(first_party_url, QtCore.QUrl.RemoveScheme))
+        is_resource = first_party_url.isValid() and url.matches(
+            first_party_url, QtCore.QUrl.RemoveScheme
+        )
         if show_non_overr_cert_error and is_resource:
             self._show_error_page(url, str(error))
 

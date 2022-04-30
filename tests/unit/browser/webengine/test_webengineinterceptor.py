@@ -21,6 +21,7 @@
 
 
 from helpers import testutils
+
 testutils.qt_module_skip('QtWebEngineWidgets')
 
 from qutebrowser.qt import QtWebEngineCore
@@ -30,8 +31,11 @@ from qutebrowser.browser.webengine import interceptor
 def test_no_missing_resource_types():
     request_interceptor = interceptor.RequestInterceptor()
     qb_keys = request_interceptor._resource_types.keys()
-    qt_keys = {i for i in vars(QtWebEngineCore.QWebEngineUrlRequestInfo).values()
-               if isinstance(i, QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceType)}
+    qt_keys = {
+        i
+        for i in vars(QtWebEngineCore.QWebEngineUrlRequestInfo).values()
+        if isinstance(i, QtWebEngineCore.QWebEngineUrlRequestInfo.ResourceType)
+    }
     assert qt_keys == qb_keys
 
 

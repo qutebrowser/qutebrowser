@@ -58,16 +58,25 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, *, mode: usertypes.KeyMode,
-                 win_id: int,
-                 commandrunner: 'runners.CommandRunner',
-                 parent: QtCore.QObject = None,
-                 do_log: bool = True,
-                 passthrough: bool = False,
-                 supports_count: bool = True) -> None:
-        super().__init__(mode=mode, win_id=win_id, parent=parent,
-                         do_log=do_log, passthrough=passthrough,
-                         supports_count=supports_count)
+    def __init__(
+        self,
+        *,
+        mode: usertypes.KeyMode,
+        win_id: int,
+        commandrunner: 'runners.CommandRunner',
+        parent: QtCore.QObject = None,
+        do_log: bool = True,
+        passthrough: bool = False,
+        supports_count: bool = True
+    ) -> None:
+        super().__init__(
+            mode=mode,
+            win_id=win_id,
+            parent=parent,
+            do_log=do_log,
+            passthrough=passthrough,
+            supports_count=supports_count,
+        )
         self._commandrunner = commandrunner
 
     def execute(self, cmdstr: str, count: int = None) -> None:
@@ -87,11 +96,19 @@ class NormalKeyParser(CommandKeyParser):
 
     _sequence: keyutils.KeySequence
 
-    def __init__(self, *, win_id: int,
-                 commandrunner: 'runners.CommandRunner',
-                 parent: QtCore.QObject = None) -> None:
-        super().__init__(mode=usertypes.KeyMode.normal, win_id=win_id,
-                         commandrunner=commandrunner, parent=parent)
+    def __init__(
+        self,
+        *,
+        win_id: int,
+        commandrunner: 'runners.CommandRunner',
+        parent: QtCore.QObject = None
+    ) -> None:
+        super().__init__(
+            mode=usertypes.KeyMode.normal,
+            win_id=win_id,
+            commandrunner=commandrunner,
+            parent=parent,
+        )
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
         self._partial_timer.timeout.connect(self._clear_partial_match)
@@ -102,8 +119,9 @@ class NormalKeyParser(CommandKeyParser):
     def __repr__(self) -> str:
         return utils.get_repr(self)
 
-    def handle(self, e: QtGui.QKeyEvent, *,
-               dry_run: bool = False) -> QtGui.QKeySequence.SequenceMatch:
+    def handle(
+        self, e: QtGui.QKeyEvent, *, dry_run: bool = False
+    ) -> QtGui.QKeySequence.SequenceMatch:
         """Override to abort if the key is a startchar."""
         txt = e.text().strip()
         if self._inhibited:
@@ -157,23 +175,35 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
     _sequence: keyutils.KeySequence
 
-    def __init__(self, *, win_id: int,
-                 commandrunner: 'runners.CommandRunner',
-                 hintmanager: hints.HintManager,
-                 parent: QtCore.QObject = None) -> None:
-        super().__init__(mode=usertypes.KeyMode.hint, win_id=win_id,
-                         parent=parent, supports_count=False)
-        self._command_parser = CommandKeyParser(mode=usertypes.KeyMode.hint,
-                                                win_id=win_id,
-                                                commandrunner=commandrunner,
-                                                parent=self,
-                                                supports_count=False)
+    def __init__(
+        self,
+        *,
+        win_id: int,
+        commandrunner: 'runners.CommandRunner',
+        hintmanager: hints.HintManager,
+        parent: QtCore.QObject = None
+    ) -> None:
+        super().__init__(
+            mode=usertypes.KeyMode.hint,
+            win_id=win_id,
+            parent=parent,
+            supports_count=False,
+        )
+        self._command_parser = CommandKeyParser(
+            mode=usertypes.KeyMode.hint,
+            win_id=win_id,
+            commandrunner=commandrunner,
+            parent=self,
+            supports_count=False,
+        )
         self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
         self.keystring_updated.connect(self._hintmanager.handle_partial_key)
 
-    def _handle_filter_key(self, e: QtGui.QKeyEvent) -> QtGui.QKeySequence.SequenceMatch:
+    def _handle_filter_key(
+        self, e: QtGui.QKeyEvent
+    ) -> QtGui.QKeySequence.SequenceMatch:
         """Handle keys for string filtering."""
         log.keyboard.debug("Got filter key 0x{:x} text {}".format(
             e.key(), e.text()))
@@ -207,16 +237,16 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
             self._last_press = LastPress.filtertext
             return QtGui.QKeySequence.ExactMatch
 
-    def handle(self, e: QtGui.QKeyEvent, *,
-               dry_run: bool = False) -> QtGui.QKeySequence.SequenceMatch:
+    def handle(
+        self, e: QtGui.QKeyEvent, *, dry_run: bool = False
+    ) -> QtGui.QKeySequence.SequenceMatch:
         """Handle a new keypress and call the respective handlers."""
         if dry_run:
             return super().handle(e, dry_run=True)
 
         assert not dry_run
 
-        if (self._command_parser.handle(e, dry_run=True) !=
-                QtGui.QKeySequence.NoMatch):
+        if self._command_parser.handle(e, dry_run=True) != QtGui.QKeySequence.NoMatch:
             log.keyboard.debug("Handling key via command parser")
             self.clear_keystring()
             return self._command_parser.handle(e)
@@ -264,17 +294,26 @@ class RegisterKeyParser(CommandKeyParser):
                         KeyMode.record_macro and KeyMode.run_macro.
     """
 
-    def __init__(self, *, win_id: int,
-                 mode: usertypes.KeyMode,
-                 commandrunner: 'runners.CommandRunner',
-                 parent: QtCore.QObject = None) -> None:
-        super().__init__(mode=usertypes.KeyMode.register, win_id=win_id,
-                         commandrunner=commandrunner, parent=parent,
-                         supports_count=False)
+    def __init__(
+        self,
+        *,
+        win_id: int,
+        mode: usertypes.KeyMode,
+        commandrunner: 'runners.CommandRunner',
+        parent: QtCore.QObject = None
+    ) -> None:
+        super().__init__(
+            mode=usertypes.KeyMode.register,
+            win_id=win_id,
+            commandrunner=commandrunner,
+            parent=parent,
+            supports_count=False,
+        )
         self._register_mode = mode
 
-    def handle(self, e: QtGui.QKeyEvent, *,
-               dry_run: bool = False) -> QtGui.QKeySequence.SequenceMatch:
+    def handle(
+        self, e: QtGui.QKeyEvent, *, dry_run: bool = False
+    ) -> QtGui.QKeySequence.SequenceMatch:
         """Override to always match the next key and use the register."""
         match = super().handle(e, dry_run=dry_run)
         if match or dry_run:

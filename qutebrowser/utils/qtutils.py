@@ -34,6 +34,7 @@ import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
 from qutebrowser.qt import QtWebKit, QtGui
+
 if QtWebKit:
     qWebKitVersion = QtWebKit.qWebKitVersion  # noqa: N816
 else:
@@ -170,11 +171,14 @@ def check_qdatastream(stream: QtCore.QDataStream) -> None:
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
         QtCore.QDataStream.Ok: "The data stream is operating normally.",
-        QtCore.QDataStream.ReadPastEnd: ("The data stream has read past the end of "
-                                  "the data in the underlying device."),
+        QtCore.QDataStream.ReadPastEnd: (
+            "The data stream has read past the end of "
+            "the data in the underlying device."
+        ),
         QtCore.QDataStream.ReadCorruptData: "The data stream has read corrupt data.",
-        QtCore.QDataStream.WriteFailed: ("The data stream cannot write to the "
-                                  "underlying device."),
+        QtCore.QDataStream.WriteFailed: (
+            "The data stream cannot write to the " "underlying device."
+        ),
     }
     if stream.status() != QtCore.QDataStream.Ok:
         raise OSError(status_to_str[stream.status()])
@@ -185,7 +189,7 @@ _QtSerializableType = Union[
     QtCore.QByteArray,
     QtCore.QUrl,
     'QtWebEngineWidgets.QWebEngineHistory',
-    'QtWebKit.QWebHistory'
+    'QtWebKit.QWebHistory',
 ]
 
 
@@ -458,9 +462,10 @@ class EventLoop(QtCore.QEventLoop):
         self._executing = False
 
     def exec(
-            self,
-            flags: QtCore.QEventLoop.ProcessEventsFlags =
-            cast(QtCore.QEventLoop.ProcessEventsFlags, QtCore.QEventLoop.AllEvents)
+        self,
+        flags: QtCore.QEventLoop.ProcessEventsFlags = cast(
+            QtCore.QEventLoop.ProcessEventsFlags, QtCore.QEventLoop.AllEvents
+        ),
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
@@ -496,10 +501,10 @@ def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
 
 
 def interpolate_color(
-        start: QtGui.QColor,
-        end: QtGui.QColor,
-        percent: int,
-        colorspace: Optional[QtGui.QColor.Spec] = QtGui.QColor.Rgb
+    start: QtGui.QColor,
+    end: QtGui.QColor,
+    percent: int,
+    colorspace: Optional[QtGui.QColor.Spec] = QtGui.QColor.Rgb,
 ) -> QtGui.QColor:
     """Get an interpolated color value.
 

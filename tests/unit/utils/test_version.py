@@ -1078,7 +1078,9 @@ class TestChromiumVersion:
             def defaultProfile(self):
                 raise AssertionError("Should not be called")
 
-        monkeypatch.setattr(webenginesettings.QtWebEngineWidgets, 'QWebEngineProfile', FakeProfile())
+        monkeypatch.setattr(
+            webenginesettings.QtWebEngineWidgets, 'QWebEngineProfile', FakeProfile()
+        )
 
         version.qtwebengine_versions()
 

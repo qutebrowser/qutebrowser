@@ -195,7 +195,9 @@ def _webengine_locales_path() -> pathlib.Path:
         # not QtWebEngine.
         base = pathlib.Path('/app/translations')
     else:
-        base = pathlib.Path(QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
+        base = pathlib.Path(
+            QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)
+        )
     return base / 'qtwebengine_locales'
 
 

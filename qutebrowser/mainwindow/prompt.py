@@ -190,8 +190,10 @@ class PromptQueue(QtCore.QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec() for {}".format(question))
-            flags = cast(QtCore.QEventLoop.ProcessEventsFlags,
-                         QtCore.QEventLoop.ExcludeSocketNotifiers)
+            flags = cast(
+                QtCore.QEventLoop.ProcessEventsFlags,
+                QtCore.QEventLoop.ExcludeSocketNotifiers,
+            )
             loop.exec(flags)
             log.prompt.debug("Ending loop.exec() for {}".format(question))
 
@@ -545,7 +547,9 @@ class _BasePrompt(QtWidgets.QWidget):
                     binding = bindings[0]
                 key_label = QtWidgets.QLabel('<b>{}</b>'.format(html.escape(binding)))
             else:
-                key_label = QtWidgets.QLabel(f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)')
+                key_label = QtWidgets.QLabel(
+                    f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)'
+                )
 
             text_label = QtWidgets.QLabel(text)
             labels.append((key_label, text_label))
@@ -636,7 +640,9 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(question.default)
 
         if config.val.prompt.filebrowser:
-            self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+            self.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
+            )
 
         self._to_complete = ''
         self._root_index = QtCore.QModelIndex()
@@ -779,8 +785,9 @@ class FilenamePrompt(_BasePrompt):
 
         selmodel.setCurrentIndex(
             idx,
-            QtCore.QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
-            QtCore.QItemSelectionModel.Rows)
+            QtCore.QItemSelectionModel.ClearAndSelect
+            | QtCore.QItemSelectionModel.Rows,  # type: ignore[arg-type]
+        )
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
@@ -803,7 +810,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QtCore.QDir.AllDirs | QtCore.QDir.Drives | QtCore.QDir.NoDotAndDotDot)  # type: ignore[arg-type]
+            QtCore.QDir.AllDirs | QtCore.QDir.Drives | QtCore.QDir.NoDotAndDotDot
+        )  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -982,4 +990,5 @@ def init():
     global prompt_queue
     prompt_queue = PromptQueue()
     message.global_bridge.ask_question.connect(  # type: ignore[call-arg]
-        prompt_queue.ask_question, QtCore.Qt.DirectConnection)
+        prompt_queue.ask_question, QtCore.Qt.DirectConnection
+    )

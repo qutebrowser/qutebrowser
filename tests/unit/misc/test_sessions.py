@@ -25,6 +25,7 @@ import pytest
 import yaml
 
 from helpers import testutils
+
 QWebView = testutils.qt_module_skip('QtWebKitWidgets').QWebView
 
 from qutebrowser.misc import sessions
@@ -245,8 +246,9 @@ class TestSave:
     def test_utf_8_invalid(self, tmp_path, sess_man, fake_history):
         """Make sure data containing invalid UTF8 raises SessionError."""
         session_path = tmp_path / 'foo.yml'
-        fake_history([Item(QtCore.QUrl('http://www.qutebrowser.org/'), '\ud800',
-                           active=True)])
+        fake_history(
+            [Item(QtCore.QUrl('http://www.qutebrowser.org/'), '\ud800', active=True)]
+        )
 
         try:
             sess_man.save(str(session_path))
@@ -306,10 +308,13 @@ class TestLoadTab:
         with pytest.raises(sessions.SessionError):
             sess_man._load_tab(fake_webview, {'history': []})
 
-    @pytest.mark.parametrize('key, val, expected', [
-        ('zoom', 1.23, 1.23),
-        ('scroll-pos', {'x': 23, 'y': 42}, QtCore.QPoint(23, 42)),
-    ])
+    @pytest.mark.parametrize(
+        'key, val, expected',
+        [
+            ('zoom', 1.23, 1.23),
+            ('scroll-pos', {'x': 23, 'y': 42}, QtCore.QPoint(23, 42)),
+        ],
+    )
     @pytest.mark.parametrize('in_main_data', [True, False])
     def test_user_data(self, sess_man, fake_webview, key, val, expected,
                        in_main_data):

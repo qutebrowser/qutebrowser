@@ -95,13 +95,16 @@ class TestSqlError:
         (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
     ])
     def test_known(self, error_code, exception):
-        sql_err = QtSql.QSqlError("driver text", "db text", QtSql.QSqlError.UnknownError,
-                            error_code)
+        sql_err = QtSql.QSqlError(
+            "driver text", "db text", QtSql.QSqlError.UnknownError, error_code
+        )
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
     def test_logging(self, caplog):
-        sql_err = QtSql.QSqlError("driver text", "db text", QtSql.QSqlError.UnknownError, '23')
+        sql_err = QtSql.QSqlError(
+            "driver text", "db text", QtSql.QSqlError.UnknownError, '23'
+        )
         with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 

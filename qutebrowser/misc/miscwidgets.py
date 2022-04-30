@@ -44,7 +44,8 @@ class MinimalLineEditMixin:
             """
         )
         self.setAttribute(  # type: ignore[attr-defined]
-            QtCore.Qt.WA_MacShowFocusRect, False)
+            QtCore.Qt.WA_MacShowFocusRect, False
+        )
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
@@ -337,8 +338,12 @@ class InspectorSplitter(QtWidgets.QSplitter):
     _PROTECTED_MAIN_SIZE = 150
     _SMALL_SIZE_THRESHOLD = 300
 
-    def __init__(self, win_id: int, main_webview: QtWidgets.QWidget,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        win_id: int,
+        main_webview: QtWidgets.QWidget,
+        parent: QtWidgets.QWidget = None,
+    ) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self.addWidget(main_webview)
@@ -382,10 +387,11 @@ class InspectorSplitter(QtWidgets.QSplitter):
             self._inspector_idx = 0
             self._main_idx = 1
 
-        self.setOrientation(QtCore.Qt.Horizontal
-                            if position in [inspector.Position.left,
-                                            inspector.Position.right]
-                            else QtCore.Qt.Vertical)
+        self.setOrientation(
+            QtCore.Qt.Horizontal
+            if position in [inspector.Position.left, inspector.Position.right]
+            else QtCore.Qt.Vertical
+        )
         self.insertWidget(self._inspector_idx, inspector_widget)
         self._position = position
         self._load_preferred_size()
@@ -400,8 +406,11 @@ class InspectorSplitter(QtWidgets.QSplitter):
     def _load_preferred_size(self) -> None:
         """Load the preferred size of the inspector widget."""
         assert self._position is not None
-        full = (self.width() if self.orientation() == QtCore.Qt.Horizontal
-                else self.height())
+        full = (
+            self.width()
+            if self.orientation() == QtCore.Qt.Horizontal
+            else self.height()
+        )
 
         # If we first open the inspector with a window size of < 300px
         # (self._SMALL_SIZE_THRESHOLD), we don't want to default to half of the

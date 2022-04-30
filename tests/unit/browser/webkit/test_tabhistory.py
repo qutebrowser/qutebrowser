@@ -24,6 +24,7 @@ from typing import Any
 
 import pytest
 from helpers import testutils
+
 testutils.qt_module_skip('QtWebKit')
 
 from qutebrowser.qt import QtWebKit
@@ -40,18 +41,28 @@ ITEMS = [
     Item(QtCore.QUrl('https://www.heise.de/'), 'heise'),
     Item(QtCore.QUrl('about:blank'), 'blank', active=True),
     Item(QtCore.QUrl('http://example.com/%E2%80%A6'), 'percent'),
-    Item(QtCore.QUrl('http://example.com/?foo=bar'), 'arg',
-         original_url=QtCore.QUrl('http://original.url.example.com/'),
-         user_data={'foo': 23, 'bar': 42}),
+    Item(
+        QtCore.QUrl('http://example.com/?foo=bar'),
+        'arg',
+        original_url=QtCore.QUrl('http://original.url.example.com/'),
+        user_data={'foo': 23, 'bar': 42},
+    ),
     # From https://github.com/OtterBrowser/otter-browser/issues/709#issuecomment-74749471
-    Item(QtCore.QUrl('http://github.com/OtterBrowser/24/134/2344/otter-browser/'
-              'issues/709/'),
-         'Page not found | github',
-         user_data={'zoom': 149, 'scroll-pos': QtCore.QPoint(0, 0)}),
-    Item(QtCore.QUrl('https://mail.google.com/mail/u/0/#label/some+label/'
-              '234lkjsd0932lkjf884jqwerdf4'),
-         '"some label" - email@gmail.com - Gmail"',
-         user_data={'zoom': 120, 'scroll-pos': QtCore.QPoint(0, 0)}),
+    Item(
+        QtCore.QUrl(
+            'http://github.com/OtterBrowser/24/134/2344/otter-browser/' 'issues/709/'
+        ),
+        'Page not found | github',
+        user_data={'zoom': 149, 'scroll-pos': QtCore.QPoint(0, 0)},
+    ),
+    Item(
+        QtCore.QUrl(
+            'https://mail.google.com/mail/u/0/#label/some+label/'
+            '234lkjsd0932lkjf884jqwerdf4'
+        ),
+        '"some label" - email@gmail.com - Gmail"',
+        user_data={'zoom': 120, 'scroll-pos': QtCore.QPoint(0, 0)},
+    ),
 ]
 
 
@@ -133,9 +144,11 @@ def test_no_active_item():
 
 def test_two_active_items():
     """Check tabhistory.serialize with two active items."""
-    items = [Item(QtCore.QUrl(), '', active=True),
-             Item(QtCore.QUrl(), ''),
-             Item(QtCore.QUrl(), '', active=True)]
+    items = [
+        Item(QtCore.QUrl(), '', active=True),
+        Item(QtCore.QUrl(), ''),
+        Item(QtCore.QUrl(), '', active=True),
+    ]
     with pytest.raises(ValueError):
         tabhistory.serialize(items)
 

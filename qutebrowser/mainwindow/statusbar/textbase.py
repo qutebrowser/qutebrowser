@@ -40,7 +40,9 @@ class TextBase(QtWidgets.QLabel):
 
     def __init__(self, parent=None, elidemode=QtCore.Qt.ElideRight):
         super().__init__(parent)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        self.setSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum
+        )
         self._elidemode = elidemode
         self._elided_text = ''
 
@@ -55,7 +57,8 @@ class TextBase(QtWidgets.QLabel):
         """
         if self.text():
             self._elided_text = self.fontMetrics().elidedText(
-                self.text(), self._elidemode, width, QtCore.Qt.TextShowMnemonic)
+                self.text(), self._elidemode, width, QtCore.Qt.TextShowMnemonic
+            )
         else:
             self._elided_text = ''
 

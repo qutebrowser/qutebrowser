@@ -71,8 +71,9 @@ class TabDeque:
         size = config.val.tabs.focus_stack_size
         if size < 0:
             size = None
-        self._stack: Deque[weakref.ReferenceType[QtWidgets.QWidget]] = collections.deque(
-            maxlen=size)
+        self._stack: Deque[
+            weakref.ReferenceType[QtWidgets.QWidget]
+        ] = collections.deque(maxlen=size)
         # Items that have been removed from the primary stack.
         self._stack_deleted: List[weakref.ReferenceType[QtWidgets.QWidget]] = []
         self._ignore_next = False
@@ -102,7 +103,9 @@ class TabDeque:
         self._ignore_next = True
         return tab
 
-    def next(self, cur_tab: QtWidgets.QWidget, *, keep_overflow: bool = True) -> QtWidgets.QWidget:
+    def next(
+        self, cur_tab: QtWidgets.QWidget, *, keep_overflow: bool = True
+    ) -> QtWidgets.QWidget:
         """Get the 'next' tab in the stack.
 
         Throws IndexError on failure.
@@ -215,7 +218,9 @@ class TabbedBrowser(QtWidgets.QWidget):
         self.widget.new_tab_requested.connect(self.tabopen)
         self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
-        self.widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.widget.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
 
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
@@ -564,10 +569,11 @@ class TabbedBrowser(QtWidgets.QWidget):
     @QtCore.pyqtSlot('QUrl', bool)
     @QtCore.pyqtSlot('QUrl', bool, bool)
     def tabopen(
-            self, url: QtCore.QUrl = None,
-            background: bool = None,
-            related: bool = True,
-            idx: int = None,
+        self,
+        url: QtCore.QUrl = None,
+        background: bool = None,
+        related: bool = True,
+        idx: int = None,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 

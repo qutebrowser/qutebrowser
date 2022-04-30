@@ -99,7 +99,9 @@ class FilePathCategory(QtCore.QAbstractListModel):
             paths = self._glob(expanded)
             self._paths = sorted(self._contract_user(val, path) for path in paths)
 
-    def data(self, index: QtCore.QModelIndex, role: int = QtCore.Qt.DisplayRole) -> Optional[str]:
+    def data(
+        self, index: QtCore.QModelIndex, role: int = QtCore.Qt.DisplayRole
+    ) -> Optional[str]:
         """Implement abstract method in QAbstractListModel."""
         if role == QtCore.Qt.DisplayRole and index.column() == 0:
             return self._paths[index.row()]

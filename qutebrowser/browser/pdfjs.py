@@ -95,7 +95,8 @@ def _generate_pdfjs_script(filename):
     url.setQuery(url_query)
 
     js_url = javascript.to_js(
-        url.toString(QtCore.QUrl.FullyEncoded))  # type: ignore[arg-type]
+        url.toString(QtCore.QUrl.FullyEncoded)
+    )  # type: ignore[arg-type]
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
@@ -223,8 +224,9 @@ def is_available():
 def should_use_pdfjs(mimetype, url):
     """Check whether PDF.js should be used."""
     # e.g. 'blob:qute%3A///b45250b3-787e-44d1-a8d8-c2c90f81f981'
-    is_download_url = (url.scheme() == 'blob' and
-                       QtCore.QUrl(url.path()).scheme() == 'qute')
+    is_download_url = (
+        url.scheme() == 'blob' and QtCore.QUrl(url.path()).scheme() == 'qute'
+    )
     is_pdf = mimetype in ['application/pdf', 'application/x-pdf']
     config_enabled = config.instance.get('content.pdfjs', url=url)
     return is_pdf and not is_download_url and config_enabled

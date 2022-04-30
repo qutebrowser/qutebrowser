@@ -158,11 +158,11 @@ def javascript_log_message(level, source, line, msg):
 
 
 def ignore_certificate_error(
-        *,
-        request_url: QtCore.QUrl,
-        first_party_url: QtCore.QUrl,
-        error: usertypes.AbstractCertificateErrorWrapper,
-        abort_on: Iterable[QtCore.pyqtBoundSignal],
+    *,
+    request_url: QtCore.QUrl,
+    first_party_url: QtCore.QUrl,
+    error: usertypes.AbstractCertificateErrorWrapper,
+    abort_on: Iterable[QtCore.pyqtBoundSignal],
 ) -> bool:
     """Display a certificate error question.
 
@@ -182,11 +182,9 @@ def ignore_certificate_error(
 
     # We get the first party URL with a heuristic - with HTTP -> HTTPS redirects, the
     # scheme might not match.
-    is_resource = (
-        first_party_url.isValid() and
-        not request_url.matches(
-            first_party_url,
-            QtCore.QUrl.RemoveScheme))  # type: ignore[arg-type]
+    is_resource = first_party_url.isValid() and not request_url.matches(
+        first_party_url, QtCore.QUrl.RemoveScheme
+    )  # type: ignore[arg-type]
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -217,10 +215,16 @@ def ignore_certificate_error(
         )
 
         urlstr = request_url.toString(
-            QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)  # type: ignore[arg-type]
-        ignore = message.ask(title="Certificate error", text=msg,
-                             mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on, url=urlstr)
+            QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded
+        )  # type: ignore[arg-type]
+        ignore = message.ask(
+            title="Certificate error",
+            text=msg,
+            mode=usertypes.PromptMode.yesno,
+            default=False,
+            abort_on=abort_on,
+            url=urlstr,
+        )
         if ignore is None:
             # prompt aborted
             ignore = False

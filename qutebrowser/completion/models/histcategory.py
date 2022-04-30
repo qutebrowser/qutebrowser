@@ -33,9 +33,13 @@ class HistoryCategory(QtSql.QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 
-    def __init__(self, *, database: sql.Database,
-                 delete_func: util.DeleteFuncType = None,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        *,
+        database: sql.Database,
+        delete_func: util.DeleteFuncType = None,
+        parent: QtWidgets.QWidget = None
+    ) -> None:
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self._database = database

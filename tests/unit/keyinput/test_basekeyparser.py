@@ -144,12 +144,18 @@ class TestHandle:
         prompt_keyparser.execute.assert_called_once_with(
             'message-info ctrla', 5)
 
-    @pytest.mark.parametrize('keys', [
-        [(QtCore.Qt.Key_B, QtCore.Qt.NoModifier), (QtCore.Qt.Key_C, QtCore.Qt.NoModifier)],
-        [(QtCore.Qt.Key_A, QtCore.Qt.ControlModifier | QtCore.Qt.AltModifier)],
-        # Only modifier
-        [(QtCore.Qt.Key_Shift, QtCore.Qt.ShiftModifier)],
-    ])
+    @pytest.mark.parametrize(
+        'keys',
+        [
+            [
+                (QtCore.Qt.Key_B, QtCore.Qt.NoModifier),
+                (QtCore.Qt.Key_C, QtCore.Qt.NoModifier),
+            ],
+            [(QtCore.Qt.Key_A, QtCore.Qt.ControlModifier | QtCore.Qt.AltModifier)],
+            # Only modifier
+            [(QtCore.Qt.Key_Shift, QtCore.Qt.ShiftModifier)],
+        ],
+    )
     def test_invalid_keys(self, prompt_keyparser, keys):
         for key, modifiers in keys:
             info = keyutils.KeyInfo(key, modifiers)
@@ -180,32 +186,39 @@ class TestHandle:
         assert not prompt_keyparser._sequence
 
     def test_valid_keychain(self, handle_text, prompt_keyparser):
-        handle_text(prompt_keyparser,
-                    # Press 'x' which is ignored because of no match
-                    QtCore.Qt.Key_X,
-                    # Then start the real chain
-                    QtCore.Qt.Key_B, QtCore.Qt.Key_A)
+        handle_text(
+            prompt_keyparser,
+            # Press 'x' which is ignored because of no match
+            QtCore.Qt.Key_X,
+            # Then start the real chain
+            QtCore.Qt.Key_B,
+            QtCore.Qt.Key_A,
+        )
         prompt_keyparser.execute.assert_called_with('message-info ba', None)
         assert not prompt_keyparser._sequence
 
-    @pytest.mark.parametrize('key, modifiers, number', [
-        (QtCore.Qt.Key_0, QtCore.Qt.NoModifier, 0),
-        (QtCore.Qt.Key_1, QtCore.Qt.NoModifier, 1),
-        (QtCore.Qt.Key_1, QtCore.Qt.KeypadModifier, 1),
-    ])
-    def test_number_press(self, prompt_keyparser,
-                          key, modifiers, number):
+    @pytest.mark.parametrize(
+        'key, modifiers, number',
+        [
+            (QtCore.Qt.Key_0, QtCore.Qt.NoModifier, 0),
+            (QtCore.Qt.Key_1, QtCore.Qt.NoModifier, 1),
+            (QtCore.Qt.Key_1, QtCore.Qt.KeypadModifier, 1),
+        ],
+    )
+    def test_number_press(self, prompt_keyparser, key, modifiers, number):
         prompt_keyparser.handle(keyutils.KeyInfo(key, modifiers).to_event())
         command = 'message-info {}'.format(number)
         prompt_keyparser.execute.assert_called_once_with(command, None)
         assert not prompt_keyparser._sequence
 
-    @pytest.mark.parametrize('modifiers, text', [
-        (QtCore.Qt.NoModifier, '2'),
-        (QtCore.Qt.KeypadModifier, 'num-2'),
-    ])
-    def test_number_press_keypad(self, keyparser, config_stub,
-                                 modifiers, text):
+    @pytest.mark.parametrize(
+        'modifiers, text',
+        [
+            (QtCore.Qt.NoModifier, '2'),
+            (QtCore.Qt.KeypadModifier, 'num-2'),
+        ],
+    )
+    def test_number_press_keypad(self, keyparser, config_stub, modifiers, text):
         """Make sure a <Num+2> binding overrides the 2 binding."""
         config_stub.val.bindings.commands = {'normal': {
             '2': 'message-info 2',
@@ -248,9 +261,11 @@ class TestHandle:
 
     def test_binding_with_shift(self, prompt_keyparser):
         """Simulate a binding which involves shift."""
-        for key, modifiers in [(QtCore.Qt.Key_Y, QtCore.Qt.NoModifier),
-                               (QtCore.Qt.Key_Shift, QtCore.Qt.ShiftModifier),
-                               (QtCore.Qt.Key_Y, QtCore.Qt.ShiftModifier)]:
+        for key, modifiers in [
+            (QtCore.Qt.Key_Y, QtCore.Qt.NoModifier),
+            (QtCore.Qt.Key_Shift, QtCore.Qt.ShiftModifier),
+            (QtCore.Qt.Key_Y, QtCore.Qt.ShiftModifier),
+        ]:
             info = keyutils.KeyInfo(key, modifiers)
             prompt_keyparser.handle(info.to_event())
 
@@ -288,26 +303,48 @@ class TestCount:
         assert not prompt_keyparser._sequence
 
     def test_count_42(self, handle_text, prompt_keyparser):
-        handle_text(prompt_keyparser, QtCore.Qt.Key_4, QtCore.Qt.Key_2, QtCore.Qt.Key_B, QtCore.Qt.Key_A)
+        handle_text(
+            prompt_keyparser,
+            QtCore.Qt.Key_4,
+            QtCore.Qt.Key_2,
+            QtCore.Qt.Key_B,
+            QtCore.Qt.Key_A,
+        )
         prompt_keyparser.execute.assert_called_once_with('message-info ba', 42)
         assert not prompt_keyparser._sequence
 
     def test_count_42_invalid(self, handle_text, prompt_keyparser):
         # Invalid call with ccx gets ignored
-        handle_text(prompt_keyparser,
-                    QtCore.Qt.Key_4, QtCore.Qt.Key_2, QtCore.Qt.Key_C, QtCore.Qt.Key_C, QtCore.Qt.Key_X)
+        handle_text(
+            prompt_keyparser,
+            QtCore.Qt.Key_4,
+            QtCore.Qt.Key_2,
+            QtCore.Qt.Key_C,
+            QtCore.Qt.Key_C,
+            QtCore.Qt.Key_X,
+        )
         assert not prompt_keyparser.execute.called
         assert not prompt_keyparser._sequence
         # Valid call with ccc gets the correct count
-        handle_text(prompt_keyparser,
-                    QtCore.Qt.Key_2, QtCore.Qt.Key_3, QtCore.Qt.Key_C, QtCore.Qt.Key_C, QtCore.Qt.Key_C)
-        prompt_keyparser.execute.assert_called_once_with(
-            'message-info ccc', 23)
+        handle_text(
+            prompt_keyparser,
+            QtCore.Qt.Key_2,
+            QtCore.Qt.Key_3,
+            QtCore.Qt.Key_C,
+            QtCore.Qt.Key_C,
+            QtCore.Qt.Key_C,
+        )
+        prompt_keyparser.execute.assert_called_once_with('message-info ccc', 23)
         assert not prompt_keyparser._sequence
 
     def test_superscript(self, handle_text, prompt_keyparser):
         # https://github.com/qutebrowser/qutebrowser/issues/3743
-        handle_text(prompt_keyparser, QtCore.Qt.Key_twosuperior, QtCore.Qt.Key_B, QtCore.Qt.Key_A)
+        handle_text(
+            prompt_keyparser,
+            QtCore.Qt.Key_twosuperior,
+            QtCore.Qt.Key_B,
+            QtCore.Qt.Key_A,
+        )
 
     def test_count_keystring_update(self, qtbot,
                                     handle_text, prompt_keyparser):
@@ -322,10 +359,12 @@ class TestCount:
 
     def test_numpad(self, prompt_keyparser):
         """Make sure we can enter a count via numpad."""
-        for key, modifiers in [(QtCore.Qt.Key_4, QtCore.Qt.KeypadModifier),
-                               (QtCore.Qt.Key_2, QtCore.Qt.KeypadModifier),
-                               (QtCore.Qt.Key_B, QtCore.Qt.NoModifier),
-                               (QtCore.Qt.Key_A, QtCore.Qt.NoModifier)]:
+        for key, modifiers in [
+            (QtCore.Qt.Key_4, QtCore.Qt.KeypadModifier),
+            (QtCore.Qt.Key_2, QtCore.Qt.KeypadModifier),
+            (QtCore.Qt.Key_B, QtCore.Qt.NoModifier),
+            (QtCore.Qt.Key_A, QtCore.Qt.NoModifier),
+        ]:
             info = keyutils.KeyInfo(key, modifiers)
             prompt_keyparser.handle(info.to_event())
         prompt_keyparser.execute.assert_called_once_with('message-info ba', 42)

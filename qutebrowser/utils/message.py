@@ -83,13 +83,16 @@ def info(message: str, *, replace: str = None) -> None:
     global_bridge.show(usertypes.MessageLevel.info, message, replace)
 
 
-def _build_question(title: str,
-                    text: str = None, *,
-                    mode: usertypes.PromptMode,
-                    default: Union[None, bool, str] = None,
-                    abort_on: Iterable[QtCore.pyqtBoundSignal] = (),
-                    url: str = None,
-                    option: bool = None) -> usertypes.Question:
+def _build_question(
+    title: str,
+    text: str = None,
+    *,
+    mode: usertypes.PromptMode,
+    default: Union[None, bool, str] = None,
+    abort_on: Iterable[QtCore.pyqtBoundSignal] = (),
+    url: str = None,
+    option: bool = None
+) -> usertypes.Question:
     """Common function for ask/ask_async."""
     question = usertypes.Question()
     question.title = title

@@ -79,26 +79,43 @@ def test_str():
     assert str(trie) == textwrap.dedent(expected).lstrip('\n')
 
 
-@pytest.mark.parametrize('configured, expected', [
-    ([],
-     # null match
-     [('a', QtGui.QKeySequence.NoMatch),
-      ('', QtGui.QKeySequence.NoMatch)]),
-    (['abcd'],
-     [('abcd', QtGui.QKeySequence.ExactMatch),
-      ('abc', QtGui.QKeySequence.PartialMatch)]),
-    (['aa', 'ab', 'ac', 'ad'],
-     [('ac', QtGui.QKeySequence.ExactMatch),
-      ('a', QtGui.QKeySequence.PartialMatch),
-      ('f', QtGui.QKeySequence.NoMatch),
-      ('acd', QtGui.QKeySequence.NoMatch)]),
-    (['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
-     [('aaaaaaab', QtGui.QKeySequence.ExactMatch),
-      ('z', QtGui.QKeySequence.NoMatch)]),
-    (string.ascii_letters,
-     [('a', QtGui.QKeySequence.ExactMatch),
-      ('!', QtGui.QKeySequence.NoMatch)]),
-])
+@pytest.mark.parametrize(
+    'configured, expected',
+    [
+        (
+            [],
+            # null match
+            [('a', QtGui.QKeySequence.NoMatch), ('', QtGui.QKeySequence.NoMatch)],
+        ),
+        (
+            ['abcd'],
+            [
+                ('abcd', QtGui.QKeySequence.ExactMatch),
+                ('abc', QtGui.QKeySequence.PartialMatch),
+            ],
+        ),
+        (
+            ['aa', 'ab', 'ac', 'ad'],
+            [
+                ('ac', QtGui.QKeySequence.ExactMatch),
+                ('a', QtGui.QKeySequence.PartialMatch),
+                ('f', QtGui.QKeySequence.NoMatch),
+                ('acd', QtGui.QKeySequence.NoMatch),
+            ],
+        ),
+        (
+            ['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
+            [
+                ('aaaaaaab', QtGui.QKeySequence.ExactMatch),
+                ('z', QtGui.QKeySequence.NoMatch),
+            ],
+        ),
+        (
+            string.ascii_letters,
+            [('a', QtGui.QKeySequence.ExactMatch), ('!', QtGui.QKeySequence.NoMatch)],
+        ),
+    ],
+)
 def test_matches_tree(configured, expected, benchmark):
     trie = basekeyparser.BindingTrie()
     trie.update({keyutils.KeySequence.parse(keys): "eeloo"
@@ -107,11 +124,10 @@ def test_matches_tree(configured, expected, benchmark):
     def run():
         for entered, match_type in expected:
             sequence = keyutils.KeySequence.parse(entered)
-            command = ("eeloo" if match_type == QtGui.QKeySequence.ExactMatch
-                       else None)
-            result = basekeyparser.MatchResult(match_type=match_type,
-                                               command=command,
-                                               sequence=sequence)
+            command = "eeloo" if match_type == QtGui.QKeySequence.ExactMatch else None
+            result = basekeyparser.MatchResult(
+                match_type=match_type, command=command, sequence=sequence
+            )
             assert trie.matches(sequence) == result
 
     benchmark(run)

@@ -162,8 +162,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.webelem.debug("Inserting text into element {!r}".format(self))
         self._js_call('insert_text', text)
 
-    def rect_on_view(self, *, elem_geometry: QtCore.QRect = None,
-                     no_js: bool = False) -> QtCore.QRect:
+    def rect_on_view(
+        self, *, elem_geometry: QtCore.QRect = None, no_js: bool = False
+    ) -> QtCore.QRect:
         """Get the geometry of the element relative to the webview.
 
         Skipping of small rectangles is due to <a> elements containing other
@@ -192,8 +193,12 @@ class WebEngineElement(webelem.AbstractWebElement):
                 # We're not checking for zoom.text_only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
-                rect = QtCore.QRect(int(left * zoom), int(top * zoom),
-                             int(width * zoom), int(height * zoom))
+                rect = QtCore.QRect(
+                    int(left * zoom),
+                    int(top * zoom),
+                    int(width * zoom),
+                    int(height * zoom),
+                )
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
                 # while frame is not None:
@@ -248,8 +253,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
         QtWidgets.QApplication.processEvents(  # type: ignore[call-overload]
-            QtCore.QEventLoop.ExcludeSocketNotifiers |
-            QtCore.QEventLoop.ExcludeUserInputEvents)
+            QtCore.QEventLoop.ExcludeSocketNotifiers
+            | QtCore.QEventLoop.ExcludeUserInputEvents
+        )
 
         def reset_setting(_arg: Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""

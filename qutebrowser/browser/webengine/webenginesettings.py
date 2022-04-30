@@ -107,65 +107,68 @@ class WebEngineSettings(websettings.AbstractSettings):
     """A wrapper for the config for QWebEngineSettings."""
 
     _ATTRIBUTES = {
-        'content.xss_auditing':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.XSSAuditingEnabled),
-        'content.images':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.AutoLoadImages),
-        'content.javascript.enabled':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled),
-        'content.javascript.can_open_tabs_automatically':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.JavascriptCanOpenWindows),
-        'content.javascript.can_access_clipboard':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.JavascriptCanAccessClipboard),
-        'content.plugins':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.PluginsEnabled),
-        'content.hyperlink_auditing':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.HyperlinkAuditingEnabled),
-        'content.local_content_can_access_remote_urls':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessRemoteUrls),
-        'content.local_content_can_access_file_urls':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls),
-        'content.webgl':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.WebGLEnabled),
-        'content.local_storage':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled),
-        'content.desktop_capture':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.ScreenCaptureEnabled,
-                 converter=lambda val: True if val == 'ask' else val),
+        'content.xss_auditing': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.XSSAuditingEnabled
+        ),
+        'content.images': Attr(QtWebEngineWidgets.QWebEngineSettings.AutoLoadImages),
+        'content.javascript.enabled': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled
+        ),
+        'content.javascript.can_open_tabs_automatically': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.JavascriptCanOpenWindows
+        ),
+        'content.javascript.can_access_clipboard': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.JavascriptCanAccessClipboard
+        ),
+        'content.plugins': Attr(QtWebEngineWidgets.QWebEngineSettings.PluginsEnabled),
+        'content.hyperlink_auditing': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.HyperlinkAuditingEnabled
+        ),
+        'content.local_content_can_access_remote_urls': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessRemoteUrls
+        ),
+        'content.local_content_can_access_file_urls': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls
+        ),
+        'content.webgl': Attr(QtWebEngineWidgets.QWebEngineSettings.WebGLEnabled),
+        'content.local_storage': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled
+        ),
+        'content.desktop_capture': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.ScreenCaptureEnabled,
+            converter=lambda val: True if val == 'ask' else val,
+        ),
         # 'ask' is handled via the permission system
-
-        'input.spatial_navigation':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.SpatialNavigationEnabled),
-        'input.links_included_in_focus_chain':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.LinksIncludedInFocusChain),
-
-        'scrolling.smooth':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.ScrollAnimatorEnabled),
-
-        'content.print_element_backgrounds':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.PrintElementBackgrounds),
-
-        'content.autoplay':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.PlaybackRequiresUserGesture,
-                 converter=operator.not_),
-
-        'content.dns_prefetch':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.DnsPrefetchEnabled),
-
-        'tabs.favicons.show':
-            Attr(QtWebEngineWidgets.QWebEngineSettings.AutoLoadIconsForPage,
-                 converter=lambda val: val != 'never'),
+        'input.spatial_navigation': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.SpatialNavigationEnabled
+        ),
+        'input.links_included_in_focus_chain': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.LinksIncludedInFocusChain
+        ),
+        'scrolling.smooth': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.ScrollAnimatorEnabled
+        ),
+        'content.print_element_backgrounds': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.PrintElementBackgrounds
+        ),
+        'content.autoplay': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.PlaybackRequiresUserGesture,
+            converter=operator.not_,
+        ),
+        'content.dns_prefetch': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.DnsPrefetchEnabled
+        ),
+        'tabs.favicons.show': Attr(
+            QtWebEngineWidgets.QWebEngineSettings.AutoLoadIconsForPage,
+            converter=lambda val: val != 'never',
+        ),
     }
 
     _FONT_SIZES = {
-        'fonts.web.size.minimum':
-            QtWebEngineWidgets.QWebEngineSettings.MinimumFontSize,
-        'fonts.web.size.minimum_logical':
-            QtWebEngineWidgets.QWebEngineSettings.MinimumLogicalFontSize,
-        'fonts.web.size.default':
-            QtWebEngineWidgets.QWebEngineSettings.DefaultFontSize,
-        'fonts.web.size.default_fixed':
-            QtWebEngineWidgets.QWebEngineSettings.DefaultFixedFontSize,
+        'fonts.web.size.minimum': QtWebEngineWidgets.QWebEngineSettings.MinimumFontSize,
+        'fonts.web.size.minimum_logical': QtWebEngineWidgets.QWebEngineSettings.MinimumLogicalFontSize,
+        'fonts.web.size.default': QtWebEngineWidgets.QWebEngineSettings.DefaultFontSize,
+        'fonts.web.size.default_fixed': QtWebEngineWidgets.QWebEngineSettings.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
@@ -178,12 +181,9 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
 
     _UNKNOWN_URL_SCHEME_POLICY = {
-        'disallow':
-            QtWebEngineWidgets.QWebEngineSettings.DisallowUnknownUrlSchemes,
-        'allow-from-user-interaction':
-            QtWebEngineWidgets.QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
-        'allow-all':
-            QtWebEngineWidgets.QWebEngineSettings.AllowAllUnknownUrlSchemes,
+        'disallow': QtWebEngineWidgets.QWebEngineSettings.DisallowUnknownUrlSchemes,
+        'allow-from-user-interaction': QtWebEngineWidgets.QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
+        'allow-all': QtWebEngineWidgets.QWebEngineSettings.AllowAllUnknownUrlSchemes,
     }
 
     # Mapping from WebEngineSettings::initDefaults in
@@ -263,12 +263,16 @@ class ProfileSetter:
         settings = self._profile.settings()
 
         settings.setAttribute(
-            QtWebEngineWidgets.QWebEngineSettings.FullScreenSupportEnabled, True)
+            QtWebEngineWidgets.QWebEngineSettings.FullScreenSupportEnabled, True
+        )
         settings.setAttribute(
-            QtWebEngineWidgets.QWebEngineSettings.FocusOnNavigationEnabled, False)
+            QtWebEngineWidgets.QWebEngineSettings.FocusOnNavigationEnabled, False
+        )
 
         try:
-            settings.setAttribute(QtWebEngineWidgets.QWebEngineSettings.PdfViewerEnabled, False)
+            settings.setAttribute(
+                QtWebEngineWidgets.QWebEngineSettings.PdfViewerEnabled, False
+            )
         except AttributeError:
             # Added in Qt 5.13
             pass
@@ -341,7 +345,9 @@ def _init_user_agent_str(ua):
 
 
 def init_user_agent():
-    _init_user_agent_str(QtWebEngineWidgets.QWebEngineProfile.defaultProfile().httpUserAgent())
+    _init_user_agent_str(
+        QtWebEngineWidgets.QWebEngineProfile.defaultProfile().httpUserAgent()
+    )
 
 
 def _init_profile(profile: QtWebEngineWidgets.QWebEngineProfile) -> None:

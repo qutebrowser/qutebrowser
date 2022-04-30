@@ -39,7 +39,9 @@ _QB_FILESELECTION_MODES = {
     # the public QWebEnginePage::FileSelectionMode enum).
     # However, QWebEnginePage::chooseFiles is still called with the matching value
     # (2) when a file input with "webkitdirectory" is used.
-    QtWebEngineWidgets.QWebEnginePage.FileSelectionMode(2): shared.FileSelectionMode.folder,
+    QtWebEngineWidgets.QWebEnginePage.FileSelectionMode(
+        2
+    ): shared.FileSelectionMode.folder,
 }
 
 
@@ -218,28 +220,25 @@ class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
         }
         shared.javascript_log_message(level_map[level], source, line, msg)
 
-    def acceptNavigationRequest(self,
-                                url: QtCore.QUrl,
-                                typ: QtWebEngineWidgets.QWebEnginePage.NavigationType,
-                                is_main_frame: bool) -> bool:
+    def acceptNavigationRequest(
+        self,
+        url: QtCore.QUrl,
+        typ: QtWebEngineWidgets.QWebEnginePage.NavigationType,
+        is_main_frame: bool,
+    ) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         type_map = {
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeLinkClicked:
-                usertypes.NavigationRequest.Type.link_clicked,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeTyped:
-                usertypes.NavigationRequest.Type.typed,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeFormSubmitted:
-                usertypes.NavigationRequest.Type.form_submitted,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeBackForward:
-                usertypes.NavigationRequest.Type.back_forward,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
-            QtWebEngineWidgets.QWebEnginePage.NavigationTypeOther:
-                usertypes.NavigationRequest.Type.other,
+            QtWebEngineWidgets.QWebEnginePage.NavigationTypeLinkClicked: usertypes.NavigationRequest.Type.link_clicked,
+            QtWebEngineWidgets.QWebEnginePage.NavigationTypeTyped: usertypes.NavigationRequest.Type.typed,
+            QtWebEngineWidgets.QWebEnginePage.NavigationTypeFormSubmitted: usertypes.NavigationRequest.Type.form_submitted,
+            QtWebEngineWidgets.QWebEnginePage.NavigationTypeBackForward: usertypes.NavigationRequest.Type.back_forward,
+            QtWebEngineWidgets.QWebEnginePage.NavigationTypeReload: usertypes.NavigationRequest.Type.reloaded,
+            QtWebEngineWidgets.QWebEnginePage.NavigationTypeOther: usertypes.NavigationRequest.Type.other,
         }
         try:
-            type_map[QtWebEngineWidgets.QWebEnginePage.NavigationTypeRedirect] = (
-                usertypes.NavigationRequest.Type.redirect)
+            type_map[
+                QtWebEngineWidgets.QWebEnginePage.NavigationTypeRedirect
+            ] = usertypes.NavigationRequest.Type.redirect
         except AttributeError:
             # Added in Qt 5.14
             pass

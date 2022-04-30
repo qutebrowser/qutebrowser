@@ -32,8 +32,10 @@ class HTTPRequest(QtNetwork.QNetworkRequest):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAttribute(QtNetwork.QNetworkRequest.RedirectPolicyAttribute,
-                          QtNetwork.QNetworkRequest.NoLessSafeRedirectPolicy)
+        self.setAttribute(
+            QtNetwork.QNetworkRequest.RedirectPolicyAttribute,
+            QtNetwork.QNetworkRequest.NoLessSafeRedirectPolicy,
+        )
 
 
 class HTTPClient(QtCore.QObject):
@@ -75,8 +77,10 @@ class HTTPClient(QtCore.QObject):
             data = {}
         encoded_data = urllib.parse.urlencode(data).encode('utf-8')
         request = HTTPRequest(url)
-        request.setHeader(QtNetwork.QNetworkRequest.ContentTypeHeader,
-                          'application/x-www-form-urlencoded;charset=utf-8')
+        request.setHeader(
+            QtNetwork.QNetworkRequest.ContentTypeHeader,
+            'application/x-www-form-urlencoded;charset=utf-8',
+        )
         reply = self._nam.post(request, encoded_data)
         self._handle_reply(reply)
 

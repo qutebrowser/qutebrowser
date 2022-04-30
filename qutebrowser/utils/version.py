@@ -34,8 +34,16 @@ import datetime
 import getpass
 import functools
 import dataclasses
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
-                    TYPE_CHECKING)
+from typing import (
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    ClassVar,
+    Dict,
+    cast,
+    TYPE_CHECKING,
+)
 from qutebrowser.qt import QtWidgets, QtWebKit, QtWebEngine, QtNetwork
 
 if QtWebKit:
@@ -389,22 +397,23 @@ class ModuleInfo:
         return text
 
 
-MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
-    # FIXME: Mypy doesn't understand this. See https://github.com/python/mypy/issues/9706
-    (name, ModuleInfo(name, *args))  # type: ignore[arg-type, misc]
-    for (name, *args) in
+MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict(
     [
-        ('sip', ['SIP_VERSION_STR']),
-        ('colorama', ['VERSION', '__version__']),
-        ('jinja2', ['__version__']),
-        ('pygments', ['__version__']),
-        ('yaml', ['__version__']),
-        ('adblock', ['__version__'], "0.3.2"),
-        (f'{pyqt.__name__}.QtWebEngineWidgets', []),
-        (f'{pyqt.__name__}.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
-        (f'{pyqt.__name__}.QtWebKitWidgets', []),
+        # FIXME: Mypy doesn't understand this. See https://github.com/python/mypy/issues/9706
+        (name, ModuleInfo(name, *args))  # type: ignore[arg-type, misc]
+        for (name, *args) in [
+            ('sip', ['SIP_VERSION_STR']),
+            ('colorama', ['VERSION', '__version__']),
+            ('jinja2', ['__version__']),
+            ('pygments', ['__version__']),
+            ('yaml', ['__version__']),
+            ('adblock', ['__version__'], "0.3.2"),
+            (f'{pyqt.__name__}.QtWebEngineWidgets', []),
+            (f'{pyqt.__name__}.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
+            (f'{pyqt.__name__}.QtWebKitWidgets', []),
+        ]
     ]
-])
+)
 
 
 def _module_versions() -> Sequence[str]:
@@ -769,8 +778,11 @@ def _backend() -> str:
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
-        return str(qtwebengine_versions(
-            avoid_init='avoid-chromium-init' in objects.debug_flags))
+        return str(
+            qtwebengine_versions(
+                avoid_init='avoid-chromium-init' in objects.debug_flags
+            )
+        )
     raise utils.Unreachable(objects.backend)
 
 
@@ -806,8 +818,7 @@ def version_info() -> str:
 
     lines += [
         '',
-        '{}: {}'.format(platform.python_implementation(),
-                        platform.python_version()),
+        '{}: {}'.format(platform.python_implementation(), platform.python_version()),
         'PyQt: {}'.format(QtCore.PYQT_VERSION_STR),
         '',
     ]
@@ -817,8 +828,11 @@ def version_info() -> str:
     lines += [
         'pdf.js: {}'.format(_pdfjs_version()),
         'sqlite: {}'.format(sql.version()),
-        'QtNetwork SSL: {}\n'.format(QtNetwork.QSslSocket.sslLibraryVersionString()
-                                     if QtNetwork.QSslSocket.supportsSsl() else 'no'),
+        'QtNetwork SSL: {}\n'.format(
+            QtNetwork.QSslSocket.sslLibraryVersionString()
+            if QtNetwork.QSslSocket.supportsSsl()
+            else 'no'
+        ),
     ]
 
     if objects.qapp:
@@ -835,9 +849,7 @@ def version_info() -> str:
     ]
     dist = distribution()
     if dist is not None:
-        lines += [
-            'Linux distribution: {} ({})'.format(dist.pretty, dist.parsed.name)
-        ]
+        lines += ['Linux distribution: {} ({})'.format(dist.pretty, dist.parsed.name)]
 
     lines += [
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
@@ -845,8 +857,8 @@ def version_info() -> str:
         "Using Python from {}".format(sys.executable),
         "Qt library executable path: {}, data path: {}".format(
             QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.LibraryExecutablesPath),
-            QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.DataPath)
-        )
+            QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.DataPath),
+        ),
     ]
 
     if not dist or dist.parsed == Distribution.unknown:
@@ -942,7 +954,9 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
-    old_context = cast(Optional[QtGui.QOpenGLContext], QtGui.QOpenGLContext.currentContext())
+    old_context = cast(
+        Optional[QtGui.QOpenGLContext], QtGui.QOpenGLContext.currentContext()
+    )
     old_surface = None if old_context is None else old_context.surface()
 
     surface = QtGui.QOffscreenSurface()
@@ -1003,8 +1017,7 @@ def pastebin_version(pbclient: pastebin.PastebinClient = None) -> None:
 
     def _on_paste_version_err(text: str) -> None:
         assert pbclient is not None
-        message.error("Failed to pastebin version"
-                      " info: {}".format(text))
+        message.error("Failed to pastebin version" " info: {}".format(text))
         pbclient.deleteLater()
 
     if pastebin_url:
@@ -1015,8 +1028,9 @@ def pastebin_version(pbclient: pastebin.PastebinClient = None) -> None:
     http_client = httpclient.HTTPClient()
 
     misc_api = pastebin.PastebinClient.MISC_API_URL
-    pbclient = pbclient or pastebin.PastebinClient(http_client, parent=app,
-                                                   api_url=misc_api)
+    pbclient = pbclient or pastebin.PastebinClient(
+        http_client, parent=app, api_url=misc_api
+    )
 
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)

@@ -99,8 +99,11 @@ def test_fake_mac_config(tmp_path, fake_home_envvar):
 @pytest.mark.fake_os('windows')
 def test_fake_windows(tmpdir, monkeypatch, what):
     """Make sure the config/data/cache dirs are correct on a fake Windows."""
-    monkeypatch.setattr(standarddir.QtCore.QStandardPaths, 'writableLocation',
-                        lambda typ: str(tmpdir / APPNAME))
+    monkeypatch.setattr(
+        standarddir.QtCore.QStandardPaths,
+        'writableLocation',
+        lambda typ: str(tmpdir / APPNAME),
+    )
 
     standarddir._init_config(args=None)
     standarddir._init_data(args=None)
@@ -117,8 +120,9 @@ def test_fake_haiku(tmpdir, monkeypatch):
         QtCore.QStandardPaths.AppDataLocation: '',
         QtCore.QStandardPaths.ConfigLocation: str(tmpdir / 'config' / APPNAME),
     }
-    monkeypatch.setattr(standarddir.QtCore.QStandardPaths, 'writableLocation',
-                        locations.get)
+    monkeypatch.setattr(
+        standarddir.QtCore.QStandardPaths, 'writableLocation', locations.get
+    )
     monkeypatch.setattr(standarddir.sys, 'platform', 'haiku1')
 
     standarddir._init_data(args=None)
@@ -229,8 +233,9 @@ class TestStandardDir:
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
         """With an empty tempdir on non-Linux, we should raise."""
-        monkeypatch.setattr(standarddir.QtCore.QStandardPaths, 'writableLocation',
-                            lambda typ: '')
+        monkeypatch.setattr(
+            standarddir.QtCore.QStandardPaths, 'writableLocation', lambda typ: ''
+        )
         with pytest.raises(standarddir.EmptyValueError):
             standarddir._init_runtime(args=None)
 

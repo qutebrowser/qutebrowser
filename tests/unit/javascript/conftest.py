@@ -86,8 +86,7 @@ class JSTester:
             path: The string path from disk to load (relative to this file)
             force: Whether to force loading even if the file is invalid.
         """
-        self.load_url(QtCore.QUrl.fromLocalFile(
-            str(JS_DIR / path)), force)
+        self.load_url(QtCore.QUrl.fromLocalFile(str(JS_DIR / path)), force)
 
     def load_url(self, url: QtCore.QUrl, force: bool = False):
         """Load a given QUrl.

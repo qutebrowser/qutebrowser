@@ -129,7 +129,10 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
             False if no error page should be displayed, True otherwise.
         """
         ignored_errors = [
-            (QtWebKitWidgets.QWebPage.QtNetwork, QtNetwork.QNetworkReply.OperationCanceledError),
+            (
+                QtWebKitWidgets.QWebPage.QtNetwork,
+                QtNetwork.QNetworkReply.OperationCanceledError,
+            ),
             # "Loading is handled by the media engine"
             (QtWebKitWidgets.QWebPage.WebKit, 203),
             # "Frame load interrupted by policy change"
@@ -137,8 +140,10 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
-        if (info.domain, info.error) == (QtWebKitWidgets.QWebPage.QtNetwork,
-                                         QtNetwork.QNetworkReply.ProtocolUnknownError):
+        if (info.domain, info.error) == (
+            QtWebKitWidgets.QWebPage.QtNetwork,
+            QtNetwork.QNetworkReply.ProtocolUnknownError,
+        ):
             # For some reason, we get a segfault when we use
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
@@ -149,7 +154,10 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
                 yes_action=functools.partial(QtGui.QDesktopServices.openUrl, url),
-                url=info.url.toString(QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded))
+                url=info.url.toString(
+                    QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded
+                ),
+            )
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -186,7 +194,9 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
-    def chooseFile(self, parent_frame: QtWebKitWidgets.QWebFrame, suggested_file: str) -> str:
+    def chooseFile(
+        self, parent_frame: QtWebKitWidgets.QWebFrame, suggested_file: str
+    ) -> str:
         """Override chooseFile to (optionally) invoke custom file uploader."""
         handler = config.val.fileselect.handler
         if handler == "default":
@@ -359,17 +369,27 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
             QtWebKitWidgets.QWebPage.Geolocation: 'access your location',
         }
         yes_action = functools.partial(
-            self.setFeaturePermission, frame, feature,
-            QtWebKitWidgets.QWebPage.PermissionGrantedByUser)
+            self.setFeaturePermission,
+            frame,
+            feature,
+            QtWebKitWidgets.QWebPage.PermissionGrantedByUser,
+        )
         no_action = functools.partial(
-            self.setFeaturePermission, frame, feature,
-            QtWebKitWidgets.QWebPage.PermissionDeniedByUser)
+            self.setFeaturePermission,
+            frame,
+            feature,
+            QtWebKitWidgets.QWebPage.PermissionDeniedByUser,
+        )
 
-        url = frame.url().adjusted(cast(QtCore.QUrl.FormattingOptions,
-                                        QtCore.QUrl.RemoveUserInfo |
-                                        QtCore.QUrl.RemovePath |
-                                        QtCore.QUrl.RemoveQuery |
-                                        QtCore.QUrl.RemoveFragment))
+        url = frame.url().adjusted(
+            cast(
+                QtCore.QUrl.FormattingOptions,
+                QtCore.QUrl.RemoveUserInfo
+                | QtCore.QUrl.RemovePath
+                | QtCore.QUrl.RemoveQuery
+                | QtCore.QUrl.RemoveFragment,
+            )
+        )
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -488,10 +508,12 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
         shared.javascript_log_message(usertypes.JsLogLevel.unknown,
                                       source, line, msg)
 
-    def acceptNavigationRequest(self,
-                                frame: QtWebKitWidgets.QWebFrame,
-                                request: QtNetwork.QNetworkRequest,
-                                typ: QtWebKitWidgets.QWebPage.NavigationType) -> bool:
+    def acceptNavigationRequest(
+        self,
+        frame: QtWebKitWidgets.QWebFrame,
+        request: QtNetwork.QNetworkRequest,
+        typ: QtWebKitWidgets.QWebPage.NavigationType,
+    ) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
@@ -502,18 +524,12 @@ class BrowserPage(QtWebKitWidgets.QWebPage):
         and then conditionally opens the URL here or in another tab/window.
         """
         type_map = {
-            QtWebKitWidgets.QWebPage.NavigationTypeLinkClicked:
-                usertypes.NavigationRequest.Type.link_clicked,
-            QtWebKitWidgets.QWebPage.NavigationTypeFormSubmitted:
-                usertypes.NavigationRequest.Type.form_submitted,
-            QtWebKitWidgets.QWebPage.NavigationTypeFormResubmitted:
-                usertypes.NavigationRequest.Type.form_resubmitted,
-            QtWebKitWidgets.QWebPage.NavigationTypeBackOrForward:
-                usertypes.NavigationRequest.Type.back_forward,
-            QtWebKitWidgets.QWebPage.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
-            QtWebKitWidgets.QWebPage.NavigationTypeOther:
-                usertypes.NavigationRequest.Type.other,
+            QtWebKitWidgets.QWebPage.NavigationTypeLinkClicked: usertypes.NavigationRequest.Type.link_clicked,
+            QtWebKitWidgets.QWebPage.NavigationTypeFormSubmitted: usertypes.NavigationRequest.Type.form_submitted,
+            QtWebKitWidgets.QWebPage.NavigationTypeFormResubmitted: usertypes.NavigationRequest.Type.form_resubmitted,
+            QtWebKitWidgets.QWebPage.NavigationTypeBackOrForward: usertypes.NavigationRequest.Type.back_forward,
+            QtWebKitWidgets.QWebPage.NavigationTypeReload: usertypes.NavigationRequest.Type.reloaded,
+            QtWebKitWidgets.QWebPage.NavigationTypeOther: usertypes.NavigationRequest.Type.other,
         }
         is_main_frame = frame is self.mainFrame()
         navigation = usertypes.NavigationRequest(url=request.url(),

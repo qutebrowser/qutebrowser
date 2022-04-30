@@ -132,11 +132,13 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
     """Initialize the rest of the config after the QApplication is created."""
     global _init_errors
     if _init_errors is not None:
-        errbox = msgbox.msgbox(parent=None,
-                               title="Error while reading config",
-                               text=_init_errors.to_html(),
-                               icon=QtWidgets.QMessageBox.Warning,
-                               plain_text=False)
+        errbox = msgbox.msgbox(
+            parent=None,
+            title="Error while reading config",
+            text=_init_errors.to_html(),
+            icon=QtWidgets.QMessageBox.Warning,
+            plain_text=False,
+        )
         errbox.exec()
 
         if _init_errors.fatal:

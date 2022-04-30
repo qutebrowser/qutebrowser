@@ -54,8 +54,10 @@ def shutdown_server():
 def ipc_server(qapp, qtbot):
     server = ipc.IPCServer('qute-test')
     yield server
-    if (server._socket is not None and
-            server._socket.state() != QtNetwork.QLocalSocket.UnconnectedState):
+    if (
+        server._socket is not None
+        and server._socket.state() != QtNetwork.QLocalSocket.UnconnectedState
+    ):
         with qtbot.wait_signal(server._socket.disconnected, raising=False):
             server._socket.abort()
     try:
@@ -102,8 +104,15 @@ class FakeSocket(QtCore.QObject):
     readyRead = QtCore.pyqtSignal()  # noqa: N815
     disconnected = QtCore.pyqtSignal()
 
-    def __init__(self, *, error=QtNetwork.QLocalSocket.UnknownSocketError, state=None,
-                 data=None, connect_successful=True, parent=None):
+    def __init__(
+        self,
+        *,
+        error=QtNetwork.QLocalSocket.UnknownSocketError,
+        state=None,
+        data=None,
+        connect_successful=True,
+        parent=None
+    ):
         super().__init__(parent)
         self._error_val = error
         self._state_val = state
@@ -301,16 +310,18 @@ class TestListen:
 
     def test_error(self, ipc_server, monkeypatch):
         """Simulate an error while listening."""
-        monkeypatch.setattr(ipc.QtNetwork.QLocalServer, 'removeServer',
-                            lambda self: True)
+        monkeypatch.setattr(
+            ipc.QtNetwork.QLocalServer, 'removeServer', lambda self: True
+        )
         monkeypatch.setattr(ipc_server, '_socketname', None)
         with pytest.raises(ipc.ListenError):
             ipc_server.listen()
 
     @pytest.mark.posix
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
-        monkeypatch.setattr(ipc.QtNetwork.QLocalServer, 'removeServer',
-                            lambda self: True)
+        monkeypatch.setattr(
+            ipc.QtNetwork.QLocalServer, 'removeServer', lambda self: True
+        )
         qlocalserver.listen('qute-test')
         with pytest.raises(ipc.AddressInUseError):
             ipc_server.listen()
@@ -411,10 +422,10 @@ class TestOnError:
     def test_other_error(self, ipc_server, monkeypatch):
         socket = QtNetwork.QLocalSocket()
         ipc_server._socket = socket
-        monkeypatch.setattr(socket, 'error',
-                            lambda: QtNetwork.QLocalSocket.ConnectionRefusedError)
-        monkeypatch.setattr(socket, 'errorString',
-                            lambda: "Connection refused")
+        monkeypatch.setattr(
+            socket, 'error', lambda: QtNetwork.QLocalSocket.ConnectionRefusedError
+        )
+        monkeypatch.setattr(socket, 'errorString', lambda: "Connection refused")
         socket.setErrorString("Connection refused.")
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
@@ -597,10 +608,14 @@ class TestSendToRunningInstance:
         ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
     def test_socket_error_no_server(self):
-        socket = FakeSocket(error=QtNetwork.QLocalSocket.ConnectionError,
-                            connect_successful=False)
-        with pytest.raises(ipc.Error, match=r"Error while connecting to "
-                           r"running instance: Error string \(error 7\)"):
+        socket = FakeSocket(
+            error=QtNetwork.QLocalSocket.ConnectionError, connect_successful=False
+        )
+        with pytest.raises(
+            ipc.Error,
+            match=r"Error while connecting to "
+            r"running instance: Error string \(error 7\)",
+        ):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
 
@@ -663,13 +678,12 @@ class TestSendOrListen:
     def qlocalsocket_mock(self, mocker):
         original_errors = {
             name: getattr(QtNetwork.QLocalSocket, name)
-            for name in
-            [
+            for name in [
                 'UnknownSocketError',
                 'UnconnectedState',
                 'ConnectionRefusedError',
                 'ServerNotFoundError',
-                'PeerClosedError'
+                'PeerClosedError',
             ]
         }
         m = mocker.patch('qutebrowser.misc.ipc.QtNetwork.QLocalSocket', autospec=True)

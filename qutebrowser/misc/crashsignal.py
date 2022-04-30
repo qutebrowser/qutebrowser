@@ -132,7 +132,8 @@ class CrashHandler(QtCore.QObject):
             for tab in tabbed_browser.widgets():
                 try:
                     urlstr = tab.url().toString(
-                        QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded)
+                        QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded
+                    )
                     if urlstr:
                         win_pages.append(urlstr)
                 except Exception:
@@ -355,9 +356,9 @@ class SignalHandler(QtCore.QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QtCore.QSocketNotifier(cast(sip.voidptr, read_fd),
-                                             QtCore.QSocketNotifier.Read,
-                                             self)
+            self._notifier = QtCore.QSocketNotifier(
+                cast(sip.voidptr, read_fd), QtCore.QSocketNotifier.Read, self
+            )
             self._notifier.activated.connect(  # type: ignore[attr-defined]
                 self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
@@ -415,10 +416,13 @@ class SignalHandler(QtCore.QObject):
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
         # Signals can arrive anywhere, so we do this in the main thread
-        self._log_later("SIGINT/SIGTERM received, shutting down!",
-                        "Do the same again to forcefully quit.")
-        QtCore.QTimer.singleShot(0, functools.partial(
-            self._quitter.shutdown, 128 + signum))
+        self._log_later(
+            "SIGINT/SIGTERM received, shutting down!",
+            "Do the same again to forcefully quit.",
+        )
+        QtCore.QTimer.singleShot(
+            0, functools.partial(self._quitter.shutdown, 128 + signum)
+        )
 
     def interrupt_forcefully(self, signum, _frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request.
@@ -444,9 +448,9 @@ class SignalHandler(QtCore.QObject):
         sys.exit(128 + signum)
 
 
-def init(q_app: QtWidgets.QApplication,
-         args: argparse.Namespace,
-         quitter: 'quitter.Quitter') -> None:
+def init(
+    q_app: QtWidgets.QApplication, args: argparse.Namespace, quitter: 'quitter.Quitter'
+) -> None:
     """Initialize crash/signal handlers."""
     global crash_handler
     crash_handler = CrashHandler(

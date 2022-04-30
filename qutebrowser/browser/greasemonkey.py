@@ -409,10 +409,10 @@ class GreasemonkeyManager(QtCore.QObject):
         download_manager = objreg.get('qtnetwork-download-manager')
 
         for url, target_path in required_dls:
-            target = downloads.FileDownloadTarget(target_path,
-                                                  force_overwrite=True)
-            download = download_manager.get(QtCore.QUrl(url), target=target,
-                                            auto_remove=True)
+            target = downloads.FileDownloadTarget(target_path, force_overwrite=True)
+            download = download_manager.get(
+                QtCore.QUrl(url), target=target, auto_remove=True
+            )
             download.requested_url = url
             self._in_progress_dls.append(download)
             if download.successful:

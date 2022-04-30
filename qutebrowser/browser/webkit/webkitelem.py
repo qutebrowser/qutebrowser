@@ -210,8 +210,9 @@ class WebKitElement(webelem.AbstractWebElement):
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
-                rect = QtCore.QRect(int(rect["left"]), int(rect["top"]),
-                             int(width), int(height))
+                rect = QtCore.QRect(
+                    int(rect["left"]), int(rect["top"]), int(width), int(height)
+                )
 
                 frame = cast(Optional[QtWebKitWidgets.QWebFrame], self._elem.webFrame())
                 while frame is not None:
@@ -224,7 +225,9 @@ class WebKitElement(webelem.AbstractWebElement):
 
         return None
 
-    def _rect_on_view_python(self, elem_geometry: Optional[QtCore.QRect]) -> QtCore.QRect:
+    def _rect_on_view_python(
+        self, elem_geometry: Optional[QtCore.QRect]
+    ) -> QtCore.QRect:
         """Python implementation for rect_on_view."""
         if elem_geometry is None:
             geometry = self._elem.geometry()
@@ -240,8 +243,9 @@ class WebKitElement(webelem.AbstractWebElement):
 
         return rect
 
-    def rect_on_view(self, *, elem_geometry: QtCore.QRect = None,
-                     no_js: bool = False) -> QtCore.QRect:
+    def rect_on_view(
+        self, *, elem_geometry: QtCore.QRect = None, no_js: bool = False
+    ) -> QtCore.QRect:
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -369,13 +373,18 @@ class WebKitElement(webelem.AbstractWebElement):
             log.webelem.debug("Failed to click via JS, falling back to event")
             self._click_fake_event(click_target)
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: QtCore.Qt.MouseButton = QtCore.Qt.LeftButton) -> None:
+    def _click_fake_event(
+        self,
+        click_target: usertypes.ClickTarget,
+        button: QtCore.Qt.MouseButton = QtCore.Qt.LeftButton,
+    ) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 
 
-def get_child_frames(startframe: QtWebKitWidgets.QWebFrame) -> List[QtWebKitWidgets.QWebFrame]:
+def get_child_frames(
+    startframe: QtWebKitWidgets.QWebFrame,
+) -> List[QtWebKitWidgets.QWebFrame]:
     """Get all children recursively of a given QWebFrame.
 
     Loosely based on https://blog.nextgenetics.net/?e=64

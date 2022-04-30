@@ -203,15 +203,28 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
         qtutils.ensure_valid(obj)
 
 
-@pytest.mark.parametrize('status, raising, message', [
-    (QtCore.QDataStream.Ok, False, None),
-    (QtCore.QDataStream.ReadPastEnd, True, "The data stream has read past the end of "
-                                           "the data in the underlying device."),
-    (QtCore.QDataStream.ReadCorruptData, True, "The data stream has read corrupt "
-                                               "data."),
-    (QtCore.QDataStream.WriteFailed, True, "The data stream cannot write to the "
-                                           "underlying device."),
-])
+@pytest.mark.parametrize(
+    'status, raising, message',
+    [
+        (QtCore.QDataStream.Ok, False, None),
+        (
+            QtCore.QDataStream.ReadPastEnd,
+            True,
+            "The data stream has read past the end of "
+            "the data in the underlying device.",
+        ),
+        (
+            QtCore.QDataStream.ReadCorruptData,
+            True,
+            "The data stream has read corrupt " "data.",
+        ),
+        (
+            QtCore.QDataStream.WriteFailed,
+            True,
+            "The data stream cannot write to the " "underlying device.",
+        ),
+    ],
+)
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
 
@@ -236,11 +249,14 @@ def test_qdatastream_status_count():
     assert len(status_vals) == 4
 
 
-@pytest.mark.parametrize('color, expected', [
-    (QtGui.QColor('red'), 'rgba(255, 0, 0, 255)'),
-    (QtGui.QColor('blue'), 'rgba(0, 0, 255, 255)'),
-    (QtGui.QColor(1, 3, 5, 7), 'rgba(1, 3, 5, 7)'),
-])
+@pytest.mark.parametrize(
+    'color, expected',
+    [
+        (QtGui.QColor('red'), 'rgba(255, 0, 0, 255)'),
+        (QtGui.QColor('blue'), 'rgba(0, 0, 255, 255)'),
+        (QtGui.QColor(1, 3, 5, 7), 'rgba(1, 3, 5, 7)'),
+    ],
+)
 def test_qcolor_to_qsscolor(color, expected):
     assert qtutils.qcolor_to_qsscolor(color) == expected
 
@@ -250,10 +266,13 @@ def test_qcolor_to_qsscolor_invalid():
         qtutils.qcolor_to_qsscolor(QtGui.QColor())
 
 
-@pytest.mark.parametrize('obj', [
-    QtCore.QPoint(23, 42),
-    QtCore.QUrl('http://www.qutebrowser.org/'),
-])
+@pytest.mark.parametrize(
+    'obj',
+    [
+        QtCore.QPoint(23, 42),
+        QtCore.QUrl('http://www.qutebrowser.org/'),
+    ],
+)
 def test_serialize(obj):
     """Test a serialize/deserialize round trip.
 
@@ -294,7 +313,8 @@ class TestSerializeStream:
         """Test serialize_stream with an error while serializing."""
         obj = QtCore.QPoint()
         stream_mock.__lshift__.side_effect = lambda _other: self._set_status(
-            stream_mock, QtCore.QDataStream.ReadCorruptData)
+            stream_mock, QtCore.QDataStream.ReadCorruptData
+        )
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -316,7 +336,8 @@ class TestSerializeStream:
         """Test deserialize_stream with an error while deserializing."""
         obj = QtCore.QPoint()
         stream_mock.__rshift__.side_effect = lambda _other: self._set_status(
-            stream_mock, QtCore.QDataStream.ReadCorruptData)
+            stream_mock, QtCore.QDataStream.ReadCorruptData
+        )
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -539,7 +560,9 @@ if test_file is not None:
             """Open an in-memory PyQIODevice instead of a real file."""
             modes = {
                 'wb': QtCore.QIODevice.WriteOnly | QtCore.QIODevice.Truncate,
-                'w': QtCore.QIODevice.WriteOnly | QtCore.QIODevice.Text | QtCore.QIODevice.Truncate,
+                'w': QtCore.QIODevice.WriteOnly
+                | QtCore.QIODevice.Text
+                | QtCore.QIODevice.Truncate,
                 'rb': QtCore.QIODevice.ReadOnly,
                 'r': QtCore.QIODevice.ReadOnly | QtCore.QIODevice.Text,
             }
@@ -798,11 +821,14 @@ class TestPyQIODevice:
         func = getattr(pyqiodev, method)
         assert func() == ret
 
-    @pytest.mark.parametrize('mode, readable, writable', [
-        (QtCore.QIODevice.ReadOnly, True, False),
-        (QtCore.QIODevice.ReadWrite, True, True),
-        (QtCore.QIODevice.WriteOnly, False, True),
-    ])
+    @pytest.mark.parametrize(
+        'mode, readable, writable',
+        [
+            (QtCore.QIODevice.ReadOnly, True, False),
+            (QtCore.QIODevice.ReadWrite, True, True),
+            (QtCore.QIODevice.WriteOnly, False, True),
+        ],
+    )
     def test_readable_writable(self, mode, readable, writable, pyqiodev):
         """Test readable() and writable().
 
@@ -973,7 +999,9 @@ class TestInterpolateColor:
         with pytest.raises(ValueError):
             qtutils.interpolate_color(colors.white, colors.black, 10, QtGui.QColor.Cmyk)
 
-    @pytest.mark.parametrize('colorspace', [QtGui.QColor.Rgb, QtGui.QColor.Hsv, QtGui.QColor.Hsl])
+    @pytest.mark.parametrize(
+        'colorspace', [QtGui.QColor.Rgb, QtGui.QColor.Hsv, QtGui.QColor.Hsl]
+    )
     def test_0_100(self, colors, colorspace):
         """Test 0% and 100% in different colorspaces."""
         white = qtutils.interpolate_color(colors.white, colors.black, 0, colorspace)
@@ -984,7 +1012,11 @@ class TestInterpolateColor:
     def test_interpolation_rgb(self):
         """Test an interpolation in the RGB colorspace."""
         color = qtutils.interpolate_color(
-            testutils.Color(0, 40, 100), testutils.Color(0, 20, 200), 50, QtGui.QColor.Rgb)
+            testutils.Color(0, 40, 100),
+            testutils.Color(0, 20, 200),
+            50,
+            QtGui.QColor.Rgb,
+        )
         assert testutils.Color(color) == testutils.Color(0, 30, 150)
 
     def test_interpolation_hsv(self):
@@ -1009,7 +1041,9 @@ class TestInterpolateColor:
         expected.setHsl(0, 30, 150)
         assert testutils.Color(color) == expected
 
-    @pytest.mark.parametrize('colorspace', [QtGui.QColor.Rgb, QtGui.QColor.Hsv, QtGui.QColor.Hsl])
+    @pytest.mark.parametrize(
+        'colorspace', [QtGui.QColor.Rgb, QtGui.QColor.Hsv, QtGui.QColor.Hsl]
+    )
     def test_interpolation_alpha(self, colorspace):
         """Test interpolation of colorspace's alpha."""
         start = testutils.Color(0, 0, 0, 30)

@@ -159,15 +159,17 @@ def _assert_plain_modifier(key: _ModifierType) -> None:
 
 def _is_printable(key: QtCore.Qt.Key) -> bool:
     _assert_plain_key(key)
-    return key <= 0xff and key not in [QtCore.Qt.Key_Space, _NIL_KEY]
+    return key <= 0xFF and key not in [QtCore.Qt.Key_Space, _NIL_KEY]
 
 
 def is_special(key: QtCore.Qt.Key, modifiers: _ModifierType) -> bool:
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
-    return not (_is_printable(key) and
-                modifiers in [QtCore.Qt.ShiftModifier, QtCore.Qt.NoModifier])
+    return not (
+        _is_printable(key)
+        and modifiers in [QtCore.Qt.ShiftModifier, QtCore.Qt.NoModifier]
+    )
 
 
 def is_modifier_key(key: QtCore.Qt.Key) -> bool:
@@ -418,7 +420,9 @@ class KeyInfo:
             text = text.lower()
         return text
 
-    def to_event(self, typ: QtCore.QEvent.Type = QtCore.QEvent.KeyPress) -> QtGui.QKeyEvent:
+    def to_event(
+        self, typ: QtCore.QEvent.Type = QtCore.QEvent.KeyPress
+    ) -> QtGui.QKeyEvent:
         """Get a QKeyEvent from this KeyInfo."""
         return QtGui.QKeyEvent(typ, self.key, self.modifiers, self.text())
 
@@ -470,9 +474,12 @@ class KeySequence:
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
-            key = QtCore.Qt.Key(int(key_and_modifiers) & ~QtCore.Qt.KeyboardModifierMask)
+            key = QtCore.Qt.Key(
+                int(key_and_modifiers) & ~QtCore.Qt.KeyboardModifierMask
+            )
             modifiers = QtCore.Qt.KeyboardModifiers(  # type: ignore[call-overload]
-                int(key_and_modifiers) & QtCore.Qt.KeyboardModifierMask)
+                int(key_and_modifiers) & QtCore.Qt.KeyboardModifierMask
+            )
             yield KeyInfo(key=key, modifiers=modifiers)
 
     def __repr__(self) -> str:
@@ -605,9 +612,11 @@ class KeySequence:
         #
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
-        if (modifiers == QtCore.Qt.ShiftModifier and
-                _is_printable(key) and
-                not ev.text().isupper()):
+        if (
+            modifiers == QtCore.Qt.ShiftModifier
+            and _is_printable(key)
+            and not ev.text().isupper()
+        ):
             modifiers = QtCore.Qt.KeyboardModifiers()  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
@@ -617,7 +626,10 @@ class KeySequence:
         # (or "Cmd") in a key binding name to actually represent what's on the
         # keyboard.
         if utils.is_mac:
-            if modifiers & QtCore.Qt.ControlModifier and modifiers & QtCore.Qt.MetaModifier:
+            if (
+                modifiers & QtCore.Qt.ControlModifier
+                and modifiers & QtCore.Qt.MetaModifier
+            ):
                 pass
             elif modifiers & QtCore.Qt.ControlModifier:
                 modifiers &= ~QtCore.Qt.ControlModifier

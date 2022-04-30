@@ -1292,8 +1292,9 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(QtCore.QUrl.RemovePassword |
-                                               QtCore.QUrl.FullyEncoded)
+            url = self._current_url().toString(
+                QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded
+            )
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
@@ -1868,5 +1869,8 @@ class CommandDispatcher:
         else:
             window.setWindowState(window.windowState() ^ QtCore.Qt.WindowFullScreen)
 
-        log.misc.debug('state before fullscreen: {}'.format(
-            debug.qflags_key(QtCore.Qt, window.state_before_fullscreen)))
+        log.misc.debug(
+            'state before fullscreen: {}'.format(
+                debug.qflags_key(QtCore.Qt, window.state_before_fullscreen)
+            )
+        )

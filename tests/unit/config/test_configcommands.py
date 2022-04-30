@@ -725,12 +725,16 @@ class TestBind:
         """Get a dict with no bindings."""
         return {'normal': {}}
 
-    @pytest.mark.parametrize("mode, url", [
-        ("normal", QtCore.QUrl("qute://bindings")),
-        ("passthrough", QtCore.QUrl("qute://bindings#passthrough")),
-    ])
-    def test_bind_no_args(self, commands, config_stub, no_bindings,
-                          tabbed_browser_stubs, mode, url):
+    @pytest.mark.parametrize(
+        "mode, url",
+        [
+            ("normal", QtCore.QUrl("qute://bindings")),
+            ("passthrough", QtCore.QUrl("qute://bindings#passthrough")),
+        ],
+    )
+    def test_bind_no_args(
+        self, commands, config_stub, no_bindings, tabbed_browser_stubs, mode, url
+    ):
         """Run ':bind'.
 
         Should open qute://bindings."""

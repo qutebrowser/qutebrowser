@@ -50,8 +50,10 @@ class FixedDataNetworkReply(QtNetwork.QNetworkReply):
         self.setOpenMode(QtCore.QIODevice.ReadOnly)
 
         self.setHeader(QtNetwork.QNetworkRequest.ContentTypeHeader, mimeType)
-        self.setHeader(QtNetwork.QNetworkRequest.ContentLengthHeader,
-                       QtCore.QByteArray.number(len(fileData)))
+        self.setHeader(
+            QtNetwork.QNetworkRequest.ContentLengthHeader,
+            QtCore.QByteArray.number(len(fileData)),
+        )
         self.setAttribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute, 200)
         self.setAttribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute, 'OK')
         # For some reason, a segfault will be triggered if these lambdas aren't
@@ -120,10 +122,12 @@ class ErrorNetworkReply(QtNetwork.QNetworkReply):
         # the device to avoid getting a warning.
         self.setOpenMode(QtCore.QIODevice.ReadOnly)
         self.setError(error, errorstring)
-        QtCore.QTimer.singleShot(0, lambda:
-                          self.error.emit(error))  # type: ignore[attr-defined]
-        QtCore.QTimer.singleShot(0, lambda:
-                          self.finished.emit())  # type: ignore[attr-defined]
+        QtCore.QTimer.singleShot(
+            0, lambda: self.error.emit(error)
+        )  # type: ignore[attr-defined]
+        QtCore.QTimer.singleShot(
+            0, lambda: self.finished.emit()
+        )  # type: ignore[attr-defined]
 
     def abort(self):
         """Do nothing since it's a fake reply."""
@@ -150,8 +154,9 @@ class RedirectNetworkReply(QtNetwork.QNetworkReply):
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
         self.setAttribute(QtNetwork.QNetworkRequest.RedirectionTargetAttribute, new_url)
-        QtCore.QTimer.singleShot(0, lambda:
-                          self.finished.emit())  # type: ignore[attr-defined]
+        QtCore.QTimer.singleShot(
+            0, lambda: self.finished.emit()
+        )  # type: ignore[attr-defined]
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""

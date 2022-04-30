@@ -221,7 +221,10 @@ class IPCServer(QtCore.QObject):
         self._remove_server()
         ok = self._server.listen(self._socketname)
         if not ok:
-            if self._server.serverError() == QtNetwork.QAbstractSocket.AddressInUseError:
+            if (
+                self._server.serverError()
+                == QtNetwork.QAbstractSocket.AddressInUseError
+            ):
                 raise AddressInUseError(self._server)
             raise ListenError(self._server)
 
@@ -273,8 +276,10 @@ class IPCServer(QtCore.QObject):
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
         socket.error.connect(self.on_error)  # type: ignore[attr-defined]
-        if socket.error() not in [QtNetwork.QLocalSocket.UnknownSocketError,
-                                  QtNetwork.QLocalSocket.PeerClosedError]:
+        if socket.error() not in [
+            QtNetwork.QLocalSocket.UnknownSocketError,
+            QtNetwork.QLocalSocket.PeerClosedError,
+        ]:
             log.ipc.debug("We got an error immediately.")
             self.on_error(socket.error())
         socket.disconnected.connect(  # type: ignore[attr-defined]
@@ -497,8 +502,10 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
             socket.waitForDisconnected(CONNECT_TIMEOUT)
         return True
     else:
-        if socket.error() not in [QtNetwork.QLocalSocket.ConnectionRefusedError,
-                                  QtNetwork.QLocalSocket.ServerNotFoundError]:
+        if socket.error() not in [
+            QtNetwork.QLocalSocket.ConnectionRefusedError,
+            QtNetwork.QLocalSocket.ServerNotFoundError,
+        ]:
             raise SocketError("connecting to running instance", socket)
         log.ipc.debug("No existing instance present (error {})".format(
             socket.error()))

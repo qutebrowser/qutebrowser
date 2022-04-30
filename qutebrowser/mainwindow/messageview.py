@@ -31,11 +31,11 @@ class Message(QtWidgets.QLabel):
     """A single error/warning/info message."""
 
     def __init__(
-            self,
-            level: usertypes.MessageLevel,
-            text: str,
-            replace: Optional[str],
-            parent: QtWidgets.QWidget = None,
+        self,
+        level: usertypes.MessageLevel,
+        text: str,
+        replace: Optional[str],
+        parent: QtWidgets.QWidget = None,
     ) -> None:
         super().__init__(text, parent)
         self.replace = replace
@@ -150,5 +150,9 @@ class MessageView(QtWidgets.QWidget):
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""
-        if e.button() in [QtCore.Qt.LeftButton, QtCore.Qt.MiddleButton, QtCore.Qt.RightButton]:
+        if e.button() in [
+            QtCore.Qt.LeftButton,
+            QtCore.Qt.MiddleButton,
+            QtCore.Qt.RightButton,
+        ]:
             self.clear_messages()

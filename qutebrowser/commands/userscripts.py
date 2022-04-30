@@ -59,10 +59,10 @@ class _QtFIFOReader(QtCore.QObject):
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
-        self._notifier = QtCore.QSocketNotifier(cast(sip.voidptr, fd),
-                                         QtCore.QSocketNotifier.Read, self)
-        self._notifier.activated.connect(  # type: ignore[attr-defined]
-            self.read_line)
+        self._notifier = QtCore.QSocketNotifier(
+            cast(sip.voidptr, fd), QtCore.QSocketNotifier.Read, self
+        )
+        self._notifier.activated.connect(self.read_line)  # type: ignore[attr-defined]
 
     @QtCore.pyqtSlot()
     def read_line(self):

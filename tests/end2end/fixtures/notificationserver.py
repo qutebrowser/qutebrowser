@@ -124,14 +124,14 @@ class TestNotificationServer(QtCore.QObject):
                                       img_width=img.width(), img_height=img.height())
 
     def _parse_image(
-            self,
-            width: int,
-            height: int,
-            bytes_per_line: int,
-            has_alpha: bool,
-            bits_per_color: int,
-            channel_count: int,
-            data: QtCore.QByteArray,
+        self,
+        width: int,
+        height: int,
+        bytes_per_line: int,
+        has_alpha: bool,
+        bits_per_color: int,
+        channel_count: int,
+        data: QtCore.QByteArray,
     ) -> QtGui.QImage:
         """Make sure the given image data is valid and return a QImage."""
         # Chromium limit?
@@ -149,7 +149,9 @@ class TestNotificationServer(QtCore.QObject):
         assert channel_count == (4 if has_alpha else 3)
         assert bytes_per_line >= width * channel_count
 
-        qimage_format = QtGui.QImage.Format_RGBA8888 if has_alpha else QtGui.QImage.Format_RGB888
+        qimage_format = (
+            QtGui.QImage.Format_RGBA8888 if has_alpha else QtGui.QImage.Format_RGB888
+        )
         img = QtGui.QImage(data, width, height, bytes_per_line, qimage_format)
         assert not img.isNull()
         assert img.width() == width

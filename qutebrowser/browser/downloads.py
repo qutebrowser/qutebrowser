@@ -939,7 +939,8 @@ class AbstractDownloadManager(QtCore.QObject):
         delay = config.val.downloads.remove_finished
         if delay > -1:
             download.finished.connect(
-                lambda: QtCore.QTimer.singleShot(delay, download.remove))
+                lambda: QtCore.QTimer.singleShot(delay, download.remove)
+            )
         elif auto_remove:
             download.finished.connect(download.remove)
 
@@ -1265,8 +1266,11 @@ class DownloadModel(QtCore.QAbstractListModel):
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         """Simple constant header."""
-        if (section == 0 and orientation == QtCore.Qt.Horizontal and
-                role == QtCore.Qt.DisplayRole):
+        if (
+            section == 0
+            and orientation == QtCore.Qt.Horizontal
+            and role == QtCore.Qt.DisplayRole
+        ):
             return "Downloads"
         else:
             return ""

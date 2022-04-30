@@ -840,7 +840,7 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
@@ -858,8 +858,10 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
 
     model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
-    assert actual == [QtCore.QUrl('https://github.com'),
-                      QtCore.QUrl('https://duckduckgo.com')]
+    assert actual == [
+        QtCore.QUrl('https://github.com'),
+        QtCore.QUrl('https://duckduckgo.com'),
+    ]
 
 
 def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
@@ -868,7 +870,7 @@ def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
@@ -886,8 +888,10 @@ def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
 
     model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
-    assert actual == [QtCore.QUrl('https://github.com'),
-                      QtCore.QUrl('https://duckduckgo.com')]
+    assert actual == [
+        QtCore.QUrl('https://github.com'),
+        QtCore.QUrl('https://duckduckgo.com'),
+    ]
 
 
 def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
@@ -1031,7 +1035,7 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QtCore.QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QtCore.QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        fake_web_tab(QtCore.QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QtCore.QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
@@ -1418,15 +1422,27 @@ def test_forward_completion(tab_with_history, info):
 
 def test_undo_completion(tabbed_browser_stubs, info):
     """Test :undo completion."""
-    entry1 = tabbedbrowser._UndoEntry(url=QtCore.QUrl('https://example.org/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 1))
-    entry2 = tabbedbrowser._UndoEntry(url=QtCore.QUrl('https://example.com/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 2))
-    entry3 = tabbedbrowser._UndoEntry(url=QtCore.QUrl('https://example.net/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 2))
+    entry1 = tabbedbrowser._UndoEntry(
+        url=QtCore.QUrl('https://example.org/'),
+        history=None,
+        index=None,
+        pinned=None,
+        created_at=datetime(2020, 1, 1),
+    )
+    entry2 = tabbedbrowser._UndoEntry(
+        url=QtCore.QUrl('https://example.com/'),
+        history=None,
+        index=None,
+        pinned=None,
+        created_at=datetime(2020, 1, 2),
+    )
+    entry3 = tabbedbrowser._UndoEntry(
+        url=QtCore.QUrl('https://example.net/'),
+        history=None,
+        index=None,
+        pinned=None,
+        created_at=datetime(2020, 1, 2),
+    )
 
     # Most recently closed is at the end
     tabbed_browser_stubs[0].undo_stack = [

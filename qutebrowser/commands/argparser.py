@@ -60,7 +60,8 @@ class HelpAction(argparse.Action):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
         tabbed_browser.tabopen(
-            QtCore.QUrl('qute://help/commands.html#{}'.format(parser.name)))
+            QtCore.QUrl('qute://help/commands.html#{}'.format(parser.name))
+        )
         parser.exit()
 
 

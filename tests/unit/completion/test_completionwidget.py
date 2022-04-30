@@ -191,8 +191,9 @@ class TestCompletionItemFocusPage:
     @pytest.fixture(autouse=True)
     def patch_heights(self, monkeypatch, completionview):
         """Patch the item/widget heights so that 10 items are always visible."""
-        monkeypatch.setattr(completionview, 'visualRect',
-                            lambda _idx: QtCore.QRect(0, 0, 100, 20))
+        monkeypatch.setattr(
+            completionview, 'visualRect', lambda _idx: QtCore.QRect(0, 0, 100, 20)
+        )
         monkeypatch.setattr(completionview, 'height', lambda: 200)
 
     @pytest.mark.parametrize('which, expected', [

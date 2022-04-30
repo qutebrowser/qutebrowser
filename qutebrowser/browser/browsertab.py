@@ -46,9 +46,9 @@ if TYPE_CHECKING:
 tab_id_gen = itertools.count(0)
 
 
-def create(win_id: int,
-           private: bool,
-           parent: QtWidgets.QWidget = None) -> 'AbstractTab':
+def create(
+    win_id: int, private: bool, parent: QtWidgets.QWidget = None
+) -> 'AbstractTab':
     """Get a QtWebKit/QtWebEngine tab object.
 
     Args:
@@ -143,8 +143,15 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    action_class: Type[Union['QtWebKitWidgets.QWebPage', 'QtWebEngineWidgets.QWebEnginePage']]
-    action_base: Type[Union['QtWebKitWidgets.QWebPage.WebAction', 'QtWebEngineWidgets.QWebEnginePage.WebAction']]
+    action_class: Type[
+        Union['QtWebKitWidgets.QWebPage', 'QtWebEngineWidgets.QWebEnginePage']
+    ]
+    action_base: Type[
+        Union[
+            'QtWebKitWidgets.QWebPage.WebAction',
+            'QtWebEngineWidgets.QWebEnginePage.WebAction',
+        ]
+    ]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = cast(QtWidgets.QWidget, None)
@@ -243,8 +250,9 @@ class AbstractPrinting:
         """Print the tab to a PDF with the given filename."""
         raise NotImplementedError
 
-    def to_printer(self, printer: QtPrintSupport.QPrinter,
-                   callback: Callable[[bool], None] = None) -> None:
+    def to_printer(
+        self, printer: QtPrintSupport.QPrinter, callback: Callable[[bool], None] = None
+    ) -> None:
         """Print the tab.
 
         Args:
@@ -452,10 +460,12 @@ class AbstractCaret(QtCore.QObject):
     #: Emitted when a ``follow_selection`` action is done.
     follow_selected_done = QtCore.pyqtSignal()
 
-    def __init__(self,
-                 tab: 'AbstractTab',
-                 mode_manager: modeman.ModeManager,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        tab: 'AbstractTab',
+        mode_manager: modeman.ModeManager,
+        parent: QtWidgets.QWidget = None,
+    ) -> None:
         super().__init__(parent)
         self._widget = cast(QtWidgets.QWidget, None)
         self._mode_manager = mode_manager
@@ -529,7 +539,9 @@ class AbstractCaret(QtCore.QObject):
     def _follow_enter(self, tab: bool) -> None:
         """Follow a link by faking an enter press."""
         if tab:
-            self._tab.fake_key_press(QtCore.Qt.Key_Enter, modifier=QtCore.Qt.ControlModifier)
+            self._tab.fake_key_press(
+                QtCore.Qt.Key_Enter, modifier=QtCore.Qt.ControlModifier
+            )
         else:
             self._tab.fake_key_press(QtCore.Qt.Key_Enter)
 
@@ -637,13 +649,19 @@ class AbstractHistory:
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
-        self._history = cast(Union['QtWebKit.QWebHistory', 'QtWebEngineWidgets.QWebEngineHistory'], None)
+        self._history = cast(
+            Union['QtWebKit.QWebHistory', 'QtWebEngineWidgets.QWebEngineHistory'], None
+        )
         self.private_api = AbstractHistoryPrivate()
 
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[Union['QtWebKit.QWebHistoryItem', 'QtWebEngineWidgets.QWebEngineHistoryItem']]:
+    def __iter__(
+        self,
+    ) -> Iterable[
+        Union['QtWebKit.QWebHistoryItem', 'QtWebEngineWidgets.QWebEngineHistoryItem']
+    ]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
@@ -871,9 +889,12 @@ class AbstractTabPrivate:
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
 
-    def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
-           win_id: int,
-           parent: QtWidgets.QWidget = None) -> 'AbstractWebInspector':
+    def _init_inspector(
+        self,
+        splitter: 'miscwidgets.InspectorSplitter',
+        win_id: int,
+        parent: QtWidgets.QWidget = None,
+    ) -> 'AbstractWebInspector':
         """Get a WebKitInspector/WebEngineInspector.
 
         Args:
@@ -935,10 +956,14 @@ class AbstractTab(QtWidgets.QWidget):
     # for a given hostname anyways.
     _insecure_hosts: Set[str] = set()
 
-    def __init__(self, *, win_id: int,
-                 mode_manager: 'modeman.ModeManager',
-                 private: bool,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        *,
+        win_id: int,
+        mode_manager: 'modeman.ModeManager',
+        private: bool,
+        parent: QtWidgets.QWidget = None
+    ) -> None:
         utils.unused(mode_manager)  # needed for mypy
         self.is_private = private
         self.win_id = win_id
@@ -1144,13 +1169,14 @@ class AbstractTab(QtWidgets.QWidget):
     def stop(self) -> None:
         raise NotImplementedError
 
-    def fake_key_press(self,
-                       key: QtCore.Qt.Key,
-                       modifier: QtCore.Qt.KeyboardModifier = QtCore.Qt.NoModifier) -> None:
+    def fake_key_press(
+        self,
+        key: QtCore.Qt.Key,
+        modifier: QtCore.Qt.KeyboardModifier = QtCore.Qt.NoModifier,
+    ) -> None:
         """Send a fake key event to this tab."""
         press_evt = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, key, modifier, 0, 0, 0)
-        release_evt = QtGui.QKeyEvent(QtCore.QEvent.KeyRelease, key, modifier,
-                                0, 0, 0)
+        release_evt = QtGui.QKeyEvent(QtCore.QEvent.KeyRelease, key, modifier, 0, 0, 0)
         self.send_event(press_evt)
         self.send_event(release_evt)
 
@@ -1224,7 +1250,8 @@ class AbstractTab(QtWidgets.QWidget):
         try:
             qurl = self.url()
             url = qurl.toDisplayString(
-                QtCore.QUrl.EncodeUnicode)  # type: ignore[arg-type]
+                QtCore.QUrl.EncodeUnicode
+            )  # type: ignore[arg-type]
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

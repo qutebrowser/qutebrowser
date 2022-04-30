@@ -97,8 +97,10 @@ class TabEventFilter(QtCore.QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        is_rocker_gesture = (config.val.input.mouse.rocker_gestures and
-                             e.buttons() == QtCore.Qt.LeftButton | QtCore.Qt.RightButton)
+        is_rocker_gesture = (
+            config.val.input.mouse.rocker_gestures
+            and e.buttons() == QtCore.Qt.LeftButton | QtCore.Qt.RightButton
+        )
 
         if e.button() in [QtCore.Qt.XButton1, QtCore.Qt.XButton2] or is_rocker_gesture:
             self._mousepress_backforward(e)
@@ -238,8 +240,10 @@ class TabEventFilter(QtCore.QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        if (not config.val.input.mouse.back_forward_buttons and
-                e.button() in [QtCore.Qt.XButton1, QtCore.Qt.XButton2]):
+        if not config.val.input.mouse.back_forward_buttons and e.button() in [
+            QtCore.Qt.XButton1,
+            QtCore.Qt.XButton2,
+        ]:
             # Back and forward on mice are disabled
             return
 

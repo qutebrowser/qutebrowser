@@ -89,7 +89,9 @@ def raise_window(window, alert=True):
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
     QtCore.QCoreApplication.processEvents(  # type: ignore[call-overload]
-        QtCore.QEventLoop.ExcludeUserInputEvents | QtCore.QEventLoop.ExcludeSocketNotifiers)
+        QtCore.QEventLoop.ExcludeUserInputEvents
+        | QtCore.QEventLoop.ExcludeSocketNotifiers
+    )
 
     if not sip.isdeleted(window):
         # Could be deleted by the events run above
@@ -181,10 +183,13 @@ class MainWindow(QtWidgets.QWidget):
         }
     """
 
-    def __init__(self, *,
-                 private: bool,
-                 geometry: Optional[QtCore.QByteArray] = None,
-                 parent: Optional[QtWidgets.QWidget] = None) -> None:
+    def __init__(
+        self,
+        *,
+        private: bool,
+        geometry: Optional[QtCore.QByteArray] = None,
+        parent: Optional[QtWidgets.QWidget] = None
+    ) -> None:
         """Create a new main window.
 
         Args:
@@ -337,8 +342,9 @@ class MainWindow(QtWidgets.QWidget):
             topleft = QtCore.QPoint(left, top)
             bottom = status_height + height
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QtCore.QPoint(left + width,
-                                 min(self.height() - height_padding, bottom))
+            bottomright = QtCore.QPoint(
+                left + width, min(self.height() - height_padding, bottom)
+            )
         else:
             raise ValueError("Invalid position {}!".format(status_position))
 
@@ -560,7 +566,9 @@ class MainWindow(QtWidgets.QWidget):
         window_flags: int = QtCore.Qt.Window
         refresh_window = self.isVisible()
         if hidden:
-            window_flags |= QtCore.Qt.CustomizeWindowHint | QtCore.Qt.NoDropShadowWindowHint
+            window_flags |= (
+                QtCore.Qt.CustomizeWindowHint | QtCore.Qt.NoDropShadowWindowHint
+            )
         self.setWindowFlags(cast(QtCore.Qt.WindowFlags, window_flags))
         if refresh_window:
             self.show()
@@ -571,12 +579,16 @@ class MainWindow(QtWidgets.QWidget):
             if on:
                 self.state_before_fullscreen = self.windowState()
                 self.setWindowState(
-                    QtCore.Qt.WindowFullScreen |  # type: ignore[arg-type]
-                    self.state_before_fullscreen)  # type: ignore[operator]
+                    QtCore.Qt.WindowFullScreen
+                    | self.state_before_fullscreen  # type: ignore[arg-type]
+                )  # type: ignore[operator]
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
-        log.misc.debug('on: {}, state before fullscreen: {}'.format(
-            on, debug.qflags_key(QtCore.Qt, self.state_before_fullscreen)))
+        log.misc.debug(
+            'on: {}, state before fullscreen: {}'.format(
+                on, debug.qflags_key(QtCore.Qt, self.state_before_fullscreen)
+            )
+        )
 
     @cmdutils.register(instance='main-window', scope='window')
     @QtCore.pyqtSlot()

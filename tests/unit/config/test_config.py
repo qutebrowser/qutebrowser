@@ -508,9 +508,11 @@ class TestConfig:
     ])
     def test_get_for_url_fallback(self, conf, fallback, expected):
         """Test conf.get() with a URL and fallback."""
-        value = conf.get('content.javascript.enabled',
-                         url=QtCore.QUrl('https://example.com/'),
-                         fallback=fallback)
+        value = conf.get(
+            'content.javascript.enabled',
+            url=QtCore.QUrl('https://example.com/'),
+            fallback=fallback,
+        )
         assert value is expected
 
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
@@ -755,10 +757,13 @@ class TestContainer:
         new_container = new_container.favicons
         assert new_container._prefix == 'tabs.favicons'
 
-    @pytest.mark.parametrize('configapi, expected', [
-        (object(), 'rgb'),
-        (None, QtGui.QColor.Rgb),
-    ])
+    @pytest.mark.parametrize(
+        'configapi, expected',
+        [
+            (object(), 'rgb'),
+            (None, QtGui.QColor.Rgb),
+        ],
+    )
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi
         # Use an option with a to_py() so we can check the conversion.

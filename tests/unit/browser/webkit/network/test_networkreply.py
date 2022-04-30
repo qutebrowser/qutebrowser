@@ -40,7 +40,8 @@ class TestFixedDataNetworkReply:
         assert reply.header(QtNetwork.QNetworkRequest.ContentTypeHeader) == 'test/foo'
         http_code = reply.attribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute)
         http_reason = reply.attribute(
-            QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
+            QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute
+        )
         assert http_code == 200
         assert http_reason == 'OK'
         assert reply.isFinished()
@@ -74,7 +75,8 @@ class TestFixedDataNetworkReply:
 
 def test_error_network_reply(qtbot, req):
     reply = networkreply.ErrorNetworkReply(
-        req, "This is an error", QtNetwork.QNetworkReply.UnknownNetworkError)
+        req, "This is an error", QtNetwork.QNetworkReply.UnknownNetworkError
+    )
 
     with qtbot.wait_signals([reply.error, reply.finished], order='strict'):
         pass

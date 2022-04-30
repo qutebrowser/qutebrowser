@@ -26,12 +26,13 @@ from qutebrowser.misc import miscwidgets
 
 
 class FakeInspector(inspector.AbstractWebInspector):
-
-    def __init__(self,
-                 inspector_widget: QtWidgets.QWidget,
-                 splitter: miscwidgets.InspectorSplitter,
-                 win_id: int,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        inspector_widget: QtWidgets.QWidget,
+        splitter: miscwidgets.InspectorSplitter,
+        win_id: int,
+        parent: QtWidgets.QWidget = None,
+    ) -> None:
         super().__init__(splitter, win_id, parent)
         self._set_widget(inspector_widget)
         self._inspected_page = None

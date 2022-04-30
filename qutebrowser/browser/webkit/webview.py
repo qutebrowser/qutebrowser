@@ -72,8 +72,10 @@ class WebView(QtWebKitWidgets.QWebView):
                                    tabdata=tab.data, private=private,
                                    parent=self)
         page.setVisibilityState(
-            QtWebKitWidgets.QWebPage.VisibilityStateVisible if self.isVisible()
-            else QtWebKitWidgets.QWebPage.VisibilityStateHidden)
+            QtWebKitWidgets.QWebPage.VisibilityStateVisible
+            if self.isVisible()
+            else QtWebKitWidgets.QWebPage.VisibilityStateHidden
+        )
 
         self.setPage(page)
 
@@ -152,14 +154,20 @@ class WebView(QtWebKitWidgets.QWebView):
             e: The QPaintEvent.
         """
         frame = self.page().mainFrame()
-        new_pos = (frame.scrollBarValue(QtCore.Qt.Horizontal),
-                   frame.scrollBarValue(QtCore.Qt.Vertical))
+        new_pos = (
+            frame.scrollBarValue(QtCore.Qt.Horizontal),
+            frame.scrollBarValue(QtCore.Qt.Vertical),
+        )
         if self._old_scroll_pos != new_pos:
             self._old_scroll_pos = new_pos
-            m = (frame.scrollBarMaximum(QtCore.Qt.Horizontal),
-                 frame.scrollBarMaximum(QtCore.Qt.Vertical))
-            perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
-                    round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
+            m = (
+                frame.scrollBarMaximum(QtCore.Qt.Horizontal),
+                frame.scrollBarMaximum(QtCore.Qt.Vertical),
+            )
+            perc = (
+                round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
+                round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0,
+            )
             self.scroll_pos = perc
             self.scroll_pos_changed.emit(*perc)
         # Let superclass handle the event
@@ -199,7 +207,10 @@ class WebView(QtWebKitWidgets.QWebView):
 
         This is implemented here as we don't need it for QtWebEngine.
         """
-        if e.button() == QtCore.Qt.MidButton or e.modifiers() & QtCore.Qt.ControlModifier:
+        if (
+            e.button() == QtCore.Qt.MidButton
+            or e.modifiers() & QtCore.Qt.ControlModifier
+        ):
             background = config.val.tabs.background
             if e.modifiers() & QtCore.Qt.ShiftModifier:
                 background = not background

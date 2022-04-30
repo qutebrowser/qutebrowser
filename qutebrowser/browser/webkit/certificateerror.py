@@ -39,8 +39,12 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            errors=[debug.qenum_key(QtNetwork.QSslError, err.error()) for err in self._errors],
-            string=str(self))
+            errors=[
+                debug.qenum_key(QtNetwork.QSslError, err.error())
+                for err in self._errors
+            ],
+            string=str(self),
+        )
 
     def __hash__(self) -> int:
         return hash(self._errors)

@@ -32,41 +32,45 @@ class FakeError:
         return self.msg
 
 
-@pytest.mark.parametrize('errors, expected', [
-    (
-        [QtNetwork.QSslError(QtNetwork.QSslError.UnableToGetIssuerCertificate)],
-        ['<p>The issuer certificate could not be found</p>'],
-    ),
-    (
-        [
-            QtNetwork.QSslError(QtNetwork.QSslError.UnableToGetIssuerCertificate),
-            QtNetwork.QSslError(QtNetwork.QSslError.UnableToDecryptCertificateSignature),
-        ],
-        [
-            '<ul>',
-            '<li>The issuer certificate could not be found</li>',
-            '<li>The certificate signature could not be decrypted</li>',
-            '</ul>',
-        ],
-    ),
-
-    (
-        [FakeError('Escaping test: <>')],
-        ['<p>Escaping test: &lt;&gt;</p>'],
-    ),
-    (
-        [
-            FakeError('Escaping test 1: <>'),
-            FakeError('Escaping test 2: <>'),
-        ],
-        [
-            '<ul>',
-            '<li>Escaping test 1: &lt;&gt;</li>',
-            '<li>Escaping test 2: &lt;&gt;</li>',
-            '</ul>',
-        ],
-    ),
-])
+@pytest.mark.parametrize(
+    'errors, expected',
+    [
+        (
+            [QtNetwork.QSslError(QtNetwork.QSslError.UnableToGetIssuerCertificate)],
+            ['<p>The issuer certificate could not be found</p>'],
+        ),
+        (
+            [
+                QtNetwork.QSslError(QtNetwork.QSslError.UnableToGetIssuerCertificate),
+                QtNetwork.QSslError(
+                    QtNetwork.QSslError.UnableToDecryptCertificateSignature
+                ),
+            ],
+            [
+                '<ul>',
+                '<li>The issuer certificate could not be found</li>',
+                '<li>The certificate signature could not be decrypted</li>',
+                '</ul>',
+            ],
+        ),
+        (
+            [FakeError('Escaping test: <>')],
+            ['<p>Escaping test: &lt;&gt;</p>'],
+        ),
+        (
+            [
+                FakeError('Escaping test 1: <>'),
+                FakeError('Escaping test 2: <>'),
+            ],
+            [
+                '<ul>',
+                '<li>Escaping test 1: &lt;&gt;</li>',
+                '<li>Escaping test 2: &lt;&gt;</li>',
+                '</ul>',
+            ],
+        ),
+    ],
+)
 def test_html(errors, expected):
     wrapper = certificateerror.CertificateErrorWrapper(errors)
     lines = [line.strip() for line in wrapper.html().splitlines() if line.strip()]

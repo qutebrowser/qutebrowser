@@ -144,7 +144,8 @@ class Values:
         return bool(self._vmap)
 
     def _check_pattern_support(
-            self, arg: Union[urlmatch.UrlPattern, QtCore.QUrl, None]) -> None:
+        self, arg: Union[urlmatch.UrlPattern, QtCore.QUrl, None]
+    ) -> None:
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
@@ -291,8 +292,8 @@ class FontFamilies:
 
     @classmethod
     def from_system_default(
-            cls,
-            font_type: QtGui.QFontDatabase.SystemFont = QtGui.QFontDatabase.FixedFont,
+        cls,
+        font_type: QtGui.QFontDatabase.SystemFont = QtGui.QFontDatabase.FixedFont,
     ) -> 'FontFamilies':
         """Get a FontFamilies object for the default system font.
 

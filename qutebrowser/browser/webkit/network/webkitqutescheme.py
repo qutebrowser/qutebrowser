@@ -39,8 +39,10 @@ def handler(request, operation, current_url):
     """
     if operation != QtNetwork.QNetworkAccessManager.GetOperation:
         return networkreply.ErrorNetworkReply(
-            request, "Unsupported request type",
-            QtNetwork.QNetworkReply.ContentOperationNotPermittedError)
+            request,
+            "Unsupported request type",
+            QtNetwork.QNetworkReply.ContentOperationNotPermittedError,
+        )
 
     url = request.url()
 
@@ -51,23 +53,20 @@ def handler(request, operation, current_url):
                                 .format(current_url.toDisplayString(),
                                         url.toDisplayString()))
             return networkreply.ErrorNetworkReply(
-                request, "Invalid qute://settings request",
-                QtNetwork.QNetworkReply.ContentAccessDenied)
+                request,
+                "Invalid qute://settings request",
+                QtNetwork.QNetworkReply.ContentAccessDenied,
+            )
 
     try:
         mimetype, data = qutescheme.data_for_url(url)
     except qutescheme.Error as e:
         errors = {
-            qutescheme.NotFoundError:
-                QtNetwork.QNetworkReply.ContentNotFoundError,
-            qutescheme.UrlInvalidError:
-                QtNetwork.QNetworkReply.ContentOperationNotPermittedError,
-            qutescheme.RequestDeniedError:
-                QtNetwork.QNetworkReply.ContentAccessDenied,
-            qutescheme.SchemeOSError:
-                QtNetwork.QNetworkReply.ContentNotFoundError,
-            qutescheme.Error:
-                QtNetwork.QNetworkReply.InternalServerError,
+            qutescheme.NotFoundError: QtNetwork.QNetworkReply.ContentNotFoundError,
+            qutescheme.UrlInvalidError: QtNetwork.QNetworkReply.ContentOperationNotPermittedError,
+            qutescheme.RequestDeniedError: QtNetwork.QNetworkReply.ContentAccessDenied,
+            qutescheme.SchemeOSError: QtNetwork.QNetworkReply.ContentNotFoundError,
+            qutescheme.Error: QtNetwork.QNetworkReply.InternalServerError,
         }
         exctype = type(e)
         log.misc.error("{} while handling qute://* URL".format(

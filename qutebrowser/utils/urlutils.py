@@ -174,8 +174,10 @@ def _is_url_dns(urlstr: str) -> bool:
     url = QtCore.QUrl.fromUserInput(urlstr)
     assert url.isValid()
 
-    if (utils.raises(ValueError, ipaddress.ip_address, urlstr) and
-            not QtNetwork.QHostAddress(urlstr).isNull()):
+    if (
+        utils.raises(ValueError, ipaddress.ip_address, urlstr)
+        and not QtNetwork.QHostAddress(urlstr).isNull()
+    ):
         log.url.debug("Bogus IP URL -> False")
         # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
         # which we don't want to.
@@ -190,11 +192,13 @@ def _is_url_dns(urlstr: str) -> bool:
     return not info.error()
 
 
-def fuzzy_url(urlstr: str,
-              cwd: str = None,
-              relative: bool = False,
-              do_search: bool = True,
-              force_search: bool = False) -> QtCore.QUrl:
+def fuzzy_url(
+    urlstr: str,
+    cwd: str = None,
+    relative: bool = False,
+    do_search: bool = True,
+    force_search: bool = False,
+) -> QtCore.QUrl:
     """Get a QUrl based on a user input which is URL or search term.
 
     Args:

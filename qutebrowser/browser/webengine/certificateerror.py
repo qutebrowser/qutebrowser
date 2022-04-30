@@ -38,8 +38,11 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            error=debug.qenum_key(QtWebEngineWidgets.QWebEngineCertificateError, self._error.error()),
-            string=str(self))
+            error=debug.qenum_key(
+                QtWebEngineWidgets.QWebEngineCertificateError, self._error.error()
+            ),
+            string=str(self),
+        )
 
     def url(self) -> QtCore.QUrl:
         return self._error.url()

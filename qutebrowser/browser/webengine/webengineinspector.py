@@ -38,8 +38,9 @@ class WebEngineInspectorView(QtWebEngineWidgets.QWebEngineView):
     customization which doesn't apply to the inspector.
     """
 
-    def createWindow(self,
-                     wintype: QtWebEngineWidgets.QWebEnginePage.WebWindowType) -> QtWebEngineWidgets.QWebEngineView:
+    def createWindow(
+        self, wintype: QtWebEngineWidgets.QWebEnginePage.WebWindowType
+    ) -> QtWebEngineWidgets.QWebEngineView:
         """Called by Qt when a page wants to create a new tab or window.
 
         In case the user wants to open a resource in a new tab, we use the
@@ -54,9 +55,12 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebEngine with Qt API support."""
 
-    def __init__(self, splitter: miscwidgets.InspectorSplitter,
-                 win_id: int,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        splitter: miscwidgets.InspectorSplitter,
+        win_id: int,
+        parent: QtWidgets.QWidget = None,
+    ) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
 
@@ -87,7 +91,9 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         if dist is None or dist.parsed != version.Distribution.fedora:
             return
 
-        data_path = pathlib.Path(QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.DataPath))
+        data_path = pathlib.Path(
+            QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.DataPath)
+        )
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
             raise inspector.Error("QtWebEngine devtools resources not found, "

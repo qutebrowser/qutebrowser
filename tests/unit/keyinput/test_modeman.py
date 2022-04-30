@@ -51,13 +51,16 @@ def set_qapp(monkeypatch, qapp):
     monkeypatch.setattr(objects, 'qapp', qapp)
 
 
-@pytest.mark.parametrize('key, modifiers, filtered', [
-    (QtCore.Qt.Key_A, QtCore.Qt.NoModifier, True),
-    (QtCore.Qt.Key_Up, QtCore.Qt.NoModifier, False),
-    # https://github.com/qutebrowser/qutebrowser/issues/1207
-    (QtCore.Qt.Key_A, QtCore.Qt.ShiftModifier, True),
-    (QtCore.Qt.Key_A, QtCore.Qt.ShiftModifier | QtCore.Qt.ControlModifier, False),
-])
+@pytest.mark.parametrize(
+    'key, modifiers, filtered',
+    [
+        (QtCore.Qt.Key_A, QtCore.Qt.NoModifier, True),
+        (QtCore.Qt.Key_Up, QtCore.Qt.NoModifier, False),
+        # https://github.com/qutebrowser/qutebrowser/issues/1207
+        (QtCore.Qt.Key_A, QtCore.Qt.ShiftModifier, True),
+        (QtCore.Qt.Key_A, QtCore.Qt.ShiftModifier | QtCore.Qt.ControlModifier, False),
+    ],
+)
 def test_non_alphanumeric(key, modifiers, filtered, modeman):
     """Make sure non-alphanumeric keys are passed through correctly."""
     evt = keyutils.KeyInfo(key=key, modifiers=modifiers).to_event()

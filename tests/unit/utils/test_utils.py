@@ -648,8 +648,9 @@ class TestGetSetClipboard:
 
     @pytest.fixture(autouse=True)
     def clipboard_mock(self, mocker):
-        m = mocker.patch('qutebrowser.utils.utils.QtWidgets.QApplication.clipboard',
-                         autospec=True)
+        m = mocker.patch(
+            'qutebrowser.utils.utils.QtWidgets.QApplication.clipboard', autospec=True
+        )
         clipboard = m()
         clipboard.text.return_value = 'mocked clipboard text'
         mocker.patch('qutebrowser.utils.utils.fake_clipboard', None)
@@ -657,8 +658,9 @@ class TestGetSetClipboard:
 
     def test_set(self, clipboard_mock, caplog):
         utils.set_clipboard('Hello World')
-        clipboard_mock.setText.assert_called_with('Hello World',
-                                                  mode=QtGui.QClipboard.Clipboard)
+        clipboard_mock.setText.assert_called_with(
+            'Hello World', mode=QtGui.QClipboard.Clipboard
+        )
         assert not caplog.records
 
     def test_set_unsupported_selection(self, clipboard_mock):
@@ -749,8 +751,11 @@ class TestOpenFile:
 
     @pytest.fixture
     def openurl_mock(self, mocker):
-        return mocker.patch('qutebrowser.qt.QtGui.QDesktopServices.openUrl', spec={},
-                            new_callable=mocker.Mock)
+        return mocker.patch(
+            'qutebrowser.qt.QtGui.QDesktopServices.openUrl',
+            spec={},
+            new_callable=mocker.Mock,
+        )
 
     def test_system_default_application(self, caplog, config_stub,
                                         openurl_mock):
@@ -978,11 +983,13 @@ class TestCleanupFileContext:
 
 
 class TestParseRect:
-
-    @pytest.mark.parametrize('value, expected', [
-        ('1x1+0+0', QtCore.QRect(0, 0, 1, 1)),
-        ('123x789+12+34', QtCore.QRect(12, 34, 123, 789)),
-    ])
+    @pytest.mark.parametrize(
+        'value, expected',
+        [
+            ('1x1+0+0', QtCore.QRect(0, 0, 1, 1)),
+            ('123x789+12+34', QtCore.QRect(12, 34, 123, 789)),
+        ],
+    )
     def test_valid(self, value, expected):
         assert utils.parse_rect(value) == expected
 

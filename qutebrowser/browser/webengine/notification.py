@@ -167,7 +167,9 @@ class NotificationBridgePresenter(QtCore.QObject):
         super().__init__(parent)
         assert _notifications_supported()
 
-        self._active_notifications: Dict[int, 'QtWebEngineCore.QWebEngineNotification'] = {}
+        self._active_notifications: Dict[
+            int, 'QtWebEngineCore.QWebEngineNotification'
+        ] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
 
         config.instance.changed.connect(self._init_adapter)
@@ -233,14 +235,18 @@ class NotificationBridgePresenter(QtCore.QObject):
             # its refcount to prevent it from getting GC'd. Otherwise, random
             # methods start getting called with the notification as `self`, or
             # segfaults happen, or other badness.
-            def _present_and_reset(qt_notification: "QtWebEngineCore.QWebEngineNotification") -> None:
+            def _present_and_reset(
+                qt_notification: "QtWebEngineCore.QWebEngineNotification",
+            ) -> None:
                 profile.setNotificationPresenter(_present_and_reset)
                 self.present(qt_notification)
             profile.setNotificationPresenter(_present_and_reset)
         else:
             profile.setNotificationPresenter(self.present)
 
-    def present(self, qt_notification: "QtWebEngineCore.QWebEngineNotification") -> None:
+    def present(
+        self, qt_notification: "QtWebEngineCore.QWebEngineNotification"
+    ) -> None:
         """Show a notification using the configured adapter.
 
         Lazily initializes a suitable adapter if none exists yet.
@@ -359,7 +365,9 @@ class NotificationBridgePresenter(QtCore.QObject):
             return
         self._focus_first_matching_tab(notification)
 
-    def _focus_first_matching_tab(self, notification: "QtWebEngineCore.QWebEngineNotification") -> None:
+    def _focus_first_matching_tab(
+        self, notification: "QtWebEngineCore.QWebEngineNotification"
+    ) -> None:
         for win_id in objreg.window_registry:
             tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
             for idx, tab in enumerate(tabbedbrowser.widgets()):
@@ -520,7 +528,9 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
 
-    def _format_message(self, qt_notification: "QtWebEngineCore.QWebEngineNotification") -> str:
+    def _format_message(
+        self, qt_notification: "QtWebEngineCore.QWebEngineNotification"
+    ) -> str:
         title = html.escape(qt_notification.title())
         body = html.escape(qt_notification.message())
         hint = "" if qt_notification.icon().isNull() else " (image not shown)"
@@ -596,7 +606,9 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         if not qt_notification.icon().isNull():
             yield "(icon not shown)"
 
-    def _on_finished(self, pid: int, code: int, status: QtCore.QProcess.ExitStatus) -> None:
+    def _on_finished(
+        self, pid: int, code: int, status: QtCore.QProcess.ExitStatus
+    ) -> None:
         """Handle a closing herbe process.
 
         From the GitHub page:
@@ -919,7 +931,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         typ = msg.type()
         if typ != expected_type:
             type_str = debug.qenum_key(QtDBus.QDBusMessage.MessageType, typ)
-            expected_type_str = debug.qenum_key(QtDBus.QDBusMessage.MessageType, expected_type)
+            expected_type_str = debug.qenum_key(
+                QtDBus.QDBusMessage.MessageType, expected_type
+            )
             raise Error(
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {msg.arguments()})")

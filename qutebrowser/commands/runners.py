@@ -54,9 +54,11 @@ def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
     replacements: Dict[str, _ReplacementFunction] = {
         'url': lambda tb: _url(tb).toString(
-            QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword),
+            QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword
+        ),
         'url:pretty': lambda tb: _url(tb).toString(
-            QtCore.QUrl.DecodeReserved | QtCore.QUrl.RemovePassword),
+            QtCore.QUrl.DecodeReserved | QtCore.QUrl.RemovePassword
+        ),
         'url:domain': lambda tb: "{}://{}{}".format(
             _url(tb).scheme(), _url(tb).host(),
             ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),

@@ -75,7 +75,9 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ':hello'
         assert cmd_edit.cursorPosition() == len(':hello')
         for _ in ':hello':
-            qtbot.keyClick(cmd_edit, QtCore.Qt.Key_Left, modifier=QtCore.Qt.ShiftModifier)
+            qtbot.keyClick(
+                cmd_edit, QtCore.Qt.Key_Left, modifier=QtCore.Qt.ShiftModifier
+            )
         assert cmd_edit.cursorPosition() == len(':')
         assert cmd_edit.selectionStart() == len(':')
 
@@ -259,8 +261,11 @@ class TestInspectorSplitter:
                          new_window_size, exp_inspector_size,
                          position, splitter, fake_inspector, qtbot):
         def resize(dim):
-            size = (QtCore.QSize(dim, 666) if splitter.orientation() == QtCore.Qt.Horizontal
-                    else QtCore.QSize(666, dim))
+            size = (
+                QtCore.QSize(dim, 666)
+                if splitter.orientation() == QtCore.Qt.Horizontal
+                else QtCore.QSize(666, dim)
+            )
             splitter.resize(size)
             if splitter.size() != size:
                 pytest.skip("Resizing window failed")

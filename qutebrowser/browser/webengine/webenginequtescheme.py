@@ -93,16 +93,11 @@ class QuteSchemeHandler(QtWebEngineCore.QWebEngineUrlSchemeHandler):
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
             errors = {
-                qutescheme.NotFoundError:
-                    QtWebEngineCore.QWebEngineUrlRequestJob.UrlNotFound,
-                qutescheme.UrlInvalidError:
-                    QtWebEngineCore.QWebEngineUrlRequestJob.UrlInvalid,
-                qutescheme.RequestDeniedError:
-                    QtWebEngineCore.QWebEngineUrlRequestJob.RequestDenied,
-                qutescheme.SchemeOSError:
-                    QtWebEngineCore.QWebEngineUrlRequestJob.UrlNotFound,
-                qutescheme.Error:
-                    QtWebEngineCore.QWebEngineUrlRequestJob.RequestFailed,
+                qutescheme.NotFoundError: QtWebEngineCore.QWebEngineUrlRequestJob.UrlNotFound,
+                qutescheme.UrlInvalidError: QtWebEngineCore.QWebEngineUrlRequestJob.UrlInvalid,
+                qutescheme.RequestDeniedError: QtWebEngineCore.QWebEngineUrlRequestJob.RequestDenied,
+                qutescheme.SchemeOSError: QtWebEngineCore.QWebEngineUrlRequestJob.UrlNotFound,
+                qutescheme.Error: QtWebEngineCore.QWebEngineUrlRequestJob.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -134,6 +129,7 @@ def init():
         assert not QtWebEngineCore.QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QtWebEngineCore.QWebEngineUrlScheme(b'qute')
         scheme.setFlags(
-            QtWebEngineCore.QWebEngineUrlScheme.LocalScheme |  # type: ignore[arg-type]
-            QtWebEngineCore.QWebEngineUrlScheme.LocalAccessAllowed)
+            QtWebEngineCore.QWebEngineUrlScheme.LocalScheme
+            | QtWebEngineCore.QWebEngineUrlScheme.LocalAccessAllowed  # type: ignore[arg-type]
+        )
         QtWebEngineCore.QWebEngineUrlScheme.registerScheme(scheme)

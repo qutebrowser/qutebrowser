@@ -80,8 +80,7 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
-            app_data_path = _writable_location(
-                QtCore.QStandardPaths.AppDataLocation)
+            app_data_path = _writable_location(QtCore.QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'config')
         else:
             path = _writable_location(typ)
@@ -220,7 +219,8 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
             if typ == QtCore.QStandardPaths.TempLocation:
                 raise
             path = _writable_location(  # pragma: no cover
-                QtCore.QStandardPaths.TempLocation)
+                QtCore.QStandardPaths.TempLocation
+            )
 
         # This is generic, but per-user.
         # _writable_location makes sure we have a qutebrowser-specific subdir.
@@ -262,10 +262,14 @@ def _writable_location(typ: QtCore.QStandardPaths.StandardLocation) -> str:
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        QtCore.QStandardPaths.ConfigLocation, QtCore.QStandardPaths.AppLocalDataLocation,
-        QtCore.QStandardPaths.CacheLocation, QtCore.QStandardPaths.DownloadLocation,
-        QtCore.QStandardPaths.RuntimeLocation, QtCore.QStandardPaths.TempLocation,
-        QtCore.QStandardPaths.AppDataLocation], typ_str
+        QtCore.QStandardPaths.ConfigLocation,
+        QtCore.QStandardPaths.AppLocalDataLocation,
+        QtCore.QStandardPaths.CacheLocation,
+        QtCore.QStandardPaths.DownloadLocation,
+        QtCore.QStandardPaths.RuntimeLocation,
+        QtCore.QStandardPaths.TempLocation,
+        QtCore.QStandardPaths.AppDataLocation,
+    ], typ_str
 
     with _unset_organization():
         path = QtCore.QStandardPaths.writableLocation(typ)
@@ -280,16 +284,17 @@ def _writable_location(typ: QtCore.QStandardPaths.StandardLocation) -> str:
     # Add the application name to the given path if needed.
     # This is in order for this to work without a QApplication (and thus
     # QStandardsPaths not knowing the application name).
-    if (typ != QtCore.QStandardPaths.DownloadLocation and
-            path.split(os.sep)[-1] != APPNAME):
+    if (
+        typ != QtCore.QStandardPaths.DownloadLocation
+        and path.split(os.sep)[-1] != APPNAME
+    ):
         path = os.path.join(path, APPNAME)
 
     return path
 
 
 def _from_args(
-        typ: QtCore.QStandardPaths.StandardLocation,
-        args: Optional[argparse.Namespace]
+    typ: QtCore.QStandardPaths.StandardLocation, args: Optional[argparse.Namespace]
 ) -> Optional[str]:
     """Get the standard directory from an argparse namespace.
 

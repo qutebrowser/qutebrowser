@@ -93,7 +93,9 @@ class TestProcessHandler:
         with qtbot.wait_signal(proc.finished, timeout=5000):
             proc.start(*py_proc("print('AT&T')"))
 
-        _mimetype, data = qutescheme.qute_process(QtCore.QUrl(f'qute://process/{proc.pid}'))
+        _mimetype, data = qutescheme.qute_process(
+            QtCore.QUrl(f'qute://process/{proc.pid}')
+        )
         print(data)
 
         assert f'<title>Process {proc.pid}</title>' in data
@@ -121,9 +123,11 @@ class TestHistoryHandler:
         items = []
         for i in range(entry_count):
             entry_atime = now - i * interval
-            entry = {"atime": str(entry_atime),
-                     "url": QtCore.QUrl("http://www.x.com/" + str(i)),
-                     "title": "Page " + str(i)}
+            entry = {
+                "atime": str(entry_atime),
+                "url": QtCore.QUrl("http://www.x.com/" + str(i)),
+                "title": "Page " + str(i),
+            }
             items.insert(0, entry)
 
         return items
@@ -229,7 +233,8 @@ class TestPDFJSHandler:
     def test_existing_resource(self):
         """Test with a resource that exists."""
         _mimetype, data = qutescheme.data_for_url(
-            QtCore.QUrl('qute://pdfjs/existing/file.html'))
+            QtCore.QUrl('qute://pdfjs/existing/file.html')
+        )
         assert data == b'foobar'
 
     def test_nonexisting_resource(self, caplog):
@@ -253,7 +258,8 @@ class TestPDFJSHandler:
             f.write('<pdf content>')
 
         _mimetype, data = qutescheme.data_for_url(
-            QtCore.QUrl('qute://pdfjs/web/viewer.html?filename=' + filename))
+            QtCore.QUrl('qute://pdfjs/web/viewer.html?filename=' + filename)
+        )
         assert b'PDF.js' in data
 
     def test_viewer_no_filename(self):
@@ -263,20 +269,25 @@ class TestPDFJSHandler:
 
     def test_viewer_inexistent_file(self):
         with pytest.raises(qutescheme.Redirect):
-            qutescheme.data_for_url(QtCore.QUrl('qute://pdfjs/web/viewer.html?'
-                                         'filename=foobar&source=example.org'))
+            qutescheme.data_for_url(
+                QtCore.QUrl(
+                    'qute://pdfjs/web/viewer.html?' 'filename=foobar&source=example.org'
+                )
+            )
 
     def test_viewer_inexistent_file_no_source(self):
         with pytest.raises(qutescheme.UrlInvalidError,
                            match='Missing source'):
             qutescheme.data_for_url(
-                QtCore.QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
+                QtCore.QUrl('qute://pdfjs/web/viewer.html?filename=foobar')
+            )
 
     def test_file(self, download_tmpdir):
         """Load a file via qute://pdfjs/file."""
         (download_tmpdir / 'testfile').write_binary(b'foo')
         _mimetype, data = qutescheme.data_for_url(
-            QtCore.QUrl('qute://pdfjs/file?filename=testfile'))
+            QtCore.QUrl('qute://pdfjs/file?filename=testfile')
+        )
         assert data == b'foo'
 
     def test_file_no_filename(self):

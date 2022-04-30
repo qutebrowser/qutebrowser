@@ -29,7 +29,14 @@ import argparse
 import dataclasses
 from typing import Any, List, Sequence, Tuple, Optional
 
-from qutebrowser.qt import QtWidgets, QtWebKitWidgets, QtWebKit, QtWebEngineWidgets, QtNetwork, QtCore
+from qutebrowser.qt import (
+    QtWidgets,
+    QtWebKitWidgets,
+    QtWebKit,
+    QtWebEngineWidgets,
+    QtNetwork,
+    QtCore,
+)
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
@@ -95,11 +102,15 @@ class _Dialog(QtWidgets.QDialog):
 
     """A dialog which gets shown if there are issues with the backend."""
 
-    def __init__(self, *, because: str,
-                 text: str,
-                 backend: usertypes.Backend,
-                 buttons: Sequence[_Button] = None,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        *,
+        because: str,
+        text: str,
+        backend: usertypes.Backend,
+        buttons: Sequence[_Button] = None,
+        parent: QtWidgets.QWidget = None,
+    ) -> None:
         super().__init__(parent)
         vbox = QtWidgets.QVBoxLayout(self)
 
@@ -299,11 +310,13 @@ class _BackendProblemChecker:
                 "affects downloads and :adblock-update.".format(version_text))
 
         if fatal:
-            errbox = msgbox.msgbox(parent=None,
-                                   title="SSL error",
-                                   text="Could not initialize SSL support.",
-                                   icon=QtWidgets.QMessageBox.Critical,
-                                   plain_text=False)
+            errbox = msgbox.msgbox(
+                parent=None,
+                title="SSL error",
+                text="Could not initialize SSL support.",
+                icon=QtWidgets.QMessageBox.Critical,
+                plain_text=False,
+            )
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 
@@ -317,19 +330,24 @@ class _BackendProblemChecker:
         if not imports.webkit_error and not imports.webengine_error:
             return
         elif imports.webkit_error and imports.webengine_error:
-            text = ("<p>qutebrowser needs QtWebKit or QtWebEngine, but "
-                    "neither could be imported!</p>"
-                    "<p>The errors encountered were:<ul>"
-                    "<li><b>QtWebKit:</b> {webkit_error}"
-                    "<li><b>QtWebEngine:</b> {webengine_error}"
-                    "</ul></p>".format(
-                        webkit_error=html.escape(imports.webkit_error),
-                        webengine_error=html.escape(imports.webengine_error)))
-            errbox = msgbox.msgbox(parent=None,
-                                   title="No backend library found!",
-                                   text=text,
-                                   icon=QtWidgets.QMessageBox.Critical,
-                                   plain_text=False)
+            text = (
+                "<p>qutebrowser needs QtWebKit or QtWebEngine, but "
+                "neither could be imported!</p>"
+                "<p>The errors encountered were:<ul>"
+                "<li><b>QtWebKit:</b> {webkit_error}"
+                "<li><b>QtWebEngine:</b> {webengine_error}"
+                "</ul></p>".format(
+                    webkit_error=html.escape(imports.webkit_error),
+                    webengine_error=html.escape(imports.webengine_error),
+                )
+            )
+            errbox = msgbox.msgbox(
+                parent=None,
+                title="No backend library found!",
+                text=text,
+                icon=QtWidgets.QMessageBox.Critical,
+                plain_text=False,
+            )
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
         elif objects.backend == usertypes.Backend.QtWebKit:

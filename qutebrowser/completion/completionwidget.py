@@ -109,10 +109,9 @@ class CompletionView(QtWidgets.QTreeView):
     update_geometry = QtCore.pyqtSignal()
     selection_changed = QtCore.pyqtSignal(str)
 
-    def __init__(self, *,
-                 cmd: 'command.Command',
-                 win_id: int,
-                 parent: QtWidgets.QWidget = None) -> None:
+    def __init__(
+        self, *, cmd: 'command.Command', win_id: int, parent: QtWidgets.QWidget = None
+    ) -> None:
         super().__init__(parent)
         self.pattern: Optional[str] = None
         self._win_id = win_id
@@ -326,8 +325,9 @@ class CompletionView(QtWidgets.QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QtCore.QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
-            QtCore.QItemSelectionModel.Rows)
+            QtCore.QItemSelectionModel.ClearAndSelect
+            | QtCore.QItemSelectionModel.Rows,  # type: ignore[arg-type]
+        )
 
         # if the last item is focused, try to fetch more
         next_idx = self.indexBelow(idx)

@@ -253,20 +253,23 @@ def test_get_trailing_dot(values):
             'example.org value')
 
 
-@pytest.mark.parametrize('func', [
-    pytest.param(lambda values, pattern:
-                 values.add(None, pattern),
-                 id='add'),
-    pytest.param(lambda values, pattern:
-                 values.remove(pattern),
-                 id='remove'),
-    pytest.param(lambda values, pattern:
-                 values.get_for_url(QtCore.QUrl('https://example.org/')),
-                 id='get_for_url'),
-    pytest.param(lambda values, pattern:
-                 values.get_for_pattern(pattern),
-                 id='get_for_pattern'),
-])
+@pytest.mark.parametrize(
+    'func',
+    [
+        pytest.param(lambda values, pattern: values.add(None, pattern), id='add'),
+        pytest.param(lambda values, pattern: values.remove(pattern), id='remove'),
+        pytest.param(
+            lambda values, pattern: values.get_for_url(
+                QtCore.QUrl('https://example.org/')
+            ),
+            id='get_for_url',
+        ),
+        pytest.param(
+            lambda values, pattern: values.get_for_pattern(pattern),
+            id='get_for_pattern',
+        ),
+    ],
+)
 def test_no_pattern_support(func, opt, pattern):
     opt.supports_pattern = False
     values = configutils.Values(opt, [])

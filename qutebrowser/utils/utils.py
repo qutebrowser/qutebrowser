@@ -43,6 +43,8 @@ except ImportError:  # pragma: no cover
         class Protocol:
 
             """Empty stub at runtime."""
+
+
 from qutebrowser.qt import QtWidgets
 
 import yaml

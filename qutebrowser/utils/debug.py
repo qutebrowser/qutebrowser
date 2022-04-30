@@ -40,8 +40,11 @@ def log_events(klass: Type[QtCore.QObject]) -> Type[QtCore.QObject]:
     @functools.wraps(old_event)
     def new_event(self: Any, e: QtCore.QEvent) -> bool:
         """Wrapper for event() which logs events."""
-        log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
-                                                qenum_key(QtCore.QEvent, e.type())))
+        log.misc.debug(
+            "Event in {}: {}".format(
+                utils.qualname(klass), qenum_key(QtCore.QEvent, e.type())
+            )
+        )
         return old_event(self, e)
 
     klass.event = new_event  # type: ignore[assignment]
@@ -53,7 +56,10 @@ def log_signals(obj: QtCore.QObject) -> QtCore.QObject:
 
     Can be used as class decorator.
     """
-    def log_slot(obj: QtCore.QObject, signal: QtCore.pyqtBoundSignal, *args: Any) -> None:
+
+    def log_slot(
+        obj: QtCore.QObject, signal: QtCore.pyqtBoundSignal, *args: Any
+    ) -> None:
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
         try:
@@ -321,9 +327,9 @@ def _get_widgets() -> Sequence[str]:
     return [repr(w) for w in widgets]
 
 
-def _get_pyqt_objects(lines: MutableSequence[str],
-                      obj: QtCore.QObject,
-                      depth: int = 0) -> None:
+def _get_pyqt_objects(
+    lines: MutableSequence[str], obj: QtCore.QObject, depth: int = 0
+) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
     for kid in obj.findChildren(QtCore.QObject, '', QtCore.Qt.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
