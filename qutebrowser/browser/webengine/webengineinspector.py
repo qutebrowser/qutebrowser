@@ -99,10 +99,10 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                                   "please install the qt5-qtwebengine-devtools "
                                   "Fedora package.")
 
-    def inspect(
+    def inspect(  # type: ignore[override]
         self,
         page: QtWebEngineWidgets.QWebEnginePage,
-    ) -> None:  # type: ignore[override]
+    ) -> None:
         inspector_page = self._widget.page()
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())

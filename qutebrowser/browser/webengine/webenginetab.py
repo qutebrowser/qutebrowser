@@ -1484,8 +1484,8 @@ class WebEngineTab(browsertab.AbstractTab):
         title_url = QtCore.QUrl(url)
         title_url.setScheme('')
         title_url_str = title_url.toDisplayString(
-            QtCore.QUrl.RemoveScheme
-        )  # type: ignore[arg-type]
+            QtCore.QUrl.RemoveScheme  # type: ignore[arg-type]
+        )
         if title == title_url_str.strip('/'):
             title = ""
 

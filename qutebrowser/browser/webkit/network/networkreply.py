@@ -123,11 +123,11 @@ class ErrorNetworkReply(QtNetwork.QNetworkReply):
         self.setOpenMode(QtCore.QIODevice.ReadOnly)
         self.setError(error, errorstring)
         QtCore.QTimer.singleShot(
-            0, lambda: self.error.emit(error)
-        )  # type: ignore[attr-defined]
+            0, lambda: self.error.emit(error)  # type: ignore[attr-defined]
+        )
         QtCore.QTimer.singleShot(
-            0, lambda: self.finished.emit()
-        )  # type: ignore[attr-defined]
+            0, lambda: self.finished.emit()  # type: ignore[attr-defined]
+        )
 
     def abort(self):
         """Do nothing since it's a fake reply."""
@@ -155,8 +155,8 @@ class RedirectNetworkReply(QtNetwork.QNetworkReply):
         super().__init__(parent)
         self.setAttribute(QtNetwork.QNetworkRequest.RedirectionTargetAttribute, new_url)
         QtCore.QTimer.singleShot(
-            0, lambda: self.finished.emit()
-        )  # type: ignore[attr-defined]
+            0, lambda: self.finished.emit()  # type: ignore[attr-defined]
+        )
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""

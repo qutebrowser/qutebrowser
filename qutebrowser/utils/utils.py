@@ -63,7 +63,7 @@ try:
     from yaml import CSafeLoader as YamlLoader
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import SafeDumper as YamlDumper
+    from yaml import SafeDumper as YamlDumper  # type: ignore[misc]
     from yaml import SafeLoader as YamlLoader  # type: ignore[misc]
     YAML_C_EXT = False
 

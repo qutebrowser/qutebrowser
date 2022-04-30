@@ -366,9 +366,10 @@ class HintActions:
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
+        qurl = QtCore.QUrl
         urlstr = url.toString(
-            QtCore.QUrl.FullyEncoded | QtCore.QUrl.RemovePassword
-        )  # type: ignore[arg-type]
+            qurl.FullyEncoded | qurl.RemovePassword  # type: ignore[arg-type]
+        )
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))

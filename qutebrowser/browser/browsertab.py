@@ -1270,8 +1270,8 @@ class AbstractTab(QtWidgets.QWidget):
         try:
             qurl = self.url()
             url = qurl.toDisplayString(
-                QtCore.QUrl.EncodeUnicode
-            )  # type: ignore[arg-type]
+                QtCore.QUrl.EncodeUnicode  # type: ignore[arg-type]
+            )
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

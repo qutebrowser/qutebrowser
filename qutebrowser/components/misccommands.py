@@ -80,8 +80,8 @@ def _print_preview(tab: apitypes.Tab) -> None:
     diag = QtPrintSupport.QPrintPreviewDialog(tab)
     diag.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     diag.setWindowFlags(
-        diag.windowFlags()
-        | QtCore.Qt.WindowMaximizeButtonHint  # type: ignore[operator, arg-type]
+        diag.windowFlags()  # type: ignore[operator, arg-type]
+        | QtCore.Qt.WindowMaximizeButtonHint
         | QtCore.Qt.WindowMinimizeButtonHint
     )
     diag.paintRequested.connect(

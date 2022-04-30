@@ -94,8 +94,8 @@ def _generate_pdfjs_script(filename):
     url.setQuery(url_query)
 
     js_url = javascript.to_js(
-        url.toString(QtCore.QUrl.FullyEncoded)
-    )  # type: ignore[arg-type]
+        url.toString(QtCore.QUrl.FullyEncoded)  # type: ignore[arg-type]
+    )
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {

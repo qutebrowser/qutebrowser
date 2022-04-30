@@ -807,9 +807,10 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
+        qdir = QtCore.QDir
         self._file_model.setFilter(
-            QtCore.QDir.AllDirs | QtCore.QDir.Drives | QtCore.QDir.NoDotAndDotDot
-        )  # type: ignore[arg-type]
+            qdir.AllDirs | qdir.Drives | qdir.NoDotAndDotDot  # type: ignore[arg-type]
+        )
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)

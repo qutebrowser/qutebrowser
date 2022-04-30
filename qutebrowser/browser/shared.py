@@ -191,8 +191,8 @@ def ignore_certificate_error(
     # We get the first party URL with a heuristic - with HTTP -> HTTPS redirects, the
     # scheme might not match.
     is_resource = first_party_url.isValid() and not request_url.matches(
-        first_party_url, QtCore.QUrl.RemoveScheme
-    )  # type: ignore[arg-type]
+        first_party_url, QtCore.QUrl.RemoveScheme  # type: ignore[arg-type]
+    )
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -222,9 +222,10 @@ def ignore_certificate_error(
             error=error,
         )
 
+        qurl = QtCore.QUrl
         urlstr = request_url.toString(
-            QtCore.QUrl.RemovePassword | QtCore.QUrl.FullyEncoded
-        )  # type: ignore[arg-type]
+            qurl.RemovePassword | qurl.FullyEncoded  # type: ignore[arg-type]
+        )
         ignore = message.ask(
             title="Certificate error",
             text=msg,
