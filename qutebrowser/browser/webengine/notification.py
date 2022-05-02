@@ -864,19 +864,19 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 wrong_replaces_id=True,
             )
         elif (name, vendor) == ("Raven", "Budgie Desktop Developers"):
-            parsed_version = utils.VersionNumber.parse(ver)
-            if parsed_version < utils.VersionNumber(10, 6):
-                return _ServerQuirks(
-                    # https://github.com/solus-project/budgie-desktop/issues/2114
-                    escape_title=True,
-                    # https://github.com/solus-project/budgie-desktop/issues/2115
-                    wrong_replaces_id=True,
-                )
-            else:
-                return _ServerQuirks(
-                    # https://github.com/BuddiesOfBudgie/budgie-desktop/issues/118
-                    wrong_closes_type=True,
-                )
+            # Before refactor
+            return _ServerQuirks(
+                # https://github.com/solus-project/budgie-desktop/issues/2114
+                escape_title=True,
+                # https://github.com/solus-project/budgie-desktop/issues/2115
+                wrong_replaces_id=True,
+            )
+        elif (name, vendor) == ("Budgie Notification Server", "Budgie Desktop Developers"):
+            # After refactor: https://github.com/BuddiesOfBudgie/budgie-desktop/pull/36
+            return _ServerQuirks(
+                # https://github.com/BuddiesOfBudgie/budgie-desktop/issues/118
+                wrong_closes_type=True,
+            )
         return None
 
     def _get_server_info(self) -> None:
