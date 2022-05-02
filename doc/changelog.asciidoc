@@ -53,6 +53,11 @@ Fixed
 
 - The `qute-pass` userscript is marked as executable again.
 - PDF.js now works properly again with the macOS and Windows releases.
+- Fixes for various notification-related crashes:
+  * With the `tiramisu` notification server (due to invalid behavior of the server, now a non-fatal error)
+  * With the `budgie` notification server when closing a notification (due to invalid behavior of the server, now worked around)
+  * When a server exits with an unsuccessful exit status (now a non-fatal error)
+  * When a server couldn't be started successfully (now a non-fatal error)
 - Fixes in userscripts:
   * The `qute-bitwarden` userscript now correctly searches for entries for
     sites on a subdomain of an unrecognized TLD. subdomain names. Previously
