@@ -727,9 +727,18 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         # Created too many similar notifications in quick succession
         "org.freedesktop.Notifications.Error.ExcessNotificationGeneration",
 
-        # From https://crashes.qutebrowser.org/view/b8c9838a - probably when
-        # notification daemon crashes?
+        # From https://crashes.qutebrowser.org/view/b8c9838a
+        # Process org.freedesktop.Notifications received signal 5
+        # probably when notification daemon crashes?
         "org.freedesktop.DBus.Error.Spawn.ChildSignaled",
+
+        # https://crashes.qutebrowser.org/view/f76f58ae
+        # Process org.freedesktop.Notifications exited with status 1
+        "org.freedesktop.DBus.Error.Spawn.ChildExited",
+
+        # https://crashes.qutebrowser.org/view/8889d0b5
+        # Could not activate remote peer.
+        "org.freedesktop.DBus.Error.NameHasNoOwner",
     }
 
     def __init__(self, parent: QObject = None) -> None:
