@@ -665,6 +665,7 @@ class _ServerQuirks:
     skip_capabilities: bool = False
     wrong_replaces_id: bool = False
     no_padded_images: bool = False
+    wrong_closes_type: bool = False
 
 
 @dataclasses.dataclass
@@ -863,12 +864,19 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 wrong_replaces_id=True,
             )
         elif (name, vendor) == ("Raven", "Budgie Desktop Developers"):
-            return _ServerQuirks(
-                # https://github.com/solus-project/budgie-desktop/issues/2114
-                escape_title=True,
-                # https://github.com/solus-project/budgie-desktop/issues/2115
-                wrong_replaces_id=True,
-            )
+            parsed_version = utils.VersionNumber.parse(ver)
+            if parsed_version < utils.VersionNumber(10, 6):
+                return _ServerQuirks(
+                    # https://github.com/solus-project/budgie-desktop/issues/2114
+                    escape_title=True,
+                    # https://github.com/solus-project/budgie-desktop/issues/2115
+                    wrong_replaces_id=True,
+                )
+            else:
+                return _ServerQuirks(
+                    # https://github.com/BuddiesOfBudgie/budgie-desktop/issues/118
+                    wrong_closes_type=True,
+                )
         return None
 
     def _get_server_info(self) -> None:
@@ -1093,7 +1101,13 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     @pyqtSlot(QDBusMessage)
     def _handle_close(self, msg: QDBusMessage) -> None:
         """Handle NotificationClosed from DBus."""
-        self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
+        try:
+            self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
+        except Error:
+            if not self._quirks.wrong_closes_type:
+                raise
+            self._verify_message(msg, "ui", QDBusMessage.SignalMessage)
+
         notification_id, _close_reason = msg.arguments()
         self.close_id.emit(notification_id)
 
