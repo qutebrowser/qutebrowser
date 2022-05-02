@@ -871,7 +871,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 # https://github.com/solus-project/budgie-desktop/issues/2115
                 wrong_replaces_id=True,
             )
-        elif (name, vendor) == ("Budgie Notification Server", "Budgie Desktop Developers"):
+        elif (name, vendor) == (
+                "Budgie Notification Server", "Budgie Desktop Developers"):
             # After refactor: https://github.com/BuddiesOfBudgie/budgie-desktop/pull/36
             return _ServerQuirks(
                 # https://github.com/BuddiesOfBudgie/budgie-desktop/issues/118
