@@ -278,9 +278,6 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug("Adapter vanished, bailing out")  # type: ignore[unreachable]
             return
 
-        if notification_id <= 0:
-            raise Error(f"Got invalid notification id {notification_id}")
-
         if replaces_id is None:
             if notification_id in self._active_notifications:
                 raise Error(f"Got duplicate id {notification_id}")
@@ -1005,6 +1002,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 log.misc.debug(msg)
             else:
                 log.misc.error(msg)
+
+        if notification_id <= 0:
+            self.error.emit(f"Got invalid notification id {notification_id}")
 
         return notification_id
 
