@@ -7,7 +7,7 @@ certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.12
 commonmark==0.9.1
-cryptography==36.0.2
+cryptography==37.0.1
 docutils==0.18.1
 github3.py==3.2.0
 hunter==3.4.3
@@ -31,7 +31,7 @@ readme-renderer==35.0
 requests==2.27.1
 requests-toolbelt==0.9.1
 rfc3986==2.0.0
-rich==12.2.0
+rich==12.3.0
 SecretStorage==3.3.2
 sip==6.6.1
 six==1.16.0
