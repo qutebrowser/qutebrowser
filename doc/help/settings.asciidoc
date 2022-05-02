@@ -186,7 +186,7 @@
 |<<content.notifications.enabled,content.notifications.enabled>>|Allow websites to show notifications.
 |<<content.notifications.presenter,content.notifications.presenter>>|What notification presenter to use for web notifications.
 |<<content.notifications.show_origin,content.notifications.show_origin>>|Whether to show the origin URL for notifications.
-|<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
+|<<content.pdfjs,content.pdfjs>>|Display PDF files via PDF.js in the browser without showing a download prompt.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
 |<<content.prefers_reduced_motion,content.prefers_reduced_motion>>|Request websites to minimize non-essentials animations and motion.
@@ -2596,8 +2596,8 @@ Default: +pass:[true]+
 
 [[content.pdfjs]]
 === content.pdfjs
-Allow pdf.js to view PDF files in the browser.
-Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+Display PDF files via PDF.js in the browser without showing a download prompt.
+Note that the files can still be downloaded by clicking the download button in the pdf.js viewer. With this set to `false`, the `:prompt-open-download --pdfjs` command (bound to `<Ctrl-p>` by default) can be used in the download prompt.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
