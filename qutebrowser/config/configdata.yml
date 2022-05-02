@@ -1057,10 +1057,12 @@ content.pdfjs:
   type: Bool
   supports_pattern: true
   desc: >-
-    Allow pdf.js to view PDF files in the browser.
+    Display PDF files via PDF.js in the browser without showing a download prompt.
 
     Note that the files can still be downloaded by clicking the download button
-    in the pdf.js viewer.
+    in the pdf.js viewer. With this set to `false`, the `:prompt-open-download
+    --pdfjs` command (bound to `<Ctrl-p>` by default) can be used in the
+    download prompt.
 
 content.persistent_storage:
   default: ask
