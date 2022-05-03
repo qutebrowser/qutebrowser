@@ -131,10 +131,21 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._reply.deleteLater()
         self._reply = None
         if self.fileobj is not None:
+            pos = self.fileobj.tell()
+            log.downloads.debug(f"File position at error: {pos}")
             try:
                 self.fileobj.close()
             except OSError:
                 log.downloads.exception("Error while closing file object")
+
+            if pos == 0:
+                # Emtpy remaining file
+                filename = self._get_open_filename()
+                log.downloads.debug(f"Removing empty file at {filename}")
+                try:
+                    os.remove(filename)
+                except OSError:
+                    log.downloads.exception("Error while removing empty file")
 
     def _init_reply(self, reply):
         """Set a new reply and connect its signals.

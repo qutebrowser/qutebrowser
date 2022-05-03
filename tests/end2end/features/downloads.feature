@@ -578,11 +578,13 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/redirect/12 --dest redirection
         Then the error "Download error: Too many redirects" should be shown
+        And the downloaded file redirection should not exist
 
     Scenario: Downloading with redirect to itself
         When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/redirect-self
         Then the error "Download error: Too many redirects" should be shown
+        And the downloaded file redirect-self should not exist
 
     Scenario: Downloading with absolute redirect
         When I set downloads.location.prompt to false
@@ -603,6 +605,7 @@ Feature: Downloading things from a website.
         # First error is due to the load-insecurely value above
         Then the error "Certificate error: The certificate is self-signed, and untrusted" should be shown
         And the error "Download error: Insecure redirect" should be shown
+        And the downloaded file download.bin should not exist
 
     ## Other
 
