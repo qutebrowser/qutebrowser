@@ -62,12 +62,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
     As soon as we know the file object, we copy self._buffer over and the next
     readyRead will write to the real file object.
 
-    Class attributes:
-        _MAX_REDIRECTS: The maximum redirection count.
-
     Attributes:
         _retry_info: A _RetryInfo instance.
-        _redirects: How many time we were redirected already.
         _buffer: A BytesIO object to buffer incoming data until we know the
                  target file.
         _read_timer: A Timer which reads the QNetworkReply into self._buffer
@@ -82,7 +78,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
                         arg 0: The new DownloadItem
     """
 
-    _MAX_REDIRECTS = 10
     adopt_download = pyqtSignal(object)  # DownloadItem
 
     def __init__(self, reply, manager):
@@ -102,7 +97,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._read_timer = usertypes.Timer(self, name='download-read-timer')
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self._on_read_timer_timeout)
-        self._redirects = 0
         self._url = reply.url()
         self._init_reply(reply)
 
@@ -158,6 +152,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         reply.errorOccurred.connect(self._on_reply_error)
         reply.readyRead.connect(self._on_ready_read)
         reply.metaDataChanged.connect(self._on_meta_data_changed)
+        reply.redirected.connect(self._on_redirected)
 
         self._retry_info = _RetryInfo(request=reply.request(),
                                       manager=reply.manager())
@@ -168,6 +163,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         # singleShot QTimer to emit them after they are connected.
         if reply.error() != QNetworkReply.NetworkError.NoError:
             QTimer.singleShot(0, lambda: self._die(reply.errorString()))
+
+    @pyqtSlot(QUrl)
+    def _on_redirected(self, url):
+        log.downloads.debug(f"redirected: {self._reply.url()} -> {url}")
 
     def _do_cancel(self):
         self._read_timer.stop()
@@ -311,9 +310,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
             return
         self._read_timer.stop()
         self.stats.finish()
-        is_redirected = self._handle_redirect()
-        if is_redirected:
-            return
         log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
         if self.fileobj is not None:
             # We can do a "delayed" write immediately to empty the buffer and
@@ -368,48 +364,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
         for key, value in self._reply.rawHeaderPairs():
             self.raw_headers[bytes(key)] = bytes(value)
 
-    def _handle_redirect(self):
-        """Handle an HTTP redirect.
-
-        Return:
-            True if the download was redirected, False otherwise.
-        """
-        assert self._reply is not None
-        redirect = self._reply.attribute(
-            QNetworkRequest.Attribute.RedirectionTargetAttribute)
-        if redirect is None or redirect.isEmpty():
-            return False
-        new_url = self._reply.url().resolved(redirect)
-        new_request = self._reply.request()
-        if new_url == new_request.url():
-            return False
-
-        if self._redirects > self._MAX_REDIRECTS:
-            self._die("Maximum redirection count reached!")
-            self.delete()
-            return True  # so on_reply_finished aborts
-
-        log.downloads.debug("{}: Handling redirect".format(self))
-        self._redirects += 1
-        new_request.setUrl(new_url)
-
-        old_reply = self._reply
-        assert old_reply is not None
-        old_reply.finished.disconnect(self._on_reply_finished)
-
-        self._read_timer.stop()
-        self._reply = None
-        if self.fileobj is not None:
-            self.fileobj.seek(0)
-
-        log.downloads.debug("redirected: {} -> {}".format(
-            old_reply.url(), new_request.url()))
-        new_reply = old_reply.manager().get(new_request)
-        self._init_reply(new_reply)
-
-        old_reply.deleteLater()
-        return True
-
     def _uses_nam(self, nam):
         """Check if this download uses the given QNetworkAccessManager."""
         assert self._retry_info is not None
@@ -426,7 +380,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
     Attributes:
         _networkmanager: A NetworkManager for generic downloads.
+
+    Class attributes:
+        _MAX_REDIRECTS: The maximum redirection count.
     """
+
+    _MAX_REDIRECTS = 10
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -451,11 +410,19 @@ class DownloadManager(downloads.AbstractDownloadManager):
             return None
 
         req = QNetworkRequest(url)
+
         user_agent = websettings.user_agent(url)
         req.setHeader(QNetworkRequest.KnownHeaders.UserAgentHeader, user_agent)
-
         if not cache:
             req.setAttribute(QNetworkRequest.Attribute.CacheSaveControlAttribute, False)
+
+        # Needed for Qt 5, default on Qt 6
+        # We don't set this on the QNAM because QtWebKit handles redirects manually.
+        req.setAttribute(
+            QNetworkRequest.Attribute.RedirectPolicyAttribute,
+            QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy,
+        )
+        req.setMaximumRedirectsAllowed(self._MAX_REDIRECTS)
 
         return self.get_request(req, **kwargs)
 

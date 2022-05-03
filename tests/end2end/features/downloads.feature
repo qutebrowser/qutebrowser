@@ -61,7 +61,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue889.html
         And I hint with args "links download" and follow a
         And I run :tab-close
-        And I wait for "* Handling redirect" in the log
+        And I wait for "redirected: *" in the log
         Then no crash should happen
 
     Scenario: Downloading with error in closed tab (issue 889)
@@ -577,15 +577,12 @@ Feature: Downloading things from a website.
     Scenario: Downloading with infinite redirect
         When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/redirect/12 --dest redirection
-        Then the error "Download error: Maximum redirection count reached!" should be shown
-        And "Deleted *redirection" should be logged
-        And the downloaded file redirection should not exist
+        Then the error "Download error: Too many redirects" should be shown
 
     Scenario: Downloading with redirect to itself
         When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/redirect-self
-        And I wait until the download is finished
-        Then the downloaded file redirect-self should exist
+        Then the error "Download error: Too many redirects" should be shown
 
     Scenario: Downloading with absolute redirect
         When I set downloads.location.prompt to false
