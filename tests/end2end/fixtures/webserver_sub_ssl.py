@@ -44,6 +44,14 @@ def send_data(path):
     return webserver_sub.send_data(path)
 
 
+@app.route('/redirect-http/<path:path>')
+def redirect_http(path):
+    """Redirect to the given (plaintext) HTTP port on localhost."""
+    host, _orig_port = flask.request.server
+    port = flask.request.args["port"]
+    return flask.redirect(f"http://{host}:{port}/{path}")
+
+
 @app.route('/favicon.ico')
 def favicon():
     return webserver_sub.favicon()

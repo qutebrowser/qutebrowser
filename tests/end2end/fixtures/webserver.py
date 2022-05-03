@@ -77,6 +77,7 @@ class Request(testprocess.Line):
             '/redirect-to': [HTTPStatus.FOUND],
             '/relative-redirect': [HTTPStatus.FOUND],
             '/absolute-redirect': [HTTPStatus.FOUND],
+            '/redirect-http/data/downloads/download.bin': [HTTPStatus.FOUND],
 
             '/cookies/set': [HTTPStatus.FOUND],
             '/cookies/set-custom': [HTTPStatus.FOUND],

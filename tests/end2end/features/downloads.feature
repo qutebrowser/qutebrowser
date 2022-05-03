@@ -596,6 +596,14 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file relative-redirect should exist
 
+    Scenario: Downloading with insecure redirect
+        When I set downloads.location.prompt to false
+        And I set content.tls.certificate_errors to load-insecurely
+        And I download an SSL redirect page
+        # First error is due to the load-insecurely value above
+        Then the error "Certificate error: The certificate is self-signed, and untrusted" should be shown
+        And the error "Download error: Insecure redirect" should be shown
+
     ## Other
 
     Scenario: Download without a content-size

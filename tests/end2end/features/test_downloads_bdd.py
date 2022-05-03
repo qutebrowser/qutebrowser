@@ -69,6 +69,13 @@ def check_ssl():
         pytest.skip("QtNetwork SSL not supported")
 
 
+@bdd.when("I download an SSL redirect page")
+def download_ssl_redirect(server, ssl_server, quteproc):
+    path = "data/downloads/download.bin"
+    url = f"https://localhost:{ssl_server.port}/redirect-http/{path}?port={server.port}"
+    quteproc.send_cmd(f":download {url}")
+
+
 @bdd.when("the unwritable dir is unwritable")
 def check_unwritable(tmpdir):
     unwritable = tmpdir / 'downloads' / 'unwritable'
