@@ -396,7 +396,11 @@ class DownloadManager(downloads.AbstractDownloadManager):
         _MAX_REDIRECTS: The maximum redirection count.
     """
 
-    _MAX_REDIRECTS = 10
+    # Same as many browsers
+    # https://fetch.spec.whatwg.org/#http-redirect-fetch
+    # https://source.chromium.org/chromium/chromium/src/+/main:net/url_request/url_request.h;l=97;drc=3c19a2edb96d3d5b56a7481349a357fdbdf8ecf0
+    # https://stackoverflow.com/questions/9384474/in-chrome-how-many-redirects-are-too-many
+    _MAX_REDIRECTS = 20
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -85,7 +85,7 @@ class Request(testprocess.Line):
             '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
             '/500': [HTTPStatus.INTERNAL_SERVER_ERROR],
         }
-        for i in range(15):
+        for i in range(25):
             path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]
         for suffix in ['', '1', '2', '3', '4', '5', '6']:
             key = ('/basic-auth/user{suffix}/password{suffix}'

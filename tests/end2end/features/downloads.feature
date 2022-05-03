@@ -576,7 +576,7 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading with infinite redirect
         When I set downloads.location.prompt to false
-        And I run :download http://localhost:(port)/redirect/12 --dest redirection
+        And I run :download http://localhost:(port)/redirect/21 --dest redirection
         Then the error "Download error: Too many redirects" should be shown
         And the downloaded file redirection should not exist
 
