@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QApplication
 import functools
 import dataclasses
 from typing import Union, cast
-from collections.abc import Mapping, MutableMapping, Callable, Sequence
+from collections.abc import Mapping, MutableMapping, Callable, List
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
@@ -119,7 +119,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 # infeasible as 'prompt-container' is registered as command-only.
                 # Plus, I imagine the use case for such a thing is quite rare.
                 allow_forward=False,
-                forward_widget_name=None,  #'prompt-container'
+                forward_widget_name=None,  # 'prompt-container'
                 allow_partial_timeout=False),
 
         usertypes.KeyMode.yesno:
@@ -257,7 +257,7 @@ class ModeManager(QObject):
         self._releaseevents_to_pass: set[keyutils.KeyEvent] = set()
         # Set after __init__
         self.hintmanager = cast(hints.HintManager, None)
-        self._partial_match_events: Sequence[keyutils.QueuedKeyEventPair] = []
+        self._partial_match_events: List[keyutils.QueuedKeyEventPair] = []
         self.forward_partial_key.connect(self.forward_partial_match_event)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
@@ -297,7 +297,7 @@ class ModeManager(QObject):
                 # must manually forward the events
                 self.forward_all_partial_match_events(self.mode,
                     stop_timer=True)
-            match =  QKeySequence.NoMatch
+            match = QKeySequence.SequenceMatch.NoMatch
         else:
             match = parser.handle(event, dry_run=dry_run)
 
@@ -402,7 +402,7 @@ class ModeManager(QObject):
     @pyqtSlot(usertypes.KeyMode, str)
     def forward_partial_match_event(self, mode: usertypes.KeyMode,
                                     text: str = None) -> None:
-        """Forward the oldest partial match event for a given mode
+        """Forward the oldest partial match event for a given mode.
 
         Args:
             mode: The mode from which the forwarded match is.
@@ -454,7 +454,7 @@ class ModeManager(QObject):
     @pyqtSlot(usertypes.KeyMode)
     def forward_all_partial_match_events(self, mode: usertypes.KeyMode, *,
                                          stop_timer: bool = False) -> None:
-        """Forward all partial match events for a given mode
+        """Forward all partial match events for a given mode.
 
         Args:
             mode: The mode from which the forwarded match is.
@@ -615,6 +615,7 @@ class ModeManager(QObject):
         self.leave(self.mode, 'leave current')
 
     def change_mode(self, mode: usertypes.KeyMode) -> None:
+        """Changes mode and forwards partial match events if present."""
         # catches the case where change of mode is not keys, e.g. mouse click
         self.forward_all_partial_match_events(self.mode, stop_timer=True)
         self.mode = mode

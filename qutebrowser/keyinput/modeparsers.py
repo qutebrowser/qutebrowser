@@ -10,7 +10,7 @@ Module attributes:
 
 import traceback
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSlot, Qt, QObject
@@ -146,7 +146,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
-        self._partial_match_events: Sequence[keyutils.QueuedKeyEventPair] = []
+        self._partial_match_events: List[keyutils.QueuedKeyEventPair] = []
         self.keystring_updated.connect(self._hintmanager.handle_partial_key)
         self._command_parser.forward_partial_key.connect(
             self.forward_partial_match_event)
@@ -253,7 +253,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
     @pyqtSlot(str)
     def forward_partial_match_event(self, text: str = None) -> None:
-        """Forward the oldest partial match event
+        """Forward the oldest partial match event.
 
         Args:
             text: The expected text to be forwarded. Only used for debug
@@ -277,7 +277,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
     @pyqtSlot()
     def forward_all_partial_match_events(self, *,
                                          stop_timer: bool = False) -> None:
-        """Forward all partial match events
+        """Forward all partial match events.
 
         Args:
             stop_timer: If true, stop the partial timer as well. Default is False.
