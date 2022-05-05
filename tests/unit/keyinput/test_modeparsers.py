@@ -194,6 +194,7 @@ class TestHintKeyParser:
         signals = [command_parser.forward_partial_key] * len(seq)
         with qtbot.wait_signals(signals) as blocker:
             handle_text(keyparser, seq[-1])
+        assert blocker.signal_triggered
         assert forward_partial_key.call_args_list == [
             ((str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)),),) for key in seq
         ]
@@ -245,6 +246,7 @@ class TestHintKeyParser:
         signals = [command_parser.forward_partial_key] * len(seq)
         with qtbot.wait_signals(signals) as blocker:
             handle_text(keyparser, Qt.Key.Key_F)
+        assert blocker.signal_triggered
         assert forward_partial_key.call_args_list == [
             ((str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)),),) for key in seq
         ]
@@ -290,6 +292,7 @@ class TestHintKeyParser:
         timer = keyparser._partial_timer
         assert not timer.isActive()
 
+        behavior = None
         for key, behavior in data_sequence:
             keyinfo = keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)
             if behavior == 'timer_active':
@@ -315,8 +318,7 @@ class TestHintKeyParser:
                 assert (timeout - (timeout//4)) < timer.remainingTime()
                 assert timer.isActive()
             else:
-                # Unreachable
-                assert False
+                pytest.fail('Unreachable')
         if behavior in ['timer_active', 'timer_reset']:
             # Now simulate a timeout and check the keystring has been forwarded.
             with qtbot.wait_signal(command_parser.keystring_updated) as blocker:

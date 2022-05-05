@@ -545,7 +545,7 @@ class QueuedKeyEventPair:
 
     key_event: KeyEvent
     key_info_press: KeyInfo
-    key_info_release: Union[KeyInfo, None]
+    key_info_release: Optional[KeyInfo]
 
     @classmethod
     def from_event_press(cls, event: QKeyEvent) -> 'QueuedKeyEventPair':
