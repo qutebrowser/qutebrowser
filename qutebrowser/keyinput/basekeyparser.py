@@ -148,12 +148,24 @@ class BaseKeyParser(QObject):
         bindings: Bound key bindings
         _mode: The usertypes.KeyMode associated with this keyparser.
         _win_id: The window ID this keyparser is associated with.
+        _pure_sequence: The currently entered key sequence (exactly as typed,
+                        no substitutions performed)
         _sequence: The currently entered key sequence
+        _count: The currently entered count
+        _count_keyposs: Locations of count characters in the typed sequence
+                        (self._count[i] was typed before
+                        self._pure_sequence[self._count_keyposs[i]])
         _do_log: Whether to log keypresses or not.
         passthrough: Whether unbound keys should be passed through with this
                      handler.
         _supports_count: Whether count is supported.
-        _partial_timer: Timer to clear partial keypresses.
+        allow_partial_timeout: Whether this key parser allows for partial keys
+                               to be forwarded after a timeout.
+        allow_forward: Whether this key parser allows for unmatched partial
+                       keys to be forwarded to underlying widgets.
+        forward_widget_name: Name of the widget to which partial keys are
+                             forwarded. If None, the browser's current widget
+                             is used.
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -162,8 +174,11 @@ class BaseKeyParser(QObject):
                        arg 0: Mode to leave.
                        arg 1: Reason for leaving.
                        arg 2: Ignore the request if we're not in that mode
+        forward_partial_key: Emitted when a partial key should be forwarded.
+                             arg: Text expected to be forwarded (used solely
+                                  for debug info, default is None).
+        clear_partial_keys: Emitted to clear recorded partial keys.
     """
-    #TODO: partial docs
 
     keystring_updated = pyqtSignal(str)
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
@@ -176,11 +191,13 @@ class BaseKeyParser(QObject):
                  do_log: bool = True,
                  passthrough: bool = False,
                  supports_count: bool = True,
-                 allow_partial_timeout: bool = False) -> None:
+                 allow_partial_timeout: bool = False,
+                 allow_forward: bool = True,
+                 forward_widget_name: str = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
-        self._sequence = keyutils.KeySequence()
         self._pure_sequence = keyutils.KeySequence()
+        self._sequence = keyutils.KeySequence()
         self._count = ''
         self._count_keyposs = []
         self._mode = mode
@@ -188,6 +205,8 @@ class BaseKeyParser(QObject):
         self.passthrough = passthrough
         self._supports_count = supports_count
         self.allow_partial_timeout = allow_partial_timeout
+        self.allow_forward = allow_forward
+        self.forward_widget_name = forward_widget_name
         self.bindings = BindingTrie()
         self._read_config()
         config.instance.changed.connect(self._on_config_changed)
@@ -291,9 +310,8 @@ class BaseKeyParser(QObject):
 
         self._debug_log(f"Got key: {info!r} (dry_run {dry_run})")
 
-        if info.is_modifier_key():
-            self._debug_log("Ignoring, only modifier")
-            return QKeySequence.SequenceMatch.NoMatch
+        # Modifier keys handled in modeman
+        assert not keyutils.is_modifier_key(key)
 
         had_empty_queue = (not self._pure_sequence) and (not self._count)
 
@@ -304,8 +322,9 @@ class BaseKeyParser(QObject):
             self.clear_keystring()
             return QKeySequence.SequenceMatch.NoMatch
 
+        flag0 = True
         # Have these shadow variables to have replicable behavior when doing a
-        # dry_run
+        # dry run
         count = self._count
         count_keyposs = self._count_keyposs.copy()
         while pure_sequence:
@@ -320,7 +339,8 @@ class BaseKeyParser(QObject):
                                 "mappings.".format(result.sequence))
                 seq_len = len(result.sequence)
                 result = self._match_key_mapping(result.sequence)
-            if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+            if (result.match_type == QKeySequence.SequenceMatch.NoMatch) and flag0:
+                flag0 = False
                 # this length check is to ensure that key mappings from the
                 # _match_key_mapping call that directly convert a single key to
                 # a numeral character are allowed to be recognized as counts.
@@ -342,45 +362,48 @@ class BaseKeyParser(QObject):
                                     "matching will be attempted.".format(
                                         result.sequence))
             if not dry_run:
+                # Update state variables
                 self._sequence = result.sequence
                 self._pure_sequence = pure_sequence
-            # TODO: forwarding debug log message
             if result.match_type:
                 break
-            else:
-                # TODO ensure all actual values are shadowed properly for dry_run
-                if not had_empty_queue:
-                    self._debug_log("No match for '{}'. Will forward first "
-                                    "key in the sequence and retry.".format(
-                                        result.sequence))
-                    # TODO: empty handling (and find all others and fix)
-                    while count_keyposs and (0 == count_keyposs[0]):
-                        self._debug_log("Hit a queued count key ('{}'). "
-                                        "Forwarding.".format(count[0]))
-                        count = count[1:]
-                        count_keyposs.pop(0)
-                        if not dry_run:
-                            self.forward_partial_key.emit(self._count[0])
-                            # TODO: remove all = [1:] and so on with pops instead for non-strings
-                            # TODO: check that matching is unaffected by count changing, e.g. for dry_runs
-                            self._count = self._count[1:]
-                            self._count_keyposs.pop(0)
-                            # TODO: TODO ensure the keystring is updated after this
-                    self._debug_log("Forwarding first key in sequence "
-                                    "('{}').".format(str(pure_sequence[0])))
-                    count_keyposs = [x - 1 for x in count_keyposs]
+            assert pure_sequence
+            if not had_empty_queue:
+                self._debug_log("No match for '{}'. Will forward first "
+                                "key in the sequence and retry.".format(
+                                    result.sequence))
+                # Forward all the leading count keys
+                while count_keyposs and (0 == count_keyposs[0]):
+                    self._debug_log("Hit a queued count key ('{}'). "
+                                    "Forwarding.".format(count[0]))
+                    count = count[1:]
+                    count_keyposs.pop(0)
                     if not dry_run:
-                        self._count_keyposs = [x - 1 for x in self._count_keyposs]
-                        # TODO: TODO ensure there's always a 0th element here
-                        self.forward_partial_key.emit(str(self._pure_sequence[0]))
-                else:
-                    self._debug_log("No partial keys in queue. Continuing.")
-                pure_sequence = pure_sequence[1:]
-                # TODO: TODO check if on next loop a count could've slipped in somehow
+                        self.forward_partial_key.emit(self._count[0])
+                        self._count = self._count[1:]
+                        self._count_keyposs.pop(0)
+                self._debug_log("Forwarding first key in sequence "
+                                "('{}').".format(str(pure_sequence[0])))
+                # Update the count_keyposs to reflect the shortened
+                # pure_sequence
+                count_keyposs = [x - 1 for x in count_keyposs]
+                if not dry_run:
+                    self._count_keyposs = [x - 1 for x in self._count_keyposs]
+                    self.forward_partial_key.emit(str(self._pure_sequence[0]))
+            else:
+                self._debug_log("No partial keys in queue. Continuing.")
+            pure_sequence = pure_sequence[1:]
+            # self._pure_sequence is updated either on next loop in the 'Update
+            # state variables' block or (if pure_sequence is empty and there is
+            # no next loop) in the self.clear_keystring call in the NoMatch
+            # block below
 
         if dry_run:
             return result.match_type
 
+        # Each of the three following blocks need to emit
+        # self.keystring_updated, either directly (as PartialMatch does) or
+        # indirectly (as ExactMatch and NoMatch do via self.clear_keystring)
         if result.match_type == QKeySequence.SequenceMatch.ExactMatch:
             assert result.command is not None
             self._debug_log("Definitive match for '{}'.".format(
@@ -437,11 +460,11 @@ class BaseKeyParser(QObject):
                 self._count))
             self._count = ''
             self._count_keyposs = []
-        # TODO: better handling of clearing managing _pure_sequence length
-        if self._pure_sequence:
-            self._pure_sequence = keyutils.KeySequence()
-        if self._sequence:
+        # self._pure_sequence should non-empty if and only if self._sequence is
+        # non-empty, but to be safe both conditions are included below
+        if self._pure_sequence or self._sequence:
             self._debug_log("Clearing keystring (was: {}).".format(
                 self._sequence))
+            self._pure_sequence = keyutils.KeySequence()
             self._sequence = keyutils.KeySequence()
-            self.keystring_updated.emit('')
+        self.keystring_updated.emit('')

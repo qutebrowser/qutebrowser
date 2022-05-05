@@ -530,7 +530,6 @@ class KeyEvent:
 @dataclasses.dataclass(frozen=False)
 class QueuedKeyEventPair:
 
-    # TODO: docs
     """A wrapper over a QKeyEvent capable of recreating the event.
 
     This is needed to recreate any queued events when either a timeout occurs
@@ -538,9 +537,10 @@ class QueuedKeyEventPair:
 
     Attributes:
         key_event: A KeyEvent member for comparison.
-        key_info: A keyutils.KeyInfo member for complete event reconstruction
-                  (e.g. with modifiers).
-        typ: QEvent.KeyPress or QEvent.KeyRelease.
+        key_info_press: A KeyInfo member for complete event reconstruction
+                  (e.g. with modifiers) corresponding to the press event.
+        key_info_release: A KeyInfo member for complete event reconstruction
+                  (e.g. with modifiers) corresponding to the release event.
     """
 
     key_event: KeyEvent
@@ -553,12 +553,13 @@ class QueuedKeyEventPair:
         return cls(KeyEvent.from_event(event), KeyInfo.from_event(event), None)
 
     def add_event_release(self, event: QKeyEvent) -> bool:
+        """Attempt to add a release event. Returns True if successful."""
         if self.key_event == KeyEvent.from_event(event):
             self.key_info_release = KeyInfo.from_event(event)
             return True
         return False
 
-    def is_released(self):
+    def is_released(self) -> bool:
         return self.key_info_release is not None
 
     def to_events(self) -> Tuple[QKeyEvent]:

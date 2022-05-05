@@ -30,7 +30,6 @@ MAPPINGS = {
     'e': 'd',
 }
 
-# TODO: ensure multiple-length mappings are safe
 
 @pytest.fixture
 def keyinput_bindings(config_stub, key_config_stub):

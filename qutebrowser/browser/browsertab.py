@@ -1101,7 +1101,7 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val)
 
-    def send_event(self, evt: QEvent) -> None:
+    def post_event(self, evt: QEvent) -> None:
         """Send the given event to the underlying widget.
 
         The event will be sent via QApplication.postEvent.
@@ -1121,6 +1121,28 @@ class AbstractTab(QWidget):
 
         evt.posted = True  # type: ignore[attr-defined]
         QApplication.postEvent(recipient, evt)
+
+    def send_event(self, evt: QEvent) -> bool:
+        """Send the given event to the underlying widget.
+
+        The event will be sent via QApplication.sendEvent.
+        Note that a sent event is not deleted after return.
+        Note that a posted event must not be re-used in any way!
+        """
+        # This only gives us some mild protection against re-using events, but
+        # it's certainly better than a segfault.
+        if getattr(evt, 'posted', False):
+            raise utils.Unreachable("Can't re-use an event which was already "
+                                    "posted!")
+
+        recipient = self.private_api.event_target()
+        if recipient is None:
+            # https://github.com/qutebrowser/qutebrowser/issues/3888
+            log.webview.warning("Unable to find event target!")
+            return
+
+        evt.posted = True  # type: ignore[attr-defined]
+        return QApplication.sendEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:
         """Test if navigation is allowed on the current tab."""
@@ -1284,8 +1306,8 @@ class AbstractTab(QWidget):
         press_evt = QKeyEvent(QEvent.Type.KeyPress, key, modifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.Type.KeyRelease, key, modifier,
                                 0, 0, 0)
-        self.send_event(press_evt)
-        self.send_event(release_evt)
+        self.post_event(press_evt)
+        self.post_event(release_evt)
 
     def dump_async(self,
                    callback: Callable[[str], None], *,
