@@ -52,11 +52,15 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
                  do_log: bool = True,
                  passthrough: bool = False,
                  supports_count: bool = True,
-                 allow_partial_timeout: bool = True) -> None:
+                 allow_partial_timeout: bool = True,
+                 allow_forward: bool = True,
+                 forward_widget_name: str = None) -> None:
         super().__init__(mode=mode, win_id=win_id, parent=parent,
                          do_log=do_log, passthrough=passthrough,
                          supports_count=supports_count,
-                         allow_partial_timeout=allow_partial_timeout)
+                         allow_partial_timeout=allow_partial_timeout,
+                         allow_forward=allow_forward,
+                         forward_widget_name=forward_widget_name)
         self._commandrunner = commandrunner
 
     def execute(self, cmdstr: str, count: int = None) -> None:
@@ -120,6 +124,8 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         _filtertext: The text to filter with.
         _hintmanager: The HintManager to use.
         _last_press: The nature of the last keypress, a LastPress member.
+        _partial_timer: The timer which forwards partial keys after no key has
+                        been pressed for a timeout period.
     """
 
     _sequence: keyutils.KeySequence
@@ -130,7 +136,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
                  parent: QObject = None) -> None:
         super().__init__(mode=usertypes.KeyMode.hint, win_id=win_id,
                          parent=parent, supports_count=False,
-                         allow_partial_timeout=False)
+                         allow_partial_timeout=False, allow_forward=False)
         self._command_parser = CommandKeyParser(mode=usertypes.KeyMode.hint,
                                                 win_id=win_id,
                                                 commandrunner=commandrunner,
@@ -140,16 +146,16 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
-        self._partial_match_events = []
+        self._partial_match_events: Sequence[keyutils.QueuedKeyEventPair] = []
         self.keystring_updated.connect(self._hintmanager.handle_partial_key)
         self._command_parser.forward_partial_key.connect(
-                self.forward_partial_match_event)
+            self.forward_partial_match_event)
         self._command_parser.clear_partial_keys.connect(
-                self.clear_partial_match_events)
+            self.clear_partial_match_events)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
         self._partial_timer.timeout.connect(
-                self.forward_all_partial_match_events)
+            self.forward_all_partial_match_events)
 
     def _handle_filter_key(self, e: QKeyEvent) -> QKeySequence.SequenceMatch:
         """Handle keys for string filtering."""
@@ -198,8 +204,10 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
         had_empty_queue = not self._partial_match_events
         if not had_empty_queue:
+            # Immediately record the event so that parser.handle may forward if
+            # appropriate from its logic.
             self._partial_match_events.append(
-                    keyutils.QueuedKeyEventPair.from_event_press(e))
+                keyutils.QueuedKeyEventPair.from_event_press(e))
 
         result = self._command_parser.handle(e)
         if result == QKeySequence.SequenceMatch.ExactMatch:
@@ -211,8 +219,9 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         elif result == QKeySequence.SequenceMatch.PartialMatch:
             log.keyboard.debug("Handling key via command parser")
             if had_empty_queue:
+                # Begin recording partial match events
                 self._partial_match_events.append(
-                        keyutils.QueuedKeyEventPair.from_event_press(e))
+                    keyutils.QueuedKeyEventPair.from_event_press(e))
             self._start_partial_timer()
             return result
         elif not had_empty_queue:
@@ -244,12 +253,22 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
     @pyqtSlot(str)
     def forward_partial_match_event(self, text: str = None) -> None:
-        # TODO: add debug messages
+        """Forward the oldest partial match event
+
+        Args:
+            text: The expected text to be forwarded. Only used for debug
+                  purposes. Default is None.
+        """
         if not self._partial_match_events:
-            # TODO: debug message
+            self._debug_log("Attempting to forward (expected text = {}) but "
+                            "there are no events to forward.".format(text))
             return
         match_event = self._partial_match_events.pop(0)
-        # TODO: debug message when text and event.text don't match up, minding text may be None
+        self._debug_log("Forwarding partial match event.")
+        text_actual = str(match_event.key_info_press)
+        if (text is not None) and (text_actual != text):
+            self._debug_log("Text mismatch (this is likely benign): '{}' != "
+                            "'{}'".format(text_actual, text))
         e = match_event.to_events()
         assert 1 == len(e)
         e = e[0]
@@ -258,6 +277,12 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
     @pyqtSlot()
     def forward_all_partial_match_events(self, *,
                                          stop_timer: bool = False) -> None:
+        """Forward all partial match events
+
+        Args:
+            stop_timer: If true, stop the partial timer as well. Default is False.
+        """
+        self._debug_log("Forwarding all partial matches.")
         if stop_timer:
             self._stop_partial_timer()
         if self._partial_match_events:
