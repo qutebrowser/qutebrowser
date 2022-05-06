@@ -399,6 +399,7 @@ class TestHandle:
         signals = [keyparser.forward_partial_key] * len(seq)
         with qtbot.wait_signals(signals) as blocker:
             handle_text(keyparser, *count_seq, Qt.Key.Key_F)
+        assert blocker.signal_triggered
         assert forward_partial_key.call_args_list == [
             ((str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)),),) for key in seq
         ]

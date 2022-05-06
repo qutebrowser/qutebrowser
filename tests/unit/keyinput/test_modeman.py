@@ -184,57 +184,46 @@ def modeman_with_basekeyparser(mode_manager, config_stub):
 
 
 def test_release_forwarding(modeman_with_basekeyparser):
+    def helper_data(res, mwb):
+        return res, len(mwb._partial_match_events), \
+            len(mwb._releaseevents_to_pass)
     mwb = modeman_with_basekeyparser
 
     info_b = keyutils.KeyInfo(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier)
     info_c = keyutils.KeyInfo(Qt.Key.Key_C, Qt.KeyboardModifier.NoModifier)
 
     res = mwb.handle_event(info_b.to_event(QEvent.KeyPress))
-    assert res
-    assert 1 == len(mwb._partial_match_events)
+    assert (True, 1, 0) == helper_data(res, mwb)
     assert not mwb._partial_match_events[0].is_released()
-    assert 0 == len(mwb._releaseevents_to_pass)
     res = mwb.handle_event(info_c.to_event(QEvent.KeyPress))
-    assert res
-    assert 0 == len(mwb._partial_match_events)
-    assert 2 == len(mwb._releaseevents_to_pass)
+    assert (True, 0, 2) == helper_data(res, mwb)
     res = mwb.handle_event(info_b.to_event(QEvent.KeyRelease))
-    assert not res
-    assert 0 == len(mwb._partial_match_events)
-    assert 1 == len(mwb._releaseevents_to_pass)
+    assert (False, 0, 1) == helper_data(res, mwb)
     res = mwb.handle_event(info_c.to_event(QEvent.KeyRelease))
-    assert not res
-    assert 0 == len(mwb._partial_match_events)
-    assert 0 == len(mwb._releaseevents_to_pass)
+    assert (False, 0, 0) == helper_data(res, mwb)
 
     info_y = keyutils.KeyInfo(Qt.Key.Key_Y, Qt.KeyboardModifier.NoModifier)
 
     res = mwb.handle_event(info_b.to_event(QEvent.KeyPress))
-    assert res
-    assert 1 == len(mwb._partial_match_events)
+    assert (True, 1, 0) == helper_data(res, mwb)
     assert not mwb._partial_match_events[0].is_released()
-    assert 0 == len(mwb._releaseevents_to_pass)
     res = mwb.handle_event(info_y.to_event(QEvent.KeyPress))
-    assert res
-    assert 2 == len(mwb._partial_match_events)
+    assert (True, 2, 0) == helper_data(res, mwb)
     assert not mwb._partial_match_events[0].is_released()
     assert not mwb._partial_match_events[1].is_released()
-    assert 0 == len(mwb._releaseevents_to_pass)
     res = mwb.handle_event(info_y.to_event(QEvent.KeyRelease))
-    assert res
-    assert 2 == len(mwb._partial_match_events)
+    assert (True, 2, 0) == helper_data(res, mwb)
     assert not mwb._partial_match_events[0].is_released()
     assert mwb._partial_match_events[1].is_released()
-    assert 0 == len(mwb._releaseevents_to_pass)
     res = mwb.handle_event(info_c.to_event(QEvent.KeyPress))
-    assert res
-    assert 0 == len(mwb._partial_match_events)
-    assert 2 == len(mwb._releaseevents_to_pass)
+    assert (True, 0, 2) == helper_data(res, mwb)
     res = mwb.handle_event(info_c.to_event(QEvent.KeyRelease))
-    assert not res
-    assert 0 == len(mwb._partial_match_events)
-    assert 1 == len(mwb._releaseevents_to_pass)
+    assert (False, 0, 1) == helper_data(res, mwb)
     res = mwb.handle_event(info_b.to_event(QEvent.KeyRelease))
-    assert not res
-    assert 0 == len(mwb._partial_match_events)
-    assert 0 == len(mwb._releaseevents_to_pass)
+    assert (False, 0, 0) == helper_data(res, mwb)
+
+    res = mwb.handle_event(info_b.to_event(QEvent.KeyPress))
+    assert (True, 1, 0) == helper_data(res, mwb)
+    assert not mwb._partial_match_events[0].is_released()
+    res = mwb.handle_event(info_c.to_event(QEvent.KeyRelease))
+    assert (True, 1, 0) == helper_data(res, mwb)
