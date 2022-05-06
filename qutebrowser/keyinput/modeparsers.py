@@ -271,8 +271,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
                             "'{}'".format(text_actual, text))
         e = match_event.to_events()
         assert 1 == len(e)
-        e = e[0]
-        self._handle_hint(e)
+        self._handle_hint(e[0])
 
     @pyqtSlot()
     def forward_all_partial_match_events(self, *,
