@@ -38,6 +38,16 @@ from scripts import utils, link_pyqt
 
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
+# for --only-binary / --no-binary
+PYQT_PACKAGES = [
+    "PyQt5",
+    "PyQt5-sip",
+    "PyQtWebEngine",
+
+    "PyQt6",
+    "PyQt6-sip",
+    "PyQt6-WebEngine",
+]
 
 
 class Error(Exception):
@@ -232,25 +242,25 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
         'darwin': {'x86_64'},
     }
     if sys.platform not in supported_archs:
-        utils.print_error(f"{sys.platform} is not a supported platform by PyQt5 binary "
+        utils.print_error(f"{sys.platform} is not a supported platform by PyQt binary "
                           "packages, this will most likely fail.")
     elif platform.machine() not in supported_archs[sys.platform]:
         utils.print_error(
-            f"{platform.machine()} is not a supported architecture for PyQt5 binaries "
+            f"{platform.machine()} is not a supported architecture for PyQt binaries "
             f"on {sys.platform}, this will most likely fail.")
     elif sys.platform == 'linux' and platform.libc_ver()[0] != 'glibc':
-        utils.print_error("Non-glibc Linux is not a supported platform for PyQt5 "
+        utils.print_error("Non-glibc Linux is not a supported platform for PyQt "
                           "binaries, this will most likely fail.")
 
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--only-binary', 'PyQt5,PyQtWebEngine')
+                '--only-binary', ','.join(PYQT_PACKAGES))
 
 
 def install_pyqt_source(venv_dir: pathlib.Path, version: str) -> None:
     """Install PyQt from the source tarball."""
     utils.print_title("Installing PyQt from sources")
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--verbose', '--no-binary', 'PyQt5,PyQtWebEngine')
+                '--verbose', '--no-binary', ','.join(PYQT_PACKAGES))
 
 
 def install_pyqt_link(venv_dir: pathlib.Path) -> None:
@@ -371,8 +381,8 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
     utils.print_title("Running Qt smoke test")
     code = [
         'import sys',
-        'from PyQt5.QtWidgets import QApplication',
-        'from PyQt5.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
+        'from qutebrowser.qt.widgets import QApplication',
+        'from qutebrowser.qt.core import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
         'print(f"Python: {sys.version}")',
         'print(f"qVersion: {qVersion()}")',
         'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',
@@ -490,14 +500,14 @@ def run(args) -> None:
     install_pyqt(venv_dir, args)
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
-    if args.pyqt_type != 'skip' and not args.skip_smoke_test:
-        run_qt_smoke_test(venv_dir)
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
     if args.dev:
         install_dev_requirements(venv_dir)
 
+    if args.pyqt_type != 'skip' and not args.skip_smoke_test:
+        run_qt_smoke_test(venv_dir)
     if not args.skip_docs:
         regenerate_docs(venv_dir, args.asciidoc)
 
