@@ -679,7 +679,8 @@ content.headers.referer:
   type:
     name: String
     valid_values:
-      - always: "Always send the Referer."
+      - always: "Always send the Referer. With QtWebEngine 6.2+, this value is
+          unavailable and will act like `same-domain`."
       - never: "Never send the Referer. This is not recommended, as some sites
           may break."
       - same-domain: "Only send the Referer for the same domain. This will

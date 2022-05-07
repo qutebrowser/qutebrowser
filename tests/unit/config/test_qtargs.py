@@ -283,8 +283,6 @@ class TestWebEngineArgs:
         assert not set(args) & remaining_flags
 
     @pytest.mark.parametrize('qt_version, referer, arg', [
-        # FIXME:qt6 update?
-
         # 'always' -> no arguments
         ('5.15.2', 'always', None),
         ('5.15.3', 'always', None),
@@ -296,6 +294,9 @@ class TestWebEngineArgs:
         # 'same-domain'
         ('5.15.2', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
         ('5.15.3', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
+        # (Not available anymore)
+        ('6.2', 'same-domain', None),
+        ('6.3', 'same-domain', None),
     ])
     def test_referer(self, config_stub, version_patcher, parser,
                      qt_version, referer, arg):

@@ -93,6 +93,8 @@ def _qtwebengine_features(
         versions: The WebEngineVersions to get flags for.
         special_flags: Existing flags passed via the commandline.
     """
+    assert versions.chromium_major is not None
+
     enabled_features = []
     disabled_features = []
 
@@ -143,7 +145,8 @@ def _qtwebengine_features(
         if config.val.scrolling.bar == 'overlay':
             enabled_features.append('OverlayScrollbar')
 
-    if config.val.content.headers.referer == 'same-domain':
+    if (config.val.content.headers.referer == 'same-domain' and
+            versions.chromium_major < 89):
         # Handling of reduced-referrer-granularity in Chromium 76+
         # https://chromium-review.googlesource.com/c/chromium/src/+/1572699
         #

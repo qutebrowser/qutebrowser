@@ -412,7 +412,18 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
 
 @pytest.mark.parametrize('value, expected', [
-    ('always', 'http://localhost:(port2)/headers-link/(port)'),
+    # https://chromium-review.googlesource.com/c/chromium/src/+/2545444
+    pytest.param(
+        'always',
+        'http://localhost:(port2)/headers-link/(port)',
+        marks=pytest.mark.qt5_only,
+    ),
+    pytest.param(
+        'always',
+        'http://localhost:(port2)/',
+        marks=pytest.mark.qt6_only,
+    ),
+
     ('never', None),
     ('same-domain', 'http://localhost:(port2)/'),  # None with QtWebKit
 ])
