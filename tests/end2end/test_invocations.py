@@ -509,7 +509,11 @@ def test_preferred_colorscheme(request, quteproc_new, value):
 
 def test_preferred_colorscheme_with_dark_mode(
         request, quteproc_new, webengine_versions):
-    """Test interaction between preferred-color-scheme and dark mode."""
+    """Test interaction between preferred-color-scheme and dark mode.
+
+    We would actually expect a color of 34, 34, 34 and 'Dark preference detected.'.
+    That was the behavior on Qt 5.14 and 5.15.0/.1.
+    """
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
 
@@ -524,30 +528,24 @@ def test_preferred_colorscheme_with_dark_mode(
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
 
-    qtwe_version = webengine_versions.webengine
-    xfail = None
-    if utils.VersionNumber(5, 15, 3) <= qtwe_version <= utils.VersionNumber(6):
-        # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
-        # No workaround known.
-        expected_text = 'Light preference detected.'
-        # light website color, inverted by darkmode
-        expected_color = (testutils.Color(123, 125, 123) if IS_ARM
-                          else testutils.Color(127, 127, 127))
-        xfail = "Chromium bug 1177973"
-    elif qtwe_version == utils.VersionNumber(5, 15, 2):
+    if webengine_versions.webengine == utils.VersionNumber(5, 15, 2):
         # Our workaround breaks when dark mode is enabled...
         # Also, for some reason, dark mode doesn't work on that page either!
         expected_text = 'No preference detected.'
         expected_color = testutils.Color(0, 170, 0)  # green
         xfail = "QTBUG-89753"
     else:
-        # Qt 5.14 and 5.15.0/.1 work correctly.
-        # Hopefully, so does Qt 6.x in the future?
-        # FIXME:qt6 drop this if not...
-        expected_text = 'Dark preference detected.'
-        expected_color = (testutils.Color(33, 32, 33) if IS_ARM
-                          else testutils.Color(34, 34, 34))  # dark website color
-        xfail = False
+        # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
+        # No workaround known.
+        expected_text = 'Light preference detected.'
+        # light website color, inverted by darkmode
+        if webengine_versions.webengine >= utils.VersionNumber(6):
+            # FIXME:qt6 what about ARM?
+            expected_color = testutils.Color(144, 144, 144)
+        else:
+            expected_color = (testutils.Color(123, 125, 123) if IS_ARM
+                            else testutils.Color(127, 127, 127))
+        xfail = "Chromium bug 1177973"
 
     pos = QPoint(0, 0)
     img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected_color)
