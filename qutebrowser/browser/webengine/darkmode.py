@@ -90,6 +90,17 @@ https://chromium-review.googlesource.com/c/chromium/src/+/2232922
 
 - Now needs to be 0 for dark and 1 for light
   (before: 0 no preference / 1 dark / 2 light)
+
+Qt 6.2
+------
+
+No significant changes over 5.15.3
+
+Qt 6.3
+------
+
+- New IncreaseTextContrast:
+https://chromium-review.googlesource.com/c/chromium/src/+/2893236
 """
 
 import os
@@ -113,6 +124,7 @@ class Variant(enum.Enum):
 
     qt_515_2 = enum.auto()
     qt_515_3 = enum.auto()
+    qt_63 = enum.auto()
 
 
 # Mapping from a colors.webpage.darkmode.algorithm setting value to
@@ -151,6 +163,11 @@ _PAGE_POLICIES = {
 _BOOLS = {
     True: 'true',
     False: 'false',
+}
+
+_INT_BOOLS = {
+    True: '1',
+    False: '0',
 }
 
 
@@ -222,10 +239,16 @@ class _Definition:
         """Get a new _Definition object with a changed attribute.
 
         NOTE: This does *not* copy the settings list. Both objects will reference the
-        same list.
+        same (immutable) tuple.
         """
         new = copy.copy(self)
         setattr(new, attr, value)
+        return new
+
+    def copy_add_setting(self, setting: _Setting) -> '_Definition':
+        """Get a new _Definition object with an additional setting."""
+        new = copy.copy(self)
+        new._settings = self._settings + (setting,)
         return new
 
 
@@ -268,6 +291,9 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
         switch_names={'enabled': _BLINK_SETTINGS, None: 'dark-mode-settings'},
     ),
 }
+_DEFINITIONS[Variant.qt_63] = _DEFINITIONS[Variant.qt_515_3].copy_add_setting(
+    _Setting('increase_text_contrast', 'IncreaseTextContrast', _INT_BOOLS),
+)
 
 
 _PREFERRED_COLOR_SCHEME_DEFINITIONS = {
@@ -296,7 +322,9 @@ def _variant(versions: version.WebEngineVersions) -> Variant:
         except KeyError:
             log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
 
-    if (versions.webengine == utils.VersionNumber(5, 15, 2) and
+    if versions.webengine >= utils.VersionNumber(6, 3):
+        return Variant.qt_63
+    elif (versions.webengine == utils.VersionNumber(5, 15, 2) and
             versions.chromium_major == 87):
         # WORKAROUND for Gentoo packaging something newer as 5.15.2...
         return Variant.qt_515_3

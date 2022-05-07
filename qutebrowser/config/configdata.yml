@@ -3205,6 +3205,9 @@ colors.webpage.darkmode.enabled:
 
     - "With selective inversion of everything": Combines the two variants
       above.
+
+    - "With increased text contrast": Set
+      `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
   restart: true
   backend: QtWebEngine
 
@@ -3335,6 +3338,16 @@ colors.webpage.darkmode.grayscale.images:
     grayscale. Values between 0 and 1 desaturate the colors accordingly.
   restart: true
   backend: QtWebEngine
+
+colors.webpage.darkmode.increase_text_contrast:
+  default: false
+  type: Bool
+  desc: >-
+    Increase text contrast by drawing an outline of the uninverted color.
+  restart: true
+  backend:
+    QtWebEngine: Qt 6.3
+    QtWebKit: false
 
 # emacs: '
 
