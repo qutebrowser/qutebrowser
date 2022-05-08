@@ -297,22 +297,26 @@ _DEFINITIONS[Variant.qt_63] = _DEFINITIONS[Variant.qt_515_3].copy_add_setting(
 
 
 _PREFERRED_COLOR_SCHEME_DEFINITIONS = {
-    ## Qt 5.15.2
-    # 0: no-preference (not exposed)
-    (Variant.qt_515_2, "dark"): "1",
-    (Variant.qt_515_2, "light"): "2",
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89753
-    # Fall back to "light" instead of "no preference" (which was removed from the
-    # standard)
-    (Variant.qt_515_2, "auto"): "2",
-    (Variant.qt_515_2, usertypes.UNSET): "2",
+    Variant.qt_515_2: {
+        # 0: no-preference (not exposed)
+        "dark": "1",
+        "light": "2",
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89753
+        # Fall back to "light" instead of "no preference" (which was removed from the
+        # standard)
+        "auto": "2",
+        usertypes.UNSET: "2",
+    },
 
-    ## Qt >= 5.15.3
-    (Variant.qt_515_3, "dark"): "0",
-    (Variant.qt_515_3, "light"): "1",
+    Variant.qt_515_3: {
+        "dark": "0",
+        "light": "1",
+    },
 
-    (Variant.qt_63, "dark"): "0",
-    (Variant.qt_63, "light"): "1",
+    Variant.qt_63: {
+        "dark": "0",
+        "light": "1",
+    }
 }
 
 
@@ -365,12 +369,11 @@ def settings(
                 key, val = pair.split('=', maxsplit=1)
                 result[_BLINK_SETTINGS].append((key, val))
 
-    preferred_color_scheme_key = (
-        variant,
-        config.instance.get("colors.webpage.preferred_color_scheme", fallback=False),
-    )
-    if preferred_color_scheme_key in _PREFERRED_COLOR_SCHEME_DEFINITIONS:
-        value = _PREFERRED_COLOR_SCHEME_DEFINITIONS[preferred_color_scheme_key]
+    preferred_color_scheme_key = config.instance.get(
+        "colors.webpage.preferred_color_scheme", fallback=False)
+    preferred_color_scheme_defs = _PREFERRED_COLOR_SCHEME_DEFINITIONS[variant]
+    if preferred_color_scheme_key in preferred_color_scheme_defs:
+        value = preferred_color_scheme_defs[preferred_color_scheme_key]
         result[_BLINK_SETTINGS].append(("preferredColorScheme", value))
 
     if not config.val.colors.webpage.darkmode.enabled:
