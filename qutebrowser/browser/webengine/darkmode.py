@@ -310,6 +310,9 @@ _PREFERRED_COLOR_SCHEME_DEFINITIONS = {
     ## Qt >= 5.15.3
     (Variant.qt_515_3, "dark"): "0",
     (Variant.qt_515_3, "light"): "1",
+
+    (Variant.qt_63, "dark"): "0",
+    (Variant.qt_63, "light"): "1",
 }
 
 
