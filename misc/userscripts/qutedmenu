@@ -23,7 +23,7 @@ create_menu() {
     done < "$QUTE_CONFIG_DIR"/bookmarks/urls
 
     # Finally history
-        printf -- '%s\n' "$(sqlite3 -separator ' ' "$QUTE_DATA_DIR/history.sqlite" 'select title, url from CompletionHistory')"
+    printf -- '%s\n' "$(sqlite3 -separator ' ' "$QUTE_DATA_DIR/history.sqlite" 'select title, url from History group by url order by count(url) desc')"
     }
 
 get_selection() {
