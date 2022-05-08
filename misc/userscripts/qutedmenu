@@ -48,6 +48,8 @@ url=${url/*http/http}
 [[ -z $url ]] && exit 0
 
 case $1 in
-    open) printf '%s' "open $url" >> "$QUTE_FIFO" || qutebrowser "$url" ;;
-    tab)    printf '%s' "open -t $url" >> "$QUTE_FIFO" || qutebrowser "$url"  ;;
+    open)    printf '%s' "open $url" >> "$QUTE_FIFO" || qutebrowser "$url" ;;
+    tab)     printf '%s' "open -t $url" >> "$QUTE_FIFO" || qutebrowser "$url"  ;;
+    window)  printf '%s' "open -w $url" >> "$QUTE_FIFO" || qutebrowser "$url --target window"  ;;
+    private) printf '%s' "open -p $url" >> "$QUTE_FIFO" || qutebrowser "$url --target private-window"  ;;
 esac
