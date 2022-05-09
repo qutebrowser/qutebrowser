@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.0.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- On invalid commands/settings with a similarly spelled match, qutebrowser now
+  suggests the correct name in its error messages.
+
 Removed
 ~~~~~~~
 
