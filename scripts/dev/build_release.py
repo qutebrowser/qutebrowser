@@ -147,6 +147,7 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
         r'\[.*\] PyInstaller Bootloader .*',
         r'\[.*\] LOADER: .*',
 
+        # macOS on Qt 5.15
         # https://github.com/qutebrowser/qutebrowser/issues/4919
         (r'objc\[.*\]: .* One of the two will be used\. '
          r'Which one is undefined\.'),
@@ -157,6 +158,7 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
         (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
          r'Unknown service name \(1102\)'),
 
+        # macOS on Qt 5.15
         (r'[0-9:]* WARNING: The available OpenGL surface format was either not '
          r'version 3\.2 or higher or not a Core Profile\.'),
         r'Chromium on macOS will fall back to software rendering in this case\.',
