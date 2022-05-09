@@ -33,6 +33,7 @@ def test_empty_command_error():
 @pytest.mark.parametrize("all_commands, msg", [
     ([], "testcmd: no such command"),
     (["fastcmd"], "testcmd: no such command (did you mean :fastcmd?)"),
+    (["thisdoesnotmatch"], "testcmd: no such command"),
 ])
 def test_no_such_command_error(all_commands, msg):
     with pytest.raises(cmdexc.NoSuchCommandError, match=re.escape(msg)):

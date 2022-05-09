@@ -37,6 +37,7 @@ def test_validation_error():
     (True, None, [], "No option 'opt' (this option was removed from qutebrowser)"),
     (False, 'new', [], "No option 'opt' (this option was renamed to 'new')"),
     (False, None, ["opto"], "No option 'opt' (did you mean 'opto'?)"),
+    (False, None, ["thisdoesnotmatch"], "No option 'opt'"),
     (
         True,
         None,

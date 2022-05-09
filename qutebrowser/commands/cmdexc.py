@@ -36,7 +36,7 @@ class NoSuchCommandError(Error):
     """Raised when a command isn't found."""
 
     @classmethod
-    def for_cmd(cls, cmd: str, all_commands: List[str] = None) -> None:
+    def for_cmd(cls, cmd: str, all_commands: List[str] = None) -> "NoSuchCommandError":
         """Raise an exception for the given command."""
         suffix = ''
         if all_commands:
