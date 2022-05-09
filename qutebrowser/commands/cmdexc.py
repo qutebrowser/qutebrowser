@@ -22,6 +22,9 @@
 Defined here to avoid circular dependency hell.
 """
 
+from typing import List
+import difflib
+
 
 class Error(Exception):
 
@@ -31,6 +34,24 @@ class Error(Exception):
 class NoSuchCommandError(Error):
 
     """Raised when a command isn't found."""
+
+    @classmethod
+    def for_cmd(cls, cmd: str, all_commands: List[str] = None) -> None:
+        """Raise an exception for the given command."""
+        suffix = ''
+        if all_commands:
+            matches = difflib.get_close_matches(cmd, all_commands, n=1)
+            if matches:
+                suffix = f' (did you mean :{matches[0]}?)'
+        return cls(f"{cmd}: no such command{suffix}")
+
+
+class EmptyCommandError(NoSuchCommandError):
+
+    """Raised when no command was given."""
+
+    def __init__(self):
+        super().__init__("No command given")
 
 
 class ArgumentTypeError(Error):

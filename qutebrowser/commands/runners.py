@@ -138,9 +138,12 @@ class CommandRunner(AbstractCommandRunner):
         _win_id: The window this CommandRunner is associated with.
     """
 
-    def __init__(self, win_id, partial_match=False, parent=None):
+    def __init__(self, win_id, partial_match=False, find_similar=True, parent=None):
         super().__init__(parent)
-        self._parser = parser.CommandParser(partial_match=partial_match)
+        self._parser = parser.CommandParser(
+            partial_match=partial_match,
+            find_similar=find_similar,
+        )
         self._win_id = win_id
 
     @contextlib.contextmanager
