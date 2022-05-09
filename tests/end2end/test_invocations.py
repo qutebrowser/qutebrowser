@@ -540,11 +540,11 @@ def test_preferred_colorscheme_with_dark_mode(
         expected_text = 'Light preference detected.'
         # light website color, inverted by darkmode
         if webengine_versions.webengine >= utils.VersionNumber(6):
-            # FIXME:qt6 what about ARM?
-            expected_color = testutils.Color(144, 144, 144)
+            expected_color = (testutils.Color(148, 146, 148) if IS_ARM
+                              else testutils.Color(144, 144, 144))
         else:
             expected_color = (testutils.Color(123, 125, 123) if IS_ARM
-                            else testutils.Color(127, 127, 127))
+                              else testutils.Color(127, 127, 127))
         xfail = "Chromium bug 1177973"
 
     pos = QPoint(0, 0)
@@ -659,7 +659,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         {
             # FIXME:qt6 why?
             ('6.3', None): testutils.Color(18, 18, 18),
-            # FIXME:qt6 What about aarch64 and Qt 6.3?
             (None, None): testutils.Color(0, 0, 0),
         }
     ),
@@ -669,7 +668,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         {
             # FIXME:qt6 why?
             ('6.3', None): testutils.Color(18, 18, 18),
-            # FIXME:qt6 What about aarch64 and Qt 6.3?
             (None, None): testutils.Color(0, 0, 0)
         }
     ),
@@ -687,7 +685,7 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         'lightness-hsl',
         {
             (None, None): testutils.Color(215, 215, 0),
-            # FIXME:qt6 What about aarch64 on Qt 6?
+            (None, 'aarch64'): testutils.Color(214, 215, 0),
             ('5.15', None): testutils.Color(204, 204, 0),
             ('5.15', 'aarch64'): testutils.Color(206, 207, 0),
         },
@@ -697,7 +695,7 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         'brightness-rgb',
         {
             (None, None): testutils.Color(0, 0, 215),
-            # FIXME:qt6 What about aarch64 on Qt 6?
+            (None, 'aarch64'): testutils.Color(0, 0, 214),
             ('5.15', None): testutils.Color(0, 0, 204),
             ('5.15', 'aarch64'): testutils.Color(0, 0, 206),
         }
@@ -756,8 +754,7 @@ def test_dark_mode_mathml(webengine_versions, quteproc_new, request, qtbot, suff
 
     # First make sure loading finished by looking outside of the image
     if webengine_versions.webengine >= utils.VersionNumber(6):
-        expected = testutils.Color(0, 0, 215)
-        # FIXME:qt6 what about ARM?
+        expected = testutils.Color(0, 0, 214) if IS_ARM else testutils.Color(0, 0, 215)
     else:
         expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
 
