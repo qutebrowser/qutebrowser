@@ -32,7 +32,7 @@ import pytest
 from qutebrowser.qt.core import QProcess, QPoint
 
 from helpers import testutils
-from qutebrowser.utils import qtutils, utils
+from qutebrowser.utils import qtutils, utils, version
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -861,6 +861,13 @@ def test_sandboxing(
         pytest.skip("Skipped with QtWebKit")
     elif sandboxing == "enable-all" and testutils.disable_seccomp_bpf_sandbox():
         pytest.skip("Full sandboxing not supported")
+    elif version.is_flatpak():
+        # https://github.com/flathub/io.qt.qtwebengine.BaseApp/pull/66
+        has_namespaces = False
+        expected_result = "You are NOT adequately sandboxed."
+        has_yama_non_broker = has_yama
+    else:
+        has_yama_non_broker = False
 
     args = _base_args(request.config) + [
         '--temp-basedir',
@@ -895,7 +902,7 @@ def test_sandboxing(
         f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
         f"{yama_text} (Broker)": "Yes" if has_yama else "No",
-        f"{yama_text} (Non-broker)": "No",
+        f"{yama_text} (Non-broker)": "Yes" if has_yama_non_broker else "No",
     }
 
     assert header == "Sandbox Status"
