@@ -373,7 +373,11 @@ class Config(QObject):
             deleted = name in configdata.MIGRATIONS.deleted
             renamed = configdata.MIGRATIONS.renamed.get(name)
             exception = configexc.NoOptionError(
-                name, deleted=deleted, renamed=renamed)
+                name,
+                deleted=deleted,
+                renamed=renamed,
+                all_names=list(configdata.DATA),
+            )
             raise exception from None
 
     def ensure_has_opt(self, name: str) -> None:

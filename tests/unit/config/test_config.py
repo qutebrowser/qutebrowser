@@ -782,7 +782,7 @@ class TestContainer:
         assert len(configapi.errors) == 1
         error = configapi.errors[0]
         assert error.text == "While getting 'tabs.foobar'"
-        assert str(error.exception) == "No option 'tabs.foobar'"
+        assert str(error.exception).startswith("No option 'tabs.foobar'")
 
     def test_confapi_missing_prefix(self, container):
         configapi = types.SimpleNamespace(errors=[])
@@ -793,7 +793,7 @@ class TestContainer:
 
         error1 = configapi.errors[0]
         assert error1.text == "While getting 'content.host_blocking'"
-        assert str(error1.exception) == "No option 'content.host_blocking'"
+        assert str(error1.exception).startswith("No option 'content.host_blocking'")
 
         error2 = configapi.errors[1]
         assert error2.text == "While setting 'content.host_blocking.lists'"

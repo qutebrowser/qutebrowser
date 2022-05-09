@@ -32,13 +32,26 @@ def test_validation_error():
     assert str(e) == "Invalid value 'val' - msg"
 
 
-@pytest.mark.parametrize('deleted, renamed, expected', [
-    (False, None, "No option 'opt'"),
-    (True, None, "No option 'opt' (this option was removed from qutebrowser)"),
-    (False, 'new', "No option 'opt' (this option was renamed to 'new')"),
+@pytest.mark.parametrize('deleted, renamed, all_names, expected', [
+    (False, None, [], "No option 'opt'"),
+    (True, None, [], "No option 'opt' (this option was removed from qutebrowser)"),
+    (False, 'new', [], "No option 'opt' (this option was renamed to 'new')"),
+    (False, None, ["opto"], "No option 'opt' (did you mean 'opto'?)"),
+    (
+        True,
+        None,
+        ["opto"],
+        "No option 'opt' (this option was removed from qutebrowser)",
+    ),
+    (False, 'new', ["opto"], "No option 'opt' (this option was renamed to 'new')"),
 ])
-def test_no_option_error(deleted, renamed, expected):
-    e = configexc.NoOptionError('opt', deleted=deleted, renamed=renamed)
+def test_no_option_error(deleted, renamed, all_names, expected):
+    e = configexc.NoOptionError(
+        'opt',
+        deleted=deleted,
+        renamed=renamed,
+        all_names=all_names,
+    )
     assert e.option == 'opt'
     assert str(e) == expected
 
