@@ -36,7 +36,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja, version)
-from qutebrowser.misc import quitter
+from qutebrowser.misc import quitter, objects
 
 
 @dataclasses.dataclass
@@ -227,9 +227,14 @@ class TabbedBrowser(QWidget):
 
         self.widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # load_finished instead of load_started as WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-65223
-        self.cur_load_finished.connect(self._leave_modes_on_load)
+        if (
+            objects.backend == usertypes.Backend.QtWebEngine and 
+            version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5)
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+            self.cur_load_finished.connect(self._leave_modes_on_load)
+        else:
+            self.cur_load_started.connect(self._leave_modes_on_load)
 
         # handle mode_override
         self.current_tab_changed.connect(lambda tab: self._mode_override(tab.url()))

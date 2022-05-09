@@ -1294,6 +1294,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._scripts.init()
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        self._needs_qtbug65223_workaround = (
+            version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5))
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -1533,22 +1536,25 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_load_progress(self, perc: int) -> None:
         """QtWebEngine-specific loadProgress workarounds.
 
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         """
         super()._on_load_progress(perc)
-        if (perc == 100 and
-                self.load_status() != usertypes.LoadStatus.error):
+        if (
+            self._needs_qtbug65223_workaround and
+            perc == 100 and
+            self.load_status() != usertypes.LoadStatus.error
+        ):
             self._update_load_status(ok=True)
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
-        """QtWebEngine-specific loadFinished workarounds."""
+        """QtWebEngine-specific loadFinished code."""
         super()._on_load_finished(ok)
 
-        if not ok:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if not self._needs_qtbug65223_workaround or not ok:
+            # With the workaround, this should only run with ok=False
             self._update_load_status(ok)
 
+        if not ok:
             self.dump_async(functools.partial(
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
