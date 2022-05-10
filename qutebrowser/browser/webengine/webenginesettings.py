@@ -117,8 +117,6 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
             Attr(QWebEngineSettings.JavascriptCanOpenWindows),
-        'content.javascript.can_access_clipboard':
-            Attr(QWebEngineSettings.JavascriptCanAccessClipboard),
         'content.plugins':
             Attr(QWebEngineSettings.PluginsEnabled),
         'content.hyperlink_auditing':
@@ -199,6 +197,21 @@ class WebEngineSettings(websettings.AbstractSettings):
         QWebEngineSettings.FantasyFont: QFont.Fantasy,
     }
 
+    _JS_CLIPBOARD_SETTINGS = {
+        'none': {
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: False,
+            QWebEngineSettings.WebAttribute.JavascriptCanPaste: False,
+        },
+        'access': {
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: True,
+            QWebEngineSettings.WebAttribute.JavascriptCanPaste: False,
+        },
+        'access-paste': {
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: True,
+            QWebEngineSettings.WebAttribute.JavascriptCanPaste: True,
+        },
+    }
+
     def set_unknown_url_scheme_policy(
             self, policy: Union[str, usertypes.Unset]) -> bool:
         """Set the UnknownUrlSchemePolicy to use.
@@ -215,9 +228,22 @@ class WebEngineSettings(websettings.AbstractSettings):
             self._settings.setUnknownUrlSchemePolicy(new_value)
         return old_value != new_value
 
+    def _set_js_clipboard(self, value: Union[str, usertypes.Unset]) -> None:
+        attr_access = QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard
+        attr_paste = QWebEngineSettings.WebAttribute.JavascriptCanPaste
+
+        if isinstance(value, usertypes.Unset):
+            self._settings.resetAttribute(attr_access)
+            self._settings.resetAttribute(attr_paste)
+        else:
+            for attr, attr_val in self._JS_CLIPBOARD_SETTINGS[value].items():
+                self._settings.setAttribute(attr, attr_val)
+
     def _update_setting(self, setting, value):
         if setting == 'content.unknown_url_scheme_policy':
             return self.set_unknown_url_scheme_policy(value)
+        elif setting == 'content.javascript.clipboard':
+            return self._set_js_clipboard(value)
         return super()._update_setting(setting, value)
 
     def init_settings(self):

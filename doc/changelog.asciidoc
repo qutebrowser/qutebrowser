@@ -49,6 +49,11 @@ Changed
   resource system (rather than compiling them into a Qt resource file).
   Packagers are advised to use `misc/Makefile` if possible, which has been
   updated with the new paths.
+- The `content.javascript.can_access_clipboard` setting got renamed to
+  `content.javascript.clipboard` and now understands three different values
+  rather than being a boolean: `none` (formerly `false`), `access` (formerly
+  `true`) and `access-paste` (additionally allows pasting content, needed for
+  websites like Photopea or GitHub Codespaces).
 
 [[v2.5.1]]
 v2.5.1 (unreleased)
