@@ -92,13 +92,14 @@ class WebKitPrinting(browsertab.AbstractPrinting):
     def to_pdf(self, filename):
         printer = QPrinter()
         printer.setOutputFileName(filename)
-        self.to_printer(printer)
-
-    def to_printer(self, printer, callback=None):
         self._widget.print(printer)
         # Can't find out whether there was an error...
-        if callback is not None:
-            callback(True)
+        self.pdf_printing_finished.emit(filename, True)
+
+    def to_printer(self, printer):
+        self._widget.print(printer)
+        # Can't find out whether there was an error...
+        self.printing_finished.emit(True)
 
 
 class WebKitSearch(browsertab.AbstractSearch):
@@ -881,7 +882,7 @@ class WebKitTab(browsertab.AbstractTab):
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(tab=self, parent=self)
-        self.printing = WebKitPrinting(tab=self)
+        self.printing = WebKitPrinting(tab=self, parent=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
         self.audio = WebKitAudio(tab=self, parent=self)

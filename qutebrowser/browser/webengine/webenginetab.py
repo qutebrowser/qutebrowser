@@ -82,6 +82,16 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
     _widget: webview.WebEngineView
 
+    def connect_signals(self):
+        page = self._widget.page()
+        page.pdfPrintingFinished.connect(self.pdf_printing_finished)
+        try:
+            # Qt 6
+            self._widget.printFinished.connect(self.printing_finished)
+        except AttributeError:
+            # Qt 5: Uses callbacks instead
+            pass
+
     def check_pdf_support(self):
         pass
 
@@ -92,8 +102,13 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     def to_pdf(self, filename):
         self._widget.page().printToPdf(filename)
 
-    def to_printer(self, printer, callback=lambda ok: None):
-        self._widget.page().print(printer, callback)
+    def to_printer(self, printer):
+        try:
+            # Qt 5
+            self._widget.page().print(printer, self.printing_finished.emit)
+        except AttributeError:
+            # Qt 6
+            self._widget.print(printer)
 
 
 @dataclasses.dataclass
@@ -1278,7 +1293,7 @@ class WebEngineTab(browsertab.AbstractTab):
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(tab=self, parent=self)
-        self.printing = WebEnginePrinting(tab=self)
+        self.printing = WebEnginePrinting(tab=self, parent=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(tab=self, parent=self)
@@ -1670,5 +1685,6 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self.search.connect_signals()
+        self.printing.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()

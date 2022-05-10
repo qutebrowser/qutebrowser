@@ -225,13 +225,33 @@ class AbstractAction:
         self._tab.dump_async(show_source_cb)
 
 
-class AbstractPrinting:
+class AbstractPrinting(QObject):
 
     """Attribute ``printing`` of AbstractTab for printing the page."""
 
-    def __init__(self, tab: 'AbstractTab') -> None:
+    printing_finished = pyqtSignal(bool)
+    pdf_printing_finished = pyqtSignal(str, bool)  # filename, ok
+
+    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+        super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._tab = tab
+        self.printing_finished.connect(self._on_printing_finished)
+        self.pdf_printing_finished.connect(self._on_pdf_printing_finished)
+
+    @pyqtSlot(bool)
+    def _on_printing_finished(self, ok):
+        # Only reporting error here, as the user has feedback from the dialog
+        # (and probably their printer) already.
+        if not ok:
+            message.error("Printing failed!")
+
+    @pyqtSlot(str, bool)
+    def _on_pdf_printing_finished(self, path, ok):
+        if ok:
+            message.info(f"Printed to {path}")
+        else:
+            message.error(f"Printing to {path} failed!")
 
     def check_pdf_support(self) -> None:
         """Check whether writing to PDFs is supported.
@@ -249,41 +269,28 @@ class AbstractPrinting:
         """
         raise NotImplementedError
 
-    def to_pdf(self, filename: str) -> bool:
+    def to_pdf(self, filename: str) -> None:
         """Print the tab to a PDF with the given filename."""
         raise NotImplementedError
 
-    def to_printer(self, printer: QPrinter,
-                   callback: Callable[[bool], None] = None) -> None:
+    def to_printer(self, printer: QPrinter):
         """Print the tab.
 
         Args:
             printer: The QPrinter to print to.
-            callback: Called with a boolean
-                      (True if printing succeeded, False otherwise)
         """
         raise NotImplementedError
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        def print_callback(ok: bool) -> None:
-            """Called when printing finished."""
-            if not ok:
-                message.error("Printing failed!")
-            diag.deleteLater()
-
-        def do_print() -> None:
-            """Called when the dialog was closed."""
-            self.to_printer(diag.printer(), print_callback)
-
         diag = QPrintDialog(self._tab)
         if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
             ret = diag.exec()
             if ret == QDialog.DialogCode.Accepted:
-                do_print()
+                self.to_printer(diag.printer())
         else:
-            diag.open(do_print)
+            diag.open(lambda: self.to_printer(diag.printer()))
 
 
 @dataclasses.dataclass
