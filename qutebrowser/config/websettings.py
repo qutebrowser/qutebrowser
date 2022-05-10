@@ -164,14 +164,10 @@ class AbstractSettings:
         assert encoding is not usertypes.UNSET  # unclear how to reset
         self._settings.setDefaultTextEncoding(encoding)
 
-    def _update_setting(self, setting: str, value: Any) -> bool:
+    def _update_setting(self, setting: str, value: Any) -> None:
         """Update the given setting/value.
 
-        Unknown settings are ignored.
-
-        Return:
-            True if there was a change, False otherwise.
-        """
+        Unknown settings are ignored."""
         if setting in self._ATTRIBUTES:
             self.set_attribute(setting, value)
         elif setting in self._FONT_SIZES:
@@ -180,7 +176,6 @@ class AbstractSettings:
             self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
             self.set_default_text_encoding(value)
-        return False
 
     def update_setting(self, setting: str) -> None:
         """Update the given setting."""

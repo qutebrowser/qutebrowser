@@ -213,20 +213,13 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
 
     def set_unknown_url_scheme_policy(
-            self, policy: Union[str, usertypes.Unset]) -> bool:
-        """Set the UnknownUrlSchemePolicy to use.
-
-        Return:
-            True if there was a change, False otherwise.
-        """
-        old_value = self._settings.unknownUrlSchemePolicy()
+            self, policy: Union[str, usertypes.Unset]) -> None:
+        """Set the UnknownUrlSchemePolicy to use."""
         if isinstance(policy, usertypes.Unset):
             self._settings.resetUnknownUrlSchemePolicy()
-            new_value = self._settings.unknownUrlSchemePolicy()
         else:
             new_value = self._UNKNOWN_URL_SCHEME_POLICY[policy]
             self._settings.setUnknownUrlSchemePolicy(new_value)
-        return old_value != new_value
 
     def _set_js_clipboard(self, value: Union[str, usertypes.Unset]) -> None:
         attr_access = QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard
@@ -241,10 +234,10 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     def _update_setting(self, setting, value):
         if setting == 'content.unknown_url_scheme_policy':
-            return self.set_unknown_url_scheme_policy(value)
+            self.set_unknown_url_scheme_policy(value)
         elif setting == 'content.javascript.clipboard':
-            return self._set_js_clipboard(value)
-        return super()._update_setting(setting, value)
+            self._set_js_clipboard(value)
+        super()._update_setting(setting, value)
 
     def init_settings(self):
         super().init_settings()
