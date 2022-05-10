@@ -236,6 +236,7 @@ class AbstractPrinting(QObject):
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._tab = tab
+        self._dialog: QPrintDialog = None
         self.printing_finished.connect(self._on_printing_finished)
         self.pdf_printing_finished.connect(self._on_pdf_printing_finished)
 
@@ -245,6 +246,9 @@ class AbstractPrinting(QObject):
         # (and probably their printer) already.
         if not ok:
             message.error("Printing failed!")
+        if self._dialog is not None:
+            self._dialog.deleteLater()
+            self._dialog = None
 
     @pyqtSlot(str, bool)
     def _on_pdf_printing_finished(self, path, ok):
@@ -283,14 +287,9 @@ class AbstractPrinting(QObject):
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        diag = QPrintDialog(self._tab)
-        if utils.is_mac:
-            # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec()
-            if ret == QDialog.DialogCode.Accepted:
-                self.to_printer(diag.printer())
-        else:
-            diag.open(lambda: self.to_printer(diag.printer()))
+        self._dialog = QPrintDialog(self._tab)
+        self._dialog.open(lambda: self.to_printer(self._dialog.printer()))
+        # Gets cleaned up in on_printing_finished
 
 
 @dataclasses.dataclass
