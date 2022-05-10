@@ -223,6 +223,7 @@ class TestAll:
         """Patch aliases so Command works."""
         config_stub.val.aliases = {}
 
+    # pylint: disable-next=too-many-function-args
     @pytest.fixture(params=list(gen_classes()))
     def klass(self, request):
         return request.param
