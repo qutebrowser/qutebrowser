@@ -85,6 +85,7 @@ class Throttle(QObject):
                                     (cur_time_ms - self._last_call_ms))
             # Disconnect any existing calls, continue if no connections.
             try:
+                # pylint: disable=no-value-for-parameter
                 self._timer.timeout.disconnect()
             except TypeError:
                 pass

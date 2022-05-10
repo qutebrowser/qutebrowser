@@ -12,7 +12,7 @@ filelock==3.6.0
 Flask==2.1.2
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.46.1
+hypothesis==6.46.2
 icdiff==2.0.5
 idna==3.3
 importlib-metadata==4.11.3
@@ -23,7 +23,7 @@ jaraco.functools==3.5.0
 Mako==1.2.0
 manhole==1.8.0
 # MarkupSafe==2.1.1
-more-itertools==8.12.0
+more-itertools==8.13.0
 packaging==21.3
 parse==1.19.0
 parse-type==0.6.0
@@ -52,7 +52,7 @@ requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.3.2.post1
-tldextract==3.2.1
+tldextract==3.3.0
 toml==0.10.2
 tomli==2.0.1
 urllib3==1.26.9
