@@ -249,8 +249,8 @@ class MainWindow(QWidget):
         log.init.debug("Initializing modes...")
         modeman.init(win_id=self.win_id, parent=self)
 
-        self._commandrunner = runners.CommandRunner(self.win_id,
-                                                    partial_match=True)
+        self._commandrunner = runners.CommandRunner(
+            self.win_id, partial_match=True, find_similar=True)
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
         self._add_overlay(self._keyhint, self._keyhint.update_geometry)
