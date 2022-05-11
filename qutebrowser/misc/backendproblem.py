@@ -71,28 +71,33 @@ def _other_backend(backend: usertypes.Backend) -> Tuple[usertypes.Backend, str]:
     return (other_backend, other_setting)
 
 
-def _error_text(because: str, text: str, backend: usertypes.Backend) -> str:
+def _error_text(
+    because: str,
+    text: str,
+    backend: usertypes.Backend,
+    suggest_other_backend: bool = False,
+) -> str:
     """Get an error text for the given information."""
-    other_backend, other_setting = _other_backend(backend)
-    if other_backend == usertypes.Backend.QtWebKit:
-        warning = ("<i>Note that QtWebKit hasn't been updated since "
-                   "July 2017 (including security updates).</i>")
-        suffix = " (not recommended)"
-    else:
-        warning = ""
-        suffix = ""
-    return ("<b>Failed to start with the {backend} backend!</b>"
-            "<p>qutebrowser tried to start with the {backend} backend but "
-            "failed because {because}.</p>{text}"
-            "<p><b>Forcing the {other_backend.name} backend{suffix}</b></p>"
-            "<p>This forces usage of the {other_backend.name} backend by "
-            "setting the <i>backend = '{other_setting}'</i> option "
-            "(if you have a <i>config.py</i> file, you'll need to set "
-            "this manually). {warning}</p>".format(
-                backend=backend.name, because=because, text=text,
-                other_backend=other_backend, other_setting=other_setting,
-                warning=warning, suffix=suffix))
+    text = (f"<b>Failed to start with the {backend.name} backend!</b>"
+            f"<p>qutebrowser tried to start with the {backend.name} backend but "
+            f"failed because {because}.</p>{text}")
 
+    if suggest_other_backend:
+        other_backend, other_setting = _other_backend(backend)
+        if other_backend == usertypes.Backend.QtWebKit:
+            warning = ("<i>Note that QtWebKit hasn't been updated since "
+                    "July 2017 (including security updates).</i>")
+            suffix = " (not recommended)"
+        else:
+            warning = ""
+            suffix = ""
+
+        text += (f"<p><b>Forcing the {other_backend.name} backend{suffix}</b></p>"
+                 f"<p>This forces usage of the {other_backend.name} backend by "
+                 f"setting the <i>backend = '{other_setting}'</i> option "
+                 f"(if you have a <i>config.py</i> file, you'll need to set "
+                 f"this manually). {warning}</p>")
+    return text
 
 class _Dialog(QDialog):
 
@@ -101,13 +106,14 @@ class _Dialog(QDialog):
     def __init__(self, *, because: str,
                  text: str,
                  backend: usertypes.Backend,
+                 suggest_other_backend: bool = True,
                  buttons: Sequence[_Button] = None,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
 
-        other_backend, other_setting = _other_backend(backend)
-        text = _error_text(because, text, backend)
+        text = _error_text(because, text, backend,
+                           suggest_other_backend=suggest_other_backend)
 
         label = QLabel(text)
         label.setWordWrap(True)
@@ -121,13 +127,15 @@ class _Dialog(QDialog):
         quit_button.clicked.connect(lambda: self.done(_Result.quit))
         hbox.addWidget(quit_button)
 
-        backend_text = "Force {} backend".format(other_backend.name)
-        if other_backend == usertypes.Backend.QtWebKit:
-            backend_text += ' (not recommended)'
-        backend_button = QPushButton(backend_text)
-        backend_button.clicked.connect(functools.partial(
-            self._change_setting, 'backend', other_setting))
-        hbox.addWidget(backend_button)
+        if suggest_other_backend:
+            other_backend, other_setting = _other_backend(backend)
+            backend_text = "Force {} backend".format(other_backend.name)
+            if other_backend == usertypes.Backend.QtWebKit:
+                backend_text += ' (not recommended)'
+            backend_button = QPushButton(backend_text)
+            backend_button.clicked.connect(functools.partial(
+                self._change_setting, 'backend', other_setting))
+            hbox.addWidget(backend_button)
 
         for button in buttons:
             btn = QPushButton(button.text)
