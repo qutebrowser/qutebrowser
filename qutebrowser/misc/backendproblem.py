@@ -337,6 +337,37 @@ class _BackendProblemChecker:
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 
+    def _check_software_rendering(self) -> None:
+        """WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103372
+
+        Hopefully fixed with Qt 6.3.1.
+        FIXME:qt6 update
+        """
+        self._assert_backend(usertypes.Backend.QtWebEngine)
+
+        if not qtutils.version_check('6.3.0', exact=True, compiled=False):
+            return
+
+        if os.environ.get('QT_QUICK_BACKEND') != 'software':
+            return
+
+        text = ("You can instead force software rendering on the Chromium level (sets "
+                "<tt>qt.force_software_rendering</tt> to <tt>chromium</tt> instead of "
+                "<tt>qt-quick</tt>).")
+
+        button = _Button("Force Chromium software rendering",
+                         'qt.force_software_rendering',
+                         'chromium')
+        self._show_dialog(
+            backend=usertypes.Backend.QtWebEngine,
+            suggest_other_backend=False,
+            because="a Qt 6.3.0 bug causes instant crashes with Qt Quick software rendering",
+            text=text,
+            buttons=[button],
+        )
+
+        raise utils.Unreachable
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -347,6 +378,7 @@ class _BackendProblemChecker:
             self._check_webengine_version()
             self._handle_ssl_support()
             self._handle_serviceworker_nuking()
+            self._check_software_rendering()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
             self._handle_ssl_support(fatal=True)
