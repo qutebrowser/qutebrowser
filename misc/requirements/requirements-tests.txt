@@ -13,9 +13,7 @@ Flask==2.1.2
 glob2==0.7
 hunter==3.4.3
 hypothesis==6.46.2
-icdiff==2.0.5
 idna==3.3
-importlib-metadata==4.11.3
 iniconfig==1.1.1
 itsdangerous==2.1.2
 jaraco.functools==3.5.0
@@ -28,7 +26,6 @@ packaging==21.3
 parse==1.19.0
 parse-type==0.6.0
 pluggy==1.0.0
-pprintpp==0.4.0
 py==1.11.0
 py-cpuinfo==8.0.0
 Pygments==2.12.0
@@ -38,7 +35,6 @@ pytest-bdd==4.1.0
 pytest-benchmark==3.4.1
 pytest-cov==3.0.0
 pytest-forked==1.4.0
-pytest-icdiff==0.5
 pytest-instafail==0.4.2
 pytest-mock==3.7.0
 pytest-qt==4.0.2
@@ -58,4 +54,3 @@ tomli==2.0.1
 urllib3==1.26.9
 vulture==2.3
 Werkzeug==2.1.2
-zipp==3.8.0
