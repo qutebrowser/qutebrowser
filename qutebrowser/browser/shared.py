@@ -341,7 +341,8 @@ def get_user_stylesheet(searching=False):
             'misc-mathml-darkmode' not in config.val.content.site_specific_quirks.skip):
         # WORKAROUND for MathML-output on Wikipedia being black on black.
         # See https://bugs.chromium.org/p/chromium/issues/detail?id=1126606
-        css += '\nimg.mwe-math-fallback-image-inline { filter: invert(100%); }'
+        css += ('\nimg.mwe-math-fallback-image-inline, '
+                'img.mwe-math-fallback-image-display { filter: invert(100%); }')
 
     return css
 
