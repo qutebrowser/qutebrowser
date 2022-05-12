@@ -723,7 +723,8 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     )
 
 
-def test_dark_mode_mathml(quteproc_new, request, qtbot):
+@pytest.mark.parametrize("suffix", ["inline", "display"])
+def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
 
@@ -734,7 +735,7 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot):
     ]
     quteproc_new.start(args)
 
-    quteproc_new.open_path('data/darkmode/mathml.html')
+    quteproc_new.open_path(f'data/darkmode/mathml-{suffix}.html')
     quteproc_new.wait_for_js('Image loaded')
 
     # First make sure loading finished by looking outside of the image
