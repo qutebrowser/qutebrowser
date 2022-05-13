@@ -68,7 +68,7 @@ Then install the needed debuginfo packages:
 Archlinux
 ^^^^^^^^^
 
-For Archlinux, debug information is provided via their [Debuginfod instance](https://wiki.archlinux.org/title/Debuginfod). To use it, set the following in your environment:
+For Archlinux, debug information is provided via their https://wiki.archlinux.org/title/Debuginfod[Debuginfod instance]. To use it, set the following in your environment:
 
 ----
 DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
