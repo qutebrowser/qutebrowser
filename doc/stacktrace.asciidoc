@@ -68,55 +68,13 @@ Then install the needed debuginfo packages:
 Archlinux
 ^^^^^^^^^
 
-For Archlinux, no debug information is provided. You can either compile Qt
-yourself (which will take a few hours even on a modern machine) or use
-debugging symbols compiled/packaged by me (x86_64 only).
-
-To install my pre-built packages
-++++++++++++++++++++++++++++++++
-
-First download and sign the key:
+For Archlinux, debug information is provided via their [Debuginfod instance](https://wiki.archlinux.org/title/Debuginfod). To use it, set the following in your environment:
 
 ----
-# pacman-key -r 0xD6A1C70FE80A0C82
-$ pacman-key -f 0xD6A1C70FE80A0C82
-  Key fingerprint = 14AF EC28 70C6 4863 C5C7  ACCB D6A1 C70F E80A 0C82
-# pacman-key --lsign-key 0xD6A1C70FE80A0C82
+DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
 ----
 
-Then edit your `/etc/pacman.conf` to add the repository to the bottom:
-
-----
-[qt-debug]
-Server = https://qutebrowser.org/qt-debug/$arch
-----
-
-Then install the packages:
-
-----
-# pacman -Suy python-pyqt5-debug qt5-base-debug qt5-webkit-debug qt5-webengine-debug
-----
-
-The `-debug` packages conflict with the non-debug variants - it's safe to
-remove them.
-
-To compile by yourself
-++++++++++++++++++++++
-
-Note that building Qt will likely take multiple hours, even on a recent system.
-I'd also expect it to take around 6 GB of RAM and 30 GB of disk space for a
-successful compile run.
-
-----
-$ git clone https://github.com/qutebrowser/qt-debug-pkgbuild.git
-$ cd qt-debug-pkgbuild
-$ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
-$ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
-$ cd qt5
-$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug,qt5-webengine-debug
-$ cd ../pyqt5
-$ makepkg -si --pkg python-pyqt5-debug
-----
+(Until early 2021, there was a custom [`qt-debug` repository](https://github.com/qutebrowser/qt-debug-pkgbuild). This is now archived.)
 
 Getting the stack trace
 ~~~~~~~~~~~~~~~~~~~~~~~
