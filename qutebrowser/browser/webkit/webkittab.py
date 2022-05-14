@@ -686,6 +686,9 @@ class WebKitHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
+    def current_item(self):
+        return self._history.currentItem()
+
     def can_go_back(self):
         return self._history.canGoBack()
 

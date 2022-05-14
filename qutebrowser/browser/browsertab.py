@@ -667,6 +667,9 @@ class AbstractHistory:
     def current_idx(self) -> int:
         raise NotImplementedError
 
+    def current_item(self) -> Union['QWebHistoryItem', 'QWebEngineHistoryItem']:
+        raise NotImplementedError
+
     def back(self, count: int = 1) -> None:
         """Go back in the tab's history."""
         self._check_count(count)
