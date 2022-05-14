@@ -1067,13 +1067,13 @@ class TestChromiumVersion:
             # Not available with QtWebKit
             monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
 
-    def test_fake_ua(self, monkeypatch, caplog):
+    def test_fake_ua(self, monkeypatch, caplog, patch_no_api):
         ver = '77.0.3865.98'
         webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format(ver))
 
         assert version.qtwebengine_versions().chromium == ver
 
-    def test_prefers_saved_user_agent(self, monkeypatch):
+    def test_prefers_saved_user_agent(self, monkeypatch, patch_no_api):
         webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
 
         class FakeProfile:
@@ -1089,7 +1089,16 @@ class TestChromiumVersion:
 
     def test_avoided(self, monkeypatch):
         versions = version.qtwebengine_versions(avoid_init=True)
-        assert versions.source in ['ELF', 'importlib', 'PyQt', 'Qt']
+        assert versions.source in ['api', 'ELF', 'importlib', 'PyQt', 'Qt']
+
+    @pytest.fixture
+    def patch_no_api(self, monkeypatch):
+        """Simulate no PyQt API for getting its version."""
+        monkeypatch.delattr(
+            qutebrowser.qt.webenginecore,
+            "qWebEngineVersion",
+            raising=False,
+        )
 
     @pytest.fixture
     def patch_elf_fail(self, monkeypatch):
@@ -1136,9 +1145,10 @@ class TestChromiumVersion:
         importlib_patcher(qt=None, qt5=None)
 
     @pytest.mark.parametrize('patches, sources', [
-        (['elf_fail'], ['importlib', 'PyQt', 'Qt']),
-        (['elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
-        (['elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
+        (['no_api'], ['ELF', 'importlib', 'PyQt', 'Qt']),
+        (['no_api', 'elf_fail'], ['importlib', 'PyQt', 'Qt']),
+        (['no_api', 'elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
+        (['no_api', 'elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
     ], ids=','.join)
     def test_simulated(self, request, patches, sources):
         """Test various simulated error conditions.
@@ -1159,7 +1169,7 @@ class TestChromiumVersion:
         ('5.15.3', None, utils.VersionNumber(5, 15, 3)),
         ('5.15.3', '5.15.4', utils.VersionNumber(5, 15, 4)),  # -Qt5 takes precedence
     ])
-    def test_importlib(self, qt, qt5, expected, patch_elf_fail, importlib_patcher):
+    def test_importlib(self, qt, qt5, expected, patch_elf_fail, patch_no_api, importlib_patcher):
         """Test the importlib version logic with different Qt packages.
 
         With PyQtWebEngine 5.15.4, PyQtWebEngine-Qt was renamed to PyQtWebEngine-Qt5.

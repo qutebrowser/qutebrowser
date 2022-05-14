@@ -661,6 +661,20 @@ class WebEngineVersions:
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
+    def from_api(cls, qtwe_version: str, chromium_version: str) -> 'WebEngineVersions':
+        """Get the versions based on the exact versions.
+
+        This is called if we have proper APIs to get the versions easily
+        (Qt 6.2 with PyQt 6.3.1+).
+        """
+        parsed = utils.VersionNumber.parse(qtwe_version)
+        return cls(
+            webengine=parsed,
+            chromium=chromium_version,
+            source='api',
+        )
+
+    @classmethod
     def from_importlib(cls, pyqt_webengine_qt_version: str) -> 'WebEngineVersions':
         """Get the versions based on the PyQtWebEngine version.
 
@@ -741,6 +755,19 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     - https://chromereleases.googleblog.com/
     """
     from qutebrowser.browser.webengine import webenginesettings
+
+    try:
+        from qutebrowser.qt.webenginecore import (
+            qWebEngineVersion,
+            qWebEngineChromiumVersion,
+        )
+    except ImportError:
+        pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
+    else:
+        return WebEngineVersions.from_api(
+            qtwe_version=qWebEngineVersion(),
+            chromium_version=qWebEngineChromiumVersion(),
+        )
 
     if webenginesettings.parsed_user_agent is None and not avoid_init:
         webenginesettings.init_user_agent()
