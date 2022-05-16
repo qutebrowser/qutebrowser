@@ -263,11 +263,11 @@ def install_pyqt_source(venv_dir: pathlib.Path, version: str) -> None:
                 '--verbose', '--no-binary', ','.join(PYQT_PACKAGES))
 
 
-def install_pyqt_link(venv_dir: pathlib.Path) -> None:
+def install_pyqt_link(venv_dir: pathlib.Path, version: str) -> None:
     """Install PyQt by linking a system-wide install."""
     utils.print_title("Linking system-wide PyQt")
     lib_path = link_pyqt.get_venv_lib_path(str(venv_dir))
-    link_pyqt.link_pyqt(sys.executable, lib_path)
+    link_pyqt.link_pyqt(sys.executable, lib_path, version=version)
 
 
 def install_pyqt_wheels(venv_dir: pathlib.Path,
@@ -463,7 +463,7 @@ def install_pyqt(venv_dir, args):
     elif args.pyqt_type == 'source':
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
-        install_pyqt_link(venv_dir)
+        install_pyqt_link(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'wheels':
         wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
         install_pyqt_wheels(venv_dir, wheels_dir)
@@ -479,9 +479,12 @@ def run(args) -> None:
     utils.change_cwd()
 
     if (args.pyqt_version != 'auto' and
-            args.pyqt_type not in ['binary', 'source']):
+            args.pyqt_type not in ['binary', 'source', 'link']):
         raise Error('The --pyqt-version option is only available when installing PyQt '
-                    'from binary or source')
+                    'from binary, source, or linking it')
+    elif args.pyqt_type == 'link' and args.pyqt_version not in ['auto', '5', '6']:
+        raise Error('Invalid --pyqt-version {args.pyqt_version}, only 5 or 6 '
+                    'permitted with --pyqt-type=link')
 
     if args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
         raise Error('The --pyqt-wheels-dir option is only available when installing '
