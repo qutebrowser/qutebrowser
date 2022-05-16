@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block style %}
+body {
+    background-color: #1f84bd;
+    color: #1f84bd;
+}
+.title {
+    /* color: #1f84bd; */
+    color: #a6dfff;
+    /* color: #000000; */
+}
+h3 {
+    font-size: 45px;
+}
+h6 {
+    font-size: 20px;
+}
+.bookmark-container {
+    margin: 20px;
+}
+a {
+    text-decoration: none;
+}
+a:visited {
+    color: #000000;
+}
+a:link {
+    color: #000000;
+}
+.bookmark-mega-container {
+    border-size: 3;
+    border-color: #a6dfff;
+    background-color: #a6dfff;
+    border-radius: 5px;
+    border-width: 1px;
+    box-shadow: 4px 3px 8px 1px #000000;
+    border-style: solid;
+    margin: 100px;
+    padding: 10px;
+}
+h4 {
+    font-size: 30px;
+    padding: 10px;
+}
+.getting-started-container {
+    border-size: 3;
+    border-color: #1f84bd;
+    border-radius: 5px;
+    border-width: 1px;
+    border-style: solid;
+    margin: 10px;
+}
+.logo {
+    width:75px;
+    height: 75px;
+    padding: 10px;
+}
+.title-container {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    max-width:500px;
+    margin:auto;
+    padding: 15px;
+
+}
+.link-container {
+    margin: 20px;
+}
+input {
+    font-size: 16px;
+}
+{% endblock %}
+
+{% block script %}
+const searchUrl = "{{ search_url }}"
+function search(e) {
+    if (e.keyCode == 13) {
+	var val = document.getElementById("search-field").value;
+	window.open(searchUrl + val)
+    }
+}
+{% endblock %}
+
+
+{% block content %}
+<div class="title-container">
+  <img src="https://qutebrowser.org/icons/qutebrowser.svg" class="logo">
+  <span>
+    <h3 class="title">qutebrowser</h3>
+  </span>
+</div>
+<div class="search-box title-container" id="search">
+<input type="text" size="50" name="search-box" placeholder="Search..." onkeypress="return search(event)" id="search-field"/> 
+</div>
+{% if bookmarks %}
+<div class="bookmark-mega-container">
+  <h4>Bookmarks</h4>
+  {% for bookmark in bookmarks %}
+  <div class="bookmark-container">
+    <a class="bookmark-name" href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% if quickmarks %}
+<div class="bookmark-mega-container">
+  <h4>Quickmarks</h4>
+  {% for quickmark in quickmarks %}
+  <div class="bookmark-container">
+    <a class="bookmark-name" href="{{ quickmark[1] }}"> {{ quickmark[1] }} </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<div class="bookmark-mega-container">
+  <h4>Getting Started.</h4>
+  <div class="link-container">
+    <a class="link-name" href="https://qutebrowser.org">Official Website</a>
+  </div>
+  <div class="link-container">
+    <a class="link-name" href="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png">Cheat Sheet</a>
+  </div>
+  <div class="link-container">
+    <a class="link-name" href="https://qutebrowser.org/doc/changelog.html">Changelog</a>
+  </div>
+</div>
+{% endblock %}
+
