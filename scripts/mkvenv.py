@@ -88,6 +88,9 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     parser.add_argument('--pyqt-wheels-dir',
                         default='wheels',
                         help="Directory to get PyQt wheels from.")
+    parser.add_argument('--pyqt-snapshot',
+                        help="Comma-separated list to install from the Riverbank "
+                        "PyQt snapshot server")
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
@@ -278,6 +281,13 @@ def install_pyqt_wheels(venv_dir: pathlib.Path,
     pip_install(venv_dir, *wheels)
 
 
+def install_pyqt_shapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
+    """Install PyQt packages from the snapshot server."""
+    utils.print_title("Installing PyQt snapshots")
+    pip_install(venv_dir, '-U', *packages, '--no-deps', '--pre',
+                '--index-url', 'https://riverbankcomputing.com/pypi/simple/')
+
+
 def apply_xcb_util_workaround(
         venv_dir: pathlib.Path,
         pyqt_type: str,
@@ -460,6 +470,8 @@ def install_pyqt(venv_dir, args):
     """Install PyQt in the virtualenv."""
     if args.pyqt_type == 'binary':
         install_pyqt_binary(venv_dir, args.pyqt_version)
+        if args.pyqt_snapshot:
+            install_pyqt_shapshot(venv_dir, args.pyqt_snapshot.split(','))
     elif args.pyqt_type == 'source':
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
@@ -489,6 +501,9 @@ def run(args) -> None:
     if args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
         raise Error('The --pyqt-wheels-dir option is only available when installing '
                     'PyQt from wheels')
+    if args.pyqt_snapshot and args.pyqt_type != 'binary':
+        raise Error('The --pyqt-snapshot option is only available when installing '
+                    'PyQt from binaries')
 
     if args.update:
         utils.print_title("Updating repository")
