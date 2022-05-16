@@ -8,7 +8,7 @@ idna==3.3
 packaging==21.3
 pep517==0.12.0
 Pygments==2.12.0
-pyparsing==3.0.8
+pyparsing==3.0.9
 pyroma==4.0
 requests==2.27.1
 tomli==2.0.1
