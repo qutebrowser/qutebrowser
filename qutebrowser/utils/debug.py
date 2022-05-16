@@ -130,7 +130,7 @@ def qenum_key(base: Type[_EnumValueType],
     if issubclass(klass, enum.Enum):
         try:
             name = klass(value).name
-            if name is not None:
+            if name is not None and name != str(value):
                 return name
         except ValueError:
             pass
