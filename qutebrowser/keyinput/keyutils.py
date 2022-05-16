@@ -203,7 +203,7 @@ def _is_surrogate(key: Qt.Key) -> bool:
     (Base Multilingual Plane).
     """
     _assert_plain_key(key)
-    return 0xd800 <= key <= 0xdfff
+    return 0xd800 <= qtutils.extract_enum_val(key) <= 0xdfff
 
 
 def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
@@ -251,11 +251,12 @@ def _key_to_string(key: Qt.Key) -> str:
         A name of the key as a string.
     """
     _assert_plain_key(key)
+    val = qtutils.extract_enum_val(key)
 
-    if key in _SPECIAL_NAMES:
-        return _SPECIAL_NAMES[key]
+    if val in _SPECIAL_NAMES:
+        return _SPECIAL_NAMES[val]
 
-    result = QKeySequence(key).toString()
+    result = QKeySequence(val).toString()
     _check_valid_utf8(result, key)
     return result
 
