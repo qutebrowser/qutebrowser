@@ -1183,9 +1183,10 @@ class TestChromiumVersion:
         utils.VersionNumber(5, 12, 10),
         utils.VersionNumber(5, 15, 3),
     ])
-    def test_override(self, monkeypatch, override):
+    @pytest.mark.parametrize('avoid_init', [True, False])
+    def test_override(self, monkeypatch, override, avoid_init):
         monkeypatch.setenv('QUTE_QTWEBENGINE_VERSION_OVERRIDE', str(override))
-        versions = version.qtwebengine_versions(avoid_init=True)
+        versions = version.qtwebengine_versions(avoid_init=avoid_init)
         assert versions.source == 'override'
         assert versions.webengine == override
 

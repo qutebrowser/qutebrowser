@@ -754,7 +754,9 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     - https://www.chromium.org/developers/calendar
     - https://chromereleases.googleblog.com/
     """
-    from qutebrowser.browser.webengine import webenginesettings
+    override = os.environ.get('QUTE_QTWEBENGINE_VERSION_OVERRIDE')
+    if override is not None:
+        return WebEngineVersions.from_pyqt(override, source='override')
 
     try:
         from qutebrowser.qt.webenginecore import (
@@ -769,15 +771,13 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
             chromium_version=qWebEngineChromiumVersion(),
         )
 
+    from qutebrowser.browser.webengine import webenginesettings
+
     if webenginesettings.parsed_user_agent is None and not avoid_init:
         webenginesettings.init_user_agent()
 
     if webenginesettings.parsed_user_agent is not None:
         return WebEngineVersions.from_ua(webenginesettings.parsed_user_agent)
-
-    override = os.environ.get('QUTE_QTWEBENGINE_VERSION_OVERRIDE')
-    if override is not None:
-        return WebEngineVersions.from_pyqt(override, source='override')
 
     versions = elf.parse_webenginecore()
     if versions is not None:
