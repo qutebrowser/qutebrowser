@@ -206,12 +206,12 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
 
 @pytest.mark.parametrize('status, raising, message', [
     (QDataStream.Status.Ok, False, None),
-    (QDataStream.Status.ReadPastEnd, True, "The data stream has read past the end of "
-                                    "the data in the underlying device."),
-    (QDataStream.Status.ReadCorruptData, True, "The data stream has read corrupt "
-                                        "data."),
-    (QDataStream.Status.WriteFailed, True, "The data stream cannot write to the "
-                                    "underlying device."),
+    (QDataStream.Status.ReadPastEnd, True,
+     "The data stream has read past the end of the data in the underlying device."),
+    (QDataStream.Status.ReadCorruptData, True,
+     "The data stream has read corrupt data."),
+    (QDataStream.Status.WriteFailed, True,
+     "The data stream cannot write to the underlying device."),
 ])
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
@@ -1058,7 +1058,7 @@ class TestLibraryPath:
         except AttributeError:
             enumtype = QLibraryInfo.LibraryLocation
 
-        our_names = set(member.value for member in qtutils.LibraryPath)
+        our_names = {member.value for member in qtutils.LibraryPath}
         qt_names = set(testutils.enum_members(QLibraryInfo, enumtype))
         qt_names.discard("ImportsPath")  # Moved to QmlImportsPath in Qt 6
         assert qt_names == our_names

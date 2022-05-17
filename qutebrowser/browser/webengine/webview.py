@@ -196,7 +196,7 @@ class WebEnginePage(QWebEnginePage):
 
     if machinery.IS_QT5:
         # Overridden method instead of signal
-        certificateError = _handle_certificate_error
+        certificateError = _handle_certificate_error  # noqa: N815
 
     def javaScriptConfirm(self, url, js_msg):
         """Override javaScriptConfirm to use qutebrowser prompts."""

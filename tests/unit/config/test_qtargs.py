@@ -288,7 +288,7 @@ class TestWebEngineArgs:
 
         # 'never' is handled via interceptor
         ('5.15.2', 'never', None),
-        ('5.15.3', 'always', None),
+        ('5.15.3', 'never', None),
 
         # 'same-domain'
         ('5.15.2', 'same-domain', '--enable-features=ReducedReferrerGranularity'),

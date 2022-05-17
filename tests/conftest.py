@@ -120,8 +120,8 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          not machinery.IS_QT6,
          f"Only runs on Qt 6, not {machinery.WRAPPER}"),
-        ('qt5_xfail', pytest.mark.xfail, machinery.IS_QT5, f"Fails on Qt 5"),
-        ('qt6_xfail', pytest.mark.skipif, machinery.IS_QT6, f"Fails on Qt 6"),
+        ('qt5_xfail', pytest.mark.xfail, machinery.IS_QT5, "Fails on Qt 5"),
+        ('qt6_xfail', pytest.mark.skipif, machinery.IS_QT6, "Fails on Qt 6"),
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
