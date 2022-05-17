@@ -32,7 +32,7 @@ import vulture
 import qutebrowser.app  # pylint: disable=unused-import
 from qutebrowser.extensions import loader
 from qutebrowser.misc import objects
-from qutebrowser.utils import utils, version
+from qutebrowser.utils import utils, version, qtutils
 # To run the decorators from there
 # pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
@@ -145,6 +145,10 @@ def whitelist_generator():  # noqa: C901
         yield f'qutebrowser.misc.elf.Header.{name}'
     for name in ['addr', 'addralign', 'entsize']:
         yield f'qutebrowser.misc.elf.SectionHeader.{name}'
+
+    # For completeness
+    for name in list(qtutils.LibraryPath):
+        yield f'qutebrowser.utils.qtutils.LibraryPath.{name}'
 
 
 def filter_func(item):

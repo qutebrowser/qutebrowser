@@ -5,12 +5,6 @@ import ast
 import PyQt5
 
 
-def add_parents(tree):
-    for node in ast.walk(tree):
-        for child in ast.iter_child_nodes(node):
-            child.parent = node
-
-
 def find_enums(tree):
     for node in ast.walk(tree):
         if not isinstance(node, ast.Assign):
