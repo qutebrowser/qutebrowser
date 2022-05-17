@@ -422,6 +422,12 @@ class YamlMigrations(QObject):
             false_value='load-insecurely',
             ask_value='ask',
         )
+        self._migrate_renamed_bool(
+            old_name='content.javascript.can_access_clipboard',
+            new_name='content.javascript.clipboard',
+            true_value='access',
+            false_value='none',
+        )
 
         for setting in ['colors.webpage.force_dark_color_scheme',
                         'colors.webpage.prefers_color_scheme_dark']:

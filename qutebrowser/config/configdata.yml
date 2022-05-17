@@ -869,9 +869,14 @@ content.javascript.alert:
   type: Bool
   desc: Show javascript alerts.
 
-content.javascript.can_access_clipboard:
-  default: false
-  type: Bool
+content.javascript.clipboard:
+  default: none
+  type:
+    name: String
+    valid_values:
+      - none: Disable access to clipboard.
+      - access: Allow reading from and writing to the clipboard.
+      - access-paste: Allow accessing the clipboard and pasting clipboard content.
   supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
