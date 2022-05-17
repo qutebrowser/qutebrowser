@@ -58,6 +58,8 @@ disable=locally-disabled,
         missing-type-doc,
         missing-param-doc,
         useless-param-doc,
+        wrong-import-order,  # FIXME:qt6
+        ungrouped-imports,  # FIXME:qt6
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
