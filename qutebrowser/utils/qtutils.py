@@ -580,6 +580,7 @@ class LibraryPath(enum.Enum):
 
 
 def library_path(which: LibraryPath) -> pathlib.Path:
+    """Wrapper around QLibraryInfo.path / .location."""
     if hasattr(QLibraryInfo, "path"):
         # Qt 6
         val = getattr(QLibraryInfo.LibraryPath, which.value)

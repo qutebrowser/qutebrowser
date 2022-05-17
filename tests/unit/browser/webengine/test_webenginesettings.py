@@ -169,4 +169,4 @@ def test_parsed_user_agent(qapp):
 
 def test_profile_setter_settings(private_profile, configdata_init):
     for setting in private_profile.setter._name_to_method:
-        assert setting in configdata.DATA.keys()
+        assert setting in set(configdata.DATA)

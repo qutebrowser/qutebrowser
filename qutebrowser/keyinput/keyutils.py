@@ -53,8 +53,6 @@ class InvalidKeyError(Exception):
     Should be fixed in PyQt 6.3.1 (or 6.4.0?).
     """
 
-    pass
-
 
 # Map Qt::Key values to their Qt::KeyboardModifier value.
 _MODIFIER_MAP = {
@@ -396,8 +394,8 @@ class KeyInfo:
         """
         try:
             key = Qt.Key(e.key())
-        except ValueError as e:
-            raise InvalidKeyError(str(e))
+        except ValueError as ex:
+            raise InvalidKeyError(str(ex))
         key = _remap_unicode(key, e.text())
         modifiers = e.modifiers()
         return cls(key, modifiers)

@@ -515,6 +515,7 @@ class AbstractCertificateErrorWrapper:
         raise NotImplementedError
 
     def certificate_was_accepted(self) -> None:
+        """Check whether the certificate was accepted by the user."""
         if not self.is_overridable():
             return False
         if self._certificate_accepted is None:

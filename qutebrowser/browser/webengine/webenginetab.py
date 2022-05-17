@@ -82,6 +82,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     _widget: webview.WebEngineView
 
     def connect_signals(self):
+        """Called from WebEngineTab.connect_signals."""
         page = self._widget.page()
         page.pdfPrintingFinished.connect(self.pdf_printing_finished)
         try:

@@ -283,7 +283,7 @@ def _qtwebengine_args(
     if disabled_features:
         yield _DISABLE_FEATURES + ','.join(disabled_features)
 
-    yield from _qtwebengine_settings_args(versions)
+    yield from _qtwebengine_settings_args()
 
 
 _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
@@ -331,7 +331,7 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
 }
 
 
-def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
+def _qtwebengine_settings_args() -> Iterator[str]:
     for setting, args in sorted(_WEBENGINE_SETTINGS.items()):
         arg = args[config.instance.get(setting)]
         if arg is not None:

@@ -248,7 +248,7 @@ class _Definition:
     def copy_add_setting(self, setting: _Setting) -> '_Definition':
         """Get a new _Definition object with an additional setting."""
         new = copy.copy(self)
-        new._settings = self._settings + (setting,)
+        new._settings = self._settings + (setting,)  # pylint: disable=protected-access
         return new
 
 

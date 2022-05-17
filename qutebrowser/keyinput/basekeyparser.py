@@ -286,9 +286,9 @@ class BaseKeyParser(QObject):
         """
         try:
             info = keyutils.KeyInfo.from_event(e)
-        except keyutils.InvalidKeyError as e:
+        except keyutils.InvalidKeyError as ex:
             # See https://github.com/qutebrowser/qutebrowser/issues/7047
-            log.keyboard.debug(f"Got invalid key: {e}")
+            log.keyboard.debug(f"Got invalid key: {ex}")
             self.clear_keystring()
             return QKeySequence.SequenceMatch.NoMatch
 
