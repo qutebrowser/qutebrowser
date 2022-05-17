@@ -25,7 +25,6 @@ import pytest
 from qutebrowser import qutebrowser
 from qutebrowser.config import qtargs, configdata
 from qutebrowser.utils import usertypes, version
-from helpers import testutils
 
 
 @pytest.fixture

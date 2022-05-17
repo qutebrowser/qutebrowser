@@ -31,7 +31,7 @@ import subprocess
 from qutebrowser.qt.core import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir, utils, qtutils, version
+from qutebrowser.utils import standarddir, utils, version
 
 
 # Use a different application name for tests to make sure we don't change real

@@ -23,8 +23,7 @@ from typing import Optional
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from qutebrowser.qt.widgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication,
-                             QSplitter)
+                             QStyleOption, QStyle, QLayout, QSplitter)
 from qutebrowser.qt.gui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles

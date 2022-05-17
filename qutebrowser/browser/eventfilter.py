@@ -23,8 +23,7 @@ from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.utils import log, message, usertypes
 from qutebrowser.keyinput import modeman
 
 

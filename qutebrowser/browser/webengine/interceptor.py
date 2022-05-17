@@ -25,7 +25,7 @@ from qutebrowser.qt.webenginecore import (QWebEngineUrlRequestInterceptor,
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
-from qutebrowser.utils import utils, log, debug, qtutils
+from qutebrowser.utils import debug, log
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
 

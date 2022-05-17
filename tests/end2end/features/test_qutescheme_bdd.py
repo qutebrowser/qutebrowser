@@ -19,7 +19,6 @@
 
 import pytest_bdd as bdd
 
-from qutebrowser.utils import qtutils
 
 
 bdd.scenarios('qutescheme.feature')

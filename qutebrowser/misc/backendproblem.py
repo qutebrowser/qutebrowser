@@ -27,7 +27,7 @@ import enum
 import shutil
 import argparse
 import dataclasses
-from typing import Any, List, Sequence, Tuple, Optional
+from typing import Any, Optional, Sequence, Tuple
 
 from qutebrowser.qt.core import Qt
 from qutebrowser.qt.widgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,

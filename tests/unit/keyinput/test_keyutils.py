@@ -18,7 +18,6 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import operator
-import contextlib
 
 import hypothesis
 from hypothesis import strategies

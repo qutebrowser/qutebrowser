@@ -34,7 +34,7 @@ import pytest
 
 from qutebrowser.qt.gui import QColor
 
-from qutebrowser.utils import qtutils, log, utils, version
+from qutebrowser.utils import log, utils, version
 
 ON_CI = 'CI' in os.environ
 

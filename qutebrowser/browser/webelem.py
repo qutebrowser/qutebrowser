@@ -19,7 +19,7 @@
 
 """Generic web element related code."""
 
-from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union, Dict
+from typing import Iterator, Optional, Set, TYPE_CHECKING, Union, Dict
 import collections.abc
 
 from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPointF

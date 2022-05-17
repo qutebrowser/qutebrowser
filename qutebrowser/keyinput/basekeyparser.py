@@ -24,11 +24,11 @@ import types
 import dataclasses
 from typing import Mapping, MutableMapping, Optional, Sequence
 
-from qutebrowser.qt.core import pyqtSignal, QObject, Qt
+from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils, debug
+from qutebrowser.utils import log, usertypes, utils
 from qutebrowser.keyinput import keyutils
 
 

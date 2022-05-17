@@ -30,8 +30,7 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTim
                           QObject)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import (QWebEnginePage, QWebEngineScript, QWebEngineHistory,
-                                          QWebEngineClientCertificateSelection)
+from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey

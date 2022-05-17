@@ -38,7 +38,7 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
 
-from qutebrowser.qt.core import PYQT_VERSION_STR, qVersion
+from qutebrowser.qt.core import PYQT_VERSION_STR
 from qutebrowser.qt.network import QSslSocket
 from qutebrowser.qt.gui import QOpenGLContext, QOffscreenSurface
 from qutebrowser.qt.opengl import QOpenGLVersionProfile

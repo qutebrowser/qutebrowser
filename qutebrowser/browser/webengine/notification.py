@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import (
-    qtutils, log, utils, debug, message, version, objreg, resources,
+    qtutils, log, utils, debug, message, objreg, resources,
 )
 from qutebrowser.qt import sip
 

@@ -29,7 +29,7 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect)
 from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
-from qutebrowser.qt.widgets import QWidget, QApplication, QDialog
+from qutebrowser.qt.widgets import QApplication, QWidget
 from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
 from qutebrowser.qt.network import QNetworkAccessManager
 
