@@ -37,7 +37,7 @@ from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import urlmatch
 
-# pylint: disable=line-too-long
+# FIXME:qt6: disable=line-too-long
 
 
 @pytest.mark.parametrize('pattern, error', [
