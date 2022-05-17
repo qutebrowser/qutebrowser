@@ -39,7 +39,6 @@ class TestAction:
             web_tab.action.run_string("Back")
         assert web_tab.url() == url_1
 
-
     @pytest.mark.parametrize("member", ["blah", "PermissionUnknown"])
     def test_run_string_invalid(self, qtbot, web_tab, member):
         with pytest.raises(

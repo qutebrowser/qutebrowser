@@ -31,7 +31,7 @@ from qutebrowser.utils import usertypes, utils, debug
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a QWebEngineCertificateError.
-    
+
     Base code shared between Qt 5 and 6 implementations.
     """
 
@@ -89,7 +89,7 @@ class CertificateErrorWrapperQt5(CertificateErrorWrapper):
 
 
 class CertificateErrorWrapperQt6(CertificateErrorWrapper):
-    
+
     def _validate(self) -> None:
         assert machinery.IS_QT6
 

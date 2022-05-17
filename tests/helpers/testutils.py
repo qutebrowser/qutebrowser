@@ -38,6 +38,7 @@ from qutebrowser.utils import log, utils, version
 
 ON_CI = 'CI' in os.environ
 
+
 class Color(QColor):
 
     """A QColor with a nicer repr()."""

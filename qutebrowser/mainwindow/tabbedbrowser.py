@@ -228,7 +228,7 @@ class TabbedBrowser(QWidget):
         self.widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         if (
-            objects.backend == usertypes.Backend.QtWebEngine and 
+            objects.backend == usertypes.Backend.QtWebEngine and
             version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5)
         ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223

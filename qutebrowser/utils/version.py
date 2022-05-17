@@ -542,7 +542,7 @@ class WebEngineVersions:
 
     _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, str]] = {
         # ====== UNSUPPORTED =====
-        
+
         # Qt 5.12: Chromium 69
         # (LTS)    69.0.3497.128 (~2018-09-11)
         #          5.12.10: Security fixes up to 86.0.4240.75 (2020-10-06)

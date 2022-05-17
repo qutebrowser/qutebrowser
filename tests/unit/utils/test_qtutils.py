@@ -1066,4 +1066,4 @@ class TestLibraryPath:
 
 def test_extract_enum_val():
     value = qtutils.extract_enum_val(Qt.KeyboardModifier.ShiftModifier)
-    assert value == 0x02000000 
+    assert value == 0x02000000

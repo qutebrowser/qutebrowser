@@ -750,7 +750,6 @@ class TestSendOrListen:
         value_to_key = qlocalsocket_mock.staticMetaObject.enumerator().valueToKey
         value_to_key.return_value = "ConnectionRefusedError"
 
-
         with caplog.at_level(logging.ERROR):
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)

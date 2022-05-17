@@ -20,7 +20,6 @@
 import pytest_bdd as bdd
 
 
-
 bdd.scenarios('qutescheme.feature')
 
 

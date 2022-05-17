@@ -658,9 +658,8 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
     def _load_items_proper(self, items):
         """Load session items properly.
 
-        Currently unused, but should be revived. 
+        Currently unused, but should be revived.
         """
-
         if items:
             self._tab.before_load_started.emit(items[-1].url)
 

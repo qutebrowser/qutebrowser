@@ -99,6 +99,7 @@ def _error_text(
                  f"this manually). {warning}</p>")
     return text
 
+
 class _Dialog(QDialog):
 
     """A dialog which gets shown if there are issues with the backend."""

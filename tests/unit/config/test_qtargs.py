@@ -553,7 +553,7 @@ class TestEnvVars:
 
     @pytest.mark.parametrize('new_qt', [True, False])
     def test_highdpi(self, monkeypatch, config_stub, new_qt):
-        """Test HighDPI environment variables. """
+        """Test HighDPI environment variables."""
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
