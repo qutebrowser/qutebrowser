@@ -270,7 +270,7 @@ def _find_versions(data: bytes) -> Versions:
     correctly: https://github.com/python/typeshed/issues/1467
     """
     match = re.search(
-        br'QtWebEngine/([0-9.]+) Chrome/([0-9.]+)',
+        br'\x00QtWebEngine/([0-9.]+) Chrome/([0-9.]+)\x00',
         data,
     )
     if match is None:
