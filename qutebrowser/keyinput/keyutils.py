@@ -47,7 +47,12 @@ from qutebrowser.utils import utils, qtutils, debug
 
 class InvalidKeyError(Exception):
 
-    # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    """Raised when a key can't be represented by PyQt.
+
+    WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    Should be fixed in PyQt 6.3.1 (or 6.4.0?).
+    """
+
     pass
 
 
@@ -408,7 +413,7 @@ class KeyInfo:
             return cls(key, modifiers)
         else:
             # QKeyCombination is now guaranteed to be available here
-            assert isinstance(combination, QKeyCombination)  
+            assert isinstance(combination, QKeyCombination)
             try:
                 key = combination.key()
             except ValueError as e:

@@ -287,9 +287,8 @@ class BaseKeyParser(QObject):
         try:
             info = keyutils.KeyInfo.from_event(e)
         except keyutils.InvalidKeyError as e:
-            # FIXME:qt6 What should we do in this case?
             # See https://github.com/qutebrowser/qutebrowser/issues/7047
-            log.keyboard.debug("Got invalid key")
+            log.keyboard.debug(f"Got invalid key: {e}")
             self.clear_keystring()
             return QKeySequence.SequenceMatch.NoMatch
 
@@ -322,7 +321,11 @@ class BaseKeyParser(QObject):
             return result.match_type
 
         self._sequence = result.sequence
+        self._handle_result(info, result)
+        return result.match_type
 
+    def _handle_result(self, info: keyutils.KeyInfo, result: MatchResult) -> None:
+        """Handle a final MatchResult from handle()."""
         if result.match_type == QKeySequence.SequenceMatch.ExactMatch:
             assert result.command is not None
             self._debug_log("Definitive match for '{}'.".format(
@@ -341,8 +344,6 @@ class BaseKeyParser(QObject):
         else:
             raise utils.Unreachable("Invalid match value {!r}".format(
                 result.match_type))
-
-        return result.match_type
 
     @config.change_filter('bindings')
     def _on_config_changed(self) -> None:
