@@ -323,6 +323,47 @@ class _BackendProblemChecker:
 
         shutil.move(service_worker_dir, bak_dir)
 
+    def _confirm_chromium_version_changes(self) -> None:
+        """Ask if there are Chromium downgrades or a Qt 5 -> 6 upgrade."""
+        versions = version.qtwebengine_versions(avoid_init=True)
+        change = configfiles.state.chromium_version_changed
+        if change == configfiles.VersionChange.major:
+            # FIXME:qt6 Remove this before the release, as it typically should
+            # not concern users?
+            text = (
+                "Chromium/QtWebEngine upgrade detected:<br>"
+                f"You are <b>upgrading to QtWebEngine {versions.webengine}</b> but "
+                "used Qt 5 for the last qutebrowser launch.<br><br>"
+                "Data managed by Chromium will be upgraded. This is a <b>one-way "
+                "operation:</b> If you open qutebrowser with Qt 5 again later, any "
+                "Chromium data will be invalid and discarded.<br><br>"
+                "This affects page data such as cookies, but not data managed by "
+                "qutebrowser, such as your configuration or <tt>:open</tt> history."
+            )
+        elif change == configfiles.VersionChange.downgrade:
+            text = (
+                "Chromium/QtWebEngine downgrade detected:<br>"
+                f"You are <b>downgrading to QtWebEngine {versions.webengine}</b>."
+                "<br><br>"
+                "Data managed by Chromium will be discarded if you continue.<br><br>"
+                "This affects page data such as cookies, but not data managed by "
+                "qutebrowser, such as your configuration or <tt>:open</tt> history."
+            )
+        else:
+            return
+
+        box = msgbox.msgbox(
+            parent=None,
+            title="QtWebEngine version change",
+            text=text,
+            icon=QMessageBox.Icon.Warning,
+            plain_text=False,
+            buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Abort,
+        )
+        response = box.exec()
+        if response != QMessageBox.StandardButton.Ok:
+            sys.exit(usertypes.Exit.err_init)
+
     def _check_webengine_version(self) -> None:
         versions = version.qtwebengine_versions(avoid_init=True)
         if versions.webengine < utils.VersionNumber(5, 15, 2):
@@ -379,6 +420,7 @@ class _BackendProblemChecker:
             self._handle_ssl_support()
             self._handle_serviceworker_nuking()
             self._check_software_rendering()
+            self._confirm_chromium_version_changes()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
             self._handle_ssl_support(fatal=True)

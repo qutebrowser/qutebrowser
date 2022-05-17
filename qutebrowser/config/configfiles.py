@@ -91,6 +91,7 @@ class StateConfig(configparser.ConfigParser):
         self.qt_version_changed = False
         self.qtwe_version_changed = False
         self.qutebrowser_version_changed = VersionChange.unknown
+        self.chromium_version_changed = VersionChange.unknown
         self._set_changed_attributes()
 
         for sect in ['general', 'geometry', 'inspector']:
@@ -111,18 +112,39 @@ class StateConfig(configparser.ConfigParser):
 
         self['general']['qt_version'] = qVersion()
         self['general']['qtwe_version'] = self._qtwe_version_str()
+        self['general']['chromium_version'] = self._chromium_version_str()
         self['general']['version'] = qutebrowser.__version__
 
-    def _qtwe_version_str(self) -> str:
-        """Get the QtWebEngine version string.
+    def _has_webengine(self) -> bool:
+        """Check if QtWebEngine is available.
 
         Note that it's too early to use objects.backend here...
         """
         try:
             import qutebrowser.qt.webenginewidgets  # pylint: disable=unused-import
         except ImportError:
+            return False
+        return True
+
+    def _qtwe_versions(self) -> Optional[version.WebEngineVersions]:
+        """Get the QtWebEngine versions."""
+        if not self._has_webengine():
+            return None
+        return version.qtwebengine_versions(avoid_init=True)
+
+    def _qtwe_version_str(self) -> str:
+        """Get the QtWebEngine version string."""
+        versions = self._qtwe_versions()
+        if versions is None:
             return 'no'
-        return str(version.qtwebengine_versions(avoid_init=True).webengine)
+        return str(versions.webengine)
+
+    def _chromium_version_str(self) -> str:
+        """Get the Chromium major version string."""
+        versions = self._qtwe_versions()
+        if versions is None:
+            return 'no'
+        return str(versions.chromium_major)
 
     def _set_changed_attributes(self) -> None:
         """Set qt_version_changed/qutebrowser_version_changed attributes.
@@ -140,6 +162,11 @@ class StateConfig(configparser.ConfigParser):
         old_qtwe_version = self['general'].get('qtwe_version', None)
         self.qtwe_version_changed = old_qtwe_version != self._qtwe_version_str()
 
+        self._set_qutebrowser_changed_attribute()
+        self._set_chromium_changed_attribute()
+
+    def _set_qutebrowser_changed_attribute(self) -> None:
+        """Detect a qutebrowser version change."""
         old_qutebrowser_version = self['general'].get('version', None)
         if old_qutebrowser_version is None:
             # https://github.com/python/typeshed/issues/2093
@@ -163,6 +190,46 @@ class StateConfig(configparser.ConfigParser):
             self.qutebrowser_version_changed = VersionChange.minor
         else:
             self.qutebrowser_version_changed = VersionChange.major
+
+    def _set_chromium_changed_attribute(self) -> None:
+        if not self._has_webengine():
+            return
+
+        old_chromium_version_str = self['general'].get('chromium_version', None)
+        if old_chromium_version_str in ['no', None]:
+            old_qtwe_version = self['general'].get('qtwe_version', None)
+            if old_qtwe_version in ['no', None]:
+                return
+
+            try:
+                old_chromium_version = version.WebEngineVersions.from_webengine(
+                    old_qtwe_version, source='config').chromium_major
+            except ValueError:
+                log.init.warning(
+                    f"Unable to parse old QtWebEngine version {old_qtwe_version}")
+                return
+        else:
+            try:
+                old_chromium_version = int(old_chromium_version_str)
+            except ValueError:
+                log.init.warning(
+                    f"Unable to parse old Chromium version {old_chromium_version_str}")
+                return
+
+        new_versions = version.qtwebengine_versions(avoid_init=True)
+        new_chromium_version = new_versions.chromium_major
+
+        if old_chromium_version is None or new_chromium_version is None:
+            return
+
+        if old_chromium_version <= 87 and new_chromium_version >= 90:  # Qt 5 -> Qt 6
+            self.chromium_version_changed = VersionChange.major
+        elif old_chromium_version > new_chromium_version:
+            self.chromium_version_changed = VersionChange.downgrade
+        elif old_chromium_version == new_chromium_version:
+            self.chromium_version_changed = VersionChange.equal
+        else:
+            self.chromium_version_changed = VersionChange.minor
 
     def init_save_manager(self,
                           save_manager: 'savemanager.SaveManager') -> None:

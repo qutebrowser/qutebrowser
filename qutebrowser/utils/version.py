@@ -675,7 +675,11 @@ class WebEngineVersions:
         )
 
     @classmethod
-    def from_importlib(cls, pyqt_webengine_qt_version: str) -> 'WebEngineVersions':
+    def from_webengine(
+        cls,
+        pyqt_webengine_qt_version: str,
+        source: str,
+    ) -> 'WebEngineVersions':
         """Get the versions based on the PyQtWebEngine version.
 
         This is called if we don't want to fully initialize QtWebEngine (so
@@ -686,7 +690,7 @@ class WebEngineVersions:
         return cls(
             webengine=parsed,
             chromium=cls._infer_chromium_version(parsed),
-            source='importlib',
+            source=source,
         )
 
     @classmethod
@@ -785,7 +789,8 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
 
     pyqt_webengine_qt_version = _get_pyqt_webengine_qt_version()
     if pyqt_webengine_qt_version is not None:
-        return WebEngineVersions.from_importlib(pyqt_webengine_qt_version)
+        return WebEngineVersions.from_webengine(
+            pyqt_webengine_qt_version, source='importlib')
 
     assert PYQT_WEBENGINE_VERSION_STR is not None
     return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
