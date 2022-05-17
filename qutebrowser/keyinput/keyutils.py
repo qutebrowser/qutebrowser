@@ -64,7 +64,12 @@ _MODIFIER_MAP = {
     Qt.Key.Key_Mode_switch: Qt.KeyboardModifier.GroupSwitchModifier,
 }
 
-_NIL_KEY = 0
+try:
+    _NIL_KEY = Qt.Key(0)
+except ValueError:
+    # WORKAROUND for
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    _NIL_KEY = 0
 
 _ModifierType = Qt.KeyboardModifier
 
