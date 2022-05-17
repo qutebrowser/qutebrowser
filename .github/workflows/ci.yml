@@ -21,7 +21,8 @@ jobs:
         include:
           - testenv: pylint
           - testenv: flake8
-          - testenv: mypy
+          # FIXME:qt6
+          # - testenv: mypy
           - testenv: docs
           - testenv: vulture
           - testenv: misc
@@ -119,9 +120,11 @@ jobs:
             os: ubuntu-20.04
             python: "3.9"
           ### PyQt 5.15 (Python 3.10, with coverage)
-          - testenv: py310-pyqt515-cov
-            os: ubuntu-22.04
-            python: "3.10"
+          ### PyQt 5.15 (Python 3.9, with coverage)
+          # FIXME:qt6
+          # - testenv: py39-pyqt515-cov
+          #  os: ubuntu-22.04
+          #  python: "3.10"
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
             os: ubuntu-20.04
