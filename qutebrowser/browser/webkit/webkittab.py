@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+# FIXME:qt6
+# pylint: disable=no-name-in-module
+
 """Wrapper over our (QtWebKit) WebView."""
 
 import re

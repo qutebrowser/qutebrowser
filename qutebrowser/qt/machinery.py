@@ -1,3 +1,8 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# FIXME:qt6
+# pylint: disable=missing-module-docstring
+# flake8: noqa
+
 import os
 import importlib
 
@@ -16,6 +21,8 @@ class Error(Exception):
 
 
 class Unavailable(Error, ImportError):
+
+    """Raised when a module is unavailable with the given wrapper."""
 
     def __init__(self) -> None:
         super().__init__(f"Unavailable with {WRAPPER}")

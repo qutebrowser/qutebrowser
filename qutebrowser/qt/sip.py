@@ -1,3 +1,8 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# FIXME:qt6
+# pylint: disable=missing-module-docstring,wildcard-import,unused-wildcard-import
+# flake8: noqa
+
 from qutebrowser.qt import machinery
 
 # While upstream recommends using PyQt6.sip ever since PyQt6 5.11, some distributions

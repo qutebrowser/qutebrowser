@@ -1,3 +1,8 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# FIXME:qt6
+# pylint: disable=missing-module-docstring,import-error,wildcard-import,unused-wildcard-import,unused-import
+# flake8: noqa
+
 from qutebrowser.qt import machinery
 
 
