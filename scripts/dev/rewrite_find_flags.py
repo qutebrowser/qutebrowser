@@ -1,3 +1,5 @@
+"""Find all PyQt flag instances."""
+
 import pathlib
 import ast
 

@@ -1547,9 +1547,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc: int) -> None:
-        """QtWebEngine-specific loadProgress workarounds.
-
-        """
+        """QtWebEngine-specific loadProgress workarounds."""
         super()._on_load_progress(perc)
         if (
             self._needs_qtbug65223_workaround and

@@ -1,3 +1,6 @@
+"""Find all PyQt enum instances."""
+
+
 import pathlib
 import ast
 

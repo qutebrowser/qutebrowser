@@ -1,3 +1,6 @@
+"""Rewrite PyQt enums based on rewrite_find_enums.py output."""
+
+
 import pathlib
 import sys
 import re

@@ -70,6 +70,8 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
 class CertificateErrorWrapperQt5(CertificateErrorWrapper):
 
+    """QWebEngineCertificateError handling for Qt 5 API."""
+
     def _validate(self) -> None:
         assert machinery.IS_QT5
 
@@ -89,6 +91,8 @@ class CertificateErrorWrapperQt5(CertificateErrorWrapper):
 
 
 class CertificateErrorWrapperQt6(CertificateErrorWrapper):
+
+    """QWebEngineCertificateError handling for Qt 6 API."""
 
     def _validate(self) -> None:
         assert machinery.IS_QT6
