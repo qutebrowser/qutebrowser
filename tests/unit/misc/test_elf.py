@@ -75,6 +75,23 @@ def test_result(qapp, caplog):
     assert ua.upstream_browser_version == versions.chromium
 
 
+@pytest.mark.parametrize("data, expected", [
+    # Simple match
+    (
+        b"\x00QtWebEngine/5.15.9 Chrome/87.0.4280.144\x00",
+        elf.Versions("5.15.9", "87.0.4280.144"),
+    ),
+    # Ignoring garbage string-like data
+    (
+        b"\x00QtWebEngine/5.15.9 Chrome/87.0.4xternalclearkey\x00\x00"
+        b"QtWebEngine/5.15.9 Chrome/87.0.4280.144\x00",
+        elf.Versions("5.15.9", "87.0.4280.144"),
+    ),
+])
+def test_find_versions(data, expected):
+    assert elf._find_versions(data) == expected
+
+
 @hypothesis.given(data=hst.builds(
     lambda *a: b''.join(a),
     hst.sampled_from([b'', b'\x7fELF', b'\x7fELF\x02\x01\x01']),
