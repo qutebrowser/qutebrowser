@@ -102,9 +102,56 @@ def log_signals(obj: QObject) -> QObject:
 _EnumValueType = Union[sip.simplewrapper, int]
 
 
-def qenum_key(base: Type[_EnumValueType],
-              value: _EnumValueType,
-              klass: Type[_EnumValueType] = None) -> str:
+def _qenum_key_python(
+    value: _EnumValueType,
+    klass: Type[_EnumValueType] = None,
+) -> Optional[str]:
+    """New-style PyQt6: Try getting value from Python enum."""
+    if isinstance(value, enum.Enum) and value.name:
+        return value.name
+
+    # We got an int with klass passed: Try asking Python enum for member
+    if issubclass(klass, enum.Enum):
+        try:
+            name = klass(value).name
+            if name is not None and name != str(value):
+                return name
+        except ValueError:
+            pass
+
+    return None
+
+
+def _qenum_key_qt(
+    base: Type[_EnumValueType],
+    value: _EnumValueType,
+    klass: Type[_EnumValueType] = None,
+) -> Optional[str]:
+    # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
+    # However, not every Qt enum value has a staticMetaObject
+    try:
+        meta_obj = base.staticMetaObject  # type: ignore[union-attr]
+        idx = meta_obj.indexOfEnumerator(klass.__name__)
+        meta_enum = meta_obj.enumerator(idx)
+        key = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        if key is not None:
+            return key
+    except AttributeError:
+        pass
+
+    # PyQt5: Try finding value match in class
+    for name, obj in vars(base).items():
+        if isinstance(obj, klass) and obj == value:
+            return name
+
+    return None
+
+
+def qenum_key(
+    base: Type[_EnumValueType],
+    value: _EnumValueType,
+    klass: Type[_EnumValueType] = None,
+) -> str:
     """Convert a Qt Enum value to its key as a string.
 
     Args:
@@ -122,35 +169,13 @@ def qenum_key(base: Type[_EnumValueType],
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
 
-    # New-style PyQt6: Try getting value from Python enum
-    if isinstance(value, enum.Enum) and value.name:
-        return value.name
+    name = _qenum_key_python(value=value, klass=klass)
+    if name is not None:
+        return name
 
-    # PyQt6, but we got an int with klass passed: Try asking Python enum for member
-    if issubclass(klass, enum.Enum):
-        try:
-            name = klass(value).name
-            if name is not None and name != str(value):
-                return name
-        except ValueError:
-            pass
-
-    # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
-    # However, not every Qt enum value has a staticMetaObject
-    try:
-        meta_obj = base.staticMetaObject  # type: ignore[union-attr]
-        idx = meta_obj.indexOfEnumerator(klass.__name__)
-        meta_enum = meta_obj.enumerator(idx)
-        key = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
-        if key is not None:
-            return key
-    except AttributeError:
-        pass
-
-    # PyQt5: Try finding value match in class
-    for name, obj in vars(base).items():
-        if isinstance(obj, klass) and obj == value:
-            return name
+    name = _qenum_key_qt(base=base, value=value, klass=klass)
+    if name is not None:
+        return name
 
     # Last resort fallback: Hex value
     return '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
