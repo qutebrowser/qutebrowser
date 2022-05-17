@@ -1,3 +1,5 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
 """Find all PyQt flag instances."""
 
 import pathlib
@@ -7,6 +9,7 @@ import PyQt5
 
 
 def find_flags(tree):
+    """Find all PyQt flags in an AST tree."""
     for node in ast.walk(tree):
         if not isinstance(node, ast.FunctionDef):
             continue

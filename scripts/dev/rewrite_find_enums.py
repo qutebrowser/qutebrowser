@@ -1,3 +1,5 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
 """Find all PyQt enum instances."""
 
 
@@ -8,6 +10,7 @@ import PyQt5
 
 
 def find_enums(tree):
+    """Find all PyQt enums in an AST tree."""
     for node in ast.walk(tree):
         if not isinstance(node, ast.Assign):
             continue
