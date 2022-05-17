@@ -254,8 +254,8 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from qutebrowser.qt import core as QtCore
-    QtCore.pyqtRemoveInputHook()
+    from qutebrowser.qt.core import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
 
     from qutebrowser.qt import sip
     try:

@@ -35,7 +35,7 @@ import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
                     Optional, Set, Tuple, Union)
 
-from qutebrowser.qt import core as QtCore
+from qutebrowser.qt import core as qtcore
 # Optional imports
 try:
     import colorama
@@ -211,13 +211,13 @@ def init_log(args: argparse.Namespace) -> None:
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
-    QtCore.qInstallMessageHandler(qt_message_handler)
+    qtcore.qInstallMessageHandler(qt_message_handler)
     _log_inited = True
 
 
-@QtCore.pyqtSlot()
+@qtcore.pyqtSlot()
 def shutdown_log() -> None:
-    QtCore.qInstallMessageHandler(None)
+    qtcore.qInstallMessageHandler(None)
 
 
 def _init_py_warnings() -> None:
@@ -236,11 +236,11 @@ def _init_py_warnings() -> None:
 @contextlib.contextmanager
 def disable_qt_msghandler() -> Iterator[None]:
     """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = QtCore.qInstallMessageHandler(None)
+    old_handler = qtcore.qInstallMessageHandler(None)
     try:
         yield
     finally:
-        QtCore.qInstallMessageHandler(old_handler)
+        qtcore.qInstallMessageHandler(old_handler)
 
 
 @contextlib.contextmanager
@@ -378,8 +378,8 @@ def change_console_formatter(level: int) -> None:
         assert isinstance(old_formatter, JSONFormatter), old_formatter
 
 
-def qt_message_handler(msg_type: QtCore.QtMsgType,
-                       context: QtCore.QMessageLogContext,
+def qt_message_handler(msg_type: qtcore.QtMsgType,
+                       context: qtcore.QMessageLogContext,
                        msg: str) -> None:
     """Qt message handler to redirect qWarning etc. to the logging system.
 
@@ -392,11 +392,11 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     # Note we map critical to ERROR as it's actually "just" an error, and fatal
     # to critical.
     qt_to_logging = {
-        QtCore.QtMsgType.QtDebugMsg: logging.DEBUG,
-        QtCore.QtMsgType.QtWarningMsg: logging.WARNING,
-        QtCore.QtMsgType.QtCriticalMsg: logging.ERROR,
-        QtCore.QtMsgType.QtFatalMsg: logging.CRITICAL,
-        QtCore.QtMsgType.QtInfoMsg: logging.INFO,
+        qtcore.QtMsgType.QtDebugMsg: logging.DEBUG,
+        qtcore.QtMsgType.QtWarningMsg: logging.WARNING,
+        qtcore.QtMsgType.QtCriticalMsg: logging.ERROR,
+        qtcore.QtMsgType.QtFatalMsg: logging.CRITICAL,
+        qtcore.QtMsgType.QtInfoMsg: logging.INFO,
     }
 
     # Change levels of some well-known messages to debug so they don't get
