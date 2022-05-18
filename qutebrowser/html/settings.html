@@ -179,9 +179,10 @@ summary::selection {
           </div>
         {% endif %}
       </td>
-      {% if option.typ.valid_values is not none %}
+      {% set valid_values = option.typ.valid_values %}
+      {% if valid_values is not none and not valid_values.others_permitted %}
         <td class="valid-value">
-          {% for value in option.typ.valid_values.values %}
+          {% for value in valid_values.values %}
             <div class="radio-button">
               <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
                 name="{{ option.name }}" value="{{ value }}"
