@@ -66,6 +66,8 @@ Fixed
 - PDF.js now works properly again with the macOS and Windows releases.
 - The MathML workaround for darkmode (e.g. black on black Wikipedia formula)
   now also works for display (rather than inline) math.
+- The `content.proxy` setting can now correctly be set to arbitrary values via
+  the `qute://settings` page again.
 - Fixes for various notification-related crashes:
   * With the `tiramisu` notification server (due to invalid behavior of the server, now a non-fatal error)
   * With the `budgie` notification server when closing a notification (due to invalid behavior of the server, now worked around)
