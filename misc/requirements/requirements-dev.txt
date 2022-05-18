@@ -22,9 +22,9 @@ pkginfo==1.8.2
 ply==3.11
 pycparser==2.21
 Pygments==2.12.0
-PyJWT==2.3.0
+PyJWT==2.4.0
 Pympler==1.0.1
-pyparsing==3.0.8
+pyparsing==3.0.9
 PyQt-builder==1.12.2
 python-dateutil==2.8.2
 readme-renderer==35.0
