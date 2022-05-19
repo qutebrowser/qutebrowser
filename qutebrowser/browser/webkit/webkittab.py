@@ -44,7 +44,6 @@ class WebKitAction(browsertab.AbstractAction):
 
     """QtWebKit implementations related to web actions."""
 
-    action_class = QWebPage
     action_base = QWebPage.WebAction
 
     _widget: webview.WebView
