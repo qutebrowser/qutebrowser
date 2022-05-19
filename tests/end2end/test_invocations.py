@@ -646,44 +646,62 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
 # The 'colors' dictionaries in the parametrize decorator below have (QtWebEngine
 # version, CPU architecture) as keys. Either of those (or both) can be None to
 # say "on all other Qt versions" or "on all other CPU architectures".
-#
-# FIXME:qt6 can we drop the Qt version here?
 @pytest.mark.parametrize('filename, algorithm, colors', [
     (
         'blank',
         'lightness-cielab',
         {
-            ('5.15', None): testutils.Color(18, 18, 18),
-            ('5.15', 'aarch64'): testutils.Color(16, 16, 16),
+            (None, None): testutils.Color(18, 18, 18),
+            (None, 'aarch64'): testutils.Color(16, 16, 16),
+        }
+    ),
+    (
+        'blank',
+        'lightness-hsl',
+        {
+            # FIXME:qt6 why?
+            ('6.3', None): testutils.Color(18, 18, 18),
+            # FIXME:qt6 What about aarch64 and Qt 6.3?
             (None, None): testutils.Color(0, 0, 0),
         }
     ),
-    ('blank', 'lightness-hsl', {(None, None): testutils.Color(0, 0, 0)}),
-    ('blank', 'brightness-rgb', {(None, None): testutils.Color(0, 0, 0)}),
+    (
+        'blank',
+        'brightness-rgb',
+        {
+            # FIXME:qt6 why?
+            ('6.3', None): testutils.Color(18, 18, 18),
+            # FIXME:qt6 What about aarch64 and Qt 6.3?
+            (None, None): testutils.Color(0, 0, 0)
+        }
+    ),
 
     (
         'yellow',
         'lightness-cielab',
         {
-            ('5.15', None): testutils.Color(35, 34, 0),
-            ('5.15', 'aarch64'): testutils.Color(33, 32, 0),
-            (None, None): testutils.Color(204, 204, 0),
+            (None, None): testutils.Color(35, 34, 0),
+            (None, 'aarch64'): testutils.Color(33, 32, 0),
         }
     ),
     (
         'yellow',
         'lightness-hsl',
         {
-            (None, None): testutils.Color(204, 204, 0),
-            (None, 'aarch64'): testutils.Color(206, 207, 0),
+            (None, None): testutils.Color(215, 215, 0),
+            # FIXME:qt6 What about aarch64 on Qt 6?
+            ('5.15', None): testutils.Color(204, 204, 0),
+            ('5.15', 'aarch64'): testutils.Color(206, 207, 0),
         },
     ),
     (
         'yellow',
         'brightness-rgb',
         {
-            (None, None): testutils.Color(0, 0, 204),
-            (None, 'aarch64'): testutils.Color(0, 0, 206),
+            (None, None): testutils.Color(0, 0, 215),
+            # FIXME:qt6 What about aarch64 on Qt 6?
+            ('5.15', None): testutils.Color(0, 0, 204),
+            ('5.15', 'aarch64'): testutils.Color(0, 0, 206),
         }
     ),
 ])
@@ -724,7 +742,7 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
 
 
 @pytest.mark.parametrize("suffix", ["inline", "display"])
-def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
+def test_dark_mode_mathml(webengine_versions, quteproc_new, request, qtbot, suffix):
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
 
@@ -739,7 +757,11 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
     quteproc_new.wait_for_js('Image loaded')
 
     # First make sure loading finished by looking outside of the image
-    expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
+    if webengine_versions.webengine >= utils.VersionNumber(6):
+        expected = testutils.Color(0, 0, 215)
+        # FIXME:qt6 what about ARM?
+    else:
+        expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
 
     quteproc_new.get_screenshot(
         probe_pos=QPoint(105, 0),
