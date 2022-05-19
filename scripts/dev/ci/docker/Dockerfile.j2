@@ -7,10 +7,17 @@ RUN pacman -Suyy --noconfirm \
     git \
     python-tox \
     python-distlib \
+    {% if qt6 %}
+    qt6-base \
+    qt6-declarative \
+    {% if webengine %}qt6-webengine python-pyqt6-webengine{% else %}{{ 1/0 }}{% endif %} \
+    python-pyqt6 \
+    {% else %}
     qt5-base \
     qt5-declarative \
-    {% if webengine %}qt5-webengine python-pyqtwebengine{% else %}qt5-webkit{% endif %} \
+    {% if webengine %}qt5-webengine python-pyqt5-webengine{% else %}qt5-webkit{% endif %} \
     python-pyqt5 \
+    {% endif %}
     xorg-xinit \
     xorg-server-xvfb \
     ttf-bitstream-vera \

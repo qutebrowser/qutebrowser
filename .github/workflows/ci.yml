@@ -86,6 +86,7 @@ jobs:
         image:
           - archlinux-webkit
           - archlinux-webengine
+          # - archlinux-webengine-qt6  # FIXME:qt6 activate
           # - archlinux-webengine-unstable
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
