@@ -217,6 +217,7 @@ class WebEnginePage(QWebEnginePage):
 
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
+        # FIXME:qt6 Add tests to ensure this is complete
         level_map = {
             QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel: usertypes.JsLogLevel.info,
             QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel: usertypes.JsLogLevel.warning,
@@ -229,6 +230,7 @@ class WebEnginePage(QWebEnginePage):
                                 typ: QWebEnginePage.NavigationType,
                                 is_main_frame: bool) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
+        # FIXME:qt6 Add tests to ensure this is complete
         type_map = {
             QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
                 usertypes.NavigationRequest.Type.link_clicked,
@@ -242,13 +244,9 @@ class WebEnginePage(QWebEnginePage):
                 usertypes.NavigationRequest.Type.reloaded,
             QWebEnginePage.NavigationType.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
+            QWebEnginePage.NavigationType.NavigationTypeRedirect:
+                usertypes.NavigationRequest.Type.redirect,
         }
-        try:
-            type_map[QWebEnginePage.NavigationType.NavigationTypeRedirect] = (
-                usertypes.NavigationRequest.Type.redirect)
-        except AttributeError:
-            # Added in Qt 5.14
-            pass
 
         navigation = usertypes.NavigationRequest(
             url=url,

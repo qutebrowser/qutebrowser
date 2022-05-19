@@ -194,76 +194,6 @@ class _BackendProblemChecker:
 
         sys.exit(usertypes.Exit.err_init)
 
-    def _xwayland_options(self) -> Tuple[str, List[_Button]]:
-        """Get buttons/text for a possible XWayland solution."""
-        buttons = []
-        text = "<p>You can work around this in one of the following ways:</p>"
-
-        if 'DISPLAY' in os.environ:
-            # XWayland is available, but QT_QPA_PLATFORM=wayland is set
-            buttons.append(
-                _Button("Force XWayland", 'qt.force_platform', 'xcb'))
-            text += ("<p><b>Force Qt to use XWayland</b></p>"
-                     "<p>This allows you to use the newer QtWebEngine backend "
-                     "(based on Chromium). "
-                     "This sets the <i>qt.force_platform = 'xcb'</i> option "
-                     "(if you have a <i>config.py</i> file, you'll need to "
-                     "set this manually).</p>")
-        else:
-            text += ("<p><b>Set up XWayland</b></p>"
-                     "<p>This allows you to use the newer QtWebEngine backend "
-                     "(based on Chromium). ")
-
-        return text, buttons
-
-    def _handle_wayland_webgl(self) -> None:
-        """On older graphic hardware, WebGL on Wayland causes segfaults.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/5313
-        """
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_WAYLAND_WEBGL_CHECK'):
-            return
-
-        platform = objects.qapp.platformName()
-        if platform not in ['wayland', 'wayland-egl']:
-            return
-
-        # Only Qt 5.14 should be affected
-        if not qtutils.version_check('5.14', compiled=False):
-            return
-        if qtutils.version_check('5.15', compiled=False):
-            return
-
-        # Newer graphic hardware isn't affected
-        opengl_info = version.opengl_info()
-        if (opengl_info is None or
-                opengl_info.gles or
-                opengl_info.version is None or
-                opengl_info.version >= (4, 3)):
-            return
-
-        # If WebGL is turned off, we're fine
-        if not config.val.content.webgl:
-            return
-
-        text, buttons = self._xwayland_options()
-
-        buttons.append(_Button("Turn off WebGL (recommended)",
-                               'content.webgl',
-                               False))
-        text += ("<p><b>Disable WebGL (recommended)</b></p>"
-                 "This sets the <i>content.webgl = False</i> option "
-                 "(if you have a <i>config.py</i> file, you'll need to "
-                 "set this manually).</p>")
-
-        self._show_dialog(backend=usertypes.Backend.QtWebEngine,
-                          because=("of frequent crashes with Qt 5.14 on "
-                                   "Wayland with older graphics hardware"),
-                          text=text,
-                          buttons=buttons)
-
     def _try_import_backends(self) -> _BackendImports:
         """Check whether backends can be imported and return BackendImports."""
         # pylint: disable=unused-import
@@ -294,19 +224,8 @@ class _BackendProblemChecker:
         if QSslSocket.supportsSsl():
             return
 
-        if qtutils.version_check('5.12.4'):
-            version_text = ("If you use OpenSSL 1.0 with a PyQt package from "
-                            "PyPI (e.g. on Ubuntu 16.04), you will need to "
-                            "build OpenSSL 1.1 from sources and set "
-                            "LD_LIBRARY_PATH accordingly.")
-        else:
-            version_text = ("If you use OpenSSL 1.1 with a PyQt package from "
-                            "PyPI (e.g. on Archlinux or Debian Stretch), you "
-                            "need to set LD_LIBRARY_PATH to the path of "
-                            "OpenSSL 1.0 or use Qt >= 5.12.4.")
-
-        text = ("Could not initialize QtNetwork SSL support. {} This only "
-                "affects downloads and :adblock-update.".format(version_text))
+        text = ("Could not initialize QtNetwork SSL support. This only "
+                "affects downloads and :adblock-update.")
 
         if fatal:
             errbox = msgbox.msgbox(parent=None,
@@ -363,26 +282,6 @@ class _BackendProblemChecker:
 
         raise utils.Unreachable
 
-    def _handle_cache_nuking(self) -> None:
-        """Nuke the QtWebEngine cache if the Qt version changed.
-
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-72532
-        """
-        if not configfiles.state.qt_version_changed:
-            return
-
-        # Only nuke the cache in cases where we know there are problems.
-        # It seems these issues started with Qt 5.12.
-        # They should be fixed with Qt 5.12.5:
-        # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265408
-        if qtutils.version_check('5.12.5', compiled=False):
-            return
-
-        log.init.info("Qt version changed, nuking QtWebEngine cache")
-        cache_dir = os.path.join(standarddir.cache(), 'webengine')
-        if os.path.exists(cache_dir):
-            shutil.rmtree(cache_dir)
-
     def _handle_serviceworker_nuking(self) -> None:
         """Nuke the service workers directory if the Qt version changed.
 
@@ -391,13 +290,7 @@ class _BackendProblemChecker:
         https://bugreports.qt.io/browse/QTBUG-82105
         https://bugreports.qt.io/browse/QTBUG-93744
         """
-        if ('serviceworker_workaround' not in configfiles.state['general'] and
-                qtutils.version_check('5.14', compiled=False)):
-            # Nuke the service worker directory once for every install with Qt
-            # 5.14, given that it seems to cause a variety of segfaults.
-            configfiles.state['general']['serviceworker_workaround'] = '514'
-            reason = 'Qt 5.14'
-        elif configfiles.state.qt_version_changed:
+        if configfiles.state.qt_version_changed:
             reason = 'Qt version changed'
         elif configfiles.state.qtwe_version_changed:
             reason = 'QtWebEngine version changed'
@@ -422,6 +315,20 @@ class _BackendProblemChecker:
 
         shutil.move(service_worker_dir, bak_dir)
 
+    def _check_webengine_version(self) -> None:
+        versions = version.qtwebengine_versions(avoid_init=True)
+        if versions.webengine < utils.VersionNumber(5, 15, 2):
+            text = (
+                "QtWebEngine >= 5.15.2 is required for qutebrowser, but "
+                f"{versions.webengine} is installed.")
+            errbox = msgbox.msgbox(parent=None,
+                                   title="QtWebEngine too old",
+                                   text=text,
+                                   icon=QMessageBox.Icon.Critical,
+                                   plain_text=False)
+            errbox.exec()
+            sys.exit(usertypes.Exit.err_init)
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -429,9 +336,8 @@ class _BackendProblemChecker:
         """Run all checks."""
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:
+            self._check_webengine_version()
             self._handle_ssl_support()
-            self._handle_wayland_webgl()
-            self._handle_cache_nuking()
             self._handle_serviceworker_nuking()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)

@@ -47,20 +47,15 @@ class Font(QFont):
 
     def __repr__(self):
         weight = debug.qenum_key(QFont, self.weight(), klass=QFont.Weight)
-        kwargs = {
-            'family': self.family(),
-            'pt': self.pointSize(),
-            'px': self.pixelSize(),
-            'weight': weight,
-            'style': self.style(),
-        }
-        try:
-            kwargs['families'] = self.families()
-        except AttributeError:
-            # Added in Qt 5.13
-            pass
-
-        return utils.get_repr(self, **kwargs)
+        return utils.get_repr(
+            self,
+            family=self.family(),
+            pt=self.pointSize(),
+            px=self.pixelSize(),
+            weight=weight,
+            style=self.style(),
+            families=self.families(),
+        )
 
 
 class RegexEq:

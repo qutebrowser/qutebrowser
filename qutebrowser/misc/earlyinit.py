@@ -183,21 +183,16 @@ def check_qt_version():
     try:
         from qutebrowser.qt.core import QVersionNumber, QLibraryInfo
         qt_ver = QLibraryInfo.version().normalized()
-        recent_qt_runtime = qt_ver >= QVersionNumber(5, 12)  # type: ignore[operator]
+        recent_qt_runtime = qt_ver >= QVersionNumber(5, 15)  # type: ignore[operator]
     except (ImportError, AttributeError):
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False
 
-    if QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or not recent_qt_runtime:
-        text = ("Fatal error: Qt >= 5.12.0 and PyQt >= 5.12.0 are required, "
+    if QT_VERSION < 0x050F00 or PYQT_VERSION < 0x050500 or not recent_qt_runtime:
+        text = ("Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
         _die(text)
-
-    if qt_ver == QVersionNumber(5, 12, 0):
-        from qutebrowser.utils import log
-        log.init.warning("Running on Qt 5.12.0. Doing so is unsupported "
-                         "(newer 5.12.x versions are fine).")
 
 
 def check_ssl_support():
@@ -261,11 +256,6 @@ def configure_pyqt():
     """
     from qutebrowser.qt import core as QtCore
     QtCore.pyqtRemoveInputHook()
-    try:
-        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore[attr-defined]
-    except AttributeError:
-        # Added in PyQt 5.13 somewhere, going to be the default in 5.14
-        pass
 
     from qutebrowser.qt import sip
     try:

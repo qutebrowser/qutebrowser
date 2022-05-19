@@ -446,7 +446,7 @@ def test_referrer(quteproc_new, server, server2, request, value, expected):
 
 def test_preferred_colorscheme_unsupported(request, quteproc_new):
     """Test versions without preferred-color-scheme support."""
-    if request.config.webengine and qtutils.version_check('5.14'):
+    if request.config.webengine:
         pytest.skip("preferred-color-scheme is supported")
 
     args = _base_args(request.config) + ['--temp-basedir']
@@ -457,7 +457,6 @@ def test_preferred_colorscheme_unsupported(request, quteproc_new):
 
 
 @pytest.mark.qtwebkit_skip
-@testutils.qt514
 @pytest.mark.parametrize('value', ["dark", "light", "auto", None])
 def test_preferred_colorscheme(request, quteproc_new, value):
     """Make sure the the preferred colorscheme is set."""
@@ -481,11 +480,7 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         None: [dark_text, light_text],
     }
     xfail = False
-    if not qtutils.version_check('5.15.2', compiled=False):
-        # On older versions, "light" is not supported, so the result will depend on the
-        # environment.
-        expected_values["light"].append(dark_text)
-    elif qtutils.version_check('5.15.2', exact=True, compiled=False):
+    if qtutils.version_check('5.15.2', exact=True, compiled=False):
         # Test the WORKAROUND https://bugreports.qt.io/browse/QTBUG-89753
         # With that workaround, we should always get the light preference.
         for key in ["auto", None]:
@@ -501,7 +496,6 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         pytest.xfail("QTBUG-89753")
 
 
-@testutils.qt514
 def test_preferred_colorscheme_with_dark_mode(
         request, quteproc_new, webengine_versions):
     """Test interaction between preferred-color-scheme and dark mode."""
@@ -538,6 +532,7 @@ def test_preferred_colorscheme_with_dark_mode(
     else:
         # Qt 5.14 and 5.15.0/.1 work correctly.
         # Hopefully, so does Qt 6.x in the future?
+        # FIXME:qt6 drop this if not...
         expected_text = 'Dark preference detected.'
         expected_color = (testutils.Color(33, 32, 33) if IS_ARM
                           else testutils.Color(34, 34, 34))  # dark website color
@@ -557,7 +552,6 @@ def test_preferred_colorscheme_with_dark_mode(
 @pytest.mark.qtwebkit_skip
 @pytest.mark.parametrize('reason', [
     'Explicitly enabled',
-    pytest.param('Qt 5.14', marks=testutils.qt514),
     'Qt version changed',
     None,
 ])
@@ -582,9 +576,7 @@ def test_service_worker_workaround(
 
     # Edit state file if needed
     state_file = short_tmpdir / 'data' / 'state'
-    if reason == 'Qt 5.14':
-        state_file.remove()
-    elif reason == 'Qt version changed':
+    if reason == 'Qt version changed':
         parser = configparser.ConfigParser()
         parser.read(state_file)
         del parser['general']['qt_version']
@@ -608,7 +600,6 @@ def test_service_worker_workaround(
         assert not service_worker_dir.exists()
 
 
-@testutils.qt513  # Qt 5.12 doesn't store cookies immediately
 @pytest.mark.parametrize('store', [True, False])
 def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     # Start test process
@@ -644,6 +635,8 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
 # The 'colors' dictionaries in the parametrize decorator below have (QtWebEngine
 # version, CPU architecture) as keys. Either of those (or both) can be None to
 # say "on all other Qt versions" or "on all other CPU architectures".
+#
+# FIXME:qt6 can we drop the Qt version here?
 @pytest.mark.parametrize('filename, algorithm, colors', [
     (
         'blank',
@@ -651,8 +644,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         {
             ('5.15', None): testutils.Color(18, 18, 18),
             ('5.15', 'aarch64'): testutils.Color(16, 16, 16),
-            ('5.14', None): testutils.Color(27, 27, 27),
-            ('5.14', 'aarch64'): testutils.Color(24, 24, 24),
             (None, None): testutils.Color(0, 0, 0),
         }
     ),
@@ -665,8 +656,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         {
             ('5.15', None): testutils.Color(35, 34, 0),
             ('5.15', 'aarch64'): testutils.Color(33, 32, 0),
-            ('5.14', None): testutils.Color(35, 34, 0),
-            ('5.14', 'aarch64'): testutils.Color(33, 32, 0),
             (None, None): testutils.Color(204, 204, 0),
         }
     ),
@@ -753,7 +742,6 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
     )
 
 
-@testutils.qt514
 @pytest.mark.parametrize('value, preference', [
     ('true', 'Reduced motion'),
     ('false', 'No'),
@@ -866,39 +854,21 @@ def test_sandboxing(
     bpf_text = "Seccomp-BPF sandbox"
     yama_text = "Ptrace Protection with Yama LSM"
 
-    if "\n\n\n" in text:
-        # Qt 5.12
-        header, rest = text.split("\n", maxsplit=1)
-        rest, result = rest.rsplit("\n\n", maxsplit=1)
-        lines = rest.replace("\t\n", "\t").split("\n\n\n")
+    header, *lines, empty, result = text.split("\n")
+    assert not empty
 
-        expected_status = {
-            "Namespace Sandbox": "Yes" if has_namespaces else "No",
-            "Network namespaces": "Yes" if has_namespaces else "No",
-            "PID namespaces": "Yes" if has_namespaces else "No",
-            "SUID Sandbox": "No",
+    expected_status = {
+        "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
 
-            bpf_text: "Yes" if has_seccomp else "No",
-            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+        "PID namespaces": "Yes" if has_namespaces else "No",
+        "Network namespaces": "Yes" if has_namespaces else "No",
 
-            "Yama LSM Enforcing": "Yes" if has_yama else "No",
-        }
-    else:
-        header, *lines, empty, result = text.split("\n")
-        assert not empty
+        bpf_text: "Yes" if has_seccomp else "No",
+        f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
-        expected_status = {
-            "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
-
-            "PID namespaces": "Yes" if has_namespaces else "No",
-            "Network namespaces": "Yes" if has_namespaces else "No",
-
-            bpf_text: "Yes" if has_seccomp else "No",
-            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
-
-            f"{yama_text} (Broker)": "Yes" if has_yama else "No",
-            f"{yama_text} (Non-broker)": "No",
-        }
+        f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+        f"{yama_text} (Non-broker)": "No",
+    }
 
     assert header == "Sandbox Status"
     assert result == expected_result

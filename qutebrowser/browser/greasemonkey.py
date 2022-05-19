@@ -145,7 +145,7 @@ class GreasemonkeyScript:
     def needs_document_end_workaround(self):
         """Check whether to force @run-at document-end.
 
-        This needs to be done on QtWebEngine (since Qt 5.12) for known-broken scripts.
+        This needs to be done on QtWebEngine for known-broken scripts.
 
         On Qt 5.12, accessing the DOM isn't possible with "@run-at
         document-start". It was documented to be impossible before, but seems

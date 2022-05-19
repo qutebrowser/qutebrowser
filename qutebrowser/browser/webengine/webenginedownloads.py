@@ -196,12 +196,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert self._filename is not None
 
         dirname, basename = os.path.split(self._filename)
-        try:
-            # Qt 5.14
-            self._qt_item.setDownloadDirectory(dirname)
-            self._qt_item.setDownloadFileName(basename)
-        except AttributeError:
-            self._qt_item.setPath(self._filename)
+        self._qt_item.setDownloadDirectory(dirname)
+        self._qt_item.setDownloadFileName(basename)
 
         self._qt_item.accept()
 
@@ -272,12 +268,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
     @pyqtSlot(QWebEngineDownloadRequest)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
-        try:
-            # Added in Qt 5.14
-            qt_filename = qt_item.downloadFileName()
-        except AttributeError:
-            qt_filename = os.path.basename(qt_item.path())
-
+        qt_filename = qt_item.downloadFileName()
         mime_type = qt_item.mimeType()
         url = qt_item.url()
 

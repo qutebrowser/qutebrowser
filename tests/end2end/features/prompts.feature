@@ -98,7 +98,7 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: Async question interrupted by async one
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -114,7 +114,7 @@ Feature: Prompts
         Then the javascript message "notification permission granted" should be logged
         And "Added quickmark test for *" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: Async question interrupted by blocking one
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -275,7 +275,7 @@ Feature: Prompts
 
     # Notifications
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: Always rejecting notifications
         Given I have a fresh instance
         When I set content.notifications.enabled to false
@@ -283,7 +283,7 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: Always accepting notifications
         Given I have a fresh instance
         When I set content.notifications.enabled to true
@@ -291,7 +291,7 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: notifications with ask -> false
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -301,7 +301,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: notifications with ask -> false and save
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -312,7 +312,7 @@ Feature: Prompts
         Then the javascript message "notification permission denied" should be logged
         And the per-domain option content.notifications.enabled should be set to false for http://localhost:(port)
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: notifications with ask -> true
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -322,7 +322,7 @@ Feature: Prompts
         And I run :prompt-accept yes
         Then the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: notifications with ask -> true and save
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -344,7 +344,7 @@ Feature: Prompts
         And I run :mode-leave
         Then the javascript message "notification permission aborted" should be logged
 
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: answering notification after closing tab
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -518,7 +518,7 @@ Feature: Prompts
 
     # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
-    @qtwebengine_notifications
+    @qtwebkit_skip
     Scenario: Interrupting SSL prompt during a notification prompt
         Given I have a fresh instance
         When I set content.notifications.enabled to ask

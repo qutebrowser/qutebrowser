@@ -121,6 +121,7 @@ def _get_version_tag(tag):
         try:
             from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
         except ImportError:
+            # QtWebKit
             running_version = PYQT_VERSION
         else:
             running_version = PYQT_WEBENGINE_VERSION
@@ -152,7 +153,6 @@ def _get_backend_tag(tag):
     pytest_marks = {
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
-        'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -179,10 +179,6 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers."""
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-    # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-
     lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
     qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
 
@@ -191,19 +187,12 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
-        ('qtwebengine_notifications',
-         'Skipped unless QtWebEngine >= 5.13',
-         pytest.mark.skipif,
-         not (config.webengine and qtutils.version_check('5.13'))),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
-        ('js_headers', 'Sets headers dynamically via JS',
-         pytest.mark.skipif,
-         config.webengine and not header_bug_fixed),
         ('qtwebkit_pdf_imageformat_skip',
          'Skipped with QtWebKit if PDF image plugin is available',
          pytest.mark.skipif,

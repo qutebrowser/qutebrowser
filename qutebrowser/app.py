@@ -207,6 +207,7 @@ def _init_pulseaudio():
     However, we set this on all versions so that qutebrowser's icon gets picked
     up as well.
     """
+    # FIXME:qt6 check if this is still needed
     for prop in ['application.name', 'application.icon_name']:
         os.environ['PULSE_PROP_OVERRIDE_' + prop] = 'qutebrowser'
 
@@ -369,7 +370,7 @@ def _open_special_pages(args):
          'qute://warning/webkit'),
 
         ('session-warning-shown',
-         qtutils.version_check('5.15', compiled=False),
+         True,
          'qute://warning/sessions'),
     ]
 

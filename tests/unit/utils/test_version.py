@@ -979,13 +979,11 @@ class TestWebEngineVersions:
         assert version.WebEngineVersions.from_elf(elf_version) == expected
 
     @pytest.mark.parametrize('pyqt_version, chromium_version', [
-        ('5.12.10', '69.0.3497.128'),
-        ('5.14.2', '77.0.3865.129'),
-        ('5.15.1', '80.0.3987.163'),
         ('5.15.2', '83.0.4103.122'),
         ('5.15.3', '87.0.4280.144'),
         ('5.15.4', '87.0.4280.144'),
         ('5.15.5', '87.0.4280.144'),
+        # FIXME:qt6 update
     ])
     def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
         if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
@@ -1012,10 +1010,11 @@ class TestWebEngineVersions:
                 from qutebrowser.qt.webenginecore import (
                     PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
             except ImportError as e:
-                # QtWebKit or QtWebEngine < 5.13
+                # QtWebKit
                 pytest.skip(str(e))
 
             if PYQT_WEBENGINE_VERSION >= 0x050F02:
+                # FIXME:qt6 adjust?
                 # Starting with Qt 5.15.2, we can only do bad guessing anyways...
                 pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
 
@@ -1098,11 +1097,6 @@ class TestChromiumVersion:
         monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
 
     @pytest.fixture
-    def patch_old_pyqt(self, monkeypatch):
-        """Simulate an old PyQt without PYQT_WEBENGINE_VERSION_STR."""
-        monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
-
-    @pytest.fixture
     def patch_no_importlib(self, monkeypatch, stubs):
         """Simulate missing importlib modules."""
         import_fake = stubs.ImportFake({
@@ -1143,11 +1137,8 @@ class TestChromiumVersion:
 
     @pytest.mark.parametrize('patches, sources', [
         (['elf_fail'], ['importlib', 'PyQt', 'Qt']),
-        (['elf_fail', 'old_pyqt'], ['importlib', 'Qt']),
         (['elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
-        (['elf_fail', 'no_importlib', 'old_pyqt'], ['Qt']),
         (['elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
-        (['elf_fail', 'importlib_no_package', 'old_pyqt'], ['Qt']),
     ], ids=','.join)
     def test_simulated(self, request, patches, sources):
         """Test various simulated error conditions.

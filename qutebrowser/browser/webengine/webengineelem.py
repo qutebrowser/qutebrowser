@@ -231,7 +231,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
-        self._tab.setFocus()  # Needed as WORKAROUND on Qt 5.12
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')
         self._move_text_cursor()

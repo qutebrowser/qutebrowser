@@ -102,6 +102,7 @@ class FakeSocket(QObject):
 
     readyRead = pyqtSignal()  # noqa: N815
     disconnected = pyqtSignal()
+    errorOccurred = pyqtSignal(QLocalSocket.LocalSocketError)
 
     def __init__(self, *, error=QLocalSocket.LocalSocketError.UnknownSocketError, state=None,
                  data=None, connect_successful=True, parent=None):
@@ -110,9 +111,8 @@ class FakeSocket(QObject):
         self._state_val = state
         self._data = data
         self._connect_successful = connect_successful
-        self.error = stubs.FakeSignal('error', func=self._error)
 
-    def _error(self):
+    def error(self):
         return self._error_val
 
     def state(self):

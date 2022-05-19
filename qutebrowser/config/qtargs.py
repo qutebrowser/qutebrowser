@@ -108,7 +108,7 @@ def _qtwebengine_features(
         else:
             raise utils.Unreachable(flag)
 
-    if versions.webengine >= utils.VersionNumber(5, 15, 1) and utils.is_linux:
+    if utils.is_linux:
         # Enable WebRTC PipeWire for screen capturing on Wayland.
         #
         # This is disabled in Chromium by default because of the "dialog hell":
@@ -118,7 +118,7 @@ def _qtwebengine_features(
         # However, we don't have Chromium's confirmation dialog in qutebrowser,
         # so we should only get qutebrowser's permission dialog.
         #
-        # In theory this would be supported with Qt 5.13 already, but
+        # In theory this would be supported with Qt 5.15.0 already, but
         # QtWebEngine only started picking up PipeWire correctly with Qt
         # 5.15.1.
         #
@@ -143,8 +143,7 @@ def _qtwebengine_features(
         if config.val.scrolling.bar == 'overlay':
             enabled_features.append('OverlayScrollbar')
 
-    if (versions.webengine >= utils.VersionNumber(5, 14) and
-            config.val.content.headers.referer == 'same-domain'):
+    if config.val.content.headers.referer == 'same-domain':
         # Handling of reduced-referrer-granularity in Chromium 76+
         # https://chromium-review.googlesource.com/c/chromium/src/+/1572699
         #
@@ -210,7 +209,7 @@ def _get_lang_override(
     """Get a --lang switch to override Qt's locale handling.
 
     This is needed as a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
-    There is no fix yet, but we assume it'll be fixed with QtWebEngine 5.15.4.
+    Fixed with QtWebEngine 5.15.4.
     """
     if not config.val.qt.workarounds.locale:
         return None
@@ -245,23 +244,10 @@ def _qtwebengine_args(
     """Get the QtWebEngine arguments to use based on the config."""
     versions = version.qtwebengine_versions(avoid_init=True)
 
-    qt_514_ver = utils.VersionNumber(5, 14)
-    qt_515_ver = utils.VersionNumber(5, 15)
-    if qt_514_ver <= versions.webengine < qt_515_ver:
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-82105
-        yield '--disable-shared-workers'
-
-    # WORKAROUND equivalent to
     # https://codereview.qt-project.org/c/qt/qtwebengine/+/256786
-    # also see:
     # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265753
-    if versions.webengine >= utils.VersionNumber(5, 12, 3):
-        if 'stack' in namespace.debug_flags:
-            # Only actually available in Qt 5.12.5, but let's save another
-            # check, as passing the option won't hurt.
-            yield '--enable-in-process-stack-traces'
-    elif 'stack' not in namespace.debug_flags:
-        yield '--disable-in-process-stack-traces'
+    if 'stack' in namespace.debug_flags:
+        yield '--enable-in-process-stack-traces'
 
     lang_override = _get_lang_override(
         webengine_version=versions.webengine,
@@ -331,9 +317,6 @@ def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[
             'always': '--enable-low-end-device-mode',
             'never': '--disable-low-end-device-mode',
         },
-        'content.headers.referer': {
-            'always': None,
-        },
         'content.prefers_reduced_motion': {
             True: '--force-prefers-reduced-motion',
             False: None,
@@ -344,31 +327,6 @@ def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[
             'disable-all': '--no-sandbox',
         }
     }
-    qt_514_ver = utils.VersionNumber(5, 14)
-
-    if qt_514_ver <= versions.webengine < utils.VersionNumber(5, 15, 2):
-        # In Qt 5.14 to 5.15.1, `--force-dark-mode` is used to set the
-        # preferred colorscheme. In Qt 5.15.2, this is handled by a
-        # blink-setting in browser/webengine/darkmode.py instead.
-        settings['colors.webpage.preferred_color_scheme'] = {
-            'dark': '--force-dark-mode',
-            'light': None,
-            'auto': None,
-        }
-
-    referrer_setting = settings['content.headers.referer']
-    if versions.webengine >= qt_514_ver:
-        # Starting with Qt 5.14, this is handled via --enable-features
-        referrer_setting['same-domain'] = None
-    else:
-        referrer_setting['same-domain'] = '--reduced-referrer-granularity'
-
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60203
-    can_override_referer = (
-        versions.webengine >= utils.VersionNumber(5, 12, 4) and
-        versions.webengine != utils.VersionNumber(5, 13)
-    )
-    referrer_setting['never'] = None if can_override_referer else '--no-referrers'
 
     for setting, args in sorted(settings.items()):
         arg = args[config.instance.get(setting)]
@@ -411,10 +369,7 @@ def init_envvars() -> None:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
 
     if config.val.qt.highdpi:
-        env_var = ('QT_ENABLE_HIGHDPI_SCALING'
-                   if qtutils.version_check('5.14', compiled=False)
-                   else 'QT_AUTO_SCREEN_SCALE_FACTOR')
-        os.environ[env_var] = '1'
+        os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
 
     for var, val in config.val.qt.environ.items():
         if val is None and var in os.environ:

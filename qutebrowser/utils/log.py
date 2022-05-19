@@ -396,14 +396,8 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
         QtCore.QtMsgType.QtWarningMsg: logging.WARNING,
         QtCore.QtMsgType.QtCriticalMsg: logging.ERROR,
         QtCore.QtMsgType.QtFatalMsg: logging.CRITICAL,
+        QtCore.QtMsgType.QtInfoMsg: logging.INFO,
     }
-    try:
-        qt_to_logging[QtCore.QtMsgType.QtInfoMsg] = logging.INFO
-    except AttributeError:
-        # Added in Qt 5.5.
-        # While we don't support Qt < 5.5 anymore, logging still needs to work so that
-        # the Qt version warning in earlyinit.py does.
-        pass
 
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.

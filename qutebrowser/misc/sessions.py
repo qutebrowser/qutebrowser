@@ -64,12 +64,7 @@ def init(parent=None):
 
     # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
     backup_path = base_path / 'before-qt-515'
-
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        webengine_version = version.qtwebengine_versions().webengine
-        do_backup = webengine_version >= utils.VersionNumber(5, 15)
-    else:
-        do_backup = False
+    do_backup = objects.backend == usertypes.Backend.QtWebEngine
 
     if base_path.exists() and not backup_path.exists() and do_backup:
         backup_path.mkdir()

@@ -65,9 +65,6 @@ search.incremental:
 search.wrap:
   type: Bool
   default: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: true
   desc: >-
     Wrap around at the top and bottom of the page when advancing through text
     matches using `:search-next` and `:search-prev`.
@@ -337,8 +334,8 @@ qt.highdpi:
   desc: >-
     Turn on Qt HighDPI scaling.
 
-    This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or
-    QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
+    This is equivalent to setting QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in
+    the environment.
 
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
@@ -577,9 +574,7 @@ content.frame_flattening:
 content.prefers_reduced_motion:
   default: false
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
   desc: >-
     Request websites to minimize non-essentials animations and motion.
@@ -1056,9 +1051,6 @@ content.notifications.enabled:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebEngine: Qt 5.13
-    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.notifications.presenter:
@@ -1070,7 +1062,6 @@ content.notifications.presenter:
             without showing error messages.
       - qt: Use Qt's native notification presenter, based on a system tray icon.
             Switching from or to this value requires a restart of qutebrowser.
-            Recommended over `systray` on PyQt 5.14.
       - libnotify: Shows messages via DBus in a libnotify-compatible way. If DBus isn't
             available, falls back to `systray` or `messages`, but shows an error
             message.
@@ -1082,16 +1073,12 @@ content.notifications.presenter:
             aren't available.
       - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe).
             Most notification features aren't available.
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   desc: >-
     What notification presenter to use for web notifications.
 
     Note that not all implementations support all features of notifications:
 
-    - With PyQt 5.14, any setting other than `qt` does not support  the `click` and
-      `close` events, as well as the `tag` option to replace existing notifications.
     - The `qt` and `systray` options only support showing one notification at the time
       and ignore the `tag` option to replace existing notifications.
     - The `herbe` option only supports showing one notification at the time and doesn't
@@ -1103,9 +1090,7 @@ content.notifications.show_origin:
   default: true
   type: Bool
   supports_pattern: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   desc: >-
     Whether to show the origin URL for notifications.
 
@@ -1899,9 +1884,7 @@ input.spatial_navigation:
 input.media_keys:
   default: true
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
   desc: >-
     Whether the underlying Chromium should handle media keys.
@@ -3195,9 +3178,7 @@ colors.webpage.preferred_color_scheme:
 
     The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
     fall back to "light" unconditionally.
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
 
 ## dark mode
@@ -3294,9 +3275,7 @@ colors.webpage.darkmode.policy.page:
     The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this
     setting is ignored there. Instead, every element is now classified individually.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.text:
   default: 256
@@ -3311,9 +3290,7 @@ colors.webpage.darkmode.threshold.text:
       above it will be left as in the original, non-dark-mode page. Set to 256
       to always invert text color or to 0 to never invert text color.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.background:
   default: 0
@@ -3331,9 +3308,7 @@ colors.webpage.darkmode.threshold.background:
       Note: This behavior is the opposite of
       `colors.webpage.darkmode.threshold.text`!
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.grayscale.all:
   default: false
@@ -3358,9 +3333,7 @@ colors.webpage.darkmode.grayscale.images:
     If set to 0, images are left as-is. If set to 1, images are completely
     grayscale. Values between 0 and 1 desaturate the colors accordingly.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 # emacs: '
 

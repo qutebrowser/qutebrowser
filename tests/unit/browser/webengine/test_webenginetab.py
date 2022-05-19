@@ -204,18 +204,6 @@ class TestWebengineScripts:
         scripts_helper.inject([script3])
 
 
-def test_notification_permission_workaround():
-    """Make sure the value for QWebEnginePage::Notifications is correct."""
-    try:
-        notifications = QWebEnginePage.Feature.Notifications
-    except AttributeError:
-        pytest.skip("No Notifications member")
-
-    permissions = webenginetab._WebEnginePermissions
-    assert permissions._options[notifications] == 'content.notifications.enabled'
-    assert permissions._messages[notifications] == 'show notifications'
-
-
 class TestFindFlags:
 
     @pytest.mark.parametrize("case_sensitive, backward, expected", [

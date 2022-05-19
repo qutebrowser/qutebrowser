@@ -129,35 +129,12 @@ class TestWebEngineArgs:
         pytest.importorskip("qutebrowser.qt.webenginecore")
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
-    @pytest.mark.parametrize('backend, qt_version, expected', [
-        (usertypes.Backend.QtWebEngine, '5.13.0', False),
-        (usertypes.Backend.QtWebEngine, '5.14.0', True),
-        (usertypes.Backend.QtWebEngine, '5.14.1', True),
-        (usertypes.Backend.QtWebEngine, '5.15.0', False),
-        (usertypes.Backend.QtWebEngine, '5.15.1', False),
-
-        (usertypes.Backend.QtWebKit, '5.14.0', False),
-    ])
-    def test_shared_workers(self, config_stub, version_patcher, monkeypatch, parser,
-                            qt_version, backend, expected):
-        version_patcher(qt_version)
-        monkeypatch.setattr(qtargs.objects, 'backend', backend)
-        parsed = parser.parse_args([])
-        args = qtargs.qt_args(parsed)
-        assert ('--disable-shared-workers' in args) == expected
-
     @pytest.mark.parametrize('backend, qt_version, debug_flag, expected', [
-        # Qt >= 5.12.3: Enable with -D stack, do nothing without it.
-        (usertypes.Backend.QtWebEngine, '5.12.3', True, True),
-        (usertypes.Backend.QtWebEngine, '5.12.3', False, None),
-        # Qt < 5.12.3: Do nothing with -D stack, disable without it.
-        (usertypes.Backend.QtWebEngine, '5.12.2', True, None),
-        (usertypes.Backend.QtWebEngine, '5.12.2', False, False),
+        # QtWebEngine: Enable with -D stack, do nothing without it.
+        (usertypes.Backend.QtWebEngine, '5.15.2', True, True),
+        (usertypes.Backend.QtWebEngine, '5.15.2', False, None),
         # QtWebKit: Do nothing
-        (usertypes.Backend.QtWebKit, '5.12.3', True, None),
-        (usertypes.Backend.QtWebKit, '5.12.3', False, None),
-        (usertypes.Backend.QtWebKit, '5.12.2', True, None),
-        (usertypes.Backend.QtWebKit, '5.12.2', False, None),
+        (usertypes.Backend.QtWebKit, '5.15.2', False, None),
     ])
     def test_in_process_stack_traces(self, monkeypatch, parser, backend, version_patcher,
                                      qt_version, debug_flag, expected):
@@ -300,21 +277,19 @@ class TestWebEngineArgs:
         assert not set(args) & remaining_flags
 
     @pytest.mark.parametrize('qt_version, referer, arg', [
+        # FIXME:qt6 update?
+
         # 'always' -> no arguments
-        ('5.15.0', 'always', None),
+        ('5.15.2', 'always', None),
+        ('5.15.3', 'always', None),
 
-        # 'never' is handled via interceptor for most Qt versions
-        ('5.12.3', 'never', '--no-referrers'),
-        ('5.12.4', 'never', None),
-        ('5.13.0', 'never', '--no-referrers'),
-        ('5.13.1', 'never', None),
-        ('5.14.0', 'never', None),
-        ('5.15.0', 'never', None),
+        # 'never' is handled via interceptor
+        ('5.15.2', 'never', None),
+        ('5.15.3', 'always', None),
 
-        # 'same-domain' - arguments depend on Qt versions
-        ('5.13.0', 'same-domain', '--reduced-referrer-granularity'),
-        ('5.14.0', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
-        ('5.15.0', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
+        # 'same-domain'
+        ('5.15.2', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
+        ('5.15.3', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
     ])
     def test_referer(self, config_stub, version_patcher, parser,
                      qt_version, referer, arg):
@@ -324,50 +299,14 @@ class TestWebEngineArgs:
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
+        # Old QtWebEngine args
+        assert '--no-referrers' not in args
+        assert '--reduced-referrer-granularity' not in args
+
         if arg is None:
-            assert '--no-referrers' not in args
-            assert '--reduced-referrer-granularity' not in args
             assert '--enable-features=ReducedReferrerGranularity' not in args
         else:
             assert arg in args
-
-    @pytest.mark.parametrize('value, qt_version, added', [
-        ("dark", "5.13", False),  # not supported
-        ("dark", "5.14", True),
-        ("dark", "5.15.0", True),
-        ("dark", "5.15.1", True),
-        # handled via blink setting
-        ("dark", "5.15.2", False),
-        ("dark", "5.15.3", False),
-        ("dark", "6.0.0", False),
-
-        ("light", "5.13", False),
-        ("light", "5.14", False),
-        ("light", "5.15.0", False),
-        ("light", "5.15.1", False),
-        ("light", "5.15.2", False),
-        ("light", "5.15.3", False),
-        ("light", "6.0.0", False),
-
-        ("auto", "5.13", False),
-        ("auto", "5.14", False),
-        ("auto", "5.15.0", False),
-        ("auto", "5.15.1", False),
-        ("auto", "5.15.2", False),
-        ("auto", "5.15.3", False),
-        ("auto", "6.0.0", False),
-    ])
-    @testutils.qt514
-    def test_preferred_color_scheme(
-            self, config_stub, version_patcher, parser, value, qt_version, added):
-        version_patcher(qt_version)
-
-        config_stub.val.colors.webpage.preferred_color_scheme = value
-
-        parsed = parser.parse_args([])
-        args = qtargs.qt_args(parsed)
-
-        assert ('--force-dark-mode' in args) == added
 
     @pytest.mark.parametrize('bar, is_mac, added', [
         # Overlay bar enabled
@@ -462,11 +401,9 @@ class TestWebEngineArgs:
         assert blink_settings_args[0].startswith('--blink-settings=foo=bar,')
 
     @pytest.mark.parametrize('qt_version, has_workaround', [
-        ('5.14.0', False),
-        ('5.15.1', False),
         ('5.15.2', True),
         ('5.15.3', False),
-        ('6.0.0', False),
+        ('6.2.0', False),
     ])
     def test_installedapp_workaround(self, parser, version_patcher, qt_version, has_workaround):
         version_patcher(qt_version)
@@ -482,7 +419,6 @@ class TestWebEngineArgs:
         assert disable_features_args == expected
 
     @pytest.mark.parametrize('enabled', [True, False])
-    @testutils.qt514
     def test_media_keys(self, config_stub, parser, enabled):
         config_stub.val.input.media_keys = enabled
 
@@ -492,10 +428,6 @@ class TestWebEngineArgs:
         assert ('--disable-features=HardwareMediaKeyHandling' in args) != enabled
 
     @pytest.mark.parametrize('variant, expected', [
-        (
-            'qt_515_1',
-            ['--blink-settings=darkModeEnabled=true,darkModeImagePolicy=2'],
-        ),
         (
             'qt_515_2',
             [
@@ -615,28 +547,19 @@ class TestEnvVars:
 
     @pytest.mark.parametrize('new_qt', [True, False])
     def test_highdpi(self, monkeypatch, config_stub, new_qt):
-        """Test HighDPI environment variables.
-
-        Depending on the Qt version, there's a different variable which should
-        be set...
-        """
-        new_var = 'QT_ENABLE_HIGHDPI_SCALING'
-        old_var = 'QT_AUTO_SCREEN_SCALE_FACTOR'
-
+        """Test HighDPI environment variables. """
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
                             new_qt)
 
-        for envvar in [new_var, old_var]:
-            monkeypatch.setenv(envvar, '')  # to make sure it gets restored
-            monkeypatch.delenv(envvar)
+        envvar = 'QT_ENABLE_HIGHDPI_SCALING'
+        monkeypatch.setenv(envvar, '')  # to make sure it gets restored
+        monkeypatch.delenv(envvar)
 
         config_stub.set_obj('qt.highdpi', True)
         qtargs.init_envvars()
-
-        envvar = new_var if new_qt else old_var
 
         assert os.environ[envvar] == '1'
 

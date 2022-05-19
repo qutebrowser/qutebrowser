@@ -155,11 +155,11 @@ def _parse_yaml_backends_dict(
 
     # The value associated to the key, and whether we should add that backend
     # or not.
+
+    # FIXME:qt6 Can we drop this?
     conditionals = {
         True: True,
         False: False,
-        'Qt 5.13': qtutils.version_check('5.13'),
-        'Qt 5.14': qtutils.version_check('5.14'),
         'Qt 5.15': qtutils.version_check('5.15'),
     }
     for key in sorted(node.keys()):

@@ -357,7 +357,7 @@ Feature: Various utility commands.
 
     # This still doesn't set window.navigator.language
     # See https://bugreports.qt.io/browse/QTBUG-61949
-    @qtwebkit_skip @js_headers
+    @qtwebkit_skip
     Scenario: Accept-Language header (JS)
         When I set content.headers.accept_language to it,fr
         And I run :jseval console.log(window.navigator.languages)
@@ -369,7 +369,6 @@ Feature: Various utility commands.
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
 
-    @js_headers
     Scenario: User-agent header (JS)
         When I set content.headers.user_agent to toaster
         And I open about:blank

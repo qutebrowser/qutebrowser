@@ -154,13 +154,7 @@ class TestDataUrlWorkaround:
         def check_item(item):
             assert item.mimeType() == 'application/pdf'
             assert item.url().scheme() == 'data'
-
-            try:
-                basename = item.downloadFileName()
-            except AttributeError:
-                # Added in Qt 5.14
-                basename = os.path.basename(item.path())
-            assert basename == expected_names.before
+            assert item.downloadFileName() == expected_names.before
 
             return True
 

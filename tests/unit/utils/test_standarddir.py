@@ -193,21 +193,6 @@ class TestStandardDir:
         assert func() == str(tmp_path.joinpath(*subdirs))
 
     @pytest.mark.linux
-    @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
-    @pytest.mark.skipif(
-        qtutils.version_check('5.14', compiled=False),
-        reason="Qt 5.14 automatically creates missing runtime dirs")
-    def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
-        """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
-        tmpdir_env = tmpdir / 'temp'
-        tmpdir_env.ensure(dir=True)
-        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
-        monkeypatch.setenv('TMPDIR', str(tmpdir_env))
-
-        standarddir._init_runtime(args=None)
-        assert standarddir.runtime() == str(tmpdir_env / APPNAME)
-
-    @pytest.mark.linux
     @pytest.mark.parametrize('args_basedir', [True, False])
     def test_flatpak_runtimedir(self, fake_flatpak, monkeypatch, tmp_path,
                                 args_basedir):

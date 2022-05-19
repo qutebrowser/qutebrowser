@@ -70,7 +70,7 @@ def test_no_autoconfig_error():
 
 @pytest.mark.parametrize('raw_backends', [
     None,
-    {'QtWebEngine': 'Qt 5.11', 'QtWebKit': False}
+    {'QtWebEngine': 'Qt 5.15', 'QtWebKit': False}
 ])
 def test_backend_error(raw_backends):
     e = configexc.BackendError('foo', usertypes.Backend.QtWebKit, raw_backends)
@@ -80,8 +80,8 @@ def test_backend_error(raw_backends):
 
 def test_backend_error_condition():
     e = configexc.BackendError('foo', usertypes.Backend.QtWebEngine,
-                               {'QtWebEngine': 'Qt 5.11', 'QtWebKit': True})
-    expected = "The foo setting needs Qt 5.11 with the QtWebEngine backend!"
+                               {'QtWebEngine': 'Qt 6.11', 'QtWebKit': True})
+    expected = "The foo setting needs Qt 6.11 with the QtWebEngine backend!"
     assert str(e) == expected
 
 

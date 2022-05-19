@@ -53,6 +53,7 @@ def is_ignored_qt_message(pytestconfig, message):
 
 def is_ignored_lowlevel_message(message):
     """Check if we want to ignore a lowlevel process output."""
+    # FIXME:qt6 clean up?
     ignored_messages = [
         # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
         # ???
@@ -142,6 +143,8 @@ def is_ignored_chromium_message(line):
 
     message = match.group('message')
     ignored_messages = [
+        # FIXME:qt6 clean up?
+
         # [27289:27289:0605/195958.776146:INFO:zygote_host_impl_linux.cc(107)]
         # No usable sandbox! Update your kernel or see
         # https://chromium.googlesource.com/chromium/src/+/master/docs/linux_suid_sandbox_development.md

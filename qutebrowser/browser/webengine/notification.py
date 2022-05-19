@@ -74,12 +74,6 @@ from qutebrowser.qt import sip
 bridge: Optional['NotificationBridgePresenter'] = None
 
 
-def _notifications_supported() -> bool:
-    """Check whether the current QtWebEngine version has notification support."""
-    versions = version.qtwebengine_versions(avoid_init=True)
-    return versions.webengine >= utils.VersionNumber(5, 14)
-
-
 def init() -> None:
     """Initialize the DBus notification presenter, if applicable.
 
@@ -92,9 +86,6 @@ def init() -> None:
         # In theory, we could somehow postpone the install if the user switches to "qt"
         # at a later point in time. However, doing so is probably too complex compared
         # to its usefulness.
-        return
-
-    if not _notifications_supported():
         return
 
     global bridge
@@ -204,7 +195,6 @@ class NotificationBridgePresenter(QObject):
     """Notification presenter which bridges notifications to an adapter.
 
     Takes care of:
-    - Working around bugs in PyQt 5.14
     - Storing currently shown notifications, using an ID returned by the adapter.
     - Initializing a suitable adapter when the first notification is shown.
     - Switching out adapters if the current one emitted its error signal.
@@ -212,7 +202,6 @@ class NotificationBridgePresenter(QObject):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        assert _notifications_supported()
 
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
@@ -276,24 +265,7 @@ class NotificationBridgePresenter(QObject):
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Set the profile to use this bridge as the presenter."""
-        # WORKAROUND for
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
-        # Fixed in PyQtWebEngine 5.15.0
-        # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
-        # we already did a version check above.
-        from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
-        if PYQT_WEBENGINE_VERSION < 0x050F00:
-            # PyQtWebEngine unrefs the callback after it's called, for some
-            # reason.  So we call setNotificationPresenter again to *increase*
-            # its refcount to prevent it from getting GC'd. Otherwise, random
-            # methods start getting called with the notification as `self`, or
-            # segfaults happen, or other badness.
-            def _present_and_reset(qt_notification: "QWebEngineNotification") -> None:
-                profile.setNotificationPresenter(_present_and_reset)
-                self.present(qt_notification)
-            profile.setNotificationPresenter(_present_and_reset)
-        else:
-            profile.setNotificationPresenter(self.present)
+        profile.setNotificationPresenter(self.present)
 
     def present(self, qt_notification: "QWebEngineNotification") -> None:
         """Show a notification using the configured adapter.
@@ -345,18 +317,11 @@ class NotificationBridgePresenter(QObject):
             f"Finding notification for tag {new_notification.tag()}, "
             f"origin {new_notification.origin()}")
 
-        try:
-            for notification_id, notification in sorted(
-                    self._active_notifications.items(), reverse=True):
-                if notification.matches(new_notification):
-                    log.misc.debug(f"Found match: {notification_id}")
-                    return notification_id
-        except RuntimeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-            # (also affects .matches)
-            log.misc.debug(
-                f"Ignoring notification tag {new_notification.tag()!r} due to PyQt bug")
+        for notification_id, notification in sorted(
+                self._active_notifications.items(), reverse=True):
+            if notification.matches(new_notification):
+                log.misc.debug(f"Found match: {notification_id}")
+                return notification_id
 
         log.misc.debug("Did not find match")
         return None
@@ -377,13 +342,7 @@ class NotificationBridgePresenter(QObject):
             # Notification from a different application
             return
 
-        try:
-            notification.close()
-        except RuntimeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-            log.misc.debug(f"Ignoring close request for notification {notification_id} "
-                           "due to PyQt bug")
+        notification.close()
 
     @pyqtSlot(int)
     def _on_adapter_clicked(self, notification_id: int) -> None:
@@ -401,14 +360,7 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug("Did not find matching notification, ignoring")
             return
 
-        try:
-            notification.click()
-        except RuntimeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-            log.misc.debug(f"Ignoring click request for notification {notification_id} "
-                           "due to PyQt bug")
-            return
+        notification.click()
         self._focus_first_matching_tab(notification)
 
     def _focus_first_matching_tab(self, notification: "QWebEngineNotification") -> None:
@@ -767,7 +719,6 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        assert _notifications_supported()
 
         if utils.is_windows:
             # The QDBusConnection destructor seems to cause error messages (and
@@ -1131,6 +1082,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042919.html
             # byteCount() is obsolete, but sizeInBytes() is only available with
             # SIP >= 5.3.0.
+            # FIXME:qt6 What PyQt version does this correspond to?
             size = qimage.byteCount()
 
         # Despite the spec not mandating this, many notification daemons mandate that

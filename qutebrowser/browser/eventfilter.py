@@ -85,7 +85,6 @@ class TabEventFilter(QObject):
             QEvent.Type.MouseButtonPress: self._handle_mouse_press,
             QEvent.Type.MouseButtonRelease: self._handle_mouse_release,
             QEvent.Type.Wheel: self._handle_wheel,
-            QEvent.Type.KeyRelease: self._handle_key_release,
         }
         self._ignore_wheel_event = False
         self._check_insertmode_on_release = False
@@ -173,21 +172,6 @@ class TabEventFilter(QObject):
             return True
 
         return False
-
-    def _handle_key_release(self, e):
-        """Ignore repeated key release events going to the website.
-
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-77208
-
-        Args:
-            e: The QKeyEvent.
-
-        Return:
-            True if the event should be filtered, False otherwise.
-        """
-        return (e.isAutoRepeat() and
-                not qtutils.version_check('5.14', compiled=False) and
-                objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):
         """Check if the clicked element is editable."""

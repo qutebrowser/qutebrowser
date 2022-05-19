@@ -257,14 +257,9 @@ class ProfileSetter:
             'content.cache.size': self.set_http_cache_size,
             'content.cookies.store': self.set_persistent_cookie_policy,
             'spellcheck.languages': self.set_dictionary_language,
+            'content.headers.user_agent': self.set_http_headers,
+            'content.headers.accept_language': self.set_http_headers,
         }
-
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-        # (note this isn't actually fixed properly before Qt 5.15)
-        header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-        if header_bug_fixed:
-            for name in ['user_agent', 'accept_language']:
-                self._name_to_method[f'content.headers.{name}'] = self.set_http_headers
 
     def update_setting(self, name):
         """Update a setting based on its name."""
@@ -290,12 +285,7 @@ class ProfileSetter:
             QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
         settings.setAttribute(
             QWebEngineSettings.WebAttribute.FocusOnNavigationEnabled, False)
-
-        try:
-            settings.setAttribute(QWebEngineSettings.WebAttribute.PdfViewerEnabled, False)
-        except AttributeError:
-            # Added in Qt 5.13
-            pass
+        settings.setAttribute(QWebEngineSettings.WebAttribute.PdfViewerEnabled, False)
 
     def set_http_headers(self):
         """Set the user agent and accept-language for the given profile.
@@ -475,6 +465,7 @@ def _init_site_specific_quirks():
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
         # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
+        # FIXME:qt6 Still needed?
         # https://github.com/qutebrowser/qutebrowser/issues/4669
         ("ua-slack", 'https://*.slack.com/*', new_chrome_ua),
     ]

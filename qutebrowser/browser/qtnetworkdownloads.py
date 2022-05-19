@@ -123,16 +123,12 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if self._reply is None:
             log.downloads.debug("Reply gone while dying")
             return
+
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
-
-        try:
-            # Added in Qt 5.15
-            self._reply.errorOccurred.disconnect()
-        except AttributeError:
-            self._reply.error.disconnect()
-
+        self._reply.errorOccurred.disconnect()
         self._reply.readyRead.disconnect()
+
         with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
                                  'problem, this method must only be called '
                                  'once.'):
@@ -156,15 +152,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self.successful = False
         self._reply = reply
         reply.setReadBufferSize(16 * 1024 * 1024)  # 16 MB
+
         reply.downloadProgress.connect(self.stats.on_download_progress)
         reply.finished.connect(self._on_reply_finished)
-        try:
-            # Added in Qt 5.15
-            reply.errorOccurred.connect(self._on_reply_error)
-        except AttributeError:
-            reply.error.connect(self._on_reply_error)
+        reply.errorOccurred.connect(self._on_reply_error)
         reply.readyRead.connect(self._on_ready_read)
         reply.metaDataChanged.connect(self._on_meta_data_changed)
+
         self._retry_info = _RetryInfo(request=reply.request(),
                                       manager=reply.manager())
         if not self.fileobj:

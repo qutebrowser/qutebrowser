@@ -109,43 +109,21 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                 interceptors.ResourceType.plugin_resource,
             QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown:
                 interceptors.ResourceType.unknown,
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadMainFrame:
+                interceptors.ResourceType.preload_main_frame,
+            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadSubFrame:
+                interceptors.ResourceType.preload_sub_frame,
         }
-
-        try:
-            preload_main_frame = (QWebEngineUrlRequestInfo.
-                                  ResourceType.
-                                  ResourceTypeNavigationPreloadMainFrame)
-            preload_sub_frame = (QWebEngineUrlRequestInfo.
-                                 ResourceType.
-                                 ResourceTypeNavigationPreloadSubFrame)
-        except AttributeError:
-            # Added in Qt 5.14
-            pass
-        else:
-            self._resource_types[preload_main_frame] = (
-                interceptors.ResourceType.preload_main_frame)
-            self._resource_types[preload_sub_frame] = (
-                interceptors.ResourceType.preload_sub_frame)
 
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
-        try:
-            # Qt >= 5.13, GUI thread
-            profile.setUrlRequestInterceptor(self)
-        except AttributeError:
-            # Qt 5.12, IO thread
-            profile.setRequestInterceptor(self)
+        profile.setUrlRequestInterceptor(self)
 
-    # Gets called in the IO thread -> showing crash window will fail
-    @utils.prevent_exceptions(None, not qtutils.version_check('5.13'))
     def interceptRequest(self, info):
         """Handle the given request.
 
         Reimplementing this virtual function and setting the interceptor on a
         profile makes it possible to intercept URL requests.
-
-        On Qt < 5.13, this function is executed on the IO thread, and therefore
-        running long tasks here will block networking.
 
         info contains the information about the URL request and will track
         internally whether its members have been altered.
@@ -216,9 +194,6 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                 continue
             info.setHttpHeader(header, value)
 
-        # Note this is ignored before Qt 5.12.4 and 5.13.1 due to
-        # https://bugreports.qt.io/browse/QTBUG-60203 - there, we set the
-        # commandline-flag in qtargs.py instead.
         if config.cache['content.headers.referer'] == 'never':
             info.setHttpHeader(b'Referer', b'')
 
