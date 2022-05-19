@@ -160,14 +160,16 @@ _SPECIAL_NAMES = {
 
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifier mixed in."""
+    key_int = qtutils.extract_enum_val(key)
     mask = qtutils.extract_enum_val(Qt.KeyboardModifier.KeyboardModifierMask)
-    assert not int(key) & mask, hex(key)
+    assert not key_int & mask, hex(key_int)
 
 
 def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    mask = Qt.KeyboardModifier.KeyboardModifierMask
-    assert not key & ~mask, hex(key)
+    key_int = qtutils.extract_enum_val(key)
+    mask = qtutils.extract_enum_val(Qt.KeyboardModifier.KeyboardModifierMask)
+    assert not key_int & ~mask, hex(key_int)
 
 
 def _is_printable(key: Qt.Key) -> bool:

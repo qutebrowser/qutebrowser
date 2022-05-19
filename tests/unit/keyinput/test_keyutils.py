@@ -645,5 +645,10 @@ def test_is_modifier_key(key, ismodifier):
     keyutils._modifiers_to_string,
 ])
 def test_non_plain(func):
+    comb = Qt.Key.Key_X | Qt.KeyboardModifier.ControlModifier
+    if machinery.IS_QT6:
+        # QKeyCombination
+        comb = comb.toCombined()
+
     with pytest.raises(AssertionError):
-        func(Qt.Key.Key_X | Qt.KeyboardModifier.ControlModifier)
+        func(comb)
