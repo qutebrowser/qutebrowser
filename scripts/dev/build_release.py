@@ -330,7 +330,7 @@ def build_mac(
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller-64', '-r', debug=debug)
+    call_tox(f'pyinstaller-64{"-qt6" if qt6 else ""}', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app(qt6=qt6)
     utils.print_title("Re-signing .app")
@@ -399,6 +399,7 @@ def _get_windows_python_path(x64: bool) -> pathlib.Path:
 
 def _build_windows_single(
     *, x64: bool,
+    qt6: bool,
     skip_packaging: bool,
     debug: bool,
 ) -> List[Artifact]:
@@ -412,7 +413,10 @@ def _build_windows_single(
     _maybe_remove(out_path)
 
     python = _get_windows_python_path(x64=x64)
-    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python, debug=debug)
+    suffix = "64" if x64 else "32"
+    if qt6:
+        suffix += "-qt6"
+    call_tox(f'pyinstaller-{suffix}', '-r', python=python, debug=debug)
 
     out_pyinstaller = dist_path / "qutebrowser"
     shutil.move(out_pyinstaller, out_path)
@@ -464,12 +468,14 @@ def build_windows(
             x64=True,
             skip_packaging=skip_packaging,
             debug=debug,
+            qt6=qt6,
         )
     if not only_64bit and not qt6:
         artifacts += _build_windows_single(
             x64=False,
             skip_packaging=skip_packaging,
             debug=debug,
+            qt6=qt6,
         )
 
     return artifacts
