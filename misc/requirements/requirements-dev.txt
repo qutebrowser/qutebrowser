@@ -3,7 +3,7 @@
 bleach==5.0.0
 build==0.7.0
 bump2version==1.0.1
-certifi==2021.10.8
+certifi==2022.5.18
 cffi==1.15.0
 charset-normalizer==2.0.12
 commonmark==0.9.1
