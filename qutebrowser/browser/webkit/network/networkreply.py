@@ -116,7 +116,7 @@ class ErrorNetworkReply(QNetworkReply):
         # the device to avoid getting a warning.
         self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
-        QTimer.singleShot(0, lambda: self.error.emit(error))
+        QTimer.singleShot(0, lambda: self.errorOccurred.emit(error))
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):

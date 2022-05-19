@@ -125,7 +125,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
             return
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
-        self._reply.error.disconnect()
+
+        try:
+            # Added in Qt 5.15
+            self._reply.errorOccurred.disconnect()
+        except AttributeError:
+            self._reply.error.disconnect()
+
         self._reply.readyRead.disconnect()
         with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
                                  'problem, this method must only be called '
@@ -152,7 +158,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
         reply.setReadBufferSize(16 * 1024 * 1024)  # 16 MB
         reply.downloadProgress.connect(self.stats.on_download_progress)
         reply.finished.connect(self._on_reply_finished)
-        reply.error.connect(self._on_reply_error)
+        try:
+            # Added in Qt 5.15
+            reply.errorOccurred.connect(self._on_reply_error)
+        except AttributeError:
+            reply.error.connect(self._on_reply_error)
         reply.readyRead.connect(self._on_ready_read)
         reply.metaDataChanged.connect(self._on_meta_data_changed)
         self._retry_info = _RetryInfo(request=reply.request(),

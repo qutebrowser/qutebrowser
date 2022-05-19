@@ -273,7 +273,13 @@ class IPCServer(QObject):
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
-        socket.error.connect(self.on_error)
+
+        try:
+            # Added in Qt 5.15
+            socket.errorOccurred.connect(self.on_error)
+        except AttributeError:
+            socket.error.connect(self.on_error)  # type: ignore[attr-defined]
+
         if socket.error() not in [  # type: ignore[operator]
             QLocalSocket.LocalSocketError.UnknownSocketError,
             QLocalSocket.LocalSocketError.PeerClosedError
@@ -304,7 +310,11 @@ class IPCServer(QObject):
         log.ipc.error("Ignoring invalid IPC data from socket 0x{:x}.".format(
             id(self._socket)))
         self.got_invalid_data.emit()
-        self._socket.error.connect(self.on_error)
+        try:
+            # Added in Qt 5.15
+            self._socket.errorOccurred.connect(self.on_error)
+        except AttributeError:
+            self._socket.error.connect(self.on_error)
         self._socket.disconnectFromServer()
 
     def _handle_data(self, data):

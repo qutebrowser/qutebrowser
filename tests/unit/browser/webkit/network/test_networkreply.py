@@ -78,7 +78,7 @@ def test_error_network_reply(qtbot, req):
     reply = networkreply.ErrorNetworkReply(
         req, "This is an error", QNetworkReply.NetworkError.UnknownNetworkError)
 
-    with qtbot.wait_signals([reply.error, reply.finished], order='strict'):
+    with qtbot.wait_signals([reply.errorOccurred, reply.finished], order='strict'):
         pass
 
     reply.abort()  # shouldn't do anything
