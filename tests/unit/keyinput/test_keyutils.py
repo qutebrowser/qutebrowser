@@ -106,7 +106,7 @@ class TestKeyInfoText:
 
         See key_data.py for inputs and expected values.
         """
-        modifiers = Qt.KeyboardModifier.ShiftModifier if upper else Qt.KeyboardModifiers()
+        modifiers = Qt.KeyboardModifier.ShiftModifier if upper else Qt.KeyboardModifier.NoModifier
         info = keyutils.KeyInfo(qt_key.member, modifiers=modifiers)
         expected = qt_key.uppertext if upper else qt_key.text
         assert info.text() == expected
@@ -125,8 +125,7 @@ class TestKeyInfoText:
         with qtbot.wait_signal(key_tester.got_text):
             qtbot.keyPress(key_tester, qtest_key.member)
 
-        info = keyutils.KeyInfo(qtest_key.member,
-                                modifiers=Qt.KeyboardModifiers())
+        info = keyutils.KeyInfo(qtest_key.member)
         assert info.text() == key_tester.text.lower()
 
 

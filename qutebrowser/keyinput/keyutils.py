@@ -24,8 +24,8 @@ comes to keys/modifiers. Many places (such as QKeyEvent::key()) don't actually
 return a Qt::Key, they return an int.
 
 To make things worse, when talking about a "key", sometimes Qt means a Qt::Key
-member. However, sometimes it means a Qt::Key member ORed with
-Qt.KeyboardModifiers...
+member. However, sometimes it means a Qt::Key member ORed with a
+Qt.KeyboardModifier...
 
 Because of that, _assert_plain_key() and _assert_plain_modifier() make sure we
 handle what we actually think we do.
@@ -153,7 +153,7 @@ _SPECIAL_NAMES = {
 
 
 def _assert_plain_key(key: Qt.Key) -> None:
-    """Make sure this is a key without KeyboardModifiers mixed in."""
+    """Make sure this is a key without KeyboardModifier mixed in."""
     mask = qtutils.extract_enum_val(Qt.KeyboardModifier.KeyboardModifierMask)
     assert not int(key) & mask, hex(key)
 
@@ -180,7 +180,7 @@ def is_special(key: Qt.Key, modifiers: _ModifierType) -> bool:
 def is_modifier_key(key: Qt.Key) -> bool:
     """Test whether the given key is a modifier.
 
-    This only considers keys which are part of Qt::KeyboardModifiers, i.e.
+    This only considers keys which are part of Qt::KeyboardModifier, i.e.
     which would interrupt a key chain like "yY" when handled.
     """
     _assert_plain_key(key)
@@ -253,7 +253,7 @@ def _key_to_string(key: Qt.Key) -> str:
 
 
 def _modifiers_to_string(modifiers: _ModifierType) -> str:
-    """Convert the given Qt::KeyboardModifiers to a string.
+    """Convert the given Qt::KeyboardModifier to a string.
 
     Handles Qt.KeyboardModifier.GroupSwitchModifier because Qt doesn't handle that as a
     modifier.
@@ -349,7 +349,7 @@ class KeyInfo:
 
     Attributes:
         key: A Qt::Key member.
-        modifiers: A Qt::KeyboardModifiers enum value.
+        modifiers: A Qt::KeyboardModifier enum value.
     """
 
     key: Qt.Key
@@ -374,7 +374,7 @@ class KeyInfo:
         if isinstance(combination, int):
             key = Qt.Key(
                 int(combination) & ~Qt.KeyboardModifier.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifiers(
+            modifiers = Qt.KeyboardModifier(
                 int(combination) & Qt.KeyboardModifier.KeyboardModifierMask)
             return cls(key, modifiers)
         else:
