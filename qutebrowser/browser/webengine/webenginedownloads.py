@@ -44,8 +44,25 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  parent: QObject = None) -> None:
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
-        qt_item.downloadProgress.connect(self.stats.on_download_progress)
-        qt_item.stateChanged.connect(self._on_state_changed)
+        try:
+            # Qt 5
+            qt_item.downloadProgress.connect(self.stats.on_download_progress)
+        except AttributeError:
+            # Qt 6
+            qt_item.receivedBytesChanged.connect(
+                lambda: self.stats.on_download_progress(
+                    qt_item.receivedBytes(),
+                    qt_item.totalBytes(),
+                )
+            )
+            qt_item.totalBytesChanged.connect(
+                lambda: self.stats.on_download_progress(
+                    qt_item.receivedBytes(),
+                    qt_item.totalBytes(),
+                )
+            )
+        qt_item.stateChanged.connect(
+            self._on_state_changed)
 
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
@@ -89,8 +106,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        progress_signal = self._qt_item.downloadProgress
-        progress_signal.disconnect()
+        try:
+            # Qt 5
+            self._qt_item.downloadProgress.disconnect()
+        except AttributeError:
+            # Qt 6
+            self._qt_item.receivedBytesChanged.disconnect()
+            self._qt_item.totalBytesChanged.disconnect()
         if self._qt_item.state() != QWebEngineDownloadRequest.DownloadState.DownloadInterrupted:
             self._qt_item.cancel()
 
