@@ -37,6 +37,10 @@ from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, 
 
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
+try:
+    from qutebrowser.qt.core import QKeyCombination
+except ImportError:
+    pass  # Qt 6 only
 
 from qutebrowser.utils import utils
 
@@ -363,6 +367,23 @@ class KeyInfo:
         _assert_plain_modifier(modifiers)
         return cls(key, modifiers)
 
+    @classmethod
+    def from_qt(cls, combination: Union[int, 'QKeyCombination']) -> 'KeyInfo':
+        """Construct a KeyInfo from a Qt5-style int or Qt6-style QKeyCombination."""
+        if isinstance(combination, int):
+            key = Qt.Key(
+                int(combination) & ~Qt.KeyboardModifier.KeyboardModifierMask)
+            modifiers = Qt.KeyboardModifiers(
+                int(combination) & Qt.KeyboardModifier.KeyboardModifierMask)
+            return cls(key, modifiers)
+        else:
+            # QKeyCombination is now guaranteed to be available here
+            assert isinstance(combination, QKeyCombination)  
+            return cls(
+                key=combination.key(),
+                modifiers=combination.keyboardModifiers(),
+            )
+
     def __str__(self) -> str:
         """Convert this KeyInfo to a meaningful name.
 
@@ -471,11 +492,8 @@ class KeySequence:
 
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
-        for key_and_modifiers in self._iter_keys():
-            key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifier.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifiers(
-                int(key_and_modifiers) & Qt.KeyboardModifier.KeyboardModifierMask)
-            yield KeyInfo(key=key, modifiers=modifiers)
+        for combination in self._iter_keys():
+            yield KeyInfo.from_qt(combination)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, keys=str(self))
