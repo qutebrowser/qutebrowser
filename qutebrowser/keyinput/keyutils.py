@@ -92,11 +92,12 @@ _SPECIAL_NAMES = {
     Qt.Key.Key_Control: 'Control',
     Qt.Key.Key_Meta: 'Meta',
     Qt.Key.Key_Alt: 'Alt',
-
     Qt.Key.Key_AltGr: 'AltGr',
+
     Qt.Key.Key_Multi_key: 'Multi key',
     Qt.Key.Key_SingleCandidate: 'Single Candidate',
     Qt.Key.Key_Mode_switch: 'Mode switch',
+
     Qt.Key.Key_Dead_Grave: '`',
     Qt.Key.Key_Dead_Acute: '´',
     Qt.Key.Key_Dead_Circumflex: '^',
@@ -116,7 +117,6 @@ _SPECIAL_NAMES = {
     Qt.Key.Key_Dead_Belowdot: 'Belowdot',
     Qt.Key.Key_Dead_Hook: 'Hook',
     Qt.Key.Key_Dead_Horn: 'Horn',
-
     Qt.Key.Key_Dead_Stroke: '\u0335',  # '̵'
     Qt.Key.Key_Dead_Abovecomma: '\u0313',  # '̓'
     Qt.Key.Key_Dead_Abovereversedcomma: '\u0314',  # '̔'
@@ -147,13 +147,6 @@ _SPECIAL_NAMES = {
     Qt.Key.Key_Dead_Aboveverticalline: '\u030d',  # '̍'
     Qt.Key.Key_Dead_Belowverticalline: '\u0329',
     Qt.Key.Key_Dead_Longsolidusoverlay: '\u0338',  # '̸'
-
-    Qt.Key.Key_Memo: 'Memo',
-    Qt.Key.Key_ToDoList: 'To Do List',
-    Qt.Key.Key_Calendar: 'Calendar',
-    Qt.Key.Key_ContrastAdjust: 'Contrast Adjust',
-    Qt.Key.Key_LaunchG: 'Launch (G)',
-    Qt.Key.Key_LaunchH: 'Launch (H)',
 
     Qt.Key.Key_MediaLast: 'Media Last',
 
