@@ -37,7 +37,7 @@ import dataclasses
 from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
-
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import PYQT_VERSION_STR
 from qutebrowser.qt.network import QSslSocket
 from qutebrowser.qt.gui import QOpenGLContext, QOffscreenSurface
@@ -521,11 +521,17 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
             log.misc.debug("Neither importlib.metadata nor backport available")
             return None
 
-    for suffix in ['Qt5', 'Qt']:
+    names = (
+        ['PyQt6-WebEngine-Qt6']
+        if machinery.IS_QT6 else
+        ['PyQtWebEngine-Qt5', 'PyQtWebEngine-Qt']
+    )
+
+    for name in names:
         try:
-            return importlib_metadata.version(f'PyQtWebEngine-{suffix}')
+            return importlib_metadata.version(name)
         except importlib_metadata.PackageNotFoundError:
-            log.misc.debug(f"PyQtWebEngine-{suffix} not found")
+            log.misc.debug(f"{name} not found")
 
     return None
 
