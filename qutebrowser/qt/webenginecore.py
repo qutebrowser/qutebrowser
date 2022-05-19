@@ -7,6 +7,10 @@ if machinery.use_pyqt5:
         QWebEngineSettings,
         QWebEngineProfile,
         QWebEngineDownloadItem as QWebEngineDownloadRequest,
+        QWebEnginePage,
+        QWebEngineCertificateError,
+        QWebEngineScript,
+        QWebEngineHistory,
     )
     # FIXME:qt6 is there a PySide2 equivalent to those?
     from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION, PYQT_WEBENGINE_VERSION_STR
@@ -18,6 +22,10 @@ elif machinery.use_pyside2:
         QWebEngineSettings,
         QWebEngineProfile,
         QWebEngineDownloadItem as QWebEngineDownloadRequest,
+        QWebEnginePage,
+        QWebEngineCertificateError,
+        QWebEngineScript,
+        QWebEngineHistory,
     )
 elif machinery.use_pyside6:
     from PySide6.QtWebEngineCore import *

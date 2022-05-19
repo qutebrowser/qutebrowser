@@ -19,7 +19,8 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
-from qutebrowser.qt.webenginewidgets import QWebEngineView, QWebEnginePage
+from qutebrowser.qt.webenginewidgets import QWebEngineView
+from qutebrowser.qt.webenginecore import QWebEnginePage
 from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
