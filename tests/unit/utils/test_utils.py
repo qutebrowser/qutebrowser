@@ -606,7 +606,7 @@ class TestSanitizeFilename:
     # first four-byte unicode char
     U10K = "\U00010000"
 
-    LONG_4BYTE = U10K * 64  
+    LONG_4BYTE = U10K * 64
     LONG_4BYTE_SHORTENED = U10K * 60
 
     LONG_4BYTE_EXT = f"{U10K * 8}.{U10K * 64}"
