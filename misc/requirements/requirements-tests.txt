@@ -2,11 +2,11 @@
 
 attrs==21.4.0
 beautifulsoup4==4.11.1
-certifi==2022.5.18
+certifi==2022.5.18.1
 charset-normalizer==2.0.12
 cheroot==8.6.0
 click==8.1.3
-coverage==6.3.3
+coverage==6.4
 execnet==1.9.0
 filelock==3.7.0
 Flask==2.1.2
@@ -14,7 +14,7 @@ glob2==0.7
 hunter==3.4.3
 hypothesis==6.46.7
 idna==3.3
-importlib-metadata==4.11.3
+importlib-metadata==4.11.4
 iniconfig==1.1.1
 itsdangerous==2.1.2
 jaraco.functools==3.5.0
@@ -53,6 +53,6 @@ tldextract==3.3.0
 toml==0.10.2
 tomli==2.0.1
 urllib3==1.26.9
-vulture==2.3
+vulture==2.4
 Werkzeug==2.1.2
 zipp==3.8.0
