@@ -603,6 +603,15 @@ class TestSanitizeFilename:
     LONG_EXTENSION = (LONG_FILENAME.replace("filename", ".extension")
                       .replace(".txt", ""))
 
+    # first four-byte unicode char
+    U10K = "\U00010000"
+
+    LONG_4BYTE = U10K * 64
+    LONG_4BYTE_SHORTENED = U10K * 60
+
+    LONG_4BYTE_EXT = f"{U10K * 8}.{U10K * 64}"
+    LONG_4BYTE_EXT_SHORTENED = f"{U10K}.{U10K * 59}"
+
     @pytest.mark.parametrize('inp, expected', [
         pytest.param('normal.txt', 'normal.txt',
                      marks=pytest.mark.fake_os('windows')),
@@ -629,6 +638,14 @@ class TestSanitizeFilename:
             LONG_EXTENSION.replace("this is a very long .extension",
                                    "this .extension"),
         ),
+        (
+            LONG_4BYTE,
+            LONG_4BYTE_SHORTENED,
+        ),
+        (
+            LONG_4BYTE_EXT,
+            LONG_4BYTE_EXT_SHORTENED,
+        )
     ])
     @pytest.mark.linux
     def test_shorten(self, inp, expected):
