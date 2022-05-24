@@ -41,11 +41,9 @@ REPO_ROOT = pathlib.Path(__file__).parent.parent
 # for --only-binary / --no-binary
 PYQT_PACKAGES = [
     "PyQt5",
-    "PyQt5-sip",
     "PyQtWebEngine",
 
     "PyQt6",
-    "PyQt6-sip",
     "PyQt6-WebEngine",
 ]
 
