@@ -70,11 +70,14 @@ Fixed
   the `qute://settings` page again.
 - Fixed issues with Chromium version detection on Archlinux with
   qt5-webengine 5.15.9-3.
+- Fixed a rare possible crash with invalid `Content-Disposition` headers.
 - Fixes for various notification-related crashes:
   * With the `tiramisu` notification server (due to invalid behavior of the server, now a non-fatal error)
   * With the `budgie` notification server when closing a notification (due to invalid behavior of the server, now worked around)
   * When a server exits with an unsuccessful exit status (now a non-fatal error)
   * When a server couldn't be started successfully (now a non-fatal error)
+  * With the `herbe` notification presenter, when the website tries to close
+    the notification after the user accepting (right-clicking) it.
 - Fixes in userscripts:
   * The `qute-bitwarden` userscript now correctly searches for entries for
     sites on a subdomain of an unrecognized TLD. subdomain names. Previously
