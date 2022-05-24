@@ -1611,6 +1611,26 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
 
+        local_schemes = {"qute", "file"}
+        qtwe_ver = version.qtwebengine_versions().webengine
+        if (
+            navigation.accepted and
+            self.url().scheme().lower() in local_schemes and
+            navigation.url.scheme().lower() not in local_schemes and
+            (navigation.navigation_type ==
+                usertypes.NavigationRequest.Type.link_clicked) and
+            navigation.is_main_frame and
+            (utils.VersionNumber(6, 2) <= qtwe_ver < utils.VersionNumber(6, 2, 5) or
+             utils.VersionNumber(6, 3) <= qtwe_ver < utils.VersionNumber(6, 3, 1))
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103778
+            log.webview.debug(
+                "Working around blocked request from local page "
+                f"{self.url().toDisplayString()}"
+            )
+            navigation.accepted = False
+            self.load_url(navigation.url)
+
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
