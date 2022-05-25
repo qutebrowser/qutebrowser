@@ -91,6 +91,7 @@ def whitelist_generator():  # noqa: C901
     yield 'PaintContext.clip'  # from completiondelegate.py
     yield 'logging.LogRecord.log_color'  # from logging.py
     yield 'scripts.utils.use_color'  # from asciidoc2html.py
+    yield 'QUrl.UrlFormattingOption._boundary_'
     for attr in ['pyeval_output', 'log_clipboard', 'fake_clipboard']:
         yield 'qutebrowser.misc.utilcmds.' + attr
 
