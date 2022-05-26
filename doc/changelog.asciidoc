@@ -15,6 +15,35 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.5.1]]
+v2.5.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- The `qute-pass` userscript is marked as executable again.
+- PDF.js now works properly again with the macOS and Windows releases.
+- The MathML workaround for darkmode (e.g. black on black Wikipedia formula)
+  now also works for display (rather than inline) math.
+- The `content.proxy` setting can now correctly be set to arbitrary values via
+  the `qute://settings` page again.
+- Fixed issues with Chromium version detection on Archlinux with
+  qt5-webengine 5.15.9-3.
+- Fixed a rare possible crash with invalid `Content-Disposition` headers.
+- Fixes for various notification-related crashes:
+  * With the `tiramisu` notification server (due to invalid behavior of the server, now a non-fatal error)
+  * With the `budgie` notification server when closing a notification (due to invalid behavior of the server, now worked around)
+  * When a server exits with an unsuccessful exit status (now a non-fatal error)
+  * When a server couldn't be started successfully (now a non-fatal error)
+  * With the `herbe` notification presenter, when the website tries to close
+    the notification after the user accepting (right-clicking) it.
+- Fixes in userscripts:
+  * The `qute-bitwarden` userscript now correctly searches for entries for
+    sites on a subdomain of an unrecognized TLD. subdomain names. Previously
+    `my.site.local` would have searched in bitwarden for `my.sitelocal`,
+    losing the rightmost dot.
+
 [[v2.5.0]]
 v2.5.0 (2022-04-01)
 -------------------
@@ -128,7 +157,7 @@ Fixed
   list, rather than `:tab-select`.
 - Work around a Qt issue causing `:spawn` to run executables from the current
   directory if no system-wide executable was found. The underlying Qt bug is
-  tracked as [CVE-2022-25255](https://lists.qt-project.org/pipermail/announce/2022-February/000333.html),
+  tracked as https://lists.qt-project.org/pipermail/announce/2022-February/000333.html[CVE-2022-25255],
   though the impact with typical qutebrowser usage is low: Normally,
   qutebrowser is run from a fixed location (usually the users home directory),
   and `:spawn` is not typically used with executables that don't exist. The main
