@@ -195,6 +195,7 @@ class SelectionAndFilterTests:
         ('<p role="menuitem" foo="bar"/>', ['all']),
         ('<p role="menuitemcheckbox" foo="bar"/>', ['all']),
         ('<p role="menuitemradio" foo="bar"/>', ['all']),
+        ('<p role="treeitem" foo="bar"/>', ['all']),
         ('<p role="button" foo="bar"/>', ['all']),
         ('<p role="button" href="bar"/>', ['all', 'url']),
 
