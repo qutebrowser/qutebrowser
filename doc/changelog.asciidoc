@@ -56,7 +56,7 @@ Changed
   websites like Photopea or GitHub Codespaces).
 
 [[v2.5.1]]
-v2.5.1 (unreleased)
+v2.5.1 (2022-05-26)
 -------------------
 
 Fixed
