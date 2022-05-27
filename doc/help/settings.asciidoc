@@ -3447,6 +3447,7 @@ Default:
 * +pass:[[role=&quot;menuitem&quot;\]]+
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+
+* +pass:[[role=&quot;treeitem&quot;\]]+
 * +pass:[[ng-click\]]+
 * +pass:[[ngClick\]]+
 * +pass:[[data-ng-click\]]+
