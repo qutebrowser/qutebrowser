@@ -54,7 +54,7 @@ Changed
   rather than being a boolean: `none` (formerly `false`), `access` (formerly
   `true`) and `access-paste` (additionally allows pasting content, needed for
   websites like Photopea or GitHub Codespaces).
-- The default `hint.selectors` now also match the `treeitem` ARIA roles
+- The default `hints.selectors` now also match the `treeitem` ARIA roles.
 
 [[v2.5.1]]
 v2.5.1 (2022-05-26)
