@@ -1075,15 +1075,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         image_data.add(bits_per_color)
         image_data.add(channel_count)
 
-        try:
-            size = qimage.sizeInBytes()
-        except TypeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042919.html
-            # byteCount() is obsolete, but sizeInBytes() is only available with
-            # SIP >= 5.3.0.
-            # FIXME:qt6 What PyQt version does this correspond to?
-            size = qimage.byteCount()
+        size = qimage.sizeInBytes()
 
         # Despite the spec not mandating this, many notification daemons mandate that
         # the last scanline does not have any padding bytes.
