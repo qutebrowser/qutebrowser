@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# FIXME:qt6
+# FIXME:qt6 (lint)
 # pylint: disable=missing-module-docstring
 # flake8: noqa
 
@@ -39,8 +39,6 @@ def _autoselect_wrapper():
         except ImportError:
             # FIXME:qt6 show/log this somewhere?
             continue
-
-        # FIXME:qt6 what to do if none are available?
         return wrapper
 
     wrappers = ", ".join(_WRAPPERS)

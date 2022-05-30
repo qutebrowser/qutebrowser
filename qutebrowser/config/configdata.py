@@ -156,7 +156,6 @@ def _parse_yaml_backends_dict(
     # The value associated to the key, and whether we should add that backend
     # or not.
 
-    # FIXME:qt6 Can we drop this?
     conditionals = {
         True: True,
         False: False,

@@ -44,22 +44,22 @@ def gentoo_versions():
     # Auto
     ("auto", "5.15.2", [("preferredColorScheme", "2")]),  # QTBUG-89753
     ("auto", "5.15.3", []),
-    ("auto", "6.2.0", []),  # FIXME:qt6
+    ("auto", "6.2.0", []),
 
     # Unset
     (None, "5.15.2", [("preferredColorScheme", "2")]),  # QTBUG-89753
     (None, "5.15.3", []),
-    (None, "6.2.0", []),  # FIXME:qt6
+    (None, "6.2.0", []),
 
     # Dark
     ("dark", "5.15.2", [("preferredColorScheme", "1")]),
     ("dark", "5.15.3", [("preferredColorScheme", "0")]),
-    ("dark", "6.2.0", [("preferredColorScheme", "0")]),  # FIXME:qt6
+    ("dark", "6.2.0", [("preferredColorScheme", "0")]),
 
     # Light
     ("light", "5.15.2", [("preferredColorScheme", "2")]),
     ("light", "5.15.3", [("preferredColorScheme", "1")]),
-    ("light", "6.2.0", [("preferredColorScheme", "1")]),  # FIXME:qt6
+    ("light", "6.2.0", [("preferredColorScheme", "1")]),
 ])
 def test_colorscheme(config_stub, value, webengine_version, expected):
     versions = version.WebEngineVersions.from_pyqt(webengine_version)
@@ -184,7 +184,7 @@ def test_customization(config_stub, setting, value, exp_key, exp_val):
 @pytest.mark.parametrize('webengine_version, expected', [
     ('5.15.2', darkmode.Variant.qt_515_2),
     ('5.15.3', darkmode.Variant.qt_515_3),
-    ('6.2.0', darkmode.Variant.qt_515_3),  # FIXME:qt6
+    ('6.2.0', darkmode.Variant.qt_515_3),
 ])
 def test_variant(webengine_version, expected):
     versions = version.WebEngineVersions.from_pyqt(webengine_version)

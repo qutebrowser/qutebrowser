@@ -268,7 +268,7 @@ def configure_pyqt():
         sip.enableoverflowchecking(True)
     except AttributeError:
         # default in PyQt6
-        # FIXME:qt6 solve this in qutebrowser/qt/sip.py equivalent
+        # FIXME:qt6 solve this in qutebrowser/qt/sip.py equivalent?
         pass
 
     # WORKAROUND for

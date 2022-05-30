@@ -383,9 +383,7 @@ class _BackendProblemChecker:
         """Avoid crashing software rendering settings.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103372
-        Hopefully fixed with Qt 6.3.1.
-
-        FIXME:qt6 update
+        Fixed with Qt 6.3.1.
         """
         self._assert_backend(usertypes.Backend.QtWebEngine)
 

@@ -21,7 +21,7 @@ jobs:
         include:
           - testenv: pylint
           - testenv: flake8
-          # FIXME:qt6
+          # FIXME:qt6 (lint)
           # - testenv: mypy
           - testenv: docs
           - testenv: vulture

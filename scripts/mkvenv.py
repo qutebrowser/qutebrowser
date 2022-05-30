@@ -303,7 +303,7 @@ def apply_xcb_util_workaround(
     if pyqt_type != 'binary':
         print("Workaround not needed: Not installing from PyQt binaries.")
         return
-    if pyqt_version not in ['auto', '5.15']:  # FIXME:qt6
+    if pyqt_version not in ['auto', '5.15']:  # FIXME:qt6 Remove once auto = Qt 6
         print("Workaround not needed: Not installing Qt 5.15.")
         return
 

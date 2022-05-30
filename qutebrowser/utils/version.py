@@ -1023,7 +1023,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
                 vf = ctx.versionFunctions(vp)
             except AttributeError:
                 # Qt 6
-                # FIXME:qt6
+                # FIXME:qt6 (lint)
                 # pylint: disable-next=no-name-in-module
                 from qutebrowser.qt.opengl import QOpenGLVersionFunctionsFactory
                 vf = QOpenGLVersionFunctionsFactory.get(vp, ctx)
