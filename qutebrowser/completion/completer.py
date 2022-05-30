@@ -40,7 +40,8 @@ class CompletionInfo:
     """Context passed into all completion functions."""
 
     config: config.Config
-    keyconf: config.KeyConfig  # pylint: disable=used-before-assignment
+    # pylint: disable-next=used-before-assignment
+    keyconf: config.KeyConfig  # type: ignore[name-defined]
     win_id: int
     cur_tab: 'browsertab.AbstractTab'
 
