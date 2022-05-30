@@ -519,7 +519,7 @@ class BrowserPage(QWebPage):
             QWebPage.NavigationType.NavigationTypeBackOrForward:
                 usertypes.NavigationRequest.Type.back_forward,
             QWebPage.NavigationType.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
+                usertypes.NavigationRequest.Type.reload,
             QWebPage.NavigationType.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
@@ -528,7 +528,7 @@ class BrowserPage(QWebPage):
                                                  navigation_type=type_map[typ],
                                                  is_main_frame=is_main_frame)
 
-        if navigation.navigation_type == navigation.Type.reloaded:
+        if navigation.navigation_type == navigation.Type.reload:
             self.reloading.emit(navigation.url)
 
         self.navigation_request.emit(navigation)

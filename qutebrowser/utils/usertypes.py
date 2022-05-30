@@ -546,7 +546,7 @@ class NavigationRequest:
         #: Navigation initiated by a history action.
         back_forward = 5
         #: Navigation initiated by refreshing the page.
-        reloaded = 6
+        reload = 6
         #: Navigation triggered automatically by page content or remote server
         #: (QtWebEngine >= 5.14 only)
         redirect = 7

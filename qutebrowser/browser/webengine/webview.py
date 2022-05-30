@@ -163,6 +163,32 @@ class WebEnginePage(QWebEnginePage):
     shutting_down = pyqtSignal()
     navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
+    _JS_LOG_LEVEL_MAPPING = {
+        QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel:
+            usertypes.JsLogLevel.info,
+        QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel:
+            usertypes.JsLogLevel.warning,
+        QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel:
+            usertypes.JsLogLevel.error,
+    }
+
+    _NAVIGATION_TYPE_MAPPING = {
+        QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
+            usertypes.NavigationRequest.Type.link_clicked,
+        QWebEnginePage.NavigationType.NavigationTypeTyped:
+            usertypes.NavigationRequest.Type.typed,
+        QWebEnginePage.NavigationType.NavigationTypeFormSubmitted:
+            usertypes.NavigationRequest.Type.form_submitted,
+        QWebEnginePage.NavigationType.NavigationTypeBackForward:
+            usertypes.NavigationRequest.Type.back_forward,
+        QWebEnginePage.NavigationType.NavigationTypeReload:
+            usertypes.NavigationRequest.Type.reload,
+        QWebEnginePage.NavigationType.NavigationTypeOther:
+            usertypes.NavigationRequest.Type.other,
+        QWebEnginePage.NavigationType.NavigationTypeRedirect:
+            usertypes.NavigationRequest.Type.redirect,
+    }
+
     def __init__(self, *, theme_color, profile, parent=None):
         super().__init__(profile, parent)
         self._is_shutting_down = False
@@ -230,40 +256,16 @@ class WebEnginePage(QWebEnginePage):
 
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
-        # FIXME:qt6 Add tests to ensure this is complete
-        level_map = {
-            QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel: usertypes.JsLogLevel.info,
-            QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel: usertypes.JsLogLevel.warning,
-            QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel: usertypes.JsLogLevel.error,
-        }
-        shared.javascript_log_message(level_map[level], source, line, msg)
+        shared.javascript_log_message(self._JS_LOG_LEVEL_MAPPING[level], source, line, msg)
 
     def acceptNavigationRequest(self,
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
                                 is_main_frame: bool) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
-        # FIXME:qt6 Add tests to ensure this is complete
-        type_map = {
-            QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
-                usertypes.NavigationRequest.Type.link_clicked,
-            QWebEnginePage.NavigationType.NavigationTypeTyped:
-                usertypes.NavigationRequest.Type.typed,
-            QWebEnginePage.NavigationType.NavigationTypeFormSubmitted:
-                usertypes.NavigationRequest.Type.form_submitted,
-            QWebEnginePage.NavigationType.NavigationTypeBackForward:
-                usertypes.NavigationRequest.Type.back_forward,
-            QWebEnginePage.NavigationType.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
-            QWebEnginePage.NavigationType.NavigationTypeOther:
-                usertypes.NavigationRequest.Type.other,
-            QWebEnginePage.NavigationType.NavigationTypeRedirect:
-                usertypes.NavigationRequest.Type.redirect,
-        }
-
         navigation = usertypes.NavigationRequest(
             url=url,
-            navigation_type=type_map.get(
+            navigation_type=self._NAVIGATION_TYPE_MAPPING.get(
                 typ, usertypes.NavigationRequest.Type.other),
             is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
