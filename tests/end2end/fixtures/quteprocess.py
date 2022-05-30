@@ -108,6 +108,10 @@ def is_ignored_chromium_message(line):
         # Qt 6.3:
         # [2435381:7:0429/200014.168057:ERROR:command_buffer_proxy_impl.cc(125)] ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer.
         'ContextResult::kTransientFailure: Failed to send *CreateCommandBuffer.',
+
+        # Qt 6.3:
+        # [4919:8:0530/170658.033287:ERROR:command_buffer_proxy_impl.cc(328)] GPU state invalid after WaitForGetOffsetInRange.
+        'GPU state invalid after WaitForGetOffsetInRange.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
