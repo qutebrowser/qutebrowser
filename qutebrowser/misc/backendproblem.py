@@ -383,11 +383,12 @@ class _BackendProblemChecker:
         """Avoid crashing software rendering settings.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103372
-        Fixed with Qt 6.3.1.
+        Fixed with QtWebEngine 6.3.1.
         """
         self._assert_backend(usertypes.Backend.QtWebEngine)
+        versions = version.qtwebengine_versions(avoid_init=True)
 
-        if not qtutils.version_check('6.3.0', exact=True, compiled=False):
+        if versions.webengine != utils.VersionNumber(6, 3):
             return
 
         if os.environ.get('QT_QUICK_BACKEND') != 'software':
