@@ -26,7 +26,6 @@ import os.path
 import platform
 import subprocess
 import importlib
-import collections
 import pathlib
 import configparser
 import enum
@@ -394,11 +393,8 @@ class ModuleInfo:
         return text
 
 
-MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
-    # FIXME: Mypy doesn't understand this. See https://github.com/python/mypy/issues/9706
-    (name, ModuleInfo(name, *args))  # type: ignore[arg-type, misc]
-    for (name, *args) in
-    [
+def _create_module_info() -> Dict[str, ModuleInfo]:
+    packages = [
         ('sip', ['SIP_VERSION_STR']),
         ('colorama', ['VERSION', '__version__']),
         ('jinja2', ['__version__']),
@@ -410,7 +406,14 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('PyQt5.QtWebKitWidgets', []),
         ('objc', ['__version__']),
     ]
-])
+    # Mypy doesn't understand this. See https://github.com/python/mypy/issues/9706
+    return {
+        name: ModuleInfo(name, *args)  # type: ignore[arg-type, misc]
+        for (name, *args) in packages
+    }
+
+
+MODULE_INFO: Mapping[str, ModuleInfo] = _create_module_info()
 
 
 def _module_versions() -> Sequence[str]:
