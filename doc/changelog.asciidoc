@@ -56,6 +56,12 @@ Changed
   websites like Photopea or GitHub Codespaces).
 - The default `hints.selectors` now also match the `treeitem` ARIA roles.
 
+Fixed
+~~~~~
+
+- When the devtools are clicked but `input.insert_mode.auto_enter` is set to
+  `false`, insert mode now isn't entered anymore.
+
 [[v2.5.1]]
 v2.5.1 (2022-05-26)
 -------------------
