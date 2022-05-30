@@ -983,7 +983,8 @@ class TestWebEngineVersions:
         ('5.15.3', '87.0.4280.144'),
         ('5.15.4', '87.0.4280.144'),
         ('5.15.5', '87.0.4280.144'),
-        # FIXME:qt6 update
+        ('6.2.0', '90.0.4430.228'),
+        ('6.3.0', '94.0.4606.126'),
     ])
     def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
         if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
@@ -1013,8 +1014,7 @@ class TestWebEngineVersions:
                 # QtWebKit
                 pytest.skip(str(e))
 
-            if PYQT_WEBENGINE_VERSION >= 0x050F02:
-                # FIXME:qt6 adjust?
+            if 0x060000 > PYQT_WEBENGINE_VERSION >= 0x050F02:
                 # Starting with Qt 5.15.2, we can only do bad guessing anyways...
                 pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
 
