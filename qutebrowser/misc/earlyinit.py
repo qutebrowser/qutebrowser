@@ -189,10 +189,15 @@ def check_qt_version():
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False
 
-    if QT_VERSION < 0x050F00 or PYQT_VERSION < 0x050500 or not recent_qt_runtime:
+    if QT_VERSION < 0x050F00 or PYQT_VERSION < 0x050F00 or not recent_qt_runtime:
         text = ("Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
+        _die(text)
+
+    if 0x060000 <= PYQT_VERSION < 0x060202:
+        text = ("Fatal error: With Qt 6, PyQt >= 6.2.2 is required, but "
+                "{} is installed.".format(PYQT_VERSION_STR))
         _die(text)
 
 
