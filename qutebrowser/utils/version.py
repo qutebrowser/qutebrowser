@@ -401,11 +401,20 @@ def _create_module_info() -> Dict[str, ModuleInfo]:
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('adblock', ['__version__'], "0.3.2"),
-        ('PyQt5.QtWebEngineWidgets', []),
-        ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
-        ('PyQt5.QtWebKitWidgets', []),
         ('objc', ['__version__']),
     ]
+
+    if machinery.IS_QT5:
+        packages += [
+            ('PyQt5.QtWebEngineWidgets', []),
+            ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
+            ('PyQt5.QtWebKitWidgets', []),
+        ]
+    elif machinery.IS_QT6:
+        packages.append(('PyQt6.QtWebEngineCore', ['PYQT_WEBENGINE_VERSION_STR']))
+    else:
+        raise utils.Unreachable()
+
     # Mypy doesn't understand this. See https://github.com/python/mypy/issues/9706
     return {
         name: ModuleInfo(name, *args)  # type: ignore[arg-type, misc]
