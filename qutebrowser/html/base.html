@@ -8,6 +8,55 @@ vim: ft=html fileencoding=utf-8 sts=4 sw=4 et:
         <meta charset="utf-8">
         <title>{{ title }}</title>
         <style type="text/css">
+            /*
+            Colors:
+            - bg = normal background
+            - bg-alt = alternative background, for e.g. table/list rows
+            - feature = feature colors for e.g. selctions, table headers
+            - feature-alt = alternative feature colors for special text e.g. <summary>text</summary>
+            - border = normal border color
+            - border-focused = focused border color
+            - label = color for text on some kind of label/button
+            - fg-alt = alternative foreground color for subtle/parenthetical text
+            - link = links
+            */
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --color-bg: #070707;
+                    --color-fg: #eeeeee;
+                    --color-bg-alt: #1e282f;
+                    --color-fg-feature: #000444;
+                    --color-bg-feature: #1887c5;
+                    --color-fg-feature-alt: #a6dfff;
+                    --color-border: #01cdd0;
+                    --color-border-focused: #7a589ea6;
+                    --color-bg-label: #333333;
+                    --color-fg-label: #999999;
+                    --color-fg-alt: #a7a1a1cf;
+                    --color-fg-heading: #084c88;
+                    --color-link: #2562dc;
+                }
+            }
+            @media (prefers-color-scheme: light) {
+                :root {
+                    --color-bg: #f8f8f8;
+                    --color-fg: black;
+                    --color-bg-alt: #eaf4fb;
+                    --color-fg-feature: #084c88;
+                    --color-bg-feature: #a6dfff;
+                    --color-fg-feature-alt: #1887c5;
+                    --color-border: #01cdd0;
+                    --color-border-focused: #7a589ea6;
+                    --color-bg-label: #dddddd;
+                    --color-fg-label: #666666;
+                    --color-fg-alt: #635d5dcf;
+                    --color-fg-heading: #000444;
+                    --color-link: #2562dc;
+                }
+            }
+
+            :root { background: var(--color-bg); color: var(--color-fg); }
+
             {% block style %}
             body {
                 margin: 0;
