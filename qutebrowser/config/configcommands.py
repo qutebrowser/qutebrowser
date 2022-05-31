@@ -23,7 +23,7 @@ import os.path
 import contextlib
 from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.core import QUrl, QUrlQuery
 
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
@@ -281,9 +281,18 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def config_diff(self, win_id: int) -> None:
-        """Show all customized options."""
+    def config_diff(self, win_id: int, include_hidden: bool = False) -> None:
+        """Show all customized options.
+
+        Args:
+            include_hidden: Also include internal qutebrowser settings.
+        """
         url = QUrl('qute://configdiff')
+        if include_hidden:
+            query = QUrlQuery()
+            query.addQueryItem("include_hidden", "true")
+            url.setQuery(query)
+
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window', window=win_id)
         tabbed_browser.load_url(url, newtab=False)

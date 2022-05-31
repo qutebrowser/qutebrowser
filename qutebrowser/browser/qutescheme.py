@@ -500,10 +500,11 @@ def qute_back(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('configdiff')
-def qute_configdiff(_url: QUrl) -> _HandlerRet:
+def qute_configdiff(url: QUrl) -> _HandlerRet:
     """Handler for qute://configdiff."""
-    data = config.instance.dump_userconfig().encode('utf-8')
-    return 'text/plain', data
+    include_hidden = QUrlQuery(url).queryItemValue('include_hidden') == 'true'
+    dump = config.instance.dump_userconfig(include_hidden=include_hidden)
+    return 'text/plain', dump.encode('utf-8')
 
 
 @add_handler('pastebin-version')

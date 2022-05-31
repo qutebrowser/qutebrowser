@@ -337,7 +337,12 @@ Remove a key from a dict.
 
 [[config-diff]]
 === config-diff
+Syntax: +:config-diff [*--include-hidden*]+
+
 Show all customized options.
+
+==== optional arguments
+* +*-i*+, +*--include-hidden*+: Also include internal qutebrowser settings.
 
 [[config-edit]]
 === config-edit
