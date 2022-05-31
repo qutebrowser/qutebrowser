@@ -505,12 +505,17 @@ def _init_default_settings():
                                     hide_userconfig=True)
 
     if machinery.IS_QT6:
+        userscripts_settings: List[Tuple[str, Any]] = [
+            ("content.local_content_can_access_remote_urls", True),
+            ("content.local_content_can_access_file_urls", False),
+        ]
         # https://codereview.qt-project.org/c/qt/qtwebengine/+/375672
         url = pathlib.Path(standarddir.data(), "userscripts").as_uri()
-        config.instance.set_obj("content.local_content_can_access_remote_urls",
-                                True,
-                                pattern=urlmatch.UrlPattern(f"{url}/*"),
-                                hide_userconfig=True)
+        for setting, value in userscripts_settings:
+            config.instance.set_obj(setting,
+                                    value,
+                                    pattern=urlmatch.UrlPattern(f"{url}/*"),
+                                    hide_userconfig=True)
 
 
 def init():
