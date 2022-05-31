@@ -26,6 +26,7 @@ Module attributes:
 
 import os
 import operator
+import pathlib
 from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from qutebrowser.qt import machinery
@@ -485,19 +486,31 @@ def _init_site_specific_quirks():
         )
 
 
-def _init_devtools_settings():
-    """Make sure the devtools always get images/JS permissions."""
-    settings: List[Tuple[str, Any]] = [
+def _init_default_settings():
+    """Set permissions required for internal functionality.
+
+    - Make sure the devtools always get images/JS permissions.
+    - On Qt 6, make sure files in the data path can load external resources.
+    """
+    devtools_settings: List[Tuple[str, Any]] = [
         ('content.javascript.enabled', True),
         ('content.images', True),
         ('content.cookies.accept', 'all'),
     ]
 
-    for setting, value in settings:
+    for setting, value in devtools_settings:
         for pattern in ['chrome-devtools://*', 'devtools://*']:
             config.instance.set_obj(setting, value,
                                     pattern=urlmatch.UrlPattern(pattern),
                                     hide_userconfig=True)
+
+    if machinery.IS_QT6:
+        # https://codereview.qt-project.org/c/qt/qtwebengine/+/375672
+        url = pathlib.Path(standarddir.data(), "userscripts").as_uri()
+        config.instance.set_obj("content.local_content_can_access_remote_urls",
+                                True,
+                                pattern=urlmatch.UrlPattern(f"{url}/*"),
+                                hide_userconfig=True)
 
 
 def init():
@@ -539,7 +552,7 @@ def init():
 
     log.init.debug("Misc initialization...")
     _init_site_specific_quirks()
-    _init_devtools_settings()
+    _init_default_settings()
 
 
 def shutdown():
