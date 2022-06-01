@@ -30,7 +30,6 @@ except ImportError:
     hunter = None
 
 import sys
-import enum
 import faulthandler
 import traceback
 import signal
@@ -270,13 +269,6 @@ def configure_pyqt():
         # default in PyQt6
         # FIXME:qt6 solve this in qutebrowser/qt/sip.py equivalent?
         pass
-
-    # WORKAROUND for
-    # https://www.riverbankcomputing.com/pipermail/pyqt/2022-May/044668.html
-    if hasattr(enum, "FlagBoundary"):  # Python 3.11
-        from qutebrowser.qt.core import QUrl
-        # pylint: disable-next=protected-access
-        QUrl.UrlFormattingOption._boundary_ = enum.FlagBoundary.KEEP
 
 
 def init_log(args):
