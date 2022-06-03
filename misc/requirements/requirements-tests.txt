@@ -12,7 +12,7 @@ filelock==3.7.0
 Flask==2.1.2
 glob2==0.7
 hunter==3.4.3
-hypothesis==6.46.7
+hypothesis==6.46.9
 idna==3.3
 importlib-metadata==4.11.4
 iniconfig==1.1.1

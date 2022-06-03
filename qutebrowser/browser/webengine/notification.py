@@ -621,17 +621,18 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         so there's no point.
         """
         if status == QProcess.CrashExit:
-            return
-
-        if code == 0:
+            pass
+        elif code == 0:
             self.click_id.emit(pid)
         elif code == 2:
-            self.close_id.emit(pid)
+            pass
         else:
             proc = self.sender()
             assert isinstance(proc, QProcess), proc
             stderr = proc.readAllStandardError()
             raise Error(f'herbe exited with status {code}: {stderr}')
+
+        self.close_id.emit(pid)
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
