@@ -37,7 +37,7 @@ sip==6.6.1
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
-twine==4.0.0
+twine==4.0.1
 typing_extensions==4.2.0
 uritemplate==4.1.1
 # urllib3==1.26.9
