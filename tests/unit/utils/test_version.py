@@ -1463,7 +1463,11 @@ def test_uptime(monkeypatch, qapp):
     monkeypatch.setattr(qapp, "launch_time", launch_time, raising=False)
 
     class FakeDateTime(datetime.datetime):
-        now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
+
+        @classmethod
+        def now(cls, tz=None):
+            return datetime.datetime(1, 1, 1, 1, 1, 1, 2)
+
     monkeypatch.setattr(datetime, 'datetime', FakeDateTime)
 
     uptime_delta = version._uptime()

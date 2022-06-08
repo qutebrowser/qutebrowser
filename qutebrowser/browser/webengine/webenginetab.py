@@ -95,7 +95,8 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
     def to_printer(self, printer, callback=None):
         if callback is None:
-            callback = lambda _ok: None
+            def callback(_ok):
+                return None
         self._widget.page().print(printer, callback)
 
 

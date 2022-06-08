@@ -176,13 +176,15 @@ def _get_setting_quickref():
 
 def _get_configtypes():
     """Get configtypes classes to document."""
-    predicate = lambda e: (
-        inspect.isclass(e) and
-        # pylint: disable=protected-access
-        e not in [configtypes.BaseType, configtypes.MappingType,
-                  configtypes._Numeric, configtypes.FontBase] and
-        # pylint: enable=protected-access
-        issubclass(e, configtypes.BaseType))
+    def predicate(e):
+        return (
+            inspect.isclass(e) and
+            # pylint: disable=protected-access
+            e not in [configtypes.BaseType, configtypes.MappingType,
+                      configtypes._Numeric, configtypes.FontBase] and
+            # pylint: enable=protected-access
+            issubclass(e, configtypes.BaseType)
+        )
     yield from inspect.getmembers(configtypes, predicate)
 
 

@@ -64,6 +64,8 @@ def main():
         'import-error',
         # tests/helpers imports
         'wrong-import-order',
+        # __tracebackhide__
+        'unnecessary-lambda-assignment',
     ]
 
     toxinidir = sys.argv[1]
