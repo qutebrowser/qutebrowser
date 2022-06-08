@@ -1,6 +1,7 @@
 {
   "pyparsing": "https://github.com/pyparsing/pyparsing/blob/master/CHANGES",
-  "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/changelog.html",
+  "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/2/index.html",
+  "tomlkit": "https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md",
   "dill": "https://github.com/uqfoundation/dill/commits/master",
   "isort": "https://pycqa.github.io/isort/CHANGELOG/",
   "lazy-object-proxy": "https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst",
@@ -51,7 +52,6 @@
   "flake8-deprecated": "https://github.com/gforcada/flake8-deprecated/blob/master/CHANGES.rst",
   "flake8-future-import": "https://github.com/xZise/flake8-future-import#changes",
   "flake8-mock": "https://github.com/aleGpereira/flake8-mock#changes",
-  "flake8-polyfill": "https://gitlab.com/pycqa/flake8-polyfill/-/blob/master/CHANGELOG.rst",
   "flake8-string-format": "https://github.com/xZise/flake8-string-format#changes",
   "flake8-plugin-utils": "https://github.com/afonasev/flake8-plugin-utils#change-log",
   "flake8-pytest-style": "https://github.com/m-burst/flake8-pytest-style#change-log",
