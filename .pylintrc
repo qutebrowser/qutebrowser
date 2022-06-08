@@ -23,10 +23,8 @@ py-version=3.7
 [MESSAGES CONTROL]
 enable=all
 disable=locally-disabled,
-        locally-enabled,
         suppressed-message,
         fixme,
-        no-self-use,
         cyclic-import,
         blacklisted-name,
         logging-format-interpolation,
@@ -51,7 +49,6 @@ disable=locally-disabled,
         too-many-statements,
         too-few-public-methods,
         import-outside-toplevel,
-        bad-continuation,  # This lint disagrees with Black
         consider-using-f-string,
         logging-fstring-interpolation,
         raise-missing-from,
