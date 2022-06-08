@@ -93,10 +93,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     def to_pdf(self, filename):
         self._widget.page().printToPdf(filename)
 
-    def to_printer(self, printer, callback=None):
-        if callback is None:
-            def callback(_ok):
-                return None
+    def to_printer(self, printer, callback=lambda ok: None):
         self._widget.page().print(printer, callback)
 
 
