@@ -165,6 +165,7 @@ class Completer(QObject):
                     # cursor is in a space between two existing words
                     parts.insert(i, '')
                 prefix = [x.strip() for x in parts[:i]]
+                # pylint: disable-next=unnecessary-list-index-lookup
                 center = parts[i].strip()
                 # strip trailing whitespace included as a separate token
                 postfix = [x.strip() for x in parts[i+1:] if not x.isspace()]

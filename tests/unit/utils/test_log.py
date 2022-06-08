@@ -236,6 +236,7 @@ class TestInitLog:
     """Tests for init_log."""
 
     def _get_default_args(self):
+        # pylint: disable-next=unused-variable
         return argparse.Namespace(debug=True, loglevel='debug', color=True,
                                   loglines=10, logfilter=None,
                                   force_color=False, json_logging=False,
