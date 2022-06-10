@@ -260,7 +260,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         o = self._opt
         o.rect = self._style.subElementRect(
             QStyle.SubElement.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
-        o.state |= int(QStyle.StateFlag.State_KeyboardFocusChange | QStyle.StateFlag.State_Item)
+        o.state |= QStyle.StateFlag.State_KeyboardFocusChange | QStyle.StateFlag.State_Item
         qtutils.ensure_valid(o.rect)
         if state & QStyle.StateFlag.State_Enabled:
             cg = QPalette.ColorGroup.Normal
