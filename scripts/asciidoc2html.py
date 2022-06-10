@@ -43,7 +43,10 @@ class AsciiDoc:
 
     """Abstraction of an asciidoc subprocess."""
 
-    FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
+    FILES = [
+        'faq', 'changelog', 'contributing', 'quickstart', 'userscripts',
+        'install', 'stacktrace'
+    ]
 
     def __init__(self,
                  asciidoc: Optional[str],
