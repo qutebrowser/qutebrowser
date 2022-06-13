@@ -706,3 +706,10 @@ Feature: Downloading things from a website.
         And I run :prompt-fileselect-external
         Then the message "No folder chosen." should be shown
         And "No prompts left, hiding prompt container." should not be logged
+
+    Scenario: Using :prompt-fileselect-external with other prompt
+        When I open data/prompt/jsprompt.html
+        And I run :click-element id button
+        And I wait for "Asking question *" in the log
+        And I run :prompt-fileselect-external
+        Then the error "Can only launch external fileselect for FilenamePrompt, not LineEditPrompt" should be shown
