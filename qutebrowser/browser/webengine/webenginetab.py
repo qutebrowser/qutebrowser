@@ -103,10 +103,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     Attributes:
         _flags: The QWebEnginePage.FindFlags of the last search.
-        _flag_wrap: An additional flag indicating whether the last search
-                    used wrapping.
-        _nowrap_available: Whether the functionality to prevent wrapping
-                           is available.
         _pending_searches: How many searches have been started but not called
                            back yet.
 
@@ -118,8 +114,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
         super().__init__(tab, parent)
         self._flags = self._empty_flags()
         self._pending_searches = 0
-        self._flag_wrap = None
-        self._nowrap_available = False  # gets set in connect_signals
 
     def _empty_flags(self):
         return QWebEnginePage.FindFlags(0)
@@ -150,7 +144,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
                                 "to rebuild PyQtWebEngine.")
             return
 
-        self._nowrap_available = True
         self._widget.page().findTextFinished.connect(self._on_find_finished)
 
     def _find(self, text, flags, callback, caller):
@@ -199,7 +192,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self.match_changed.emit(self.match)
 
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
-               reverse=False, wrap=True, result_cb=None):
+               reverse=False, result_cb=None):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
@@ -210,7 +203,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self.text = text
         self._flags = self._args_to_flags(reverse, ignore_case)
         self.match.reset()
-        self._flag_wrap = wrap
 
         self._find(text, self._flags, result_cb, 'search')
 
@@ -222,33 +214,26 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self.match.reset()
         self._widget.page().findText('')
 
-    def _prevent_wrapping(self, going_up: bool) -> bool:
-        """Whether wrapping should be prevented."""
-        assert self._flag_wrap is not None
-        return (
-            self._nowrap_available and
-            not self._flag_wrap and
-            self.match.at_limit(going_up)
-        )
-
-    def prev_result(self, *, result_cb=None):
+    def prev_result(self, *, wrap=False, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
         flags = QWebEnginePage.FindFlags(int(self._flags))
+
         if flags & QWebEnginePage.FindBackward:
-            if self._prevent_wrapping(going_up=False):
+            if self.match.at_limit(going_up=False) and not wrap:
                 result_cb(True)
                 return
             flags &= ~QWebEnginePage.FindBackward
         else:
-            if self._prevent_wrapping(going_up=True):
+            if self.match.at_limit(going_up=True) and not wrap:
                 result_cb(True)
                 return
             flags |= QWebEnginePage.FindBackward
+
         self._find(self.text, flags, result_cb, 'prev_result')
 
-    def next_result(self, *, result_cb=None):
+    def next_result(self, *, wrap=False, result_cb=None):
         going_up = self._flags & QWebEnginePage.FindBackward
-        if self._prevent_wrapping(going_up=going_up):
+        if self.match.at_limit(going_up=going_up) and not wrap:
             result_cb(True)
             return
         self._find(self.text, self._flags, result_cb, 'next_result')

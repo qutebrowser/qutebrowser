@@ -1597,7 +1597,6 @@ class CommandDispatcher:
         options = {
             'ignore_case': config.val.search.ignore_case,
             'reverse': reverse,
-            'wrap': config.val.search.wrap,
         }
 
         self._tabbed_browser.search_text = text
@@ -1641,10 +1640,11 @@ class CommandDispatcher:
                                old_match=tab.search.match,
                                options=window_options, text=window_text,
                                prev=False)
+        wrap = config.val.search.wrap
 
         for _ in range(count - 1):
-            tab.search.next_result()
-        tab.search.next_result(result_cb=cb)
+            tab.search.next_result(wrap=wrap)
+        tab.search.next_result(result_cb=cb, wrap=wrap)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
@@ -1675,10 +1675,11 @@ class CommandDispatcher:
                                old_match=tab.search.match,
                                options=window_options, text=window_text,
                                prev=True)
+        wrap = config.val.search.wrap
 
         for _ in range(count - 1):
-            tab.search.prev_result()
-        tab.search.prev_result(result_cb=cb)
+            tab.search.prev_result(wrap=wrap)
+        tab.search.prev_result(result_cb=cb, wrap=wrap)
 
     def _jseval_cb(self, out):
         """Show the data returned from JS."""
