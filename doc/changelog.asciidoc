@@ -64,6 +64,8 @@ Changed
   currently focused element (`focused`).
 - The `:click-element` command now can select the first found element via
   `--select-first`.
+- The `statusbar.widgets` setting now supports a `clock` option to show the
+  current time.
 
 Fixed
 ~~~~~

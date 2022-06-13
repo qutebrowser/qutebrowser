@@ -4131,7 +4131,7 @@ Valid values:
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
  * +text:foo+: Display the static text after the colon, `foo` in the example.
- * +clock+: Display current time. Format can be changed by adding like `clock:$format`. For format strings see link:https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior[the python datetime library].
+ * +clock+: Display current time. The format can be changed by adding a format string via `clock:...`. For supported format strings, see https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the Python datetime documentation].
 
 Default: 
 
