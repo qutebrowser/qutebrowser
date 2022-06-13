@@ -1871,6 +1871,8 @@ Accept the current prompt.
 === prompt-fileselect-external
 Choose a location using a configured external picker.
 
+This spawns the external fileselector configured via `fileselect.folder.command`.
+
 [[prompt-item-focus]]
 === prompt-item-focus
 Syntax: +:prompt-item-focus 'which'+

@@ -471,7 +471,11 @@ class PromptContainer(QWidget):
         instance='prompt-container', scope='window',
         modes=[usertypes.KeyMode.prompt])
     def prompt_fileselect_external(self):
-        """Choose a location using a configured external picker."""
+        """Choose a location using a configured external picker.
+
+        This spawns the external fileselector configured via
+        `fileselect.folder.command`.
+        """
         assert self._prompt is not None
         if not isinstance(self._prompt, FilenamePrompt):
             raise cmdutils.CommandError(
