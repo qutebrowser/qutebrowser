@@ -75,6 +75,9 @@ Fixed
 
 - The `install` and `stacktrace` help pages are now included in the docs
   shipped with qutebrowser when using the recommended packaging workflow.
+- The Windows installer now more consistently uses the configured Windows colors
+- The Windows installer now bases the desktop/start menu icon choices on the
+  existing install, if upgrading.
 
 [[v2.5.1]]
 v2.5.1 (2022-05-26)
