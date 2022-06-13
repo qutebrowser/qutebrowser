@@ -705,4 +705,4 @@ Feature: Downloading things from a website.
         And I wait for the download prompt for "*"
         And I run :prompt-fileselect-external
         Then the message "No folder chosen." should be shown
-        And the download prompt should be shown with "(tmpdir)(dirsep)downloads"
+        And "No prompts left, hiding prompt container." should not be logged
