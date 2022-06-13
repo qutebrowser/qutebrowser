@@ -684,3 +684,25 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to false
         And I open 500-inline
         Then the error "Download error: *INTERNAL SERVER ERROR" should be shown
+
+    ## External download path fileselector
+
+    Scenario: Select download path
+        When I set downloads.location.prompt to true
+        And I setup a fake folder fileselector selecting "(tmpdir)(dirsep)downloads(dirsep)subdir" and writes to a temporary file
+        And I open data/downloads/downloads.html
+        And I run :click-element id download
+        And I wait for the download prompt for "*"
+        And I run :prompt-fileselect-external
+        And I wait until the download is finished
+        Then the downloaded file subdir/download.bin should exist
+
+    Scenario: No download folder chosen
+        When I set downloads.location.prompt to true
+        And I set fileselect.folder.command to ['echo', '{}']
+        And I open data/downloads/downloads.html
+        And I run :click-element id download
+        And I wait for the download prompt for "*"
+        And I run :prompt-fileselect-external
+        Then the message "No folder chosen." should be shown
+        And the download prompt should be shown with "(tmpdir)(dirsep)downloads"

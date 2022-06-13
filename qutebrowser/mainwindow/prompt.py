@@ -467,6 +467,27 @@ class PromptContainer(QWidget):
         utils.set_clipboard(question.url, sel)
         message.info("Yanked to {}: {}".format(target, question.url))
 
+    @cmdutils.register(
+        instance='prompt-container', scope='window',
+        modes=[usertypes.KeyMode.prompt])
+    def prompt_fileselect_external(self):
+        """Choose a location using a configured external picker."""
+        assert self._prompt is not None
+        if not isinstance(self._prompt, FilenamePrompt):
+            raise cmdutils.CommandError(
+                "Can only launch external fileselect for FilenamePrompt, "
+                f"not {self._prompt.__class__.__name__}"
+            )
+        # XXX to avoid current cyclic import
+        from qutebrowser.browser import shared
+        folders = shared.choose_file(shared.FileSelectionMode.folder)
+        if not folders:
+            message.info("No folder chosen.")
+            return
+        # choose_file already checks that this is max one folder
+        assert len(folders) == 1
+        self.prompt_accept(folders[0])
+
 
 class LineEdit(QLineEdit):
 
@@ -835,6 +856,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
+            ('prompt-fileselect-external', "Launch external file selector"),
         ]
         return cmds
 
