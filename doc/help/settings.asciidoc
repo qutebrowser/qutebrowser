@@ -750,6 +750,7 @@ Default:
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
 * +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
 * +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
+* +pass:[&lt;Alt-E&gt;]+: +pass:[prompt-fileselect-external]+
 * +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
 * +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
 * +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+

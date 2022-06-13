@@ -24,6 +24,9 @@ Added
 
 - On invalid commands/settings with a similarly spelled match, qutebrowser now
   suggests the correct name in its error messages.
+- New `:prompt-fileselect-external` command which can be used to spawn an
+  external file selector (`fileselect.folder.command`) from download filename
+  prompts (bound to `<Alt+e>` by default).
 - New features in userscripts:
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account

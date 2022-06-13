@@ -1678,6 +1678,7 @@ How many steps to zoom out.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
+|<<prompt-fileselect-external,prompt-fileselect-external>>|Choose a location using a configured external picker.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
@@ -1865,6 +1866,10 @@ Accept the current prompt.
 
 ==== optional arguments
 * +*-s*+, +*--save*+: Save the value to the config.
+
+[[prompt-fileselect-external]]
+=== prompt-fileselect-external
+Choose a location using a configured external picker.
 
 [[prompt-item-focus]]
 === prompt-item-focus
