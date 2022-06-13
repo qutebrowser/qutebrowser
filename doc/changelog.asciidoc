@@ -24,6 +24,10 @@ Added
 
 - On invalid commands/settings with a similarly spelled match, qutebrowser now
   suggests the correct name in its error messages.
+- New features in userscripts:
+    * `qutedmenu` gained new `window` and `private` options.
+    * `qute-keepassxc` now supports unlock-on-demand, multiple account
+      selection via rofi, and inserting TOTP-codes (experimental).
 
 Removed
 ~~~~~~~
@@ -55,7 +59,6 @@ Changed
   `true`) and `access-paste` (additionally allows pasting content, needed for
   websites like Photopea or GitHub Codespaces).
 - The default `hints.selectors` now also match the `treeitem` ARIA roles.
-- The `qutedmenu` userscript gained new `window` and `private` options.
 
 Fixed
 ~~~~~
