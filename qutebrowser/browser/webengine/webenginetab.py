@@ -271,7 +271,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 browsertab.SearchNavigationResult.wrap_prevented_top if going_up else
                 browsertab.SearchNavigationResult.wrap_prevented_bottom
             )
-            callback(res)
+            if callback is not None:
+                callback(res)
             return
 
         cb = functools.partial(self._prev_next_cb, going_up=going_up, callback=callback)
@@ -284,7 +285,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 browsertab.SearchNavigationResult.wrap_prevented_top if going_up else
                 browsertab.SearchNavigationResult.wrap_prevented_bottom
             )
-            callback(res)
+            if callback is not None:
+                callback(res)
             return
 
         cb = functools.partial(self._prev_next_cb, going_up=going_up, callback=callback)
