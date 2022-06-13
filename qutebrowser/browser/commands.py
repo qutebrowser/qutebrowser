@@ -1538,45 +1538,38 @@ class CommandDispatcher:
             message.error(str(e))
             ed.backup()
 
-    def _search_cb(self, found, *, tab, old_match, options, text, prev):
-        """Callback called from search/search_next/search_prev.
+    def _search_cb(self, found, *, text):
+        """Callback called from :search.
 
         Args:
             found: Whether the text was found.
-            tab: The AbstractTab in which the search was made.
-            old_match: The previously active search match before the search was
-                       performed.
-            options: The options (dict) the search was made with.
-            text: The text searched for.
-            prev: Whether we're searching backwards (i.e. :search-prev)
         """
-        # :search/:search-next without reverse -> down
-        # :search/:search-next    with reverse -> up
-        # :search-prev         without reverse -> up
-        # :search-prev            with reverse -> down
-        going_up = options['reverse'] ^ prev
-
-        if found:
-            if not config.val.search.wrap_messages:
-                return
-
-            # Check if the match count change is opposite to the search direction
-            if old_match.current > 0:
-                if not going_up:
-                    if old_match.current > tab.search.match.current:
-                        message.info("Search hit BOTTOM, continuing at TOP",
-                                     replace="search-hit-msg")
-                    elif old_match.current == tab.search.match.current:
-                        message.info("Search hit BOTTOM", replace="search-hit-msg")
-                elif going_up:
-                    if old_match.current < tab.search.match.current:
-                        message.info("Search hit TOP, continuing at BOTTOM",
-                                     replace="search-hit-msg")
-                    elif old_match.current == tab.search.match.current:
-                        message.info("Search hit TOP", replace="search-hit-msg")
-        else:
+        if not found:
             message.warning(f"Text '{text}' not found on page!",
                             replace='find-in-page')
+
+    def _search_navigation_cb(self, result):
+        """Callback called from :search-prev/next."""
+        if result == browsertab.SearchNavigationResult.not_found:
+            # FIXME check if this actually can happen...
+            message.warning("Search result vanished...")
+            return
+        elif result == browsertab.SearchNavigationResult.found:
+            return
+        elif not config.val.search.wrap_messages:
+            return
+
+        messages = {
+            browsertab.SearchNavigationResult.wrap_prevented_bottom:
+                "Search hit BOTTOM",
+            browsertab.SearchNavigationResult.wrap_prevented_top:
+                "Search hit TOP",
+            browsertab.SearchNavigationResult.wrapped_bottom:
+                "Search hit BOTTOM, continuing at TOP",
+            browsertab.SearchNavigationResult.wrapped_top:
+                "Search hit TOP, continuing at BOTTOM",
+        }
+        message.info(messages[result], replace="search-hit-msg")
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1600,16 +1593,12 @@ class CommandDispatcher:
         }
 
         self._tabbed_browser.search_text = text
-        self._tabbed_browser.search_options = dict(options)
-
-        cb = functools.partial(self._search_cb, tab=tab,
-                               old_match=browsertab.SearchMatch(),
-                               options=options,
-                               text=text, prev=False)
-        options['result_cb'] = cb
+        self._tabbed_browser.search_options = options
 
         tab.scroller.before_jump_requested.emit()
-        tab.search.search(text, **options)
+
+        cb = functools.partial(self._search_cb, text=text)
+        tab.search.search(text, **options, result_cb=cb)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
@@ -1636,15 +1625,11 @@ class CommandDispatcher:
         if count == 0:
             return
 
-        cb = functools.partial(self._search_cb, tab=tab,
-                               old_match=tab.search.match,
-                               options=window_options, text=window_text,
-                               prev=False)
         wrap = config.val.search.wrap
 
         for _ in range(count - 1):
             tab.search.next_result(wrap=wrap)
-        tab.search.next_result(result_cb=cb, wrap=wrap)
+        tab.search.next_result(callback=self._search_navigation_cb, wrap=wrap)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
@@ -1671,15 +1656,11 @@ class CommandDispatcher:
         if count == 0:
             return
 
-        cb = functools.partial(self._search_cb, tab=tab,
-                               old_match=tab.search.match,
-                               options=window_options, text=window_text,
-                               prev=True)
         wrap = config.val.search.wrap
 
         for _ in range(count - 1):
             tab.search.prev_result(wrap=wrap)
-        tab.search.prev_result(result_cb=cb, wrap=wrap)
+        tab.search.prev_result(callback=self._search_navigation_cb, wrap=wrap)
 
     def _jseval_cb(self, out):
         """Show the data returned from JS."""

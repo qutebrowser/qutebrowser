@@ -114,6 +114,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
         super().__init__(tab, parent)
         self._flags = self._empty_flags()
         self._pending_searches = 0
+        self.match = browsertab.SearchMatch()
+        self._old_match = browsertab.SearchMatch()
 
     def _empty_flags(self):
         return QWebEnginePage.FindFlags(0)
@@ -180,14 +182,18 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
             if callback is not None:
                 callback(found)
+
             self.finished.emit(found)
 
         self._widget.page().findText(text, flags, wrapped_callback)
 
     def _on_find_finished(self, find_text_result):
         """Unwrap the result, store it, and pass it along."""
-        self.match.current = find_text_result.activeMatch()
-        self.match.total = find_text_result.numberOfMatches()
+        self._old_match = self.match
+        self.match = browsertab.SearchMatch(
+            current=find_text_result.activeMatch(),
+            total=find_text_result.numberOfMatches(),
+        )
         log.webview.debug(f"Active search match: {self.match}")
         self.match_changed.emit(self.match)
 
@@ -214,29 +220,55 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self.match.reset()
         self._widget.page().findText('')
 
-    def prev_result(self, *, wrap=False, result_cb=None):
+    def _prev_next_cb(self, found, *, going_up, callback):
+        """Call the prev/next callback based on the search result."""
+        if found:
+            result = browsertab.SearchNavigationResult.found
+            # Check if the match count change is opposite to the search direction
+            if self._old_match.current > 0:
+                if not going_up and self._old_match.current > self.match.current:
+                    result = browsertab.SearchNavigationResult.wrapped_bottom
+                elif going_up and self._old_match.current < self.match.current:
+                    result = browsertab.SearchNavigationResult.wrapped_top
+        else:
+            result = browsertab.SearchNavigationResult.not_found
+
+        callback(result)
+
+    def prev_result(self, *, wrap=False, callback=None):
         # The int() here makes sure we get a copy of the flags.
         flags = QWebEnginePage.FindFlags(int(self._flags))
 
         if flags & QWebEnginePage.FindBackward:
-            if self.match.at_limit(going_up=False) and not wrap:
-                result_cb(True)
-                return
+            going_up = False
             flags &= ~QWebEnginePage.FindBackward
         else:
-            if self.match.at_limit(going_up=True) and not wrap:
-                result_cb(True)
-                return
+            going_up = True
             flags |= QWebEnginePage.FindBackward
 
-        self._find(self.text, flags, result_cb, 'prev_result')
-
-    def next_result(self, *, wrap=False, result_cb=None):
-        going_up = self._flags & QWebEnginePage.FindBackward
         if self.match.at_limit(going_up=going_up) and not wrap:
-            result_cb(True)
+            res = (
+                browsertab.SearchNavigationResult.wrap_prevented_top if going_up else
+                browsertab.SearchNavigationResult.wrap_prevented_bottom
+            )
+            callback(res)
             return
-        self._find(self.text, self._flags, result_cb, 'next_result')
+
+        cb = functools.partial(self._prev_next_cb, going_up=going_up, callback=callback)
+        self._find(self.text, flags, cb, 'prev_result')
+
+    def next_result(self, *, wrap=False, callback=None):
+        going_up = bool(self._flags & QWebEnginePage.FindBackward)
+        if self.match.at_limit(going_up=going_up) and not wrap:
+            res = (
+                browsertab.SearchNavigationResult.wrap_prevented_top if going_up else
+                browsertab.SearchNavigationResult.wrap_prevented_bottom
+            )
+            callback(res)
+            return
+
+        cb = functools.partial(self._prev_next_cb, going_up=going_up, callback=callback)
+        self._find(self.text, self._flags, cb, 'next_result')
 
 
 class WebEngineCaret(browsertab.AbstractCaret):

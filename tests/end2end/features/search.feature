@@ -233,8 +233,8 @@ Feature: Searching on a page
 
     ## wrapping prevented
 
-    @qtwebkit_skip @qt>=5.14
-    Scenario: Preventing wrapping at the top of the page with QtWebEngine
+    @qt>=5.14
+    Scenario: Preventing wrapping at the top of the page
         When I set search.ignore_case to always
         And I set search.wrap to false
         And I set search.wrap_messages to true
@@ -245,8 +245,8 @@ Feature: Searching on a page
         And I run :search-next
         Then the message "Search hit TOP" should be shown
 
-    @qtwebkit_skip @qt>=5.14
-    Scenario: Preventing wrapping at the bottom of the page with QtWebEngine
+    @qt>=5.14
+    Scenario: Preventing wrapping at the bottom of the page
         When I set search.ignore_case to always
         And I set search.wrap to false
         And I run :search foo
@@ -255,30 +255,6 @@ Feature: Searching on a page
         And I wait for "next_result found foo" in the log
         And I run :search-next
         Then the message "Search hit BOTTOM" should be shown
-
-    @qtwebengine_skip
-    Scenario: Preventing wrapping at the top of the page with QtWebKit
-        When I set search.ignore_case to always
-        And I set search.wrap to false
-        And I run :search --reverse foo
-        And I wait for "search found foo with flags FindBackward" in the log
-        And I run :search-next
-        And I wait for "next_result found foo with flags FindBackward" in the log
-        And I run :search-next
-        And I wait for "next_result didn't find foo with flags FindBackward" in the log
-        Then the warning "Text 'foo' not found on page!" should be shown
-
-    @qtwebengine_skip
-    Scenario: Preventing wrapping at the bottom of the page with QtWebKit
-        When I set search.ignore_case to always
-        And I set search.wrap to false
-        And I run :search foo
-        And I wait for "search found foo" in the log
-        And I run :search-next
-        And I wait for "next_result found foo" in the log
-        And I run :search-next
-        And I wait for "next_result didn't find foo" in the log
-        Then the warning "Text 'foo' not found on page!" should be shown
 
     ## search match counter
 

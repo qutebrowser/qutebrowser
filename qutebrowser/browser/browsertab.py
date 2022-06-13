@@ -324,6 +324,20 @@ class SearchMatch:
         return f"{self.current}/{self.total}"
 
 
+class SearchNavigationResult(enum.Enum):
+
+    """The outcome of calling prev_/next_result."""
+
+    found = enum.auto()
+    not_found = enum.auto()
+
+    wrapped_bottom = enum.auto()
+    wrap_prevented_bottom = enum.auto()
+
+    wrapped_top = enum.auto()
+    wrap_prevented_top = enum.auto()
+
+
 class AbstractSearch(QObject):
 
     """Attribute ``search`` of AbstractTab for doing searches.
@@ -349,6 +363,7 @@ class AbstractSearch(QObject):
     cleared = pyqtSignal()
 
     _Callback = Callable[[bool], None]
+    _NavCallback = Callable[[SearchNavigationResult], None]
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
@@ -392,21 +407,21 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self, *, wrap: bool = False, result_cb: _Callback = None) -> None:
+    def prev_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
         """Go to the previous result of the current search.
 
         Args:
             wrap: Allow wrapping at the top or bottom of the page.
-            result_cb: Called with a bool indicating whether a match was found.
+            callback: Called with a SearchNavigationResult.
         """
         raise NotImplementedError
 
-    def next_result(self, *, wrap: bool = False, result_cb: _Callback = None) -> None:
+    def next_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
         """Go to the next result of the current search.
 
         Args:
             wrap: Allow wrapping at the top or bottom of the page.
-            result_cb: Called with a bool indicating whether a match was found.
+            callback: Called with a SearchNavigationResult.
         """
         raise NotImplementedError
 
