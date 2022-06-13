@@ -59,6 +59,11 @@ Changed
   `true`) and `access-paste` (additionally allows pasting content, needed for
   websites like Photopea or GitHub Codespaces).
 - The default `hints.selectors` now also match the `treeitem` ARIA roles.
+- The `:click-element` command now can also click elements based on its ID
+  (`id`), a CSS selector (`css`), a position (`position`), or click the
+  currently focused element (`focused`).
+- The `:click-element` command now can select the first found element via
+  `--select-first`.
 
 Fixed
 ~~~~~
