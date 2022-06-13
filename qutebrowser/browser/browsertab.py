@@ -295,14 +295,23 @@ class AbstractSearch(QObject):
         text: The last thing this view was searched for.
         search_displayed: Whether we're currently displaying search results in
                           this view.
+        current_match: The currently active search match on the page.
+                       0 if no search is active or the feature isn't available.
+        total_match_count: The total number of search matches on the page.
+                           0 if no search is active or the feature isn't available.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
+
+    Signals:
+        finished: A search has finished. True if the text was found, false otherwise.
+        search_match_changed: The currently active search match has changed.
+                              Emits (0, 0) if no search is active.
+                              Will not be emitted if search matches are not available.
+        cleared: An existing search was cleared.
     """
 
-    #: Signal emitted when a search was finished
-    #: (True if the text was found, False otherwise)
     finished = pyqtSignal(bool)
-    #: Signal emitted when an existing search was cleared.
+    search_match_changed = pyqtSignal(int, int)
     cleared = pyqtSignal()
 
     _Callback = Callable[[bool], None]
@@ -313,6 +322,8 @@ class AbstractSearch(QObject):
         self._widget = cast(_WidgetType, None)
         self.text: Optional[str] = None
         self.search_displayed = False
+        self.current_match = 0
+        self.total_match_count = 0
 
     def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
         """Check if case-sensitivity should be used.

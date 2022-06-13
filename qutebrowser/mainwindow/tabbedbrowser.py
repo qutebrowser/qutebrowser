@@ -185,6 +185,7 @@ class TabbedBrowser(QWidget):
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
         cur_load_status_changed: Loading status of current tab changed.
+        cur_search_match_changed: The active search match changed.
         close_window: The last tab was closed, close this window.
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
@@ -201,6 +202,7 @@ class TabbedBrowser(QWidget):
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
+    cur_search_match_changed = pyqtSignal(int, int)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(browsertab.SelectionState)
     close_window = pyqtSignal()
@@ -347,6 +349,8 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_fullscreen_requested, tab))
         tab.caret.selection_toggled.connect(
             self._filter.create(self.cur_caret_selection_toggled, tab))
+        tab.search.search_match_changed.connect(
+            self._filter.create(self.cur_search_match_changed, tab))
         # misc
         tab.scroller.perc_changed.connect(self._on_scroll_pos_changed)
         tab.scroller.before_jump_requested.connect(lambda: self.set_mark("'"))
@@ -901,6 +905,8 @@ class TabbedBrowser(QWidget):
                         .format(current_mode.name, mode_on_change))
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
+        self.cur_search_match_changed.emit(tab.search.current_match,
+                                           tab.search.total_match_count)
         QTimer.singleShot(0, self._update_window_title)
         self._tab_insert_idx_left = self.widget.currentIndex()
         self._tab_insert_idx_right = self.widget.currentIndex() + 1
