@@ -297,15 +297,16 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
         raise cmdutils.CommandError("Argument 'value' is only "
                                     "optional with filter 'focused'!")
 
-    handlers = {
-        'id': lambda: tab.elements.find_id(elem_id=value, callback=single_cb),
-        'css': lambda:
-        tab.elements.find_css(value, callback=multiple_cb, error_cb=message.error),
-        'position': lambda:
-        _wrap_find_at_pos(cast(str, value), tab=tab, callback=single_cb),
-        'focused': lambda: tab.elements.find_focused(callback=single_cb),
-    }
-    handlers[filter_]()
+    if filter_ == "id":
+        tab.elements.find_id(elem_id=value, callback=single_cb)
+    elif filter_ == "css":
+        tab.elements.find_css(value, callback=multiple_cb, error_cb=message.error)
+    elif filter_ == "position":
+        _wrap_find_at_pos(cast(str, value), tab=tab, callback=single_cb)
+    elif filter_ == "focused":
+        tab.elements.find_focused(callback=single_cb)
+    else:
+        raise utils.Unreachable(filter_)
 
 
 @cmdutils.register(debug=True)
