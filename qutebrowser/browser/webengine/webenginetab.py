@@ -112,25 +112,21 @@ class _WebEngineSearchWrapHandler:
         self.flag_wrap = True
         self.nowrap_available = False
 
-    def prevent_wrapping(self, current_match, total_match_count, *, going_up):
+    def prevent_wrapping(
+        self,
+        match: browsertab.SearchMatch,
+        *,
+        going_up: bool,
+    ) -> None:
         """Prevent wrapping if possible and required.
 
         Returns True if a wrap was prevented and False if not.
 
         Args:
-            current_match: The currently active search match on the page.
-            total_match_count: The total number of search matches on the page.
+            match: The currently active search match on the page.
             going_up: Whether the search would scroll the page up or down.
         """
-        return (
-            self.nowrap_available and
-            not self.flag_wrap and
-            total_match_count != 0 and
-            (
-                going_up and current_match == 1 or
-                not going_up and current_match == total_match_count
-            )
-        )
+        return self.nowrap_available and not self.flag_wrap and match.at_limit(going_up)
 
 
 class WebEngineSearch(browsertab.AbstractSearch):
@@ -224,11 +220,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def _on_find_finished(self, find_text_result):
         """Unwrap the result, store it, and pass it along."""
-        self.current_match = find_text_result.activeMatch()
-        self.total_match_count = find_text_result.numberOfMatches()
-        log.webview.debug("Active search match: {}/{}"
-                          .format(self.current_match, self.total_match_count))
-        self.search_match_changed.emit(self.current_match, self.total_match_count)
+        self.match.current = find_text_result.activeMatch()
+        self.match.total = find_text_result.numberOfMatches()
+        log.webview.debug(f"Active search match: {self.match}")
+        self.match_changed.emit(self.match)
 
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
                reverse=False, wrap=True, result_cb=None):
@@ -241,7 +236,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
         self.text = text
         self._flags = self._args_to_flags(reverse, ignore_case)
-        self._reset_match_data()
+        self.match.reset()
         self._wrap_handler.flag_wrap = wrap
 
         self._find(text, self._flags, result_cb, 'search')
@@ -249,23 +244,21 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def clear(self):
         if self.search_displayed:
             self.cleared.emit()
-            self.search_match_changed.emit(0, 0)
+            self.match_changed.emit(browsertab.SearchMatch())
         self.search_displayed = False
-        self._reset_match_data()
+        self.match.reset()
         self._widget.page().findText('')
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
         flags = QWebEnginePage.FindFlags(int(self._flags))
         if flags & QWebEnginePage.FindBackward:
-            if self._wrap_handler.prevent_wrapping(self.current_match,
-                    self.total_match_count, going_up=False):
+            if self._wrap_handler.prevent_wrapping(self.match, going_up=False):
                 result_cb(True)
                 return
             flags &= ~QWebEnginePage.FindBackward
         else:
-            if self._wrap_handler.prevent_wrapping(self.current_match,
-                    self.total_match_count, going_up=True):
+            if self._wrap_handler.prevent_wrapping(self.match, going_up=True):
                 result_cb(True)
                 return
             flags |= QWebEnginePage.FindBackward
@@ -273,19 +266,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def next_result(self, *, result_cb=None):
         going_up = self._flags & QWebEnginePage.FindBackward
-        if self._wrap_handler.prevent_wrapping(self.current_match,
-                self.total_match_count, going_up=going_up):
+        if self._wrap_handler.prevent_wrapping(self.match, going_up=going_up):
             result_cb(True)
             return
         self._find(self.text, self._flags, result_cb, 'next_result')
-
-    def _reset_match_data(self):
-        """Reset match counter information.
-
-        Stale information could lead to next_result or prev_result misbehaving.
-        """
-        self.current_match = 0
-        self.total_match_count = 0
 
 
 class WebEngineCaret(browsertab.AbstractCaret):

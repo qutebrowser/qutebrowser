@@ -23,6 +23,7 @@
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.utils import log
+from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase
 
 
@@ -30,20 +31,18 @@ class SearchMatch(textbase.TextBase):
 
     """The part of the statusbar that displays the search match counter."""
 
-    @pyqtSlot(int, int)
-    def set_match_index(self, current: int, total: int) -> None:
+    @pyqtSlot(browsertab.SearchMatch)
+    def set_match(self, match: browsertab.SearchMatch) -> None:
         """Set the match counts in the statusbar.
 
-           Passing (0, 0) hides the match counter.
+        Passing SearchMatch(0, 0) hides the match counter.
 
         Args:
-            current: The currently active search match.
-            total: The total number of search matches on the page.
+            match: The currently active search match.
         """
-        if current <= 0 and total <= 0:
+        if match.current <= 0 and match.total <= 0:
             self.setText('')
             log.statusbar.debug('Clearing search match text.')
         else:
-            self.setText('Match [{}/{}]'.format(current, total))
-            log.statusbar.debug('Setting search match text to {}/{}'
-                    .format(current, total))
+            self.setText(f'Match [{match}]')
+            log.statusbar.debug(f'Setting search match text to {match}')

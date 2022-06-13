@@ -202,7 +202,7 @@ class TabbedBrowser(QWidget):
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
-    cur_search_match_changed = pyqtSignal(int, int)
+    cur_search_match_changed = pyqtSignal(browsertab.SearchMatch)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(browsertab.SelectionState)
     close_window = pyqtSignal()
@@ -349,7 +349,7 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_fullscreen_requested, tab))
         tab.caret.selection_toggled.connect(
             self._filter.create(self.cur_caret_selection_toggled, tab))
-        tab.search.search_match_changed.connect(
+        tab.search.match_changed.connect(
             self._filter.create(self.cur_search_match_changed, tab))
         # misc
         tab.scroller.perc_changed.connect(self._on_scroll_pos_changed)
@@ -905,8 +905,7 @@ class TabbedBrowser(QWidget):
                         .format(current_mode.name, mode_on_change))
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self.cur_search_match_changed.emit(tab.search.current_match,
-                                           tab.search.total_match_count)
+        self.cur_search_match_changed.emit(tab.search.match)
         QTimer.singleShot(0, self._update_window_title)
         self._tab_insert_idx_left = self.widget.currentIndex()
         self._tab_insert_idx_right = self.widget.currentIndex() + 1

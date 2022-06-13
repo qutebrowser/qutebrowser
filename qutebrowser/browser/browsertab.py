@@ -287,6 +287,43 @@ class AbstractPrinting:
             diag.open(do_print)
 
 
+@dataclasses.dataclass
+class SearchMatch:
+
+    """The currently highlighted search match.
+
+    Attributes:
+        current: The currently active search match on the page.
+                 0 if no search is active or the feature isn't available.
+        total: The total number of search matches on the page.
+               0 if no search is active or the feature isn't available.
+    """
+
+    current: int = 0
+    total: int = 0
+
+    def reset(self) -> None:
+        """Reset match counter information.
+
+        Stale information could lead to next_result or prev_result misbehaving.
+        """
+        self.current = 0
+        self.total = 0
+
+    def at_limit(self, going_up: bool) -> bool:
+        """Whether the SearchMatch is currently at the first/last result."""
+        return (
+            self.total != 0 and
+            (
+                going_up and self.current == 1 or
+                not going_up and self.current == self.total
+            )
+        )
+
+    def __str__(self) -> str:
+        return f"{self.current}/{self.total}"
+
+
 class AbstractSearch(QObject):
 
     """Attribute ``search`` of AbstractTab for doing searches.
@@ -295,23 +332,20 @@ class AbstractSearch(QObject):
         text: The last thing this view was searched for.
         search_displayed: Whether we're currently displaying search results in
                           this view.
-        current_match: The currently active search match on the page.
-                       0 if no search is active or the feature isn't available.
-        total_match_count: The total number of search matches on the page.
-                           0 if no search is active or the feature isn't available.
+        match: The currently active search match.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
 
     Signals:
         finished: A search has finished. True if the text was found, false otherwise.
-        search_match_changed: The currently active search match has changed.
-                              Emits (0, 0) if no search is active.
-                              Will not be emitted if search matches are not available.
+        match_changed: The currently active search match has changed.
+                       Emits SearchMatch(0, 0) if no search is active.
+                       Will not be emitted if search matches are not available.
         cleared: An existing search was cleared.
     """
 
     finished = pyqtSignal(bool)
-    search_match_changed = pyqtSignal(int, int)
+    match_changed = pyqtSignal(SearchMatch)
     cleared = pyqtSignal()
 
     _Callback = Callable[[bool], None]
@@ -322,8 +356,7 @@ class AbstractSearch(QObject):
         self._widget = cast(_WidgetType, None)
         self.text: Optional[str] = None
         self.search_displayed = False
-        self.current_match = 0
-        self.total_match_count = 0
+        self.match = SearchMatch()
 
     def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
         """Check if case-sensitivity should be used.
