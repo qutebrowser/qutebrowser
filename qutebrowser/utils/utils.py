@@ -849,8 +849,6 @@ def parse_point(s: str) -> QPoint:
         raise ValueError(f"String {s} does not match X,Y")
 
     try:
-        point = QPoint(x, y)
+        return QPoint(x, y)
     except OverflowError as e:
         raise ValueError(e)
-
-    return point
