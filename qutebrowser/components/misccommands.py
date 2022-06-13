@@ -27,7 +27,7 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional, Sequence, Callable, cast
+from typing import Optional, Sequence, Callable
 
 try:
     import hunter
@@ -245,7 +245,7 @@ _FILTER_ERRORS = {
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
-def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
+def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,  # noqa: C901
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
                   force_event: bool = False,
