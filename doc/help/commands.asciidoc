@@ -254,20 +254,27 @@ Clear all message notifications.
 
 [[click-element]]
 === click-element
-Syntax: +:click-element [*--target* 'target'] [*--force-event*] 'filter' 'value'+
+Syntax: +:click-element [*--target* 'target'] [*--force-event*] [*--select-first*] 'filter' ['value']+
 
 Click the element matching the given filter.
 
 The given filter needs to result in exactly one element, otherwise, an error is shown.
 
 ==== positional arguments
-* +'filter'+: How to filter the elements. id: Get an element based on its ID.
+* +'filter'+: How to filter the elements. 
 
-* +'value'+: The value to filter for.
+ - id: Get an element based on its ID.
+ - css: Filter by a CSS selector.
+ - position: Click the element at specified position.
+ Specify `value` as 'x,y'.
+ - focused: Click the currently focused element.
+
+* +'value'+: The value to filter for. Optional for 'focused' filter.
 
 ==== optional arguments
 * +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
 * +*-f*+, +*--force-event*+: Force generating a fake click event.
+* +*-s*+, +*--select-first*+: Select first matching element if there are multiple.
 
 [[close]]
 === close
