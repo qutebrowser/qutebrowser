@@ -219,7 +219,8 @@ def test_notification_permission_workaround():
 class TestFindFlags:
 
     @pytest.mark.parametrize("case_sensitive, backward, expected", [
-        (True, True, QWebEnginePage.FindFlag.FindCaseSensitively | QWebEnginePage.FindFlag.FindBackward),
+        (True, True, (QWebEnginePage.FindFlag.FindCaseSensitively |
+                      QWebEnginePage.FindFlag.FindBackward)),
         (True, False, QWebEnginePage.FindFlag.FindCaseSensitively),
         (False, True, QWebEnginePage.FindFlag.FindBackward),
         (False, False, QWebEnginePage.FindFlag(0)),

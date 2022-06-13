@@ -105,11 +105,13 @@ class _FindFlags:
 
     def to_qt(self):
         """Convert flags into Qt flags."""
+        # FIXME:mypy Those should be correct, reevaluate with PyQt6-stubs
         flags = QWebEnginePage.FindFlag(0)
         if self.case_sensitive:
-            flags |= QWebEnginePage.FindFlag.FindCaseSensitively
+            flags |= (  # type: ignore[assignment]
+                QWebEnginePage.FindFlag.FindCaseSensitively)
         if self.backward:
-            flags |= QWebEnginePage.FindFlag.FindBackward
+            flags |= QWebEnginePage.FindFlag.FindBackward  # type: ignore[assignment]
         return flags
 
     def __bool__(self):
