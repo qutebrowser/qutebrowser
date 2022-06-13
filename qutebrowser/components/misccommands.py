@@ -27,7 +27,7 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional, List, Callable, cast
+from typing import Optional, Sequence, Callable, cast
 
 try:
     import hunter
@@ -282,7 +282,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
 
         do_click(elem)
 
-    def multiple_cb(elems: List[apitypes.WebElement]) -> None:
+    def multiple_cb(elems: Sequence[apitypes.WebElement]) -> None:
         if not elems:
             message.error(f"No element found {_FILTER_ERRORS[filter_](value)}!")
             return
@@ -298,11 +298,18 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
                                     "optional with filter 'focused'!")
 
     if filter_ == "id":
+        assert value is not None
         tab.elements.find_id(elem_id=value, callback=single_cb)
     elif filter_ == "css":
-        tab.elements.find_css(value, callback=multiple_cb, error_cb=message.error)
+        assert value is not None
+        tab.elements.find_css(
+            value,
+            callback=multiple_cb,
+            error_cb=lambda exc: message.error(str(exc)),
+        )
     elif filter_ == "position":
-        _wrap_find_at_pos(cast(str, value), tab=tab, callback=single_cb)
+        assert value is not None
+        _wrap_find_at_pos(value, tab=tab, callback=single_cb)
     elif filter_ == "focused":
         tab.elements.find_focused(callback=single_cb)
     else:
