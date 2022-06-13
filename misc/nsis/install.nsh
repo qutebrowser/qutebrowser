@@ -542,8 +542,16 @@ Function PageInstallModeChangeMode
 FunctionEnd
 
 Function PageComponentsPre
-  GetDlgItem $0 $HWNDPARENT 1
-  SendMessage $0 ${BCM_SETSHIELD} 0 0 ; hide SHIELD (Windows Vista and above)
+  SendMessage $mui.Button.Next ${BCM_SETSHIELD} 0 0
+  StrCmpS $HasCurrentModeInstallation 0 +9
+  IfFileExists "$DESKTOP\${PRODUCT_NAME}.lnk" +4
+  SectionGetFlags ${SectionDesktopIcon} $1
+  IntOp $1 $1 & 0xFFFFFFFE
+  SectionSetFlags ${SectionDesktopIcon} $1
+  IfFileExists "$STARTMENU\${PRODUCT_NAME}.lnk" +4
+  SectionGetFlags ${SectionStartMenuIcon} $1
+  IntOp $1 $1 & 0xFFFFFFFE
+  SectionSetFlags ${SectionStartMenuIcon} $1
 FunctionEnd
 
 Function PageDirectoryPre
