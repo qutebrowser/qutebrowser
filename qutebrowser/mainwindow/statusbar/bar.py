@@ -262,7 +262,7 @@ class StatusBar(QWidget):
                     cur_widget.on_tab_changed(tab)
 
                 # Do not call .show() for these widgets.
-                return
+                continue
             elif segment.startswith('text:'):
                 cur_widget.setText(segment.split(':', maxsplit=1)[1])
             elif segment.startswith('clock:') or segment == 'clock':
