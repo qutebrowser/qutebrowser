@@ -27,6 +27,7 @@ Added
 - New `:prompt-fileselect-external` command which can be used to spawn an
   external file selector (`fileselect.folder.command`) from download filename
   prompts (bound to `<Alt+e>` by default).
+- New `clock` value for `statusbar.widgets`, displaying the current time.
 - New features in userscripts:
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
