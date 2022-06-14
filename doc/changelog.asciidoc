@@ -28,6 +28,8 @@ Added
   external file selector (`fileselect.folder.command`) from download filename
   prompts (bound to `<Alt+e>` by default).
 - New `clock` value for `statusbar.widgets`, displaying the current time.
+- New `qute-1pass` userscript using the 1password commandline to fill
+  passwords.
 - New features in userscripts:
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
