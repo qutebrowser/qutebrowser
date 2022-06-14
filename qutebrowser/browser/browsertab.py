@@ -310,6 +310,10 @@ class SearchMatch:
         self.current = 0
         self.total = 0
 
+    def is_null(self) -> bool:
+        """Whether the SearchMatch is set to zero."""
+        return self.current == 0 and self.total == 0
+
     def at_limit(self, going_up: bool) -> bool:
         """Whether the SearchMatch is currently at the first/last result."""
         return (
