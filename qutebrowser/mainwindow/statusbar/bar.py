@@ -248,7 +248,7 @@ class StatusBar(QWidget):
         elif option == 'statusbar.widgets':
             self._draw_widgets()
 
-    def _draw_widgets(self):  # noqa: C901
+    def _draw_widgets(self):
         """Draw statusbar widgets."""
         self._clear_widgets()
 
