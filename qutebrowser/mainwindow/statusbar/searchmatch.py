@@ -24,6 +24,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.utils import log
 
 
 class SearchMatch(textbase.TextBase):
@@ -39,5 +40,9 @@ class SearchMatch(textbase.TextBase):
         Args:
             search_match: The currently active search match.
         """
-        text = '' if search_match.is_null() else f'Match [{search_match}]'
-        self.setText(text)
+        if search_match.is_null():
+            self.setText('')
+            log.statusbar.debug('Clearing search match text.')
+        else:
+            self.setText(f'Match [{search_match}]')
+            log.statusbar.debug(f'Setting search match text to {search_match}')
