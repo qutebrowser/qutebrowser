@@ -1600,15 +1600,8 @@ class CommandDispatcher:
         cb = functools.partial(self._search_cb, text=text)
         tab.search.search(text, **options, result_cb=cb)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def search_next(self, count=1):
-        """Continue the search to the ([count]th) next term.
-
-        Args:
-            count: How many elements to ignore.
-        """
-        tab = self._current_widget()
+    def _search_prev_next(self, count, tab, method):
+        """Continue the search to the prev/next term."""
         window_text = self._tabbed_browser.search_text
         window_options = self._tabbed_browser.search_options
 
@@ -1628,8 +1621,19 @@ class CommandDispatcher:
         wrap = config.val.search.wrap
 
         for _ in range(count - 1):
-            tab.search.next_result(wrap=wrap)
-        tab.search.next_result(callback=self._search_navigation_cb, wrap=wrap)
+            method(wrap=wrap)
+        method(callback=self._search_navigation_cb, wrap=wrap)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def search_next(self, count=1):
+        """Continue the search to the ([count]th) next term.
+
+        Args:
+            count: How many elements to ignore.
+        """
+        tab = self._current_widget()
+        self._search_prev_next(count, tab, tab.search.next_result)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
@@ -1640,27 +1644,7 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         tab = self._current_widget()
-        window_text = self._tabbed_browser.search_text
-        window_options = self._tabbed_browser.search_options
-
-        if window_text is None:
-            raise cmdutils.CommandError("No search done yet.")
-
-        tab.scroller.before_jump_requested.emit()
-
-        if window_text is not None and window_text != tab.search.text:
-            tab.search.clear()
-            tab.search.search(window_text, **window_options)
-            count -= 1
-
-        if count == 0:
-            return
-
-        wrap = config.val.search.wrap
-
-        for _ in range(count - 1):
-            tab.search.prev_result(wrap=wrap)
-        tab.search.prev_result(callback=self._search_navigation_cb, wrap=wrap)
+        self._search_prev_next(count, tab, tab.search.prev_result)
 
     def _jseval_cb(self, out):
         """Show the data returned from JS."""
