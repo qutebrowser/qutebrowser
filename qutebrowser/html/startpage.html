@@ -19,15 +19,16 @@ body {
 .title-container {
     display: flex;
     align-items: center;
+    justify-content: center;
     max-width: 600px;
     margin: auto;
     padding: 15px;
 }
 
 .logo {
-    width: 95px;
-    height: 95px;
-    padding: 10px;
+    width: 105px;
+    height: 105px;
+    margin-bottom: 20px;
 }
 
 .title {
@@ -129,10 +130,7 @@ a:link, a:visited {
 <div class="wrapper">
   <div class="header">
     <div class="title-container">
-      <img class="logo" src="{{ resource_url('img/qutebrowser_logo.svg') }}">
-      <span>
-        <h3 class="title">qutebrowser</h3>
-      </span>
+      <img class="logo" src="{{ resource_url('icons/qutebrowser.svg') }}">
     </div>
     <div class="search-box title-container" id="search">
       <form>
@@ -147,7 +145,7 @@ a:link, a:visited {
       <h4 class="bookmark-container-title">Bookmarks</h4>
       {% for bookmark in bookmarks %}
       <div class="link-container">
-        <a class="bookmark-name" href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
+        <a href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
       </div>
       {% endfor %}
     </div>
@@ -157,7 +155,7 @@ a:link, a:visited {
       <h4 class="bookmark-container-title">Quickmarks</h4>
       {% for quickmark in quickmarks %}
       <div class="link-container">
-        <a class="bookmark-name" href="{{ quickmark[1] }}"> {{ quickmark[0] }} </a>
+        <a href="{{ quickmark[1] }}"> {{ quickmark[0] }} </a>
       </div>
       {% endfor %}
     </div>
@@ -165,13 +163,13 @@ a:link, a:visited {
     <div class="bookmark-container">
       <h4 class="bookmark-container-title">Getting Started</h4>
       <div class="link-container">
-        <a class="link-name" href="https://qutebrowser.org">Official Website</a>
+        <a href="https://qutebrowser.org">Official Website</a>
       </div>
       <div class="link-container">
-        <a class="link-name" href="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png">Cheat Sheet</a>
+        <a href="qute://help/quickstart.html">Quickstart</a>
       </div>
       <div class="link-container">
-        <a class="link-name" href="https://qutebrowser.org/doc/changelog.html">Changelog</a>
+        <a href="qute://help/changelog.html">Changelog</a>
       </div>
     </div>
   </div>

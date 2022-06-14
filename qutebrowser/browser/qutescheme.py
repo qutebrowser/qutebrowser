@@ -598,7 +598,7 @@ def qute_resource(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('start')
-def qute_start(url: QUrl) -> _HandlerRet:
+def qute_start(_url: QUrl) -> _HandlerRet:
     """Handler for qute://start."""
     bookmarks = sorted(objreg.get('bookmark-manager').marks.items(),
                        key=lambda x: x[1])  # Sort by title
