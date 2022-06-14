@@ -67,14 +67,20 @@ Changed
   currently focused element (`focused`).
 - The `:click-element` command now can select the first found element via
   `--select-first`.
-- The `statusbar.widgets` setting now supports a `clock` option to show the
-  current time.
+- New `search.wrap_messages` setting, making it possible to disable search
+  wrapping messages.
+- New widgets for `statusbar.widgets`:
+  *  `clock`, showing the current time
+  * `search_match`, showing the current match and total count when finding text
+    on a page
 
 Fixed
 ~~~~~
 
 - When the devtools are clicked but `input.insert_mode.auto_enter` is set to
   `false`, insert mode now isn't entered anymore.
+- The search wrapping messages are now correctly displayed in (hopefully) all
+  cases with QtWebEngine.
 
 [[v2.5.2]]
 v2.5.2 (unreleased)

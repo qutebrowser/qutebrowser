@@ -303,6 +303,7 @@
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
 |<<search.wrap,search.wrap>>|Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
+|<<search.wrap_messages,search.wrap_messages>>|Display messages when advancing through text matches at the top and bottom of the page, e.g. `Search hit TOP`.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
@@ -4002,6 +4003,14 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[search.wrap_messages]]
+=== search.wrap_messages
+Display messages when advancing through text matches at the top and bottom of the page, e.g. `Search hit TOP`.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[session.default_name]]
 === session.default_name
 Name of the session to save by default.
@@ -4128,6 +4137,7 @@ Valid values:
  * +scroll+: Percentage of the current page position like `10%`.
  * +scroll_raw+: Raw percentage of the current page position like `10`.
  * +history+: Display an arrow when possible to go back/forward in history.
+ * +search_match+: A match count when searching, e.g. `Match [2/10]`.
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
@@ -4137,6 +4147,7 @@ Valid values:
 Default: 
 
 - +pass:[keypress]+
+- +pass:[search_match]+
 - +pass:[url]+
 - +pass:[scroll]+
 - +pass:[history]+
