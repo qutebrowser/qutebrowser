@@ -196,6 +196,16 @@ Feature: Saving and loading sessions
             url: http://localhost:*/data/numbers/3.txt
             zoom: 1.0
 
+  Scenario: Saving with --no-history
+    When I open data/numbers/1.txt
+    And I open data/numbers/2.txt
+    And I open data/numbers/3.txt
+    Then the session saved with --no-history should look like:
+      windows:
+      - tabs:
+        - history:
+          - url: http://localhost:*/data/numbers/3.txt
+
   # https://github.com/qutebrowser/qutebrowser/issues/879
 
   Scenario: Saving a session with a page using history.replaceState()
