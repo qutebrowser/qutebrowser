@@ -519,7 +519,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
         markup = self._format_message(qt_notification)
         new_id = replaces_id if replaces_id is not None else next(self._id_gen)
 
-        message.info(markup, replace=f'notifications-{new_id}')
+        message.info(markup, replace=f'notifications-{new_id}', rich=True)
 
         # Faking closing, timing might not be 100% accurate
         QTimer.singleShot(

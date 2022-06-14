@@ -37,6 +37,7 @@ class Message(QLabel):
             level: usertypes.MessageLevel,
             text: str,
             replace: Optional[str],
+            text_format: Qt.TextFormat,
             parent: QWidget = None,
     ) -> None:
         super().__init__(text, parent)
@@ -44,6 +45,7 @@ class Message(QLabel):
         self.level = level
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setWordWrap(True)
+        self.setTextFormat(text_format)
         qss = """
             padding-top: 2px;
             padding-bottom: 2px;
@@ -74,14 +76,30 @@ class Message(QLabel):
             raise ValueError("Invalid level {!r}".format(level))
         stylesheet.set_register(self, qss, update=False)
 
+    @staticmethod
+    def _text_format(info: message.MessageInfo) -> Qt.TextFormat:
+        """The Qt.TextFormat to use based on the given MessageInfo."""
+        return Qt.TextFormat.RichText if info.rich else Qt.TextFormat.PlainText
+
     @classmethod
     def from_info(cls, info: message.MessageInfo, parent: QWidget = None) -> "Message":
         return cls(
             level=info.level,
             text=info.text,
             replace=info.replace,
+            text_format=cls._text_format(info),
             parent=parent,
         )
+
+    def update_from_info(self, info: message.MessageInfo) -> None:
+        """Update the text from the given info.
+
+        Both the message this gets called on and the given MessageInfo need to have
+        the same level.
+        """
+        assert self.level == info.level, (self, info)
+        self.setTextFormat(self._text_format(info))
+        self.setText(info.text)
 
 
 class MessageView(QWidget):
@@ -138,8 +156,7 @@ class MessageView(QWidget):
             existing = [msg for msg in self._messages if msg.replace == info.replace]
             if existing:
                 assert len(existing) == 1, existing
-                assert existing[0].level == info.level, (existing, info)
-                existing[0].setText(info.text)
+                existing[0].update_from_info(info)
                 self.update_geometry.emit()
                 return
 

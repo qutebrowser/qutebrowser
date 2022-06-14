@@ -38,6 +38,7 @@ class MessageInfo:
     level: usertypes.MessageLevel
     text: str
     replace: Optional[str] = None
+    rich: bool = False
 
 
 def _log_stack(typ: str, stack: str) -> None:
@@ -52,13 +53,19 @@ def _log_stack(typ: str, stack: str) -> None:
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
-def error(message: str, *, stack: str = None, replace: str = None) -> None:
+def error(
+    message: str, *,
+    stack: str = None,
+    replace: str = None,
+    rich: bool = False,
+) -> None:
     """Display an error message.
 
     Args:
         message: The message to show.
         stack: The stack trace to show (if any).
         replace: Replace existing messages which are still being shown.
+        rich: Show message as rich text.
     """
     if stack is None:
         stack = ''.join(traceback.format_stack())
@@ -71,15 +78,17 @@ def error(message: str, *, stack: str = None, replace: str = None) -> None:
         level=usertypes.MessageLevel.error,
         text=message,
         replace=replace,
+        rich=rich,
     )
 
 
-def warning(message: str, *, replace: str = None) -> None:
+def warning(message: str, *, replace: str = None, rich: bool = False) -> None:
     """Display a warning message.
 
     Args:
         message: The message to show.
         replace: Replace existing messages which are still being shown.
+        rich: Show message as rich text.
     """
     _log_stack('warning', ''.join(traceback.format_stack()))
     log.message.warning(message)
@@ -87,21 +96,24 @@ def warning(message: str, *, replace: str = None) -> None:
         level=usertypes.MessageLevel.warning,
         text=message,
         replace=replace,
+        rich=rich,
     )
 
 
-def info(message: str, *, replace: str = None) -> None:
+def info(message: str, *, replace: str = None, rich: bool = False) -> None:
     """Display an info message.
 
     Args:
         message: The message to show.
         replace: Replace existing messages which are still being shown.
+        rich: Show message as rich text.
     """
     log.message.info(message)
     global_bridge.show(
         level=usertypes.MessageLevel.info,
         text=message,
         replace=replace,
+        rich=rich,
     )
 
 
@@ -263,9 +275,10 @@ class GlobalMessageBridge(QObject):
         level: usertypes.MessageLevel,
         text: str,
         replace: str = None,
+        rich: bool = False,
     ) -> None:
         """Show the given message."""
-        info = MessageInfo(level=level, text=text, replace=replace)
+        info = MessageInfo(level=level, text=text, replace=replace, rich=rich)
         if self._connected:
             self.show_message.emit(info)
         else:

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import contextlib
+
 import pytest
 from PyQt5.QtCore import Qt
 
@@ -63,6 +65,7 @@ def test_word_wrap(view, qtbot):
     """A long message should be wrapped."""
     with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'short'))
+        assert len(view._messages) == 1
         height1 = view.sizeHint().height()
         assert height1 > 0
 
@@ -73,10 +76,50 @@ def test_word_wrap(view, qtbot):
             "island deep in the sea.")
 
     view.show_message(message.MessageInfo(usertypes.MessageLevel.info, text))
+    assert len(view._messages) == 1
     height2 = view.sizeHint().height()
 
     assert height2 > height1
     assert view._messages[0].wordWrap()
+
+
+@pytest.mark.parametrize("rich, higher, expected_format", [
+    (True, True, Qt.TextFormat.RichText),
+    (False, False, Qt.TextFormat.PlainText),
+    (None, False, Qt.TextFormat.PlainText),
+])
+@pytest.mark.parametrize("replace", ["test", None])
+def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
+    """Rich text should be rendered appropriately."""
+    level = usertypes.MessageLevel.info
+    text = 'with <h1>markup</h1>'
+    text2 = 'with <h1>markup</h1> 2'
+
+    info1 = message.MessageInfo(level, text, replace=replace)
+    info2 = message.MessageInfo(level, text2, replace=replace, rich=rich)
+
+    ctx = (
+        qtbot.wait_signal(view._clear_timer.timeout) if replace is None
+        else contextlib.nullcontext()
+    )
+    with ctx:
+        view.show_message(info1)
+        assert len(view._messages) == 1
+
+        height1 = view.sizeHint().height()
+        assert height1 > 0
+
+        assert view._messages[0].textFormat() == Qt.TextFormat.PlainText  # default
+
+    view.show_message(info2)
+    height2 = view.sizeHint().height()
+    assert len(view._messages) == 1
+
+    assert view._messages[0].textFormat() == expected_format
+    if higher:
+        assert height2 > height1
+    else:
+        assert height2 == height1
 
 
 def test_show_message_twice(view):
