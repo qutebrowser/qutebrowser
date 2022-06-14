@@ -91,6 +91,10 @@ Fixed
   `false`, insert mode now isn't entered anymore.
 - The search wrapping messages are now correctly displayed in (hopefully) all
   cases with QtWebEngine.
+- When a message with the same text as a currently already displayed one gets
+  shown, qutebrowser used to only show one message. This is now only done when the
+  two messages are completely equivalent (text, level, etc.) instead of doing so
+  when only the text matches.
 
 [[v2.5.2]]
 v2.5.2 (unreleased)
