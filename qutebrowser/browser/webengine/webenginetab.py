@@ -142,7 +142,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
         _flags: The FindFlags of the last search.
         _pending_searches: How many searches have been started but not called
                            back yet.
-
     """
 
     _widget: webview.WebEngineView
