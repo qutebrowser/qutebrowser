@@ -287,6 +287,61 @@ class AbstractPrinting:
             diag.open(do_print)
 
 
+@dataclasses.dataclass
+class SearchMatch:
+
+    """The currently highlighted search match.
+
+    Attributes:
+        current: The currently active search match on the page.
+                 0 if no search is active or the feature isn't available.
+        total: The total number of search matches on the page.
+               0 if no search is active or the feature isn't available.
+    """
+
+    current: int = 0
+    total: int = 0
+
+    def reset(self) -> None:
+        """Reset match counter information.
+
+        Stale information could lead to next_result or prev_result misbehaving.
+        """
+        self.current = 0
+        self.total = 0
+
+    def is_null(self) -> bool:
+        """Whether the SearchMatch is set to zero."""
+        return self.current == 0 and self.total == 0
+
+    def at_limit(self, going_up: bool) -> bool:
+        """Whether the SearchMatch is currently at the first/last result."""
+        return (
+            self.total != 0 and
+            (
+                going_up and self.current == 1 or
+                not going_up and self.current == self.total
+            )
+        )
+
+    def __str__(self) -> str:
+        return f"{self.current}/{self.total}"
+
+
+class SearchNavigationResult(enum.Enum):
+
+    """The outcome of calling prev_/next_result."""
+
+    found = enum.auto()
+    not_found = enum.auto()
+
+    wrapped_bottom = enum.auto()
+    wrap_prevented_bottom = enum.auto()
+
+    wrapped_top = enum.auto()
+    wrap_prevented_top = enum.auto()
+
+
 class AbstractSearch(QObject):
 
     """Attribute ``search`` of AbstractTab for doing searches.
@@ -295,17 +350,24 @@ class AbstractSearch(QObject):
         text: The last thing this view was searched for.
         search_displayed: Whether we're currently displaying search results in
                           this view.
+        match: The currently active search match.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
+
+    Signals:
+        finished: A search has finished. True if the text was found, false otherwise.
+        match_changed: The currently active search match has changed.
+                       Emits SearchMatch(0, 0) if no search is active.
+                       Will not be emitted if search matches are not available.
+        cleared: An existing search was cleared.
     """
 
-    #: Signal emitted when a search was finished
-    #: (True if the text was found, False otherwise)
     finished = pyqtSignal(bool)
-    #: Signal emitted when an existing search was cleared.
+    match_changed = pyqtSignal(SearchMatch)
     cleared = pyqtSignal()
 
     _Callback = Callable[[bool], None]
+    _NavCallback = Callable[[SearchNavigationResult], None]
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
@@ -313,6 +375,7 @@ class AbstractSearch(QObject):
         self._widget = cast(_WidgetType, None)
         self.text: Optional[str] = None
         self.search_displayed = False
+        self.match = SearchMatch()
 
     def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
         """Check if case-sensitivity should be used.
@@ -333,7 +396,6 @@ class AbstractSearch(QObject):
     def search(self, text: str, *,
                ignore_case: usertypes.IgnoreCase = usertypes.IgnoreCase.never,
                reverse: bool = False,
-               wrap: bool = True,
                result_cb: _Callback = None) -> None:
         """Find the given text on the page.
 
@@ -341,7 +403,6 @@ class AbstractSearch(QObject):
             text: The text to search for.
             ignore_case: Search case-insensitively.
             reverse: Reverse search direction.
-            wrap: Allow wrapping at the top or bottom of the page.
             result_cb: Called with a bool indicating whether a match was found.
         """
         raise NotImplementedError
@@ -350,19 +411,21 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self, *, result_cb: _Callback = None) -> None:
+    def prev_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
         """Go to the previous result of the current search.
 
         Args:
-            result_cb: Called with a bool indicating whether a match was found.
+            wrap: Allow wrapping at the top or bottom of the page.
+            callback: Called with a SearchNavigationResult.
         """
         raise NotImplementedError
 
-    def next_result(self, *, result_cb: _Callback = None) -> None:
+    def next_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
         """Go to the next result of the current search.
 
         Args:
-            result_cb: Called with a bool indicating whether a match was found.
+            wrap: Allow wrapping at the top or bottom of the page.
+            callback: Called with a SearchNavigationResult.
         """
         raise NotImplementedError
 

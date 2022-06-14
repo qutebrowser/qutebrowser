@@ -345,8 +345,8 @@ class TestSearch:
         callback.assert_called_with(True)
 
         with qtbot.wait_callback() as callback:
-            web_tab.search.next_result(result_cb=callback)
-        callback.assert_called_with(True)
+            web_tab.search.next_result(callback=callback)
+        callback.assert_called_with(browsertab.SearchNavigationResult.found)
 
         mode_manager.enter(usertypes.KeyMode.caret)
 

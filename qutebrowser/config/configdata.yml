@@ -72,6 +72,13 @@ search.wrap:
     Wrap around at the top and bottom of the page when advancing through text
     matches using `:search-next` and `:search-prev`.
 
+search.wrap_messages:
+  type: Bool
+  default: true
+  desc: >-
+    Display messages when advancing through text matches at the top and bottom
+    of the page, e.g. `Search hit TOP`.
+
 new_instance_open_target:
   type:
     name: String
@@ -2058,6 +2065,7 @@ statusbar.widgets:
         - scroll_raw: "Raw percentage of the current page position like `10`."
         - history: "Display an arrow when possible to go back/forward in
           history."
+        - search_match: "A match count when searching, e.g. `Match [2/10]`."
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
@@ -2067,7 +2075,7 @@ statusbar.widgets:
          https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the
          Python datetime documentation]."
     none_ok: true
-  default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
+  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
 
 ## tabs
