@@ -251,28 +251,29 @@ class StatusBar(QWidget):
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
-            cur_widget = self._get_widget_from_config(segment)
-            self._hbox.addWidget(cur_widget)
+            widget = self._get_widget_from_config(segment)
+            self._hbox.addWidget(widget)
 
             if segment == 'scroll_raw':
-                cur_widget.set_raw()
+                widget.set_raw()
             elif segment in ('history', 'progress'):
-                cur_widget.enabled = True
+                widget.enabled = True
                 if tab:
-                    cur_widget.on_tab_changed(tab)
+                    widget.on_tab_changed(tab)
 
-                # Do not call .show() for these widgets.
+                # Do not call .show() for these widgets. They are not always shown, and
+                # dynamically show/hide themselves in their on_tab_changed() methods.
                 continue
             elif segment.startswith('text:'):
-                cur_widget.setText(segment.split(':', maxsplit=1)[1])
+                widget.setText(segment.split(':', maxsplit=1)[1])
             elif segment.startswith('clock:') or segment == 'clock':
                 split_segment = segment.split(':', maxsplit=1)
                 if len(split_segment) == 2 and split_segment[1]:
-                    cur_widget.format = split_segment[1]
+                    widget.format = split_segment[1]
                 else:
-                    cur_widget.format = '%X'
+                    widget.format = '%X'
 
-            cur_widget.show()
+            widget.show()
 
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
