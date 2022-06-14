@@ -78,6 +78,11 @@ Changed
   *  `clock`, showing the current time
   * `search_match`, showing the current match and total count when finding text
     on a page
+- Messages shown by qutebrowser now don't automatically get interpreted as rich
+  text anymore. Thus, e.g. `:message-info <h1>test` now shows the given text.
+  To show rich text with `:message-*` commands, use their new `--rich` flag.
+  Note this is NOT a security issue, as only a small subset of HTML is
+  interpreted as rich text by Qt, independently from the website.
 
 Fixed
 ~~~~~
@@ -99,6 +104,11 @@ Fixed
 - The Windows installer now more consistently uses the configured Windows colors
 - The Windows installer now bases the desktop/start menu icon choices on the
   existing install, if upgrading.
+- When a text was not found on a page, the associated message would be shown as
+  rich text (e.g. after `/<h1>`). With this release, this is fixed for search
+  messages, while the 3.0.0 release will change the default for all messages to be
+  plain-text. Note this is NOT a security issue, as only a small subset of HTML
+  is interpreted as rich text by Qt, independently from the website.
 
 [[v2.5.1]]
 v2.5.1 (2022-05-26)
