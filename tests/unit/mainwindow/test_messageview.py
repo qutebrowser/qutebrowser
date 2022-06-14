@@ -122,11 +122,43 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
         assert height2 == height1
 
 
-def test_show_message_twice(view):
-    """Show the same message twice -> only one should be shown."""
-    view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'test'))
-    view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'test'))
-    assert len(view._messages) == 1
+@pytest.mark.parametrize("info1, info2, count", [
+    # same
+    (
+        message.MessageInfo(usertypes.MessageLevel.info, 'test'),
+        message.MessageInfo(usertypes.MessageLevel.info, 'test'),
+        1,
+    ),
+    # different text
+    (
+        message.MessageInfo(usertypes.MessageLevel.info, 'test'),
+        message.MessageInfo(usertypes.MessageLevel.info, 'test2'),
+        2,
+    ),
+    # different level
+    (
+        message.MessageInfo(usertypes.MessageLevel.info, 'test'),
+        message.MessageInfo(usertypes.MessageLevel.error, 'test'),
+        2,
+    ),
+    # different rich text
+    (
+        message.MessageInfo(usertypes.MessageLevel.info, 'test', rich=True),
+        message.MessageInfo(usertypes.MessageLevel.info, 'test', rich=False),
+        2,
+    ),
+    # different replaces
+    (
+        message.MessageInfo(usertypes.MessageLevel.info, 'test'),
+        message.MessageInfo(usertypes.MessageLevel.info, 'test', replace='test'),
+        2,
+    ),
+])
+def test_show_message_twice(view, info1, info2, count):
+    """Show the exact same message twice -> only one should be shown."""
+    view.show_message(info1)
+    view.show_message(info2)
+    assert len(view._messages) == count
 
 
 def test_show_message_twice_after_first_disappears(qtbot, view):

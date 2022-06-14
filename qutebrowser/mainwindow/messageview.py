@@ -120,7 +120,7 @@ class MessageView(QWidget):
         self._clear_timer.timeout.connect(self.clear_messages)
         config.instance.changed.connect(self._set_clear_timer_interval)
 
-        self._last_text = None
+        self._last_info = None
 
     @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
@@ -142,14 +142,14 @@ class MessageView(QWidget):
         for widget in self._messages:
             self._remove_message(widget)
         self._messages = []
-        self._last_text = None
+        self._last_info = None
         self.hide()
         self._clear_timer.stop()
 
     @pyqtSlot(message.MessageInfo)
     def show_message(self, info: message.MessageInfo) -> None:
         """Show the given message with the given MessageLevel."""
-        if info.text == self._last_text:
+        if info == self._last_info:
             return
 
         if info.replace is not None:
@@ -164,7 +164,7 @@ class MessageView(QWidget):
         self._vbox.addWidget(widget)
         widget.show()
         self._messages.append(widget)
-        self._last_text = info.text
+        self._last_info = info
         self.show()
         self.update_geometry.emit()
         if config.val.messages.timeout != 0:
