@@ -359,36 +359,42 @@ def nop() -> None:
 
 
 @cmdutils.register()
-def message_error(text: str) -> None:
+def message_error(text: str, rich: bool = False) -> None:
     """Show an error message in the statusbar.
 
     Args:
         text: The text to show.
+        rich: Render the given text as
+              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
     """
-    message.error(text)
+    message.error(text, rich=rich)
 
 
 @cmdutils.register()
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def message_info(text: str, count: int = 1) -> None:
+def message_info(text: str, count: int = 1, rich: bool = False) -> None:
     """Show an info message in the statusbar.
 
     Args:
         text: The text to show.
-        count: How many times to show the message
+        count: How many times to show the message.
+        rich: Render the given text as
+              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
     """
     for _ in range(count):
-        message.info(text)
+        message.info(text, rich=rich)
 
 
 @cmdutils.register()
-def message_warning(text: str) -> None:
+def message_warning(text: str, rich: bool = False) -> None:
     """Show a warning message in the statusbar.
 
     Args:
         text: The text to show.
+        rich: Render the given text as
+              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
     """
-    message.warning(text)
+    message.warning(text, rich=rich)
 
 
 @cmdutils.register(debug=True)

@@ -811,33 +811,45 @@ How many times to run the macro.
 
 [[message-error]]
 === message-error
-Syntax: +:message-error 'text'+
+Syntax: +:message-error [*--rich*] 'text'+
 
 Show an error message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
 
+==== optional arguments
+* +*-r*+, +*--rich*+: Render the given text as https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+
+
 [[message-info]]
 === message-info
-Syntax: +:message-info 'text'+
+Syntax: +:message-info [*--rich*] 'text'+
 
 Show an info message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
 
+==== optional arguments
+* +*-r*+, +*--rich*+: Render the given text as https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+
+
 ==== count
-How many times to show the message
+How many times to show the message.
 
 [[message-warning]]
 === message-warning
-Syntax: +:message-warning 'text'+
+Syntax: +:message-warning [*--rich*] 'text'+
 
 Show a warning message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
+
+==== optional arguments
+* +*-r*+, +*--rich*+: Render the given text as https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+
 
 [[messages]]
 === messages
