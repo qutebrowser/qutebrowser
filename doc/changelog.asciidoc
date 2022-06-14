@@ -70,6 +70,8 @@ Changed
   `--select-first`.
 - New `search.wrap_messages` setting, making it possible to disable search
   wrapping messages.
+- The `:session-save` command now has a new `--no-history` flag, to exclude tab
+  history.
 - New widgets for `statusbar.widgets`:
   *  `clock`, showing the current time
   * `search_match`, showing the current match and total count when finding text

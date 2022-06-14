@@ -1262,7 +1262,7 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] [*--no-history*] ['name']+
 
 Save a session.
 
@@ -1276,6 +1276,7 @@ Save a session.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 * +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
 * +*-p*+, +*--with-private*+: Include private windows.
+* +*-n*+, +*--no-history*+: Don't store tab history.
 
 [[set]]
 === set
