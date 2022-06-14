@@ -19,6 +19,7 @@
 
 """Command dispatcher for TabbedBrowser."""
 
+import html
 import os.path
 import shlex
 import functools
@@ -1561,7 +1562,8 @@ class CommandDispatcher:
             elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
-            message.warning(f"Text '{text}' not found on page!",
+            escaped = html.escape(text)
+            message.warning(f"Text '{escaped}' not found on page!",
                             replace='find-in-page')
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
