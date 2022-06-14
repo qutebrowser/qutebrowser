@@ -873,13 +873,13 @@ class QuteProc(testprocess.Process):
         self.wait_for_load_finished_url(url, timeout=timeout,
                                         load_status=load_status)
 
-    def get_session(self):
+    def get_session(self, flags="--with-private"):
         """Save the session and get the parsed session data."""
         with tempfile.TemporaryDirectory() as tdir:
             session = pathlib.Path(tdir) / 'session.yml'
-            self.send_cmd(':session-save --with-private "{}"'.format(session))
+            self.send_cmd(f':session-save {flags} "{session}"')
             self.wait_for(category='message', loglevel=logging.INFO,
-                          message='Saved session {}.'.format(session))
+                          message=f'Saved session {session}.')
             data = session.read_text(encoding='utf-8')
 
         self._log('\nCurrent session data:\n' + data)
@@ -966,14 +966,14 @@ class QuteProc(testprocess.Process):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 
-    def compare_session(self, expected):
+    def compare_session(self, expected, *, flags="--with-private"):
         """Compare the current sessions against the given template.
 
         partial_compare is used, which means only the keys/values listed will
         be compared.
         """
         __tracebackhide__ = lambda e: e.errisinstance(pytest.fail.Exception)
-        data = self.get_session()
+        data = self.get_session(flags=flags)
         expected = yaml.load(expected, Loader=YamlLoader)
         outcome = testutils.partial_compare(data, expected)
         if not outcome:

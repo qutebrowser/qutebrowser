@@ -533,13 +533,20 @@ def javascript_message_not_logged(quteproc, message):
 
 
 @bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
-def compare_session(request, quteproc, expected):
+def compare_session(quteproc, expected):
     """Compare the current sessions against the given template.
 
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
     quteproc.compare_session(expected)
+
+
+@bdd.then(
+    bdd.parsers.parse("The session saved with {flags} should look like:\n{expected}"))
+def compare_session_flags(quteproc, flags, expected):
+    """Compare the current session saved with custom flags."""
+    quteproc.compare_session(expected, flags=flags)
 
 
 @bdd.then("no crash should happen")
