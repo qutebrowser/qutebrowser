@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, message
 
 
 class Message(QLabel):
@@ -74,6 +74,15 @@ class Message(QLabel):
             raise ValueError("Invalid level {!r}".format(level))
         stylesheet.set_register(self, qss, update=False)
 
+    @classmethod
+    def from_info(cls, info: message.MessageInfo, parent: QWidget = None) -> "Message":
+        return cls(
+            level=info.level,
+            text=info.text,
+            replace=info.replace,
+            parent=parent,
+        )
+
 
 class MessageView(QWidget):
 
@@ -119,31 +128,26 @@ class MessageView(QWidget):
         self.hide()
         self._clear_timer.stop()
 
-    @pyqtSlot(usertypes.MessageLevel, str, str)
-    def show_message(
-            self,
-            level: usertypes.MessageLevel,
-            text: str,
-            replace: str = None,
-    ) -> None:
+    @pyqtSlot(message.MessageInfo)
+    def show_message(self, info: message.MessageInfo) -> None:
         """Show the given message with the given MessageLevel."""
-        if text == self._last_text:
+        if info.text == self._last_text:
             return
 
-        if replace:  # None -> QString() -> ''
-            existing = [msg for msg in self._messages if msg.replace == replace]
+        if info.replace is not None:
+            existing = [msg for msg in self._messages if msg.replace == info.replace]
             if existing:
                 assert len(existing) == 1, existing
-                assert existing[0].level == level, (existing, level)
-                existing[0].setText(text)
+                assert existing[0].level == info.level, (existing, info)
+                existing[0].setText(info.text)
                 self.update_geometry.emit()
                 return
 
-        widget = Message(level, text, replace=replace, parent=self)
+        widget = Message.from_info(info)
         self._vbox.addWidget(widget)
         widget.show()
         self._messages.append(widget)
-        self._last_text = text
+        self._last_text = info.text
         self.show()
         self.update_geometry.emit()
         if config.val.messages.timeout != 0:

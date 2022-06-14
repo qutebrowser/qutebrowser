@@ -23,12 +23,21 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
+import dataclasses
 import traceback
-from typing import Any, Callable, Iterable, List, Tuple, Union, Optional
+from typing import Any, Callable, Iterable, List, Union, Optional
 
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
 
 from qutebrowser.utils import usertypes, log
+
+
+@dataclasses.dataclass
+class MessageInfo:
+
+    level: usertypes.MessageLevel
+    text: str
+    replace: Optional[str] = None
 
 
 def _log_stack(typ: str, stack: str) -> None:
@@ -58,7 +67,11 @@ def error(message: str, *, stack: str = None, replace: str = None) -> None:
         typ = 'error (from exception)'
     _log_stack(typ, stack)
     log.message.error(message)
-    global_bridge.show(usertypes.MessageLevel.error, message, replace)
+    global_bridge.show(
+        level=usertypes.MessageLevel.error,
+        text=message,
+        replace=replace,
+    )
 
 
 def warning(message: str, *, replace: str = None) -> None:
@@ -70,7 +83,11 @@ def warning(message: str, *, replace: str = None) -> None:
     """
     _log_stack('warning', ''.join(traceback.format_stack()))
     log.message.warning(message)
-    global_bridge.show(usertypes.MessageLevel.warning, message, replace)
+    global_bridge.show(
+        level=usertypes.MessageLevel.warning,
+        text=message,
+        replace=replace,
+    )
 
 
 def info(message: str, *, replace: str = None) -> None:
@@ -81,7 +98,11 @@ def info(message: str, *, replace: str = None) -> None:
         replace: Replace existing messages which are still being shown.
     """
     log.message.info(message)
-    global_bridge.show(usertypes.MessageLevel.info, message, replace)
+    global_bridge.show(
+        level=usertypes.MessageLevel.info,
+        text=message,
+        replace=replace,
+    )
 
 
 def _build_question(title: str,
@@ -210,7 +231,7 @@ class GlobalMessageBridge(QObject):
         mode_left: Emitted when a keymode was left in any window.
     """
 
-    show_message = pyqtSignal(usertypes.MessageLevel, str, str)
+    show_message = pyqtSignal(MessageInfo)
     prompt_done = pyqtSignal(usertypes.KeyMode)
     ask_question = pyqtSignal(usertypes.Question, bool)
     mode_left = pyqtSignal(usertypes.KeyMode)
@@ -219,7 +240,7 @@ class GlobalMessageBridge(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
-        self._cache: List[Tuple[usertypes.MessageLevel, str, Optional[str]]] = []
+        self._cache: List[MessageInfo] = []
 
     def ask(self, question: usertypes.Question,
             blocking: bool, *,
@@ -237,14 +258,18 @@ class GlobalMessageBridge(QObject):
         """
         self.ask_question.emit(question, blocking)
 
-    def show(self, level: usertypes.MessageLevel,
-             text: str,
-             replace: str = None) -> None:
+    def show(
+        self,
+        level: usertypes.MessageLevel,
+        text: str,
+        replace: str = None,
+    ) -> None:
         """Show the given message."""
+        info = MessageInfo(level=level, text=text, replace=replace)
         if self._connected:
-            self.show_message.emit(level, text, replace)
+            self.show_message.emit(info)
         else:
-            self._cache.append((level, text, replace))
+            self._cache.append(info)
 
     def flush(self) -> None:
         """Flush messages which accumulated while no handler was connected.
@@ -253,8 +278,8 @@ class GlobalMessageBridge(QObject):
         It needs to be called once the show_message signal is connected.
         """
         self._connected = True
-        for args in self._cache:
-            self.show(*args)
+        for info in self._cache:
+            self.show(**dataclasses.asdict(info))
         self._cache = []
 
 
