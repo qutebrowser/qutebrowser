@@ -35,6 +35,8 @@ from qutebrowser.utils import usertypes, log
 @dataclasses.dataclass
 class MessageInfo:
 
+    """Information associated with a message to be displayed."""
+
     level: usertypes.MessageLevel
     text: str
     replace: Optional[str] = None
@@ -278,11 +280,11 @@ class GlobalMessageBridge(QObject):
         rich: bool = False,
     ) -> None:
         """Show the given message."""
-        info = MessageInfo(level=level, text=text, replace=replace, rich=rich)
+        msg = MessageInfo(level=level, text=text, replace=replace, rich=rich)
         if self._connected:
-            self.show_message.emit(info)
+            self.show_message.emit(msg)
         else:
-            self._cache.append(info)
+            self._cache.append(msg)
 
     def flush(self) -> None:
         """Flush messages which accumulated while no handler was connected.
@@ -291,8 +293,8 @@ class GlobalMessageBridge(QObject):
         It needs to be called once the show_message signal is connected.
         """
         self._connected = True
-        for info in self._cache:
-            self.show(**dataclasses.asdict(info))
+        for msg in self._cache:
+            self.show(**dataclasses.asdict(msg))
         self._cache = []
 
 
