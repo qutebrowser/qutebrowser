@@ -242,7 +242,7 @@ class SessionManager(QObject):
 
         return data
 
-    def _save_tab(self, tab, active):
+    def _save_tab(self, tab, active, no_history=False):
         """Get a dict with data for a single tab.
 
         Args:
@@ -252,7 +252,13 @@ class SessionManager(QObject):
         data: _JsonType = {'history': []}
         if active:
             data['active'] = True
-        for idx, item in enumerate(tab.history):
+
+        if no_history:
+            history = [tab.history.current_item()]
+        else:
+            history = tab.history
+
+        for idx, item in enumerate(history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
             if item.url().scheme() == 'qute' and item.url().host() == 'back':
@@ -264,7 +270,7 @@ class SessionManager(QObject):
                 data['history'].append(item_data)
         return data
 
-    def _save_all(self, *, only_window=None, with_private=False):
+    def _save_all(self, *, only_window=None, with_private=False, no_history=False):
         """Get a dict with data for all windows/tabs."""
         data: _JsonType = {'windows': []}
         if only_window is not None:
@@ -295,7 +301,8 @@ class SessionManager(QObject):
                 win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
-                win_data['tabs'].append(self._save_tab(tab, active))
+                win_data['tabs'].append(self._save_tab(tab, active,
+                                                       no_history=no_history))
             data['windows'].append(win_data)
         return data
 
@@ -316,7 +323,7 @@ class SessionManager(QObject):
         return name
 
     def save(self, name, last_window=False, load_next_time=False,
-             only_window=None, with_private=False):
+             only_window=None, with_private=False, no_history=False):
         """Save a named session.
 
         Args:
@@ -327,6 +334,7 @@ class SessionManager(QObject):
             load_next_time: If set, prepares this session to be load next time.
             only_window: If set, only tabs in the specified window is saved.
             with_private: Include private windows.
+            no_history: Don't save tab history
 
         Return:
             The name of the saved session.
@@ -342,7 +350,8 @@ class SessionManager(QObject):
                 return None
         else:
             data = self._save_all(only_window=only_window,
-                                  with_private=with_private)
+                                  with_private=with_private,
+                                  no_history=no_history)
         log.sessions.vdebug(  # type: ignore[attr-defined]
             "Saving data: {}".format(data))
         try:
@@ -576,12 +585,14 @@ def session_load(name: str, *,
 @cmdutils.argument('name', completion=miscmodels.session)
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('with_private', flag='p')
+@cmdutils.argument('no_history', flag='n')
 def session_save(name: ArgType = default, *,
                  current: bool = False,
                  quiet: bool = False,
                  force: bool = False,
                  only_active_window: bool = False,
                  with_private: bool = False,
+                 no_history: bool = False,
                  win_id: int = None) -> None:
     """Save a session.
 
@@ -593,6 +604,7 @@ def session_save(name: ArgType = default, *,
         force: Force saving internal sessions (starting with an underline).
         only_active_window: Saves only tabs of the currently active window.
         with_private: Include private windows.
+        no_history: Don't store tab history
     """
     if not isinstance(name, Sentinel) and name.startswith('_') and not force:
         raise cmdutils.CommandError("{} is an internal session, use --force "
@@ -605,9 +617,11 @@ def session_save(name: ArgType = default, *,
     try:
         if only_active_window:
             name = session_manager.save(name, only_window=win_id,
-                                        with_private=True)
+                                        with_private=True,
+                                        no_history=no_history)
         else:
-            name = session_manager.save(name, with_private=with_private)
+            name = session_manager.save(name, with_private=with_private,
+                                        no_history=no_history)
     except SessionError as e:
         raise cmdutils.CommandError("Error while saving session: {}".format(e))
     else:
