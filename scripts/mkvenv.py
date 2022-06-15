@@ -137,6 +137,12 @@ def pyqt_versions() -> List[str]:
     return versions + ['auto']
 
 
+def _is_qt6_version(version: str) -> bool:
+    """Check if the given version is Qt 6."""
+    # FIXME:qt6 Adjust once auto = Qt 6 
+    return version == "6" or version.startswith("6.")
+
+
 def run_venv(
         venv_dir: pathlib.Path,
         executable,
@@ -303,7 +309,7 @@ def apply_xcb_util_workaround(
     if pyqt_type != 'binary':
         print("Workaround not needed: Not installing from PyQt binaries.")
         return
-    if pyqt_version not in ['auto', '5.15', '5']:  # FIXME:qt6 Remove once auto = Qt 6
+    if _is_qt6_version(pyqt_version):
         print("Workaround not needed: Not installing Qt 5.15.")
         return
 
