@@ -317,13 +317,13 @@ class FontFamilies:
 
         They yield different results depending on the OS:
 
-                   QFont.StyleHint.Monospace  | QFont.StyleHint.TypeWriter    | QFontDatabase
-                   ------------------------------------------------------
-        Windows:   Courier New      | Courier New         | Courier New
-        Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace
-        macOS:     Menlo            | American Typewriter | Monaco
+                QFont.StyleHint.Monospace  | QFont.StyleHint.TypeWriter | QFontDatabase
+                -----------------------------------------------------------------------
+        Win:    Courier New                | Courier New                | Courier New
+        Linux:  DejaVu Sans Mono           | DejaVu Sans Mono           | monospace
+        macOS:  Menlo                      | American Typewriter        | Monaco
 
-        Test script: https://p.cmpl.cc/d4dfe573
+        Test script: https://p.cmpl.cc/076835c4
 
         On Linux, it seems like both actually resolve to the same font.
 
