@@ -251,6 +251,10 @@ def patch_mac_app(qt6: bool) -> None:
     resources_path = contents_path / 'Resources'
     pyqt_path = macos_path / f'PyQt{ver}'
 
+    # FIXME:qt6 Bring this back and upstream?
+    if qt6:
+        return
+
     # Replace some duplicate files by symlinks
     framework_path = pyqt_path / f'Qt{ver}' / 'lib' / 'QtWebEngineCore.framework'
 
