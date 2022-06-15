@@ -291,6 +291,11 @@ INFO_PLIST_UPDATES = {
 }
 
 
+def _mac_bin_path(base):
+    """Get the macOS qutebrowser binary path."""
+    return os.path.join(base, 'qutebrowser.app', 'Contents', 'MacOS', 'qutebrowser')
+
+
 def build_mac(*, gh_token, debug):
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
@@ -301,14 +306,20 @@ def build_mac(*, gh_token, debug):
             pass
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
+
     utils.print_title("Updating 3rdparty content")
     # FIXME:qt6 Use modern PDF.js version here
     update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=True, fancy_dmg=False,
                         gh_token=gh_token)
+
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app()
+
+    utils.print_title("Running pre-dmg smoke test")
+    smoke_test(_mac_bin_path('dist'), debug=debug)
+
     utils.print_title("Building .dmg")
     subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
 
@@ -323,9 +334,7 @@ def build_mac(*, gh_token, debug):
             subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmpdir], check=True)
             try:
-                binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
-                                      'MacOS', 'qutebrowser')
-                smoke_test(binary, debug=debug)
+                smoke_test(_mac_bin_path(tmpdir), debug=debug)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
