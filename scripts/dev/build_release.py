@@ -177,6 +177,12 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
 
         # macOS 11
         (r'[0-9:]* WARNING: Failed to load libssl/libcrypto\.'),
+
+        # FIXME:qt6 Qt 6.3 on macOS
+        r'[0-9:]* WARNING: Incompatible version of OpenSSL',
+        r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
+        (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
+         r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
     ]
 
     proc = _smoke_test_run(executable)
