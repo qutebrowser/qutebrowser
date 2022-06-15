@@ -139,7 +139,7 @@ def pyqt_versions() -> List[str]:
 
 def _is_qt6_version(version: str) -> bool:
     """Check if the given version is Qt 6."""
-    # FIXME:qt6 Adjust once auto = Qt 6 
+    # FIXME:qt6 Adjust once auto = Qt 6
     return version == "6" or version.startswith("6.")
 
 
@@ -243,11 +243,19 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
     utils.print_col("No proprietary codec support will be available in "
                     "qutebrowser.", 'bold')
 
-    supported_archs = {
-        'linux': {'x86_64'},
-        'win32': {'x86', 'AMD64'},
-        'darwin': {'x86_64'},
-    }
+    if _is_qt6_version(version):
+        supported_archs = {
+            'linux': {'x86_64'},
+            'win32': {'AMD64'},
+            'darwin': {'x86_64', 'arm64'},
+        }
+    else:
+        supported_archs = {
+            'linux': {'x86_64'},
+            'win32': {'x86', 'AMD64'},
+            'darwin': {'x86_64'},
+        }
+
     if sys.platform not in supported_archs:
         utils.print_error(f"{sys.platform} is not a supported platform by PyQt binary "
                           "packages, this will most likely fail.")
