@@ -296,7 +296,7 @@ def _mac_bin_path(base):
     return os.path.join(base, 'qutebrowser.app', 'Contents', 'MacOS', 'qutebrowser')
 
 
-def build_mac(*, gh_token, debug):
+def build_mac(*, gh_token, skip_packaging, debug):
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -319,6 +319,9 @@ def build_mac(*, gh_token, debug):
 
     utils.print_title("Running pre-dmg smoke test")
     smoke_test(_mac_bin_path('dist'), debug=debug)
+
+    if skip_packaging:
+        return []
 
     utils.print_title("Building .dmg")
     subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
@@ -650,7 +653,7 @@ def main():
     parser.add_argument('--no-confirm', action='store_true', required=False,
                         help="Skip confirmation before uploading.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
-                        help="Skip Windows installer/zip generation.")
+                        help="Skip Windows installer/zip generation or macOS DMG.")
     parser.add_argument('--32bit', action='store_true', required=False,
                         help="Skip Windows 64 bit build.", dest='only_32bit')
     parser.add_argument('--64bit', action='store_true', required=False,
@@ -688,7 +691,11 @@ def main():
             debug=args.debug,
         )
     elif sys.platform == 'darwin':
-        artifacts = build_mac(gh_token=gh_token, debug=args.debug)
+        artifacts = build_mac(
+            gh_token=gh_token,
+            skip_packaging=args.skip_packaging,
+            debug=args.debug,
+        )
     else:
         test_makefile()
         artifacts = build_sdist()
