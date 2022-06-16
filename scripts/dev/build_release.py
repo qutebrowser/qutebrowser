@@ -22,7 +22,6 @@
 
 
 import os
-import os.path
 import sys
 import time
 import shutil
@@ -32,22 +31,40 @@ import argparse
 import tarfile
 import tempfile
 import collections
+import dataclasses
 import re
+from typing import Iterable, List, Optional
 
 try:
     import winreg
 except ImportError:
     pass
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                                os.pardir))
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT))
 
 import qutebrowser
 from scripts import utils
 from scripts.dev import update_3rdparty, misc_checks
 
 
-def call_script(name, *args, python=sys.executable):
+SCRIPTS_PATH = REPO_ROOT / "scripts"
+
+
+@dataclasses.dataclass
+class Artifact:
+
+    """A single file being uploaded to GitHub."""
+
+    path: pathlib.Path
+    mimetype: str
+    description: str
+
+    def __str__(self):
+        return f"{self.path} ({self.mimetype}): {self.description}"
+
+
+def call_script(name: str, *args: str, python: str = sys.executable) -> None:
     """Call a given shell script.
 
     Args:
@@ -55,11 +72,15 @@ def call_script(name, *args, python=sys.executable):
         *args: The arguments to pass.
         python: The python interpreter to use.
     """
-    path = os.path.join(os.path.dirname(__file__), os.pardir, name)
-    subprocess.run([python, path] + list(args), check=True)
+    subprocess.run([python, REPO_ROOT / "scripts" / name, *args], check=True)
 
 
-def call_tox(toxenv, *args, python=sys.executable, debug=False):
+def call_tox(
+    toxenv: str,
+    *args: str,
+    python: pathlib.Path = pathlib.Path(sys.executable),
+    debug: bool = False,
+) -> None:
     """Call tox.
 
     Args:
@@ -69,17 +90,17 @@ def call_tox(toxenv, *args, python=sys.executable, debug=False):
         debug: Turn on pyinstaller debugging
     """
     env = os.environ.copy()
-    env['PYTHON'] = python
-    env['PATH'] = os.environ['PATH'] + os.pathsep + os.path.dirname(python)
+    env['PYTHON'] = str(python)
+    env['PATH'] = os.environ['PATH'] + os.pathsep + str(python.parent)
     if debug:
         env['PYINSTALLER_DEBUG'] = '1'
     subprocess.run(
-        [sys.executable, '-m', 'tox', '-vv', '-e', toxenv] + list(args),
+        [sys.executable, '-m', 'tox', '-vv', '-e', toxenv, *args],
         env=env, check=True)
 
 
-def run_asciidoc2html(args):
-    """Common buildsteps used for all OS'."""
+def run_asciidoc2html(args: argparse.Namespace) -> None:
+    """Run the asciidoc2html script."""
     utils.print_title("Running asciidoc2html.py")
     a2h_args = []
     if args.asciidoc is not None:
@@ -89,7 +110,7 @@ def run_asciidoc2html(args):
     call_script('asciidoc2html.py', *a2h_args)
 
 
-def _maybe_remove(path):
+def _maybe_remove(path: pathlib.Path) -> None:
     """Remove a path if it exists."""
     try:
         shutil.rmtree(path)
@@ -97,13 +118,17 @@ def _maybe_remove(path):
         pass
 
 
-def _filter_whitelisted(output, patterns):
+def _filter_whitelisted(output: bytes, patterns: Iterable[str]) -> Iterable[str]:
+    """Get all lines not matching any of the given regex patterns."""
     for line in output.decode('utf-8').splitlines():
         if not any(re.fullmatch(pattern, line) for pattern in patterns):
             yield line
 
 
-def _smoke_test_run(executable, *args):
+def _smoke_test_run(
+    executable: pathlib.Path,
+    *args: str,
+) -> subprocess.CompletedProcess:
     """Get a subprocess to run a smoke test."""
     argv = [
         executable,
@@ -117,7 +142,7 @@ def _smoke_test_run(executable, *args):
     return subprocess.run(argv, check=True, capture_output=True)
 
 
-def smoke_test(executable, debug):
+def smoke_test(executable: pathlib.Path, debug: bool) -> None:
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
@@ -206,43 +231,50 @@ def smoke_test(executable, debug):
         raise Exception("\n".join(lines))
 
 
-def verify_windows_exe(exe_path):
+def verify_windows_exe(exe_path: pathlib.Path) -> None:
     """Make sure the Windows .exe has a correct checksum."""
     import pefile
     pe = pefile.PE(exe_path)
     assert pe.verify_checksum()
 
 
-def patch_mac_app():
-    """Patch .app to save some space."""
-    app_path = os.path.join('dist', 'qutebrowser.app')
+def patch_mac_app() -> None:
+    """Patch .adpp to save some space."""
+    dist_path = pathlib.Path('dist')
+    app_path = dist_path / 'qutebrowser.app'
 
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
-                                  'Qt5', 'lib', 'QtWebEngineCore.framework')
+    framework_path = (
+        app_path / 'Contents' / 'MacOS' / 'PyQt5' / 'Qt5' / 'lib' /
+        'QtWebEngineCore.framework'
+    )
 
-    core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
-    os.remove(core_lib)
-    core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
-    os.symlink(core_target, core_lib)
+    core_lib = framework_path / 'Versions' / '5' / 'QtWebEngineCore'
+    core_lib.unlink()
+    core_target = pathlib.Path(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
+    core_lib.symlink_to(core_target)
 
-    framework_resource_path = os.path.join(framework_path, 'Resources')
-    for name in os.listdir(framework_resource_path):
-        file_path = os.path.join(framework_resource_path, name)
-        target = os.path.join(*[os.pardir] * 5, name)
-        if os.path.isdir(file_path):
+    framework_resource_path = framework_path / 'Resources'
+    for file_path in framework_resource_path.iterdir():
+        target = pathlib.Path(*[os.pardir] * 5, file_path.name)
+        if file_path.is_dir():
             shutil.rmtree(file_path)
         else:
-            os.remove(file_path)
-        os.symlink(target, file_path)
+            file_path.unlink()
+        file_path.symlink_to(target)
 
 
-def _mac_bin_path(base):
+def _mac_bin_path(base: pathlib.Path) -> pathlib.Path:
     """Get the macOS qutebrowser binary path."""
-    return os.path.join(base, 'qutebrowser.app', 'Contents', 'MacOS', 'qutebrowser')
+    return pathlib.Path(base, 'qutebrowser.app', 'Contents', 'MacOS', 'qutebrowser')
 
 
-def build_mac(*, gh_token, skip_packaging, debug):
+def build_mac(
+    *,
+    gh_token: Optional[str],
+    skip_packaging: bool,
+    debug: bool,
+) -> List[Artifact]:
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -263,74 +295,87 @@ def build_mac(*, gh_token, skip_packaging, debug):
     utils.print_title("Patching .app")
     patch_mac_app()
 
+    dist_path = pathlib.Path("dist")
+
     utils.print_title("Running pre-dmg smoke test")
-    smoke_test(_mac_bin_path('dist'), debug=debug)
+    smoke_test(_mac_bin_path(dist_path), debug=debug)
 
     if skip_packaging:
         return []
 
     utils.print_title("Building .dmg")
-    subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
+    dmg_makefile_path = REPO_ROOT / "scripts" / "dev" / "Makefile-dmg"
+    subprocess.run(['make', '-f', dmg_makefile_path], check=True)
 
     suffix = "-debug" if debug else ""
-    dmg_path = f'dist/qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
-    os.rename('qutebrowser.dmg', dmg_path)
+    dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
+    pathlib.Path('qutebrowser.dmg').rename(dmg_path)
 
     utils.print_title("Running smoke test")
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = pathlib.Path(tmpdir)
             subprocess.run(['hdiutil', 'attach', dmg_path,
-                            '-mountpoint', tmpdir], check=True)
+                            '-mountpoint', tmp_path], check=True)
             try:
-                smoke_test(_mac_bin_path(tmpdir), debug=debug)
+                smoke_test(_mac_bin_path(tmp_path), debug=debug)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
-                subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
+                subprocess.run(['hdiutil', 'detach', tmp_path], check=False)
     except PermissionError as e:
-        print("Failed to remove tempdir: {}".format(e))
+        print(f"Failed to remove tempdir: {e}")
 
-    return [(dmg_path, 'application/x-apple-diskimage', 'macOS .dmg')]
+    return [
+        Artifact(
+            path=dmg_path,
+            mimetype='application/x-apple-diskimage',
+            description='macOS .dmg'
+        )
+    ]
 
 
-def _get_windows_python_path(x64):
+def _get_windows_python_path(x64: bool) -> pathlib.Path:
     """Get the path to Python.exe on Windows."""
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dot_ver = '.'.join(parts)
 
     if x64:
-        path = (r'SOFTWARE\Python\PythonCore\{}\InstallPath'
-                .format(dot_ver))
-        fallback = r'C:\Python{}\python.exe'.format(ver)
+        path = rf'SOFTWARE\Python\PythonCore\{dot_ver}\InstallPath'
+        fallback = pathlib.Path('C:', f'Python{ver}', 'python.exe')
     else:
-        path = (r'SOFTWARE\WOW6432Node\Python\PythonCore\{}-32\InstallPath'
-                .format(dot_ver))
-        fallback = r'C:\Python{}-32\python.exe'.format(ver)
+        path = rf'SOFTWARE\WOW6432Node\Python\PythonCore\{dot_ver}-32\InstallPath'
+        fallback = pathlib.Path('C:', f'Python{ver}-32', 'python.exe')
 
     try:
         key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, path)
-        return winreg.QueryValueEx(key, 'ExecutablePath')[0]
+        return pathlib.Path(winreg.QueryValueEx(key, 'ExecutablePath')[0])
     except FileNotFoundError:
         return fallback
 
 
-def _build_windows_single(*, x64, skip_packaging, debug):
+def _build_windows_single(
+    *, x64: bool,
+    skip_packaging: bool,
+    debug: bool,
+) -> List[Artifact]:
     """Build on Windows for a single architecture."""
     human_arch = '64-bit' if x64 else '32-bit'
     utils.print_title(f"Running pyinstaller {human_arch}")
+    dist_path = pathlib.Path("dist")
 
-    outdir = os.path.join(
-        'dist', f'qutebrowser-{qutebrowser.__version__}-{"x64" if x64 else "x86"}')
-    _maybe_remove(outdir)
+    arch = "x64" if x64 else "x86"
+    out_path = dist_path / 'dist' / f'qutebrowser-{qutebrowser.__version__}-{arch}'
+    _maybe_remove(out_path)
 
     python = _get_windows_python_path(x64=x64)
     call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python, debug=debug)
 
-    out_pyinstaller = os.path.join('dist', 'qutebrowser')
-    shutil.move(out_pyinstaller, outdir)
-    exe_path = os.path.join(outdir, 'qutebrowser.exe')
+    out_pyinstaller = dist_path / "qutebrowser"
+    shutil.move(out_pyinstaller, out_path)
+    exe_path = out_path / 'qutebrowser.exe'
 
     utils.print_title(f"Verifying {human_arch} exe")
     verify_windows_exe(exe_path)
@@ -344,7 +389,7 @@ def _build_windows_single(*, x64, skip_packaging, debug):
     utils.print_title(f"Packaging {human_arch}")
     return _package_windows_single(
         nsis_flags=[] if x64 else ['/DX86'],
-        outdir=outdir,
+        out_path=out_path,
         filename_arch='amd64' if x64 else 'win32',
         desc_arch=human_arch,
         desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
@@ -352,7 +397,13 @@ def _build_windows_single(*, x64, skip_packaging, debug):
     )
 
 
-def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
+def build_windows(
+    *, gh_token: str,
+    skip_packaging: bool,
+    only_32bit: bool,
+    only_64bit: bool,
+    debug: bool,
+) -> List[Artifact]:
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     # FIXME:qt6 Use modern PDF.js version here
@@ -385,16 +436,17 @@ def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
 
 def _package_windows_single(
     *,
-    nsis_flags,
-    outdir,
-    desc_arch,
-    desc_suffix,
-    filename_arch,
-    debug,
-):
+    nsis_flags: List[str],
+    out_path: pathlib.Path,
+    desc_arch: str,
+    desc_suffix: str,
+    filename_arch: str,
+    debug: bool,
+) -> List[Artifact]:
     """Build the given installer/zip for windows."""
     artifacts = []
 
+    dist_path = pathlib.Path("dist")
     utils.print_subtitle(f"Building {desc_arch} installer...")
     subprocess.run(['makensis.exe',
                     f'/DVERSION={qutebrowser.__version__}', *nsis_flags,
@@ -409,10 +461,10 @@ def _package_windows_single(
         name_parts.append('debug')
     name = '-'.join(name_parts) + '.exe'
 
-    artifacts.append((
-        os.path.join('dist', name),
-        'application/vnd.microsoft.portable-executable',
-        f'Windows {desc_arch} installer{desc_suffix}',
+    artifacts.append(Artifact(
+        path=dist_path / name,
+        mimetype='application/vnd.microsoft.portable-executable',
+        description=f'Windows {desc_arch} installer{desc_suffix}',
     ))
 
     utils.print_subtitle(f"Zipping {desc_arch} standalone...")
@@ -427,18 +479,18 @@ def _package_windows_single(
         zip_name_parts.append('debug')
     zip_name = '-'.join(zip_name_parts)
 
-    zip_path = os.path.join('dist', zip_name)
-    shutil.make_archive(zip_path, 'zip', 'dist', os.path.basename(outdir))
-    artifacts.append((
-        f'{zip_path}.zip',
-        'application/zip',
-        f'Windows {desc_arch} standalone{desc_suffix}'
+    zip_path = dist_path / zip_name
+    shutil.make_archive(str(zip_path), 'zip', 'dist', out_path.name)
+    artifacts.append(Artifact(
+        path=zip_path.with_suffix(".zip"),
+        mimetype='application/zip',
+        description=f'Windows {desc_arch} standalone{desc_suffix}',
     ))
 
     return artifacts
 
 
-def build_sdist():
+def build_sdist() -> List[Artifact]:
     """Build an sdist and list the contents."""
     utils.print_title("Building sdist")
 
@@ -448,7 +500,7 @@ def build_sdist():
     subprocess.run([sys.executable, '-m', 'build'], check=True)
 
     dist_files = list(dist_path.glob('*.tar.gz'))
-    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
+    filename = f'qutebrowser-{qutebrowser.__version__}.tar.gz'
     assert dist_files == [dist_path / filename], dist_files
     dist_file = dist_files[0]
 
@@ -460,45 +512,51 @@ def build_sdist():
         for tarinfo in tar.getmembers():
             if not tarinfo.isfile():
                 continue
-            name = os.sep.join(tarinfo.name.split(os.sep)[1:])
-            _base, ext = os.path.splitext(name)
-            by_ext[ext].append(name)
+            path = pathlib.Path(*pathlib.Path(tarinfo.name).parts[1:])
+            by_ext[path.suffix].append(path)
 
     assert '.pyc' not in by_ext
 
     utils.print_title("sdist contents")
 
-    for ext, files in sorted(by_ext.items()):
+    for ext, paths in sorted(by_ext.items()):
         utils.print_subtitle(ext)
-        print('\n'.join(files))
+        print('\n'.join(str(p) for p in paths))
 
     artifacts = [
-        (str(dist_file), 'application/gzip', 'Source release'),
-        (
-            str(dist_file.with_suffix(dist_file.suffix + '.asc')),
-            'application/pgp-signature',
-            'Source release - PGP signature',
+        Artifact(
+            path=dist_file,
+            mimetype='application/gzip',
+            description='Source release',
+        ),
+        Artifact(
+            path=dist_file.with_suffix(dist_file.suffix + '.asc'),
+            mimetype='application/pgp-signature',
+            description='Source release - PGP signature',
         ),
     ]
 
     return artifacts
 
 
-def test_makefile():
+def test_makefile() -> None:
     """Make sure the Makefile works correctly."""
     utils.print_title("Testing makefile")
     with tempfile.TemporaryDirectory() as tmpdir:
         subprocess.run(['make', '-f', 'misc/Makefile',
-                        'DESTDIR={}'.format(tmpdir), 'install'], check=True)
+                        f'DESTDIR={tmpdir}', 'install'], check=True)
 
 
-def read_github_token(arg_token, *, optional=False):
+def read_github_token(
+    arg_token: Optional[str], *,
+    optional: bool = False,
+) -> Optional[str]:
     """Read the GitHub API token from disk."""
     if arg_token is not None:
         return arg_token
 
-    token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
-    if not os.path.exists(token_file):
+    token_path = pathlib.Path.home() / '.gh_token'
+    if not token_path.exists():
         if optional:
             return None
         else:
@@ -506,16 +564,15 @@ def read_github_token(arg_token, *, optional=False):
                 "GitHub token needed, but ~/.gh_token not found, "
                 "and --gh-token not given.")
 
-    with open(token_file, encoding='ascii') as f:
-        token = f.read().strip()
+    token = token_path.read_text(encoding="ascii").strip()
     return token
 
 
-def github_upload(artifacts, tag, gh_token):
+def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
     """Upload the given artifacts to GitHub.
 
     Args:
-        artifacts: A list of (filename, mimetype, description) tuples
+        artifacts: A list of Artifacts to upload.
         tag: The name of the release tag
         gh_token: The GitHub token to use
     """
@@ -531,58 +588,61 @@ def github_upload(artifacts, tag, gh_token):
         if release.tag_name == tag:
             break
     else:
-        raise Exception("No release found for {!r}!".format(tag))
+        raise Exception(f"No release found for {tag!r}!")
 
-    for filename, mimetype, description in artifacts:
+    for artifact in artifacts:
         while True:
-            print("Uploading {}".format(filename))
+            print("Uploading {path}")
 
-            basename = os.path.basename(filename)
             assets = [asset for asset in release.assets()
-                      if asset.name == basename]
+                      if asset.name == artifact.path.name]
             if assets:
-                print("Assets already exist: {}".format(assets))
+                print(f"Assets already exist: {assets}")
                 print("Press enter to continue anyways or Ctrl-C to abort.")
                 input()
 
             try:
-                with open(filename, 'rb') as f:
-                    release.upload_asset(mimetype, basename, f, description)
+                with artifact.path.open('rb') as f:
+                    release.upload_asset(
+                        artifact.mimetype,
+                        artifact.path.name,
+                        f,
+                        artifact.description,
+                    )
             except github3.exceptions.ConnectionError as e:
-                utils.print_error('Failed to upload: {}'.format(e))
+                utils.print_error(f'Failed to upload: {e}')
                 print("Press Enter to retry...", file=sys.stderr)
                 input()
                 print("Retrying!")
 
                 assets = [asset for asset in release.assets()
-                          if asset.name == basename]
+                          if asset.name == artifact.path.name]
                 if assets:
                     stray_asset = assets[0]
-                    print("Deleting stray asset {}".format(stray_asset.name))
+                    print(f"Deleting stray asset {stray_asset.name}")
                     stray_asset.delete()
             else:
                 break
 
 
-def pypi_upload(artifacts):
+def pypi_upload(artifacts: List[Artifact]) -> None:
     """Upload the given artifacts to PyPI using twine."""
     utils.print_title("Uploading to PyPI...")
     run_twine('upload', artifacts)
 
 
-def twine_check(artifacts):
+def twine_check(artifacts: List[Artifact]) -> None:
     """Check packages using 'twine check'."""
     utils.print_title("Running twine check...")
     run_twine('check', artifacts, '--strict')
 
 
-def run_twine(command, artifacts, *args):
-    filenames = [a[0] for a in artifacts]
-    subprocess.run([sys.executable, '-m', 'twine', command] + list(args) + filenames,
-                   check=True)
+def run_twine(command: str, artifacts: List[Artifact], *args: str) -> None:
+    paths = [a.path for a in artifacts]
+    subprocess.run([sys.executable, '-m', 'twine', command, *args, *paths], check=True)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--skip-docs', action='store_true',
                         help="Don't generate docs")
@@ -624,7 +684,7 @@ def main():
         sys.exit(1)
 
     if args.skip_docs:
-        os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
+        pathlib.Path("qutebrowser", "html", "doc").mkdir(parents=True, exist_ok=True)
     else:
         run_asciidoc2html(args)
 
@@ -649,12 +709,13 @@ def main():
         upload_to_pypi = True
 
     if args.upload:
-        version_tag = "v" + qutebrowser.__version__
+        version_tag = f"v{qutebrowser.__version__}"
 
         if not args.no_confirm:
-            utils.print_title("Press enter to release {}...".format(version_tag))
+            utils.print_title(f"Press enter to release {version_tag}...")
             input()
 
+        assert gh_token is not None
         github_upload(artifacts, version_tag, gh_token=gh_token)
         if upload_to_pypi:
             pypi_upload(artifacts)
