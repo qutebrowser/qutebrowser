@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block style %}
+body {
+    background-color: #263238;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.wrapper {
+    width: 800px;
+    margin: 0 auto;
+}
+
+.header {
+    margin-top: 120px;
+    margin-bottom: 80px;
+}
+
+.title-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 600px;
+    margin: auto;
+    padding: 15px;
+}
+
+.logo {
+    width: 105px;
+    height: 105px;
+    margin-bottom: 20px;
+}
+
+input {
+    font-size: 23px;
+    outline: none;
+    min-height: 50px;
+    width: 600px;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: #4e4f63db;
+    color: #cce1f7;
+}
+
+input::placeholder {
+    color: #bccbda;
+}
+
+.bookmarks {
+    display: flex;
+    flex-direction: column;
+}
+
+.bookmark-container {
+    border-color: #222d32;
+    background-color: #222d32;
+    border-radius: 8px;
+    border-width: 1px;
+    border-style: solid;
+    margin-bottom: 15px;
+    padding: 10px;
+}
+
+.bookmark-container-title {
+    margin: 0;
+    font-size: 25px;
+    font-family: monospace;
+    padding: 10px 10px 0 10px;
+    color: #84b4e6;
+}
+
+.link-container {
+    margin: 10px 15px;
+    font-size: 18px;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:link, a:visited {
+    color: #bdc4d4;
+}
+
+@media (prefers-color-scheme: light) {
+    body {
+        background-color: #f9fcff;
+    }
+
+    input {
+        background-color: #f4f7fffc;
+        color: #4380c3;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    input::placeholder {
+        color: #7b87a5;
+    }
+
+    .bookmark-container {
+        margin-bottom: 20px;
+        background-color: #f4f7ff66;
+        border-color: #f4f7ff66;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .bookmark-container-title {
+        color: #4b91da;
+    }
+
+    a:link, a:visited {
+        color: #4b5a80;
+    }
+
+}
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+  <div class="header">
+    <div class="title-container">
+      <img class="logo" src="{{ resource_url('icons/qutebrowser.svg') }}">
+    </div>
+    <div class="search-box title-container" id="search">
+      <form>
+        <input type="text" size="50" name="q" placeholder="Search the web" id="search-field"/>
+        <input type="submit" style="display: none;" formaction="{{ search_url }}" formmethod="get" >
+      </form>
+    </div>
+  </div>
+  <div class="bookmarks">
+    {% if bookmarks %}
+    <div class="bookmark-container">
+      <h4 class="bookmark-container-title">Bookmarks</h4>
+      {% for bookmark in bookmarks %}
+      <div class="link-container">
+        <a href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if quickmarks %}
+    <div class="bookmark-container">
+      <h4 class="bookmark-container-title">Quickmarks</h4>
+      {% for quickmark in quickmarks %}
+      <div class="link-container">
+        <a href="{{ quickmark[1] }}"> {{ quickmark[0] }} </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="bookmark-container">
+      <h4 class="bookmark-container-title">Getting Started</h4>
+      <div class="link-container">
+        <a href="https://qutebrowser.org">Official Website</a>
+      </div>
+      <div class="link-container">
+        <a href="qute://help/quickstart.html">Quickstart</a>
+      </div>
+      <div class="link-container">
+        <a href="qute://help/changelog.html">Changelog</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
