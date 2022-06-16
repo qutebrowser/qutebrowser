@@ -93,10 +93,10 @@ class ContentDisposition:
             # Fixed in Python 3.7.5 and 3.8.0.
             # Still getting failures on 3.10 on CI though
             raise ContentDispositionError("Missing closing quote character")
-        except ValueError:  # pragma: no cover
+        except ValueError:
             # WORKAROUND for https://github.com/python/cpython/issues/87112
             raise ContentDispositionError("Non-ASCII digit")
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             # WORKAROUND for https://github.com/python/cpython/issues/93010
             raise ContentDispositionError("Section number has an invalid leading 0")
 
