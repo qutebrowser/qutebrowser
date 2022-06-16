@@ -352,6 +352,26 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
+    function *traverse_dom(start_node) {
+        while (start_node !== null) {
+            yield start_node;
+            if (start_node.children.length > 0) {
+                start_node = start_node.children[0];
+                continue;
+            }
+
+            if (iframe_same_domain(start_node.contentWindow)) {
+                yield* traverse_dom(start_node.document);
+            }
+
+            while (start_node !== null && start_node.nextSibling === null) {
+                start_node = start_node.parentNode;
+            }
+
+            start_node = start_node?.nextElementSibling;
+        }
+    }
+
     // Function for returning a selection or focus to python (so we can click
     // it). If nothing is selected but there is something focused, returns
     // "focused"
