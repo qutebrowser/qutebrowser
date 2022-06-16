@@ -27,7 +27,6 @@ import sys
 import time
 import shutil
 import pathlib
-import plistlib
 import subprocess
 import argparse
 import tarfile
@@ -215,16 +214,8 @@ def verify_windows_exe(exe_path):
 
 
 def patch_mac_app():
-    """Patch .app to use our Info.plist and save some space."""
+    """Patch .app to save some space."""
     app_path = os.path.join('dist', 'qutebrowser.app')
-
-    # Patch Info.plist - pyinstaller's options are too limiting
-    plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
-    with open(plist_path, "rb") as f:
-        plist_data = plistlib.load(f)
-    plist_data.update(INFO_PLIST_UPDATES)
-    with open(plist_path, "wb") as f:
-        plistlib.dump(plist_data, f)
 
     # Replace some duplicate files by symlinks
     framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
@@ -244,51 +235,6 @@ def patch_mac_app():
         else:
             os.remove(file_path)
         os.symlink(target, file_path)
-
-
-INFO_PLIST_UPDATES = {
-    'CFBundleVersion': qutebrowser.__version__,
-    'CFBundleShortVersionString': qutebrowser.__version__,
-    'NSSupportsAutomaticGraphicsSwitching': True,
-    'NSHighResolutionCapable': True,
-    'NSRequiresAquaSystemAppearance': False,
-    'CFBundleURLTypes': [{
-        "CFBundleURLName": "http(s) URL",
-        "CFBundleURLSchemes": ["http", "https"]
-    }, {
-        "CFBundleURLName": "local file URL",
-        "CFBundleURLSchemes": ["file"]
-    }],
-    'CFBundleDocumentTypes': [{
-        "CFBundleTypeExtensions": ["html", "htm"],
-        "CFBundleTypeMIMETypes": ["text/html"],
-        "CFBundleTypeName": "HTML document",
-        "CFBundleTypeOSTypes": ["HTML"],
-        "CFBundleTypeRole": "Viewer",
-    }, {
-        "CFBundleTypeExtensions": ["xhtml"],
-        "CFBundleTypeMIMETypes": ["text/xhtml"],
-        "CFBundleTypeName": "XHTML document",
-        "CFBundleTypeRole": "Viewer",
-    }],
-
-    # https://developer.apple.com/documentation/avfoundation/cameras_and_media_capture/requesting_authorization_for_media_capture_on_macos
-    #
-    # Keys based on Google Chrome's .app, except Bluetooth keys which seem to
-    # be iOS-only.
-    #
-    # If we don't do this, we get a SIGABRT from macOS when those permissions
-    # are used, and even in some other situations (like logging into Google
-    # accounts)...
-    'NSCameraUsageDescription':
-        'A website in qutebrowser wants to use the camera.',
-    'NSLocationUsageDescription':
-        'A website in qutebrowser wants to use your location information.',
-    'NSMicrophoneUsageDescription':
-        'A website in qutebrowser wants to use your microphone.',
-    'NSBluetoothAlwaysUsageDescription':
-        'A website in qutebrowser wants to access Bluetooth.',
-}
 
 
 def _mac_bin_path(base):
