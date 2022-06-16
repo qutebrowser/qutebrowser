@@ -239,15 +239,17 @@ def verify_windows_exe(exe_path: pathlib.Path) -> None:
 
 
 def patch_mac_app() -> None:
-    """Patch .adpp to save some space."""
+    """Patch .app to save some space and make it signable."""
     dist_path = pathlib.Path('dist')
     app_path = dist_path / 'qutebrowser.app'
 
+    contents_path = app_path / 'Contents'
+    macos_path = contents_path / 'MacOS'
+    resources_path = contents_path / 'Resources'
+    pyqt_path = macos_path / 'PyQt5'
+
     # Replace some duplicate files by symlinks
-    framework_path = (
-        app_path / 'Contents' / 'MacOS' / 'PyQt5' / 'Qt5' / 'lib' /
-        'QtWebEngineCore.framework'
-    )
+    framework_path = pyqt_path / 'Qt5' / 'lib' / 'QtWebEngineCore.framework'
 
     core_lib = framework_path / 'Versions' / '5' / 'QtWebEngineCore'
     core_lib.unlink()
@@ -262,6 +264,40 @@ def patch_mac_app() -> None:
         else:
             file_path.unlink()
         file_path.symlink_to(target)
+
+    # Move stuff around to make things signable on macOS
+    # See https://github.com/pyinstaller/pyinstaller/issues/6612
+    pyqt_path_dest = resources_path / pyqt_path.name
+    shutil.move(pyqt_path, pyqt_path_dest)
+    pyqt_path_target = pathlib.Path("..") / pyqt_path_dest.relative_to(contents_path)
+    pyqt_path.symlink_to(pyqt_path_target)
+
+    for path in macos_path.glob("Qt*"):
+        link_path = resources_path / path.name
+        target_path = pathlib.Path("..") / path.relative_to(contents_path)
+        link_path.symlink_to(target_path)
+
+
+def sign_mac_app() -> None:
+    """Re-sign and verify the Mac .app."""
+    app_path = pathlib.Path('dist') / 'qutebrowser.app'
+    subprocess.run([
+        'codesign',
+        '-s', '-',
+        '--force',
+        '--timestamp',
+        '--deep',
+        '--verbose',
+        app_path,
+    ], check=True)
+    subprocess.run([
+        'codesign',
+        '--verify',
+        '--strict',
+        '--deep',
+        '--verbose',
+        app_path,
+    ], check=True)
 
 
 def _mac_bin_path(base: pathlib.Path) -> pathlib.Path:
@@ -294,6 +330,8 @@ def build_mac(
     call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app()
+    utils.print_title("Re-signing .app")
+    sign_mac_app()
 
     dist_path = pathlib.Path("dist")
 
