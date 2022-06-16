@@ -180,10 +180,10 @@ window._qutebrowser.webelem = (function() {
         let rect = add_offset_rect(elem.getBoundingClientRect(), offset_rect);
 
         if (!rect ||
-                rect.top > window.innerHeight ||
-                rect.bottom < 0 ||
-                rect.left > window.innerWidth ||
-                rect.right < 0) {
+            rect.top > window.innerHeight ||
+            rect.bottom < 0 ||
+            rect.left > window.innerWidth ||
+            rect.right < 0) {
             return false;
         }
 
@@ -239,18 +239,27 @@ window._qutebrowser.webelem = (function() {
     };
 
     funcs.find_xpath = (xpath) => {
-        const xpath_result = document.evaluate(xpath, document, null,
-            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        function finder(win) {
+            const doc = win.document;
+            const xpath_result = doc.evaluate(xpath, doc, null,
+                XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
-        const out = [];
+            const out = [];
 
-        for (let i = 0; i < xpath_result.snapshotLength; i++) {
-            out.push(serialize_elem(xpath_result.snapshotItem(i)));
+            for (let i = 0; i < xpath_result.snapshotLength; i++) {
+                out.push(serialize_elem(xpath_result.snapshotItem(i)));
+            }
+
+            if (out.length > 0) {
+                return out;
+            }
+            return null;
         }
 
-        // Maybe need to rescurse into the subframes.
+        const direct = finder(window) ?? [];
+        const in_frames = run_frames(finder) ?? [];
 
-        return {"success": true, "result": out};
+        return {"success": true, "result": [...direct, ...in_frames]};
     };
 
     // Runs a function in a frame until the result is not null, then return
@@ -331,7 +340,7 @@ window._qutebrowser.webelem = (function() {
             (frame) => {
                 // Subtract offsets due to being in an iframe
                 const frame_offset_rect =
-                      frame.frameElement.getBoundingClientRect();
+                    frame.frameElement.getBoundingClientRect();
                 return serialize_elem(frame.document.
                     elementFromPoint(x - frame_offset_rect.left,
                         y - frame_offset_rect.top), frame);
