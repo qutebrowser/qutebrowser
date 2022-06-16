@@ -48,9 +48,6 @@ from scripts import utils
 from scripts.dev import update_3rdparty, misc_checks
 
 
-SCRIPTS_PATH = REPO_ROOT / "scripts"
-
-
 @dataclasses.dataclass
 class Artifact:
 
@@ -352,8 +349,8 @@ def build_mac(
     utils.print_title("Running smoke test")
 
     try:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = pathlib.Path(tmpdir)
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
             subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmp_path], check=True)
             try:
