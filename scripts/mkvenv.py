@@ -398,7 +398,7 @@ def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     return all_libs
 
 
-def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
+def run_qt_smoke_test_single(venv_dir: pathlib.Path, *, debug: bool) -> None:
     """Make sure the Qt installation works."""
     utils.print_title("Running Qt smoke test")
     code = [
@@ -417,16 +417,35 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
         run_venv(
             venv_dir,
             'python', '-c', '; '.join(code),
-            env={'QT_DEBUG_PLUGINS': '1'},
+            env={'QT_DEBUG_PLUGINS': '1'} if debug else {},
             capture_error=True
         )
     except Error as e:
         proc_e = e.__cause__
         assert isinstance(proc_e, subprocess.CalledProcessError), proc_e
         print(proc_e.stderr)
-        raise Error(
-            f"Smoke test failed with status {proc_e.returncode}. "
-            "You might find additional information in the debug output above.")
+
+        msg = f"Smoke test failed with status {proc_e.returncode}."
+        if debug:
+            msg += " You might find additional information in the debug output above."
+        raise Error(msg)
+
+
+def run_qt_smoke_test(venv_dir: pathlib.Path, *, pyqt_version: str) -> None:
+    """Make sure the Qt installation works."""
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-104415
+    no_debug = pyqt_version in ("6.3", "6") and sys.platform == "darwin"
+    if no_debug:
+        try:
+            run_qt_smoke_test_single(venv_dir, debug=False)
+        except Error as e:
+            print(e)
+            print("Rerunning with debug output...")
+            print("NOTE: This will likely segfault due to a Qt bug:")
+            print("https://bugreports.qt.io/browse/QTBUG-104415")
+            run_qt_smoke_test_single(venv_dir, debug=True)
+    else:
+        run_qt_smoke_test_single(venv_dir, debug=True)
 
 
 def install_requirements(venv_dir: pathlib.Path) -> None:
@@ -537,7 +556,7 @@ def run(args) -> None:
         install_dev_requirements(venv_dir)
 
     if args.pyqt_type != 'skip' and not args.skip_smoke_test:
-        run_qt_smoke_test(venv_dir)
+        run_qt_smoke_test(venv_dir, pyqt_version=args.pyqt_version)
     if not args.skip_docs:
         regenerate_docs(venv_dir, args.asciidoc)
 
