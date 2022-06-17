@@ -27,7 +27,7 @@ import functools
 import glob
 import textwrap
 import dataclasses
-from typing import cast, List, Sequence
+from typing import cast, List, Sequence, Tuple, Optional
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
@@ -227,6 +227,21 @@ class MatchingScripts:
     idle: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
 
 
+@dataclasses.dataclass
+class LoadResults:
+
+    """The results of loading all Greasemonkey scripts."""
+
+    successful: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+
+    def successful_str(self) -> str:
+        if not self.successful:
+            return "No Greasemonkey scripts loaded"
+
+        names = '\n'.join(str(script) for script in sorted(self.successful, key=str))
+        return f"Loaded Greasemonkey scripts:\n\n{names}"
+
+
 class GreasemonkeyMatcher:
 
     """Check whether scripts should be loaded for a given URL."""
@@ -282,7 +297,7 @@ class GreasemonkeyManager(QObject):
         self._run_idle: List[GreasemonkeyScript] = []
         self._in_progress_dls: List[downloads.AbstractDownloadItem] = []
 
-    def load_scripts(self, *, force: bool = False) -> List[GreasemonkeyScript]:
+    def load_scripts(self, *, force: bool = False) -> LoadResults:
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -293,7 +308,7 @@ class GreasemonkeyManager(QObject):
                    re-download them.
 
         Return:
-            A list of loaded scripts.
+            A LoadResults object describing the outcome.
         """
         self._run_start = []
         self._run_end = []
@@ -316,7 +331,7 @@ class GreasemonkeyManager(QObject):
                     scripts.append(script)
 
         self.scripts_reloaded.emit()
-        return sorted(scripts, key=str)
+        return LoadResults(successful=scripts)
 
     def add_script(self, script, force=False):
         """Add a GreasemonkeyScript to this manager.
@@ -458,10 +473,9 @@ def greasemonkey_reload(force: bool = False, quiet: bool = False) -> None:
                 re-download them.
         quiet: Suppress message after loading scripts.
     """
-    scripts = gm_manager.load_scripts(force=force)
-    names = '\n'.join(str(script) for script in scripts)
+    result = gm_manager.load_scripts(force=force)
     if not quiet:
-        message.info(f"Loaded scripts:\n\n{names}")
+        message.info(result.successful_str())
 
 
 def init():
