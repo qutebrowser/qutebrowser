@@ -402,7 +402,7 @@ def _build_windows_single(
     dist_path = pathlib.Path("dist")
 
     arch = "x64" if x64 else "x86"
-    out_path = dist_path / 'dist' / f'qutebrowser-{qutebrowser.__version__}-{arch}'
+    out_path = dist_path / f'qutebrowser-{qutebrowser.__version__}-{arch}'
     _maybe_remove(out_path)
 
     python = _get_windows_python_path(x64=x64)
