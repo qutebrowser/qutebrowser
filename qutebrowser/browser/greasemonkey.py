@@ -236,6 +236,10 @@ class LoadResults:
     errors: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
     def successful_str(self) -> str:
+        """Get a string with all successfully loaded scripts.
+
+        This can be used e.g. for a message.info() call.
+        """
         if not self.successful:
             return "No Greasemonkey scripts loaded"
 
@@ -243,6 +247,11 @@ class LoadResults:
         return f"Loaded Greasemonkey scripts:\n\n{names}"
 
     def error_str(self) -> Optional[str]:
+        """Get a string with all errors during script loading.
+
+        This can be used e.g. for a message.error() call.
+        If there were no errors, None is returned.
+        """
         if not self.errors:
             return None
 
