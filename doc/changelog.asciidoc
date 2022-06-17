@@ -109,6 +109,8 @@ Fixed
 - The Windows installer now more consistently uses the configured Windows colors
 - The Windows installer now bases the desktop/start menu icon choices on the
   existing install, if upgrading.
+- The macOS release hopefully doesn't cause macOS to (falsely) claim that it
+  "is damaged and can't be opened" anymore.
 - When a text was not found on a page, the associated message would be shown as
   rich text (e.g. after `/<h1>`). With this release, this is fixed for search
   messages, while the 3.0.0 release will change the default for all messages to be
