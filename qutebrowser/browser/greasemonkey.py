@@ -282,8 +282,6 @@ class GreasemonkeyManager(QObject):
         self._run_idle: List[GreasemonkeyScript] = []
         self._in_progress_dls: List[downloads.AbstractDownloadItem] = []
 
-        self.load_scripts()
-
     def load_scripts(self, *, force: bool = False) -> List[GreasemonkeyScript]:
         """Re-read Greasemonkey scripts from disk.
 
@@ -470,6 +468,7 @@ def init():
     """Initialize Greasemonkey support."""
     global gm_manager
     gm_manager = GreasemonkeyManager()
+    gm_manager.load_scripts()
 
     for scripts_dir in _scripts_dirs():
         try:

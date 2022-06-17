@@ -47,6 +47,11 @@ pytestmark = [
 ]
 
 
+@pytest.fixture
+def gm_manager():
+    return greasemonkey.GreasemonkeyManager()
+
+
 def _save_script(script_text, filename):
     # pylint: disable=no-member
     file_path = py.path.local(greasemonkey._scripts_dirs()[0]) / filename
@@ -54,11 +59,11 @@ def _save_script(script_text, filename):
     file_path.write_text(script_text, encoding='utf-8', ensure=True)
 
 
-def test_all():
+def test_all(gm_manager):
     """Test that a script gets read from file, parsed and returned."""
     _save_script(test_gm_script, 'test.user.js')
+    gm_manager.load_scripts()
 
-    gm_manager = greasemonkey.GreasemonkeyManager()
     assert (gm_manager.all_scripts()[0].name ==
             "qutebrowser test userscript")
 
@@ -71,10 +76,10 @@ def test_all():
     # excluded
     ('https://badhost.xxx/', 0),
 ])
-def test_get_scripts_by_url(url, expected_matches):
+def test_get_scripts_by_url(gm_manager, url, expected_matches):
     """Check Greasemonkey include/exclude rules work."""
     _save_script(test_gm_script, 'test.user.js')
-    gm_manager = greasemonkey.GreasemonkeyManager()
+    gm_manager.load_scripts()
 
     scripts = gm_manager.scripts_for(QUrl(url))
     assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
@@ -88,7 +93,7 @@ def test_get_scripts_by_url(url, expected_matches):
     # excluded takes priority
     ('http://github.com/foo', 0),
 ])
-def test_regex_includes_scripts_for(url, expected_matches):
+def test_regex_includes_scripts_for(gm_manager, url, expected_matches):
     """Ensure our GM @*clude support supports regular expressions."""
     gh_dark_example = textwrap.dedent(r"""
         // ==UserScript==
@@ -98,18 +103,18 @@ def test_regex_includes_scripts_for(url, expected_matches):
         // ==/UserScript==
     """)
     _save_script(gh_dark_example, 'test.user.js')
-    gm_manager = greasemonkey.GreasemonkeyManager()
+    gm_manager.load_scripts()
 
     scripts = gm_manager.scripts_for(QUrl(url))
     assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
-def test_no_metadata(caplog):
+def test_no_metadata(gm_manager, caplog):
     """Run on all sites at document-end is the default."""
     _save_script("var nothing = true;\n", 'nothing.user.js')
 
     with caplog.at_level(logging.WARNING):
-        gm_manager = greasemonkey.GreasemonkeyManager()
+        gm_manager.load_scripts()
 
     scripts = gm_manager.scripts_for(QUrl('http://notamatch.invalid/'))
     assert len(scripts.start + scripts.end + scripts.idle) == 1
@@ -145,24 +150,24 @@ def test_full_name(properties, inc_counter, expected):
     assert script.full_name() == expected
 
 
-def test_bad_scheme(caplog):
+def test_bad_scheme(gm_manager, caplog):
     """qute:// isn't in the list of allowed schemes."""
     _save_script("var nothing = true;\n", 'nothing.user.js')
 
     with caplog.at_level(logging.WARNING):
-        gm_manager = greasemonkey.GreasemonkeyManager()
+        gm_manager.load_scripts()
 
     scripts = gm_manager.scripts_for(QUrl('qute://settings'))
     assert len(scripts.start + scripts.end + scripts.idle) == 0
 
 
-def test_load_emits_signal(qtbot):
-    gm_manager = greasemonkey.GreasemonkeyManager()
+def test_load_emits_signal(gm_manager, qtbot):
+    gm_manager.load_scripts()
     with qtbot.wait_signal(gm_manager.scripts_reloaded):
         gm_manager.load_scripts()
 
 
-def test_utf8_bom():
+def test_utf8_bom(gm_manager):
     """Make sure UTF-8 BOMs are stripped from scripts.
 
     If we don't strip them, we'll have a BOM in the middle of the file, causing
@@ -174,7 +179,7 @@ def test_utf8_bom():
         // ==/UserScript==
     """.lstrip('\n'))
     _save_script(script, 'bom.user.js')
-    gm_manager = greasemonkey.GreasemonkeyManager()
+    gm_manager.load_scripts()
 
     scripts = gm_manager.all_scripts()
     assert len(scripts) == 1
@@ -194,6 +199,7 @@ class TestForceDocumentEnd:
         _save_script(source, 'force.user.js')
 
         gm_manager = greasemonkey.GreasemonkeyManager()
+        gm_manager.load_scripts()
 
         scripts = gm_manager.all_scripts()
         assert len(scripts) == 1
@@ -212,7 +218,7 @@ class TestForceDocumentEnd:
         assert script.needs_document_end_workaround() == force
 
 
-def test_required_scripts_are_included(download_stub, tmp_path):
+def test_required_scripts_are_included(gm_manager, download_stub, tmp_path):
     test_require_script = textwrap.dedent("""
         // ==UserScript==
         // @name qutebrowser test userscript
@@ -228,7 +234,7 @@ def test_required_scripts_are_included(download_stub, tmp_path):
     _save_script(test_require_script, 'requiring.user.js')
     (tmp_path / 'test.js').write_text('REQUIRED SCRIPT', encoding='UTF-8')
 
-    gm_manager = greasemonkey.GreasemonkeyManager()
+    gm_manager.load_scripts()
     assert len(gm_manager._in_progress_dls) == 1
     for download in gm_manager._in_progress_dls:
         download.finished.emit()
