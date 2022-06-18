@@ -20,9 +20,9 @@
 
 import logging
 import textwrap
+import pathlib
 
 import pytest
-import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes, version
@@ -48,24 +48,53 @@ pytestmark = [
 
 
 @pytest.fixture
-def gm_manager():
+def gm_manager() -> greasemonkey.GreasemonkeyManager:
     return greasemonkey.GreasemonkeyManager()
 
 
-def _save_script(script_text, filename):
-    # pylint: disable=no-member
-    file_path = py.path.local(greasemonkey._scripts_dirs()[0]) / filename
-    # pylint: enable=no-member
-    file_path.write_text(script_text, encoding='utf-8', ensure=True)
+def _scripts_dir() -> pathlib.Path:
+    p = pathlib.Path(greasemonkey._scripts_dirs()[0])
+    p.mkdir(exist_ok=True)
+    return p
+
+
+def _save_script(script_text: str, filename: str) -> None:
+    file_path = _scripts_dir() / filename
+    file_path.write_text(script_text, encoding='utf-8')
 
 
 def test_all(gm_manager):
     """Test that a script gets read from file, parsed and returned."""
+    name = "qutebrowser test userscript"
     _save_script(test_gm_script, 'test.user.js')
-    gm_manager.load_scripts()
 
-    assert (gm_manager.all_scripts()[0].name ==
-            "qutebrowser test userscript")
+    result = gm_manager.load_scripts()
+    assert len(result.successful) == 1
+    assert result.successful[0].name == name
+    assert not result.errors
+
+    all_scripts = gm_manager.all_scripts()
+    assert len(all_scripts) == 1
+    assert all_scripts[0].name == name
+
+
+def test_load_error(gm_manager):
+    """Test behavior when a script fails loading."""
+    name = "qutebrowser test userscript"
+    wrong_path = _scripts_dir() / "test1.user.js"
+    wrong_path.mkdir()
+    _save_script(test_gm_script, "test2.user.js")
+
+    result = gm_manager.load_scripts()
+    assert len(result.successful) == 1
+    assert result.successful[0].name == name
+
+    assert len(result.errors) == 1
+    assert result.errors[0][0] == "test1.user.js"
+
+    all_scripts = gm_manager.all_scripts()
+    assert len(all_scripts) == 1
+    assert all_scripts[0].name == name
 
 
 @pytest.mark.parametrize("url, expected_matches", [
@@ -331,3 +360,44 @@ def test_shared_window_proxy(js_tester):
 
     js_tester.run(test_script_a)
     js_tester.run(test_script_b, expected=["test", "test"])
+
+
+@pytest.mark.parametrize("scripts, expected", [
+    ([], "No Greasemonkey scripts loaded"),
+    (
+        [greasemonkey.GreasemonkeyScript(properties={}, code="", filename="test")],
+        "Loaded Greasemonkey scripts:\n\ntest",
+    ),
+    (
+        [
+            greasemonkey.GreasemonkeyScript(properties={}, code="", filename="test1"),
+            greasemonkey.GreasemonkeyScript(properties={}, code="", filename="test2"),
+        ],
+        "Loaded Greasemonkey scripts:\n\ntest1\ntest2",
+    ),
+])
+def test_load_results_successful(scripts, expected):
+    results = greasemonkey.LoadResults()
+    results.successful = scripts
+    assert results.successful_str() == expected
+
+
+@pytest.mark.parametrize("errors, expected", [
+    ([], None),
+    (
+        [("test", "could not frobnicate")],
+        "Greasemonkey scripts failed to load:\n\ntest: could not frobnicate",
+    ),
+    (
+        [("test1", "could not frobnicate"), ("test2", "frobnicator borked")],
+        (
+            "Greasemonkey scripts failed to load:\n\n"
+            "test1: could not frobnicate\n"
+            "test2: frobnicator borked"
+        )
+    ),
+])
+def test_load_results_errors(errors, expected):
+    results = greasemonkey.LoadResults()
+    results.errors = errors
+    assert results.error_str() == expected
