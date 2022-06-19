@@ -238,6 +238,21 @@ window._qutebrowser.webelem = (function() {
         return {"success": true, "result": out};
     };
 
+    // Runs a function in a frame until the result is not null, then return
+    // If no frame succeeds, return null
+    function run_frames(func) {
+        for (let i = 0; i < window.frames.length; ++i) {
+            const frame = window.frames[i];
+            if (iframe_same_domain(frame)) {
+                const result = func(frame);
+                if (result) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
     funcs.find_xpath = (xpath) => {
         function finder(win) {
             const doc = win.document;
@@ -261,21 +276,6 @@ window._qutebrowser.webelem = (function() {
 
         return {"success": true, "result": [...direct, ...in_frames]};
     };
-
-    // Runs a function in a frame until the result is not null, then return
-    // If no frame succeeds, return null
-    function run_frames(func) {
-        for (let i = 0; i < window.frames.length; ++i) {
-            const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
-                const result = func(frame);
-                if (result) {
-                    return result;
-                }
-            }
-        }
-        return null;
-    }
 
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
@@ -353,22 +353,23 @@ window._qutebrowser.webelem = (function() {
     };
 
     function *traverse_dom(start_node) {
-        while (start_node !== null) {
-            yield start_node;
-            if (start_node.children.length > 0) {
-                start_node = start_node.children[0];
-                continue;
+        let cur_node = start_node;
+        while (cur_node !== null) {
+            yield cur_node;
+            if (cur_node.children.length > 0) {
+                cur_node = cur_node.children[0];
+                continue; // eslint-disable-line no-continue
             }
 
-            if (iframe_same_domain(start_node.contentWindow)) {
-                yield* traverse_dom(start_node.document);
+            if (iframe_same_domain(cur_node.contentWindow)) {
+                yield* traverse_dom(cur_node.document);
             }
 
-            while (start_node !== null && start_node.nextSibling === null) {
-                start_node = start_node.parentNode;
+            while (cur_node !== null && cur_node.nextSibling === null) {
+                cur_node = cur_node.parentNode;
             }
 
-            start_node = start_node?.nextElementSibling;
+            cur_node = cur_node?.nextElementSibling;
         }
     }
 
