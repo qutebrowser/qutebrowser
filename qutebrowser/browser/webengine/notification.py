@@ -769,7 +769,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self._watcher.serviceUnregistered.connect(self._on_service_unregistered)
 
         test_service = 'test-notification-service' in objects.debug_flags
-        service = self.TEST_SERVICE if test_service else self.SERVICE
+        service = f"{self.TEST_SERVICE}{os.getpid()}" if test_service else self.SERVICE
 
         self.interface = QDBusInterface(service, self.PATH, self.INTERFACE, bus)
         if not self.interface.isValid():
