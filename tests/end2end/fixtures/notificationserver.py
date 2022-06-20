@@ -23,7 +23,7 @@ from typing import Dict, List
 
 from PyQt5.QtCore import QObject, QByteArray, QUrl, pyqtSlot
 from PyQt5.QtGui import QImage
-from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
+from PyQt5.QtDBus import QDBusConnection, QDBusMessage
 import pytest
 
 from qutebrowser.browser.webengine import notification
@@ -194,7 +194,7 @@ class TestNotificationServer(QObject):
     # pylint: disable=invalid-name
 
     @pyqtSlot(QDBusMessage, result="uint")
-    def Notify(self, dbus_message: QDBusMessage) -> QDBusArgument:
+    def Notify(self, dbus_message: QDBusMessage) -> int:
         assert dbus_message.signature() == 'susssasa{sv}i'
         assert dbus_message.type() == QDBusMessage.MethodCallMessage
 
