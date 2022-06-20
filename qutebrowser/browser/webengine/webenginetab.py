@@ -1218,6 +1218,10 @@ class _WebEngineScripts(QObject):
                 predicate=versions.webengine < utils.VersionNumber(5, 13),
             ),
             _Quirk(
+                'array_at',
+                predicate=versions.webengine < utils.VersionNumber(6, 3),
+            ),
+            _Quirk(
                 'object_fromentries',
                 predicate=versions.webengine < utils.VersionNumber(5, 13),
             )
