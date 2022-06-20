@@ -18,8 +18,8 @@
 
 """Tests for qutebrowser.browser.greasemonkey."""
 
-import logging
 import textwrap
+import logging
 import pathlib
 
 import pytest
@@ -48,8 +48,17 @@ pytestmark = [
 
 
 @pytest.fixture
-def gm_manager() -> greasemonkey.GreasemonkeyManager:
-    return greasemonkey.GreasemonkeyManager()
+def gm_manager(monkeypatch) -> greasemonkey.GreasemonkeyManager:
+    gmm = greasemonkey.GreasemonkeyManager()
+    monkeypatch.setattr(greasemonkey, "gm_manager", gmm)
+    return gmm
+
+
+@pytest.fixture
+def wrong_path_setup():
+    wrong_path = _scripts_dir() / "test1.user.js"
+    wrong_path.mkdir()
+    _save_script(test_gm_script, "test2.user.js")
 
 
 def _scripts_dir() -> pathlib.Path:
@@ -78,12 +87,100 @@ def test_all(gm_manager):
     assert all_scripts[0].name == name
 
 
-def test_load_error(gm_manager):
+@pytest.mark.parametrize("header, expected", [
+    # defaults
+    (
+        [],
+        {
+            "name": "test.user.js",
+            "namespace": None,
+            "includes": ['*'],
+            "matches": [],
+            "excludes": [],
+            "run_at": None,
+            "runs_on_sub_frames": True,
+            "jsworld": "main",
+        }
+    ),
+    # include/exclude/match
+    (
+        ["@include https://example.org"],
+        {
+            "includes": ['https://example.org'],
+            "excludes": [],
+            "matches": [],
+        }
+    ),
+    (
+        ["@include https://example.org", "@include https://example.com"],
+        {
+            "includes": ['https://example.org', 'https://example.com'],
+            "excludes": [],
+            "matches": [],
+        }
+    ),
+    (
+        ["@match https://example.org"],
+        {"includes": [], "excludes": [], "matches": ['https://example.org']}
+    ),
+    (
+        ["@match https://example.org", "@exclude_match https://example.com"],
+        {
+            "includes": [],
+            "excludes": ['https://example.com'],
+            "matches": ['https://example.org'],
+        }
+    ),
+    (
+        ["@exclude https://example.org"],
+        {"includes": ['*'], "excludes": ['https://example.org'], "matches": []}
+    ),
+    (
+        ["@exclude https://example.org", "@exclude_match https://example.com"],
+        {
+            "includes": ['*'],
+            "excludes": ['https://example.org', 'https://example.com'],
+            "matches": [],
+        }
+    ),
+    # name / namespace
+    (["@name testfoo"], {"name": "testfoo", "namespace": None}),
+    (["@namespace testbar"], {"name": "test.user.js", "namespace": "testbar"}),
+    (
+        ["@name testfoo", "@namespace testbar"],
+        {"name": "testfoo", "namespace": "testbar"},
+    ),
+    # description
+    (
+        ["@description Replace ads by cat pictures"],
+        {"description": "Replace ads by cat pictures"},
+    ),
+    # noframes
+    (["@noframes"], {"runs_on_sub_frames": False}),
+    (["@noframes blabla"], {"runs_on_sub_frames": False}),  # FIXME intended?
+    # requires
+    (["@require stuff.js"], {"requires": ["stuff.js"]}),
+    # qute-js-world
+    (["@qute-js-world main"], {"jsworld": "main"}),
+])
+def test_attributes(header, expected):
+    lines = [
+        "// ==UserScript==",
+        *(f'// {line}' for line in header),
+        "// ==/UserScript==",
+        "console.log('Hello World')",
+    ]
+    source = "\n".join(lines)
+    print(source)
+    script = greasemonkey.GreasemonkeyScript.parse(source, filename="test.user.js")
+
+    actual = {k: getattr(script, k) for k in expected}
+    assert actual == expected
+
+
+def test_load_error(gm_manager, wrong_path_setup):
     """Test behavior when a script fails loading."""
     name = "qutebrowser test userscript"
-    wrong_path = _scripts_dir() / "test1.user.js"
-    wrong_path.mkdir()
-    _save_script(test_gm_script, "test2.user.js")
 
     result = gm_manager.load_scripts()
     assert len(result.successful) == 1
@@ -246,6 +343,17 @@ class TestForceDocumentEnd:
         script = self._get_script(namespace=namespace, name=name)
         assert script.needs_document_end_workaround() == force
 
+    @pytest.mark.parametrize('namespace, name', [
+        ('http://userstyles.org', 'foobar'),
+        ('https://github.com/ParticleCore', 'Iridium'),
+        ('https://github.com/ParticleCore', 'Foo'),
+        ('https://example.org', 'Iridium'),
+    ])
+    def test_webkit(self, monkeypatch, namespace, name):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
+        script = self._get_script(namespace=namespace, name=name)
+        assert not script.needs_document_end_workaround()
+
 
 def test_required_scripts_are_included(gm_manager, download_stub, tmp_path):
     test_require_script = textwrap.dedent("""
@@ -362,6 +470,38 @@ def test_shared_window_proxy(js_tester):
     js_tester.run(test_script_b, expected=["test", "test"])
 
 
+@pytest.mark.parametrize("run_at, start, end, idle, with_warning", [
+    ("document-start", True, False, False, False),
+    ("document-end", False, True, False, False),
+    ("document-idle", False, False, True, False),
+    ("", False, True, False, False),
+    ("bla", False, True, False, True),
+])
+def test_run_at(gm_manager, run_at, start, end, idle, with_warning, caplog):
+    script = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent(f"""
+            // ==UserScript==
+            // @name run-at-tester
+            // @run-at {run_at}
+            // ==/UserScript==
+            return document.readyState;
+        """)
+    )
+
+    if with_warning:
+        with caplog.at_level(logging.WARNING):
+            gm_manager.add_script(script)
+        msg = ("Script run-at-tester has invalid run-at defined, defaulting to "
+               "document-end")
+        assert caplog.messages == [msg]
+    else:
+        gm_manager.add_script(script)
+
+    assert gm_manager._run_start == ([script] if start else [])
+    assert gm_manager._run_end == ([script] if end else [])
+    assert gm_manager._run_idle == ([script] if idle else [])
+
+
 @pytest.mark.parametrize("scripts, expected", [
     ([], "No Greasemonkey scripts loaded"),
     (
@@ -401,3 +541,50 @@ def test_load_results_errors(errors, expected):
     results = greasemonkey.LoadResults()
     results.errors = errors
     assert results.error_str() == expected
+
+
+@pytest.mark.parametrize("quiet", [False, True])
+def test_greasemonkey_reload(gm_manager, quiet, message_mock):
+    _save_script(test_gm_script, 'test.user.js')
+    assert not gm_manager.all_scripts()
+    greasemonkey.greasemonkey_reload(quiet=quiet)
+    assert gm_manager.all_scripts()
+
+    if quiet:
+        assert not message_mock.messages
+    else:
+        msg = 'Loaded Greasemonkey scripts:\n\nqutebrowser test userscript'
+        assert message_mock.getmsg().text == msg
+
+
+@pytest.mark.parametrize("quiet", [False, True])
+def test_greasemonkey_reload_errors(gm_manager, caplog, message_mock, wrong_path_setup,
+                                    quiet):
+    assert not gm_manager.all_scripts()
+    with caplog.at_level(logging.ERROR):
+        greasemonkey.greasemonkey_reload(quiet=quiet)
+    assert len(gm_manager.all_scripts()) == 1
+
+    text = "Greasemonkey scripts failed to load:\n\ntest1.user.js"
+    msg = message_mock.messages[-1]
+    assert msg.level == usertypes.MessageLevel.error
+    assert msg.text.startswith(text)
+
+
+def test_init(monkeypatch, message_mock):
+    monkeypatch.setattr(greasemonkey, "gm_manager", None)
+    _save_script(test_gm_script, 'test.user.js')
+    greasemonkey.init()
+    assert not message_mock.messages
+    assert len(greasemonkey.gm_manager.all_scripts()) == 1
+
+
+def test_init_errors(monkeypatch, message_mock, wrong_path_setup, caplog):
+    monkeypatch.setattr(greasemonkey, "gm_manager", None)
+    with caplog.at_level(logging.ERROR):
+        greasemonkey.init()
+
+    assert len(greasemonkey.gm_manager.all_scripts()) == 1
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    text = "Greasemonkey scripts failed to load:\n\ntest1.user.js"
+    assert msg.text.startswith(text)
