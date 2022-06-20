@@ -105,6 +105,45 @@ class Error(Exception):
     """Raised when something goes wrong with notifications."""
 
 
+class DBusError(Error):
+    """Raised when there was an error coming from DBus."""
+
+    _NON_FATAL_ERRORS = {
+        # notification daemon is gone
+        "org.freedesktop.DBus.Error.NoReply",
+
+        # https://gitlab.gnome.org/GNOME/gnome-flashback/-/blob/3.40.0/gnome-flashback/libnotifications/nd-daemon.c#L178-187
+        # Exceeded maximum number of notifications
+        "org.freedesktop.Notifications.MaxNotificationsExceeded",
+
+        # https://bugs.kde.org/show_bug.cgi?id=409157
+        # https://github.com/KDE/plasma-workspace/blob/v5.21.4/libnotificationmanager/server_p.cpp#L227-L237
+        # Created too many similar notifications in quick succession
+        "org.freedesktop.Notifications.Error.ExcessNotificationGeneration",
+
+        # From https://crashes.qutebrowser.org/view/b8c9838a
+        # Process org.freedesktop.Notifications received signal 5
+        # probably when notification daemon crashes?
+        "org.freedesktop.DBus.Error.Spawn.ChildSignaled",
+
+        # https://crashes.qutebrowser.org/view/f76f58ae
+        # Process org.freedesktop.Notifications exited with status 1
+        "org.freedesktop.DBus.Error.Spawn.ChildExited",
+
+        # https://crashes.qutebrowser.org/view/8889d0b5
+        # Could not activate remote peer.
+        "org.freedesktop.DBus.Error.NameHasNoOwner",
+    }
+
+    def __init__(self, msg: QDBusMessage) -> None:
+        assert msg.type() == QDBusMessage.ErrorMessage
+        self.error = msg.errorName()
+        self.error_message = msg.errorMessage()
+        self.is_fatal = self.error not in self._NON_FATAL_ERRORS
+        text = f"{self.error}: {self.error_message}"
+        super().__init__(text)
+
+
 class AbstractNotificationAdapter(QObject):
 
     """An adapter taking notifications and displaying them.
@@ -716,33 +755,6 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
     NAME = "libnotify"
 
-    _NON_FATAL_ERRORS = {
-        # notification daemon is gone
-        "org.freedesktop.DBus.Error.NoReply",
-
-        # https://gitlab.gnome.org/GNOME/gnome-flashback/-/blob/3.40.0/gnome-flashback/libnotifications/nd-daemon.c#L178-187
-        # Exceeded maximum number of notifications
-        "org.freedesktop.Notifications.MaxNotificationsExceeded",
-
-        # https://bugs.kde.org/show_bug.cgi?id=409157
-        # https://github.com/KDE/plasma-workspace/blob/v5.21.4/libnotificationmanager/server_p.cpp#L227-L237
-        # Created too many similar notifications in quick succession
-        "org.freedesktop.Notifications.Error.ExcessNotificationGeneration",
-
-        # From https://crashes.qutebrowser.org/view/b8c9838a
-        # Process org.freedesktop.Notifications received signal 5
-        # probably when notification daemon crashes?
-        "org.freedesktop.DBus.Error.Spawn.ChildSignaled",
-
-        # https://crashes.qutebrowser.org/view/f76f58ae
-        # Process org.freedesktop.Notifications exited with status 1
-        "org.freedesktop.DBus.Error.Spawn.ChildExited",
-
-        # https://crashes.qutebrowser.org/view/8889d0b5
-        # Could not activate remote peer.
-        "org.freedesktop.DBus.Error.NameHasNoOwner",
-    }
-
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         assert _notifications_supported()
@@ -935,12 +947,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         ], expected_type
 
         if msg.type() == QDBusMessage.ErrorMessage:
-            err = msg.errorName()
-            if err in self._NON_FATAL_ERRORS:
-                self.error.emit(msg.errorMessage())
-                return
-
-            raise Error(f"Got DBus error: {err} - {msg.errorMessage()}")
+            raise DBusError(msg)
 
         signature = msg.signature()
         if signature != expected_signature:
@@ -1010,7 +1017,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             hints,
             -1,  # timeout; -1 means 'use default'
         )
-        self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
+
+        try:
+            self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
+        except DBusError as e:
+            if e.is_fatal:
+                raise
+            self.error.emit(e.error_message)
+            # Return value gets ignored in NotificationBridgePresenter.present
+            return -1
 
         notification_id = reply.arguments()[0]
 
