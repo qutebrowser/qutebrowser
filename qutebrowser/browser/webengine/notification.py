@@ -838,8 +838,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # https://github.com/sboli/twmn/pull/96
             return _ServerQuirks(spec_version="0")
         elif (name, vendor) == ("tiramisu", "Sweets"):
-            # https://github.com/Sweets/tiramisu/issues/20
-            return _ServerQuirks(skip_capabilities=True)
+            if utils.VersionNumber.parse(ver) < utils.VersionNumber(2, 0):
+                # https://github.com/Sweets/tiramisu/issues/20
+                return _ServerQuirks(skip_capabilities=True)
         elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
             quirks = _ServerQuirks()
             parsed_version = utils.VersionNumber.parse(ver)
@@ -873,10 +874,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         elif (name, vendor) == (
                 "Budgie Notification Server", "Budgie Desktop Developers"):
             # After refactor: https://github.com/BuddiesOfBudgie/budgie-desktop/pull/36
-            return _ServerQuirks(
-                # https://github.com/BuddiesOfBudgie/budgie-desktop/issues/118
-                wrong_closes_type=True,
-            )
+            if utils.VersionNumber.parse(ver) < utils.VersionNumber(10, 6, 2):
+                return _ServerQuirks(
+                    # https://github.com/BuddiesOfBudgie/budgie-desktop/issues/118
+                    wrong_closes_type=True,
+                )
         return None
 
     def _get_server_info(self) -> None:
