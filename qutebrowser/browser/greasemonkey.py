@@ -310,12 +310,17 @@ class GreasemonkeyManager(QObject):
                 if not os.path.isfile(script_filename):
                     continue
                 script_path = os.path.join(scripts_dir, script_filename)
-                with open(script_path, encoding='utf-8-sig') as script_file:
-                    script = GreasemonkeyScript.parse(script_file.read(),
-                                                      script_filename)
-                    assert script.name, script
-                    self.add_script(script, force)
-                    scripts.append(script)
+
+                try:
+                    with open(script_path, encoding='utf-8-sig') as script_file:
+                        script = GreasemonkeyScript.parse(script_file.read(),
+                                                          script_filename)
+                        assert script.name, script
+                        self.add_script(script, force)
+                        scripts.append(script)
+                except OSError as e:
+                    message.error(
+                        f"Greasemonkey script failed to load: {script_filename} {e}")
 
         self.scripts_reloaded.emit()
         return sorted(scripts, key=str)
