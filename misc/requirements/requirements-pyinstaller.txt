@@ -2,5 +2,5 @@
 
 altgraph==0.17.2
 # FIXME:qt6 switch back to release
-git+https://github.com/the-compiler/pyinstaller@qt6-webengine-macos
+git+https://github.com/pyinstaller/pyinstaller
 pyinstaller-hooks-contrib==2022.8

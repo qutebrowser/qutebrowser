@@ -84,7 +84,7 @@
   "Pympler": "https://github.com/pympler/pympler/blob/master/CHANGELOG.md",
   "pytest-mock": "https://github.com/pytest-dev/pytest-mock/blob/main/CHANGELOG.rst",
   "pytest-qt": "https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst",
-  "git+https://github.com/the-compiler/pyinstaller@qt6-webengine-macos": "https://pyinstaller.readthedocs.io/en/stable/CHANGES.html",
+  "git+https://github.com/pyinstaller/pyinstaller": "https://pyinstaller.readthedocs.io/en/stable/CHANGES.html",
   "pyinstaller-hooks-contrib": "https://github.com/pyinstaller/pyinstaller-hooks-contrib/blob/master/CHANGELOG.rst",
   "pytest-benchmark": "https://pytest-benchmark.readthedocs.io/en/stable/changelog.html",
   "typed-ast": "https://github.com/python/typed_ast/commits/master",
