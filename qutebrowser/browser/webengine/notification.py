@@ -965,72 +965,12 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {msg.arguments()})")
 
-    def present(
+    def _verify_notification_id(
         self,
-        qt_notification: "QWebEngineNotification",
-        *,
-        replaces_id: Optional[int],
-    ) -> int:
-        """Shows a notification over DBus."""
-        if replaces_id is None:
-            replaces_id = 0  # 0 is never a valid ID according to the spec
-
-        actions = []
-        if self._capabilities.actions:
-            actions = ['default', 'Activate']  # key, name
-        actions_arg = QDBusArgument(actions, QMetaType.QStringList)
-
-        origin_url_str = qt_notification.origin().toDisplayString()
-        hints: Dict[str, Any] = {
-            # Include the origin in case the user wants to do different things
-            # with different origin's notifications.
-            "x-qutebrowser-origin": origin_url_str,
-            "desktop-entry": "org.qutebrowser.qutebrowser",
-        }
-
-        is_useful_origin = self._should_include_origin(qt_notification.origin())
-        if self._capabilities.kde_origin_name and is_useful_origin:
-            hints["x-kde-origin-name"] = origin_url_str
-
-        icon = qt_notification.icon()
-        if icon.isNull():
-            filename = 'icons/qutebrowser-64x64.png'
-            icon = QImage.fromData(resources.read_file_binary(filename))
-
-        key = self._quirks.icon_key or "image-data"
-        data = self._convert_image(icon)
-        if data is not None:
-            hints[key] = data
-
-        # Titles don't support markup (except with broken servers)
-        title = qt_notification.title()
-        if self._quirks.escape_title:
-            title = html.escape(title, quote=False)
-
-        reply = self.interface.call(
-            QDBus.BlockWithGui,
-            "Notify",
-            "qutebrowser",  # application name
-            _as_uint32(replaces_id),  # replaces notification id
-            "",  # icon name/file URL, we use image-data and friends instead.
-            title,
-            self._format_body(qt_notification.message(), qt_notification.origin()),
-            actions_arg,
-            hints,
-            -1,  # timeout; -1 means 'use default'
-        )
-
-        try:
-            self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
-        except DBusError as e:
-            if e.is_fatal:
-                raise
-            self.error.emit(e.error_message)
-            # Return value gets ignored in NotificationBridgePresenter.present
-            return -1
-
-        notification_id = reply.arguments()[0]
-
+        notification_id: int, *,
+        replaces_id: int,
+    ) -> None:
+        """Ensure the returned notification id is valid."""
         if replaces_id not in [0, notification_id]:
             msg = (
                 f"Wanted to replace notification {replaces_id} but got new id "
@@ -1044,6 +984,108 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         if notification_id <= 0:
             self.error.emit(f"Got invalid notification id {notification_id}")
 
+    def _get_title_arg(self, title: str) -> str:
+        """Get the title argument for present()."""
+        # Titles don't support markup (except with broken servers)
+        if self._quirks.escape_title:
+            return html.escape(title, quote=False)
+        return title
+
+    def _get_actions_arg(self) -> QDBusArgument:
+        """Get the actions argument for present()."""
+        actions = []
+        if self._capabilities.actions:
+            actions = ['default', 'Activate']  # key, name
+        return QDBusArgument(actions, QMetaType.QStringList)
+
+    def _get_hints_arg(self, *, origin_url: QUrl, icon: QImage) -> Dict[str, Any]:
+        """Get the hints argument for present()."""
+        origin_url_str = origin_url.toDisplayString()
+        hints: Dict[str, Any] = {
+            # Include the origin in case the user wants to do different things
+            # with different origin's notifications.
+            "x-qutebrowser-origin": origin_url_str,
+            "desktop-entry": "org.qutebrowser.qutebrowser",
+        }
+
+        is_useful_origin = self._should_include_origin(origin_url)
+        if self._capabilities.kde_origin_name and is_useful_origin:
+            hints["x-kde-origin-name"] = origin_url_str
+
+        if icon.isNull():
+            filename = 'icons/qutebrowser-64x64.png'
+            icon = QImage.fromData(resources.read_file_binary(filename))
+
+        key = self._quirks.icon_key or "image-data"
+        data = self._convert_image(icon)
+        if data is not None:
+            hints[key] = data
+
+        return hints
+
+    def _call_notify_wrapper(
+        self, *,
+        appname: str,
+        replaces_id: QVariant,
+        icon: str,
+        title: str,
+        body: str,
+        actions: QDBusArgument,
+        hints: Dict[str, Any],
+        timeout: int,
+    ) -> Any:
+        """Wrapper around DBus call to use keyword args."""
+        return self.interface.call(
+            QDBus.BlockWithGui,
+            "Notify",
+            appname,
+            replaces_id,
+            icon,
+            title,
+            body,
+            actions,
+            hints,
+            timeout,
+        )
+
+    def present(
+        self,
+        qt_notification: "QWebEngineNotification",
+        *,
+        replaces_id: Optional[int],
+    ) -> int:
+        """Shows a notification over DBus."""
+        if replaces_id is None:
+            replaces_id = 0  # 0 is never a valid ID according to the spec
+
+        reply = self._call_notify_wrapper(
+            appname="qutebrowser",
+            replaces_id=_as_uint32(replaces_id),
+            icon="",  # we use image-data and friends instead
+            title=self._get_title_arg(qt_notification.title()),
+            body=self._format_body(
+                body=qt_notification.message(),
+                origin_url=qt_notification.origin(),
+            ),
+            actions=self._get_actions_arg(),
+            hints=self._get_hints_arg(
+                origin_url=qt_notification.origin(),
+                icon=qt_notification.icon(),
+            ),
+            timeout=-1,  # use default
+        )
+
+        try:
+            self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
+        except DBusError as e:
+            if e.is_fatal:
+                raise
+            self.error.emit(e.error_message)
+            # Return value gets ignored in NotificationBridgePresenter.present
+            return -1
+
+        notification_id = reply.arguments()[0]
+        self._verify_notification_id(notification_id, replaces_id=replaces_id)
         return notification_id
 
     def _convert_image(self, qimage: QImage) -> Optional[QDBusArgument]:
