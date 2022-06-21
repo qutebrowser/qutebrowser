@@ -48,6 +48,10 @@ from scripts import utils
 from scripts.dev import update_3rdparty, misc_checks
 
 
+IS_MACOS = sys.platform == 'darwin'
+IS_WINDOWS = os.name == 'nt'
+
+
 @dataclasses.dataclass
 class Artifact:
 
@@ -139,54 +143,60 @@ def _smoke_test_run(
     return subprocess.run(argv, check=True, capture_output=True)
 
 
-def smoke_test(executable: pathlib.Path, debug: bool) -> None:
+def smoke_test(executable: pathlib.Path, debug: bool, qt6: bool) -> None:
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
         # PyInstaller debug output
         r'\[.*\] PyInstaller Bootloader .*',
         r'\[.*\] LOADER: .*',
-
-        # macOS on Qt 5.15
-        # https://github.com/qutebrowser/qutebrowser/issues/4919
-        (r'objc\[.*\]: .* One of the two will be used\. '
-         r'Which one is undefined\.'),
-        (r'QCoreApplication::applicationDirPath: Please instantiate the '
-         r'QApplication object first'),
-        (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
-         r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
-        (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
-         r'Unknown service name \(1102\)'),
-
-        # macOS on Qt 5.15
-        (r'[0-9:]* WARNING: The available OpenGL surface format was either not '
-         r'version 3\.2 or higher or not a Core Profile\.'),
-        r'Chromium on macOS will fall back to software rendering in this case\.',
-        r'Hardware acceleration and features such as WebGL will not be available\.',
-        r'Unable to create basic Accelerated OpenGL renderer\.',
-        r'Core Image is now using the software OpenGL renderer\. This will be slow\.',
-
-        # Windows N:
-        # https://github.com/microsoft/playwright/issues/2901
-        (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
-         r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
-         r'module could not be found. \(0x7E\)'),
-
-        # https://github.com/qutebrowser/qutebrowser/issues/3719
-        '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
-
-        # macOS 11
-        (r'[0-9:]* WARNING: Failed to load libssl/libcrypto\.'),
-
-        # FIXME:qt6 Qt 6.3 on macOS
-        r'[0-9:]* WARNING: Incompatible version of OpenSSL',
-        r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
-        (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
-         r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
-
-        # https://github.com/pyinstaller/pyinstaller/pull/6903
-        r"[0-9:]* INFO: Sandboxing disabled by user\.",
     ]
+    if IS_MACOS:
+        stderr_whitelist.extend([
+            # macOS on Qt 5.15
+            # https://github.com/qutebrowser/qutebrowser/issues/4919
+            (r'objc\[.*\]: .* One of the two will be used\. '
+            r'Which one is undefined\.'),
+            (r'QCoreApplication::applicationDirPath: Please instantiate the '
+            r'QApplication object first'),
+            (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
+            r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
+            (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
+            r'Unknown service name \(1102\)'),
+
+            # macOS on Qt 5.15
+            (r'[0-9:]* WARNING: The available OpenGL surface format was either not '
+            r'version 3\.2 or higher or not a Core Profile\.'),
+            r'Chromium on macOS will fall back to software rendering in this case\.',
+            r'Hardware acceleration and features such as WebGL will not be available\.',
+            r'Unable to create basic Accelerated OpenGL renderer\.',
+            r'Core Image is now using the software OpenGL renderer\. This will be slow\.',
+
+            # https://github.com/qutebrowser/qutebrowser/issues/3719
+            '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
+
+            # macOS 11
+            (r'[0-9:]* WARNING: Failed to load libssl/libcrypto\.'),
+        ])
+        if qt6:
+            stderr_whitelist.extend([
+                # FIXME:qt6 Qt 6.3 on macOS
+                r'[0-9:]* WARNING: Incompatible version of OpenSSL',
+                r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
+                (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
+                r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
+
+                # https://github.com/pyinstaller/pyinstaller/pull/6903
+                r"[0-9:]* INFO: Sandboxing disabled by user\.",
+            ])
+    elif IS_WINDOWS:
+        stderr_whitelist.extend([
+            # Windows N:
+            # https://github.com/microsoft/playwright/issues/2901
+            (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
+            r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
+            r'module could not be found. \(0x7E\)'),
+        ])
 
     proc = _smoke_test_run(executable)
     if debug:
@@ -353,7 +363,7 @@ def build_mac(
     dist_path = pathlib.Path("dist")
 
     utils.print_title("Running pre-dmg smoke test")
-    smoke_test(_mac_bin_path(dist_path), debug=debug)
+    smoke_test(_mac_bin_path(dist_path), debug=debug, qt6=qt6)
 
     if skip_packaging:
         return []
@@ -374,7 +384,7 @@ def build_mac(
             subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmp_path], check=True)
             try:
-                smoke_test(_mac_bin_path(tmp_path), debug=debug)
+                smoke_test(_mac_bin_path(tmp_path), debug=debug, qt6=qt6)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
@@ -440,7 +450,7 @@ def _build_windows_single(
     verify_windows_exe(exe_path)
 
     utils.print_title(f"Running {human_arch} smoke test")
-    smoke_test(exe_path, debug=debug)
+    smoke_test(exe_path, debug=debug, qt6=qt6)
 
     if skip_packaging:
         return []
@@ -751,7 +761,7 @@ def main() -> None:
     else:
         run_asciidoc2html(args)
 
-    if os.name == 'nt':
+    if IS_WINDOWS:
         artifacts = build_windows(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
@@ -760,7 +770,7 @@ def main() -> None:
             qt6=args.qt6,
             debug=args.debug,
         )
-    elif sys.platform == 'darwin':
+    elif IS_MACOS:
         artifacts = build_mac(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
