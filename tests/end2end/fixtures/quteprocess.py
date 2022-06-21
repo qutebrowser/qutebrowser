@@ -112,6 +112,8 @@ def is_ignored_chromium_message(line):
         # Qt 6.3:
         # [4919:8:0530/170658.033287:ERROR:command_buffer_proxy_impl.cc(328)] GPU state invalid after WaitForGetOffsetInRange.
         'GPU state invalid after WaitForGetOffsetInRange.',
+        # [5469:5503:0621/183219.878182:ERROR:backend_impl.cc(1414)] Unable to map Index file
+        'Unable to map Index file',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
