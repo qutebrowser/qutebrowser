@@ -373,6 +373,7 @@ def build_mac(
     subprocess.run(['make', '-f', dmg_makefile_path], check=True)
 
     suffix = "-debug" if debug else ""
+    suffix += "-qt6" if qt6 else ""
     dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
     pathlib.Path('qutebrowser.dmg').rename(dmg_path)
 
@@ -463,6 +464,7 @@ def _build_windows_single(
         desc_arch=human_arch,
         desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
         debug=debug,
+        qt6=qt6,
     )
 
 
@@ -513,6 +515,7 @@ def _package_windows_single(
     desc_suffix: str,
     filename_arch: str,
     debug: bool,
+    qt6: bool,
 ) -> List[Artifact]:
     """Build the given installer/zip for windows."""
     artifacts = []
@@ -530,6 +533,8 @@ def _package_windows_single(
     ]
     if debug:
         name_parts.append('debug')
+    if qt6:
+        name_parts.append('qt6')
     name = '-'.join(name_parts) + '.exe'
 
     artifacts.append(Artifact(
@@ -548,6 +553,8 @@ def _package_windows_single(
     ]
     if debug:
         zip_name_parts.append('debug')
+    if qt6:
+        zip_name_parts.append('qt6')
     zip_name = '-'.join(zip_name_parts) + '.zip'
 
     zip_path = dist_path / zip_name
