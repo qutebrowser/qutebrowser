@@ -260,17 +260,8 @@ def patch_mac_app(qt6: bool) -> None:
     resources_path = contents_path / 'Resources'
     pyqt_path = macos_path / f'PyQt{ver}'
 
-    # FIXME:qt6 Bring this back and upstream?
-    if qt6:
-        return
-
     # Replace some duplicate files by symlinks
     framework_path = pyqt_path / f'Qt{ver}' / 'lib' / 'QtWebEngineCore.framework'
-
-    core_lib = framework_path / 'Versions' / ('A' if qt6 else '5') / 'QtWebEngineCore'
-    core_lib.unlink()
-    core_target = pathlib.Path(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
-    core_lib.symlink_to(core_target)
 
     framework_resource_path = framework_path / 'Resources'
     for file_path in framework_resource_path.iterdir():
@@ -280,6 +271,16 @@ def patch_mac_app(qt6: bool) -> None:
         else:
             file_path.unlink()
         file_path.symlink_to(target)
+
+    if qt6:
+        # Symlinking QtWebEngineCore.framework does not seem to work with Qt 6.
+        # Also, the symlinking/moving before signing doesn't seem to be required.
+        return
+
+    core_lib = framework_path / 'Versions' / '5' / 'QtWebEngineCore'
+    core_lib.unlink()
+    core_target = pathlib.Path(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
+    core_lib.symlink_to(core_target)
 
     # Move stuff around to make things signable on macOS
     # See https://github.com/pyinstaller/pyinstaller/issues/6612
