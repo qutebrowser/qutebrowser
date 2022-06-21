@@ -119,6 +119,9 @@ Fixed
   is interpreted as rich text by Qt, independently from the website.
 - When a Greasemonkey script couldn't be loaded (e.g. due to an unreadable file),
   qutebrowser would crash. It now shows an error instead.
+- The notification fixes in v2.5.1 caused new notification crashes (probably
+  more common than the ones being fixed...). Those are now fixed, along with a
+  (rather involved) test case to prevent similar issues in the future.
 - New site-specific quirk to fix messages not showing on LinkedIn (due to
   `Array.at` usage).
 
