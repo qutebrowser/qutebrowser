@@ -963,7 +963,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {msg.arguments()})")
 
-    def present(
+    def present(  # noqa: C901 ("too complex")
         self,
         qt_notification: "QWebEngineNotification",
         *,
