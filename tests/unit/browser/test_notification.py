@@ -36,8 +36,12 @@ from qutebrowser.misc import objects
 from qutebrowser.browser.webengine import notification
 
 
-pytestmark = [pytest.mark.qtwebengine_notifications]
-dbus_test = pytest.mark.linux
+pytestmark = [
+    pytest.mark.qtwebengine_notifications,
+    # 5.13 only supports the default presenter
+    pytest.mark.skipif(not notification._notifications_supported(),
+                       reason="Notifications not supported")
+]
 
 
 class FakeDBusMessage:
@@ -189,7 +193,7 @@ class FakeNotificationAdapter(notification.AbstractNotificationAdapter):
         raise NotImplementedError
 
 
-@dbus_test
+@pytest.mark.linux
 class TestDBus:
 
     NO_REPLY_ERROR = FakeDBusMessage.create_error("org.freedesktop.DBus.Error.NoReply")
