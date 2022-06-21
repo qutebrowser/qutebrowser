@@ -15,21 +15,40 @@ jobs:
       matrix:
         include:
           - os: macos-10.15
+            branch: master
           - os: windows-2019
             args: --64bit
+            branch: master
           - os: windows-2019
             args: --32bit
+            branch: master
           - os: macos-10.15
             args: --debug
+            branch: master
           - os: windows-2019
             args: --64bit --debug
+            branch: master
           - os: windows-2019
             args: --32bit --debug
+            branch: master
+
+          - os: macos-10.15
+            branch: qt6-v2
+          - os: windows-2019
+            args: --64bit
+            branch: qt6-v2
+          - os: macos-10.15
+            args: --debug
+            branch: qt6-v2
+          - os: windows-2019
+            args: --64bit --debug
+            branch: qt6-v2
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
         with:
+          ref: "${{ matrix.branch }}"
           persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v2
