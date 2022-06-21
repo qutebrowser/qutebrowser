@@ -48,7 +48,7 @@ import dataclasses
 import itertools
 import functools
 import subprocess
-from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
+from typing import Any, List, Dict, Optional, Iterator, Type, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           pyqtSignal, QTimer, QProcess, QUrl)
@@ -227,31 +227,7 @@ class NotificationBridgePresenter(QObject):
             message.error("Can't switch to qt notification presenter at runtime.")
             setting = "auto"
 
-        if setting in ["auto", "libnotify"]:
-            candidates = [
-                DBusNotificationAdapter,
-                SystrayNotificationAdapter,
-                MessagesNotificationAdapter,
-            ]
-        elif setting == "systray":
-            candidates = [
-                SystrayNotificationAdapter,
-                DBusNotificationAdapter,
-                MessagesNotificationAdapter,
-            ]
-        elif setting == "herbe":
-            candidates = [
-                HerbeNotificationAdapter,
-                DBusNotificationAdapter,
-                SystrayNotificationAdapter,
-                MessagesNotificationAdapter,
-            ]
-        elif setting == "messages":
-            candidates = [MessagesNotificationAdapter]  # always succeeds
-        else:
-            raise utils.Unreachable(setting)
-
-        for candidate in candidates:
+        for candidate in self._get_adapter_candidates(setting):
             try:
                 self._adapter = candidate()
             except Error as e:
@@ -269,6 +245,32 @@ class NotificationBridgePresenter(QObject):
         self._adapter.close_id.connect(self._on_adapter_closed)
         self._adapter.error.connect(self._on_adapter_error)
         self._adapter.clear_all.connect(self._on_adapter_clear_all)
+
+    def _get_adapter_candidates(
+        self,
+        setting: str,
+    ) -> List[Type[AbstractNotificationAdapter]]:
+        candidates: Dict[str, List[Type[AbstractNotificationAdapter]]] = {
+            "libnotify": [
+                DBusNotificationAdapter,
+                SystrayNotificationAdapter,
+                MessagesNotificationAdapter,
+            ],
+            "systray": [
+                SystrayNotificationAdapter,
+                DBusNotificationAdapter,
+                MessagesNotificationAdapter,
+            ],
+            "herbe": [
+                HerbeNotificationAdapter,
+                DBusNotificationAdapter,
+                SystrayNotificationAdapter,
+                MessagesNotificationAdapter,
+            ],
+            "messages": [MessagesNotificationAdapter],  # always succeeds
+        }
+        candidates["auto"] = candidates["libnotify"]
+        return candidates[setting]
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Set the profile to use this bridge as the presenter."""
