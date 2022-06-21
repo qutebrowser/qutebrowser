@@ -28,8 +28,8 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 from PyQt5.QtGui import QImage
 from PyQt5.QtDBus import QDBusMessage, QDBus, QDBusConnection
-if TYPE_CHECKING:
-    from PyQt5.QtWebEngineCore import QWebEngineNotification
+pytest.importorskip("PyQt5.QtWebEngineCore")
+from PyQt5.QtWebEngineCore import QWebEngineNotification
 
 from qutebrowser.config import configdata
 from qutebrowser.misc import objects
@@ -181,7 +181,7 @@ class FakeNotificationAdapter(notification.AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification", *,
+        qt_notification: QWebEngineNotification, *,
         replaces_id: Optional[int],
     ) -> int:
         self.presented.append(qt_notification)
