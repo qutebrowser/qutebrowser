@@ -183,6 +183,9 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
         r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
         (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
          r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
+
+        # https://github.com/pyinstaller/pyinstaller/pull/6903
+        r"[0-9:]* INFO: Sandboxing disabled by user\.",
     ]
 
     proc = _smoke_test_run(executable)
