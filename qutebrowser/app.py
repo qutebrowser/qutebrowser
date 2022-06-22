@@ -46,6 +46,7 @@ import datetime
 import argparse
 from typing import Iterable, Optional
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.widgets import QApplication, QWidget
 from qutebrowser.qt.gui import QDesktopServices, QPixmap, QIcon
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
@@ -354,6 +355,15 @@ def _open_special_pages(args):
         ('session-warning-shown',
          True,
          'qute://warning/sessions'),
+
+        ('sandboxing-warning-shown',
+         (
+             hasattr(sys, "frozen") and
+             utils.is_mac and
+             machinery.IS_QT6 and
+             os.environ.get("QTWEBENGINE_DISABLE_SANDBOX") == "1"
+         ),
+         'qute://warning/sandboxing'),
     ]
 
     if 'quickstart-done' not in general_sect:

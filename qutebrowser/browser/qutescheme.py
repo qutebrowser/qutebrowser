@@ -583,6 +583,9 @@ def qute_warning(url: QUrl) -> _HandlerRet:
                            title='Qt 5.15 sessions warning',
                            datadir=standarddir.data(),
                            sep=os.sep)
+    elif path == '/sandboxing':
+        src = jinja.render('warning-sandboxing.html',
+                           title='Qt 6 macOS sandboxing warning')
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src
