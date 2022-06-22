@@ -296,6 +296,9 @@ then download the archive at the bottom of the page.
 Those builds also include variants with debug logging enabled, which can be useful to
 track down issues.
 
+NOTE: Due to GitHub limitations, you need to be signed in with a GitHub account
+to download the files.
+
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -339,6 +342,19 @@ The binary release ships with a QtWebEngine built without proprietary codec
 support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
 
+NOTE: Currently, qutebrowser
+https://github.com/qutebrowser/qutebrowser/issues/5020[does not use] macOS'
+https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution[Notarization],
+due to https://github.com/pyinstaller/pyinstaller/issues/6612[PyInstaller issues]
+(as well as the requirement to
+https://developer.apple.com/support/compare-memberships/[pay USD 100 per year to Apple]).
+Depending on your system settings, this might lead to errors such as
+"qutebrowser.app can't be opened because Apple cannot check it for malicious
+software." or "can't be opened because it is from an unidentified developer".
+You should be able to open the .app by right-clicking it and selecting "Open", see the
+https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac[macOS documentation]
+for details.
+
 This binary is also available through the https://brew.sh/[Homebrew] package
 manager as a https://github.com/Homebrew/homebrew-cask[cask]:
 
@@ -356,6 +372,9 @@ then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
 track down issues.
+
+NOTE: Due to GitHub limitations, you need to be signed in with a GitHub account
+to download the files.
 
 Manual Install
 ~~~~~~~~~~~~~~
