@@ -246,7 +246,7 @@ def notification_server(qapp, quteproc_process):
         # a connection on macOS, since it's theoretically possible to run DBus there.
         pytest.skip("Skipping DBus on Windows")
 
-    qb_pid = quteproc_process.proc.pid()
+    qb_pid = quteproc_process.proc.processId()
     server = TestNotificationServer(
         f"{notification.DBusNotificationAdapter.TEST_SERVICE}{qb_pid}")
     registered = server.register()
