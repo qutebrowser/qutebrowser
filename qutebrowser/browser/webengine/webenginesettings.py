@@ -237,11 +237,13 @@ class WebEngineSettings(websettings.AbstractSettings):
             self.set_unknown_url_scheme_policy(value)
         elif setting == 'content.javascript.clipboard':
             self._set_js_clipboard(value)
+        # NOTE: When adding something here, also add it to init_settings()!
         super()._update_setting(setting, value)
 
     def init_settings(self):
         super().init_settings()
         self.update_setting('content.unknown_url_scheme_policy')
+        self.update_setting('content.javascript.clipboard')
 
 
 class ProfileSetter:

@@ -167,7 +167,8 @@ class AbstractSettings:
     def _update_setting(self, setting: str, value: Any) -> None:
         """Update the given setting/value.
 
-        Unknown settings are ignored."""
+        Unknown settings are ignored.
+        """
         if setting in self._ATTRIBUTES:
             self.set_attribute(setting, value)
         elif setting in self._FONT_SIZES:
@@ -176,6 +177,7 @@ class AbstractSettings:
             self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
             self.set_default_text_encoding(value)
+        # NOTE: When adding something here, also add it to init_settings()!
 
     def update_setting(self, setting: str) -> None:
         """Update the given setting."""
@@ -197,6 +199,7 @@ class AbstractSettings:
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
                         list(self._FONT_FAMILIES)):
             self.update_setting(setting)
+        self.update_setting('content.default_encoding')
 
 
 @debugcachestats.register(name='user agent cache')
