@@ -627,7 +627,7 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
 
     for artifact in artifacts:
         while True:
-            print("Uploading {path}")
+            print(f"Uploading {path}")
 
             assets = [asset for asset in release.assets()
                       if asset.name == artifact.path.name]
