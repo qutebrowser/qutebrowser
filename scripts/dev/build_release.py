@@ -512,12 +512,12 @@ def _package_windows_single(
     ]
     if debug:
         zip_name_parts.append('debug')
-    zip_name = '-'.join(zip_name_parts)
+    zip_name = '-'.join(zip_name_parts) + '.zip'
 
     zip_path = dist_path / zip_name
-    shutil.make_archive(str(zip_path), 'zip', 'dist', out_path.name)
+    shutil.make_archive(str(zip_path.with_suffix('')), 'zip', 'dist', out_path.name)
     artifacts.append(Artifact(
-        path=zip_path.with_suffix(".zip"),
+        path=zip_path,
         mimetype='application/zip',
         description=f'Windows {desc_arch} standalone{desc_suffix}',
     ))
