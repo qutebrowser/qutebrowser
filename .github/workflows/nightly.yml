@@ -17,42 +17,53 @@ jobs:
           - os: macos-10.15
             branch: master
             toxenv: build-release
+            name: macos
           - os: windows-2019
             args: --64bit
             branch: master
             toxenv: build-release
+            name: windows-64bit
           - os: windows-2019
             args: --32bit
             branch: master
             toxenv: build-release
+            name: windows-32bit
+
           - os: macos-10.15
             args: --debug
             branch: master
             toxenv: build-release
+            name: macos-debug
           - os: windows-2019
             args: --64bit --debug
             branch: master
             toxenv: build-release
+            name: windows-64bit-debug
           - os: windows-2019
             args: --32bit --debug
             branch: master
             toxenv: build-release
+            name: windows-32bit-debug
 
           - os: macos-10.15
             branch: qt6-v2
             toxenv: build-release-qt6
+            name: macos-qt6
           - os: windows-2019
             args: --64bit
             branch: qt6-v2
             toxenv: build-release-qt6
+            name: windows-64bit-qt6
           - os: macos-10.15
             args: --debug
             branch: qt6-v2
             toxenv: build-release-qt6
+            name: mac-debug-qt6
           - os: windows-2019
             args: --64bit --debug
             branch: qt6-v2
             toxenv: build-release-qt6
+            name: windows-64bit-debug-qt6
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 30
     steps:
@@ -83,17 +94,20 @@ jobs:
           sed -i '' '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py
       - name: Run tox
         run: "tox -e ${{ matrix.toxenv }} -- --asciidoc ../asciidoc/asciidoc.py --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
-      - name: Wait 90s to avoid upload errors
-        if: "contains(matrix.args, '--32bit')"
-        run: "sleep 90"
+      - name: Gather info
+        id: info
+        run: |
+            echo "::set-output name=date::$(date +'%Y-%m-%d')"
+            echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: "qutebrowser-nightly-${{ github.sha }}"
+          name: "qutebrowser-nightly-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.name }}"
           path: |
             dist/qutebrowser-*.dmg
             dist/qutebrowser-*-windows-standalone-*.zip
             dist/qutebrowser-*-*.exe
+          if-no-files-found: error
 
   irc:
     timeout-minutes: 2
