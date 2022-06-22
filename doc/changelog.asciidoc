@@ -15,6 +15,36 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.5.2]]
+v2.5.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Packaging-related fixes:
+    * The `install` and `stacktrace` help pages are now included in the docs
+      shipped with qutebrowser when using the recommended packaging workflow.
+    * The Windows installer now more consistently uses the configured Windows
+      colors.
+    * The Windows installer now bases the desktop/start menu icon choices on
+      the existing install, if upgrading.
+    * The macOS release hopefully doesn't cause macOS to (falsely) claim that it
+      "is damaged and can't be opened" anymore.
+- The notification fixes in v2.5.1 caused new notification crashes (probably
+  more common than the ones being fixed...). Those are now fixed, along with a
+  (rather involved) test case to prevent similar issues in the future.
+- When a text was not found on a page, the associated message would be shown as
+  rich text (e.g. after `/<h1>`). With this release, this is fixed for search
+  messages, while the 3.0.0 release will change the default for all messages to be
+  plain-text. Note this is NOT a security issue, as only a small subset of HTML
+  is interpreted as rich text by Qt, independently from the website.
+- When a Greasemonkey script couldn't be loaded (e.g. due to an unreadable file),
+  qutebrowser would crash. It now shows an error instead.
+- Ever since the v1.2.0 release in 2018, the `content.default_encoding` setting
+  was not applied on start properly (only when it was changed afterwards). This
+  is now fixed.
+
 [[v2.5.1]]
 v2.5.1 (2022-05-26)
 -------------------
