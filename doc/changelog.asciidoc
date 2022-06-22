@@ -122,6 +122,9 @@ Fixed
 - The notification fixes in v2.5.1 caused new notification crashes (probably
   more common than the ones being fixed...). Those are now fixed, along with a
   (rather involved) test case to prevent similar issues in the future.
+- Ever since the v1.2.0 release in 2018, the `content.default_encoding` setting
+  was not applied on start properly (only when it was changed afterwards). This
+  is now fixed.
 
 [[v2.5.1]]
 v2.5.1 (2022-05-26)
