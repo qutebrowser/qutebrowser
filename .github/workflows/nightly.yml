@@ -67,16 +67,16 @@ jobs:
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: "${{ matrix.branch }}"
           persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
       - name: Get asciidoc
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: asciidoc-py/asciidoc-py
           ref: '9.x'
@@ -117,7 +117,7 @@ jobs:
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.pyinstaller.result == 'success'"
         with:
           server: irc.libera.chat
@@ -125,7 +125,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send non-success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.pyinstaller.result != 'success'"
         with:
           server: irc.libera.chat

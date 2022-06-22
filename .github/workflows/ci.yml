@@ -31,22 +31,22 @@ jobs:
             args: "-f gcc"  # For problem matchers
           - testenv: yamllint
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             .mypy_cache
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('scripts/dev/pylint_checkers/qute_pylint/*.py') }}"
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v3
         with:
-          node-version: '12.x'
+          node-version: '16.x'
         if: "matrix.testenv == 'eslint'"
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
@@ -89,7 +89,7 @@ jobs:
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
       - name: Set up problem matchers
@@ -146,10 +146,10 @@ jobs:
             python: "3.9"
     runs-on: "${{ matrix.os }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             .mypy_cache
@@ -157,7 +157,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.python }}"
       - name: Set up problem matchers
@@ -182,7 +182,7 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           name: "${{ matrix.testenv }}"
 
@@ -194,7 +194,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           persist-credentials: false
       - name: Initialize CodeQL
@@ -213,7 +213,7 @@ jobs:
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
         with:
           server: irc.libera.chat
@@ -221,7 +221,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send failure IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
         with:
           server: irc.libera.chat
@@ -230,7 +230,7 @@ jobs:
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
       - name: Send skipped IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
         with:
           server: irc.libera.chat
@@ -238,7 +238,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send cancelled IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
         with:
           server: irc.libera.chat
