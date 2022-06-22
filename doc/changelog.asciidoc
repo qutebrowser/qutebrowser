@@ -99,7 +99,7 @@ Fixed
   when only the text matches.
 
 [[v2.5.2]]
-v2.5.2 (unreleased)
+v2.5.2 (2022-06-22)
 -------------------
 
 Fixed
