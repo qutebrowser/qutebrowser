@@ -245,13 +245,6 @@ qutebrowser is available
 https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
 as `org.qutebrowser.qutebrowser`.
 
-NOTE: The Flatpak package is
-https://github.com/flathub/org.qutebrowser.qutebrowser/issues/8#issuecomment-799579975[looking for (co-)maintainers].
-The package recently was updated after being out of date for multiple years. It
-currently (March 2021) is up to date again. If that situation changes, consider
-to <<tox,install qutebrowser in a virtualenv>> instead, which is one of the
-officially maintained options and will always be up-to-date.
-
 On FreeBSD
 ----------
 
@@ -298,9 +291,7 @@ Nightly builds
 If you want to test out new features before an official qutebrowser release, automated
 https://github.com/qutebrowser/qutebrowser/actions/workflows/nightly.yml[nightly
 builds] are available. To download them, open the lastest run (usually the first one),
-then download the archive at the bottom of the page. Note that due to GitHub
-limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug, master/qt6-v2)
-are contained in a single archive.
+then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
 track down issues.
@@ -361,9 +352,7 @@ Nightly builds
 If you want to test out new features before an official qutebrowser release, automated
 https://github.com/qutebrowser/qutebrowser/actions/workflows/nightly.yml[nightly
 builds] are available. To download them, open the lastest run (usually the first one),
-then download the archive at the bottom of the page. Note that due to GitHub
-limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug, master/qt6-v2)
-are contained in a single archive.
+then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
 track down issues.
