@@ -28,21 +28,13 @@ import pytest
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject
 from qutebrowser.qt.gui import QImage
 from qutebrowser.qt.dbus import QDBusMessage, QDBus, QDBusConnection
-pytest.importorskip("PyQt5.QtWebEngineCore")
+pytest.importorskip("qutebrowser.qt.webenginecore")
 if TYPE_CHECKING:
     from qutebrowser.qt.webenginecore import QWebEngineNotification
 
 from qutebrowser.config import configdata
 from qutebrowser.misc import objects
 from qutebrowser.browser.webengine import notification
-
-
-pytestmark = [
-    pytest.mark.qtwebengine_notifications,
-    # 5.13 only supports the default presenter
-    pytest.mark.skipif(not notification._notifications_supported(),
-                       reason="Notifications not supported")
-]
 
 
 class FakeDBusMessage:
