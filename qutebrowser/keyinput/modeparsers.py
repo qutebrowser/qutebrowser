@@ -281,7 +281,13 @@ class RegisterKeyParser(CommandKeyParser):
         if match != QKeySequence.SequenceMatch.NoMatch or dry_run:
             return match
 
-        if keyutils.is_special(Qt.Key(e.key()), e.modifiers()):
+        try:
+            info = keyutils.KeyInfo.from_event(e)
+        except keyutils.InvalidKeyError as ex:
+            # See https://github.com/qutebrowser/qutebrowser/issues/7047
+            log.keyboard.debug(f"Got invalid key: {ex}")
+            return QKeySequence.SequenceMatch.NoMatch
+        if info.is_special():
             # this is not a proper register key, let it pass and keep going
             return QKeySequence.SequenceMatch.NoMatch
 

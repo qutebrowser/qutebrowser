@@ -294,7 +294,7 @@ class BaseKeyParser(QObject):
 
         self._debug_log(f"Got key: {info!r} (dry_run {dry_run})")
 
-        if keyutils.is_modifier_key(info.key):
+        if info.is_modifier_key():
             self._debug_log("Ignoring, only modifier")
             return QKeySequence.SequenceMatch.NoMatch
 
