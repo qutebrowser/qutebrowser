@@ -180,6 +180,7 @@ class AbstractSettings:
             self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
             self.set_default_text_encoding(value)
+        # NOTE: When adding something here, also add it to init_settings()!
         return False
 
     def update_setting(self, setting: str) -> None:
@@ -202,6 +203,7 @@ class AbstractSettings:
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
                         list(self._FONT_FAMILIES)):
             self.update_setting(setting)
+        self.update_setting('content.default_encoding')
 
 
 @debugcachestats.register(name='user agent cache')

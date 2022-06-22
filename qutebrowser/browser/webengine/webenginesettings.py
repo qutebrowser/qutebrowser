@@ -218,6 +218,7 @@ class WebEngineSettings(websettings.AbstractSettings):
     def _update_setting(self, setting, value):
         if setting == 'content.unknown_url_scheme_policy':
             return self.set_unknown_url_scheme_policy(value)
+        # NOTE: When adding something here, also add it to init_settings()!
         return super()._update_setting(setting, value)
 
     def init_settings(self):

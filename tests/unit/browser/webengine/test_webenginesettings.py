@@ -22,15 +22,20 @@ import logging
 import pytest
 
 QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+QWebEngineSettings = QtWebEngineWidgets.QWebEngineSettings
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
-def global_settings(monkeypatch, default_profile):
+def settings(default_profile):
     wrapper = webenginesettings._SettingsWrapper()
-    settings = webenginesettings.WebEngineSettings(wrapper)
+    return webenginesettings.WebEngineSettings(wrapper)
+
+
+@pytest.fixture
+def global_settings(monkeypatch, settings):
     settings.init_settings()
     monkeypatch.setattr(webenginesettings, '_global_settings', settings)
 
@@ -55,6 +60,55 @@ def private_profile(monkeypatch):
     profile.setter = webenginesettings.ProfileSetter(profile)
     monkeypatch.setattr(webenginesettings, 'private_profile', profile)
     return profile
+
+
+@pytest.mark.parametrize("setting, value, getter, expected", [
+    # attribute
+    (
+        "content.images", False,
+        lambda settings:
+            settings.testAttribute(QWebEngineSettings.WebAttribute.AutoLoadImages),
+        False,
+    ),
+    # font size
+    (
+        "fonts.web.size.default", 23,
+        lambda settings:
+            settings.fontSize(QWebEngineSettings.FontSize.DefaultFontSize),
+        23,
+    ),
+    # font family
+    (
+        "fonts.web.family.standard", "Comic Sans MS",
+        lambda settings:
+            settings.fontFamily(QWebEngineSettings.FontFamily.StandardFont),
+        "Comic Sans MS",
+    ),
+    # encoding
+    (
+        "content.default_encoding", "utf-16",
+        lambda settings: settings.defaultTextEncoding(),
+        "utf-16",
+    ),
+    # unknown URL scheme policy
+    (
+        "content.unknown_url_scheme_policy", "allow-all",
+        lambda settings: settings.unknownUrlSchemePolicy(),
+        QWebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes,
+    ),
+])
+def test_initial_settings(settings, config_stub, default_profile,
+                          setting, value, getter, expected):
+    """Make sure initial setting values are applied correctly."""
+    qt_settings = default_profile.settings()
+    initial = getter(qt_settings)
+    assert initial != expected  # no point in testing for the Qt default
+
+    config_stub.set_obj(setting, value)
+    settings.init_settings()
+
+    actual = getter(qt_settings)
+    assert actual == expected
 
 
 def test_big_cache_size(config_stub, default_profile):
