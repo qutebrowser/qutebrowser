@@ -2539,7 +2539,7 @@ colors.completion.odd.bg:
   desc: Background color of the completion widget for odd rows.
 
 colors.completion.even.bg:
-  default: '#333333'
+  default: '#282828'
   type: QssColor
   desc: Background color of the completion widget for even rows.
 
@@ -2564,32 +2564,32 @@ colors.completion.category.border.bottom:
   desc: Bottom border color of the completion widget category headers.
 
 colors.completion.item.selected.fg:
-  default: '#fbf1c7'
+  default: '#084c88'
   type: QtColor
   desc: Foreground color of the selected completion item.
 
 colors.completion.item.selected.bg:
-  default: '#69647c'
+  default: '#a6dfff'
   type: QssColor
   desc: Background color of the selected completion item.
 
 colors.completion.item.selected.border.top:
-  default: '#69647c'
+  default: '#a6dfff'
   type: QssColor
   desc: Top border color of the selected completion item.
 
 colors.completion.item.selected.border.bottom:
-  default: '#69647c'
+  default: '#a6dfff'
   type: QssColor
   desc: Bottom border color of the selected completion item.
 
 colors.completion.item.selected.match.fg:
-  default: '#19fea1'
+  default: '#267575'
   type: QtColor
   desc: Foreground color of the matched text in the selected completion item.
 
 colors.completion.match.fg:
-  default: '#19fea1'
+  default: '#A8F3F3'
   type: QtColor
   desc: Foreground color of the matched text in the completion.
 
@@ -2833,7 +2833,7 @@ colors.statusbar.insert.fg:
   desc: Foreground color of the statusbar in insert mode.
 
 colors.statusbar.insert.bg:
-  default: '#4b426a'
+  default: '#2C7446'
   type: QssColor
   desc: Background color of the statusbar in insert mode.
 
@@ -2843,7 +2843,7 @@ colors.statusbar.passthrough.fg:
   desc: Foreground color of the statusbar in passthrough mode.
 
 colors.statusbar.passthrough.bg:
-  default: '#404f6c'
+  default: '#3B3B95'
   type: QssColor
   desc: Background color of the statusbar in passthrough mode.
 
@@ -2878,12 +2878,12 @@ colors.statusbar.command.private.bg:
   desc: Background color of the statusbar in private browsing + command mode.
 
 colors.statusbar.caret.fg:
-  default: '#e1c2ad'
+  default: '#fbf1c7'
   type: QssColor
   desc: Foreground color of the statusbar in caret mode.
 
 colors.statusbar.caret.bg:
-  default: '#544c54'
+  default: '#6C1E6C'
   type: QssColor
   desc: Background color of the statusbar in caret mode.
 
@@ -2893,7 +2893,7 @@ colors.statusbar.caret.selection.fg:
   desc: Foreground color of the statusbar in caret mode with a selection.
 
 colors.statusbar.caret.selection.bg:
-  default: '#584658'
+  default: '#6C1E6C'
   type: QssColor
   desc: Background color of the statusbar in caret mode with a selection.
 
@@ -2944,7 +2944,7 @@ colors.tabs.indicator.start:
   desc: Color gradient start for the tab indicator.
 
 colors.tabs.indicator.stop:
-  default: '#19fea1'
+  default: '#24AB74'
   type: QtColor
   desc: Color gradient end for the tab indicator.
 
@@ -2959,22 +2959,22 @@ colors.tabs.indicator.system:
   desc: Color gradient interpolation system for the tab indicator.
 
 colors.tabs.odd.fg:
-  default: '#e1c2ad'
+  default: '#84b4e6'
   type: QtColor
   desc: Foreground color of unselected odd tabs.
 
 colors.tabs.odd.bg:
-  default: '#544c54'
+  default: '#263238'
   type: QtColor
   desc: Background color of unselected odd tabs.
 
 colors.tabs.even.fg:
-  default: '#e1c2ad'
+  default: '#84b4e6'
   type: QtColor
   desc: Foreground color of unselected even tabs.
 
 colors.tabs.even.bg:
-  default: '#685f68'
+  default: '#222d32'
   type: QtColor
   desc: Background color of unselected even tabs.
 
@@ -2984,17 +2984,17 @@ colors.tabs.selected.odd.fg:
   desc: Foreground color of selected odd tabs.
 
 colors.tabs.selected.odd.bg:
-  default: '#3f91c5'
+  default: '#a6dfff'
   type: QtColor
   desc: Background color of selected odd tabs.
 
 colors.tabs.selected.even.fg:
-  default: '#fbf1c7'
+  default: '#084c88'
   type: QtColor
   desc: Foreground color of selected even tabs.
 
 colors.tabs.selected.even.bg:
-  default: '#3f91c5'
+  default: '#a6dfff'
   type: QtColor
   desc: Background color of selected even tabs.
 
@@ -3009,32 +3009,32 @@ colors.tabs.pinned.odd.bg:
   desc: Background color of pinned unselected odd tabs.
 
 colors.tabs.pinned.even.fg:
-  default: '#504945'
+  default: '#e1c2ad'
   type: QtColor
   desc: Foreground color of pinned unselected even tabs.
 
 colors.tabs.pinned.even.bg:
-  default: '#81a97d'
+  default: '#8277ad'
   type: QtColor
   desc: Background color of pinned unselected even tabs.
 
 colors.tabs.pinned.selected.odd.fg:
-  default: '#fbf1c7'
+  default: '#084c88'
   type: QtColor
   desc: Foreground color of pinned selected odd tabs.
 
 colors.tabs.pinned.selected.odd.bg:
-  default: '#3f91c5'
+  default: '#a6dfff'
   type: QtColor
   desc: Background color of pinned selected odd tabs.
 
 colors.tabs.pinned.selected.even.fg:
-  default: '#fbf1c7'
+  default: '#084c88'
   type: QtColor
   desc: Foreground color of pinned selected even tabs.
 
 colors.tabs.pinned.selected.even.bg:
-  default: '#3f91c5'
+  default: '#a6dfff'
   type: QtColor
   desc: Background color of pinned selected even tabs.
 
