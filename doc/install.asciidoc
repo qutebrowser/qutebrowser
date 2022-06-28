@@ -237,7 +237,9 @@ Via Flatpak
 
 qutebrowser is available
 https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
-as `org.qutebrowser.qutebrowser`.
+as `org.qutebrowser.qutebrowser`. See the
+https://github.com/flathub/org.qutebrowser.qutebrowser/wiki[qutebrowser Flatpak documentation]
+for more information about setting up certain features with the Flatpak sandbox.
 
 NOTE: The Flatpak package is
 https://github.com/flathub/org.qutebrowser.qutebrowser/issues/8#issuecomment-799579975[looking for (co-)maintainers].
