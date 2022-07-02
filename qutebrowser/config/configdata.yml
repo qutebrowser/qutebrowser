@@ -1267,6 +1267,15 @@ completion.scrollbar.padding:
     minval: 0
   desc: Padding (in pixels) of the scrollbar handle in the completion window.
 
+completion.item_padding:
+  type: Padding
+  default:
+    top: 1
+    bottom: 1
+    left: 0
+    right: 0
+  desc: Padding (in pixels) for the completion items.
+
 completion.timestamp_format:
   type:
     name: String
