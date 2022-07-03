@@ -79,10 +79,10 @@ class CompletionView(QTreeView):
         }
 
         QTreeView:item {
-            padding-top: {{ completion.item_padding['top'] }}px;
-            padding-left: {{ completion.item_padding['left'] }}px;
-            padding-right: {{ completion.item_padding['right'] }}px;
-            padding-bottom: {{ completion.item_padding['bottom'] }}px;
+            padding-top: {{ conf.completion.item_padding['top'] }}px;
+            padding-left: {{ conf.completion.item_padding['left'] }}px;
+            padding-right: {{ conf.completion.item_padding['right'] }}px;
+            padding-bottom: {{ conf.completion.item_padding['bottom'] }}px;
         }
 
         QTreeView::item:selected, QTreeView::item:selected:hover {
