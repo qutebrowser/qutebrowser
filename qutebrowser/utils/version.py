@@ -407,6 +407,7 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),
+        ('objc', ['__version__']),
     ]
 ])
 
