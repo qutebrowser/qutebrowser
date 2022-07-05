@@ -97,6 +97,7 @@ Fixed
   shown, qutebrowser used to only show one message. This is now only done when the
   two messages are completely equivalent (text, level, etc.) instead of doing so
   when only the text matches.
+- Crash when the adblock filter file can't be read.
 
 [[v2.5.2]]
 v2.5.2 (2022-06-22)
