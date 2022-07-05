@@ -28,7 +28,11 @@ from typing import Iterator, Iterable, Union
 
 
 # We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
-if sys.version_info >= (3, 9):
+if sys.version_info >= (3, 11):
+    # https://github.com/python/cpython/issues/90276
+    import importlib.resources as importlib_resources
+    from importlib.resources.abc import Traversable
+elif sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
     from importlib.abc import Traversable
 else:  # pragma: no cover
