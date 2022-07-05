@@ -292,7 +292,7 @@ def run_command(quteproc, server, tmpdir, command):
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
-def reload(qtbot, server, quteproc, command):
+def reload(qtbot, server, quteproc):
     """Reload and wait until a new request is received."""
     with qtbot.wait_signal(server.new_request):
         quteproc.send_cmd(':reload')
