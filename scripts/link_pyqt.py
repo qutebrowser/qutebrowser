@@ -215,14 +215,7 @@ def main():
                         action='store_true')
     args = parser.parse_args()
 
-    if args.tox:
-        # Workaround for the lack of negative factors in tox.ini
-        if 'LINK_PYQT_SKIP' in os.environ:
-            print('LINK_PYQT_SKIP set, exiting...')
-            sys.exit(0)
-        executable = get_tox_syspython(args.path)
-    else:
-        executable = sys.executable
+    executable = get_tox_syspython(args.path) if args.tox else sys.executable
 
     venv_path = get_venv_lib_path(args.path)
     link_pyqt(executable, venv_path)
