@@ -9,6 +9,7 @@ Basic keybindings to get you started
 ------------------------------------
 
 * Use the arrow keys or `hjkl` to move around a webpage (vim-like syntax is used in quite a few places)
+* To zoom in or out of a webpage, use the `+` or `-` keys respectively
 * To go to a new webpage, press `o`, then type a url, then press Enter (Use `O` to open the url in a new tab, `go` to edit the current URL)
 * If what you've typed isn't a url, then a search engine will be used instead (DuckDuckGo, by default)
 * To switch between tabs, use `J` (next tab) and `K` (previous tab), or press `<Alt-num>`, where `num` is the position of the tab to switch to
