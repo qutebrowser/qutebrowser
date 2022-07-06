@@ -135,6 +135,7 @@
 |<<completion.show,completion.show>>|When to show the autocompletion window.
 |<<completion.shrink,completion.shrink>>|Shrink the completion to be smaller than the configured size if there are no scrollbars.
 |<<completion.timestamp_format,completion.timestamp_format>>|Format of timestamps (e.g. for the history completion).
+|<<completion.uniform_height,completion.uniform_height>>|Use uniform height for completion rows.
 |<<completion.use_best_match,completion.use_best_match>>|Execute the best-matching command on a partial match.
 |<<completion.web_history.exclude,completion.web_history.exclude>>|A list of patterns which should not be shown in the history.
 |<<completion.web_history.max_items,completion.web_history.max_items>>|Number of URLs to show in the web history.
@@ -1914,6 +1915,15 @@ See https://sqlite.org/lang_datefunc.html and https://docs.python.org/3/library/
 Type: <<types,String>>
 
 Default: +pass:[%Y-%m-%d %H:%M]+
+
+[[completion.uniform_height]]
+=== completion.uniform_height
+Use uniform height for completion rows.
+Setting this to `false` may affect performance negatively, and has caused crashes in Qt in the past.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[completion.use_best_match]]
 === completion.use_best_match

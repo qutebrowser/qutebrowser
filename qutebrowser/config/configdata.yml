@@ -1280,6 +1280,15 @@ completion.timestamp_format:
     for allowed substitutions, qutebrowser uses both sqlite and Python to
     format its timestamps.
 
+completion.uniform_height:
+  type: Bool
+  default: true
+  desc: >-
+    Use uniform height for completion rows.
+
+    Setting this to `false` may affect performance negatively, and has caused
+    crashes in Qt in the past.
+
 completion.web_history.exclude:
   type:
     name: List
