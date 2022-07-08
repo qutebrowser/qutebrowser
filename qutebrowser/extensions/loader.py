@@ -27,9 +27,10 @@ import argparse
 import dataclasses
 from typing import Callable, Iterator, List, Optional, Tuple
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QUrl
 
 from qutebrowser import components
+from qutebrowser.api import apitypes
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
@@ -40,6 +41,9 @@ _module_infos = []
 
 InitHookType = Callable[['InitContext'], None]
 ConfigChangedHookType = Callable[[], None]
+BeforeLoadHookType = Callable[['apitypes.Tab', QUrl], None]
+LoadStartedHookType = Callable[['apitypes.Tab'], None]
+LoadFinishedHookType = Callable[['apitypes.Tab', bool], None]
 
 
 @dataclasses.dataclass
@@ -68,6 +72,12 @@ class ModuleInfo:
             ConfigChangedHookType,
         ]
     ] = dataclasses.field(default_factory=list)
+    before_load_hooks: List[BeforeLoadHookType] = dataclasses.field(
+            default_factory=list)
+    load_started_hooks: List[LoadStartedHookType] = dataclasses.field(
+            default_factory=list)
+    load_finished_hooks: List[LoadFinishedHookType] = dataclasses.field(
+            default_factory=list)
 
 
 @dataclasses.dataclass
@@ -155,6 +165,30 @@ def _on_config_changed(changed_name: str) -> None:
                 if cfilter.check_match(changed_name):
                     hook()
 
+
+def run_before_load_hooks(tab: 'apitypes.Tab', url: QUrl) -> None:
+    """Run all before_load_hooks."""
+    for mod_info in _module_infos:
+        if mod_info.skip_hooks:
+            continue
+        for hook in mod_info.before_load_hooks:
+            hook(tab, url)
+
+def run_load_started_hooks(tab: 'apitypes.Tab') -> None:
+    """Run all load_finished_hooks."""
+    for mod_info in _module_infos:
+        if mod_info.skip_hooks:
+            continue
+        for hook in mod_info.load_started_hooks:
+            hook(tab)
+
+def run_load_finished_hooks(tab: 'apitypes.Tab', ok: bool) -> None:
+    """Run all load_finished_hooks."""
+    for mod_info in _module_infos:
+        if mod_info.skip_hooks:
+            continue
+        for hook in mod_info.load_finished_hooks:
+            hook(tab, ok)
 
 def init() -> None:
     config.instance.changed.connect(_on_config_changed)
