@@ -34,6 +34,7 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
+from qutebrowser.extensions import loader as extensions_loader
 
 if TYPE_CHECKING:
     from qutebrowser.browser import webelem
@@ -1126,6 +1127,7 @@ class AbstractTab(QWidget):
         url_string = url.toDisplayString()
         log.webview.debug("Going to start loading: {}".format(url_string))
         self.title_changed.emit(url_string)
+        extensions_loader.run_before_load_hooks(self, url)
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url: QUrl) -> None:
@@ -1140,6 +1142,7 @@ class AbstractTab(QWidget):
         self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
+        extensions_loader.run_load_started_hooks(self)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(
@@ -1212,6 +1215,7 @@ class AbstractTab(QWidget):
             sessions.session_manager.save_autosave()
 
         self.load_finished.emit(ok)
+        extensions_loader.run_load_finished_hooks(self, ok)
 
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
