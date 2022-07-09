@@ -1,168 +1,688 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# encoding: iso-8859-1
+# Copyright 2014-2022 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+
+# This file is part of qutebrowser.
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# NSIS installer script. Uses NsisMultiUser plugin and contains portions of
-# its demo code, copyright 2017 Richard Drizin, Alex Mitev.
 
-# Includes modified graphics from the NSIS distribution.
+### Configure build and run compile time commands.
 
-# Requires:
-# - NsisMultiUser plugin        https://github.com/Drizin/NsisMultiUser
-# - UAC plugin                  https://nsis.sourceforge.net/UAC_plug-in
-# - StdUtils plugin             https://nsis.sourceforge.io/StdUtils_plug-in
+!addincludedir '${__FILEDIR__}'
+!include 'config.nsh'
+!insertmacro PREPARE_BUILD_ENVIRONMENT
 
+### Include and configure plugins
 
-; Installer Attributes
-Unicode true
-XPStyle on
-ManifestSupportedOS all
-SetDatablockOptimize on
-SetCompressor /SOLID /FINAL lzma
-SetCompressorDictSize 32
-CRCCheck on
-AllowSkipFiles off
-SetOverwrite on
-ShowInstDetails hide
-ShowUninstDetails hide
+; Include WinCore NSIS header and define some missing values
+!include 'WinCore.nsh'
 
-!addplugindir /x86-unicode ".\plugins\x86-unicode"
-!addincludedir ".\include"
+!define /ifndef ERROR_DIR_NOT_EMPTY 145
 
-!define MUI_BGCOLOR "SYSCLR:Window"
-!define MUI_TEXTCOLOR "SYSCLR:WindowText"
+!define /ifndef TVM_SETBKCOLOR 0x111D
+!define /ifndef TVM_SETTEXTCOLOR 0x111E
 
-!include MUI2.nsh
-!include NsisMultiUser.nsh
-!include StdUtils.nsh
+!define /ifndef /math LVM_SETBKCOLOR ${LVM_FIRST} + 1
+!define /ifndef /math LVM_SETTEXTCOLOR ${LVM_FIRST} + 36
+!define /ifndef /math LVM_SETTEXTBKCOLOR ${LVM_FIRST} + 38
 
-; Installer defines
-!define PRODUCT_NAME "qutebrowser" ; name of the application as displayed to the user
-!define PROGEXE "qutebrowser.exe" ; main application filename
-!define COMPANY_NAME "qutebrowser.org" ; company, used for registry tree hierarchy
-!define COPYRIGHT "© 2014-2018 Florian Bruhin (The Compiler)"
-!define TM "qutebrowser is free software under the GNU General Public License"
-!define URL_ABOUT "https://qutebrowser.org/"
-!define URL_UPDATE "https://qutebrowser.org/doc/install.html"
-!define HELP_LINK "https://qutebrowser.org/doc/help/"
-!define CONTACT "mail@qutebrowser.org"
-!define COMMENTS "A keyboard-driven, vim-like browser based on Python and Qt."
-!define LANGID "1033" ; U.S. English
-!define MIN_WIN_VER "8"
-!define SETUP_MUTEX "${PRODUCT_NAME} Setup Mutex" ; do not change this between program versions!
-!define APP_MUTEX "${PRODUCT_NAME} App Mutex" ; do not change this between program versions!
-!define REG_UN "Software\Microsoft\Windows\CurrentVersion\Uninstall"
-!define SETTINGS_REG_KEY "${REG_UN}\${PRODUCT_NAME}"
-!define CONFIG_DIR "$APPDATA\${PRODUCT_NAME}"
-!define CACHE_DIR "$LOCALAPPDATA\${PRODUCT_NAME}"
-!define LICENSE_FILE ".\..\..\LICENSE"
-!define MUI_ICON ".\graphics\install.ico"
-!define MUI_UNICON ".\graphics\uninstall.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP ".\graphics\wizard.bmp"
-; The old MSI installers had a different Product Code on every release by mistake
-!define MSI_COUNT 24
-!define MSI32_010 "{50691080-E51F-4F1A-AEEA-ACA8C64DB98B}"
-!define MSI32_011 "{B6FE0FC1-3754-4FF6-A5E5-A305B1EDC8CB}"
-!define MSI32_012 "{B1341894-8D82-40C6-B0D0-A5ECEFB997BE}"
-!define MSI32_013 "{22EEF3C7-4D72-4F7E-B35B-1F2A22B5E64A}"
-!define MSI32_014 "{29C7D770-EBFE-465A-8354-C6A4EA3D8BAF}"
-!define MSI32_020 "{061B339B-ABBC-4D89-BE0D-A843FEA48DA7}"
-!define MSI32_021 "{0228BB7C-8D7C-4763-A1C6-AAE0B1902AF9}"
-!define MSI32_030 "{F514C234-DB31-4158-9D96-53412B431F81}"
-!define MSI32_040 "{895E71DC-41D6-4FC3-A0F8-2EC5FE19ACB8}"
-!define MSI32_041 "{66F9576D-0DB5-475D-9C25-E0511580C897}"
-!define MSI32_050 "{EDB54F4D-7A00-47AE-9808-E59FF5E79136}"
-!define MSI32_051 "{EEF03487-BC9F-4EA4-A5A1-E9CF5F9E1FB6}"
-!define MSI32_060 "{F9FECA24-95DA-4E46-83E3-A805E5B1CE06}"
-!define MSI32_061 "{F1A0F4B9-CCA3-4B07-8ADB-16BC81530440}"
-!define MSI32_062 "{43F5E4C5-FF96-4676-B027-5AD63D3871AB}"
-!define MSI32_070 "{558FF39C-CA5F-4E2A-87D2-90963FCBC424}"
-!define MSI32_080 "{9DF540E2-4F8C-46A4-A27F-43BD0558CC42}"
-!define MSI32_081 "{EA0FB6B1-83AF-4F16-8B89-645B587D90FD}"
-!define MSI32_082 "{F849A0B2-301C-435D-9CC0-9651938FCA6F}"
-!define MSI32_084 "{9331D947-AC86-4542-A755-A833429C6E69}"
-!define MSI32_090 "{AD967987-7777-4095-A03A-3F2EE8968D9E}"
-!define MSI32_091 "{87F05B8A-2238-4D86-82BB-EC8B4CE97E78}"
-!define MSI32_100 "{07B85A0B-D025-4B4B-B46D-BC9B02912835}"
-!define MSI32_101 "{9F05D9E4-D049-445E-A489-A7DC0256C774}"
-!define MSI64_010 "{A8191862-28A7-4BB0-9532-49AD5CFFFE66}"
-!define MSI64_011 "{1C476CC1-A171-48B7-A883-0F00F4D301D3}"
-!define MSI64_012 "{ADA727AC-9DDD-4F03-93B7-BAFE950757BE}"
-!define MSI64_013 "{64949BFF-287A-4C16-A5F3-84A38A6703F1}"
-!define MSI64_014 "{63F22761-D886-4FDD-93F4-7543265E9FF7}"
-!define MSI64_020 "{80BE09C6-347F-4121-98D3-1E4363C3CE6B}"
-!define MSI64_021 "{2D86F472-DD52-40A1-8FE0-90550D674554}"
-!define MSI64_030 "{53DED10D-C609-406F-959E-C1B52A518561}"
-!define MSI64_040 "{B9535FDF-7A9E-4AED-BA1E-BEE5FFCBC311}"
-!define MSI64_041 "{DAE1309A-FE7D-46E5-B488-B437CC509DF9}"
-!define MSI64_050 "{DC9ECE64-F8E5-4BCB-BCFF-BE4ADCEF2655}"
-!define MSI64_051 "{26AED286-23BD-49FF-BD9C-7C0DC4467BD7}"
-!define MSI64_060 "{3035744D-2390-4D5E-ACAD-905E72B9EBEC}"
-!define MSI64_061 "{0223F48F-93A8-4985-BCFF-328E5A9D97D5}"
-!define MSI64_062 "{95835A82-A9C2-4924-87DF-E03D910E3400}"
-!define MSI64_070 "{61D1AC75-7ECD-45FF-B42B-454C056DB178}"
-!define MSI64_080 "{92D1C65C-1338-4B11-B515-6BD5B1FF92D9}"
-!define MSI64_081 "{AF7AC009-FB82-48F6-9439-6E46AEB60DBF}"
-!define MSI64_082 "{CC316D68-5742-4C2B-98EC-4ADF06A19B84}"
-!define MSI64_084 "{633F41F9-FE9B-42D1-9CC4-718CBD01EE11}"
-!define MSI64_090 "{5E3E7404-D6D7-4FF1-846A-F9BBFE2F841A}"
-!define MSI64_091 "{3190D3F6-7B24-47DC-88E7-99280905FACF}"
-!define MSI64_100 "{7AA6530C-3812-4DC5-9A30-E762BBDDF55E}"
-!define MSI64_101 "{B0104B85-8229-49FB-8606-275A90ACC024}"
+!define /ifndef /math EM_SETCHARFORMAT ${WM_USER} + 68
+!define /ifndef ST_SELECTION 2
+!define /ifndef CFM_COLOR 0x40000000
+!define /ifndef SCF_DEFAULT 0x0000
+!define /ifndef SCF_ALL 0x0004
 
-; Set PLATFORM - default x64
-!ifdef X86
-  !define PLATFORM "Win32"
-  !define ARCH "x86"
-  !define SUFFIX "win32"
-!else
-  !define PLATFORM "Win64"
-  !define ARCH "x64"
-  !define SUFFIX "amd64"
+; MUI2
+!include 'MUI2.nsh'
+!define MUI_BGCOLOR 'SYSCLR:Window'
+!define MUI_TEXTCOLOR 'SYSCLR:WindowText'
+!define MUI_ICON '${INST_ICON}'
+!define MUI_UNICON '${UNINST_ICON}'
+!define MUI_WELCOMEFINISHPAGE_BITMAP '${WIZARD_IMAGE}'
+!define MUI_UNABORTWARNING
+!define MUI_LANGDLL_REGISTRY_ROOT 'SHCTX'
+!define MUI_LANGDLL_REGISTRY_KEY '${REG_UNINSTALL}\${SETUP_GUID}'
+!define MUI_LANGDLL_REGISTRY_VALUENAME 'Language'
+!define MUI_LANGDLL_ALLLANGUAGES ; Show all languages, despite user's codepage
+
+; NsisMultiUser
+!include 'NsisMultiUser.nsh' ; FileFunc LogicLib nsDialogs StrFunc UAC WinVer x64
+
+!if '${ARCH}' == 'x64'
+    !define MULTIUSER_INSTALLMODE_64_BIT 1
+!endif
+!define MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS 1
+!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION 1
+!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 1
+!define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS 1
+!define MULTIUSER_INSTALLMODE_DISPLAYNAME '${PRODUCT_NAME} v${VERSION} ${ARCH}'
+!define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY '${SETUP_GUID}'
+!define MULTIUSER_INSTALLMODE_NO_HELP_DIALOG
+
+; StdUtils Plugin
+!include 'StdUtils.nsh'
+
+; Make sure the plugin files are stored at the beginning of the compressed data block
+ReserveFile /plugin 'UAC.dll'
+ReserveFile /plugin 'StdUtils.dll'
+!insertmacro MUI_RESERVEFILE_LANGDLL
+
+### MUI: Insert Pages and define Callbacks
+
+;Installer
+
+!define MUI_CUSTOMFUNCTION_ABORT onUserAbort
+
+!define MUI_CUSTOMFUNCTION_GUIINIT onGUIInitMUI
+
+!define MUI_PAGE_CUSTOMFUNCTION_PRE PageWelcomeLicensePre
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageWelcomeShow
+!insertmacro MUI_PAGE_WELCOME
+
+!define MUI_PAGE_CUSTOMFUNCTION_PRE PageWelcomeLicensePre
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageLicenseShow
+!insertmacro MUI_PAGE_LICENSE '${LICENSE_FILE}'
+
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageInstallModeShow
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
+
+!define MUI_COMPONENTSPAGE_SMALLDESC
+!define MUI_PAGE_CUSTOMFUNCTION_PRE PageComponentsPre
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageComponentsShow
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE PageComponentsLeave
+!insertmacro MUI_PAGE_COMPONENTS
+
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageDirectoryShow
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE PageDirectoryLeave
+!insertmacro MUI_PAGE_DIRECTORY
+
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageInstFilesShow
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE PageInstFilesLeave
+!insertmacro MUI_PAGE_INSTFILES
+
+!define MUI_FINISHPAGE_RUN
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageFinishShow
+!define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
+!insertmacro MUI_PAGE_FINISH
+
+; Uninstaller
+
+!define MUI_CUSTOMFUNCTION_UNGUIINIT un.onGUIInitMUI
+
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.PageInstallModeShow
+!insertmacro MULTIUSER_UNPAGE_INSTALLMODE
+
+!define MUI_PAGE_CUSTOMFUNCTION_PRE un.PageComponentsPre
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.PageComponentsShow
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE un.PageComponentsLeave
+!insertmacro MUI_UNPAGE_COMPONENTS
+
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.PageInstFilesShow
+!insertmacro MUI_UNPAGE_INSTFILES
+
+### Languages (all Pages must be set)
+
+!include 'language-english.nsh' ; The first is the default
+!insertmacro MULTIUSER_LANGUAGE_INIT ;must be last
+
+### Variables
+
+Var UserName
+Var AdminName
+
+Var DarkMode
+
+Var DesktopIconPath
+Var StartMenuIconPath
+
+Var CacheDir
+Var ConfigDir
+
+; Installer: 0 = idle, 1 = start, 2 = pause, 3 = abort
+; Uninstaller: 0 = normal, 1 = running from installer
+Var SetupState
+
+; Components: -1 = not set from command line, 0 = disabled, 1 = enabled
+Var RegisterBrowser
+Var DesktopIcon
+Var StartMenuIcon
+Var ClearCache
+Var ClearConfig
+
+Var LogFile
+Var LogHandle
+
+!ifdef DEBUG
+    Var DebugLogFile
+    Var DebugLogHandle
 !endif
 
-; If not defined, get VERSION from PROGEXE. Set DIST_DIR accordingly.
-!ifndef VERSION
-  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}"
-  !getdllversion "${DIST_DIR}\${PROGEXE}" expv_
-  !define VERSION "${expv_1}.${expv_2}.${expv_3}"
-!else
-  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}"
-!endif
+### Custom commands
 
-; If not defined, assume Qt6 (requires a more recent windows version)
-!define /ifndef QT5 "False"
+!include '${FILE_MACROS_NSH}'
 
-; Pack the exe header with upx if UPX is defined.
-!ifdef UPX
-  !packhdr "$%TEMP%\exehead.tmp" '"upx" "--ultra-brute" "$%TEMP%\exehead.tmp"'
-!endif
+!include 'commands.nsh'
 
-; Version Information
-VIFileVersion "${VERSION}.0"
-VIProductVersion "${VERSION}.0"
-VIAddVersionKey /LANG=${LANGID} "Comments" "Built with NSIS ${NSIS_VERSION}"
-VIAddVersionKey /LANG=${LANGID} "CompanyName" "${COMPANY_NAME}"
-VIAddVersionKey /LANG=${LANGID} "FileVersion" "${VERSION}"
-VIAddVersionKey /LANG=${LANGID} "InternalName" "${PRODUCT_NAME}-${VERSION}-${SUFFIX}"
-VIAddVersionKey /LANG=${LANGID} "LegalTrademarks" "${TM}"
-VIAddVersionKey /LANG=${LANGID} "LegalCopyright" "${COPYRIGHT}"
-VIAddVersionKey /LANG=${LANGID} "FileDescription" "${PRODUCT_NAME} ${ARCH} Setup"
-VIAddVersionKey /LANG=${LANGID} "OriginalFilename" "${PRODUCT_NAME}-${VERSION}-${SUFFIX}.exe"
-VIAddVersionKey /LANG=${LANGID} "ProductName" "${PRODUCT_NAME}"
-VIAddVersionKey /LANG=${LANGID} "ProductVersion" "${VERSION}"
+### Installer Sections
 
-; Final Attributes
-Name "${PRODUCT_NAME}"
-BrandingText "${PRODUCT_NAME} v${VERSION} Installer (${ARCH})"
-OutFile "${DIST_DIR}\..\${PRODUCT_NAME}-${VERSION}-${SUFFIX}.exe"
+InstType 'Full'
+InstType 'Typical'
+InstType 'Minimal'
 
-; installer/uninstaller pages and actions
-!include "Utils.nsh"
-!include "install_pages.nsh"
-; remove next line if you're using signing after the uninstaller is extracted from the initially compiled setup
-!include "uninstall_pages.nsh"
-!include "install.nsh"
-; remove next line if you're using signing after the uninstaller is extracted from the initially compiled setup
-!include "uninstall.nsh"
+Section '-Installer Uninstall'
+    ${Reserve} $R0 ExitCode 0
+    ${Reserve} $R1 UninstallDir ''
+    ${Reserve} $R2 UninstallDirState ''
+    ${Reserve} $R3 UninstallString ''
+
+    ${If} ${FileExists} $LogFile
+        ${WriteLog} ''
+    ${EndIf}
+    ${WriteLog} '$(^SetupCaption): ${MULTIUSER_INSTALLMODE_DISPLAYNAME}'
+
+    ${If} $HasCurrentModeInstallation = 1
+        ${If} $MultiUser.InstallMode == 'AllUsers'
+            ${Set} UninstallDir $PerMachineInstallationFolder
+            ${Set} UninstallString $PerMachineUninstallString
+        ${Else}
+            ${Set} UninstallDir $PerUserInstallationFolder
+            ${Set} UninstallString $PerUserUninstallString
+        ${EndIf}
+
+        ${WriteLog} $(M_EXEC)${UninstallString}
+        ${CloseLogFile}
+        ClearErrors
+        ExecWait ${UninstallString} ${ExitCode}
+        BringToFront
+        ${If} ${Errors}
+            ${If} ${UninstallDir} != $INSTDIR
+                Push ${UninstallDir}
+                Exch $INSTDIR
+                ${ClearInstDir}
+                Pop $INSTDIR
+                !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+            ${EndIf}
+        ${ElseIf} ${ExitCode} = 0
+            ${If} ${UninstallDir} != $INSTDIR
+                ${DeleteAnyFile} '${UninstallDir}\${UNINSTALL_FILENAME}'
+                ${DirState} ${UninstallDir} ${UninstallDirState}
+                ${If} ${UninstallDirState} = 0
+                    ${RemoveDir} ${UninstallDir}
+                ${EndIf}
+            ${EndIf}
+        ${Else}
+            ${Quit} ExitCode ''
+        ${Endif}
+    ${EndIf}
+
+    ${If} ${FileExists} '$INSTDIR\*'
+        ${ClearInstDir}
+    ${EndIf}
+
+    ${If} $RegisterBrowser = 0
+        ${ClearRegistry}
+    ${EndIf}
+
+    ${Release} UninstallString ''
+    ${Release} UninstallDirState ''
+    ${Release} UninstallDir ''
+    ${Release} ExitCode ''
+SectionEnd
+
+Section $(S_FILES) SectionProgramFiles
+    SectionIn 1 2 3 RO
+    ${Reserve} $R0 AppDir ''
+    ${Reserve} $R1 AppFile ''
+    ${Reserve} $R2 FileHash ''
+    ${Reserve} $R3 CalcHash ''
+    ${Reserve} $0 LangVar ''
+    Goto _start
+
+    !macro MKDIR APP_DIR
+        ${Set} AppDir '${APP_DIR}'
+        ${Call} :create_dir
+    !macroend
+    create_dir:
+    ${Set} LangVar ${AppDir}
+    IfFileExists '${AppDir}\*' _check_cancel
+    ClearErrors
+    CreateDirectory ${AppDir}
+    IfErrors _dir_error
+    ${WriteLog} $(M_CREATE_FOLDER)${AppDir}
+    Goto _check_cancel
+    _dir_error:
+    ${Error} ERROR_WRITE_FAULT
+    DetailPrint '$(M_CANT_CREATE_FOLDER)${AppDir}'
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION $(MB_CANT_CREATE_FOLDER) /SD IDCANCEL IDRETRY create_dir
+    ${Fail} '$(M_CANT_CREATE_FOLDER)${AppDir}'
+
+    !macro EXTRACT FILE SHA
+        ${Set} AppFile '$INSTDIR\${FILE}'
+        ${Set} FileHash '${SHA}'
+        !define Start 'EXTRACT_@${__LINE__}'
+        _${Start}:
+        ClearErrors
+        File '/oname=${FILE}' '${DIST_DIR}\${FILE}'
+        ${Call} :check_extract
+        IfErrors _${Start}
+        !undef Start
+    !macroend
+    check_extract:
+    ${Set} LangVar ${AppFile}
+    IfErrors _write_error
+    ${StdUtils.HashFile} ${CalcHash} 'SHA2-256' ${AppFile}
+    ${WriteDebug} CalcHash
+    StrCmpS ${CalcHash} ${FileHash} 0 _hash_error
+    ${WriteLog} $(M_EXTRACT)${AppFile}
+    Goto _check_cancel
+    _write_error:
+    DetailPrint $(M_EXTRACT_ERROR)${AppFile}
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_FILE_ERROR_NO_IGNORE) /SD IDCANCEL IDRETRY _retry
+    ${Fail} $(M_EXTRACT_ERROR)${AppFile}
+    _hash_error:
+    DetailPrint $(M_CHECKSUM_ERROR)${AppFile}
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CHECKSUM_ERROR) /SD IDCANCEL IDRETRY _retry
+    ${Fail} $(M_CHECKSUM_ERROR)${AppFile}
+
+    _retry:
+    ${Error} ERROR_RETRY
+    _return:
+    ${Return}
+
+    _check_cancel:
+    IntCmp $SetupState 2 0 _return _user_abort
+    Sleep 500
+    Goto _check_cancel
+    _user_abort:
+    ${Fail} $(M_USER_CANCEL)
+
+    _start:
+    !insertmacro MKDIR $INSTDIR
+    SetOutPath $INSTDIR
+    ${Set} $SetupState 1
+    EnableWindow $mui.Button.Cancel ${SW_NORMAL}
+    ${PassDirs} '!insertmacro MKDIR'
+    ${PassFilesAndHash} '!insertmacro EXTRACT'
+    EnableWindow $mui.Button.Cancel ${SW_HIDE}
+    !macroundef MKDIR
+    !macroundef EXTRACT
+
+    ${Release} LangVar ''
+    ${Release} CalcHash ''
+    ${Release} FileHash ''
+    ${Release} AppFile ''
+    ${Release} AppDir ''
+SectionEnd
+
+SectionGroup /e $(S_SYS_INT) SectionGroupIntegration
+    Section $(S_REGISTRY) SectionRegistry
+        SectionIn 1 2
+        ${Reserve} $R0 RegKey ''
+        ${Reserve} $R1 RegName ''
+        ${Reserve} $R2 RegValue ''
+        ${Reserve} $R3 CurrentRegValue ''
+        ${Reserve} $R4 RegLogText ''
+        ${Reserve} $R5 HKey ''
+        ${Reserve} $R6 FileExtCount 0
+        ${Reserve} $R7 FileExt ''
+        ${Reserve} $R8 CurrentUserId ''
+        ${Reserve} $R9 CurrentUserString ''
+        ${Reserve} $0 LangVar ''
+        ${Reserve} $1 ExePath '$INSTDIR\${PROGEXE}'
+
+        !insertmacro MULTIUSER_GetCurrentUserString ${CurrentUserString}
+        ${If} $MultiUser.InstallMode == 'AllUsers'
+            ${Set} HKey 'HKLM'
+        ${Else}
+            ${Set} CurrentUserId '-U'
+            ${Set} HKey 'HKCU'
+        ${EndIf}
+        Goto _start
+
+        !define UpdateRegStr '!insertmacro CALL_UpdateRegValue Str'
+        !define UpdateRegDWORD '!insertmacro CALL_UpdateRegValue DWORD'
+
+        !macro CALL_UpdateRegValue VALUE_TYPE REG_KEY VALUE_NAME VALUE_CONTENT
+            !if '${REG_KEY}' != ''
+                ${Set} RegKey '${REG_KEY}'
+            !endif
+            ${Set} RegName '${VALUE_NAME}'
+            ${Set} RegValue '${VALUE_CONTENT}'
+            ${Call} :update_reg_${VALUE_TYPE}
+            IfErrors _error
+        !macroend
+
+        !macro UPDATE_REG_VALUE VALUE_TYPE
+            !if '${VALUE_TYPE}' == 'str'
+                !define EMPTY_VALUE ''
+                !define EMPTY_VALUE_TEXT $(REG_EMPTY_VALUE)
+                !define Is '=='
+                !define IsNot '!='
+            !else if '${VALUE_TYPE}' == 'dword'
+                !define EMPTY_VALUE 0
+                !define EMPTY_VALUE_TEXT '0'
+                !define Is '='
+                !define IsNot '<>'
+            !else
+                !error 'UPDATE_REG_VALUE: invalid "VALUE_TYPE"'
+            !endif
+            ClearErrors
+            ReadReg${VALUE_TYPE} ${CurrentRegValue} SHCTX ${RegKey} ${RegName}
+            ${If} ${Errors}
+            ${OrIf} ${CurrentRegValue} ${IsNot} ${RegValue}
+
+                ${Set} RegLogText '${HKey}\${RegKey}>'
+
+                ${If} ${RegName} == ''
+                    ${Set} RegLogText '${RegLogText}$(REG_DEFAULT_ITEM)'
+                ${Else}
+                    ${Set} RegLogText '${RegLogText}${RegName}'
+                ${EndIf}
+                ${If} ${RegValue} ${Is} '${EMPTY_VALUE}'
+                    ${Set} RegLogText '${RegLogText}=${VALUE_TYPE}:${EMPTY_VALUE_TEXT}'
+                ${Else}
+                    ${Set} RegLogText '${RegLogText}=${VALUE_TYPE}:${RegValue}'
+                ${EndIf}
+                DetailPrint $(M_UPDATE_REG)${RegLogText}
+                ClearErrors
+                WriteReg${VALUE_TYPE} SHCTX ${RegKey} ${RegName} ${RegValue}
+                ${If} ${Errors}
+                    DetailPrint $(M_CANT_WRITE_REG)${RegLogText}
+                    ${Error} ERROR_ACCESS_DENIED
+                ${Else}
+                    ${WriteLog} $(M_UPDATE_REG)${RegLogText}
+                ${EndIf}
+            ${Else}
+                ${Error} ERROR_ALREADY_EXISTS
+                ClearErrors
+            ${EndIf}
+            ${Return}
+            !undef EMPTY_VALUE EMPTY_VALUE_TEXT IS ISNOT
+        !macroend
+
+        update_reg_str:
+        !insertmacro UPDATE_REG_VALUE 'str'
+
+        update_reg_dword:
+        !insertmacro UPDATE_REG_VALUE 'dword'
+
+        _start:
+        ; StartMenuInternet
+        ${UpdateRegStr} '${REG_SMI}${CurrentUserId}' '' '${PRODUCT_NAME}'
+        ; StartMenuInternet\Capabilities
+        ${UpdateRegStr} '${REG_SMI}${CurrentUserId}\Capabilities' 'ApplicationDescription' $(DESCRIPTION)
+        ${UpdateRegStr} '' 'ApplicationIcon' '${ExePath},0'
+        ${UpdateRegStr} '' 'ApplicationName' '${PRODUCT_NAME}${CurrentUserString}'
+
+        ; StartMenuInternet\Capabilities\FileAssociations
+        ${Set} RegKey '${REG_SMI}${CurrentUserId}\Capabilities\FileAssociations'
+        ${Set} RegValue '${HTML_HANDLE}${CurrentUserId}'
+        ${PushFileExts} FileExtCount
+        _file_assoc_loop:
+        Pop ${FileExt}
+        ${Set} RegName ${FileExt}
+        ${Call} :update_reg_str
+        IntOp ${FileExtCount} ${FileExtCount} - 1
+        IntCmp ${FileExtCount} 0 0 0 _file_assoc_loop
+
+        ; StartMenuInternet\Capabilities\StartMenu
+        ${UpdateRegStr} '${REG_SMI}${CurrentUserId}\Capabilities\StartMenu' 'StartMenuInternet' '${PRODUCT_NAME}${CurrentUserString}'
+        ; StartMenuInternet\Capabilities\URLAssociations
+        ${Set} RegKey '${REG_SMI}${CurrentUserId}\Capabilities\URLAssociations'
+        ${Set} RegValue '${HTML_HANDLE}${CurrentUserId}'
+        ${Set} RegName 'http'
+        ${Call} :update_reg_str
+        ${Set} RegName 'https'
+        ${Call} :update_reg_str
+        ; StartMenuInternet\DefaultIcon
+        ${UpdateRegStr} '${REG_SMI}${CurrentUserId}\DefaultIcon' '' '${ExePath},0'
+        ; StartMenuInternet\InstallInfo
+        ${UpdateRegDWORD} '${REG_SMI}${CurrentUserId}\InstallInfo' 'IconsVisible' 1
+        ; StartMenuInternet\shell\open\command
+        ${UpdateRegStr} '${REG_SMI}${CurrentUserId}\shell\open\command' '' '"${ExePath}"'
+
+        ; Software\Classes
+        ${UpdateRegStr} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}' '' $(HTML_DOCUMENT)
+        ${UpdateRegStr} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\Application' 'ApplicationCompany' '${COMPANY_NAME}'
+        ${UpdateRegStr} '' 'ApplicationDescription' $(DESCRIPTION)
+        ${UpdateRegStr} '' 'ApplicationIcon' '${ExePath},0'
+        ${UpdateRegStr} '' 'ApplicationName' '${PRODUCT_NAME}${CurrentUserString}'
+        ${UpdateRegStr} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\DefaultIcon' '' '${ExePath},0'
+        ${UpdateRegStr} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell\open\command' '' '"${ExePath}" --untrusted-args "%1"'
+
+        ${Set} RegName '${HTML_HANDLE}${CurrentUserId}'
+        ${Set} RegValue ''
+        ${PushFileExts} FileExtCount
+        _open_with_loop:
+        Pop ${FileExt}
+        ${Set} RegKey '${REG_CLS}\${FileExt}\OpenWithProgids'
+        ${Call} :update_reg_str
+        IntOp ${FileExtCount} ${FileExtCount} - 1
+        IntCmp ${FileExtCount} 0 0 0 _open_with_loop
+
+        ; Software\RegisteredApplications
+        ${UpdateRegStr} '${REG_APPS}' '${PRODUCT_NAME}${CurrentUserId}' '${REG_SMI}${CurrentUserId}\Capabilities'
+
+        Goto _end
+
+        _error:
+        IntCmp ${FileExtCount} 0 _prompt _prompt 0
+        Pop ${FileExt}
+        IntOp ${FileExtCount} ${FileExtCount} - 1
+        Goto _error
+        _prompt:
+        ${Set} LangVar '${HKey}\${RegKey}'
+        MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_CANT_WRITE_REG) /SD IDABORT IDRETRY _start IDIGNORE _skip
+        ${Fail} $(M_CANT_WRITE_REG)${RegLogText}
+        _skip:
+        ${Set} $RegisterBrowser 0
+        ${WriteLog} $(M_CANT_WRITE_REG)${RegLogText}
+        ${ClearRegistry}
+        DetailPrint $(M_SKIPPED)$(S_REGISTRY)
+        ${WriteLog} $(M_SKIPPED)$(S_REGISTRY)
+
+        _end:
+        ${Release} ExePath ''
+        ${Release} LangVar ''
+        ${Release} CurrentUserString ''
+        ${Release} CurrentUserId ''
+        ${Release} FileExt ''
+        ${Release} FileExtCount ''
+        ${Release} HKey ''
+        ${Release} RegLogText ''
+        ${Release} CurrentRegValue ''
+        ${Release} RegValue ''
+        ${Release} RegName ''
+        ${Release} RegKey ''
+    SectionEnd
+
+    Section /o $(S_DEFAULT_BROWSER) SectionDefaultBrowser
+        SectionIn 1
+        StrCmpS $RegisterBrowser 0 _end
+        ${If} ${AtLeastWin10}
+            ${RunAsUser} 'ms-settings:defaultapps' ''
+        ${Else}
+            ${RunAsUser} '$SYSDIR\control.exe' '/name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings?pszAppName=${PRODUCT_NAME}'
+        ${EndIf}
+        _end:
+    SectionEnd
+SectionGroupEnd
+
+SectionGroup /e $(S_ICONS) SectionGroupShortcuts
+    Section $(S_ICON_DESKTOP) SectionDesktopIcon
+        SectionIn 1 2
+        ${CreateDesktopIcon}
+    SectionEnd
+
+    Section $(S_ICON_STARTMENU) SectionStartMenuIcon
+        SectionIn 1 2
+        ${CreateStartMenuIcon}
+    SectionEnd
+SectionGroupEnd
+
+Section /o $(S_CLEAR_CACHE) SectionClearCache
+    ${ClearCache}
+SectionEnd
+
+Section /o $(S_CLEAR_CONFIG) SectionClearConfig
+    ${ClearConfig}
+SectionEnd
+
+Section '-Write Install Info'
+    ${Reserve} $R0 CurrentUserString ''
+    ${Reserve} $R1 RegKey ''
+    ${Reserve} $R2 RegValue ''
+    ${Reserve} $0 LangVar ''
+
+    _write_reg:
+    !insertmacro MULTIUSER_RegistryAddInstallInfo
+    !insertmacro MULTIUSER_RegistryAddInstallSizeInfo
+    !insertmacro MULTIUSER_GetCurrentUserString ${CurrentUserString}
+    ${Set} RegKey '${MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY_PATH}${CurrentUserString}'
+    ClearErrors
+    ReadRegStr ${RegValue} SHCTX ${RegKey} 'UninstallString'
+    IfErrors _reg_error
+    WriteRegStr SHCTX ${RegKey} 'UninstallString' '${RegValue} /User'
+    IfErrors _reg_error
+    WriteRegStr '${MUI_LANGDLL_REGISTRY_ROOT}' '${MUI_LANGDLL_REGISTRY_KEY}' '${MUI_LANGDLL_REGISTRY_VALUENAME}' $LANGUAGE
+    IfErrors _reg_error
+
+    _write_file:
+    ClearErrors
+    WriteUninstaller '${UNINSTALL_FILENAME}'
+    IfErrors _file_error
+    ${WriteLog} '$(M_CREATED_UNINSTALLER)$INSTDIR\${UNINSTALL_FILENAME}'
+    Goto _end
+
+    _file_error:
+    ${Set} LangVar '$INSTDIR\${UNINSTALL_FILENAME}'
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_FILE_ERROR_NO_IGNORE) /SD IDCANCEL IDRETRY _write_file
+    !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+    ${Fail} $(M_ERROR_CREATING)${LangVar}
+
+    _reg_error:
+    ${Set} LangVar ${RegKey}
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_WRITE_REG) /SD IDCANCEL IDRETRY _write_reg
+    ${Fail} $(M_CANT_WRITE_REG)${LangVar}
+
+    _end:
+    ${WriteLog} $(M_COMPLETED)
+    ${WriteLog} ''
+    ${CloseLogFile}
+    ${RefreshShellIcons}
+
+    ${Release} LangVar ''
+    ${Release} RegValue ''
+    ${Release} RegKey ''
+    ${Release} CurrentUserString ''
+SectionEnd
+
+; Installer Section Descriptions
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionProgramFiles} $(SD_FILES)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionGroupIntegration} $(SD_SYS_INT)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionRegistry} $(SD_REGISTRY)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionDefaultBrowser} $(SD_DEFAULT_BROWSER)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionGroupShortcuts} $(SD_ICONS)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionDesktopIcon} $(SD_ICON_DESKTOP)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionStartMenuIcon} $(SD_ICON_STARTMENU)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionClearCache} $(SD_CLEAR_CACHE)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionClearConfig} $(SD_CLEAR_CONFIG)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+### Uninstaller Sections
+
+Section un.$(S_FILES) un.SectionProgramFiles
+    SectionIn RO
+    ${If} $SetupState = 0
+    ${AndIf} ${FileExists} $LogFile
+        ${WriteLog} ''
+    ${EndIf}
+    ${WriteLog} '$(^UninstallCaption): ${MULTIUSER_INSTALLMODE_DISPLAYNAME}'
+    ${DeleteFile} '${PROGEXE}'
+SectionEnd
+
+Section un.$(S_REGISTRY) un.SectionRegistry
+    SectionIn RO
+    ${If} $SetupState = 0
+        ${ClearRegistry}
+    ${EndIf}
+SectionEnd
+
+SectionGroup /e un.$(S_ICONS) un.SectionGroupShortcuts
+    Section un.$(S_ICON_DESKTOP) un.SectionDesktopIcon
+        SectionIn RO
+        ${RemoveDesktopIcon}
+    SectionEnd
+
+    Section un.$(S_ICON_STARTMENU) un.SectionStartMenuIcon
+        SectionIn RO
+        ${RemoveStartMenuIcon}
+    SectionEnd
+SectionGroupEnd
+
+Section /o un.$(S_CLEAR_CACHE) un.SectionClearCache
+    ${ClearCache}
+SectionEnd
+
+Section /o un.$(S_CLEAR_CONFIG) un.SectionClearConfig
+    ${ClearConfig}
+SectionEnd
+
+Section '-Uninstall'
+    ${Reserve} $R0 InstDirState 0
+
+    ${PassFiles} '${DeleteFile}'
+    ${PassDirsReverse} '${RemoveDir}'
+    !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+    ${If} $EXEPATH != '$INSTDIR\${UNINSTALL_FILENAME}'
+        ${DeleteFile} '${UNINSTALL_FILENAME}'
+        ${DirState} $INSTDIR ${InstDirState}
+        ${If} ${InstDirState} = 0
+            ${RemoveDir} $INSTDIR
+        ${EndIf}
+    ${EndIf}
+
+    ${If} $SetupState = 0
+        ${WriteLog} $(M_COMPLETED)
+        ${WriteLog} ''
+    ${EndIf}
+    ${CloseLogFile}
+    ${RefreshShellIcons}
+
+    StrCmpS ${InstDirState} 1 0 _end
+    ClearErrors
+    ${CheckCleanInstDir}
+    IfErrors 0 _end
+    StrCmpS $SetupState 1 _end
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_INSTDIR) /SD IDNO IDNO _end
+    ExecShell 'open' $INSTDIR
+
+    _end:
+    ${Release} InstDirState ''
+SectionEnd
+
+; Uninstaller Section Descriptions
+!insertmacro MUI_UNFUNCTION_DESCRIPTION_BEGIN
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionProgramFiles} $(SD_FILES_UN)
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionRegistry} $(SD_REGISTRY_UN)
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionGroupShortcuts} $(SD_ICONS_UN)
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionDesktopIcon} $(SD_ICON_DESKTOP_UN)
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionStartMenuIcon} $(SD_ICON_STARTMENU_UN)
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionClearCache} $(SD_CLEAR_CACHE)
+!insertmacro MUI_DESCRIPTION_TEXT ${un.SectionClearConfig} $(SD_CLEAR_CONFIG)
+!insertmacro MUI_UNFUNCTION_DESCRIPTION_END
+
+### Callback functions - must be included after Sections
+
+!include 'callbacks.nsh'
