@@ -10,7 +10,7 @@ import pathlib
 import functools
 import contextlib
 import subprocess
-from typing import Optional, IO, Iterator
+from typing import Optional, IO, Iterator, List, Set
 
 from qutebrowser.qt.core import QUrl
 
@@ -122,8 +122,7 @@ def _map_exceptions() -> Iterator[None]:
 
     This context manager unifies the two (only for DeserializationError so far).
     """
-    adblock_deserialization_error = getattr(
-        adblock, "DeserializationError", ValueError)
+    adblock_deserialization_error = getattr(adblock, "DeserializationError", ValueError)
 
     try:
         yield
@@ -156,11 +155,13 @@ class BraveAdBlocker:
             # this should never happen - let's get some infos if it does
             logger.debug(f"adblock module: {adblock}")
             dist = version.distribution()
-            if (dist is not None and
-                    dist.parsed == version.Distribution.arch and
-                    hasattr(adblock, "__file__")):
+            if (
+                dist is not None
+                and dist.parsed == version.Distribution.arch
+                and hasattr(adblock, "__file__")
+            ):
                 proc = subprocess.run(
-                    ['pacman', '-Qo', adblock.__file__],
+                    ["pacman", "-Qo", adblock.__file__],
                     capture_output=True,
                     text=True,
                     check=False,
@@ -237,6 +238,33 @@ class BraveAdBlocker:
             )
             info.block()
 
+    def url_cosmetic_resources(
+        self, url: QUrl
+    ) -> Optional["adblock.UrlSpecificResources"]:
+        """Returns the comsetic resources based on the filter rules."""
+        if not self.enabled:
+            # Do nothing if `content.blocking.method` is not set to enable the
+            # use of this adblocking module.
+            return None
+
+        qtutils.ensure_valid(url)
+
+        return self._engine.url_cosmetic_resources(url.toString())
+
+    def hidden_class_id_selectors(
+        self,
+        classes: List[str],
+        ids: List[str],
+        exceptions: Set[str],
+    ) -> Optional[List[str]]:
+        """Returns the generic hidden class id selectors."""
+        if not self.enabled:
+            # Do nothing if `content.blocking.method` is not set to enable the
+            # use of this adblocking module.
+            return None
+
+        return self._engine.hidden_class_id_selectors(classes, ids, exceptions)
+
     def read_cache(self) -> None:
         """Initialize the adblocking engine from cache file."""
         try:
@@ -251,8 +279,10 @@ class BraveAdBlocker:
                 with _map_exceptions():
                     self._engine.deserialize_from_file(str(self._cache_path))
             except DeserializationError:
-                message.error("Reading adblock filter data failed (corrupted data?). "
-                              "Please run :adblock-update.")
+                message.error(
+                    "Reading adblock filter data failed (corrupted data?). "
+                    "Please run :adblock-update."
+                )
             except OSError as e:
                 message.error(f"Reading adblock filter data failed: {e}")
         elif (
@@ -285,7 +315,8 @@ class BraveAdBlocker:
         self._engine = adblock.Engine(filter_set)
         self._engine.serialize_to_file(str(self._cache_path))
         message.info(
-            f"braveadblock: Filters successfully read from {done_count} sources.")
+            f"braveadblock: Filters successfully read from {done_count} sources."
+        )
 
     def update_files(self) -> None:
         """Update files when the config changed."""
@@ -328,6 +359,99 @@ def on_method_changed() -> None:
         ad_blocker.enabled = _should_be_used()
     else:
         _possibly_show_missing_dependency_warning()
+
+
+@hook.load_finished()
+def add_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
+    """After loading a page, inject javascript for relevant cosmetic filters."""
+    if ad_blocker is None or not ok:
+        return
+
+    def to_js_code(cosmetic_resources: "adblock.UrlSpecificResources") -> str:
+        css = (
+            "\n".join(
+                f"{sel} {{ display: none !important; }}"
+                for sel in cosmetic_resources.hide_selectors
+            )
+            + "\n"
+            + "\n".join(
+                f"{sel} {{ {';'.join(styles)} }}"
+                for sel, styles in cosmetic_resources.style_selectors.items()
+            )
+        )
+        # Make sure things that could be confused as templates don't exist in the css
+        assert "${" not in css
+        js_code = (
+            (
+                (
+                    "const style = document.createElement('style');\n"
+                    f"style.textContent = `{css}`;\n"
+                    "document.head.append(style);\n"
+                    f"{cosmetic_resources.injected_script};\n"
+                )
+            )
+            + (
+                """
+            var classes = new Set();
+            var ids = new Set();
+            const walker = document.createTreeWalker(document.body);
+            var node;
+            while (node = walker.nextNode()) {
+                if (node.className) {
+                    classes.add(node.className.toString());
+                }
+                if (node.id) {
+                    ids.add(node.id.toString());
+                }
+            }
+            ({"classes": Array.from(classes), "ids": Array.from(ids)})
+        """
+            )
+            if not cosmetic_resources.generichide
+            else "null"
+        )
+        return js_code
+
+    cosmetic_resources = ad_blocker.url_cosmetic_resources(tab.url())
+    if cosmetic_resources is not None:
+
+        def hidden_class_id_selectors_cb(data) -> None:
+            logger.debug(
+                f"hidden_class_id_selectors_cb called for {tab.url()} with {data}"
+            )
+            if data is None:
+                return
+
+            assert type(data) == dict and "classes" in data and "ids" in data
+
+            selectors = ad_blocker.hidden_class_id_selectors(
+                data["classes"], data["ids"], cosmetic_resources.exceptions
+            )
+
+            css = " ".join(
+                f"{sel} {{ display: none !important; }}" for sel in selectors
+            )
+            if css:
+                js_code = (
+                    "const style = document.createElement('style'); "
+                    f"style.textContent = '{css}'; "
+                    "document.head.append(style); "
+                )
+
+                logger.debug(
+                    f"js to inject for hidden class id selectors for {tab.url()}\n"
+                    f"{js_code}"
+                )
+                tab.run_js_async(js_code)
+
+        logger.debug(
+            f"Returned cosmetic_resources for {tab.url()}: {cosmetic_resources}"
+        )
+        js_code = to_js_code(cosmetic_resources)
+        logger.debug(
+            f"js to inject for url-specific cosmetic filter for {tab.url()}:\n{js_code}"
+        )
+        tab.run_js_async(js_code, callback=hidden_class_id_selectors_cb)
 
 
 @hook.init()
