@@ -36,6 +36,11 @@ INFO_PLIST_UPDATES = {
         "CFBundleTypeMIMETypes": ["text/xhtml"],
         "CFBundleTypeName": "XHTML document",
         "CFBundleTypeRole": "Viewer",
+    }, {
+        "CFBundleTypeExtensions": ["mhtml"],
+        "CFBundleTypeMIMETypes": ["multipart/related", "application/x-mimearchive", "message/rfc822"],
+        "CFBundleTypeName": "MHTML document",
+        "CFBundleTypeRole": "Viewer",
     }],
 
     # https://developer.apple.com/documentation/avfoundation/cameras_and_media_capture/requesting_authorization_for_media_capture_on_macos
