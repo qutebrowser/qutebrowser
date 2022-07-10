@@ -14,3 +14,10 @@ def adblock_update() -> None:
     if braveadblock.ad_blocker is not None:
         braveadblock.ad_blocker.adblock_update()
     hostblock.host_blocker.adblock_update()
+
+
+@cmdutils.register()
+def adblock_update_resources() -> None:
+    """Update resources for Brave ad blocker."""
+    if braveadblock.ad_blocker is not None:
+        braveadblock.ad_blocker.resources_update()
