@@ -17,22 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Commands relating to ad blocking."""
-
-from qutebrowser.api import cmdutils
-from qutebrowser.components import braveadblock, hostblock
+"""Functions dealing with user-defined exceptions."""
 
 
-@cmdutils.register()
-def adblock_update() -> None:
-    """Update block lists for both the host- and the Brave ad blocker."""
-    if braveadblock.ad_blocker is not None:
-        braveadblock.ad_blocker.adblock_update()
-    hostblock.host_blocker.adblock_update()
-
-
-@cmdutils.register()
-def adblock_update_resources() -> None:
-    """Update resources for Brave ad blocker."""
-    if braveadblock.ad_blocker is not None:
-        braveadblock.ad_blocker.resources_update()
+class DeserializationError(Exception):
+    """Exception that is realized whenever a file fails to deserialize."""

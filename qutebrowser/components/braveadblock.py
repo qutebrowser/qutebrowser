@@ -38,7 +38,13 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.api.interceptor import ResourceType
+from qutebrowser.components.ublock_resources import (
+    deserialize_resources_from_file,
+    download_resources,
+    EngineInfo,
+)
 from qutebrowser.components.utils import blockutils
+from qutebrowser.components.utils.exceptions import DeserializationError
 from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
 
 try:
@@ -118,14 +124,6 @@ def _resource_type_to_string(resource_type: Optional[ResourceType]) -> str:
     return _RESOURCE_TYPE_STRINGS.get(resource_type, "other")
 
 
-class DeserializationError(Exception):
-
-    """Custom exception for adblock.DeserializationErrors.
-
-    See _map_exception below for details.
-    """
-
-
 @contextlib.contextmanager
 def _map_exceptions() -> Iterator[None]:
     """Handle exception API differences in adblock 0.5.0.
@@ -163,6 +161,7 @@ class BraveAdBlocker:
         self.enabled = _should_be_used()
         self._has_basedir = has_basedir
         self._cache_path = data_dir / "adblock-cache.dat"
+        self._resources_cache_path = data_dir / "adblock-resources-cache.dat"
         try:
             self._engine = adblock.Engine(adblock.FilterSet())
         except AttributeError:
@@ -307,6 +306,41 @@ class BraveAdBlocker:
         ):
             message.info("Run :adblock-update to get adblock lists.")
 
+    def read_resources_cache(self) -> None:
+        """Add resources to the adblocking engine from the resources cache file."""
+        try:
+            cache_exists = self._resources_cache_path.is_file()
+        except OSError:
+            logger.error("Failed to read adblock resources cache", exc_info=True)
+            return
+
+        if cache_exists:
+            logger.debug(
+                "Loading cached adblock resources data: %s", self._resources_cache_path
+            )
+            try:
+                resources = deserialize_resources_from_file(self._resources_cache_path)
+                for resource in resources:
+                    self._engine.add_resource(
+                        resource.name,
+                        resource.aliases,
+                        resource.content_type,
+                        resource.content,
+                    )
+            except DeserializationError:
+                message.error(
+                    "Reading adblock resources data failed (corrupted data?). "
+                    "Please run :adblock-update-resources."
+                )
+            except OSError as e:
+                message.error(f"Reading adblock resources data failed: {e}")
+        elif (
+            not self._has_basedir
+            and config.val.content.blocking.enabled
+            and self.enabled
+        ):
+            message.info("Run :adblock-update-resources to get adblock resources.")
+
     def adblock_update(self) -> blockutils.BlocklistDownloads:
         """Update the adblock block lists."""
         logger.info("Downloading adblock filter lists...")
@@ -343,19 +377,24 @@ class BraveAdBlocker:
                 logger.exception("Failed to remove adblock cache file: %s", e)
 
     def _on_download_finished(
-        self, fileobj: IO[bytes], filter_set: "adblock.FilterSet"
+        self, url: QUrl, fileobj: IO[bytes], filter_set: "adblock.FilterSet"
     ) -> None:
         """When a blocklist download finishes, add it to the given filter set.
 
         Arguments:
             fileobj: The finished download's contents.
         """
-        fileobj.seek(0)
         try:
             with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
                 filter_set.add_filter_list(text_io.read())
         except UnicodeDecodeError:
             message.info("braveadblock: Block list is not valid utf-8")
+
+    def resources_update(self) -> blockutils.BlocklistDownloads:
+        """Update ublock origin type resources."""
+        return download_resources(
+            EngineInfo(self._engine, self._cache_path, self._resources_cache_path)
+        )
 
 
 @hook.config_changed("content.blocking.adblock.lists")
@@ -394,37 +433,37 @@ def add_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
             )
         )
         # Make sure things that could be confused as templates don't exist in the css
-        assert "${" not in css
+        assert "${" not in css and "`" not in css
+        # There may be backslashes in the css. If so, we need to add another backslash
+        # to escape them.
+        css = css.replace("\\", "\\\\")
         js_code = (
+            "const style = document.createElement('style');\n"
+            f"style.textContent = `{css}`;\n"
+            "document.head.append(style);\n"
+            f"{cosmetic_resources.injected_script};\n"
+        ) + (
             (
-                (
-                    "const style = document.createElement('style');\n"
-                    f"style.textContent = `{css}`;\n"
-                    "document.head.append(style);\n"
-                    f"{cosmetic_resources.injected_script};\n"
-                )
-            )
-            + (
                 """
-            var classes = new Set();
-            var ids = new Set();
-            const walker = document.createTreeWalker(document.body);
-            var node;
-            while (node = walker.nextNode()) {
-                if (node.className) {
-                    classes.add(node.className.toString());
+                let classes = new Set();
+                let ids = new Set();
+                const walker = document.createTreeWalker(document.body);
+                let node;
+                while (node = walker.nextNode()) {
+                    if (node.className) {
+                        classes.add(node.className.toString());
+                    }
+                    if (node.id) {
+                        ids.add(node.id.toString());
+                    }
                 }
-                if (node.id) {
-                    ids.add(node.id.toString());
-                }
-            }
-            ({"classes": Array.from(classes), "ids": Array.from(ids)})
-        """
+                ({"classes": Array.from(classes), "ids": Array.from(ids)})
+                """
             )
             if not cosmetic_resources.generichide
-            else "null"
+            else "true"
         )
-        return js_code
+        return f"{{ {js_code} }}"
 
     cosmetic_resources = ad_blocker.url_cosmetic_resources(tab.url())
     if cosmetic_resources is not None:
@@ -433,24 +472,32 @@ def add_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
             logger.debug(
                 f"hidden_class_id_selectors_cb called for {tab.url()} with {data}"
             )
-            if data is None:
+            if data is None or type(data) != dict:
                 return
 
-            assert type(data) == dict and "classes" in data and "ids" in data
+            assert "classes" in data and "ids" in data
 
             selectors = ad_blocker.hidden_class_id_selectors(
                 data["classes"], data["ids"], cosmetic_resources.exceptions
             )
+            logger.debug(f"Number generic selectors: {len(selectors)}")
 
-            css = " ".join(
+            css = "\n".join(
                 f"{sel} {{ display: none !important; }}" for sel in selectors
             )
             if css:
+                # Make sure things that could be confused as templates don't exist in
+                # the css
+                assert "${" not in css and "`" not in css
+                # There may be backslashes in the css. If so, we need to add another
+                # backslash to escape them.
+                css = css.replace("\\", "\\\\")
                 js_code = (
-                    "const style = document.createElement('style'); "
-                    f"style.textContent = '{css}'; "
-                    "document.head.append(style); "
+                    "const style = document.createElement('style');\n"
+                    f"style.textContent = `{css}`;\n"
+                    "document.head.append(style);\n"
                 )
+                js_code = f"{{ {js_code} }}"
 
                 logger.debug(
                     f"js to inject for hidden class id selectors for {tab.url()}\n"
@@ -465,7 +512,8 @@ def add_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
         logger.debug(
             f"js to inject for url-specific cosmetic filter for {tab.url()}:\n{js_code}"
         )
-        tab.run_js_async(js_code, callback=hidden_class_id_selectors_cb)
+        # Call on world 0 to make sure injected javascript interacts with main page
+        tab.run_js_async(js_code, callback=hidden_class_id_selectors_cb, world=0)
 
 
 @hook.init()

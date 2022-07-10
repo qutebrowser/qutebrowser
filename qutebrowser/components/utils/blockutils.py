@@ -33,8 +33,9 @@ class FakeDownload(downloads.TempDownload):
 
     """A download stub to use on_download_finished with local files."""
 
-    def __init__(self, fileobj: IO[bytes]) -> None:
+    def __init__(self, url: QUrl, fileobj: IO[bytes]) -> None:
         # pylint: disable=super-init-not-called
+        self.url = url
         self.fileobj = fileobj
         self.successful = True
 
@@ -60,7 +61,7 @@ class BlocklistDownloads(QObject):
         _finished: Has `all_downloads_finished` been emitted?
     """
 
-    single_download_finished = pyqtSignal(object)  # arg: the file object
+    single_download_finished = pyqtSignal(QUrl, object)  # arg: the file object
     all_downloads_finished = pyqtSignal(int)  # arg: download count
 
     def __init__(self, urls: List[QUrl], parent: Optional[QObject] = None) -> None:
@@ -108,17 +109,17 @@ class BlocklistDownloads(QObject):
             if os.path.isdir(filename):
                 for entry in os.scandir(filename):
                     if entry.is_file():
-                        self._import_local(entry.path)
+                        self._import_local(url, entry.path)
             else:
-                self._import_local(filename)
+                self._import_local(url, filename)
         else:
             download = downloads.download_temp(url)
             self._in_progress.append(download)
             download.finished.connect(
-                functools.partial(self._on_download_finished, download)
+                functools.partial(self._on_download_finished, url, download)
             )
 
-    def _import_local(self, filename: str) -> None:
+    def _import_local(self, url: QUrl, filename: str) -> None:
         """Pretend that a local file was downloaded from the internet.
 
         Args:
@@ -131,11 +132,13 @@ class BlocklistDownloads(QObject):
                 "blockutils: Error while reading {}: {}".format(filename, e.strerror)
             )
             return
-        download = FakeDownload(fileobj)
+        download = FakeDownload(url, fileobj)
         self._in_progress.append(download)
-        self._on_download_finished(download)
+        self._on_download_finished(url, download)
 
-    def _on_download_finished(self, download: downloads.TempDownload) -> None:
+    def _on_download_finished(
+        self, url: QUrl, download: downloads.TempDownload
+    ) -> None:
         """Check if all downloads are finished and if so, trigger callback.
 
         Arguments:
@@ -148,7 +151,8 @@ class BlocklistDownloads(QObject):
             assert download.fileobj is not None
             try:
                 # Call the user-provided callback
-                self.single_download_finished.emit(download.fileobj)
+                download.fileobj.seek(0)
+                self.single_download_finished.emit(url, download.fileobj)
             finally:
                 download.fileobj.close()
         if not self._in_progress and self._finished_registering_downloads:
