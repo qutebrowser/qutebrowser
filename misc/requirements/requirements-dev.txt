@@ -7,8 +7,8 @@ certifi==2022.6.15
 cffi==1.15.1
 charset-normalizer==2.1.0
 commonmark==0.9.1
-cryptography==37.0.2
-docutils==0.18.1
+cryptography==37.0.4
+docutils==0.19
 github3.py==3.2.0
 hunter==3.4.3
 idna==3.3
@@ -40,6 +40,6 @@ tomli==2.0.1
 twine==4.0.1
 typing_extensions==4.3.0
 uritemplate==4.1.1
-# urllib3==1.26.9
+# urllib3==1.26.10
 webencodings==0.5.1
 zipp==3.8.0
