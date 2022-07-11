@@ -16,9 +16,9 @@ jobs:
       image: "qutebrowser/ci:archlinux-webengine-unstable"
       env:
         FORCE_COLOR: "1"
+        PY_COLORS: "1"
         DOCKER: "archlinux-webengine-unstable"
         CI: true
-        PYTEST_ADDOPTS: "--color=yes"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
