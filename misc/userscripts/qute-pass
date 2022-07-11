@@ -45,7 +45,6 @@ Suggested bindings similar to Uzbl's `formfiller` script:
 """
 
 EPILOG = """Dependencies: tldextract (Python 3 module), pass, pass-otp (optional).
-For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
 
 WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
 you decide to submit a crash report!"""
