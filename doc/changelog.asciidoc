@@ -85,6 +85,8 @@ Changed
   Note this is NOT a security issue, as only a small subset of HTML is
   interpreted as rich text by Qt, independently from the website.
 - Improved output when loading Greasemonkey scripts.
+- The macOS `.app` now is registered as a handler for `.mhtml` files, such as
+  the ones produced by `:download --mhtml`.
 
 Fixed
 ~~~~~
