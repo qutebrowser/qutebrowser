@@ -30,6 +30,7 @@ jobs:
           - testenv: shellcheck
             args: "-f gcc"  # For problem matchers
           - testenv: yamllint
+          - testenv: actionlint
     steps:
       - uses: actions/checkout@v3
         with:
@@ -59,6 +60,13 @@ jobs:
                 bindir="$HOME/.local/bin"
                 mkdir -p "$bindir"
                 wget -qO- "https://github.com/koalaman/shellcheck/releases/download/$scversion/shellcheck-$scversion.linux.x86_64.tar.xz" | tar -xJv --strip-components 1 -C "$bindir" shellcheck-$scversion/shellcheck
+                echo "$bindir" >> "$GITHUB_PATH"
+            fi
+            if [[ ${{ matrix.testenv }} == actionlint ]]; then
+                bindir="$HOME/.local/bin"
+                mkdir -p "$bindir"
+                wget -qO https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash
+                bash download-actionlint.bash latest "$bindir"
                 echo "$bindir" >> "$GITHUB_PATH"
             fi
             python -m pip install -U pip
@@ -100,7 +108,7 @@ jobs:
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    continue-on-error: "${{ matrix.experimental == true }}"
+    # continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false
       matrix:

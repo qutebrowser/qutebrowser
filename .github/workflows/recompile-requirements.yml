@@ -7,8 +7,8 @@ on:
     - cron: '05 04 * * 1'
   workflow_dispatch:
     inputs:
-      environment:
-        descriptions: 'Test environments to update'
+      environments:
+        description: 'Test environments to update'
         required: false
         default: ''
 
@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.8'
       - name: Recompile requirements
-        run: "python3 scripts/dev/recompile_requirements.py ${{ github.events.input.environments }}"
+        run: "python3 scripts/dev/recompile_requirements.py ${{ github.event.input.environments }}"
         id: requirements
       - name: Install apt dependencies
         run: |
@@ -88,5 +88,4 @@ jobs:
           server: irc.libera.chat
           channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
-          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
-            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"

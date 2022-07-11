@@ -69,6 +69,22 @@ MATCHERS = {
         },
     ],
 
+    # https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
+    "actionlint": [
+        {
+            "pattern": [
+                {
+                    "regexp": r"^(?:\x1b\[\d+m)?(.+?)(?:\x1b\[\d+m)*:(?:\x1b\[\d+m)*(\d+)(?:\x1b\[\d+m)*:(?:\x1b\[\d+m)*(\d+)(?:\x1b\[\d+m)*: (?:\x1b\[\d+m)*(.+?)(?:\x1b\[\d+m)* \[(.+?)\]$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4,
+                    "code": 5,
+                },
+            ],
+        },
+    ],
+
     # filename.py:313: unused function 'i_am_never_used' (60% confidence)
     "vulture": [
         {
