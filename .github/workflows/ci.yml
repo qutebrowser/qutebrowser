@@ -70,7 +70,6 @@ jobs:
                 bash download-actionlint.bash latest "$bindir"
                 echo "$bindir" >> "$GITHUB_PATH"
             fi
-            export TERM=ansi  # for colored pip output
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
@@ -179,7 +178,6 @@ jobs:
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
-            export TERM=ansi  # for colored pip output
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
