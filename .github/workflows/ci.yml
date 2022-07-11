@@ -65,7 +65,7 @@ jobs:
             if [[ ${{ matrix.testenv }} == actionlint ]]; then
                 bindir="$HOME/.local/bin"
                 mkdir -p "$bindir"
-                wget -qO https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash
+                wget -q https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash
                 bash download-actionlint.bash latest "$bindir"
                 echo "$bindir" >> "$GITHUB_PATH"
             fi
