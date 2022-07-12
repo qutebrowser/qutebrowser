@@ -15,4 +15,4 @@ PyQt5-stubs==5.15.6.0
 tomli==2.0.1
 types-PyYAML==6.0.9
 typing_extensions==4.3.0
-zipp==3.8.0
+zipp==3.8.1

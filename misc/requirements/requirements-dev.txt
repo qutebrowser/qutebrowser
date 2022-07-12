@@ -31,7 +31,7 @@ readme-renderer==35.0
 requests==2.28.1
 requests-toolbelt==0.9.1
 rfc3986==2.0.0
-rich==12.4.4
+rich==12.5.1
 SecretStorage==3.3.2
 sip==6.6.2
 six==1.16.0
@@ -42,4 +42,4 @@ typing_extensions==4.3.0
 uritemplate==4.1.1
 # urllib3==1.26.10
 webencodings==0.5.1
-zipp==3.8.0
+zipp==3.8.1
