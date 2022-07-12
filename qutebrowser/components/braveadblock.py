@@ -431,7 +431,6 @@ def on_method_changed() -> None:
 @hook.before_load()
 def add_cosmetic_filters(tab: apitypes.Tab, url: QUrl) -> None:
     """Inject adblock css and scriptlets for the url we are about to load."""
-
     if ad_blocker is None:
         return
 
@@ -499,6 +498,13 @@ def update_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
     if ad_blocker is None or not ok:
         return
 
+    if tab.tab_id not in ad_blocker.cosmetic_map:
+        logger.info(
+            f"Tab {tab.tab_id} does not have an entry in the cosmetic map. "
+            "You probably need to run :adblock-update-resources"
+        )
+        return
+
     assert tab.tab_id in ad_blocker.cosmetic_map
     cosmetic_info = ad_blocker.cosmetic_map.pop(tab.tab_id)
 
@@ -524,9 +530,11 @@ while (node = walker.nextNode()) {
 }
 """
 
+    url = tab.url()
+
     def _hidden_class_id_selectors_cb(data: Any) -> None:
         logger.debug(
-            f"hidden_class_id_selectors_cb called on tab {tab.tab_id} for {tab.url()} "
+            f"hidden_class_id_selectors_cb called on tab {tab.tab_id} for {url} "
             f"with data type: {type(data)}"
         )
         if data is None:
@@ -547,8 +555,7 @@ while (node = walker.nextNode()) {
         css = "\n".join(f"{sel} {{ display: none !important; }}" for sel in selectors)
         num_css_lines = css.count("\n")
         logger.debug(
-            f"Generic css on tab {tab.tab_id} for {tab.url()}: "
-            f"num_lines={num_css_lines}"
+            f"Generic css on tab {tab.tab_id} for {url}: " f"num_lines={num_css_lines}"
         )
         tab.add_dynamic_css("adblock_generic", css)
 
