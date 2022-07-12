@@ -19,13 +19,15 @@
 
 """Functions related to the Brave adblocker."""
 
+import dataclasses
 import io
 import logging
 import pathlib
 import functools
 import contextlib
 import subprocess
-from typing import Optional, IO, Iterator, List, Set
+import sys
+from typing import Optional, IO, Iterator, List, Set, Dict
 
 from PyQt5.QtCore import QUrl
 
@@ -45,7 +47,10 @@ from qutebrowser.components.ublock_resources import (
 )
 from qutebrowser.components.utils import blockutils
 from qutebrowser.components.utils.exceptions import DeserializationError
-from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
+from qutebrowser.utils import (
+    usertypes,
+    version,
+)  # FIXME: Move needed parts into api namespace?
 
 try:
     import adblock
@@ -146,6 +151,12 @@ def _map_exceptions() -> Iterator[None]:
         raise DeserializationError(str(e))
 
 
+@dataclasses.dataclass
+class _CosmeticInfo:
+    exceptions: Set[str]
+    generichide: bool
+
+
 class BraveAdBlocker:
 
     """Manage blocked hosts based on Brave's adblocker.
@@ -154,6 +165,8 @@ class BraveAdBlocker:
         enabled: Whether to block ads or not.
         _has_basedir: Whether a custom --basedir is set.
         _cache_path: The path of the adblock engine cache file
+        _resources_cache_path: The path to the cached resources
+        cosmetic_map: Maps tabs to the cosmetic filtering information they need
         _engine: Brave ad-blocking engine.
     """
 
@@ -162,6 +175,7 @@ class BraveAdBlocker:
         self._has_basedir = has_basedir
         self._cache_path = data_dir / "adblock-cache.dat"
         self._resources_cache_path = data_dir / "adblock-resources-cache.dat"
+        self.cosmetic_map: Dict[int, _CosmeticInfo] = {}
         try:
             self._engine = adblock.Engine(adblock.FilterSet())
         except AttributeError:
@@ -321,12 +335,19 @@ class BraveAdBlocker:
             try:
                 resources = deserialize_resources_from_file(self._resources_cache_path)
                 for resource in resources:
-                    self._engine.add_resource(
-                        resource.name,
-                        resource.aliases,
-                        resource.content_type,
-                        resource.content,
-                    )
+                    if adblock.__version__ > "0.5.2":
+                        self._engine.add_resource(
+                            resource.name,
+                            resource.aliases,
+                            resource.content_type,
+                            resource.content,
+                        )
+                    else:
+                        self._engine.add_resource(
+                            resource.name,
+                            resource.content_type,
+                            resource.content,
+                        )
             except DeserializationError:
                 message.error(
                     "Reading adblock resources data failed (corrupted data?). "
@@ -391,7 +412,15 @@ class BraveAdBlocker:
             message.info("braveadblock: Block list is not valid utf-8")
 
     def resources_update(self) -> blockutils.BlocklistDownloads:
-        """Update ublock origin type resources."""
+        """Update ublock origin type resources.
+
+        Note that this does not reacreate the engine, and just adds resources, so
+        already existing resources which no longer exist will not get removed.
+        This has mostly to do with python-adblock not supporting removing resources at
+        time of writing this code. Once use_resources is implemented for the engine, we
+        should use that instead of adding resources one by one.
+        """
+        # TODO: Read above note
         return download_resources(
             EngineInfo(self._engine, self._cache_path, self._resources_cache_path)
         )
@@ -414,14 +443,12 @@ def on_method_changed() -> None:
         _possibly_show_missing_dependency_warning()
 
 
-@hook.load_finished()
-def add_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
-    """After loading a page, inject javascript for relevant cosmetic filters."""
-    if ad_blocker is None or not ok:
-        return
+@hook.before_load()
+def add_cosmetic_filters(tab: apitypes.Tab, url: QUrl) -> None:
+    """Inject adblock css and scriptlets for the url we are about to load."""
 
-    def to_js_code(cosmetic_resources: "adblock.UrlSpecificResources") -> str:
-        css = (
+    def _make_css(cosmetic_resources) -> str:
+        return (
             "\n".join(
                 f"{sel} {{ display: none !important; }}"
                 for sel in cosmetic_resources.hide_selectors
@@ -432,88 +459,111 @@ def add_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
                 for sel, styles in cosmetic_resources.style_selectors.items()
             )
         )
-        # Make sure things that could be confused as templates don't exist in the css
-        assert "${" not in css and "`" not in css
-        # There may be backslashes in the css. If so, we need to add another backslash
-        # to escape them.
-        css = css.replace("\\", "\\\\")
-        js_code = (
-            "const style = document.createElement('style');\n"
-            f"style.textContent = `{css}`;\n"
-            "document.head.append(style);\n"
-            f"{cosmetic_resources.injected_script};\n"
-        ) + (
-            (
-                """
-                let classes = new Set();
-                let ids = new Set();
-                const walker = document.createTreeWalker(document.body);
-                let node;
-                while (node = walker.nextNode()) {
-                    if (node.className) {
-                        classes.add(node.className.toString());
-                    }
-                    if (node.id) {
-                        ids.add(node.id.toString());
-                    }
-                }
-                ({"classes": Array.from(classes), "ids": Array.from(ids)})
-                """
-            )
-            if not cosmetic_resources.generichide
-            else "true"
-        )
-        return f"{{ {js_code} }}"
 
-    cosmetic_resources = ad_blocker.url_cosmetic_resources(tab.url())
+    if ad_blocker is None:
+        return
+
+    cosmetic_resources = ad_blocker.url_cosmetic_resources(url)
     if cosmetic_resources is not None:
+        logger.debug(
+            f"Returned cosmetic_resources on tab {tab.tab_id} for {url}: "
+            "ComseticResource("
+            f"num_hide_selectors={len(cosmetic_resources.hide_selectors)}, "
+            f"num_style_selectors={len(cosmetic_resources.style_selectors)}, "
+            f"num_exceptions={len(cosmetic_resources.exceptions)}, "
+            f"len_injected_script={len(cosmetic_resources.injected_script)}, "
+            f"generichide={cosmetic_resources.generichide})"
+        )
 
-        def hidden_class_id_selectors_cb(data) -> None:
+        css = _make_css(cosmetic_resources)
+        num_css_lines = css.count("\n")
+        logger.debug(
+            f"Site-specific css on tab {tab.tab_id} for {url}: "
+            f"num_lines={num_css_lines}"
+        )
+
+        ad_blocker.cosmetic_map[tab.tab_id] = _CosmeticInfo(
+            cosmetic_resources.exceptions, cosmetic_resources.generichide
+        )
+
+        tab.remove_dynamic_css("adblock_generic")
+        tab.add_dynamic_css("adblock", css)
+
+        js_code = cosmetic_resources.injected_script
+        tab.remove_web_script("adblock")
+        num_js_lines = js_code.count("\n")
+        logger.debug(
+            f"Inject script on tab {tab.tab_id} for {url}: num_lines={num_js_lines}"
+        )
+
+        # We use the main world so the adblock scripts can interact with the page.
+        tab.add_web_script(
+            "adblock",
+            js_code,
+            world=usertypes.JsWorld.main,
+            injection_point=usertypes.InjectionPoint.creation,
+            subframes=True,
+        )
+
+
+@hook.load_finished()
+def update_cosmetic_filters(tab: apitypes.Tab, ok: bool) -> None:
+    """After loading a page, search for all classes and ids for generic selectors."""
+    if ad_blocker is None or not ok:
+        return
+
+    assert tab.tab_id in ad_blocker.cosmetic_map
+    cosmetic_info = ad_blocker.cosmetic_map.pop(tab.tab_id)
+
+    # If generichide is True, that means we do not query for any additional generic
+    # rules
+    if cosmetic_info.generichide:
+        return
+
+    js_code = """{
+let classes = new Set();
+let ids = new Set();
+const walker = document.createTreeWalker(document.body);
+let node;
+while (node = walker.nextNode()) {
+    if (node.className) {
+        classes.add(node.className.toString());
+    }
+    if (node.id) {
+        ids.add(node.id.toString());
+    }
+}
+({"classes": Array.from(classes), "ids": Array.from(ids)})
+}
+"""
+
+    def _hidden_class_id_selectors_cb(data) -> None:
+        logger.debug(
+            f"hidden_class_id_selectors_cb called on tab {tab.tab_id} for {tab.url()} "
+            f"with data type: {type(data)}"
+        )
+        if data is None:
+            return
+
+        assert type(data) == dict and "classes" in data and "ids" in data
+
+        selectors = ad_blocker.hidden_class_id_selectors(
+            data["classes"], data["ids"], cosmetic_info.exceptions
+        )
+        logger.debug(f"Number generic selectors: {len(selectors)}")
+
+        css = "\n".join(f"{sel} {{ display: none !important; }}" for sel in selectors)
+        if css:
+            num_css_lines = css.count("\n")
             logger.debug(
-                f"hidden_class_id_selectors_cb called for {tab.url()} with {data}"
+                f"Generic css on tab {tab.tab_id} for {tab.url()}: "
+                f"num_lines={num_css_lines}"
             )
-            if data is None or type(data) != dict:
-                return
+            tab.add_dynamic_css("adblock_generic", css)
 
-            assert "classes" in data and "ids" in data
-
-            selectors = ad_blocker.hidden_class_id_selectors(
-                data["classes"], data["ids"], cosmetic_resources.exceptions
-            )
-            logger.debug(f"Number generic selectors: {len(selectors)}")
-
-            css = "\n".join(
-                f"{sel} {{ display: none !important; }}" for sel in selectors
-            )
-            if css:
-                # Make sure things that could be confused as templates don't exist in
-                # the css
-                assert "${" not in css and "`" not in css
-                # There may be backslashes in the css. If so, we need to add another
-                # backslash to escape them.
-                css = css.replace("\\", "\\\\")
-                js_code = (
-                    "const style = document.createElement('style');\n"
-                    f"style.textContent = `{css}`;\n"
-                    "document.head.append(style);\n"
-                )
-                js_code = f"{{ {js_code} }}"
-
-                logger.debug(
-                    f"js to inject for hidden class id selectors for {tab.url()}\n"
-                    f"{js_code}"
-                )
-                tab.run_js_async(js_code)
-
-        logger.debug(
-            f"Returned cosmetic_resources for {tab.url()}: {cosmetic_resources}"
-        )
-        js_code = to_js_code(cosmetic_resources)
-        logger.debug(
-            f"js to inject for url-specific cosmetic filter for {tab.url()}:\n{js_code}"
-        )
-        # Call on world 0 to make sure injected javascript interacts with main page
-        tab.run_js_async(js_code, callback=hidden_class_id_selectors_cb, world=0)
+    tab.run_js_async(
+        js_code, callback=_hidden_class_id_selectors_cb, name="adblock_generic"
+    )
 
 
 @hook.init()

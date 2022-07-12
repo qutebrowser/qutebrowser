@@ -105,6 +105,8 @@ class before_load:
 
     Don't expect to be able to do anything on the DOM during this hook.
 
+    NOTE: The before_load hook may be called multiple times before a page loads.
+
     Example::
 
         @hook.before_load()

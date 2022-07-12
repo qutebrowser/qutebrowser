@@ -46,7 +46,6 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
-from qutebrowser.extensions import loader as extensions_loader
 
 if TYPE_CHECKING:
     from qutebrowser.browser import webelem
@@ -1060,6 +1059,18 @@ class AbstractTab(QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
+
+        from qutebrowser.extensions import loader
+        self.before_load_started.connect(
+            functools.partial(loader.run_before_load_hooks, self)
+        )
+        self.load_started.connect(
+            functools.partial(loader.run_load_started_hooks, self)
+        )
+        self.load_finished.connect(
+            functools.partial(loader.run_load_finished_hooks, self)
+        )
+
     def _set_widget(self, widget: Union["QWebView", "QWebEngineView"]) -> None:
         # pylint: disable=protected-access
         self._widget = widget
@@ -1125,7 +1136,6 @@ class AbstractTab(QWidget):
         url_string = url.toDisplayString()
         log.webview.debug("Going to start loading: {}".format(url_string))
         self.title_changed.emit(url_string)
-        extensions_loader.run_before_load_hooks(self, url)
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url: QUrl) -> None:
@@ -1140,7 +1150,6 @@ class AbstractTab(QWidget):
         self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
-        extensions_loader.run_load_started_hooks(self)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(
@@ -1170,6 +1179,12 @@ class AbstractTab(QWidget):
                                   navigation.url.errorString()))
             navigation.accepted = False
 
+        # Sometimes a page is loaded with _load_url_prepare called. This can happen when
+        # a non-clickable object is clicked to open in the background. In this case,
+        # `TabbedBrowser.tabopen` will be called with `url=None`, so `load_url` is not
+        # called. For such cases, we must emit before_load_started here as well.
+        self.before_load_started.emit(navigation.url)
+
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         assert self._widget is not None
@@ -1181,7 +1196,6 @@ class AbstractTab(QWidget):
             sessions.session_manager.save_autosave()
 
         self.load_finished.emit(ok)
-        extensions_loader.run_load_finished_hooks(self, ok)
 
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
@@ -1315,6 +1329,57 @@ class AbstractTab(QWidget):
             return None
 
         return pic
+
+    def add_dynamic_css(self, name: str, css: str) -> None:
+        """Adds css which is expected to be updated often.
+
+        For example, the css may be updated right before a page load.
+
+        Note that this has lower precedence than the user-specified stylsheets.
+
+        The css will be scheduled to update right away.
+        """
+        raise NotImplementedError
+
+    def remove_dynamic_css(self, name: str) -> None:
+        """Remove the specified tab-specific css.
+
+        If the given name for the css wasn't added before, nothing happens.
+
+        The css will be scheduled to update right away.
+        """
+        raise NotImplementedError
+
+    def add_web_script(
+        self,
+        name: str,
+        js_code: str,
+        world: Optional[Union[usertypes.JsWorld, int]] = None,
+        injection_point: usertypes.InjectionPoint = (
+            usertypes.InjectionPoint.creation,
+        ),
+        subframes: bool = False,
+    ) -> None:
+        """Adds a web scripts to be run at given injection point.
+
+        Web scripts, similar to greasemonkey scripts, are javascript snippets which are
+        set to be run whenever a page loads. The exact point time in which the script
+        run can be specified with `injection_point`. Web scripts are different to
+        greasemonkey scripts in that the user is given more precise control over their
+        exact parameters (e.g., which world to run in).
+
+        If a script with the name was added before, it will be removed and replaced with
+        the given data.
+        """
+        raise NotImplementedError
+
+    def remove_web_script(self, name: str) -> None:
+        """Remove a web script with the given name.
+
+        If a script with the corresponding name was not previously added, nothing
+        happens.
+        """
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         try:

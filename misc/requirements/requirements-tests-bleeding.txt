@@ -24,8 +24,8 @@ git+https://github.com/pytest-dev/pytest-xdist.git
 git+https://github.com/john-kurkowski/tldextract
 
 # Problematic: needs rust (and some time to build)
-# git+https://github.com/ArniDagur/python-adblock.git
-adblock
+git+https://github.com/alkim0/python-adblock.git
+# adblock
 
 ## qutebrowser dependencies
 

@@ -118,7 +118,11 @@ window._qutebrowser.stylesheet = (function() {
         style_observer.observe(document, {"childList": true, "subtree": true});
     }
 
-    funcs.set_css = function(css) {
+    funcs.set_css = function(css, debug = false) {
+        if (debug) {
+            console.log("Setting css to: " + css.substring(0,30));
+        }
+
         if (!initialized) {
             init();
         }

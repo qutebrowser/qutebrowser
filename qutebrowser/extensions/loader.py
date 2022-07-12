@@ -166,6 +166,7 @@ def _on_config_changed(changed_name: str) -> None:
                     hook()
 
 
+@pyqtSlot(QUrl)
 def run_before_load_hooks(tab: 'apitypes.Tab', url: QUrl) -> None:
     """Run all before_load_hooks."""
     for mod_info in _module_infos:
@@ -174,6 +175,8 @@ def run_before_load_hooks(tab: 'apitypes.Tab', url: QUrl) -> None:
         for hook in mod_info.before_load_hooks:
             hook(tab, url)
 
+
+@pyqtSlot()
 def run_load_started_hooks(tab: 'apitypes.Tab') -> None:
     """Run all load_finished_hooks."""
     for mod_info in _module_infos:
@@ -182,6 +185,8 @@ def run_load_started_hooks(tab: 'apitypes.Tab') -> None:
         for hook in mod_info.load_started_hooks:
             hook(tab)
 
+
+@pyqtSlot(bool)
 def run_load_finished_hooks(tab: 'apitypes.Tab', ok: bool) -> None:
     """Run all load_finished_hooks."""
     for mod_info in _module_infos:
