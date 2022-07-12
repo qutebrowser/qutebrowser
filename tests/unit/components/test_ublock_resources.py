@@ -18,9 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import base64
-from collections import OrderedDict
 import importlib
-import dataclasses
 import pathlib
 
 from PyQt5.QtCore import QUrl
@@ -28,8 +26,11 @@ from PyQt5.QtCore import QUrl
 import pytest
 
 from qutebrowser.components import braveadblock
-import qutebrowser.components.ublock_resources as ublock_resources
-from qutebrowser.components.utils import blockutils
+
+# I think the following needs to be written in this format for importlib.reload to have
+# an effect.
+# pylint: disable-next=consider-using-from-import
+import qutebrowser.components.ublock_resources as ublock_resources  # noqa: I250
 from helpers import testutils
 
 pytestmark = pytest.mark.usefixtures("qapp")
@@ -157,10 +158,10 @@ def engine_info(ad_blocker):
 
 
 @pytest.fixture
-def local_resources(tmpdir):
-    class R:
+def local_resources(tmp_path):
+    class LocalResource:
         def __init__(self, name):
-            self.path = pathlib.Path(tmpdir) / name
+            self.path = tmp_path / name
 
         @property
         def url(self):
@@ -170,20 +171,20 @@ def local_resources(tmpdir):
             with open(self.path, "wb") as f:
                 f.write(data)
 
-    class RFactory:
-        def r(self, name):
-            return R(name)
+    class LocalResourceFactory:
+        def rsrc(self, name):
+            return LocalResource(name)
 
         def url_template(self):
-            return f"file://{tmpdir}/{{}}"
+            return f"file://{tmp_path}/{{}}"
 
-    return RFactory()
+    return LocalResourceFactory()
 
 
 @pytest.fixture
 def redirect_resources(local_resources):
 
-    EXT_MAP = {
+    ext_map = {
         ".gif": "image/gif",
         ".html": "text/html",
         ".js": "application/javascript",
@@ -197,7 +198,7 @@ def redirect_resources(local_resources):
 
     resources = []
     for name, aliases in REDIRECT_RESOURCES:
-        r = local_resources.r(name)
+        r = local_resources.rsrc(name)
         with testutils.ublock_resource(name) as f:
             data = f.read()
             r.write(data)
@@ -206,7 +207,7 @@ def redirect_resources(local_resources):
             ublock_resources.Resource(
                 name,
                 aliases,
-                EXT_MAP[r.path.suffix],
+                ext_map[r.path.suffix],
                 base64.b64encode(data).decode("utf-8"),
             )
         )
@@ -216,13 +217,13 @@ def redirect_resources(local_resources):
 
 @pytest.fixture
 def scriptlet_resources(local_resources):
-    EXT_MAP = {
+    ext_map = {
         "template": "template",
         "javascript": "application/javascript",
     }
     resources = []
     for name, aliases, content_type in SCRIPTLET_RESOURCES:
-        r = local_resources.r(name)
+        r = local_resources.rsrc(name)
         with testutils.ublock_scriptlet_resource(name) as f:
             data = f.read()
             r.write(data)
@@ -231,7 +232,7 @@ def scriptlet_resources(local_resources):
             ublock_resources.Resource(
                 name,
                 aliases,
-                EXT_MAP[content_type],
+                ext_map[content_type],
                 base64.b64encode(data).decode("utf-8"),
             )
         )
@@ -241,12 +242,12 @@ def scriptlet_resources(local_resources):
 
 @pytest.fixture
 def resource_aliases(local_resources):
-    return {local_resources.r(k).url.toString(): v for k, v in REDIRECT_RESOURCES}
+    return {local_resources.rsrc(k).url.toString(): v for k, v in REDIRECT_RESOURCES}
 
 
 @pytest.fixture
 def redirect_engine_js(local_resources):
-    r = local_resources.r("redirect-engine.js")
+    r = local_resources.rsrc("redirect-engine.js")
     with testutils.ublock_redirect_engine_js() as f:
         r.write(f.read())
     return r
@@ -254,14 +255,14 @@ def redirect_engine_js(local_resources):
 
 @pytest.fixture
 def scriptlets_js(local_resources):
-    r = local_resources.r("scriptlets.js")
+    r = local_resources.rsrc("scriptlets.js")
     with testutils.ublock_scriptlets_js() as f:
         r.write(f.read())
     return r
 
 
 def test_redirect_engine_parsing(
-    tmpdir,
+    tmp_path,
     config_stub,
     engine_info,
     redirect_resources,
@@ -289,7 +290,7 @@ def test_redirect_engine_parsing(
     )
     assert dl is not None
     assert dl._urls == [
-        local_resources.r(resource.name).url for resource in redirect_resources
+        local_resources.rsrc(resource.name).url for resource in redirect_resources
     ] + [scriptlets_js.url]
 
     # This is important because we changed the ublock_resources module's values, and we
@@ -311,7 +312,7 @@ def test_parse_resource(
 
     resources = []
     for resource in redirect_resources:
-        r = local_resources.r(resource.name)
+        r = local_resources.rsrc(resource.name)
         with open(r.path, "rb") as f:
             ublock_resources._on_resource_download(
                 resources,
@@ -334,12 +335,10 @@ def test_parse_scriptlets(
     for r1, r2 in zip(resources, scriptlet_resources):
         if r1 != r2 and r1.content != r2.content:
             print(f"Failure to match {r1.name} == {r2.name}")
-            print(
-                f"r1.content.decode:\n'{base64.b64decode(r1.content.encode()).decode('utf-8')}'"
-            )
-            print(
-                f"r2.content.decode:\n'{base64.b64decode(r2.content.encode()).decode('utf-8')}'"
-            )
+            r1_content = base64.b64decode(r1.content.encode()).decode("utf-8")
+            r2_content = base64.b64decode(r2.content.encode()).decode("utf-8")
+            print(f"r1.content.decode:\n'{r1_content}'")
+            print(f"r2.content.decode:\n'{r2_content}'")
 
         assert r1 == r2
 
@@ -348,12 +347,8 @@ def test_parse_scriptlets(
     importlib.reload(ublock_resources)
 
 
-def test_serialization(
-    tmpdir,
-    redirect_resources,
-    scriptlet_resources,
-):
-    path = pathlib.Path(tmpdir) / "adblock-resources-cache.dat"
+def test_serialization(tmp_path, redirect_resources, scriptlet_resources):
+    path = tmp_path / "adblock-resources-cache.dat"
     ublock_resources._serialize_resources_to_file(
         redirect_resources + scriptlet_resources, path
     )
@@ -391,8 +386,3 @@ def test_resources_update(
     # This is important because we changed the ublock_resources module's values, and we
     # don't want it messed up for other tests
     importlib.reload(ublock_resources)
-
-
-# FIXME: Double check if backslashes are necessary
-
-# FIXME: Remember to update documentation for allowing varied injection points

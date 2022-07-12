@@ -11,7 +11,7 @@ import dataclasses
 import re
 import html as html_utils
 import logging
-from typing import cast, Union, Optional, Dict, Tuple
+from typing import cast, Union, Optional
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
                           QObject)
@@ -39,6 +39,7 @@ _JS_WORLD_MAP = {
     usertypes.JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
 }
 
+
 def _convert_usertype_world_id(
     world: Optional[Union[usertypes.JsWorld, int]]
 ) -> Union[QWebEngineScript.ScriptWorldId, int]:
@@ -55,6 +56,7 @@ def _convert_usertype_world_id(
         world_id = _JS_WORLD_MAP[world]
 
     return world_id
+
 
 def _convert_usertype_injection_point(
         injection_point: usertypes.InjectionPoint
@@ -1124,7 +1126,6 @@ class _WebEngineScripts(QObject):
             del self._web_scripts[name]
             self._remove_js(f"_web_script_{name}")
 
-
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
@@ -1523,7 +1524,7 @@ class WebEngineTab(browsertab.AbstractTab):
         js_code: str,
         world: Optional[Union[usertypes.JsWorld, int]] = None,
         injection_point: usertypes.InjectionPoint = (
-            usertypes.InjectionPoint.creation,
+            usertypes.InjectionPoint.creation
         ),
         subframes: bool = False,
     ) -> None:

@@ -226,7 +226,7 @@ class HostBlocker:
         dl.initiate()
         return dl
 
-    def _merge_file(self, url: QUrl, byte_io: IO[bytes]) -> None:
+    def _merge_file(self, _url: QUrl, byte_io: IO[bytes]) -> None:
         """Read and merge host files.
 
         Args:

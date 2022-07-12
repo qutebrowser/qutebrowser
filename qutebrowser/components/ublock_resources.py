@@ -90,7 +90,7 @@ _WEB_ACCESSIBLE_RESOURCES_URL_TEMPLATE = (
 
 def deserialize_resources_from_file(path: pathlib.Path) -> List[Resource]:
     """Deserialize and return resource information from cached resources data file."""
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         try:
             # TODO: In the future, we may want to use a serialization library (such as
             # pyserde) instead of doing this manually like this
@@ -105,8 +105,92 @@ def deserialize_resources_from_file(path: pathlib.Path) -> List[Resource]:
 
 def _serialize_resources_to_file(resources: List[Resource], path: pathlib.Path) -> None:
     """Serialize resource information to cached resources data file."""
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump([dataclasses.asdict(resource) for resource in resources], f)
+
+
+def _parse_resource(
+    aliases_map: Dict[str, List[str]],
+    url: QUrl,
+    fileobj: IO[bytes],
+) -> Resource:
+    ext_map = {
+        ".gif": "image/gif",
+        ".html": "text/html",
+        ".js": "application/javascript",
+        ".mp3": "audio/mp3",
+        ".mp4": "video/mp4",
+        ".png": "image/png",
+        ".txt": "text/plain",
+        ".xml": "application/octet-stream",
+        "": "application/octet-stream",
+    }
+
+    ext = pathlib.Path(url.path()).suffix
+
+    if ext not in ext_map:
+        raise ValueError(f"Don't know this extension: {ext}")
+
+    if ext_map[ext] in ("application/javascript", "text/html", "text/plain"):
+        with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
+            content = text_io.read().replace("\r", "").encode()
+    else:
+        content = fileobj.read()
+
+    return Resource(
+        pathlib.Path(url.path()).name,
+        aliases_map[url.toString()],
+        ext_map[ext],
+        base64.b64encode(content).decode("utf-8"),
+    )
+
+
+_TOP_COMMENT_RE = r"^/\*[\S\s]+?\n\*/\s*"
+_NON_EMPTY_LINE_RE = r"\S"
+
+
+def _parse_scriptlets(
+    fileobj: IO[bytes],
+) -> List[Resource]:
+
+    with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
+        lines = re.sub(_TOP_COMMENT_RE, "", text_io.read()).split("\n")
+
+    resources: List[Resource] = []
+    current_resource = None
+    for line in lines:
+        if line.startswith("#") or line.startswith("// ") or line == "//":
+            continue
+
+        if current_resource is None:
+            if line.startswith("/// "):
+                name = line[4:].strip()
+                current_resource = Resource(name, [], "", "")
+            continue
+
+        if line.startswith("/// "):  # type: ignore[unreachable]
+            tokens = line[4:].split()
+            if len(tokens) >= 2 and tokens[0] == "alias":
+                current_resource.aliases.append(tokens[1])
+            continue
+
+        if re.search(_NON_EMPTY_LINE_RE, line):
+            current_resource.content += line.rstrip() + "\n"
+            continue
+
+        if "{{1}}" in current_resource.content:
+            current_resource.content_type = "template"
+        else:
+            current_resource.content_type = "application/javascript"
+
+        current_resource.content = base64.b64encode(
+            current_resource.content.encode()
+        ).decode("utf-8")
+
+        resources.append(current_resource)
+        current_resource = None
+
+    return resources
 
 
 def _on_resource_download(
@@ -119,86 +203,11 @@ def _on_resource_download(
 
     If the url is the scriptlets url, then parse that differently.
     """
-
-    def parse_resource() -> Resource:
-        EXT_MAP = {
-            ".gif": "image/gif",
-            ".html": "text/html",
-            ".js": "application/javascript",
-            ".mp3": "audio/mp3",
-            ".mp4": "video/mp4",
-            ".png": "image/png",
-            ".txt": "text/plain",
-            ".xml": "application/octet-stream",
-            "": "application/octet-stream",
-        }
-
-        ext = pathlib.Path(url.path()).suffix
-
-        if ext not in EXT_MAP:
-            raise ValueError(f"Don't know this extension: {ext}")
-
-        if EXT_MAP[ext] in ("application/javascript", "text/html", "text/plain"):
-            with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
-                content = text_io.read().replace("\r", "").encode()
-        else:
-            content = fileobj.read()
-
-        return Resource(
-            pathlib.Path(url.path()).name,
-            aliases_map[url.toString()],
-            EXT_MAP[ext],
-            base64.b64encode(content).decode("utf-8"),
-        )
-
-    def parse_scriptlets() -> List[Resource]:
-        TOP_COMMENT_RE = r"^/\*[\S\s]+?\n\*/\s*"
-        NON_EMPTY_LINE_RE = r"\S"
-
-        with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
-            lines = re.sub(TOP_COMMENT_RE, "", text_io.read()).split("\n")
-
-        resources = []
-        current_resource = None
-        for line in lines:
-            if line.startswith("#") or line.startswith("// ") or line == "//":
-                continue
-
-            if current_resource is None:
-                if line.startswith("/// "):
-                    name = line[len("/// ") :].strip()
-                    current_resource = Resource(name, [], "", "")
-                continue
-
-            if line.startswith("/// "):
-                tokens = line[len("/// ") :].split()
-                if len(tokens) >= 2 and tokens[0] == "alias":
-                    current_resource.aliases.append(tokens[1])
-                continue
-
-            if re.search(NON_EMPTY_LINE_RE, line):
-                current_resource.content += line.rstrip() + "\n"
-                continue
-
-            if "{{1}}" in current_resource.content:
-                current_resource.content_type = "template"
-            else:
-                current_resource.content_type = "application/javascript"
-
-            current_resource.content = base64.b64encode(
-                current_resource.content.encode()
-            ).decode("utf-8")
-
-            resources.append(current_resource)
-            current_resource = None
-
-        return resources
-
     try:
         if url == _SCRIPTLETS_URL:
-            resources.extend(parse_scriptlets())
+            resources.extend(_parse_scriptlets(fileobj))
         else:
-            resources.append(parse_resource())
+            resources.append(_parse_resource(aliases_map, url, fileobj))
     except UnicodeDecodeError:
         message.info("braveadblock: Resource is not valid utf-8")
     except ValueError:
@@ -214,8 +223,11 @@ def _on_all_resources_downloaded(
     _serialize_resources_to_file(resources, engine_info.resources_cache_path)
     for resource in resources:
         if adblock.__version__ > "0.5.2":
-            engine_info.engine.add_resource(
-                resource.name, resource.aliases, resource.content_type, resource.content
+            engine_info.engine.add_resource(  # type: ignore[call-arg]
+                resource.name,
+                resource.aliases,  # type: ignore[arg-type]
+                resource.content_type,
+                resource.content,
             )
         else:
             engine_info.engine.add_resource(
@@ -227,18 +239,22 @@ def _on_all_resources_downloaded(
     )
 
 
-def _on_redirect_engine_download(
-    url: QUrl, fileobj: IO[bytes], engine_info: EngineInfo
+_REDIRECTABLE_RESOURCES_DECL = "const redirectableResources = new Map(["
+_MAP_END_RE = r"^\s*\]\s*\)"
+
+
+def _on_redirect_engine_download(  # noqa: C901
+    _url: QUrl, fileobj: IO[bytes], engine_info: EngineInfo
 ) -> Optional[blockutils.BlocklistDownloads]:
     """Download redirect-engine.js, parse it, and get the list of resource urls.
 
     To parse it, we take the portion that refers to the map, and turn it into JSON, and
     decode with json.load. The inspiration for this code comes from
     https://github.com/brave/adblock-rust/blob/master/src/resources/resource_assembler.rs
-    """
-    REDIRECTABLE_RESOURCES_DECL = "const redirectableResources = new Map(["
-    MAP_END_RE = r"^\s*\]\s*\)"
 
+    Since this is almost a one-to-one mapping of the code in the above file, it's
+    probably to keep everything in one function (hence the noqa: C901).
+    """
     try:
         # Extract the lines for the map
         map_lines = []
@@ -246,15 +262,14 @@ def _on_redirect_engine_download(
         with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
             for line in text_io.readlines():
                 if not map_opening_seen:
-                    if REDIRECTABLE_RESOURCES_DECL in line:
+                    if _REDIRECTABLE_RESOURCES_DECL in line:
                         map_opening_seen = True
                         map_lines.append("[")
+                elif re.search(_MAP_END_RE, line):
+                    map_lines.append("]")
+                    break
                 else:
-                    if re.search(MAP_END_RE, line):
-                        map_lines.append("]")
-                        break
-                    else:
-                        map_lines.append(line)
+                    map_lines.append(line)
 
                 if map_lines:
                     comment_idx = map_lines[-1].find("//")
@@ -288,7 +303,7 @@ def _on_redirect_engine_download(
 
             url_str = _WEB_ACCESSIBLE_RESOURCES_URL_TEMPLATE.format(name)
             if "alias" in data:
-                if type(data["alias"]) == list:
+                if isinstance(data["alias"], list):
                     aliases_map[url_str] = data["alias"]
                 else:
                     aliases_map[url_str] = [data["alias"]]
@@ -297,7 +312,7 @@ def _on_redirect_engine_download(
 
             resource_urls.append(QUrl(url_str))
 
-        resources = []
+        resources: List[Resource] = []
         dl = blockutils.BlocklistDownloads(resource_urls + [_SCRIPTLETS_URL])
         dl.single_download_finished.connect(
             functools.partial(_on_resource_download, resources, aliases_map)
@@ -315,7 +330,7 @@ def _on_redirect_engine_download(
 
     except UnicodeDecodeError:
         message.error("braveadblock: redirect-engine.js is not in valid utf-8")
-    except (TypeError, json.JSONDecodeError) as e:
+    except (TypeError, json.JSONDecodeError):
         message.error("braveadblock: redirect-engine.js could not be parsed")
 
     return None
