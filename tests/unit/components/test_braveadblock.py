@@ -102,6 +102,7 @@ BUGGY_URLS = [
 
 GOOGLE_URL = QUrl("https://google.com")
 GOOGLE_UBLOCK_FILTERS_SELECTORS = [
+    # pylint: disable=line-too-long
     r"""#atvcap + #tvcap > .mnr-c > .commercial-unit-mobile-top""",
     r"""#center_col > #\5f Emc""",
     r"""#center_col > #main > .dfrd > .mnr-c > .c._oc._zs""",
@@ -253,6 +254,7 @@ GENERAL_UBLOCK_FILTERS_SELECTORS = [
 ]
 YOUTUBE_URL = QUrl("https://youtube.com")
 YOUTUBE_UBLOCK_FILTERS_SELECTORS = [
+    # pylint: disable=line-too-long
     r""".masthead-ad-control,.ad-div,.pyv-afc-ads-container""",
     r"""#promotion-shelf""",
     r"""ytd-video-masthead-ad-advertiser-info-renderer,ytm-promoted-sparkles-web-renderer""",
@@ -681,8 +683,8 @@ def ad_blocker(config_stub, data_tmpdir):
 
 
 @pytest.fixture
-def ublock_filters(tmpdir):
-    path = pathlib.Path(tmpdir) / "filters.txt"
+def ublock_filters(tmp_path):
+    path = tmp_path / "filters.txt"
     with testutils.ublock_filters_txt() as fin, open(path, "wb") as fout:
         fout.write(fin.read())
     return f"file://{path}"
@@ -988,7 +990,7 @@ def test_url_specific_cosmetic_filters(
     )
     assert not cosmetic_resources.style_selectors
     assert cosmetic_resources.injected_script == ""
-    assert cosmetic_resources.generichide == False
+    assert not cosmetic_resources.generichide
 
     cosmetic_resources = ad_blocker.url_cosmetic_resources(YOUTUBE_URL)
     assert cosmetic_resources is not None
@@ -997,4 +999,4 @@ def test_url_specific_cosmetic_filters(
     )
     assert not cosmetic_resources.style_selectors
     assert cosmetic_resources.injected_script == YOUTUBE_UBLOCK_FILTERS_SCRIPT
-    assert cosmetic_resources.generichide == False
+    assert not cosmetic_resources.generichide

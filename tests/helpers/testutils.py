@@ -19,7 +19,6 @@
 
 """Various utilities used inside tests."""
 
-import base64
 import io
 import re
 import gzip
@@ -289,7 +288,7 @@ def ublock_scriptlet_resource(name):
 
 
 def ublock_resources_cache():
-    path = os.path.join(abs_datapath(), f"ublock/adblock-resources-cache.dat.gz")
+    path = os.path.join(abs_datapath(), "ublock/adblock-resources-cache.dat.gz")
     return gzip.open(path)
 
 

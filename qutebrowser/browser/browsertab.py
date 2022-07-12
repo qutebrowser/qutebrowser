@@ -1059,7 +1059,7 @@ class AbstractTab(QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
-
+        # We do a local import here to avoid a circular dependency
         from qutebrowser.extensions import loader
         self.before_load_started.connect(
             functools.partial(loader.run_before_load_hooks, self)
@@ -1278,7 +1278,8 @@ class AbstractTab(QWidget):
             self,
             code: str,
             callback: Callable[[Any], None] = None, *,
-            world: Union[usertypes.JsWorld, int] = None
+            world: Union[usertypes.JsWorld, int] = None,
+            name: str = ''
     ) -> None:
         """Run javascript async.
 
@@ -1290,6 +1291,7 @@ class AbstractTab(QWidget):
             callback: The callback to call with the result, or None.
             world: A world ID (int or usertypes.JsWorld member) to run the JS
                    in the main world or in another isolated world.
+            name: An optional name to give the js code. Useful for debugging.
         """
         raise NotImplementedError
 
@@ -1356,7 +1358,7 @@ class AbstractTab(QWidget):
         js_code: str,
         world: Optional[Union[usertypes.JsWorld, int]] = None,
         injection_point: usertypes.InjectionPoint = (
-            usertypes.InjectionPoint.creation,
+            usertypes.InjectionPoint.creation
         ),
         subframes: bool = False,
     ) -> None:

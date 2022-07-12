@@ -26,8 +26,7 @@ import pathlib
 import functools
 import contextlib
 import subprocess
-import sys
-from typing import Optional, IO, Iterator, List, Set, Dict
+from typing import Optional, IO, Iterator, List, Set, Dict, Any
 
 from PyQt5.QtCore import QUrl
 
@@ -336,9 +335,9 @@ class BraveAdBlocker:
                 resources = deserialize_resources_from_file(self._resources_cache_path)
                 for resource in resources:
                     if adblock.__version__ > "0.5.2":
-                        self._engine.add_resource(
+                        self._engine.add_resource(  # type: ignore[call-arg]
                             resource.name,
-                            resource.aliases,
+                            resource.aliases,  # type: ignore[arg-type]
                             resource.content_type,
                             resource.content,
                         )
@@ -398,7 +397,7 @@ class BraveAdBlocker:
                 logger.exception("Failed to remove adblock cache file: %s", e)
 
     def _on_download_finished(
-        self, url: QUrl, fileobj: IO[bytes], filter_set: "adblock.FilterSet"
+        self, _url: QUrl, fileobj: IO[bytes], filter_set: "adblock.FilterSet"
     ) -> None:
         """When a blocklist download finishes, add it to the given filter set.
 
@@ -447,7 +446,10 @@ def on_method_changed() -> None:
 def add_cosmetic_filters(tab: apitypes.Tab, url: QUrl) -> None:
     """Inject adblock css and scriptlets for the url we are about to load."""
 
-    def _make_css(cosmetic_resources) -> str:
+    if ad_blocker is None:
+        return
+
+    def _make_css(cosmetic_resources: adblock.UrlSpecificResources) -> str:
         return (
             "\n".join(
                 f"{sel} {{ display: none !important; }}"
@@ -460,9 +462,6 @@ def add_cosmetic_filters(tab: apitypes.Tab, url: QUrl) -> None:
             )
         )
 
-    if ad_blocker is None:
-        return
-
     cosmetic_resources = ad_blocker.url_cosmetic_resources(url)
     if cosmetic_resources is not None:
         logger.debug(
@@ -472,7 +471,8 @@ def add_cosmetic_filters(tab: apitypes.Tab, url: QUrl) -> None:
             f"num_style_selectors={len(cosmetic_resources.style_selectors)}, "
             f"num_exceptions={len(cosmetic_resources.exceptions)}, "
             f"len_injected_script={len(cosmetic_resources.injected_script)}, "
-            f"generichide={cosmetic_resources.generichide})"
+            "generichide="
+            f"{cosmetic_resources.generichide})"  # type: ignore[attr-defined]
         )
 
         css = _make_css(cosmetic_resources)
@@ -483,7 +483,8 @@ def add_cosmetic_filters(tab: apitypes.Tab, url: QUrl) -> None:
         )
 
         ad_blocker.cosmetic_map[tab.tab_id] = _CosmeticInfo(
-            cosmetic_resources.exceptions, cosmetic_resources.generichide
+            cosmetic_resources.exceptions,
+            cosmetic_resources.generichide,  # type: ignore[attr-defined]
         )
 
         tab.remove_dynamic_css("adblock_generic")
@@ -537,7 +538,7 @@ while (node = walker.nextNode()) {
 }
 """
 
-    def _hidden_class_id_selectors_cb(data) -> None:
+    def _hidden_class_id_selectors_cb(data: Any) -> None:
         logger.debug(
             f"hidden_class_id_selectors_cb called on tab {tab.tab_id} for {tab.url()} "
             f"with data type: {type(data)}"
@@ -545,21 +546,25 @@ while (node = walker.nextNode()) {
         if data is None:
             return
 
-        assert type(data) == dict and "classes" in data and "ids" in data
+        assert isinstance(data, dict)
+        assert "classes" in data
+        assert "ids" in data
 
-        selectors = ad_blocker.hidden_class_id_selectors(
+        selectors = ad_blocker.hidden_class_id_selectors(  # type: ignore[union-attr]
             data["classes"], data["ids"], cosmetic_info.exceptions
         )
+        if not selectors:
+            return
+
         logger.debug(f"Number generic selectors: {len(selectors)}")
 
         css = "\n".join(f"{sel} {{ display: none !important; }}" for sel in selectors)
-        if css:
-            num_css_lines = css.count("\n")
-            logger.debug(
-                f"Generic css on tab {tab.tab_id} for {tab.url()}: "
-                f"num_lines={num_css_lines}"
-            )
-            tab.add_dynamic_css("adblock_generic", css)
+        num_css_lines = css.count("\n")
+        logger.debug(
+            f"Generic css on tab {tab.tab_id} for {tab.url()}: "
+            f"num_lines={num_css_lines}"
+        )
+        tab.add_dynamic_css("adblock_generic", css)
 
     tab.run_js_async(
         js_code, callback=_hidden_class_id_selectors_cb, name="adblock_generic"

@@ -30,7 +30,7 @@ from typing import Callable, Iterator, List, Optional, Tuple
 from PyQt5.QtCore import pyqtSlot, QUrl
 
 from qutebrowser import components
-from qutebrowser.api import apitypes
+from qutebrowser.api import apitypes  # pylint: disable=unused-import
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
@@ -73,11 +73,11 @@ class ModuleInfo:
         ]
     ] = dataclasses.field(default_factory=list)
     before_load_hooks: List[BeforeLoadHookType] = dataclasses.field(
-            default_factory=list)
+        default_factory=list)
     load_started_hooks: List[LoadStartedHookType] = dataclasses.field(
-            default_factory=list)
+        default_factory=list)
     load_finished_hooks: List[LoadFinishedHookType] = dataclasses.field(
-            default_factory=list)
+        default_factory=list)
 
 
 @dataclasses.dataclass
@@ -194,6 +194,7 @@ def run_load_finished_hooks(tab: 'apitypes.Tab', ok: bool) -> None:
             continue
         for hook in mod_info.load_finished_hooks:
             hook(tab, ok)
+
 
 def init() -> None:
     config.instance.changed.connect(_on_config_changed)
