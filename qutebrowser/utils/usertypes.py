@@ -301,6 +301,20 @@ class JsWorld(enum.Enum):
     jseval = enum.auto()  #: World used for the jseval-command.
 
 
+class InjectionPoint(enum.Enum):
+
+    """The point at which the injected web script will fire."""
+
+    # As soon as the page finished loading, or 500ms after the document is ready,
+    # whichever comes first.
+    deferred = enum.auto()
+    # As soon as document is ready. This is the same as DOMContentLoaded event firing in
+    # javascript.
+    ready = enum.auto()
+    # As soon as document is created. This is not suitable for DOM manipulation.
+    creation = enum.auto()
+
+
 class JsLogLevel(enum.Enum):
 
     """Log level of a JS message.

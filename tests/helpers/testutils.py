@@ -4,6 +4,7 @@
 
 """Various utilities used inside tests."""
 
+import base64
 import io
 import re
 import enum
@@ -241,6 +242,36 @@ def easylist_txt():
 
 def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
+
+
+def ublock_redirect_engine_js():
+    path = os.path.join(abs_datapath(), "ublock/redirect-engine.js.gz")
+    return gzip.open(path)
+
+
+def ublock_scriptlets_js():
+    path = os.path.join(abs_datapath(), "ublock/scriptlets.js.gz")
+    return gzip.open(path)
+
+
+def ublock_filters_txt():
+    path = os.path.join(abs_datapath(), "ublock/filters.txt.gz")
+    return gzip.open(path)
+
+
+def ublock_resource(name):
+    path = os.path.join(abs_datapath(), f"ublock/resources/{name}.gz")
+    return gzip.open(path)
+
+
+def ublock_scriptlet_resource(name):
+    path = os.path.join(abs_datapath(), f"ublock/scriptlet-resources/{name}.gz")
+    return gzip.open(path)
+
+
+def ublock_resources_cache():
+    path = os.path.join(abs_datapath(), f"ublock/adblock-resources-cache.dat.gz")
+    return gzip.open(path)
 
 
 DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"

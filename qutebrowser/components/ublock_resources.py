@@ -25,7 +25,6 @@ import functools
 import json
 import logging
 import io
-import os.path
 import pathlib
 import re
 from typing import Optional, IO, List, Dict
@@ -84,6 +83,10 @@ _SCRIPTLETS_URL = QUrl(
     "https://raw.githubusercontent.com/gorhill/uBlock/master/assets/resources/scriptlets.js"
 )
 
+_WEB_ACCESSIBLE_RESOURCES_URL_TEMPLATE = (
+    "https://github.com/gorhill/uBlock/raw/master/src/web_accessible_resources/{}"
+)
+
 
 def deserialize_resources_from_file(path: pathlib.Path) -> List[Resource]:
     """Deserialize and return resource information from cached resources data file."""
@@ -107,10 +110,10 @@ def _serialize_resources_to_file(resources: List[Resource], path: pathlib.Path) 
 
 
 def _on_resource_download(
-    url: QUrl,
-    fileobj: IO[bytes],
     resources: List[Resource],
     aliases_map: Dict[str, List[str]],
+    url: QUrl,
+    fileobj: IO[bytes],
 ) -> None:
     """On downloading a resource, parse it and add append it to the resources list.
 
@@ -130,7 +133,7 @@ def _on_resource_download(
             "": "application/octet-stream",
         }
 
-        _, ext = os.path.splitext(url.path())
+        ext = pathlib.Path(url.path()).suffix
 
         if ext not in EXT_MAP:
             raise ValueError(f"Don't know this extension: {ext}")
@@ -142,7 +145,7 @@ def _on_resource_download(
             content = fileobj.read()
 
         return Resource(
-            os.path.basename(url.path()),
+            pathlib.Path(url.path()).name,
             aliases_map[url.toString()],
             EXT_MAP[ext],
             base64.b64encode(content).decode("utf-8"),
@@ -169,13 +172,12 @@ def _on_resource_download(
 
             if line.startswith("/// "):
                 tokens = line[len("/// ") :].split()
-                if len(tokens) >= 2:
-                    continue
-                if tokens[0] == "alias":
+                if len(tokens) >= 2 and tokens[0] == "alias":
                     current_resource.aliases.append(tokens[1])
+                continue
 
             if re.search(NON_EMPTY_LINE_RE, line):
-                current_resource.content += line.strip() + "\n"
+                current_resource.content += line.rstrip() + "\n"
                 continue
 
             if "{{1}}" in current_resource.content:
@@ -204,14 +206,21 @@ def _on_resource_download(
 
 
 def _on_all_resources_downloaded(
-    done_count: int, resources: List[Resource], engine_info: EngineInfo
+    resources: List[Resource],
+    engine_info: EngineInfo,
+    done_count: int,
 ) -> None:
     """After downloading all resources, create the cache and update the engine."""
     _serialize_resources_to_file(resources, engine_info.resources_cache_path)
     for resource in resources:
-        engine_info.engine.add_resource(
-            resource.name, resource.aliases, resource.content_type, resource.content
-        )
+        if adblock.__version__ > "0.5.2":
+            engine_info.engine.add_resource(
+                resource.name, resource.aliases, resource.content_type, resource.content
+            )
+        else:
+            engine_info.engine.add_resource(
+                resource.name, resource.content_type, resource.content
+            )
     engine_info.engine.serialize_to_file(str(engine_info.cache_path))
     message.info(
         f"braveadblock: Successfully updated engine with {done_count} resources."
@@ -266,7 +275,6 @@ def _on_redirect_engine_download(
         map_str = re.sub(r"([\{,])([a-zA-Z][a-zA-Z0-9_]*):", r'\1"\2":', map_str)
 
         # Read via json
-        print(map_str)
         resources_map = json.loads(map_str)
 
         resource_urls: List[QUrl] = []
@@ -278,7 +286,7 @@ def _on_redirect_engine_download(
             if "params" in data:
                 continue
 
-            url_str = f"https://github.com/gorhill/uBlock/raw/master/src/web_accessible_resources/{name}"
+            url_str = _WEB_ACCESSIBLE_RESOURCES_URL_TEMPLATE.format(name)
             if "alias" in data:
                 if type(data["alias"]) == list:
                     aliases_map[url_str] = data["alias"]
@@ -292,23 +300,22 @@ def _on_redirect_engine_download(
         resources = []
         dl = blockutils.BlocklistDownloads(resource_urls + [_SCRIPTLETS_URL])
         dl.single_download_finished.connect(
-            functools.partial(
-                _on_resource_download, resources=resources, aliases_map=aliases_map
-            )
+            functools.partial(_on_resource_download, resources, aliases_map)
         )
         dl.all_downloads_finished.connect(
             functools.partial(
                 _on_all_resources_downloaded,
-                resources=resources,
-                engine_info=engine_info,
+                resources,
+                engine_info,
             )
         )
         dl.initiate()
 
+        return dl
+
     except UnicodeDecodeError:
         message.error("braveadblock: redirect-engine.js is not in valid utf-8")
     except (TypeError, json.JSONDecodeError) as e:
-        print(e)
         message.error("braveadblock: redirect-engine.js could not be parsed")
 
     return None
