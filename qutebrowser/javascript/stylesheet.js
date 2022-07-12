@@ -120,7 +120,7 @@ window._qutebrowser.stylesheet = (function() {
 
     funcs.set_css = function(css, debug = false) {
         if (debug) {
-            console.log("Setting css to: " + css.substring(0,30));
+            // console.log(`Setting css to: ${css.substring(0, 30)}`);
         }
 
         if (!initialized) {

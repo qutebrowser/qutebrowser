@@ -58,7 +58,7 @@ def test_blocklist_dl(qtbot, pretend_blocklists):
     total_expected = 10
     num_single_dl_called = 0
 
-    def on_single_download(download: IO[bytes]) -> None:
+    def on_single_download(_url: QUrl, download: IO[bytes]) -> None:
         nonlocal num_single_dl_called
         num_single_dl_called += 1
 

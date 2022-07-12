@@ -1140,10 +1140,9 @@ class _WebEngineScripts(QObject):
 
         if logging.getLogger("js").isEnabledFor(logging.DEBUG):
             js_code = (
-                f'console.log("Running web script {name} on tab {self._tab.tab_id} '
-                r'for \"" + window.location + "\" '
-                '(" + window.frames.length + " subframes) '
-                f'at point {injection_point} in world {world}");'
+                f'console.log(`Running web script {name} on tab {self._tab.tab_id} '
+                'for "${window.location}" (${window.frames.length} subframes) '
+                f'at point {injection_point} in world {world}`);'
                 f'\n{js_code}'
             )
 
@@ -1189,10 +1188,9 @@ class _WebEngineScripts(QObject):
         """Inject the given script to run early on a page load."""
         if logging.getLogger("js").isEnabledFor(logging.DEBUG):
             js_code = (
-                f'console.log("Running userscript {name} on tab {self._tab.tab_id} '
-                r'for \"" + window.location + "\" '
-                '(" + window.frames.length + " subframes) '
-                f'at point {injection_point} in world {world}");'
+                f'console.log(`Running userscript {name} on tab {self._tab.tab_id} '
+                'for "${window.location}" (${window.frames.length} subframes) '
+                f'at point {injection_point} in world {world}`);'
                 f'\n{js_code}'
             )
 
@@ -1509,10 +1507,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
         if logging.getLogger("js").isEnabledFor(logging.DEBUG):
             code = (
-                f'console.log("Running async code {name} on tab {self.tab_id} '
-                r'for \"" + window.location + "\" '
-                '(" + window.frames.length + " subframes) '
-                f'in world {world_id}");'
+                f'console.log(`Running async code {name} on tab {self.tab_id} '
+                'for "${window.location}" (${window.frames.length} subframes) '
+                f'in world {world_id}`);'
                 f'\n{code}'
             )
 

@@ -919,7 +919,7 @@ class WebKitTab(browsertab.AbstractTab):
         else:
             callback(frame.toHtml())
 
-    def run_js_async(self, code, callback=None, *, world=None, _name=''):
+    def run_js_async(self, code, callback=None, *, world=None, name=''):
         if world is not None and world != usertypes.JsWorld.jseval:
             log.webview.warning("Ignoring world ID {}".format(world))
         result = self.private_api.run_js_sync(code)

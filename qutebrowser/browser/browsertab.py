@@ -1179,7 +1179,7 @@ class AbstractTab(QWidget):
                                   navigation.url.errorString()))
             navigation.accepted = False
 
-        # Sometimes a page is loaded with _load_url_prepare called. This can happen when
+        # Sometimes a page is loaded without _load_url_prepare. This can happen when
         # a non-clickable object is clicked to open in the background. In this case,
         # `TabbedBrowser.tabopen` will be called with `url=None`, so `load_url` is not
         # called. For such cases, we must emit before_load_started here as well.
