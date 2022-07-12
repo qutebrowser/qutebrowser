@@ -30,6 +30,8 @@ image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/c
   course] on shortcutfoo for the keybindings - note that you need to be in
   insert mode (i) for it to work.
 * Run `:adblock-update` to download adblock lists and activate adblocking.
+* Run `:adblock-update-resources` to enable cosmetic filtering and scriptlets (advanced
+blocking)
 * If you just cloned the repository, you'll need to run
 `scripts/asciidoc2html.py` to generate the documentation.
 * Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it.
