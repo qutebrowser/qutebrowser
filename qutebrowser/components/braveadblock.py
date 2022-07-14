@@ -381,6 +381,7 @@ class BraveAdBlocker:
     ) -> None:
         """Install block lists after files have been downloaded."""
         self._engine = adblock.Engine(filter_set)
+        self.read_resources_cache()
         self._engine.serialize_to_file(str(self._cache_path))
         message.info(
             f"braveadblock: Filters successfully read from {done_count} sources."

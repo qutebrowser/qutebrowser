@@ -809,7 +809,7 @@ def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()
     expected = "braveadblock: Block list is not valid utf-8"
-    assert caplog.messages[-2].startswith(expected)
+    assert caplog.messages[-3].startswith(expected)
 
 
 def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
