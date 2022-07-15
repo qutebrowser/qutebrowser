@@ -41,11 +41,17 @@ def parser(mocker):
 @pytest.fixture
 def version_patcher(monkeypatch):
     """Get a patching function to patch the QtWebEngine version."""
-    def run(ver):
+    def run(ver) -> bool:
+        """Run patching.
+
+        Return:
+            True if we know the associated Chromium version, False otherwise
+        """
         versions = version.WebEngineVersions.from_pyqt(ver)
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
         monkeypatch.setattr(version, 'qtwebengine_versions',
                             lambda avoid_init: versions)
+        return versions.chromium_major is not None
 
     return run
 
@@ -481,6 +487,28 @@ class TestWebEngineArgs:
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
         assert '--lang=de' in args
+
+    @pytest.mark.parametrize("version, expected", [
+        ('5.15.2', False),
+        ('5.15.9', False),
+        ('6.2.4', False),
+        ('6.3.1', False),
+        ('6.4.0', True),
+        ('6.5.0', True),
+    ])
+    def test_webengine_args(self, version_patcher, parser, version, expected):
+        known_chromium = version_patcher(version)
+        if not known_chromium:
+            pytest.skip("Don't know associated Chromium version")
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+
+        flag = "--webEngineArgs"
+        if expected:
+            assert args[1] == flag
+        else:
+            assert flag not in args
 
 
 class TestEnvVars:

@@ -75,10 +75,15 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         log.init.debug("QtWebEngine requested, but unavailable...")
         return argv
 
+    versions = version.qtwebengine_versions(avoid_init=True)
+    if versions.webengine >= utils.VersionNumber(6, 4):
+        # https://codereview.qt-project.org/c/qt/qtwebengine/+/376704
+        argv.insert(1, "--webEngineArgs")
+
     special_prefixes = (_ENABLE_FEATURES, _DISABLE_FEATURES, _BLINK_SETTINGS)
     special_flags = [flag for flag in argv if flag.startswith(special_prefixes)]
     argv = [flag for flag in argv if not flag.startswith(special_prefixes)]
-    argv += list(_qtwebengine_args(namespace, special_flags))
+    argv += list(_qtwebengine_args(versions, namespace, special_flags))
 
     return argv
 
@@ -241,12 +246,11 @@ def _get_lang_override(
 
 
 def _qtwebengine_args(
+        versions: version.WebEngineVersions,
         namespace: argparse.Namespace,
         special_flags: Sequence[str],
 ) -> Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
-    versions = version.qtwebengine_versions(avoid_init=True)
-
     # https://codereview.qt-project.org/c/qt/qtwebengine/+/256786
     # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265753
     if 'stack' in namespace.debug_flags:
