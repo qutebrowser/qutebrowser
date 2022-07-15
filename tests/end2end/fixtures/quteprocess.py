@@ -57,6 +57,10 @@ def is_ignored_lowlevel_message(message):
         # Qt 6.2 / 6.3
         'Fontconfig error: Cannot load default config file: No such file: (null)',
         'Fontconfig error: Cannot load default config file',
+
+        # Qt 6.4, from certifiacte error below, but on separate lines
+        '----- Certificate i=0 (*,CN=localhost,O=qutebrowser test certificate) -----',
+        'ERROR: No matching issuer found',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -114,6 +118,13 @@ def is_ignored_chromium_message(line):
         'GPU state invalid after WaitForGetOffsetInRange.',
         # [5469:5503:0621/183219.878182:ERROR:backend_impl.cc(1414)] Unable to map Index file
         'Unable to map Index file',
+
+        # Qt 6.4:
+        # [2456284:2456339:0715/110322.570154:ERROR:cert_verify_proc_builtin.cc(681)] CertVerifyProcBuiltin for localhost failed:
+        # ----- Certificate i=0 (1.2.840.113549.1.9.1=#6D61696C407175746562726F777365722E6F7267,CN=localhost,O=qutebrowser test certificate) -----
+        # ERROR: No matching issuer found
+        # (Note, subsequent lines above in is_ignored_lowlevel_message)
+        'CertVerifyProcBuiltin for localhost failed:',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
