@@ -534,7 +534,7 @@ def test_preferred_colorscheme_with_dark_mode(
         expected_text = 'No preference detected.'
         expected_color = testutils.Color(0, 170, 0)  # green
         xfail = "QTBUG-89753"
-    else:
+    elif webengine_versions.webengine < utils.VersionNumber(6, 4):
         # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
         # No workaround known.
         expected_text = 'Light preference detected.'
@@ -546,6 +546,12 @@ def test_preferred_colorscheme_with_dark_mode(
             expected_color = (testutils.Color(123, 125, 123) if IS_ARM
                               else testutils.Color(127, 127, 127))
         xfail = "Chromium bug 1177973"
+    else:
+        # Correct behavior on QtWebEngine 6.4 (and 5.14/5.15.0/5.15.1 in the past)
+        expected_text = 'Dark preference detected.'
+        expected_color = (testutils.Color(33, 32, 33) if IS_ARM
+                          else testutils.Color(34, 34, 34))  # dark website color
+        xfail = False
 
     pos = QPoint(0, 0)
     img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected_color)
@@ -657,7 +663,8 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         'blank',
         'lightness-hsl',
         {
-            # FIXME:qt6 why?
+            # FIXME:qt6 Why #121212 rather than #000000?
+            ('6.4', None): testutils.Color(18, 18, 18),
             ('6.3', None): testutils.Color(18, 18, 18),
             (None, None): testutils.Color(0, 0, 0),
         }
@@ -666,7 +673,8 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         'blank',
         'brightness-rgb',
         {
-            # FIXME:qt6 why?
+            # FIXME:qt6 Why #121212 rather than #000000?
+            ('6.4', None): testutils.Color(18, 18, 18),
             ('6.3', None): testutils.Color(18, 18, 18),
             (None, None): testutils.Color(0, 0, 0)
         }
