@@ -609,6 +609,11 @@ class WebEngineVersions:
         #         94.0.4606.126 (2021-11-17)
         #         6.3.0: Security fixes up to 99.0.4844.84 (2022-03-25)
         utils.VersionNumber(6, 3): '94.0.4606.126',
+
+        # Qt 6.4: Chromium 98
+        #         98.0.4758.90 (2022-02-02)
+        #         6.4.0: Security fixes up to ???
+        utils.VersionNumber(6, 4): '98.0.4758.90',
     }
 
     def __post_init__(self) -> None:
