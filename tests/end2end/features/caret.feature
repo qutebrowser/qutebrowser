@@ -12,26 +12,26 @@ Feature: Caret mode
 
     Scenario: :yank selection without selection
         When I run :yank selection
-        Then the message "Nothing to yank" should be shown.
+        Then the message "Nothing to yank" should be shown
 
     Scenario: :yank selection message
         When I run :selection-toggle
         And I run :move-to-end-of-word
         And I run :yank selection
-        Then the message "3 chars yanked to clipboard" should be shown.
+        Then the message "3 chars yanked to clipboard" should be shown
 
     Scenario: :yank selection message with one char
         When I run :selection-toggle
         And I run :move-to-next-char
         And I run :yank selection
-        Then the message "1 char yanked to clipboard" should be shown.
+        Then the message "1 char yanked to clipboard" should be shown
 
     Scenario: :yank selection with primary selection
         When selection is supported
         And I run :selection-toggle
         And I run :move-to-end-of-word
         And I run :yank selection --sel
-        Then the message "3 chars yanked to primary selection" should be shown.
+        Then the message "3 chars yanked to primary selection" should be shown
         And the primary selection should contain "one"
 
     Scenario: :yank selection with --keep
@@ -40,8 +40,8 @@ Feature: Caret mode
         And I run :yank selection --keep
         And I run :move-to-end-of-word
         And I run :yank selection --keep
-        Then the message "3 chars yanked to clipboard" should be shown.
-        And the message "7 chars yanked to clipboard" should be shown.
+        Then the message "3 chars yanked to clipboard" should be shown
+        And the message "7 chars yanked to clipboard" should be shown
         And the clipboard should contain "one two"
 
     # :selection-follow
