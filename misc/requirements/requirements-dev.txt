@@ -14,7 +14,7 @@ hunter==3.4.3
 idna==3.3
 importlib-metadata==4.12.0
 jeepney==0.8.0
-keyring==23.6.0
+keyring==23.7.0
 manhole==1.8.0
 packaging==21.3
 pep517==0.12.0
