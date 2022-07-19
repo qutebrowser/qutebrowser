@@ -457,6 +457,21 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='ipc', module='ipc', function='on_ready_read',
                       message='Read from socket *')
 
+    @contextlib.contextmanager
+    def disable_capturing(self):
+        capmanager = self.request.config.pluginmanager.getplugin("capturemanager")
+        with capmanager.global_and_fixture_disabled():
+            yield
+
+    def _after_start(self):
+        """Wait before continuing if requested, e.g. for debugger attachment."""
+        delay = self.request.config.getoption('--qute-delay-start')
+        if delay:
+            with self.disable_capturing():
+                print(f"- waiting {delay}ms for quteprocess "
+                      f"(PID: {self.proc.processId()})...")
+            time.sleep(delay / 1000)
+
     def send_ipc(self, commands, target_arg=''):
         """Send a raw command to the running IPC socket."""
         delay = self.request.config.getoption('--qute-delay')

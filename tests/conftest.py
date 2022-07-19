@@ -219,7 +219,9 @@ def qapp(qapp):
 
 def pytest_addoption(parser):
     parser.addoption('--qute-delay', action='store', default=0, type=int,
-                     help="Delay between qutebrowser commands.")
+                     help="Delay (in ms) between qutebrowser commands.")
+    parser.addoption('--qute-delay-start', action='store', default=0, type=int,
+                     help="Delay (in ms) after qutebrowser process started.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
     parser.addoption('--qute-backend', action='store',
