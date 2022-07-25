@@ -222,12 +222,12 @@ def _on_all_resources_downloaded(
     """After downloading all resources, create the cache and update the engine."""
     _serialize_resources_to_file(resources, engine_info.resources_cache_path)
     for resource in resources:
-        if adblock.__version__ > "0.5.2":
-            engine_info.engine.add_resource(  # type: ignore[call-arg]
+        if adblock.__version__ >= "0.6.0":
+            engine_info.engine.add_resource(
                 resource.name,
-                resource.aliases,  # type: ignore[arg-type]
                 resource.content_type,
                 resource.content,
+                resource.aliases,
             )
         else:
             engine_info.engine.add_resource(

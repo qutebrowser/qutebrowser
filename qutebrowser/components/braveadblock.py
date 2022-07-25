@@ -320,12 +320,12 @@ class BraveAdBlocker:
             try:
                 resources = deserialize_resources_from_file(self._resources_cache_path)
                 for resource in resources:
-                    if adblock.__version__ > "0.5.2":
-                        self._engine.add_resource(  # type: ignore[call-arg]
+                    if adblock.__version__ >= "0.6.0":
+                        self._engine.add_resource(
                             resource.name,
-                            resource.aliases,  # type: ignore[arg-type]
                             resource.content_type,
                             resource.content,
+                            resource.aliases,
                         )
                     else:
                         self._engine.add_resource(
