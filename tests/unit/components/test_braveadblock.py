@@ -262,7 +262,8 @@ YOUTUBE_UBLOCK_FILTERS_SELECTORS = [
     # this selector.
     # r"""ytd-display-ad-renderer:upward(ytd-rich-item-renderer)""",
 ]
-YOUTUBE_UBLOCK_FILTERS_SCRIPT = r"""(function() {
+YOUTUBE_UBLOCK_FILTERS_SCRIPT = r"""try {
+(function() {
     const rawPrunePaths = '[].playerResponse.adPlacements [].playerResponse.playerAds playerResponse.adPlacements playerResponse.playerAds adPlacements playerAds';
     const rawNeedlePaths = '{{2}}';
     const prunePaths = rawPrunePaths !== '{{1}}' && rawPrunePaths !== ''
@@ -360,6 +361,8 @@ YOUTUBE_UBLOCK_FILTERS_SCRIPT = r"""(function() {
     });
 })();
 
+} catch ( e ) { }
+try {
 (function() {
     const chain = 'ytInitialPlayerResponse.adPlacements';
     let cValue = 'undefined';
@@ -483,6 +486,8 @@ YOUTUBE_UBLOCK_FILTERS_SCRIPT = r"""(function() {
     trapChain(window, chain);
 })();
 
+} catch ( e ) { }
+try {
 (function() {
     const chain = 'playerResponse.adPlacements';
     let cValue = 'undefined';
@@ -606,6 +611,7 @@ YOUTUBE_UBLOCK_FILTERS_SCRIPT = r"""(function() {
     trapChain(window, chain);
 })();
 
+} catch ( e ) { }
 """
 
 
