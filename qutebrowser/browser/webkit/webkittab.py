@@ -937,8 +937,9 @@ class WebKitTab(browsertab.AbstractTab):
         Note that this has lower precedence than the user-specified stylsheets.
 
         The css will be scheduled to update right away.
+
+        Does nothing on webkit.
         """
-        raise NotImplementedError
 
     def remove_dynamic_css(self, name: str) -> None:
         """Remove the specified tab-specific css.
@@ -946,8 +947,9 @@ class WebKitTab(browsertab.AbstractTab):
         If the given name for the css wasn't added before, nothing happens.
 
         The css will be scheduled to update right away.
+
+        Does nothing on webkit.
         """
-        raise NotImplementedError
 
     def add_web_script(
         self,
@@ -969,16 +971,18 @@ class WebKitTab(browsertab.AbstractTab):
 
         If a script with the name was added before, it will be removed and replaced with
         the given data.
+
+        Does nothing on webkit.
         """
-        raise NotImplementedError
 
     def remove_web_script(self, name: str) -> None:
         """Remove a web script with the given name.
 
         If a script with the corresponding name was not previously added, nothing
         happens.
+
+        Does nothing on webkit.
         """
-        raise NotImplementedError
 
     def renderer_process_pid(self) -> Optional[int]:
         return None
