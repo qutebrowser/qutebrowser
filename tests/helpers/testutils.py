@@ -251,7 +251,9 @@ def blocked_hosts():
 
 
 def adblock_dataset_tsv():
-    return _decompress_gzip_datafile("brave-adblock/ublock-matches.tsv.gz")
+    return _decompress_gzip_datafile(
+        os.path.join("brave-adblock", "ublock-matches.tsv.gz")
+    )
 
 
 def easylist_txt():
@@ -263,32 +265,32 @@ def easyprivacy_txt():
 
 
 def ublock_redirect_engine_js():
-    path = os.path.join(abs_datapath(), "ublock/redirect-engine.js.gz")
+    path = os.path.join(abs_datapath(), "ublock", "redirect-engine.js.gz")
     return gzip.open(path)
 
 
 def ublock_scriptlets_js():
-    path = os.path.join(abs_datapath(), "ublock/scriptlets.js.gz")
+    path = os.path.join(abs_datapath(), "ublock", "scriptlets.js.gz")
     return gzip.open(path)
 
 
 def ublock_filters_txt():
-    path = os.path.join(abs_datapath(), "ublock/filters.txt.gz")
+    path = os.path.join(abs_datapath(), "ublock", "filters.txt.gz")
     return gzip.open(path)
 
 
 def ublock_resource(name):
-    path = os.path.join(abs_datapath(), f"ublock/resources/{name}.gz")
+    path = os.path.join(abs_datapath(), "ublock", "resources", f"{name}.gz")
     return gzip.open(path)
 
 
 def ublock_scriptlet_resource(name):
-    path = os.path.join(abs_datapath(), f"ublock/scriptlet-resources/{name}.gz")
+    path = os.path.join(abs_datapath(), "ublock", "scriptlet-resources", f"{name}.gz")
     return gzip.open(path)
 
 
 def ublock_resources_cache():
-    path = os.path.join(abs_datapath(), "ublock/adblock-resources-cache.dat.gz")
+    path = os.path.join(abs_datapath(), "ublock", "adblock-resources-cache.dat.gz")
     return gzip.open(path)
 
 
