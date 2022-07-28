@@ -137,7 +137,7 @@ SCRIPTLET_RESOURCES = [
 
 
 def path_to_url(path):
-    return QUrl(f"file://{path}")
+    return QUrl(path.as_uri())
 
 
 @pytest.fixture
@@ -145,7 +145,7 @@ def ad_blocker(data_tmpdir):
     pytest.importorskip("adblock")
     import adblock
 
-    if adblock.__version__ <= "0.5.2":
+    if adblock.__version__ < "0.6.0":
         pytest.skip()
     return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(str(data_tmpdir)))
 
@@ -176,7 +176,7 @@ def local_resources(tmp_path):
             return LocalResource(name)
 
         def url_template(self):
-            return f"file://{tmp_path}/{{}}"
+            return f"{tmp_path.as_uri()}/{{}}"
 
     return LocalResourceFactory()
 
