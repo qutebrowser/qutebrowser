@@ -153,7 +153,7 @@ smallest scope which makes sense. Most of the time, this will be line scope.
 false-positives, let me know! I'm still tweaking the parameters.
 
 
-Running Specific Tests
+Running specific tests
 ~~~~~~~~~~~~~~~~~~~~~~
 
 While you are developing you often don't want to run the full test
@@ -179,6 +179,15 @@ tox -e py37 -- tests/end2end/features/test_tabs_bdd.py -k undo
 # run coverage test for specific file (updates htmlcov/index.html)
 tox -e py37-cov -- tests/unit/browser/test_webelem.py
 ----
+
+Specifying the backend for tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tests automatically pick the backend based on what they manage to import. If
+you have both backends available and you would like the tests to be run with a
+specific one you can set either of a) the environment variable QUTE_TESTS_BACKEND
+, or b) the command line argument --qute-backend, to the desired backend
+(webkit/webengine).
 
 Profiling
 ~~~~~~~~~
