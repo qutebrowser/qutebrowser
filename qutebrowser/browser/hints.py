@@ -237,6 +237,12 @@ class HintActions:
         try:
             if context.target == Target.hover:
                 elem.hover()
+                elem_info = elem.info_str()
+                if elem_info:
+                    elem_info = elem_info.strip()
+                    if elem_info:
+                        # Don't display an empty message
+                        message.info(elem_info)
             elif context.target == Target.right_click:
                 elem.right_click()
             elif context.target == Target.current:

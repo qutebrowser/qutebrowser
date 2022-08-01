@@ -27,7 +27,7 @@ from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, message
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
@@ -449,9 +449,10 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                             Qt.NoModifier)
         self._tab.send_event(event)
-        title_or_alt_text = self.get("title") or self.get("alt") or ""
-        if len(title_or_alt_text):
-            message.info(title_or_alt_text)
+
+    def info_str(self) -> str:
+        """Return the contents of the element's title or alt tag for display"""
+        return self.get("title") or self.get("alt") or None
 
     def right_click(self) -> None:
         """Simulate a right-click on the element."""
