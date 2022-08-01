@@ -780,9 +780,9 @@ class HTMLFormatter(logging.Formatter):
         if record_clone.levelname in self._log_colors:
             color = self._log_colors[record_clone.levelname]
             color_str = self._colordict[color]
-            record_clone.log_color = color_str  # type: ignore[attr-defined]
+            record_clone.log_color = color_str
         else:
-            record_clone.log_color = ''  # type: ignore[attr-defined]
+            record_clone.log_color = ''
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record_clone, field))
