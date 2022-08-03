@@ -5,9 +5,9 @@ flake8-comprehensions
 flake8-debugger
 flake8-deprecated
 flake8-docstrings
-# https://github.com/PyCQA/flake8/issues/325
-# flake8-copyright
-# flake8-future-import
+flake8-copyright
+flake8-future-import
+# https://github.com/aleGpereira/flake8-mock/issues/10
 # flake8-mock
 flake8-string-format
 flake8-tidy-imports
