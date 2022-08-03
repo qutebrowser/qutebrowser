@@ -93,7 +93,7 @@
   "urllib3": "https://github.com/urllib3/urllib3/blob/main/CHANGES.rst",
   "lxml": "https://github.com/lxml/lxml/blob/master/CHANGES.txt",
   "wrapt": "https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst",
-  "pep517": "https://github.com/pypa/pep517/blob/master/doc/changelog.rst",
+  "pep517": "https://github.com/pypa/pep517/blob/main/doc/changelog.rst",
   "cryptography": "https://cryptography.io/en/latest/changelog.html",
   "toml": "https://github.com/uiri/toml/releases",
   "tomli": "https://github.com/hukkin/tomli/blob/master/CHANGELOG.md",
