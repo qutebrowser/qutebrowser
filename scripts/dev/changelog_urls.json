@@ -56,7 +56,7 @@
   "flake8-plugin-utils": "https://github.com/afonasev/flake8-plugin-utils#change-log",
   "flake8-pytest-style": "https://github.com/m-burst/flake8-pytest-style#change-log",
   "pep8-naming": "https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst",
-  "pycodestyle": "https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt",
+  "pycodestyle": "https://github.com/PyCQA/pycodestyle/blob/main/CHANGES.txt",
   "pyflakes": "https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst",
   "cffi": "https://foss.heptapod.net/pypy/cffi/-/blob/branch/default/doc/source/whatsnew.rst",
   "astroid": "https://github.com/PyCQA/astroid/blob/main/ChangeLog",
