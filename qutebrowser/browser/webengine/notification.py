@@ -1059,7 +1059,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             replaces_id = 0  # 0 is never a valid ID according to the spec
 
         reply = self._call_notify_wrapper(
-            appname="qutebrowser",
+            appname=objects.qapp.desktopFileName(),
             replaces_id=_as_uint32(replaces_id),
             icon="",  # we use image-data and friends instead
             title=self._get_title_arg(qt_notification.title()),
