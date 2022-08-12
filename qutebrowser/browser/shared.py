@@ -164,7 +164,7 @@ def javascript_log_message(
     source: str,
     line: int,
     msg: str,
-):
+) -> None:
     """Display a JavaScript log message."""
     logstring = f"[{source}:{line}] {msg}"
 
