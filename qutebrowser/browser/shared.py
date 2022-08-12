@@ -25,6 +25,7 @@ import html
 import enum
 import netrc
 import tempfile
+import fnmatch
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
 from PyQt5.QtCore import QUrl, pyqtBoundSignal
@@ -149,11 +150,30 @@ _JS_LOGMAP: Mapping[str, Callable[[str], None]] = {
     'warning': log.js.warning,
     'error': log.js.error,
 }
+# Callables to use for content.javascript.log_message.
+# Note that the keys are JS log levels here, not config settings!
+_JS_LOGMAP_MESSAGE: Mapping[usertypes.JsLogLevel, Callable[[str], None]] = {
+    usertypes.JsLogLevel.info: message.info,
+    usertypes.JsLogLevel.warning: message.warning,
+    usertypes.JsLogLevel.error: message.error,
+}
 
 
-def javascript_log_message(level, source, line, msg):
+def javascript_log_message(
+    level: usertypes.JsLogLevel,
+    source: str,
+    line: int,
+    msg: str,
+):
     """Display a JavaScript log message."""
-    logstring = "[{}:{}] {}".format(source, line, msg)
+    logstring = f"[{source}:{line}] {msg}"
+
+    for pattern, levels in config.cache['content.javascript.log_message'].items():
+        if level.name in levels and fnmatch.fnmatchcase(source, pattern):
+            func = _JS_LOGMAP_MESSAGE[level]
+            func(f"JS: {logstring}")
+            return
+
     logger = _JS_LOGMAP[config.cache['content.javascript.log'][level.name]]
     logger(logstring)
 

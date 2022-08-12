@@ -940,6 +940,29 @@ content.javascript.log:
     The following levels are valid: `none`, `debug`, `info`, `warning`,
     `error`.
 
+content.javascript.log_message:
+  type:
+    name: Dict
+    keytype: String
+    valtype:
+      name: FlagList
+      valid_values:
+        - info: Show JS info as messages.
+        - warning: Show JS warnings as messages.
+        - error: Show JS errors as messages.
+  default:
+    "qute:*": ["error"]
+    "userscript:*": ["error"]
+  desc: >-
+    Javascript message sources/levels to show in the qutebrowser UI.
+
+    When a JavaScript message is logged from a location matching the glob
+    pattern given in the key, and is from one of the levels listed as value,
+    it's surfaced as a message in the qutebrowser UI.
+
+    By default, errors happening in qutebrowser internally or in userscripts are
+    shown to the user.
+
 content.javascript.modal_dialog:
   type: Bool
   default: false
