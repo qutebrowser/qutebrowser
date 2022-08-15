@@ -605,13 +605,13 @@ class ConfigContainer:
                               pattern=self._pattern)
 
     @contextlib.contextmanager
-    def _handle_error(self, action: str, name: str) -> Iterator[None]:
+    def _handle_error(self, action: str) -> Iterator[None]:
         try:
             yield
         except configexc.Error as e:
             if self._configapi is None:
                 raise
-            text = "While {} '{}'".format(action, name)
+            text = f"While {action}"
             self._configapi.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def _with_prefix(self, prefix: str) -> 'ConfigContainer':
@@ -639,7 +639,7 @@ class ConfigContainer:
         if configdata.is_valid_prefix(name):
             return self._with_prefix(name)
 
-        with self._handle_error('getting', name):
+        with self._handle_error(f"getting '{name}'"):
             if self._configapi is None:
                 # access from Python code
                 return self._config.get(name)
@@ -662,7 +662,7 @@ class ConfigContainer:
             return
 
         name = self._join(attr)
-        with self._handle_error('setting', name):
+        with self._handle_error(f"setting '{name}'"):
             self._config.set_obj(name, value, pattern=self._pattern)
 
     def _join(self, attr: str) -> str:
