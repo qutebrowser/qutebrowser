@@ -680,7 +680,9 @@ class ConfigAPI:
                  " (to load settings configured via the GUI) or "
                  "`config.load_autoconfig(False)` (to not do so)"))
             self.errors.append(desc)
-        self._config.update_mutables()
+
+        with self._handle_error("updating mutated values"):
+            self._config.update_mutables()
 
     def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""

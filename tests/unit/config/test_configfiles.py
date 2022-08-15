@@ -1060,6 +1060,15 @@ class TestConfigPy:
         assert config.instance.get_obj('aliases')['foo'] == 'message-info foo'
         assert config.instance.get_obj('aliases')['bar'] == 'message-info bar'
 
+    def test_mutating_invalid_value(self, confpy):
+        confpy.write('c.url.searchengines["maps"] = "https://www.google.com/maps?q=%s"')
+        error = confpy.read(error=True)
+
+        assert error.text == "While updating mutated values"
+        assert isinstance(error.exception, configexc.ValidationError)
+
+        assert 'maps' not in config.instance.get_obj("url.searchengines")
+
     @pytest.mark.parametrize('option, value', [
         ('content.user_stylesheets', 'style.css'),
         ('url.start_pages', 'https://www.python.org/'),
