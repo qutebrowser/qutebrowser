@@ -1084,3 +1084,16 @@ class TestParsePoint:
             utils.parse_point(s)
         except ValueError as e:
             print(e)
+
+
+@pytest.mark.parametrize("patterns, value, expected", [
+    ([], "test", None),  # no patterns
+    (["TEST"], "test", None),  # case sensitive
+    (["test"], "test", "test"),  # trivial match
+    (["test1", "test2", "test3"], "test2", "test2"),  # multiple patterns
+    (["test*", "other*"], "testbla", "test*"),  # glob match
+    (["t*", "test*"], "test", "t*"),  # first match
+    (["test*", "t*"], "test", "test*"),  # first match
+])
+def test_match_globs(patterns, value, expected):
+    assert utils.match_globs(patterns, value) == expected

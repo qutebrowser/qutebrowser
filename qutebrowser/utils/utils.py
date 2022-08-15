@@ -26,6 +26,7 @@ import re
 import sys
 import enum
 import json
+import fnmatch
 import datetime
 import traceback
 import functools
@@ -33,7 +34,7 @@ import contextlib
 import shlex
 import mimetypes
 from typing import (Any, Callable, IO, Iterator,
-                    Optional, Sequence, Tuple, Type, Union,
+                    Optional, Sequence, Tuple, List, Type, Union,
                     TypeVar, TYPE_CHECKING)
 try:
     # Protocol was added in Python 3.8
@@ -852,3 +853,15 @@ def parse_point(s: str) -> QPoint:
         return QPoint(x, y)
     except OverflowError as e:
         raise ValueError(e)
+
+
+def match_globs(patterns: List[str], value: str) -> Optional[str]:
+    """Match a list of glob-like patterns against a value.
+
+    Return:
+        The first matching pattern if there was a match, None with no match.
+    """
+    for pattern in patterns:
+        if fnmatch.fnmatchcase(name=value, pat=pattern):
+            return pattern
+    return None

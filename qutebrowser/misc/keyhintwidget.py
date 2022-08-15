@@ -25,7 +25,6 @@ It is intended to help discoverability of keybindings.
 """
 
 import html
-import fnmatch
 import re
 
 from PyQt5.QtWidgets import QLabel, QSizePolicy
@@ -100,8 +99,8 @@ class KeyHintView(QLabel):
             return
 
         def blacklisted(keychain):
-            return any(fnmatch.fnmatchcase(keychain, glob)
-                       for glob in config.val.keyhint.blacklist)
+            excluded = config.val.keyhint.blacklist
+            return utils.match_globs(excluded, keychain) is not None
 
         def takes_count(cmdstr):
             """Return true iff this command can take a count argument."""
