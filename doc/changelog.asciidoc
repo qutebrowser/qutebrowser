@@ -107,7 +107,26 @@ Fixed
   shown, qutebrowser used to only show one message. This is now only done when the
   two messages are completely equivalent (text, level, etc.) instead of doing so
   when only the text matches.
+
+[[v2.5.3]]
+v2.5.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
 - Crash when the adblock filter file can't be read.
+- Inconsistent behavior when using `:config-{dict,list}-*` commands with an
+  invalid value. Before the fix, using the same command again would complain that
+  the value was already present, despite the error and the value not being
+  actually changed.
+- Incomplete error handling when mutating a dict/list in `config.py` and setting
+  an invalid value. Before the fix, this would result in either a message in the
+  terminal rather than GUI (startup), or in a crash (`:config-source`).
+- Wrong type handling when using `:config-{dict,list}-*` commands with a config
+  option with non-string values. The only affected option is `bindings.commands`,
+  which is probably rarely used with those commands.
+- Minor documentation fixes
 
 [[v2.5.2]]
 v2.5.2 (2022-06-22)
