@@ -613,6 +613,19 @@ class TestConfig:
         expected = {'X-Foo': 'fooval', 'X-Bar': 'barval'}
         assert conf.get_obj(option) == expected
 
+    def test_get_mutable_invalid_value(self, conf):
+        """Make sure invalid values aren't stored in mutables."""
+        option = 'keyhint.blacklist'
+        obj = conf.get_mutable_obj(option)
+        assert obj == []
+        obj.append(42)
+
+        with pytest.raises(configexc.ValidationError):
+            conf.update_mutables()
+
+        obj = conf.get_mutable_obj(option)
+        assert obj == []
+
     def test_get_obj_unknown_mutable(self, conf):
         """Make sure we don't have unknown mutable types."""
         with pytest.raises(AssertionError):
