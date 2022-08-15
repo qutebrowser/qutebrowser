@@ -946,7 +946,7 @@ content.javascript.log_message:
 content.javascript.log_message.levels:
   type:
     name: Dict
-    none_ok: True
+    none_ok: true
     keytype: String
     valtype:
       name: FlagList
@@ -971,7 +971,7 @@ content.javascript.log_message.excludes:
   type:
     name: Dict
     keytype: String
-    none_ok: True
+    none_ok: true
     valtype:
       name: List
       valtype: String
