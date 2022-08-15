@@ -29,9 +29,12 @@ Added
   prompts (bound to `<Alt+e>` by default).
 - New `clock` value for `statusbar.widgets`, displaying the current time.
 - New `qute://start` built-in start page (not set as the default start page yet).
-- New `content.javascript.log_message` setting, allowing to surface JS log
+- New `content.javascript.log_message.levels` setting, allowing to surface JS log
   messages as qutebrowser messages (rather than only logging them). By default,
   errors in internal `qute:` pages and userscripts are shown to the user.
+- New `content.javascript.log_message.excludes` setting, which allows to exclude
+  certain messages from the `content.javascript.log_message.levels` setting
+  described above.
 - New `qute-1pass` userscript using the 1password commandline to fill
   passwords.
 - New features in userscripts:

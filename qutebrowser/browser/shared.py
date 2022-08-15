@@ -25,7 +25,6 @@ import html
 import enum
 import netrc
 import tempfile
-import fnmatch
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
 from PyQt5.QtCore import QUrl, pyqtBoundSignal
@@ -159,6 +158,38 @@ _JS_LOGMAP_MESSAGE: Mapping[usertypes.JsLogLevel, Callable[[str], None]] = {
 }
 
 
+def _js_log_to_ui(
+    level: usertypes.JsLogLevel,
+    source: str,
+    line: int,
+    msg: str,
+) -> bool:
+    """Log a JS message to the UI, if configured accordingly.
+
+    Returns:
+        True if the log message has been shown as a qutebrowser message,
+        False otherwise.
+    """
+    logstring = f"[{source}:{line}] {msg}"
+    message_levels = config.cache['content.javascript.log_message.levels']
+    message_excludes = config.cache['content.javascript.log_message.excludes']
+
+    match = utils.match_globs(message_levels, source)
+    if match is None:
+        return False
+    if level.name not in message_levels[match]:
+        return False
+
+    exclude_match = utils.match_globs(message_excludes, source)
+    if exclude_match is not None:
+        if utils.match_globs(message_excludes[exclude_match], msg) is not None:
+            return False
+
+    func = _JS_LOGMAP_MESSAGE[level]
+    func(f"JS: {logstring}")
+    return True
+
+
 def javascript_log_message(
     level: usertypes.JsLogLevel,
     source: str,
@@ -166,14 +197,10 @@ def javascript_log_message(
     msg: str,
 ) -> None:
     """Display a JavaScript log message."""
+    if _js_log_to_ui(level=level, source=source, line=line, msg=msg):
+        return
+
     logstring = f"[{source}:{line}] {msg}"
-
-    for pattern, levels in config.cache['content.javascript.log_message'].items():
-        if level.name in levels and fnmatch.fnmatchcase(source, pattern):
-            func = _JS_LOGMAP_MESSAGE[level]
-            func(f"JS: {logstring}")
-            return
-
     logger = _JS_LOGMAP[config.cache['content.javascript.log'][level.name]]
     logger(logstring)
 
