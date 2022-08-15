@@ -92,6 +92,7 @@ window._qutebrowser.stylesheet = (function() {
             create_style();
             return;
         }
+
         const iter = document.createNodeIterator(document,
             NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_ELEMENT);
         let node;
@@ -101,6 +102,7 @@ window._qutebrowser.stylesheet = (function() {
                 return;
             }
         }
+
         const style_observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 const nodes = mutation.addedNodes;
