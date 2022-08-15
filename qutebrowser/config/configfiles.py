@@ -647,7 +647,7 @@ class ConfigAPI:
         self._warn_autoconfig = warn_autoconfig
 
     @contextlib.contextmanager
-    def _handle_error(self, action: str, name: str) -> Iterator[None]:
+    def _handle_error(self, action: str) -> Iterator[None]:
         """Catch config-related exceptions and save them in self.errors."""
         try:
             yield
@@ -656,13 +656,13 @@ class ConfigAPI:
                 new_err = err.with_text(e.basename)
                 self.errors.append(new_err)
         except configexc.Error as e:
-            text = "While {} '{}'".format(action, name)
+            text = f"While {action}"
             self.errors.append(configexc.ConfigErrorDesc(text, e))
         except urlmatch.ParseError as e:
-            text = "While {} '{}' and parsing pattern".format(action, name)
+            text = f"While {action} and parsing pattern"
             self.errors.append(configexc.ConfigErrorDesc(text, e))
         except keyutils.KeyParseError as e:
-            text = "While {} '{}' and parsing key".format(action, name)
+            text = f"While {action} and parsing key"
             self.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def finalize(self) -> None:
@@ -680,24 +680,24 @@ class ConfigAPI:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
         self._warn_autoconfig = False
         if load_config:
-            with self._handle_error('reading', 'autoconfig.yml'):
+            with self._handle_error("reading 'autoconfig.yml'"):
                 read_autoconfig()
 
     def get(self, name: str, pattern: str = None) -> Any:
         """Get a setting value from the config, optionally with a pattern."""
-        with self._handle_error('getting', name):
+        with self._handle_error(f"getting '{name}'"):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             return self._config.get_mutable_obj(name, pattern=urlpattern)
 
     def set(self, name: str, value: Any, pattern: str = None) -> None:
         """Set a setting value in the config, optionally with a pattern."""
-        with self._handle_error('setting', name):
+        with self._handle_error(f"setting '{name}'"):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
     def bind(self, key: str, command: Optional[str], mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
-        with self._handle_error('binding', key):
+        with self._handle_error(f"binding '{key}'"):
             seq = keyutils.KeySequence.parse(key)
             if command is None:
                 raise configexc.Error("Can't bind {key} to None (maybe you "
@@ -707,7 +707,7 @@ class ConfigAPI:
 
     def unbind(self, key: str, mode: str = 'normal') -> None:
         """Unbind a key from a command, with an optional key mode."""
-        with self._handle_error('unbinding', key):
+        with self._handle_error(f"unbinding '{key}'"):
             seq = keyutils.KeySequence.parse(key)
             self._keyconfig.unbind(seq, mode=mode)
 
