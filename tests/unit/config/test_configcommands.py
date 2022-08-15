@@ -373,15 +373,6 @@ class TestAdd:
         with pytest.raises(cmdutils.CommandError, match="Invalid value ''"):
             commands.config_dict_add('aliases', 'missingkey', '')
 
-    def test_dict_add_value_type(self, commands, config_stub):
-        commands.config_dict_add(
-            "content.javascript.log_message.levels",
-            "example",
-            "['error']",
-        )
-        value = config_stub.val.content.javascript.log_message.levels["example"]
-        assert value == ['error']
-
 
 class TestRemove:
 
