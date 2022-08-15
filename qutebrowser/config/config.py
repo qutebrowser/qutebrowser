@@ -553,11 +553,12 @@ class Config(QObject):
         Here, we check all those saved copies for mutations, and if something
         mutated, we call set_obj again so we save the new value.
         """
-        for name, (old_value, new_value) in self._mutables.items():
+        mutables = self._mutables.items()
+        self._mutables = {}
+        for name, (old_value, new_value) in mutables:
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
                 self.set_obj(name, new_value, save_yaml=save_yaml)
-        self._mutables = {}
 
     def dump_userconfig(self) -> str:
         """Get the part of the config which was changed by the user.
