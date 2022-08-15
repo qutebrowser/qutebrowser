@@ -587,6 +587,19 @@ class TestSource:
                     " division by zero")
         assert str(excinfo.value) == expected
 
+    def test_invalid_mutable(self, commands, config_tmpdir):
+        pyfile = config_tmpdir / 'config.py'
+        src = 'c.url.searchengines["maps"] = "https://www.google.com/maps?q=%s"'
+        pyfile.write_text(src, encoding="utf-8")
+
+        with pytest.raises(cmdutils.CommandError) as excinfo:
+            commands.config_source()
+
+        err = "Invalid value 'https://www.google.com/maps?q=%s' - must contain \"{}\""
+        expected = ("Errors occurred while reading config.py:\n"
+                    f"  While updating mutated values: {err}")
+        assert str(excinfo.value) == expected
+
 
 class TestEdit:
 
