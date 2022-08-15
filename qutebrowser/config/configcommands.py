@@ -308,7 +308,7 @@ class ConfigCommands:
 
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
-            option_value.append(value)
+            option_value.append(opt.typ.valtype.from_str(value))
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
@@ -327,6 +327,7 @@ class ConfigCommands:
         """
         with self._handle_config_error():
             opt = self._config.get_opt(option)
+
         if not isinstance(opt.typ, configtypes.Dict):
             raise cmdutils.CommandError(":config-dict-add can only be used "
                                         "for dicts")
@@ -339,7 +340,7 @@ class ConfigCommands:
                                             "--replace to overwrite!"
                                             .format(key, option))
 
-            option_value[key] = value
+            option_value[key] = opt.typ.valtype.from_str(value)
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
@@ -360,15 +361,15 @@ class ConfigCommands:
             raise cmdutils.CommandError(":config-list-remove can only be used "
                                         "for lists")
 
+        converted = opt.typ.valtype.from_str(value)
+
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
 
-            if value not in option_value:
-                raise cmdutils.CommandError("{} is not in {}!".format(
-                    value, option))
+            if converted not in option_value:
+                raise cmdutils.CommandError(f"{value} is not in {option}!")
 
-            option_value.remove(value)
-
+            option_value.remove(converted)
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
