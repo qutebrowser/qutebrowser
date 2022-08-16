@@ -450,7 +450,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
                             Qt.NoModifier)
         self._tab.send_event(event)
 
-    def info_str(self) -> Union[str, None]:
+    def info_str(self) -> Optional[str]:
         """Return the contents of the element's title or alt tag for display."""
         return self.get("title") or self.get("alt") or None
 
