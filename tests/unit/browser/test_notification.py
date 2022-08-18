@@ -89,6 +89,13 @@ class FakeDBusMessage:
 class FakeDBusInterface:
 
     CAPABILITIES_REPLY = FakeDBusMessage("as", ["actions"])
+    SERVER_INFO_REPLY = FakeDBusMessage(
+        "ssss",
+        "fake notification server",  # name
+        "qutebrowser",  # vendor
+        "v0.0.1",  # version
+        "1.2",  # spec version
+    )
 
     def __init__(
         self,
@@ -112,6 +119,9 @@ class FakeDBusInterface:
 
     def _call_GetCapabilities(self) -> FakeDBusMessage:
         return self.CAPABILITIES_REPLY
+
+    def _call_GetServerInformation(self) -> FakeDBusMessage:
+        return self.SERVER_INFO_REPLY
 
     def _call_Notify(
         self,
