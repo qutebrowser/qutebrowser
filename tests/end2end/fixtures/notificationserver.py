@@ -222,6 +222,14 @@ class TestNotificationServer(QObject):
         return capabilities
 
     @pyqtSlot(QDBusMessage)
+    def GetServerInformation(self, message: QDBusMessage) -> None:
+        name = "test notification server"
+        vendor = "qutebrowser"
+        version = "v0.0.1"
+        spec_version = "1.2"
+        self._bus.send(message.createReply([name, vendor, version, spec_version]))
+
+    @pyqtSlot(QDBusMessage)
     def CloseNotification(self, dbus_message: QDBusMessage) -> None:
         assert dbus_message.signature() == 'u'
         assert dbus_message.type() == QDBusMessage.MethodCallMessage

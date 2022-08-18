@@ -802,10 +802,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                     self._dbus_error_str(bus.lastError()))
 
         self._quirks = _ServerQuirks()
-        if not test_service:
-            # Can't figure out how to make this work with the test server...
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043724.html
-            self._get_server_info()
+        self._get_server_info()
 
         if self._quirks.skip_capabilities:
             self._capabilities = _ServerCapabilities.from_list([])
