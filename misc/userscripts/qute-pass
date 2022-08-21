@@ -117,6 +117,10 @@ class CouldNotMatchUsername(Exception):
     pass
 
 
+class PassExecutionFailed(Exception):
+    pass
+
+
 class CouldNotMatchPassword(Exception):
     pass
 
@@ -134,13 +138,8 @@ def find_pass_candidates(domain, unfiltered=False):
         gopass_args = ["list", "--flat"]
         if arguments.prefix:
             gopass_args.append(arguments.prefix)
-        result = _run_pass(gopass_args)
 
-        if isinstance(result, ExitCodes):
-            return result
-
-        all_passwords = result.splitlines()
-        for password in all_passwords:
+        for password in _run_pass(gopass_args).splitlines():
             if unfiltered or domain in password:
                 candidates.append(password)
     else:
@@ -169,13 +168,8 @@ def _run_pass(pass_arguments):
     process = subprocess.run(pass_command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     err_msg = process.stderr.decode(arguments.io_encoding).strip()
 
-    # Report on any error output, even without "Error" messages, just in case
     if err_msg:
-        stderr(err_msg)
-
-    if arguments.mode == "gopass" and err_msg.startswith("Error:"):
-        # Fail on explicit error messages from gopass. (Could probably do the same for `pass`)
-        if "not initialized" in err_msg:
+        if arguments.mode == "gopass" and "initialize" in err_msg:
             # Warn the user if the error could be caused by a changed default directory.
             # See <https://github.com/gopasspw/gopass/pull/1968/commits/de4ba223422417559f36346bd51ce075e9812924>
             stderr(
@@ -184,7 +178,8 @@ def _run_pass(pass_arguments):
                 "store isn't '{}', specify a store with the `--password-store` argument to qute-pass, or by setting " \
                 "the PASSWORD_STORE_DIR environment variable.".format(arguments.password_store)
             )
-        return ExitCodes.FAILURE
+        if err_msg.startswith("Error:"):
+            raise PassExecutionFailed(err_msg)
     return process.stdout.decode(arguments.io_encoding).strip()
 
 
@@ -231,6 +226,31 @@ def extract_username(target, pattern):
         raise CouldNotMatchUsername("Pattern did not contain capture group, please use capture group. Example: (.*)")
 
 
+def extract_secret(selection):
+    secret = None
+    # If username-target is path and user asked for username-only, we don't need to run pass.
+    # Or if using otp-only, it will run pass on its own.
+    if not (arguments.username_target == 'path' and arguments.username_only) and not arguments.otp_only:
+        secret = pass_(selection)
+    username_target = selection if arguments.username_target == 'path' else secret
+
+    if arguments.username_only:
+        fake_key_raw(extract_username(username_target, arguments.username_pattern))
+    elif arguments.password_only:
+        fake_key_raw(extract_password(secret, arguments.password_pattern))
+    elif arguments.otp_only:
+        fake_key_raw(pass_otp(selection))
+    else:
+        # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
+        # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
+        fake_key_raw(extract_username(username_target, arguments.username_pattern))
+        qute_command('fake-key <Tab>')
+        fake_key_raw(extract_password(secret, arguments.password_pattern))
+
+    if arguments.insert_mode:
+        qute_command('mode-enter insert')
+
+
 def main(arguments):
     if not arguments.url:
         argument_parser.print_help()
@@ -257,11 +277,14 @@ def main(arguments):
 
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
         attempted_targets.append(target)
-        target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
+        try:
+            target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
+        except PassExecutionFailed as e:
+            stderr('Failed to execute {}, target: candidates, error: {}'.format(arguments.mode, e))
+            return ExitCodes.FAILURE
+
         if not target_candidates:
             continue
-        if isinstance(target_candidates, ExitCodes):
-            return target_candidates
 
         candidates.update(target_candidates)
         if not arguments.merge_candidates:
@@ -280,35 +303,17 @@ def main(arguments):
     if not selection:
         return ExitCodes.SUCCESS
 
-    # If username-target is path and user asked for username-only, we don't need to run pass.
-    # Or if using otp-only, it will run pass on its own.
-    secret = None
-    if not (arguments.username_target == 'path' and arguments.username_only) and not arguments.otp_only:
-        secret = pass_(selection)
-    username_target = selection if arguments.username_target == 'path' else secret
     try:
-        if arguments.username_only:
-            fake_key_raw(extract_username(username_target, arguments.username_pattern))
-        elif arguments.password_only:
-            fake_key_raw(extract_password(secret, arguments.password_pattern))
-        elif arguments.otp_only:
-            otp = pass_otp(selection)
-            fake_key_raw(otp)
-        else:
-            # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
-            # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
-            fake_key_raw(extract_username(username_target, arguments.username_pattern))
-            qute_command('fake-key <Tab>')
-            fake_key_raw(extract_password(secret, arguments.password_pattern))
+        extract_secret(selection)
+    except PassExecutionFailed as e:
+        stderr('Failed to execute {}, target: secret, error: {}'.format(arguments.mode, e))
+        return ExitCodes.FAILURE
     except CouldNotMatchPassword as e:
         stderr('Failed to match password, target: secret, error: {}'.format(e))
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     except CouldNotMatchUsername as e:
         stderr('Failed to match username, target: {}, error: {}'.format(arguments.username_target, e))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
-
-    if arguments.insert_mode:
-        qute_command('mode-enter insert')
 
     return ExitCodes.SUCCESS
 
