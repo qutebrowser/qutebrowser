@@ -71,9 +71,7 @@ def expanded_path(path):
 
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p',
-                             default=expanded_path(os.getenv('PASSWORD_STORE_DIR', default='~/.password-store')),
-                             help='Path to your pass password-store (only used in pass-mode)', type=expanded_path)
+argument_parser.add_argument('--password-store', '-p', default=None, help='Path to your password-store', type=expanded_path)
 argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
                              help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--prefix', type=str,
@@ -133,11 +131,15 @@ def find_pass_candidates(domain, unfiltered=False):
     candidates = []
 
     if arguments.mode == "gopass":
-        gopass_args = ["gopass", "list", "--flat"]
+        gopass_args = ["list", "--flat"]
         if arguments.prefix:
             gopass_args.append(arguments.prefix)
-        all_passwords = subprocess.run(gopass_args, stdout=subprocess.PIPE).stdout.decode("UTF-8").splitlines()
+        result = _run_pass(gopass_args)
 
+        if isinstance(result, ExitCodes):
+            return result
+
+        all_passwords = result.splitlines()
         for password in all_passwords:
             if unfiltered or domain in password:
                 candidates.append(password)
@@ -160,11 +162,29 @@ def find_pass_candidates(domain, unfiltered=False):
 
 
 def _run_pass(pass_arguments):
-    # The executable is conveniently named after it's mode [pass|gopass].
-    pass_command = [arguments.mode]
+    # The executable is conveniently named after its mode [pass|gopass].
+    pass_command = [arguments.mode] + pass_arguments
     env = os.environ.copy()
     env['PASSWORD_STORE_DIR'] = arguments.password_store
-    process = subprocess.run(pass_command + pass_arguments, env=env, stdout=subprocess.PIPE)
+    process = subprocess.run(pass_command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    err_msg = process.stderr.decode(arguments.io_encoding).strip()
+
+    # Report on any error output, even without "Error" messages, just in case
+    if err_msg:
+        stderr(err_msg)
+
+    if arguments.mode == "gopass" and err_msg.startswith("Error:"):
+        # Fail on explicit error messages from gopass. (Could probably do the same for `pass`)
+        if "not initialized" in err_msg:
+            # Warn the user if the error could be caused by a changed default directory.
+            # See <https://github.com/gopasspw/gopass/pull/1968/commits/de4ba223422417559f36346bd51ce075e9812924>
+            stderr(
+                "Warning: With gopass 1.12.8, the default password store directory changed from `~/.password-store` " \
+                "to `~/.local/share/gopass/stores/root, and qute-pass now uses this new default. If your password " \
+                "store isn't '{}', specify a store with the `--password-store` argument to qute-pass, or by setting " \
+                "the PASSWORD_STORE_DIR environment variable.".format(arguments.password_store)
+            )
+        return ExitCodes.FAILURE
     return process.stdout.decode(arguments.io_encoding).strip()
 
 
@@ -216,6 +236,11 @@ def main(arguments):
         argument_parser.print_help()
         return ExitCodes.FAILURE
 
+    if arguments.password_store is None:
+        # `pass` and `gopass` use different default password store directories
+        default = '~/.local/share/gopass/stores/root' if arguments.mode == "gopass" else '~/.password_store'
+        arguments.password_store = expanded_path(os.getenv('PASSWORD_STORE_DIR', default=default))
+
     extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','))
     extract_result = extractor(arguments.url)
 
@@ -235,6 +260,8 @@ def main(arguments):
         target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         if not target_candidates:
             continue
+        if isinstance(target_candidates, ExitCodes):
+            return target_candidates
 
         candidates.update(target_candidates)
         if not arguments.merge_candidates:
