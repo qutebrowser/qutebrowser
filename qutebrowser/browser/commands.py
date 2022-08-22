@@ -932,7 +932,7 @@ class CommandDispatcher:
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.tabs)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_select(self, index=None, count=None):
+    def tab_select(self, index=None, open=False, count=None):
         """Select tab by index or url/title best match.
 
         Focuses window if necessary when index is given. If both index and
@@ -944,6 +944,7 @@ class CommandDispatcher:
             index: The [win_id/]index of the tab to focus. Or a substring
                    in which case the closest match will be focused.
             count: The tab index to focus, starting with 1.
+            open: If index is a substring and it didn't match any tab, open it in a new tab.
         """
         if count is None and index is None:
             self.openurl('qute://tabs/', tab=True)
@@ -952,7 +953,14 @@ class CommandDispatcher:
         if count is not None:
             index = str(count)
 
-        tabbed_browser, tab = self._resolve_tab_index(index)
+        tabbed_browser, tab = None, None
+        try:
+            tabbed_browser, tab = self._resolve_tab_index(index)
+        except cmdutils.CommandError:
+            if open:
+                self.openurl(index, tab=True)
+                return
+            raise
 
         window = tabbed_browser.widget.window()
         mainwindow.raise_window(window)

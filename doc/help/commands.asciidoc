@@ -1504,7 +1504,7 @@ How many tabs to switch back.
 
 [[tab-select]]
 === tab-select
-Syntax: +:tab-select ['index']+
+Syntax: +:tab-select [*--open*] ['index']+
 
 Select tab by index or url/title best match.
 
@@ -1513,6 +1513,8 @@ Focuses window if necessary when index is given. If both index and count are giv
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
 
+==== optional arguments
+* +*-o*+, +*--open*+: If index is a substring and it didn't match any tab, open it in a new tab.
 
 ==== count
 The tab index to focus, starting with 1.
