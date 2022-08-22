@@ -146,7 +146,7 @@ Update block lists for both the host- and the Brave ad blocker.
 
 [[back]]
 === back
-Syntax: +:back [*--tab*] [*--bg*] [*--window*] ['index']+
+Syntax: +:back [*--tab*] [*--bg*] [*--window*] [*--quiet*] ['index']+
 
 Go back in the history of the current tab.
 
@@ -157,6 +157,7 @@ Go back in the history of the current tab.
 * +*-t*+, +*--tab*+: Go back in a new tab.
 * +*-b*+, +*--bg*+: Go back in a background tab.
 * +*-w*+, +*--window*+: Go back in a new window.
+* +*-q*+, +*--quiet*+: Don't show an error if already at the beginning of history.
 
 ==== count
 How many pages to go back.
@@ -556,7 +557,7 @@ Send a fake keypress or key string to the website or qutebrowser.
 
 [[forward]]
 === forward
-Syntax: +:forward [*--tab*] [*--bg*] [*--window*] ['index']+
+Syntax: +:forward [*--tab*] [*--bg*] [*--window*] [*--quiet*] ['index']+
 
 Go forward in the history of the current tab.
 
@@ -567,6 +568,7 @@ Go forward in the history of the current tab.
 * +*-t*+, +*--tab*+: Go forward in a new tab.
 * +*-b*+, +*--bg*+: Go forward in a background tab.
 * +*-w*+, +*--window*+: Go forward in a new window.
+* +*-q*+, +*--quiet*+: Don't show an error if already at the end of history.
 
 ==== count
 How many pages to go forward.
