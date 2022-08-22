@@ -22,10 +22,8 @@
 This script gets called as a QProcess from end2end/conftest.py.
 """
 
-import ssl
 import sys
 import logging
-import pathlib
 
 import flask
 
