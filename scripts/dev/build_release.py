@@ -172,6 +172,10 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
 
         # https://github.com/qutebrowser/qutebrowser/issues/3719
         '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
+
+        # macOS 11
+        (r'[0-9:]* WARNING: qt-qt\.tlsbackend\.ossl Unknown module:none:0 '
+         r'Failed to load libssl/libcrypto\.'),
     ]
 
     proc = _smoke_test_run(executable)
