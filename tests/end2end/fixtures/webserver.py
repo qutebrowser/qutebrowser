@@ -31,7 +31,6 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
-from helpers import testutils
 
 
 class Request(testprocess.Line):
@@ -126,18 +125,6 @@ class ExpectedRequest:
             return NotImplemented
 
 
-def is_flask_development_message(message):
-    ignored_messages = [
-        ("WARNING: This is a development server. Do not use it in a production "
-         "deployment. Use a production WSGI server instead."),
-        "Press CTRL+C to quit",
-    ]
-    return any(
-        testutils.pattern_match(pattern=pattern, value=message)
-        for pattern in ignored_messages
-    )
-
-
 class WebserverProcess(testprocess.Process):
 
     """Abstraction over a running Flask server process.
@@ -173,12 +160,8 @@ class WebserverProcess(testprocess.Process):
 
     def _parse_line(self, line):
         self._log(line)
-
-        if is_flask_development_message(line):
-            return None
-
-        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/?'
-                                r'( \(Press CTRL\+C to quit\))?'.format(self.port))
+        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/? '
+                                r'\(Press CTRL\+C to quit\)'.format(self.port))
         if started_re.fullmatch(line):
             self.ready.emit()
             return None
