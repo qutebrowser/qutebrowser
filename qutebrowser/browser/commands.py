@@ -22,7 +22,7 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Callable, Dict, Union
+from typing import cast, Callable, Dict, Union, Optional
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
@@ -503,14 +503,31 @@ class CommandDispatcher:
                                            add_undo=False,
                                            transfer=True)
 
-    def _back_forward(self, tab, bg, window, count, forward, index=None):
+    def _back_forward(
+        self, *,
+        tab: bool,
+        bg: bool,
+        window: bool,
+        count: Optional[int],
+        forward: bool,
+        quiet: bool,
+        index: Optional[int],
+    ) -> None:
         """Helper function for :back/:forward."""
         history = self._current_widget().history
-        # Catch common cases before e.g. cloning tab
+        # Catch common cases before e.g. cloning tab, and handle --quiet
         if not forward and not history.can_go_back():
-            raise cmdutils.CommandError("At beginning of history.")
+            text = "At beginning of history."
+            if quiet:
+                log.webview.debug(text)
+                return
+            raise cmdutils.CommandError(text)
         if forward and not history.can_go_forward():
-            raise cmdutils.CommandError("At end of history.")
+            text = "At end of history."
+            if quiet:
+                log.webview.debug(text)
+                return
+            raise cmdutils.CommandError(text)
 
         if tab or bg or window:
             widget = self.tab_clone(bg, window)
@@ -536,7 +553,7 @@ class CommandDispatcher:
     @cmdutils.argument('index', completion=miscmodels.back)
     def back(self, tab: bool = False, bg: bool = False,
              window: bool = False, count: int = None,
-             index: int = None) -> None:
+             index: int = None, quiet: bool = False) -> None:
         """Go back in the history of the current tab.
 
         Args:
@@ -545,15 +562,24 @@ class CommandDispatcher:
             window: Go back in a new window.
             count: How many pages to go back.
             index: Which page to go back to, count takes precedence.
+            quiet: Don't show an error if already at the beginning of history.
         """
-        self._back_forward(tab, bg, window, count, forward=False, index=index)
+        self._back_forward(
+            tab=tab,
+            bg=bg,
+            window=window,
+            count=count,
+            forward=False,
+            index=index,
+            quiet=quiet,
+        )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('index', completion=miscmodels.forward)
     def forward(self, tab: bool = False, bg: bool = False,
                 window: bool = False, count: int = None,
-                index: int = None) -> None:
+                index: int = None, quiet: bool = False) -> None:
         """Go forward in the history of the current tab.
 
         Args:
@@ -562,8 +588,17 @@ class CommandDispatcher:
             window: Go forward in a new window.
             count: How many pages to go forward.
             index: Which page to go forward to, count takes precedence.
+            quiet: Don't show an error if already at the end of history.
         """
-        self._back_forward(tab, bg, window, count, forward=True, index=index)
+        self._back_forward(
+            tab=tab,
+            bg=bg,
+            window=window,
+            count=count,
+            forward=True,
+            index=index,
+            quiet=quiet,
+        )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
