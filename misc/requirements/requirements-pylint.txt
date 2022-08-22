@@ -3,7 +3,7 @@
 astroid==2.11.7
 certifi==2022.6.15
 cffi==1.15.1
-charset-normalizer==2.1.0
+charset-normalizer==2.1.1
 cryptography==37.0.4
 dill==0.3.5.1
 future==0.18.2
