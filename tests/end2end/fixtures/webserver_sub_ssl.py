@@ -30,6 +30,7 @@ import pathlib
 import flask
 
 import webserver_sub
+import cheroot.ssl.builtin
 
 
 app = flask.Flask(__name__)
@@ -62,12 +63,16 @@ def turn_off_logging():
 
 
 def main():
-    end2end_dir = pathlib.Path(__file__).resolve().parents[1]
-    ssl_dir = end2end_dir / 'data' / 'ssl'
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain((ssl_dir / 'cert.pem'),
-                            (ssl_dir / 'key.pem'))
-    app.run(port=int(sys.argv[1]), debug=False, ssl_context=context)
+    port = int(sys.argv[1])
+    server = webserver_sub.WSGIServer(('127.0.0.1', port), app)
+
+    ssl_dir = webserver_sub.END2END_DIR / 'data' / 'ssl'
+    server.ssl_adapter = cheroot.ssl.builtin.BuiltinSSLAdapter(
+        certificate=ssl_dir / 'cert.pem',
+        private_key=ssl_dir / 'key.pem',
+    )
+
+    server.start()
 
 
 if __name__ == '__main__':

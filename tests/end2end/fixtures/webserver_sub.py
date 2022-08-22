@@ -339,8 +339,10 @@ class WSGIServer(cheroot.wsgi.Server):
     @ready.setter
     def ready(self, value):
         if value and not self._printed_ready:
-            print(' * Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)'
-                  .format(self.bind_addr[1]), file=sys.stderr, flush=True)
+            port = self.bind_addr[1]
+            scheme = 'http' if self.ssl_adapter is None else 'https'
+            print(f' * Running on {scheme}://127.0.0.1:{port}/ (Press CTRL+C to quit)',
+                  file=sys.stderr, flush=True)
             self._printed_ready = True
         self._ready = value
 
