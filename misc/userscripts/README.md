@@ -95,8 +95,11 @@ The following userscripts can be found on their own repositories.
   personal userscripts for qutebrowser (`domcycle`: settings per domain,
   `gitclone`, `jsdownload`: smart download, and `substiqute`: bash-like url
   substitution)
-- [pseudo per domain stylesheets](https://github.com/bschnitz/qute) Userscript
+- [pseudo per domain stylesheets](https://github.com/bschnitz/qute): Userscript
   for generating url restricted greasemonkey scripts to apply user styles.
+- [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
+  A simple interface to manage browser containers by manipulating the basedir
+  parameter.
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
