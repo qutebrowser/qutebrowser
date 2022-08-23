@@ -100,6 +100,10 @@ On older Python versions (3.7/3.8), the following backports are also required:
 
 * https://importlib-resources.readthedocs.io/[importlib_resources]
 
+On macOS, the following libraries are also required:
+
+* https://pyobjc.readthedocs.io/en/latest/[pyobjc-core and pyobjc-framework-Cocoa]
+
 The following libraries are optional:
 
 * https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)

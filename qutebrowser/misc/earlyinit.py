@@ -243,6 +243,10 @@ def check_libraries():
     if sys.version_info < (3, 9):
         # Backport required
         modules['importlib_resources'] = _missing_str("importlib_resources")
+    if sys.platform.startswith('darwin'):
+        # Used for resizable hide_decoration windows on macOS
+        modules['objc'] = _missing_str("pyobjc-core")
+        modules['AppKit'] = _missing_str("pyobjc-framework-Cocoa")
     _check_modules(modules)
 
 

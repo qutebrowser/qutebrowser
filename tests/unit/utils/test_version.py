@@ -751,6 +751,7 @@ class TestModuleVersions:
         ('adblock', True),
         ('dataclasses', False),
         ('importlib_resources', False),
+        ('objc', True),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
