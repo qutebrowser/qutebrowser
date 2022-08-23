@@ -67,7 +67,6 @@ class TabWidget(QTabWidget):
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
-        self.setElideMode(Qt.ElideRight)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
         self._init_config()
@@ -81,6 +80,7 @@ class TabWidget(QTabWidget):
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
+        self.setElideMode(config.val.tabs.title.elide)
 
         tabbar = self.tab_bar()
         tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]

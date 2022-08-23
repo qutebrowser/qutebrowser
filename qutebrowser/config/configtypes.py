@@ -1816,6 +1816,18 @@ class TextAlignment(MappingType):
     }
 
 
+class ElidePosition(MappingType):
+
+    """Position of ellipsis in truncated text."""
+
+    MAPPING = {
+        'left': (Qt.ElideLeft, None),
+        'right': (Qt.ElideRight, None),
+        'middle': (Qt.ElideMiddle, None),
+        'none': (Qt.ElideNone, None),
+    }
+
+
 class VerticalPosition(String):
 
     """The position of the download bar."""

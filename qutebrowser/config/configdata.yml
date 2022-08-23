@@ -2286,6 +2286,11 @@ tabs.title.alignment:
   type: TextAlignment
   desc: Alignment of the text inside of tabs.
 
+tabs.title.elide:
+  default: right
+  type: ElidePosition
+  desc: Position of ellipsis in truncated title of tabs.
+
 tabs.title.format:
   default: '{audio}{index}: {current_title}'
   type:
