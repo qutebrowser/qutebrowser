@@ -197,8 +197,13 @@ window._qutebrowser.webelem = (function() {
         try {
             frame.document; // eslint-disable-line no-unused-expressions
             return true;
-        } catch (err) {
-            return false;
+        } catch (exc) {
+            if (exc instanceof DOMException && exc.name === "SecurityError") {
+                // FIXME:qtwebengine This does not work for cross-origin frames.
+                return false;
+            } else {
+                throw exc;
+            }
         }
     }
 
