@@ -201,9 +201,8 @@ window._qutebrowser.webelem = (function() {
             if (exc instanceof DOMException && exc.name === "SecurityError") {
                 // FIXME:qtwebengine This does not work for cross-origin frames.
                 return false;
-            } else {
-                throw exc;
             }
+            throw exc;
         }
     }
 
