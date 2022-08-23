@@ -153,7 +153,7 @@ Feature: Various utility commands.
         When I load a third-party iframe
         # rerun set_css in stylesheet.js
         And I set content.user_stylesheets to []
-        Then the javascript message "Uncaught SecurityError: Blocked a frame with origin * from accessing a frame with origin *. *" should be logged
+        Then the javascript message "Failed to style frame: Blocked a frame with origin * from accessing *" should be logged
 
     # :debug-webaction
 
