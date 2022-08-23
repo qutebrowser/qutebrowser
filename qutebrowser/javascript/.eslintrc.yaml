@@ -61,3 +61,4 @@ rules:
     prefer-named-capture-group: "off"
     function-call-argument-newline: "off"
     no-negated-condition: "off"
+    no-console: "off"

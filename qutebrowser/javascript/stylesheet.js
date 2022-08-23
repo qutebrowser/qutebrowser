@@ -141,6 +141,7 @@ window._qutebrowser.stylesheet = (function() {
             } catch (exc) {
                 if (exc instanceof DOMException && exc.name === "SecurityError") {
                     // FIXME:qtwebengine This does not work for cross-origin frames.
+                    console.log(`Failed to style frame: ${exc.message}`)
                 } else {
                     throw exc;
                 }
