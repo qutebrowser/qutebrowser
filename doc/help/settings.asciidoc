@@ -338,6 +338,7 @@
 |<<tabs.show_switching_delay,tabs.show_switching_delay>>|Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
+|<<tabs.title.elide,tabs.title.elide>>|Position of ellipsis in truncated title of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
@@ -4481,6 +4482,21 @@ Valid values:
 
 Default: +pass:[left]+
 
+[[tabs.title.elide]]
+=== tabs.title.elide
+Position of ellipsis in truncated title of tabs.
+
+Type: <<types,ElidePosition>>
+
+Valid values:
+
+ * +left+
+ * +right+
+ * +middle+
+ * +none+
+
+Default: +pass:[right]+
+
 [[tabs.title.format]]
 === tabs.title.format
 Format to use for the tab title.
@@ -4762,6 +4778,7 @@ When setting from a string, `1`, `yes`, `on` and `true` count as true, while `0`
 
 When setting from a string, pass a json-like dict, e.g. `{"key", "value"}`.
 |Directory|A directory on the local filesystem.
+|ElidePosition|Position of ellipsis in truncated text.
 |Encoding|Setting for a python encoding.
 |File|A file on the local filesystem.
 |FlagList|A list of flags.

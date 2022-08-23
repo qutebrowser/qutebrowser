@@ -35,6 +35,8 @@ Added
 - New `content.javascript.log_message.excludes` setting, which allows to exclude
   certain messages from the `content.javascript.log_message.levels` setting
   described above.
+- New `tabs.title.elide` setting to configure where text should be elided
+  (replaced by `…`) in tab titles when space runs out.
 - New `--quiet` switch for `:back` and `:forward`, to suppress the error message
   about already being at beginning/end of history.
 - New `qute-1pass` userscript using the 1password commandline to fill
