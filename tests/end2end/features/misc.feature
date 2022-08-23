@@ -148,6 +148,13 @@ Feature: Various utility commands.
         When I open restrictive-csp
         Then the javascript message "Refused to apply inline style because it violates the following Content Security Policy directive: *" should be logged
 
+    @qtwebkit_skip
+    Scenario: Third-party iframes in qutebrowser stylesheet script
+        When I load a third-party iframe
+        # rerun set_css in stylesheet.js
+        And I set content.user_stylesheets to []
+        Then the javascript message "Uncaught SecurityError: Blocked a frame with origin * from accessing a frame with origin *. *" should be logged
+
     # :debug-webaction
 
     Scenario: :debug-webaction with valid value
