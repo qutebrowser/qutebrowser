@@ -41,6 +41,11 @@ Added
   about already being at beginning/end of history.
 - New `qute-1pass` userscript using the 1password commandline to fill
   passwords.
+- On macOS when running with Qt < 6.3, `pyobjc-core` and
+  `pyobjc-framework-Cocoa` are now required dependencies.
+  They are *not* required on other systems or when running with Qt 6.3+, but
+  still listed in the `requirements.txt` because it's impossible to tell the
+  two cases apart there.
 - New features in userscripts:
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
