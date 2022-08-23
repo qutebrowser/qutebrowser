@@ -267,6 +267,12 @@ def https_script(port):
     return flask.render_template('https-script.html', port=port)
 
 
+@app.route('/https-iframe/<int:port>')
+def https_iframe(port):
+    """Get an iframe loaded via HTTPS."""
+    return flask.render_template('https-iframe.html', port=port)
+
+
 @app.route('/response-headers')
 def response_headers():
     """Return a set of response headers from the query string."""
