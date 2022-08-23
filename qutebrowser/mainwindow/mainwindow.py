@@ -570,7 +570,8 @@ class MainWindow(QWidget):
             window_flags |= Qt.WindowType.CustomizeWindowHint | Qt.WindowType.NoDropShadowWindowHint
         self.setWindowFlags(window_flags)
 
-        if utils.is_mac and hidden:
+        if utils.is_mac and hidden and not qtutils.version_check('6.3', compiled=False):
+            # WORKAROUND for https://codereview.qt-project.org/c/qt/qtbase/+/371279
             from ctypes import c_void_p
             # pylint: disable=import-error
             from objc import objc_object

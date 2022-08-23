@@ -177,16 +177,21 @@ def qt_version(qversion=None, qt_version_str=None):
         return qversion
 
 
+def get_qt_version():
+    """Get the Qt version, or None if too old for QLibaryInfo.version()."""
+    try:
+        from qutebrowser.qt.core import QLibraryInfo
+        return QLibraryInfo.version().normalized()
+    except (ImportError, AttributeError):
+        return None
+
+
 def check_qt_version():
     """Check if the Qt version is recent enough."""
     from qutebrowser.qt.core import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
-    try:
-        from qutebrowser.qt.core import QVersionNumber, QLibraryInfo
-        qt_ver = QLibraryInfo.version().normalized()
-        recent_qt_runtime = qt_ver >= QVersionNumber(5, 15)  # type: ignore[operator]
-    except (ImportError, AttributeError):
-        # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
-        recent_qt_runtime = False
+    from qutebrowser.qt.core import QVersionNumber
+    qt_ver = get_qt_version()
+    recent_qt_runtime = qt_ver is not None and qt_ver >= QVersionNumber(5, 15)
 
     if QT_VERSION < 0x050F00 or PYQT_VERSION < 0x050F00 or not recent_qt_runtime:
         text = ("Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
@@ -240,16 +245,23 @@ def check_libraries():
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
     }
+
     for subpkg in ['QtQml', 'QtOpenGL', 'QtDBus']:
         package = f'{machinery.PACKAGE}.{subpkg}'
         modules[package] = _missing_str(package)
+
     if sys.version_info < (3, 9):
         # Backport required
         modules['importlib_resources'] = _missing_str("importlib_resources")
+
     if sys.platform.startswith('darwin'):
-        # Used for resizable hide_decoration windows on macOS
-        modules['objc'] = _missing_str("pyobjc-core")
-        modules['AppKit'] = _missing_str("pyobjc-framework-Cocoa")
+        from qutebrowser.qt.core import QVersionNumber
+        qt_ver = get_qt_version()
+        if qt_ver is not None and qt_ver < QVersionNumber(6, 3):
+            # Used for resizable hide_decoration windows on macOS
+            modules['objc'] = _missing_str("pyobjc-core")
+            modules['AppKit'] = _missing_str("pyobjc-framework-Cocoa")
+
     _check_modules(modules)
 
 
