@@ -175,7 +175,10 @@ def pass_(path):
 def pass_otp(path):
     if arguments.mode == "gopass":
         return _run_pass(['otp', '-o', path])
-    return _run_pass(['otp', path])
+    result = _run_pass(['otp', path])
+    # Remove the git output pass-otp prints in HOTP mode, by taking only the last line
+    # Using the --quiet option might be a better solution in the future (see PR #7380)
+    return result.split('\n')[-1]
 
 
 def dmenu(items, invocation):
