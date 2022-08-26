@@ -77,16 +77,16 @@ class SqliteErrorCode:
     in qutebrowser here.
     """
 
-    ERROR = '1'  # generic error code
-    BUSY = '5'  # database is locked
-    READONLY = '8'  # attempt to write a readonly database
-    IOERR = '10'  # disk I/O error
-    CORRUPT = '11'  # database disk image is malformed
-    FULL = '13'  # database or disk is full
-    CANTOPEN = '14'  # unable to open database file
-    PROTOCOL = '15'  # locking protocol error
-    CONSTRAINT = '19'  # UNIQUE constraint failed
-    NOTADB = '26'  # file is not a database
+    ERROR = 1  # generic error code
+    BUSY = 5  # database is locked
+    READONLY = 8  # attempt to write a readonly database
+    IOERR = 10  # disk I/O error
+    CORRUPT = 11  # database disk image is malformed
+    FULL = 13  # database or disk is full
+    CANTOPEN = 14  # unable to open database file
+    PROTOCOL = 15  # locking protocol error
+    CONSTRAINT = 19  # UNIQUE constraint failed
+    NOTADB = 26  # file is not a database
 
 
 class Error(Exception):
@@ -128,6 +128,12 @@ class BugError(Error):
 def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
+    try:
+        # https://sqlite.org/rescode.html#pve
+        primary_error_code = int(error_code) & 0xff
+    except ValueError:
+        primary_error_code = None
+
     database_text = error.databaseText()
     driver_text = error.driverText()
 
@@ -135,7 +141,7 @@ def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     log.sql.debug(f"type: {debug.qenum_key(QSqlError, error.type())}")
     log.sql.debug(f"database text: {database_text}")
     log.sql.debug(f"driver text: {driver_text}")
-    log.sql.debug(f"error code: {error_code}")
+    log.sql.debug(f"error code: {error_code} -> {primary_error_code}")
 
     known_errors = [
         SqliteErrorCode.BUSY,
@@ -151,12 +157,12 @@ def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     # https://github.com/qutebrowser/qutebrowser/issues/4681
     # If the query we built was too long
     too_long_err = (
-        error_code == SqliteErrorCode.ERROR and
+        primary_error_code == SqliteErrorCode.ERROR and
         (database_text.startswith("Expression tree is too large") or
          database_text in ["too many SQL variables",
                            "LIKE or GLOB pattern too complex"]))
 
-    if error_code in known_errors or too_long_err:
+    if primary_error_code in known_errors or too_long_err:
         raise KnownError(msg, error)
 
     raise BugError(msg, error)

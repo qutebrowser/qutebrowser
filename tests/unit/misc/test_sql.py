@@ -93,10 +93,16 @@ class TestSqlError:
     @pytest.mark.parametrize('error_code, exception', [
         (sql.SqliteErrorCode.BUSY, sql.KnownError),
         (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
+        # extended error codes
+        (sql.SqliteErrorCode.IOERR | (1<<8), sql.KnownError),  # SQLITE_IOERR_READ
+        (
+            sql.SqliteErrorCode.CONSTRAINT | (1<<8),  # SQLITE_CONSTRAINT_CHECK
+            sql.BugError
+        ),
     ])
     def test_known(self, error_code, exception):
         sql_err = QSqlError("driver text", "db text", QSqlError.ErrorType.UnknownError,
-                            error_code)
+                            str(error_code))
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
@@ -109,7 +115,7 @@ class TestSqlError:
                     'type: UnknownError',
                     'database text: db text',
                     'driver text: driver text',
-                    'error code: 23']
+                    'error code: 23 -> 23']
 
         assert caplog.messages == expected
 
