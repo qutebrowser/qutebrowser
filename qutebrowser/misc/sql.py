@@ -19,6 +19,7 @@
 
 """Provides access to sqlite databases."""
 
+import enum
 import collections
 import contextlib
 import dataclasses
@@ -69,24 +70,45 @@ class UserVersion:
         return f'{self.major}.{self.minor}'
 
 
-class SqliteErrorCode:
+class SqliteErrorCode(enum.Enum):
+    """Primary error codes as used by sqlite.
 
-    """Error codes as used by sqlite.
-
-    See https://sqlite.org/rescode.html - note we only define the codes we use
-    in qutebrowser here.
+    See https://sqlite.org/rescode.html
     """
 
-    ERROR = 1  # generic error code
-    BUSY = 5  # database is locked
-    READONLY = 8  # attempt to write a readonly database
-    IOERR = 10  # disk I/O error
-    CORRUPT = 11  # database disk image is malformed
-    FULL = 13  # database or disk is full
-    CANTOPEN = 14  # unable to open database file
-    PROTOCOL = 15  # locking protocol error
-    CONSTRAINT = 19  # UNIQUE constraint failed
-    NOTADB = 26  # file is not a database
+    # pylint: disable=invalid-name
+
+    OK = 0  # Successful result
+    ERROR = 1  # Generic error
+    INTERNAL = 2  # Internal logic error in SQLite
+    PERM = 3  # Access permission denied
+    ABORT = 4  # Callback routine requested an abort
+    BUSY = 5  # The database file is locked
+    LOCKED = 6  # A table in the database is locked
+    NOMEM = 7  # A malloc() failed
+    READONLY = 8  # Attempt to write a readonly database
+    INTERRUPT = 9  # Operation terminated by sqlite3_interrupt()*/
+    IOERR = 10  # Some kind of disk I/O error occurred
+    CORRUPT = 11  # The database disk image is malformed
+    NOTFOUND = 12  # Unknown opcode in sqlite3_file_control()
+    FULL = 13  # Insertion failed because database is full
+    CANTOPEN = 14  # Unable to open the database file
+    PROTOCOL = 15  # Database lock protocol error
+    EMPTY = 16  # Internal use only
+    SCHEMA = 17  # The database schema changed
+    TOOBIG = 18  # String or BLOB exceeds size limit
+    CONSTRAINT = 19  # Abort due to constraint violation
+    MISMATCH = 20  # Data type mismatch
+    MISUSE = 21  # Library used incorrectly
+    NOLFS = 22  # Uses OS features not supported on host
+    AUTH = 23  # Authorization denied
+    FORMAT = 24  # Not used
+    RANGE = 25  # 2nd parameter to sqlite3_bind out of range
+    NOTADB = 26  # File opened that is not a database file
+    NOTICE = 27  # Notifications from sqlite3_log()
+    WARNING = 28  # Warnings from sqlite3_log()
+    ROW = 100  # sqlite3_step() has another row ready
+    DONE = 101  # sqlite3_step() has finished executing
 
 
 class Error(Exception):
@@ -104,8 +126,7 @@ class Error(Exception):
         """
         if self.error is None:
             return str(self)
-        else:
-            return self.error.databaseText()
+        return self.error.databaseText()
 
 
 class KnownError(Error):
@@ -130,9 +151,10 @@ def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     error_code = error.nativeErrorCode()
     try:
         # https://sqlite.org/rescode.html#pve
-        primary_error_code = int(error_code) & 0xff
+        primary_error_code = SqliteErrorCode(int(error_code) & 0xff)
     except ValueError:
-        primary_error_code = None
+        # not an int, or unknown error code -> fall back to string
+        primary_error_code = error_code
 
     database_text = error.databaseText()
     driver_text = error.driverText()

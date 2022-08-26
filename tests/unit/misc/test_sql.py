@@ -19,6 +19,8 @@
 
 """Test the SQL API."""
 
+import sys
+import sqlite3
 import pytest
 
 import hypothesis
@@ -91,12 +93,15 @@ def test_sqlerror(klass):
 class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        (sql.SqliteErrorCode.BUSY, sql.KnownError),
-        (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
+        (sql.SqliteErrorCode.BUSY.value, sql.KnownError),
+        (sql.SqliteErrorCode.CONSTRAINT.value, sql.BugError),
         # extended error codes
-        (sql.SqliteErrorCode.IOERR | (1<<8), sql.KnownError),  # SQLITE_IOERR_READ
         (
-            sql.SqliteErrorCode.CONSTRAINT | (1<<8),  # SQLITE_CONSTRAINT_CHECK
+            sql.SqliteErrorCode.IOERR.value | (1 << 8),  # SQLITE_IOERR_READ
+            sql.KnownError
+        ),
+        (
+            sql.SqliteErrorCode.CONSTRAINT.value | (1 << 8),  # SQLITE_CONSTRAINT_CHECK
             sql.BugError
         ),
     ])
@@ -115,7 +120,7 @@ class TestSqlError:
                     'type: UnknownError',
                     'database text: db text',
                     'driver text: driver text',
-                    'error code: 23 -> 23']
+                    'error code: 23 -> SqliteErrorCode.AUTH']
 
         assert caplog.messages == expected
 
@@ -124,6 +129,62 @@ class TestSqlError:
         sql_err = QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
         assert err.text() == "db text"
+
+    @pytest.mark.parametrize("code", list(sql.SqliteErrorCode))
+    @pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="sqlite error code constants added in Python 3.11",
+    )
+    def test_sqlite_error_codes(self, code):
+        """Cross check our error codes with the ones in Python 3.11+.
+
+        See https://github.com/python/cpython/commit/86d8b465231
+        """
+        pyvalue = getattr(sqlite3, f"SQLITE_{code.name}")
+        assert pyvalue == code.value
+
+    def test_sqlite_error_codes_reverse(self):
+        """Check if we have all error codes defined that Python has.
+
+        It would be nice if this was easier (and less guesswork).
+        However, the error codes are simply added as ints to the sqlite3 module
+        namespace (PyModule_AddIntConstant), and lots of other constants are there too.
+        """
+        # Start with all SQLITE_* names in the sqlite3 modules
+        consts = {n for n in dir(sqlite3) if n.startswith("SQLITE_")}
+        # All error codes we know about (tested above)
+        consts -= {f"SQLITE_{m.name}" for m in sql.SqliteErrorCode}
+        # Extended error codes or other constants. From the sqlite docs:
+        #
+        # Primary result code symbolic names are of the form "SQLITE_XXXXXX"
+        # where XXXXXX is a sequence of uppercase alphabetic characters.
+        # Extended result code names are of the form "SQLITE_XXXXXX_YYYYYYY"
+        # where the XXXXXX part is the corresponding primary result code and the
+        # YYYYYYY is an extension that further classifies the result code.
+        consts -= {c for c in consts if c.count("_") >= 2}
+        # All remaining sqlite constants which are *not* error codes.
+        consts -= {
+            "SQLITE_ANALYZE",
+            "SQLITE_ATTACH",
+            "SQLITE_DELETE",
+            "SQLITE_DENY",
+            "SQLITE_DETACH",
+            "SQLITE_FUNCTION",
+            "SQLITE_IGNORE",
+            "SQLITE_INSERT",
+            "SQLITE_PRAGMA",
+            "SQLITE_READ",
+            "SQLITE_RECURSIVE",
+            "SQLITE_REINDEX",
+            "SQLITE_SAVEPOINT",
+            "SQLITE_SELECT",
+            "SQLITE_TRANSACTION",
+            "SQLITE_UPDATE",
+        }
+        # If there is anything remaining here, either a new Python version added a new
+        # sqlite constant which is *not* an error, or there was a new error code added.
+        # Either add it to the set above, or to SqliteErrorCode.
+        assert not consts
 
 
 def test_init_table(database):
