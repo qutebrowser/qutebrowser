@@ -71,7 +71,8 @@ def expanded_path(path):
 
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p', default=None, help='Path to your password-store', type=expanded_path)
+argument_parser.add_argument('--password-store', '-p', default=None,
+                             help='Path to your password-store', type=expanded_path)
 argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
                              help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--prefix', type=str,
@@ -173,10 +174,10 @@ def _run_pass(pass_arguments):
             # Warn the user if the error could be caused by a changed default directory.
             # See <https://github.com/gopasspw/gopass/pull/1968/commits/de4ba223422417559f36346bd51ce075e9812924>
             stderr(
-                "Warning: With gopass 1.12.8, the default password store directory changed from `~/.password-store` " \
-                "to `~/.local/share/gopass/stores/root, and qute-pass now uses this new default. If your password " \
-                "store isn't '{}', specify a store with the `--password-store` argument to qute-pass, or by setting " \
-                "the PASSWORD_STORE_DIR environment variable.".format(arguments.password_store)
+                "Warning: With gopass 1.12.8, the default password store directory changed from `~/.password-store` "
+                "to `~/.local/share/gopass/stores/root, and qute-pass now uses this new default. If your password "
+                f"store isn't '{arguments.password_store}', specify a store with the `--password-store` argument "
+                "to qute-pass, or by setting the PASSWORD_STORE_DIR environment variable."
             )
         if err_msg.startswith("Error:"):
             raise PassExecutionFailed(err_msg)
@@ -202,8 +203,8 @@ def dmenu(items, invocation):
 def fake_key_raw(text):
     for character in text:
         # Escape all characters by default, space requires special handling
-        sequence = '" "' if character == ' ' else r'\{}'.format(character)
-        qute_command('fake-key {}'.format(sequence))
+        sequence = '" "' if character == ' ' else fr'\{character}'
+        qute_command(f'fake-key {sequence}')
 
 
 def extract_password(secret, pattern):
@@ -226,7 +227,7 @@ def extract_username(target, pattern):
         raise CouldNotMatchUsername("Pattern did not contain capture group, please use capture group. Example: (.*)")
 
 
-def extract_secret(selection):
+def type_secret(selection):
     secret = None
     # If username-target is path and user asked for username-only, we don't need to run pass.
     # Or if using otp-only, it will run pass on its own.
@@ -258,7 +259,7 @@ def main(arguments):
 
     if arguments.password_store is None:
         # `pass` and `gopass` use different default password store directories
-        default = '~/.local/share/gopass/stores/root' if arguments.mode == "gopass" else '~/.password_store'
+        default = '~/.local/share/gopass/stores/root' if arguments.mode == "gopass" else '~/.password-store'
         arguments.password_store = expanded_path(os.getenv('PASSWORD_STORE_DIR', default=default))
 
     extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','))
@@ -280,7 +281,7 @@ def main(arguments):
         try:
             target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         except PassExecutionFailed as e:
-            stderr('Failed to execute {}, target: candidates, error: {}'.format(arguments.mode, e))
+            stderr(f'Failed to execute {arguments.mode}, target: candidates, error: {e}')
             return ExitCodes.FAILURE
 
         if not target_candidates:
@@ -291,7 +292,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
+            stderr('No pass candidates for URL {repr(arguments.url)} found! (I tried {repr(attempted_targets)})')
             return ExitCodes.NO_PASS_CANDIDATES
 
     if len(candidates) == 1 and not arguments.always_show_selection:
@@ -304,15 +305,15 @@ def main(arguments):
         return ExitCodes.SUCCESS
 
     try:
-        extract_secret(selection)
+        type_secret(selection)
     except PassExecutionFailed as e:
-        stderr('Failed to execute {}, target: secret, error: {}'.format(arguments.mode, e))
+        stderr(f'Failed to execute {arguments.mode}, target: secret, error: {e}')
         return ExitCodes.FAILURE
     except CouldNotMatchPassword as e:
-        stderr('Failed to match password, target: secret, error: {}'.format(e))
+        stderr(f'Failed to match password, target: secret, error: {e}')
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     except CouldNotMatchUsername as e:
-        stderr('Failed to match username, target: {}, error: {}'.format(arguments.username_target, e))
+        stderr(f'Failed to match username, target: {arguments.username_target}, error: {e}')
         return ExitCodes.COULD_NOT_MATCH_USERNAME
 
     return ExitCodes.SUCCESS
