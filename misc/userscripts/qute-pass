@@ -144,13 +144,18 @@ def find_pass_candidates(domain, unfiltered=False):
             if unfiltered or domain in password:
                 candidates.append(password)
     else:
-        for path, directories, file_names in os.walk(arguments.password_store, followlinks=True):
+        if arguments.password_store:
+            store_path = arguments.password_store
+        else:
+            store_path = expanded_path(os.getenv('PASSWORD_STORE_DIR', default='~/.password-store'))
+
+        for path, directories, file_names in os.walk(store_path, followlinks=True):
             secrets = fnmatch.filter(file_names, '*.gpg')
             if not secrets:
                 continue
 
             # Strip password store path prefix to get the relative pass path
-            pass_path = path[len(arguments.password_store):]
+            pass_path = path[len(store_path):]
             split_path = pass_path.split(os.path.sep)
             for secret in secrets:
                 secret_base = os.path.splitext(secret)[0]
@@ -165,7 +170,9 @@ def _run_pass(pass_arguments):
     # The executable is conveniently named after its mode [pass|gopass].
     pass_command = [arguments.mode] + pass_arguments
     env = os.environ.copy()
-    env['PASSWORD_STORE_DIR'] = arguments.password_store
+    if arguments.password_store:
+        # Only overwrite PASSWORD_STORE_DIR if a store has been explicity specified
+        env['PASSWORD_STORE_DIR'] = arguments.password_store
     process = subprocess.run(pass_command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     err_msg = process.stderr.decode(arguments.io_encoding).strip()
 
@@ -257,11 +264,6 @@ def main(arguments):
         argument_parser.print_help()
         return ExitCodes.FAILURE
 
-    if arguments.password_store is None:
-        # `pass` and `gopass` use different default password store directories
-        default = '~/.local/share/gopass/stores/root' if arguments.mode == "gopass" else '~/.password-store'
-        arguments.password_store = expanded_path(os.getenv('PASSWORD_STORE_DIR', default=default))
-
     extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','))
     extract_result = extractor(arguments.url)
 
@@ -292,7 +294,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {repr(arguments.url)} found! (I tried {repr(attempted_targets)})')
+            stderr(f'No pass candidates for URL {repr(arguments.url)} found! (I tried {repr(attempted_targets)})')
             return ExitCodes.NO_PASS_CANDIDATES
 
     if len(candidates) == 1 and not arguments.always_show_selection:
