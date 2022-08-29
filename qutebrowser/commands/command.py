@@ -563,7 +563,7 @@ class Command:
                     self.name, mode_names, mode.name))
 
     def takes_count(self):
-        """Return true iff this command can take a count argument."""
+        """Return true if this command can take a count argument."""
         return any(info.value in self.COUNT_COMMAND_VALUES
                    for info in self._qute_args.values())
 
