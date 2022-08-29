@@ -946,12 +946,14 @@ content.javascript.log_message.levels:
     keytype: String
     valtype:
       name: FlagList
+      none_ok: true
       valid_values:
         - info: Show JS info as messages.
         - warning: Show JS warnings as messages.
         - error: Show JS errors as messages.
   default:
     "qute:*": ["error"]
+    "userscript:GM-*": []
     "userscript:*": ["error"]
   desc: >-
     Javascript message sources/levels to show in the qutebrowser UI.
@@ -960,8 +962,8 @@ content.javascript.log_message.levels:
     pattern given in the key, and is from one of the levels listed as value,
     it's surfaced as a message in the qutebrowser UI.
 
-    By default, errors happening in qutebrowser internally or in userscripts are
-    shown to the user.
+    By default, errors happening in qutebrowser internally are shown to the
+    user.
 
 content.javascript.log_message.excludes:
   type:
@@ -973,7 +975,7 @@ content.javascript.log_message.excludes:
       valtype: String
   default:
     "userscript:_qute_stylesheet":
-      - "Refused to apply inline style because it violates the following Content
+      - "*Refused to apply inline style because it violates the following Content
         Security Policy directive: *"
   desc: >-
     Javascript messages to *not* show in the UI, despite a corresponding

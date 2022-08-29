@@ -2423,13 +2423,13 @@ Default:
 
 - +pass:[userscript:_qute_stylesheet]+:
 
-* +pass:[Refused to apply inline style because it violates the following Content Security Policy directive: *]+
+* +pass:[*Refused to apply inline style because it violates the following Content Security Policy directive: *]+
 
 [[content.javascript.log_message.levels]]
 === content.javascript.log_message.levels
 Javascript message sources/levels to show in the qutebrowser UI.
 When a JavaScript message is logged from a location matching the glob pattern given in the key, and is from one of the levels listed as value, it's surfaced as a message in the qutebrowser UI.
-By default, errors happening in qutebrowser internally or in userscripts are shown to the user.
+By default, errors happening in qutebrowser internally are shown to the user.
 
 Type: <<types,Dict>>
 
@@ -2441,6 +2441,7 @@ Default:
 - +pass:[userscript:*]+:
 
 * +pass:[error]+
+- +pass:[userscript:GM-*]+: empty
 
 [[content.javascript.modal_dialog]]
 === content.javascript.modal_dialog
