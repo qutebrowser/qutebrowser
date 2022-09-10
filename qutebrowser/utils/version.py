@@ -1024,10 +1024,9 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vp.setVersion(2, 0)
 
         try:
-            try:
-                # Qt 5
+            if machinery.IS_QT5:
                 vf = ctx.versionFunctions(vp)
-            except AttributeError:
+            else:
                 # Qt 6
                 # FIXME:qt6 (lint)
                 # pylint: disable-next=no-name-in-module
