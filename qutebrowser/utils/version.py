@@ -785,18 +785,19 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     if override is not None:
         return WebEngineVersions.from_pyqt(override, source='override')
 
-    try:
-        from qutebrowser.qt.webenginecore import (
-            qWebEngineVersion,
-            qWebEngineChromiumVersion,
-        )
-    except ImportError:
-        pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
-    else:
-        return WebEngineVersions.from_api(
-            qtwe_version=qWebEngineVersion(),
-            chromium_version=qWebEngineChromiumVersion(),
-        )
+    if machinery.IS_QT6:
+        try:
+            from qutebrowser.qt.webenginecore import (
+                qWebEngineVersion,
+                qWebEngineChromiumVersion,
+            )
+        except ImportError:
+            pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
+        else:
+            return WebEngineVersions.from_api(
+                qtwe_version=qWebEngineVersion(),
+                chromium_version=qWebEngineChromiumVersion(),
+            )
 
     from qutebrowser.browser.webengine import webenginesettings
 
