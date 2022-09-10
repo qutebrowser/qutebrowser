@@ -24,7 +24,7 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
+from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type, Union
 
 from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.sql import QSqlDatabase, QSqlError, QSqlQuery
@@ -149,6 +149,7 @@ class BugError(Error):
 def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
+    primary_error_code: Union[SqliteErrorCode, str]
     try:
         # https://sqlite.org/rescode.html#pve
         primary_error_code = SqliteErrorCode(int(error_code) & 0xff)
