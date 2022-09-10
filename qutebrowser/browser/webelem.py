@@ -22,6 +22,7 @@
 from typing import Iterator, Optional, Set, TYPE_CHECKING, Union, Dict
 import collections.abc
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPointF
 from qutebrowser.qt.gui import QMouseEvent
 
@@ -34,6 +35,11 @@ if TYPE_CHECKING:
 
 
 JsValueType = Union[int, float, str, None]
+
+if machinery.IS_QT6:
+    KeybordModifierType = Qt.KeyboardModifier
+else:
+    KeybordModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
 
 
 class Error(Exception):
@@ -345,7 +351,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        target_modifiers: Dict[usertypes.ClickTarget, Qt.KeyboardModifier] = {
+        target_modifiers: Dict[usertypes.ClickTarget, KeybordModifierType] = {
             usertypes.ClickTarget.normal: Qt.KeyboardModifier.NoModifier,
             usertypes.ClickTarget.window: Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.ShiftModifier,
             usertypes.ClickTarget.tab: Qt.KeyboardModifier.ControlModifier,
