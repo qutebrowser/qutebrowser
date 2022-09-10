@@ -6,11 +6,11 @@
 from qutebrowser.qt import machinery
 
 
-if machinery.USE_PYQT5:
+if machinery.USE_PYSIDE6:
+    from PySide6.QtNetwork import *
+elif machinery.USE_PYQT5:
     from PyQt5.QtNetwork import *
 elif machinery.USE_PYQT6:
     from PyQt6.QtNetwork import *
-elif machinery.USE_PYSIDE6:
-    from PySide6.QtNetwork import *
 else:
     raise machinery.UnknownWrapper()
