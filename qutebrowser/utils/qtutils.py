@@ -455,6 +455,12 @@ class QtValueError(ValueError):
         super().__init__(err)
 
 
+if machinery.IS_QT6:
+    _ProcessEventFlagType = QEventLoop.ProcessEventsFlag
+else:
+    _ProcessEventFlagType = QEventLoop.ProcessEventsFlags
+
+
 class EventLoop(QEventLoop):
 
     """A thin wrapper around QEventLoop.
@@ -468,8 +474,9 @@ class EventLoop(QEventLoop):
 
     def exec(
             self,
-            flags: QEventLoop.ProcessEventsFlag =
-            QEventLoop.ProcessEventsFlag.AllEvents
+            flags: _ProcessEventFlagType = (
+                QEventLoop.ProcessEventsFlag.AllEvents  # type: ignore[assignment]
+            ),
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
