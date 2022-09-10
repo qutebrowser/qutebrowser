@@ -18,8 +18,6 @@ elif machinery.USE_PYQT6:
         from PyQt6.sip import *
     except ImportError:
         from sip import *
-elif machinery.USE_PYSIDE2:
-    raise machinery.Unavailable()
 elif machinery.USE_PYSIDE6:
     raise machinery.Unavailable()
 else:

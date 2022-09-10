@@ -10,9 +10,8 @@ import importlib
 _WRAPPERS = [
     "PyQt6",
     "PyQt5",
-    # Need more work, PySide2 might not be usable at all
+    # Needs more work
     # "PySide6",
-    # "PySide2",
 ]
 
 
@@ -61,14 +60,13 @@ def _select_wrapper():
 WRAPPER = _select_wrapper()
 USE_PYQT5 = WRAPPER == "PyQt5"
 USE_PYQT6 = WRAPPER == "PyQt6"
-USE_PYSIDE2 = WRAPPER == "PySide2"
 USE_PYSIDE6 = WRAPPER == "PySide6"
-assert USE_PYQT5 ^ USE_PYQT6 ^ USE_PYSIDE2 ^ USE_PYSIDE6
+assert USE_PYQT5 ^ USE_PYQT6 ^ USE_PYSIDE6
 
-IS_QT5 = USE_PYQT5 or USE_PYSIDE2
+IS_QT5 = USE_PYQT5
 IS_QT6 = USE_PYQT6 or USE_PYSIDE6
 IS_PYQT = USE_PYQT5 or USE_PYQT6
-IS_PYSIDE = USE_PYSIDE2 or USE_PYSIDE6
+IS_PYSIDE = USE_PYSIDE6
 assert IS_QT5 ^ IS_QT6
 assert IS_PYQT ^ IS_PYSIDE
 
@@ -77,7 +75,5 @@ if USE_PYQT5:
     PACKAGE = "PyQt5"
 elif USE_PYQT6:
     PACKAGE = "PyQt6"
-elif USE_PYSIDE2:
-    PACKAGE = "PySide2"
 elif USE_PYSIDE6:
     PACKAGE = "PySide6"
