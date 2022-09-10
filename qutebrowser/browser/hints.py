@@ -254,7 +254,7 @@ class HintActions:
 
         flags = QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword
         if url.scheme() == 'mailto':
-            flags |= QUrl.UrlFormattingOption.RemoveScheme
+            flags |= QUrl.UrlFormattingOption.RemoveScheme  # type: ignore[operator]
         urlstr = url.toString(flags)
 
         new_content = urlstr
