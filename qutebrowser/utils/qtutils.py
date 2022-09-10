@@ -36,6 +36,7 @@ import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl, QLibraryInfo)
@@ -588,8 +589,7 @@ class LibraryPath(enum.Enum):
 
 def library_path(which: LibraryPath) -> pathlib.Path:
     """Wrapper around QLibraryInfo.path / .location."""
-    if hasattr(QLibraryInfo, "path"):
-        # Qt 6
+    if machinery.IS_QT6:
         val = getattr(QLibraryInfo.LibraryPath, which.value)
         ret = QLibraryInfo.path(val)
     else:
