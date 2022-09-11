@@ -33,7 +33,7 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Iterator, List, Mapping, Optional, Union, overload
+from typing import Iterator, List, Mapping, Optional, Union, overload, cast
 
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
@@ -69,7 +69,7 @@ try:
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-    _NIL_KEY = 0
+    _NIL_KEY = 0  # type: ignore[assignment]
 
 _ModifierType = Qt.KeyboardModifier
 
@@ -252,7 +252,7 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     _assert_plain_modifier(modifiers)
     altgr = Qt.KeyboardModifier.GroupSwitchModifier
     if modifiers & altgr:
-        modifiers &= ~altgr
+        modifiers &= ~altgr  # type: ignore[assignment]
         result = 'AltGr+'
     else:
         result = ''
@@ -376,7 +376,7 @@ class KeyInfo:
         except ValueError as ex:
             raise InvalidKeyError(str(ex))
         key = _remap_unicode(key, e.text())
-        modifiers = e.modifiers()
+        modifiers = cast(Qt.KeyboardModifier, e.modifiers())
         return cls(key, modifiers)
 
     @classmethod
@@ -411,7 +411,7 @@ class KeyInfo:
 
         if self.key in _MODIFIER_MAP:
             # Don't return e.g. <Shift+Shift>
-            modifiers &= ~_MODIFIER_MAP[self.key]
+            modifiers &= ~_MODIFIER_MAP[self.key]  # type: ignore[assignment]
         elif _is_printable(self.key):
             # "normal" binding
             if not key_string:  # pragma: no cover
@@ -479,7 +479,8 @@ class KeyInfo:
         return QKeyCombination(self.modifiers, key)
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
-        return KeyInfo(key=self.key, modifiers=self.modifiers & ~modifiers)
+        mods = self.modifiers & ~modifiers
+        return KeyInfo(key=self.key, modifiers=mods)  # type: ignore[arg-type]
 
     def is_special(self) -> bool:
         """Check whether this key requires special key syntax."""
@@ -648,7 +649,7 @@ class KeySequence:
             raise KeyParseError(None, f"Got invalid key: {e}")
 
         _assert_plain_key(key)
-        _assert_plain_modifier(ev.modifiers())
+        _assert_plain_modifier(cast(Qt.KeyboardModifier, ev.modifiers()))
 
         key = _remap_unicode(key, ev.text())
         modifiers = ev.modifiers()
@@ -675,10 +676,11 @@ class KeySequence:
         #
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
-        if (modifiers == Qt.KeyboardModifier.ShiftModifier and
+        shift_modifier = Qt.KeyboardModifier.ShiftModifier
+        if (modifiers == shift_modifier and  # type: ignore[comparison-overlap]
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifier.NoModifier
+            modifiers = Qt.KeyboardModifier.NoModifier  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         #
@@ -697,7 +699,7 @@ class KeySequence:
                 modifiers |= Qt.KeyboardModifier.ControlModifier
 
         infos = list(self)
-        infos.append(KeyInfo(key, modifiers))
+        infos.append(KeyInfo(key, cast(Qt.KeyboardModifier, modifiers)))
 
         return self.__class__(*infos)
 
