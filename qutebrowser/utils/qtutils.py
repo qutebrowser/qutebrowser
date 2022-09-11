@@ -36,7 +36,7 @@ import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
 
-from qutebrowser.qt import machinery
+from qutebrowser.qt import machinery, sip
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl, QLibraryInfo)
@@ -600,7 +600,7 @@ def library_path(which: LibraryPath) -> pathlib.Path:
     return pathlib.Path(ret)
 
 
-def extract_enum_val(val: Union[int, enum.Enum]) -> int:
+def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
     """Extract an int value from a Qt enum value.
 
     For Qt 5, enum values are basically Python integers.
@@ -609,4 +609,6 @@ def extract_enum_val(val: Union[int, enum.Enum]) -> int:
     """
     if isinstance(val, enum.Enum):
         return val.value
+    elif isinstance(val, sip.simplewrapper):
+        return int(val)  # type: ignore[call-overload]
     return int(val)

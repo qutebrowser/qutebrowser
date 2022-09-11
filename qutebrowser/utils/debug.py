@@ -104,7 +104,7 @@ _EnumValueType = Union[sip.simplewrapper, int]
 
 def _qenum_key_python(
     value: _EnumValueType,
-    klass: Type[_EnumValueType] = None,
+    klass: Type[_EnumValueType],
 ) -> Optional[str]:
     """New-style PyQt6: Try getting value from Python enum."""
     if isinstance(value, enum.Enum) and value.name:
@@ -113,6 +113,7 @@ def _qenum_key_python(
     # We got an int with klass passed: Try asking Python enum for member
     if issubclass(klass, enum.Enum):
         try:
+            assert isinstance(value, int)
             name = klass(value).name
             if name is not None and name != str(value):
                 return name
@@ -125,7 +126,7 @@ def _qenum_key_python(
 def _qenum_key_qt(
     base: Type[_EnumValueType],
     value: _EnumValueType,
-    klass: Type[_EnumValueType] = None,
+    klass: Type[_EnumValueType],
 ) -> Optional[str]:
     # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
     # However, not every Qt enum value has a staticMetaObject
@@ -168,6 +169,7 @@ def qenum_key(
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+    assert klass is not None
 
     name = _qenum_key_python(value=value, klass=klass)
     if name is not None:
