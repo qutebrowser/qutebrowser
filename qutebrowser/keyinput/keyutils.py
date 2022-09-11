@@ -35,12 +35,13 @@ import itertools
 import dataclasses
 from typing import Iterator, List, Mapping, Optional, Union, overload, cast
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
-try:
+if machinery.IS_QT6:
     from qutebrowser.qt.core import QKeyCombination
-except ImportError:
-    QKeyCombination = None  # Qt 6 only
+else:
+    QKeyCombination = None
 
 from qutebrowser.utils import utils, qtutils, debug
 
@@ -72,6 +73,10 @@ except ValueError:
     _NIL_KEY = 0  # type: ignore[assignment]
 
 _ModifierType = Qt.KeyboardModifier
+if machinery.IS_QT6:
+    _KeyInfoType = QKeyCombination
+else:
+    _KeyInfoType = int
 
 
 _SPECIAL_NAMES = {
@@ -380,9 +385,10 @@ class KeyInfo:
         return cls(key, modifiers)
 
     @classmethod
-    def from_qt(cls, combination: Union[int, QKeyCombination]) -> 'KeyInfo':
+    def from_qt(cls, combination: _KeyInfoType) -> 'KeyInfo':
         """Construct a KeyInfo from a Qt5-style int or Qt6-style QKeyCombination."""
-        if isinstance(combination, int):
+        if machinery.IS_QT5:
+            assert isinstance(combination, int)
             key = Qt.Key(
                 int(combination) & ~Qt.KeyboardModifier.KeyboardModifierMask)
             modifiers = Qt.KeyboardModifier(
@@ -461,22 +467,21 @@ class KeyInfo:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
-    def to_qt(self) -> Union[int, QKeyCombination]:
+    def to_qt(self) -> _KeyInfoType:
         """Get something suitable for a QKeySequence."""
-        if QKeyCombination is None:
-            # Qt 5
+        if machinery.IS_QT5:
             return int(self.key) | int(self.modifiers)
+        else:
+            try:
+                # FIXME:qt6 We might want to consider only supporting KeyInfo to be
+                # instanciated with a real Qt.Key, not with ints. See __post_init__.
+                key = Qt.Key(self.key)
+            except ValueError as e:
+                # WORKAROUND for
+                # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+                raise InvalidKeyError(e)
 
-        try:
-            # FIXME:qt6 We might want to consider only supporting KeyInfo to be
-            # instanciated with a real Qt.Key, not with ints. See __post_init__.
-            key = Qt.Key(self.key)
-        except ValueError as e:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-            raise InvalidKeyError(e)
-
-        return QKeyCombination(self.modifiers, key)
+            return QKeyCombination(self.modifiers, key)
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
         mods = self.modifiers & ~modifiers
