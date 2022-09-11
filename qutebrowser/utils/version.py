@@ -1029,7 +1029,6 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
             else:
                 # Qt 6
                 # FIXME:qt6 (lint)
-                # pylint: disable-next=no-name-in-module
                 from qutebrowser.qt.opengl import QOpenGLVersionFunctionsFactory
                 vf = QOpenGLVersionFunctionsFactory.get(vp, ctx)
         except ImportError as e:

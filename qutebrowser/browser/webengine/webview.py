@@ -196,7 +196,9 @@ class WebEnginePage(QWebEnginePage):
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
         if machinery.IS_QT6:
-            self.certificateError.connect(self._handle_certificate_error)
+            self.certificateError.connect(  # pylint: disable=no-member
+                self._handle_certificate_error
+            )
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):

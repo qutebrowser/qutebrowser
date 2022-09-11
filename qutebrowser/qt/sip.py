@@ -28,4 +28,4 @@ else:
     raise machinery.UnknownWrapper()
 
 if not VENDORED_SIP:
-    from sip import *  # type: ignore[import]
+    from sip import *  # type: ignore[import]  # pylint: disable=import-error
