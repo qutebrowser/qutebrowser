@@ -19,6 +19,7 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.webenginewidgets import QWebEngineView
 from qutebrowser.qt.webenginecore import QWebEnginePage
 from qutebrowser.qt.widgets import QWidget
@@ -48,12 +49,11 @@ class WebEngineInspectorView(QWebEngineView):
         See WebEngineView.createWindow for details.
         """
         inspected_page = self.page().inspectedPage()
-        try:
-            # Qt 5
+        if machinery.IS_QT5:
             view = inspected_page.view()
             assert isinstance(view, QWebEngineView), view
             return view.createWindow(wintype)
-        except AttributeError:
+        else:
             # Qt 6
             newpage = inspected_page.createWindow(wintype)
             return webview.WebEngineView.forPage(newpage)
