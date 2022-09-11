@@ -547,7 +547,10 @@ class KeySequence:
 
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
-        for combination in itertools.chain.from_iterable(self._sequences):
+        combination: QKeySequence
+        for combination in itertools.chain.from_iterable(
+            self._sequences  # type: ignore[arg-type]
+        ):
             yield KeyInfo.from_qt(combination)
 
     def __repr__(self) -> str:
@@ -719,7 +722,7 @@ class KeySequence:
             mappings: Mapping['KeySequence', 'KeySequence']
     ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
-        infos = []
+        infos: List[KeyInfo] = []
         for info in self:
             key_seq = KeySequence(info)
             if key_seq in mappings:
