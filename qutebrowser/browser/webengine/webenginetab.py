@@ -1696,6 +1696,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self.search.connect_signals()
+        assert isinstance(self.printing, WebEnginePrinting)
         self.printing.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
