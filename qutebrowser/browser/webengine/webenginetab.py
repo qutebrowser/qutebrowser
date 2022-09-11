@@ -40,7 +40,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
 
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version)
-from qutebrowser.qt import sip
+from qutebrowser.qt import sip, machinery
 from qutebrowser.misc import objects, miscwidgets
 
 
@@ -85,12 +85,8 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
         """Called from WebEngineTab.connect_signals."""
         page = self._widget.page()
         page.pdfPrintingFinished.connect(self.pdf_printing_finished)
-        try:
-            # Qt 6
+        if machinery.IS_QT6:
             self._widget.printFinished.connect(self.printing_finished)
-        except AttributeError:
-            # Qt 5: Uses callbacks instead
-            pass
 
     def check_pdf_support(self):
         pass
@@ -103,10 +99,9 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
         self._widget.page().printToPdf(filename)
 
     def to_printer(self, printer):
-        try:
-            # Qt 5
+        if machinery.IS_QT5:
             self._widget.page().print(printer, self.printing_finished.emit)
-        except AttributeError:
+        else:
             # Qt 6
             self._widget.print(printer)
 
