@@ -68,11 +68,11 @@ _MODIFIER_MAP = {
 }
 
 try:
-    _NIL_KEY = Qt.Key(0)
+    _NIL_KEY: Union[Qt.Key, int] = Qt.Key(0)
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-    _NIL_KEY = 0  # type: ignore[assignment]
+    _NIL_KEY = 0
 
 _ModifierType = Qt.KeyboardModifier
 if machinery.IS_QT6:
