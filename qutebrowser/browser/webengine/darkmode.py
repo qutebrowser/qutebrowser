@@ -296,7 +296,8 @@ _DEFINITIONS[Variant.qt_63] = _DEFINITIONS[Variant.qt_515_3].copy_add_setting(
 )
 
 
-_PREFERRED_COLOR_SCHEME_DEFINITIONS: Mapping[Variant, Mapping[Any, str]] = {
+_SettingValType = Union[str, usertypes.Unset]
+_PREFERRED_COLOR_SCHEME_DEFINITIONS: Mapping[Variant, Mapping[_SettingValType, str]] = {
     Variant.qt_515_2: {
         # 0: no-preference (not exposed)
         "dark": "1",
