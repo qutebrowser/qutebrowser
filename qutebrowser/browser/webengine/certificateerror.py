@@ -32,23 +32,36 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a QWebEngineCertificateError.
 
-    Base code shared between Qt 5 and 6 implementations.
+    Support both Qt 5 and 6.
     """
 
     def __init__(self, error: QWebEngineCertificateError) -> None:
         super().__init__()
         self._error = error
         self.ignore = False
-        self._validate()
-
-    def _validate(self) -> None:
-        raise NotImplementedError
 
     def __str__(self) -> str:
-        raise NotImplementedError
+        if machinery.IS_QT5:
+            return self._error.errorDescription()
+        else:
+            return self._error.description()
 
     def _type(self) -> Any:  # QWebEngineCertificateError.Type or .Error
-        raise NotImplementedError
+        if machinery.IS_QT5:
+            return self._error.error()
+        else:
+            return self._error.type()
+
+    def reject_certificate(self) -> None:
+        super().reject_certificate()
+        self._error.rejectCertificate()
+
+    def accept_certificate(self) -> None:
+        super().accept_certificate()
+        if machinery.IS_QT5:
+            self._error.ignoreCertificateError()
+        else:
+            self._error.acceptCertificate()
 
     def __repr__(self) -> str:
         return utils.get_repr(
@@ -68,54 +81,6 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         raise usertypes.UndeferrableError("PyQt bug")
 
 
-class CertificateErrorWrapperQt5(CertificateErrorWrapper):
-
-    """QWebEngineCertificateError handling for Qt 5 API."""
-
-    def _validate(self) -> None:
-        assert machinery.IS_QT5
-
-    def __str__(self) -> str:
-        return self._error.errorDescription()
-
-    def _type(self) -> Any:
-        return self._error.error()
-
-    def reject_certificate(self) -> None:
-        super().reject_certificate()
-        self._error.rejectCertificate()
-
-    def accept_certificate(self) -> None:
-        super().accept_certificate()
-        self._error.ignoreCertificateError()
-
-
-class CertificateErrorWrapperQt6(CertificateErrorWrapper):
-
-    """QWebEngineCertificateError handling for Qt 6 API."""
-
-    def _validate(self) -> None:
-        assert machinery.IS_QT6
-
-    def __str__(self) -> str:
-        return self._error.description()
-
-    def _type(self) -> Any:
-        return self._error.type()
-
-    def reject_certificate(self) -> None:
-        super().reject_certificate()
-        self._error.rejectCertificate()
-
-    def accept_certificate(self) -> None:
-        super().accept_certificate()
-        self._error.acceptCertificate()
-
-
 def create(error: QWebEngineCertificateError) -> CertificateErrorWrapper:
     """Factory function picking the right class based on Qt version."""
-    if machinery.IS_QT5:
-        return CertificateErrorWrapperQt5(error)
-    elif machinery.IS_QT6:
-        return CertificateErrorWrapperQt6(error)
-    raise utils.Unreachable
+    return CertificateErrorWrapper(error)

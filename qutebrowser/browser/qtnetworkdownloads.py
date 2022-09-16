@@ -177,7 +177,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     @pyqtSlot(QUrl)
     def _on_redirected(self, url):
-        log.downloads.debug(f"redirected: {self._reply.url()} -> {url}")
+        if self._reply is None:
+            log.downloads.warning(f"redirected: REPLY GONE -> {url}")
+        else:
+            log.downloads.debug(f"redirected: {self._reply.url()} -> {url}")
 
     def _do_cancel(self):
         self._read_timer.stop()

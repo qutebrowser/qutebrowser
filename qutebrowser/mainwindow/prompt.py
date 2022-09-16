@@ -197,7 +197,7 @@ class PromptQueue(QObject):
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec() for {}".format(question))
             flags = QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
-            loop.exec(flags)
+            loop.exec(flags)  # type: ignore[arg-type]
             log.prompt.debug("Ending loop.exec() for {}".format(question))
 
             log.prompt.debug("Restoring old question {}".format(old_question))

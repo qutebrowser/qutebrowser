@@ -19,6 +19,9 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
+from typing import Optional
+
+from qutebrowser.qt import machinery
 from qutebrowser.qt.webenginewidgets import QWebEngineView
 from qutebrowser.qt.webenginecore import QWebEnginePage
 from qutebrowser.qt.widgets import QWidget
@@ -48,12 +51,11 @@ class WebEngineInspectorView(QWebEngineView):
         See WebEngineView.createWindow for details.
         """
         inspected_page = self.page().inspectedPage()
-        try:
-            # Qt 5
+        if machinery.IS_QT5:
             view = inspected_page.view()
             assert isinstance(view, QWebEngineView), view
             return view.createWindow(wintype)
-        except AttributeError:
+        else:
             # Qt 6
             newpage = inspected_page.createWindow(wintype)
             return webview.WebEngineView.forPage(newpage)
@@ -70,7 +72,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                  parent: QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
-        self._settings = None
+        self._settings: Optional[webenginesettings.WebEngineSettings] = None
 
     def _on_window_close_requested(self) -> None:
         """Called when the 'x' was clicked in the devtools."""
@@ -115,6 +117,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         assert inspector_page.profile() == page.profile()
 
         inspector_page.setInspectedPage(page)
+        assert self._settings is not None
         self._settings.update_for_url(inspector_page.requestedUrl())
 
     def _needs_recreate(self) -> bool:

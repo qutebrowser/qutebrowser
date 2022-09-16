@@ -236,12 +236,12 @@ class AbstractPrinting(QObject):
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._tab = tab
-        self._dialog: QPrintDialog = None
+        self._dialog: Optional[QPrintDialog] = None
         self.printing_finished.connect(self._on_printing_finished)
         self.pdf_printing_finished.connect(self._on_pdf_printing_finished)
 
     @pyqtSlot(bool)
-    def _on_printing_finished(self, ok):
+    def _on_printing_finished(self, ok: bool) -> None:
         # Only reporting error here, as the user has feedback from the dialog
         # (and probably their printer) already.
         if not ok:
@@ -251,7 +251,7 @@ class AbstractPrinting(QObject):
             self._dialog = None
 
     @pyqtSlot(str, bool)
-    def _on_pdf_printing_finished(self, path, ok):
+    def _on_pdf_printing_finished(self, path: str, ok: bool) -> None:
         if ok:
             message.info(f"Printed to {path}")
         else:
@@ -277,7 +277,7 @@ class AbstractPrinting(QObject):
         """Print the tab to a PDF with the given filename."""
         raise NotImplementedError
 
-    def to_printer(self, printer: QPrinter):
+    def to_printer(self, printer: QPrinter) -> None:
         """Print the tab.
 
         Args:
@@ -288,7 +288,9 @@ class AbstractPrinting(QObject):
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
         self._dialog = QPrintDialog(self._tab)
-        self._dialog.open(lambda: self.to_printer(self._dialog.printer()))
+        assert self._dialog is not None
+        not_none_dialog = self._dialog
+        self._dialog.open(lambda: self.to_printer(not_none_dialog.printer()))
         # Gets cleaned up in on_printing_finished
 
 
@@ -1320,7 +1322,8 @@ class AbstractTab(QWidget):
     def __repr__(self) -> str:
         try:
             qurl = self.url()
-            url = qurl.toDisplayString(QUrl.ComponentFormattingOption.EncodeUnicode)
+            as_unicode = QUrl.ComponentFormattingOption.EncodeUnicode
+            url = qurl.toDisplayString(as_unicode)  # type: ignore[arg-type]
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

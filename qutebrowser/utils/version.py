@@ -785,18 +785,19 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     if override is not None:
         return WebEngineVersions.from_pyqt(override, source='override')
 
-    try:
-        from qutebrowser.qt.webenginecore import (
-            qWebEngineVersion,
-            qWebEngineChromiumVersion,
-        )
-    except ImportError:
-        pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
-    else:
-        return WebEngineVersions.from_api(
-            qtwe_version=qWebEngineVersion(),
-            chromium_version=qWebEngineChromiumVersion(),
-        )
+    if machinery.IS_QT6:
+        try:
+            from qutebrowser.qt.webenginecore import (
+                qWebEngineVersion,
+                qWebEngineChromiumVersion,
+            )
+        except ImportError:
+            pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
+        else:
+            return WebEngineVersions.from_api(
+                qtwe_version=qWebEngineVersion(),
+                chromium_version=qWebEngineChromiumVersion(),
+            )
 
     from qutebrowser.browser.webengine import webenginesettings
 
@@ -1023,13 +1024,11 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vp.setVersion(2, 0)
 
         try:
-            try:
-                # Qt 5
+            if machinery.IS_QT5:
                 vf = ctx.versionFunctions(vp)
-            except AttributeError:
+            else:
                 # Qt 6
                 # FIXME:qt6 (lint)
-                # pylint: disable-next=no-name-in-module
                 from qutebrowser.qt.opengl import QOpenGLVersionFunctionsFactory
                 vf = QOpenGLVersionFunctionsFactory.get(vp, ctx)
         except ImportError as e:

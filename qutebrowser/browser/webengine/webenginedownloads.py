@@ -23,6 +23,7 @@ import re
 import os.path
 import functools
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QObject
 from qutebrowser.qt.webenginecore import QWebEngineDownloadRequest
 
@@ -44,10 +45,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  parent: QObject = None) -> None:
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
-        try:
-            # Qt 5
+        if machinery.IS_QT5:
             qt_item.downloadProgress.connect(self.stats.on_download_progress)
-        except AttributeError:
+        else:
             # Qt 6
             qt_item.receivedBytesChanged.connect(
                 lambda: self.stats.on_download_progress(
@@ -106,10 +106,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        try:
-            # Qt 5
+        if machinery.IS_QT5:
             self._qt_item.downloadProgress.disconnect()
-        except AttributeError:
+        else:
             # Qt 6
             self._qt_item.receivedBytesChanged.disconnect()
             self._qt_item.totalBytesChanged.disconnect()

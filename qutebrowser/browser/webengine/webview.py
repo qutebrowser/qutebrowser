@@ -195,11 +195,10 @@ class WebEnginePage(QWebEnginePage):
         self._theme_color = theme_color
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
-        try:
-            self.certificateError.connect(self._handle_certificate_error)
-        except AttributeError:
-            # Qt 5: Overridden method instead of signal
-            pass
+        if machinery.IS_QT6:
+            self.certificateError.connect(  # pylint: disable=no-member
+                self._handle_certificate_error
+            )
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):

@@ -33,14 +33,17 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Iterator, List, Mapping, Optional, Union, overload
+from typing import Iterator, List, Mapping, Optional, Union, overload, cast
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
-try:
-    from qutebrowser.qt.core import QKeyCombination
-except ImportError:
-    QKeyCombination = None  # Qt 6 only
+if machinery.IS_QT6:
+    # FIXME:qt6 (lint) how come pylint isn't picking this up with both backends
+    # installed?
+    from qutebrowser.qt.core import QKeyCombination  # pylint: disable=no-name-in-module
+else:
+    QKeyCombination = None
 
 from qutebrowser.utils import utils, qtutils, debug
 
@@ -69,9 +72,13 @@ try:
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-    _NIL_KEY = 0
+    _NIL_KEY = 0  # type: ignore[assignment]
 
 _ModifierType = Qt.KeyboardModifier
+if machinery.IS_QT6:
+    _KeyInfoType = QKeyCombination
+else:
+    _KeyInfoType = int
 
 
 _SPECIAL_NAMES = {
@@ -252,7 +259,7 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     _assert_plain_modifier(modifiers)
     altgr = Qt.KeyboardModifier.GroupSwitchModifier
     if modifiers & altgr:
-        modifiers &= ~altgr
+        modifiers &= ~altgr  # type: ignore[assignment]
         result = 'AltGr+'
     else:
         result = ''
@@ -376,13 +383,14 @@ class KeyInfo:
         except ValueError as ex:
             raise InvalidKeyError(str(ex))
         key = _remap_unicode(key, e.text())
-        modifiers = e.modifiers()
+        modifiers = cast(Qt.KeyboardModifier, e.modifiers())
         return cls(key, modifiers)
 
     @classmethod
-    def from_qt(cls, combination: Union[int, QKeyCombination]) -> 'KeyInfo':
+    def from_qt(cls, combination: _KeyInfoType) -> 'KeyInfo':
         """Construct a KeyInfo from a Qt5-style int or Qt6-style QKeyCombination."""
-        if isinstance(combination, int):
+        if machinery.IS_QT5:
+            assert isinstance(combination, int)
             key = Qt.Key(
                 int(combination) & ~Qt.KeyboardModifier.KeyboardModifierMask)
             modifiers = Qt.KeyboardModifier(
@@ -411,7 +419,7 @@ class KeyInfo:
 
         if self.key in _MODIFIER_MAP:
             # Don't return e.g. <Shift+Shift>
-            modifiers &= ~_MODIFIER_MAP[self.key]
+            modifiers &= ~_MODIFIER_MAP[self.key]  # type: ignore[assignment]
         elif _is_printable(self.key):
             # "normal" binding
             if not key_string:  # pragma: no cover
@@ -461,25 +469,25 @@ class KeyInfo:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
-    def to_qt(self) -> Union[int, QKeyCombination]:
+    def to_qt(self) -> _KeyInfoType:
         """Get something suitable for a QKeySequence."""
-        if QKeyCombination is None:
-            # Qt 5
+        if machinery.IS_QT5:
             return int(self.key) | int(self.modifiers)
+        else:
+            try:
+                # FIXME:qt6 We might want to consider only supporting KeyInfo to be
+                # instanciated with a real Qt.Key, not with ints. See __post_init__.
+                key = Qt.Key(self.key)
+            except ValueError as e:
+                # WORKAROUND for
+                # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+                raise InvalidKeyError(e)
 
-        try:
-            # FIXME:qt6 We might want to consider only supporting KeyInfo to be
-            # instanciated with a real Qt.Key, not with ints. See __post_init__.
-            key = Qt.Key(self.key)
-        except ValueError as e:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-            raise InvalidKeyError(e)
-
-        return QKeyCombination(self.modifiers, key)
+            return QKeyCombination(self.modifiers, key)
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
-        return KeyInfo(key=self.key, modifiers=self.modifiers & ~modifiers)
+        mods = self.modifiers & ~modifiers
+        return KeyInfo(key=self.key, modifiers=mods)  # type: ignore[arg-type]
 
     def is_special(self) -> bool:
         """Check whether this key requires special key syntax."""
@@ -541,7 +549,10 @@ class KeySequence:
 
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
-        for combination in itertools.chain.from_iterable(self._sequences):
+        combination: QKeySequence
+        for combination in itertools.chain.from_iterable(
+            self._sequences  # type: ignore[arg-type]
+        ):
             yield KeyInfo.from_qt(combination)
 
     def __repr__(self) -> str:
@@ -648,7 +659,7 @@ class KeySequence:
             raise KeyParseError(None, f"Got invalid key: {e}")
 
         _assert_plain_key(key)
-        _assert_plain_modifier(ev.modifiers())
+        _assert_plain_modifier(cast(Qt.KeyboardModifier, ev.modifiers()))
 
         key = _remap_unicode(key, ev.text())
         modifiers = ev.modifiers()
@@ -675,10 +686,11 @@ class KeySequence:
         #
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
-        if (modifiers == Qt.KeyboardModifier.ShiftModifier and
+        shift_modifier = Qt.KeyboardModifier.ShiftModifier
+        if (modifiers == shift_modifier and  # type: ignore[comparison-overlap]
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifier.NoModifier
+            modifiers = Qt.KeyboardModifier.NoModifier  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         #
@@ -697,7 +709,7 @@ class KeySequence:
                 modifiers |= Qt.KeyboardModifier.ControlModifier
 
         infos = list(self)
-        infos.append(KeyInfo(key, modifiers))
+        infos.append(KeyInfo(key, cast(Qt.KeyboardModifier, modifiers)))
 
         return self.__class__(*infos)
 
@@ -712,7 +724,7 @@ class KeySequence:
             mappings: Mapping['KeySequence', 'KeySequence']
     ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
-        infos = []
+        infos: List[KeyInfo] = []
         for info in self:
             key_seq = KeySequence(info)
             if key_seq in mappings:
