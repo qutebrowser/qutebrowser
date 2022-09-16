@@ -33,7 +33,7 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Iterator, List, Mapping, Optional, Union, overload, cast
+from typing import Iterator, Iterable, List, Mapping, Optional, Union, overload, cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent
@@ -549,10 +549,10 @@ class KeySequence:
 
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
-        combination: QKeySequence
-        for combination in itertools.chain.from_iterable(
-            self._sequences  # type: ignore[arg-type]
-        ):
+        # FIXME:mypy Stubs seem to be unaware that iterating a QKeySequence produces
+        # _KeyInfoType
+        sequences = cast(List[Iterable[_KeyInfoType]], self._sequences)
+        for combination in itertools.chain.from_iterable(sequences):
             yield KeyInfo.from_qt(combination)
 
     def __repr__(self) -> str:
