@@ -214,7 +214,7 @@ class WebEnginePage(QWebEnginePage):
     @pyqtSlot(QWebEngineCertificateError)
     def _handle_certificate_error(self, qt_error):
         """Handle certificate errors coming from Qt."""
-        error = certificateerror.create(qt_error)
+        error = certificateerror.CertificateErrorWrapper(qt_error)
         self.certificate_error.emit(error)
         # Right now, we never defer accepting, due to a PyQt bug
         return error.certificate_was_accepted()

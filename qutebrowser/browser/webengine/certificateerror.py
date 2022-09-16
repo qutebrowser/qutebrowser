@@ -79,8 +79,3 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044585.html
         # (PyQt 5.15.6, 6.2.3, 6.3.0)
         raise usertypes.UndeferrableError("PyQt bug")
-
-
-def create(error: QWebEngineCertificateError) -> CertificateErrorWrapper:
-    """Factory function picking the right class based on Qt version."""
-    return CertificateErrorWrapper(error)
