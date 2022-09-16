@@ -689,8 +689,7 @@ def _as_uint32(x: int) -> QVariant:
 
     if machinery.IS_QT5:
         target_type = QVariant.Type.UInt
-    else:
-        # Qt 6
+    else:  # Qt 6
         target_type = QMetaType(QMetaType.Type.UInt.value)
 
     successful = variant.convert(target_type)

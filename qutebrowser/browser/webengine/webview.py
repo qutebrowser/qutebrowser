@@ -199,6 +199,7 @@ class WebEnginePage(QWebEnginePage):
             self.certificateError.connect(  # pylint: disable=no-member
                 self._handle_certificate_error
             )
+            # Qt 5: Overridden method instead of signal
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):

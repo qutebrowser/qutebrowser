@@ -87,6 +87,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
         page.pdfPrintingFinished.connect(self.pdf_printing_finished)
         if machinery.IS_QT6:
             self._widget.printFinished.connect(self.printing_finished)
+            # Qt 5 uses callbacks instead
 
     def check_pdf_support(self):
         pass
@@ -101,8 +102,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     def to_printer(self, printer):
         if machinery.IS_QT5:
             self._widget.page().print(printer, self.printing_finished.emit)
-        else:
-            # Qt 6
+        else:  # Qt 6
             self._widget.print(printer)
 
 
@@ -1066,8 +1066,7 @@ class _WebEngineScripts(QObject):
         if machinery.IS_QT6:
             for script in scripts.find(f'_qute_{name}'):
                 scripts.remove(script)
-        else:
-            # Qt 5
+        else:  # Qt 5
             script = scripts.findScript(f'_qute_{name}')
             if not script.isNull():
                 scripts.remove(script)

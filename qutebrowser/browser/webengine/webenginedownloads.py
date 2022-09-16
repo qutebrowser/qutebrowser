@@ -47,8 +47,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._qt_item = qt_item
         if machinery.IS_QT5:
             qt_item.downloadProgress.connect(self.stats.on_download_progress)
-        else:
-            # Qt 6
+        else:  # Qt 6
             qt_item.receivedBytesChanged.connect(
                 lambda: self.stats.on_download_progress(
                     qt_item.receivedBytes(),
@@ -108,10 +107,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _do_die(self):
         if machinery.IS_QT5:
             self._qt_item.downloadProgress.disconnect()
-        else:
-            # Qt 6
+        else:  # Qt 6
             self._qt_item.receivedBytesChanged.disconnect()
             self._qt_item.totalBytesChanged.disconnect()
+
         if self._qt_item.state() != QWebEngineDownloadRequest.DownloadState.DownloadInterrupted:
             self._qt_item.cancel()
 

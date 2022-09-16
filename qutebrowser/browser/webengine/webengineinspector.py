@@ -55,8 +55,7 @@ class WebEngineInspectorView(QWebEngineView):
             view = inspected_page.view()
             assert isinstance(view, QWebEngineView), view
             return view.createWindow(wintype)
-        else:
-            # Qt 6
+        else:  # Qt 6
             newpage = inspected_page.createWindow(wintype)
             return webview.WebEngineView.forPage(newpage)
 
@@ -115,8 +114,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
         inspector_page = self._widget.page()
         assert inspector_page.profile() == page.profile()
-
         inspector_page.setInspectedPage(page)
+
         assert self._settings is not None
         self._settings.update_for_url(inspector_page.requestedUrl())
 

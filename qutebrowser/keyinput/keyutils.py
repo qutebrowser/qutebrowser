@@ -43,7 +43,7 @@ if machinery.IS_QT6:
     # installed?
     from qutebrowser.qt.core import QKeyCombination  # pylint: disable=no-name-in-module
 else:
-    QKeyCombination = None
+    QKeyCombination = None  # QKeyCombination was added in Qt 6
 
 from qutebrowser.utils import utils, qtutils, debug
 
