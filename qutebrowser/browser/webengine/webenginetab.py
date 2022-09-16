@@ -1271,6 +1271,7 @@ class WebEngineTab(browsertab.AbstractTab):
     _widget: QWebEngineView
     search: WebEngineSearch
     audio: WebEngineAudio
+    printing: WebEnginePrinting
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,
@@ -1695,7 +1696,6 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self.search.connect_signals()
-        assert isinstance(self.printing, WebEnginePrinting)
         self.printing.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
