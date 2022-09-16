@@ -287,10 +287,8 @@ class AbstractPrinting(QObject):
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        self._dialog = QPrintDialog(self._tab)
-        assert self._dialog is not None
-        not_none_dialog = self._dialog
-        self._dialog.open(lambda: self.to_printer(not_none_dialog.printer()))
+        self._dialog = dialog = QPrintDialog(self._tab)
+        self._dialog.open(lambda: self.to_printer(dialog.printer()))
         # Gets cleaned up in on_printing_finished
 
 
