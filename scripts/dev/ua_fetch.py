@@ -42,6 +42,7 @@ def wrap(ini, sub, string):
     return textwrap.wrap(string, width=80, initial_indent=ini, subsequent_indent=sub)
 
 
+# pylint: disable-next=missing-timeout
 response = requests.get('https://raw.githubusercontent.com/Kikobeats/top-user-agents/master/index.json')
 
 if response.status_code != 200:
