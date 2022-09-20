@@ -20,48 +20,51 @@
 """The progress bar in the statusbar."""
 
 from PyQt5.QtCore import pyqtSlot, QSize
-from PyQt5.QtWidgets import QProgressBar, QSizePolicy
+from PyQt5.QtWidgets import QLabel, QSizePolicy
 
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
 
 
-class Progress(QProgressBar):
+class Progress(QLabel):
 
-    """The progress bar part of the status bar."""
+    """The ascii progress bar part of the status bar."""
 
     STYLESHEET = """
-        QProgressBar {
-            border-radius: 0px;
-            border: 2px solid transparent;
-            background-color: transparent;
+        QLabel {
             font: {{ conf.fonts.statusbar }};
-        }
-
-        QProgressBar::chunk {
-            background-color: {{ conf.colors.statusbar.progress.bg }};
         }
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         stylesheet.set_register(self)
-        self.enabled = False
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.setTextVisible(False)
+        self.enabled = False
+        self.chunks = 10
+        self.value = 0
+
+        self.update_bar(self.value)
         self.hide()
 
     def __repr__(self):
-        return utils.get_repr(self, value=self.value())
+        return utils.get_repr(self, value=self.value)
+
+    def update_bar(self, val: int) -> None:
+        """Update the value of the progress bar."""
+        self.value = val
+        c = self.value//self.chunks
+        bar = f"{'=' * (c - 1)}{'>' * (c > 0)}{' '*(self.chunks - c)}"
+        self.setText(f"[{bar}]")
 
     @pyqtSlot()
     def on_load_started(self):
         """Reset the value, and show the bar if enabled. Used as slot to loadStarted."""
-        self.setValue(0)
+        self.update_bar(0)
         self.setVisible(self.enabled)
 
     @pyqtSlot(int)
-    def on_load_progress(self, value):
+    def on_load_progress(self, value: int):
         """Hide the statusbar when loading finished.
 
         We use this instead of loadFinished because we sometimes get
@@ -69,13 +72,13 @@ class Progress(QProgressBar):
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         """
-        self.setValue(value)
+        self.update_bar(value)
         if value == 100:
             self.hide()
 
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
-        self.setValue(tab.progress())
+        self.update_bar(tab.progress())
         if self.enabled and tab.load_status() == usertypes.LoadStatus.loading:
             self.show()
         else:

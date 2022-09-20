@@ -29,9 +29,10 @@ from qutebrowser.browser import browsertab
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
-                                              keystring, percentage, url,
-                                              tabindex, textbase, clock, searchmatch)
+from qutebrowser.mainwindow.statusbar import (backforward, command, progress, 
+                                              progress_ascii, keystring, percentage,
+                                              url, tabindex, textbase, clock,
+                                              searchmatch)
 
 
 @dataclasses.dataclass
@@ -142,6 +143,7 @@ class StatusBar(QWidget):
         percentage: The Percentage widget in the statusbar.
         url: The UrlText widget in the statusbar.
         prog: The Progress widget in the statusbar.
+        prog_ascii: The ASCII Progress widget in the statusbar.
         cmd: The Command widget in the statusbar.
         search_match: The SearchMatch widget in the statusbar.
         _hbox: The main QHBoxLayout.
@@ -202,6 +204,7 @@ class StatusBar(QWidget):
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
+        self.prog_ascii = progress_ascii.Progress(self)
         self.clock = clock.Clock()
         self._text_widgets = []
         self._draw_widgets()
@@ -228,6 +231,8 @@ class StatusBar(QWidget):
             return self.keystring
         elif key == 'progress':
             return self.prog
+        elif key == 'progress_ascii':
+            return self.prog_ascii
         elif key == 'search_match':
             return self.search_match
         elif key.startswith('text:'):
@@ -261,7 +266,7 @@ class StatusBar(QWidget):
 
             if segment == 'scroll_raw':
                 widget.set_raw()
-            elif segment in ('history', 'progress'):
+            elif segment in ('history', 'progress','progress_ascii'):
                 widget.enabled = True
                 if tab:
                     widget.on_tab_changed(tab)
@@ -285,7 +290,8 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog, self.clock, *self._text_widgets]:
+                       self.keystring, self.prog, self.prog_ascii, 
+                       self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
             widget.hide()
             self._hbox.removeWidget(widget)
@@ -427,6 +433,7 @@ class StatusBar(QWidget):
         """Notify sub-widgets when the tab has been changed."""
         self.url.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
+        self.prog_ascii.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()

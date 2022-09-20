@@ -2121,13 +2121,15 @@ statusbar.widgets:
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
+        - progress_ascii: "ASCII Progress bar for the current page loading."
         - 'text:foo': "Display the static text after the colon, `foo` in the example."
         - clock: "Display current time. The format can be changed by adding a
          format string via `clock:...`. For supported format strings, see
          https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the
          Python datetime documentation]."
     none_ok: true
-  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
+  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs',
+            'progress', 'progress_ascii']
   desc: "List of widgets displayed in the statusbar."
 
 ## tabs
