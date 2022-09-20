@@ -522,6 +522,12 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_load_started.connect(
             self.status.prog.on_load_started)
 
+
+        self.tabbed_browser.cur_progress.connect(
+            self.status.prog_ascii.on_load_progress)
+        self.tabbed_browser.cur_load_started.connect(
+            self.status.prog_ascii.on_load_started)
+
         self.tabbed_browser.cur_scroll_perc_changed.connect(
             self.status.percentage.set_perc)
         self.tabbed_browser.widget.tab_index_changed.connect(

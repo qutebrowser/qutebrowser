@@ -43,7 +43,6 @@ class Progress(QLabel):
         self.enabled = False
         self.chunks = 10
         self.value = 0
-
         self.update_bar(self.value)
         self.hide()
 
@@ -52,6 +51,7 @@ class Progress(QLabel):
 
     def update_bar(self, val: int) -> None:
         """Update the value of the progress bar."""
+
         self.value = val
         c = self.value//self.chunks
         bar = f"{'=' * (c - 1)}{'>' * (c > 0)}{' '*(self.chunks - c)}"
