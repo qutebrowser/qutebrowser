@@ -51,7 +51,6 @@ class Progress(QLabel):
 
     def update_bar(self, val: int) -> None:
         """Update the value of the progress bar."""
-
         self.value = val
         c = self.value//self.chunks
         bar = f"{'=' * (c - 1)}{'>' * (c > 0)}{' '*(self.chunks - c)}"
@@ -64,7 +63,7 @@ class Progress(QLabel):
         self.setVisible(self.enabled)
 
     @pyqtSlot(int)
-    def on_load_progress(self, value: int):
+    def on_load_progress(self, value: int) -> None:
         """Hide the statusbar when loading finished.
 
         We use this instead of loadFinished because we sometimes get

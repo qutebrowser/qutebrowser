@@ -29,7 +29,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.mainwindow.statusbar import (backforward, command, progress, 
+from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               progress_ascii, keystring, percentage,
                                               url, tabindex, textbase, clock,
                                               searchmatch)
@@ -266,7 +266,7 @@ class StatusBar(QWidget):
 
             if segment == 'scroll_raw':
                 widget.set_raw()
-            elif segment in ('history', 'progress','progress_ascii'):
+            elif segment in ('history', 'progress', 'progress_ascii'):
                 widget.enabled = True
                 if tab:
                     widget.on_tab_changed(tab)
@@ -290,7 +290,7 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog, self.prog_ascii, 
+                       self.keystring, self.prog, self.prog_ascii,
                        self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
             widget.hide()

@@ -2128,7 +2128,7 @@ statusbar.widgets:
          https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the
          Python datetime documentation]."
     none_ok: true
-  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs','progress']
+  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
 
 ## tabs
