@@ -2,8 +2,13 @@ Jinja2
 PyYAML
 
 ## Only used on macOS to make borderless windows resizable
-pyobjc-core
-pyobjc-framework-Cocoa
+## our recompile_requirements.py can't really deal with
+## platform-specific dependencies unfortunately...
+# pyobjc-core
+# pyobjc-framework-Cocoa
+#@ add: # Unpinned due to recompile_requirements.py limitations
+#@ add: pyobjc-core ; sys_platform=="darwin"  
+#@ add: pyobjc-framework-Cocoa ; sys_platform=="darwin"
 
 ## stdlib backports
 importlib-resources
@@ -20,5 +25,3 @@ typing_extensions  # from importlib-metadata
 #@ markers: importlib-resources python_version=="3.7.*" or python_version=="3.8.*"
 #@ markers: importlib-metadata python_version=="3.7.*"
 #@ markers: typing_extensions python_version<"3.8"
-#@ markers: pyobjc-core sys_platform=="darwin"
-#@ markers: pyobjc-framework-Cocoa sys_platform=="darwin"

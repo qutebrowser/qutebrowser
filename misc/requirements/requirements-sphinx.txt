@@ -2,10 +2,10 @@
 
 alabaster==0.7.12
 Babel==2.10.3
-certifi==2022.6.15
+certifi==2022.9.14
 charset-normalizer==2.1.1
 docutils==0.19
-idna==3.3
+idna==3.4
 imagesize==1.4.1
 importlib-metadata==4.12.0
 Jinja2==3.1.2
@@ -23,5 +23,5 @@ sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
-urllib3==1.26.11
+urllib3==1.26.12
 zipp==3.8.1
