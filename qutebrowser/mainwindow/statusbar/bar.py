@@ -293,6 +293,8 @@ class StatusBar(QWidget):
                        self.keystring, self.prog, self.prog_ascii,
                        self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
+            if widget in [self.prog, self.backforward]:
+                widget.enabled = False  # type: ignore[attr-defined]
             widget.hide()
             self._hbox.removeWidget(widget)
         self._text_widgets.clear()
