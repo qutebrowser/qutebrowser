@@ -175,7 +175,7 @@ requests, in order to avoid privacy leaks when reading mails. The easiest way
 to do so is by specifying a non-existent proxy server, e.g.:
 +
 ----
-qutebrowser --temp-basedir -s content.proxy http://localhost:666 -s content.javascript.enabled false %s
+qutebrowser --temp-basedir -s content.proxy http://localhost:666 -s content.dns_prefetch false -s content.javascript.enabled false %s
 ----
 +
 With Qt 6, using something like:
