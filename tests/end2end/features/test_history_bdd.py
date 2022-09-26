@@ -67,4 +67,5 @@ def check_history(quteproc, server, tmpdir, expected):
 
 @bdd.then("the history should be empty")
 def check_history_empty(quteproc, server, tmpdir):
+    quteproc.wait_for(message='DELETE FROM History', category='sql')
     check_history(quteproc, server, tmpdir, '')
