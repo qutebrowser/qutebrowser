@@ -899,7 +899,8 @@ class TestPDFJSVersion:
     def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
         try:
-            pdfjs.get_pdfjs_res_and_path('build/pdf.js')
+            build_path = pathlib.Path('build/pdf.js')
+            pdfjs.get_pdfjs_res_and_path(build_path)
         except pdfjs.PDFJSNotFound:
             pytest.skip("No pdfjs found")
         ver = version._pdfjs_version()

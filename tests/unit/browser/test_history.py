@@ -101,7 +101,7 @@ class TestGetting:
 
 class TestDelete:
 
-    def test_clear(self, qtbot, tmpdir, web_history, mocker):
+    def test_clear(self, qtbot, tmp_path, web_history, mocker):
         web_history.add_url(QUrl('http://example.com/'))
         web_history.add_url(QUrl('http://www.qutebrowser.org/'))
 
@@ -110,7 +110,7 @@ class TestDelete:
         history.history_clear()
         assert m.called
 
-    def test_clear_force(self, qtbot, tmpdir, web_history):
+    def test_clear_force(self, qtbot, tmp_path, web_history):
         web_history.add_url(QUrl('http://example.com/'))
         web_history.add_url(QUrl('http://www.qutebrowser.org/'))
         history.history_clear(force=True)
@@ -343,7 +343,7 @@ class TestInit:
 
 class TestDump:
 
-    def test_debug_dump_history(self, web_history, tmpdir):
+    def test_debug_dump_history(self, web_history, tmp_path):
         web_history.add_url(QUrl('http://example.com/1'),
                             title="Title1", atime=12345)
         web_history.add_url(QUrl('http://example.com/2'),
@@ -352,16 +352,16 @@ class TestDump:
                             title="Title3", atime=12347)
         web_history.add_url(QUrl('http://example.com/4'),
                             title="Title4", atime=12348, redirect=True)
-        histfile = tmpdir / 'history'
+        histfile = tmp_path / 'history'
         history.debug_dump_history(str(histfile))
         expected = ['12345 http://example.com/1 Title1',
                     '12346 http://example.com/2 Title2',
                     '12347 http://example.com/3 Title3',
                     '12348-r http://example.com/4 Title4']
-        assert histfile.read() == '\n'.join(expected)
+        assert histfile.read_text() == '\n'.join(expected)
 
-    def test_nonexistent(self, web_history, tmpdir):
-        histfile = tmpdir / 'nonexistent' / 'history'
+    def test_nonexistent(self, web_history, tmp_path):
+        histfile = tmp_path / 'nonexistent' / 'history'
         with pytest.raises(cmdutils.CommandError):
             history.debug_dump_history(str(histfile))
 

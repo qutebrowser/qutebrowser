@@ -45,36 +45,36 @@ def test_local_filename_dictionary_does_not_exist(monkeypatch):
     assert not spell.local_filename('en-US')
 
 
-def test_local_filename_dictionary_not_installed(tmpdir, monkeypatch):
+def test_local_filename_dictionary_not_installed(tmp_path, monkeypatch):
     """Tests retrieving local filename when the dict not installed."""
-    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
+    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmp_path))
     assert not spell.local_filename('en-US')
 
 
-def test_local_filename_not_installed_malformed(tmpdir, monkeypatch, caplog):
+def test_local_filename_not_installed_malformed(tmp_path, monkeypatch, caplog):
     """Tests retrieving local filename when the only file is malformed."""
-    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
-    (tmpdir / 'en-US.bdic').ensure()
+    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmp_path))
+    (tmp_path / 'en-US.bdic').touch()
     with caplog.at_level(logging.WARNING):
         assert not spell.local_filename('en-US')
 
 
-def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
+def test_local_filename_dictionary_installed(tmp_path, monkeypatch):
     """Tests retrieving local filename when the dict installed."""
-    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
+    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmp_path))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
-        (tmpdir / lang_file).ensure()
+        (tmp_path / lang_file).touch()
     assert spell.local_filename('en-US') == 'en-US-11-0.bdic'
     assert spell.local_filename('pl-PL') == 'pl-PL-3-0.bdic'
 
 
-def test_local_filename_installed_malformed(tmpdir, monkeypatch, caplog):
+def test_local_filename_installed_malformed(tmp_path, monkeypatch, caplog):
     """Tests retrieving local filename when the dict installed.
 
     In this usecase, another existing file is malformed."""
-    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
+    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmp_path))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'en-US.bdic']:
-        (tmpdir / lang_file).ensure()
+        (tmp_path / lang_file).touch()
     with caplog.at_level(logging.WARNING):
         assert spell.local_filename('en-US') == 'en-US-11-0.bdic'
 

@@ -20,6 +20,7 @@
 
 import json
 import os
+import pathlib
 import time
 import logging
 
@@ -47,8 +48,9 @@ class TestJavascriptHandler:
         """Patch resources.read_file to return few fake JS files."""
         def _read_file(path):
             """Faked resources.read_file."""
+            path = pathlib.Path(path)
             for filename, content in self.js_files:
-                if path == os.path.join('javascript', filename):
+                if path == pathlib.Path('javascript') / filename:
                     return content
             raise OSError("File not found {}!".format(path))
 
@@ -214,7 +216,7 @@ class TestPDFJSHandler:
     @pytest.fixture(autouse=True)
     def fake_pdfjs(self, monkeypatch):
         def get_pdfjs_res(path):
-            if path == '/existing/file.html':
+            if path == pathlib.Path('/existing/file.html'):
                 return b'foobar'
             raise pdfjs.PDFJSNotFound(path)
 
@@ -239,7 +241,8 @@ class TestPDFJSHandler:
                 qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
 
         expected = 'pdfjs resource requested but not found: /no/file.html'
-        assert caplog.messages == [expected]
+        # replace separator for windows
+        assert [caplog.messages[0].replace(os.sep, "/")] == [expected]
 
     def test_viewer_page(self, data_tmpdir):
         """Load the /web/viewer.html page."""

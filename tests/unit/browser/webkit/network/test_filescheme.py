@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
+import pathlib
 import dataclasses
 from typing import List
 
@@ -33,24 +33,26 @@ from helpers import testutils
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [
-    (True, False, os.path.isfile, True),
-    (True, False, os.path.isdir, False),
+    (True, False, pathlib.Path.is_file, True),
+    (True, False, pathlib.Path.is_dir, False),
 
-    (False, True, os.path.isfile, False),
-    (False, True, os.path.isdir, True),
+    (False, True, pathlib.Path.is_file, False),
+    (False, True, pathlib.Path.is_dir, True),
 
-    (False, False, os.path.isfile, False),
-    (False, False, os.path.isdir, False),
+    (False, False, pathlib.Path.is_file, False),
+    (False, False, pathlib.Path.is_dir, False),
 ])
-def test_get_file_list(tmpdir, create_file, create_dir, filterfunc, expected):
+def test_get_file_list(tmp_path, create_file, create_dir, filterfunc, expected):
     """Test get_file_list."""
-    path = tmpdir / 'foo'
-    if create_file or create_dir:
-        path.ensure(dir=create_dir)
+    path = tmp_path / 'foo'
+    if create_file:
+        path.touch()
+    if create_dir:
+        path.mkdir()
 
-    all_files = os.listdir(str(tmpdir))
+    all_files = list(tmp_path.iterdir())
 
-    result = filescheme.get_file_list(str(tmpdir), all_files, filterfunc)
+    result = filescheme.get_file_list(tmp_path, all_files, filterfunc)
     item = {'name': 'foo', 'absname': str(path)}
     assert (item in result) == expected
 
@@ -65,7 +67,7 @@ class TestIsRoot:
         ('C:\\', True)
     ])
     def test_windows(self, directory, is_root):
-        assert filescheme.is_root(directory) == is_root
+        assert filescheme.is_root(pathlib.Path(directory)) == is_root
 
     @pytest.mark.posix
     @pytest.mark.parametrize('directory, is_root', [
@@ -75,37 +77,14 @@ class TestIsRoot:
         ('/', True)
     ])
     def test_posix(self, directory, is_root):
-        assert filescheme.is_root(directory) == is_root
-
-
-class TestParentDir:
-
-    @pytest.mark.windows
-    @pytest.mark.parametrize('directory, parent', [
-        ('C:\\foo\\bar', 'C:\\foo'),
-        ('C:\\foo', 'C:\\'),
-        ('C:\\foo\\', 'C:\\'),
-        ('C:\\', 'C:\\'),
-    ])
-    def test_windows(self, directory, parent):
-        assert filescheme.parent_dir(directory) == parent
-
-    @pytest.mark.posix
-    @pytest.mark.parametrize('directory, parent', [
-        ('/home/foo', '/home'),
-        ('/home', '/'),
-        ('/home/', '/'),
-        ('/', '/'),
-    ])
-    def test_posix(self, directory, parent):
-        assert filescheme.parent_dir(directory) == parent
+        assert filescheme.is_root(pathlib.Path(directory)) == is_root
 
 
 def _file_url(path):
-    """Return a file:// url (as string) for the given LocalPath.
+    """Return a file:// url (as string) for the given pathlib.Path object.
 
     Arguments:
-        path: The filepath as LocalPath (as handled by py.path)
+        path: The filepath as a Pathlib object
     """
     return urlutils.file_url(str(path))
 
@@ -159,7 +138,7 @@ class TestDirbrowserHtml:
         return parse
 
     def test_basic(self):
-        html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
+        html = filescheme.dirbrowser_html(pathlib.Path.cwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
         with testutils.ignore_bs4_warning():
@@ -169,11 +148,11 @@ class TestDirbrowserHtml:
         assert container['id'] == 'dirbrowserContainer'
         title_elem = container('div', id='dirbrowserTitle')[0]
         title_text = title_elem('p', id='dirbrowserTitleText')[0].text
-        assert title_text == 'Browse directory: {}'.format(os.getcwd())
+        assert title_text == 'Browse directory: {}'.format(pathlib.Path.cwd())
 
     def test_icons(self, monkeypatch):
         """Make sure icon paths are correct file:// URLs."""
-        html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
+        html = filescheme.dirbrowser_html(pathlib.Path.cwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
         with testutils.ignore_bs4_warning():
@@ -182,69 +161,73 @@ class TestDirbrowserHtml:
         css = soup.html.head.style.string
         assert "background-image: url('qute://resource/img/folder.svg');" in css
 
-    def test_empty(self, tmpdir, parser):
-        parsed = parser(str(tmpdir))
+    def test_empty(self, tmp_path, parser):
+        parsed = parser(tmp_path)
         assert parsed.parent
         assert not parsed.folders
         assert not parsed.files
 
-    def test_files(self, tmpdir, parser):
-        foo_file = tmpdir / 'foo'
-        bar_file = tmpdir / 'bar'
-        foo_file.ensure()
-        bar_file.ensure()
+    def test_files(self, tmp_path, parser):
+        foo_file = tmp_path / 'foo'
+        bar_file = tmp_path / 'bar'
+        foo_file.touch()
+        bar_file.touch()
 
-        parsed = parser(str(tmpdir))
+        parsed = parser(tmp_path)
         assert parsed.parent
         assert not parsed.folders
-        foo_item = self.Item(_file_url(foo_file), foo_file.relto(tmpdir))
-        bar_item = self.Item(_file_url(bar_file), bar_file.relto(tmpdir))
+        foo_item = self.Item(_file_url(foo_file), str(foo_file.relative_to(tmp_path)))
+        bar_item = self.Item(_file_url(bar_file), str(bar_file.relative_to(tmp_path)))
         assert parsed.files == [bar_item, foo_item]
 
-    def test_html_special_chars(self, tmpdir, parser):
-        special_file = tmpdir / 'foo&bar'
-        special_file.ensure()
+    def test_html_special_chars(self, tmp_path, parser):
+        special_file = tmp_path / 'foo&bar'
+        special_file.touch()
 
-        parsed = parser(str(tmpdir))
-        item = self.Item(_file_url(special_file), special_file.relto(tmpdir))
+        parsed = parser(tmp_path)
+        item = self.Item(_file_url(special_file),
+                         str(special_file.relative_to(tmp_path)))
         assert parsed.files == [item]
 
-    def test_dirs(self, tmpdir, parser):
-        foo_dir = tmpdir / 'foo'
-        bar_dir = tmpdir / 'bar'
-        foo_dir.ensure(dir=True)
-        bar_dir.ensure(dir=True)
+    def test_dirs(self, tmp_path, parser):
+        foo_dir = tmp_path / 'foo'
+        bar_dir = tmp_path / 'bar'
+        foo_dir.mkdir()
+        bar_dir.mkdir()
 
-        parsed = parser(str(tmpdir))
+        parsed = parser(tmp_path)
         assert parsed.parent
         assert not parsed.files
-        foo_item = self.Item(_file_url(foo_dir), foo_dir.relto(tmpdir))
-        bar_item = self.Item(_file_url(bar_dir), bar_dir.relto(tmpdir))
+        foo_item = self.Item(_file_url(foo_dir), str(foo_dir.relative_to(tmp_path)))
+        bar_item = self.Item(_file_url(bar_dir), str(bar_dir.relative_to(tmp_path)))
         assert parsed.folders == [bar_item, foo_item]
 
-    def test_mixed(self, tmpdir, parser):
-        foo_file = tmpdir / 'foo'
-        bar_dir = tmpdir / 'bar'
-        foo_file.ensure()
-        bar_dir.ensure(dir=True)
+    def test_mixed(self, tmp_path, parser):
+        foo_file = tmp_path / 'foo'
+        bar_dir = tmp_path / 'bar'
+        foo_file.touch()
+        bar_dir.mkdir()
 
-        parsed = parser(str(tmpdir))
-        foo_item = self.Item(_file_url(foo_file), foo_file.relto(tmpdir))
-        bar_item = self.Item(_file_url(bar_dir), bar_dir.relto(tmpdir))
+        parsed = parser(tmp_path)
+        foo_item = self.Item(_file_url(foo_file),
+                             str(foo_file.relative_to(str(tmp_path))))
+        bar_item = self.Item(_file_url(bar_dir),
+                             str(bar_dir.relative_to(tmp_path)))
         assert parsed.parent
         assert parsed.files == [foo_item]
         assert parsed.folders == [bar_item]
 
-    def test_root_dir(self, tmpdir, parser):
-        root_dir = 'C:\\' if utils.is_windows else '/'
+    def test_root_dir(self, tmp_path, parser):
+        root_dir = (pathlib.Path('C:\\')
+        if utils.is_windows else pathlib.Path('/'))
         parsed = parser(root_dir)
         assert not parsed.parent
 
     def test_oserror(self, mocker):
         m = mocker.patch('qutebrowser.browser.webkit.network.filescheme.'
-                         'os.listdir')
+                         'pathlib.Path.iterdir')
         m.side_effect = OSError('Error message')
-        html = filescheme.dirbrowser_html('').decode('utf-8')
+        html = filescheme.dirbrowser_html(pathlib.Path('')).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
         with testutils.ignore_bs4_warning():
@@ -256,18 +239,16 @@ class TestDirbrowserHtml:
 
 class TestFileSchemeHandler:
 
-    def test_dir(self, tmpdir):
-        url = QUrl.fromLocalFile(str(tmpdir))
+    def test_dir(self, tmp_path):
+        url = QUrl.fromLocalFile(str(tmp_path))
         req = QNetworkRequest(url)
         reply = filescheme.handler(req, None, None)
-        # The URL will always use /, even on Windows - so we force this here
-        # too.
-        tmpdir_path = str(tmpdir).replace(os.sep, '/')
+        tmpdir_path = tmp_path
         assert reply.readAll() == filescheme.dirbrowser_html(tmpdir_path)
 
-    def test_file(self, tmpdir):
-        filename = tmpdir / 'foo'
-        filename.ensure()
+    def test_file(self, tmp_path):
+        filename = tmp_path / 'foo'
+        filename.touch()
         url = QUrl.fromLocalFile(str(filename))
         req = QNetworkRequest(url)
         reply = filescheme.handler(req, None, None)
@@ -278,7 +259,7 @@ class TestFileSchemeHandler:
         req = QNetworkRequest(url)
 
         err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
-        mocker.patch('os.path.isdir', side_effect=err)
+        mocker.patch('pathlib.Path.is_dir', side_effect=err)
 
         reply = filescheme.handler(req, None, None)
         assert reply is None

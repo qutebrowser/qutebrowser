@@ -20,8 +20,9 @@
 
 """pdf.js integration for qutebrowser."""
 
-import os
+import pathlib
 
+from typing import Tuple, Union, Optional, List
 from PyQt5.QtCore import QUrl, QUrlQuery
 
 from qutebrowser.utils import resources, javascript, jinja, standarddir, log
@@ -31,13 +32,13 @@ from qutebrowser.config import config
 _SYSTEM_PATHS = [
     # Debian pdf.js-common
     # Arch Linux pdfjs
-    '/usr/share/pdf.js/',
+    pathlib.Path('/usr/share/pdf.js/'),
     # Flatpak (Flathub)
-    '/app/share/pdf.js/',
+    pathlib.Path('/app/share/pdf.js/'),
     # Arch Linux pdf.js (defunct)
-    '/usr/share/javascript/pdf.js/',
+    pathlib.Path('/usr/share/javascript/pdf.js/'),
     # Debian libjs-pdf
-    '/usr/share/javascript/pdf/',
+    pathlib.Path('/usr/share/javascript/pdf/'),
 ]
 
 
@@ -55,7 +56,7 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def generate_pdfjs_page(filename, url):
+def generate_pdfjs_page(filename: str, url: QUrl) -> str:
     """Return the html content of a page that displays a file with pdfjs.
 
     Returns a string.
@@ -65,12 +66,14 @@ def generate_pdfjs_page(filename, url):
         url: The URL being opened.
     """
     if not is_available():
-        pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
+        data_path = pathlib.Path(standarddir.data())
+        pdfjs_dir = data_path / 'pdfjs'
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found",
-                            pdfjs_dir=pdfjs_dir)
-    html = get_pdfjs_res('web/viewer.html').decode('utf-8')
+                            pdfjs_dir=str(pdfjs_dir))
+    web_path = pathlib.Path("web/viewer.html")
+    html = get_pdfjs_res(web_path).decode('utf-8')
 
     script = _generate_pdfjs_script(filename)
     html = html.replace('</body>',
@@ -84,7 +87,7 @@ def generate_pdfjs_page(filename, url):
     return html
 
 
-def _generate_pdfjs_script(filename):
+def _generate_pdfjs_script(filename: str) -> str:
     """Generate the script that shows the pdf with pdf.js.
 
     Args:
@@ -115,7 +118,9 @@ def _generate_pdfjs_script(filename):
     """).render(url=js_url)
 
 
-def get_pdfjs_res_and_path(path):
+def get_pdfjs_res_and_path(
+        path: pathlib.Path
+) -> Tuple[bytes, Optional[pathlib.Path]]:
     """Get a pdf.js resource in binary format.
 
     Returns a (content, path) tuple, where content is the file content and path
@@ -125,15 +130,15 @@ def get_pdfjs_res_and_path(path):
     Args:
         path: The path inside the pdfjs directory.
     """
-    path = path.lstrip('/')
     content = None
     file_path = None
+    data_path = pathlib.Path(standarddir.data())
 
     system_paths = _SYSTEM_PATHS + [
         # fallback
-        os.path.join(standarddir.data(), 'pdfjs'),
+        data_path / 'pdfjs',
         # hardcoded fallback for --temp-basedir
-        os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),
+        pathlib.Path.home() / '.local/share/qutebrowser/pdfjs/',
     ]
 
     # First try a system wide installation
@@ -159,7 +164,7 @@ def get_pdfjs_res_and_path(path):
     return content, file_path
 
 
-def get_pdfjs_res(path):
+def get_pdfjs_res(path: pathlib.Path) -> bytes:
     """Get a pdf.js resource in binary format.
 
     Args:
@@ -169,20 +174,27 @@ def get_pdfjs_res(path):
     return content
 
 
-def _remove_prefix(path):
+def _remove_prefix(path: pathlib.Path) -> pathlib.Path:
     """Remove the web/ or build/ prefix of a pdfjs-file-path.
 
     Args:
-        path: Path as string where the prefix should be stripped off.
+        path: Path as a pathlib.Path object where the prefix should be stripped off.
+
     """
-    prefixes = {'web/', 'build/'}
-    if any(path.startswith(prefix) for prefix in prefixes):
-        return path.split('/', maxsplit=1)[1]
+    prefixes = {'web', 'build'}
+    for prefix in prefixes:
+        if prefix in path.parts:
+            pref = list(path.parts)
+            pref.remove(prefix)
+            return pathlib.Path(*pref)
     # Return the unchanged path if no prefix is found
     return path
 
 
-def _read_from_system(system_path, names):
+def _read_from_system(
+        system_path: pathlib.Path,
+        names: List[pathlib.Path]
+) -> Union[Tuple[None, None], Tuple[bytes, pathlib.Path]]:
     """Try to read a file with one of the given names in system_path.
 
     Returns a (content, path) tuple, where the path is the filepath that was
@@ -199,8 +211,8 @@ def _read_from_system(system_path, names):
     """
     for name in names:
         try:
-            full_path = os.path.join(system_path, name)
-            with open(full_path, 'rb') as f:
+            full_path = system_path / name
+            with full_path.open('rb') as f:
                 return (f.read(), full_path)
         except FileNotFoundError:
             continue
@@ -210,18 +222,20 @@ def _read_from_system(system_path, names):
     return (None, None)
 
 
-def is_available():
+def is_available() -> bool:
     """Return true if a pdfjs installation is available."""
+    build_path = pathlib.Path("build/pdf.js")
+    web_path = pathlib.Path("web/viewer.html")
     try:
-        get_pdfjs_res('build/pdf.js')
-        get_pdfjs_res('web/viewer.html')
+        get_pdfjs_res(build_path)
+        get_pdfjs_res(web_path)
     except PDFJSNotFound:
         return False
     else:
         return True
 
 
-def should_use_pdfjs(mimetype, url):
+def should_use_pdfjs(mimetype: str, url: QUrl) -> bool:
     """Check whether PDF.js should be used."""
     # e.g. 'blob:qute%3A///b45250b3-787e-44d1-a8d8-c2c90f81f981'
     is_download_url = (url.scheme() == 'blob' and

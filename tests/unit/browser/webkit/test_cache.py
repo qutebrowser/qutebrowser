@@ -26,8 +26,8 @@ from qutebrowser.browser.webkit import cache
 
 
 @pytest.fixture
-def disk_cache(tmpdir, config_stub):
-    return cache.DiskCache(str(tmpdir))
+def disk_cache(tmp_path, config_stub):
+    return cache.DiskCache(str(tmp_path))
 
 
 def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
@@ -40,24 +40,24 @@ def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
     cache.insert(device)
 
 
-def test_cache_config_change_cache_size(config_stub, tmpdir):
+def test_cache_config_change_cache_size(config_stub, tmp_path):
     """Change cache size and emit signal to trigger on_config_changed."""
     max_cache_size = 1024
     config_stub.val.content.cache.size = max_cache_size
 
-    disk_cache = cache.DiskCache(str(tmpdir))
+    disk_cache = cache.DiskCache(str(tmp_path))
     assert disk_cache.maximumCacheSize() == max_cache_size
 
     config_stub.val.content.cache.size = max_cache_size * 2
     assert disk_cache.maximumCacheSize() == max_cache_size * 2
 
 
-def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
+def test_cache_size_leq_max_cache_size(config_stub, tmp_path):
     """Test cacheSize <= MaximumCacheSize when cache is activated."""
     limit = 100
     config_stub.val.content.cache.size = limit
 
-    disk_cache = cache.DiskCache(str(tmpdir))
+    disk_cache = cache.DiskCache(str(tmp_path))
     assert disk_cache.maximumCacheSize() == limit
 
     preload_cache(disk_cache, 'http://www.example.com/')
@@ -69,7 +69,7 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     assert disk_cache.cacheSize() < limit + 100
 
 
-def test_cache_existing_metadata_file(tmpdir, disk_cache):
+def test_cache_existing_metadata_file(tmp_path, disk_cache):
     """Test querying existing meta data file from activated cache."""
     url = 'http://qutebrowser.org'
     content = b'foobar'
@@ -84,7 +84,8 @@ def test_cache_existing_metadata_file(tmpdir, disk_cache):
     disk_cache.insert(device)
     disk_cache.updateMetaData(metadata)
 
-    files = list(tmpdir.visit(fil=lambda path: path.isfile()))
+    files = tmp_path.glob('**/*')
+    files = [x for x in files if x.is_file()]
     assert len(files) == 1
     assert disk_cache.fileMetaData(str(files[0])) == metadata
 
@@ -161,10 +162,10 @@ def test_cache_update_metadata(disk_cache):
     assert disk_cache.metaData(QUrl(url)) == metadata
 
 
-def test_cache_full(tmpdir):
+def test_cache_full(tmp_path):
     """Do a sanity test involving everything."""
     disk_cache = QNetworkDiskCache()
-    disk_cache.setCacheDirectory(str(tmpdir))
+    disk_cache.setCacheDirectory(str(tmp_path))
 
     url = 'http://qutebrowser.org'
     content = b'cutebowser'
