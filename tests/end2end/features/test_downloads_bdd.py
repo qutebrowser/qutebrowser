@@ -38,7 +38,7 @@ def download_dir(tmpdir):
     downloads.ensure(dir=True)
     (downloads / 'subdir').ensure(dir=True)
     try:
-        os.mkfifo(str(downloads / 'fifo'))
+        os.mkfifo(downloads / 'fifo')
     except AttributeError:
         pass
     unwritable = downloads / 'unwritable'
@@ -72,7 +72,7 @@ def check_ssl():
 @bdd.when("the unwritable dir is unwritable")
 def check_unwritable(tmpdir):
     unwritable = tmpdir / 'downloads' / 'unwritable'
-    if os.access(str(unwritable), os.W_OK):
+    if os.access(unwritable, os.W_OK):
         # Docker container or similar
         pytest.skip("Unwritable dir was writable")
 
@@ -166,4 +166,4 @@ def delete_file(tmpdir, filename):
 def fifo_should_be_fifo(tmpdir):
     download_dir = tmpdir / 'downloads'
     assert download_dir.exists()
-    assert not os.path.isfile(str(download_dir / 'fifo'))
+    assert not os.path.isfile(download_dir / 'fifo')

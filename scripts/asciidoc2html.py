@@ -73,7 +73,7 @@ class AsciiDoc:
     def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
-            shutil.rmtree(str(self._homedir))
+            shutil.rmtree(self._homedir)
 
     def build(self) -> None:
         """Build either the website or the docs."""
@@ -119,7 +119,7 @@ class AsciiDoc:
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
             src = REPO_ROOT / 'doc' / 'img' / filename
             dst = dst_path / filename
-            shutil.copy(str(src), str(dst))
+            shutil.copy(src, dst)
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
@@ -131,7 +131,7 @@ class AsciiDoc:
 
         assert self._tempdir is not None    # for mypy
         modified_src = self._tempdir / src.name
-        shutil.copy(str(REPO_ROOT / 'www' / 'header.asciidoc'), modified_src)
+        shutil.copy(REPO_ROOT / 'www' / 'header.asciidoc', modified_src)
 
         outfp = io.StringIO()
 

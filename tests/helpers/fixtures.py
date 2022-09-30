@@ -717,7 +717,7 @@ def state_config(data_tmpdir, monkeypatch):
 @pytest.fixture
 def unwritable_tmp_path(tmp_path):
     tmp_path.chmod(0)
-    if os.access(str(tmp_path), os.W_OK):
+    if os.access(tmp_path, os.W_OK):
         # Docker container or similar
         pytest.skip("Directory was still writable")
 

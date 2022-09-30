@@ -224,11 +224,11 @@ def nop_contextmanager():
 def change_cwd(path):
     """Use a path as current working directory."""
     old_cwd = pathlib.Path.cwd()
-    os.chdir(str(path))
+    os.chdir(path)
     try:
         yield
     finally:
-        os.chdir(str(old_cwd))
+        os.chdir(old_cwd)
 
 
 @contextlib.contextmanager
