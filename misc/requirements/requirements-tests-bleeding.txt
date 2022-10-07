@@ -8,8 +8,10 @@ git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to wor
 git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
 git+https://github.com/pytest-dev/pytest.git
 git+https://github.com/pytest-dev/pytest-bdd.git
-git+https://github.com/ionelmc/pytest-benchmark.git
-git+https://github.com/pytest-dev/pytest-instafail.git
+# WORKAROUND for those projects using deprectated pytest functionality
+# See https://github.com/pytest-dev/pytest/pull/9118
+git+https://github.com/The-Compiler/pytest-benchmark.git@new-hook-decorators
+git+https://github.com/The-Compiler/pytest-instafail.git@new-hookimpl
 git+https://github.com/pytest-dev/pytest-mock.git
 git+https://github.com/pytest-dev/pytest-qt.git
 git+https://github.com/pytest-dev/pytest-rerunfailures.git
