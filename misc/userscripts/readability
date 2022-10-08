@@ -48,7 +48,7 @@ with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
 
     try:
         from breadability.readable import Article as reader
-        doc = reader(data)
+        doc = reader(data, os.environ['QUTE_URL'])
         title = doc._original_document.title
         content = HEADER % title + doc.readable + "</html>"
     except ImportError:
