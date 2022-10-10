@@ -137,6 +137,8 @@ Fixed
 - Wrong type handling when using `:config-{dict,list}-*` commands with a config
   option with non-string values. The only affected option is `bindings.commands`,
   which is probably rarely used with those commands.
+- The `readability` userscript now correctly passes the source URL to
+  Breadability, to make relative links work.
 - Minor documentation fixes
 
 [[v2.5.2]]
