@@ -3,7 +3,7 @@ flake8-bugbear
 flake8-builtins
 flake8-comprehensions
 flake8-debugger
-flake8-deprecated
+flake8-deprecated!=2.0.0
 flake8-docstrings
 flake8-copyright
 flake8-future-import
