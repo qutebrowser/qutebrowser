@@ -13,7 +13,7 @@ filelock==3.8.0
 Flask==2.2.2
 glob2==0.7
 hunter==3.5.1
-hypothesis==6.56.0
+hypothesis==6.56.1
 idna==3.4
 importlib-metadata==5.0.0
 iniconfig==1.1.1
@@ -38,7 +38,7 @@ pytest-benchmark==3.4.1
 pytest-cov==4.0.0
 pytest-forked==1.4.0
 pytest-instafail==0.4.2
-pytest-mock==3.9.0
+pytest-mock==3.10.0
 pytest-qt==4.1.0
 pytest-repeat==0.9.1
 pytest-rerunfailures==10.2
@@ -50,10 +50,10 @@ requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.3.2.post1
-tldextract==3.3.1
+tldextract==3.4.0
 toml==0.10.2
 tomli==2.0.1
 urllib3==1.26.12
 vulture==2.6
 Werkzeug==2.2.2
-zipp==3.8.1
+zipp==3.9.0
