@@ -535,6 +535,7 @@ class _BasePrompt(QWidget):
     """Base class for all prompts."""
 
     KEY_MODE = usertypes.KeyMode.prompt
+    _BASE_COMMANDS = [('prompt-toggle', 'Show/hide the currently shown prompt.')]
 
     def __init__(self, question, parent=None):
         super().__init__(parent)
@@ -542,7 +543,6 @@ class _BasePrompt(QWidget):
         self._vbox = QVBoxLayout(self)
         self._vbox.setSpacing(15)
         self._key_grid = None
-        self._BASE_COMMANDS = [('prompt-toggle', 'Toggle prompt visibility')]
 
     def __repr__(self):
         return utils.get_repr(self, question=self.question, constructor=True)
