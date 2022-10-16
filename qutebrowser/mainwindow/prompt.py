@@ -497,7 +497,7 @@ class PromptContainer(QWidget):
         modes=[usertypes.KeyMode.prompt])
     def prompt_toggle(self):
         """Toggle visibility of prompts."""
-        self.hide() if self.isVisible() else self.show()
+        self.setVisible(not self.isVisible())
 
 
 class LineEdit(QLineEdit):
