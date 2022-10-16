@@ -499,6 +499,7 @@ class PromptContainer(QWidget):
         self._visible = not self._visible
 
     def show(self) -> None:
+        """Overriden method of QWidget."""
         if not self._visible:
             message.warning("Prompt is currently hidden."
                             " Use `prompt-toggle` to show prompts.")
