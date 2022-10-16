@@ -291,7 +291,6 @@ class PromptContainer(QWidget):
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
         self._prompt: Optional[_BasePrompt] = None
-        self._visible = True
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -493,18 +492,12 @@ class PromptContainer(QWidget):
         assert len(folders) == 1
         self.prompt_accept(folders[0])
 
-    @cmdutils.register(instance='prompt-container', scope='window')
+    @cmdutils.register(
+        instance='prompt-container', scope='window',
+        modes=[usertypes.KeyMode.prompt])
     def prompt_toggle(self):
         """Toggle visibility of prompts."""
-        self._visible = not self._visible
-
-    def show(self) -> None:
-        """Overriden method of QWidget."""
-        if not self._visible:
-            message.warning("Prompt is currently hidden."
-                            " Use `prompt-toggle` to show prompts.")
-            return
-        super().show()
+        self.hide() if self.isVisible() else self.show()
 
 
 class LineEdit(QLineEdit):
