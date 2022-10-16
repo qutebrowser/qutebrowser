@@ -494,7 +494,7 @@ class PromptContainer(QWidget):
 
     @cmdutils.register(
         instance='prompt-container', scope='window',
-        modes=[usertypes.KeyMode.prompt])
+        modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
     def prompt_toggle(self):
         """Toggle visibility of prompts."""
         self.setVisible(not self.isVisible())
@@ -542,7 +542,7 @@ class _BasePrompt(QWidget):
         self._vbox = QVBoxLayout(self)
         self._vbox.setSpacing(15)
         self._key_grid = None
-        self._base_commands = [('prompt-toggle', 'Toggle prompt\nvisibility')]
+        self._BASE_COMMANDS = [('prompt-toggle', 'Toggle prompt visibility')]
 
     def __repr__(self):
         return utils.get_repr(self, question=self.question, constructor=True)
@@ -570,7 +570,7 @@ class _BasePrompt(QWidget):
         labels = []
 
         has_bindings = False
-        for cmd, text in self._allowed_commands() + self._base_commands:
+        for cmd, text in self._allowed_commands() + self._BASE_COMMANDS:
             bindings = all_bindings.get(cmd, [])
             if bindings:
                 has_bindings = True
