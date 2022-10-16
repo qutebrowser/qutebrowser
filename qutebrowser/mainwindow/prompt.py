@@ -291,6 +291,7 @@ class PromptContainer(QWidget):
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
         self._prompt: Optional[_BasePrompt] = None
+        self._visible = True
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -492,6 +493,20 @@ class PromptContainer(QWidget):
         assert len(folders) == 1
         self.prompt_accept(folders[0])
 
+    @cmdutils.register(instance='prompt-container', scope='window')
+    def prompt_toggle(self):
+        """
+        Toggle visibility of prompts.
+        """
+        self._visible = not self._visible
+
+    def show(self) -> None:
+        if not self._visible:
+            message.warning("Prompt is currently hidden."
+                            " Use `prompt-toggle` to show prompts.")
+            return
+        super().show()
+
 
 class LineEdit(QLineEdit):
 
@@ -535,6 +550,7 @@ class _BasePrompt(QWidget):
         self._vbox = QVBoxLayout(self)
         self._vbox.setSpacing(15)
         self._key_grid = None
+        self._base_commands = [('prompt-toggle', 'Toggle prompt\nvisibility')]
 
     def __repr__(self):
         return utils.get_repr(self, question=self.question, constructor=True)
@@ -562,7 +578,7 @@ class _BasePrompt(QWidget):
         labels = []
 
         has_bindings = False
-        for cmd, text in self._allowed_commands():
+        for cmd, text in self._allowed_commands() + self._base_commands:
             bindings = all_bindings.get(cmd, [])
             if bindings:
                 has_bindings = True
