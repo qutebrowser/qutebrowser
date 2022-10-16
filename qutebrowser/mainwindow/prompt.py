@@ -495,9 +495,7 @@ class PromptContainer(QWidget):
 
     @cmdutils.register(instance='prompt-container', scope='window')
     def prompt_toggle(self):
-        """
-        Toggle visibility of prompts.
-        """
+        """Toggle visibility of prompts."""
         self._visible = not self._visible
 
     def show(self) -> None:
