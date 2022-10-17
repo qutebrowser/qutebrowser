@@ -3,12 +3,12 @@
 distlib==0.3.6
 filelock==3.8.0
 packaging==21.3
-pip==22.2.2
+pip==22.3
 platformdirs==2.5.2
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.9
-setuptools==65.4.1
+setuptools==65.5.0
 six==1.16.0
 tomli==2.0.1
 tox==3.26.0
