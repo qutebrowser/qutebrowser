@@ -1930,7 +1930,6 @@ input.mode_override:
       - insert
       - passthrough
   supports_pattern: true
-  no_autoconfig: true  # doesn't make sense with no URL pattern
   desc: Mode to change to when focusing on a tab/URL changes.
 
 ## keyhint

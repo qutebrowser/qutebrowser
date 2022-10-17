@@ -3648,8 +3648,6 @@ Mode to change to when focusing on a tab/URL changes.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-This setting can only be set in config.py.
-
 Type: <<types,String>>
 
 Valid values:
