@@ -35,12 +35,12 @@ requests-toolbelt==0.10.0
 rfc3986==2.0.0
 rich==12.6.0
 SecretStorage==3.3.3
-sip==6.7.1
+sip==6.7.2
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
 twine==4.0.1
-types-cryptography==3.3.23
+types-cryptography==3.3.23.1
 typing_extensions==4.4.0
 uritemplate==4.1.1
 # urllib3==1.26.12
