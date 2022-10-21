@@ -118,6 +118,7 @@ Fixed
   when only the text matches.
 - The `progress` and `backforward` statusbar widgets now stay removed if you
   choose to remove them. Previously they would appear again on navigation.
+- Rare crash when running userscripts with crashed renderer processes.
 
 [[v2.5.3]]
 v2.5.3 (unreleased)
