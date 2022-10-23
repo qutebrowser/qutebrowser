@@ -38,6 +38,7 @@ from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
 from qutebrowser.browser import webelem, history
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
+from qutebrowser.misc import overlap
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
@@ -1030,6 +1031,17 @@ class HintManager(QObject):
             self.handle_partial_key(keystring)
         else:
             self._fire(keystring)
+
+    @cmdutils.register(instance='hintmanager', scope='window',
+                       modes=[usertypes.KeyMode.hint])
+    def hints_cycle(self, reverse: bool = False) -> None:
+        """Bring hints covered by other hints to the foreground.
+
+        Args:
+            reverse: Cycle in reverse direction.
+        """
+        assert self._context is not None
+        overlap.cycle(self._context.all_labels, reverse)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode: usertypes.KeyMode) -> None:

@@ -160,9 +160,9 @@ class TestHintKeyParser:
 
         steps = [
             (Qt.Key_X, QKeySequence.PartialMatch, 'x'),
-            (Qt.Key_A, QKeySequence.PartialMatch, ''),
-            (Qt.Key_B, QKeySequence.PartialMatch, ''),
-            (Qt.Key_C, QKeySequence.ExactMatch, ''),
+            (Qt.Key_A, QKeySequence.PartialMatch, 'x'),
+            (Qt.Key_B, QKeySequence.PartialMatch, 'x'),
+            (Qt.Key_C, QKeySequence.ExactMatch, 'x'),
         ]
         for key, expected_match, keystr in steps:
             info = keyutils.KeyInfo(key, Qt.NoModifier)
