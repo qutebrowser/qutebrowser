@@ -507,6 +507,28 @@ class AbstractDownloadItem(QObject):
                         remaining=remaining, perc=perc, down=down,
                         total=total, errmsg=errmsg))
 
+    def _find_next_filename(self) -> None:
+        """Append unique numeric suffix to filename.
+
+        After finding a unique filename, restart the process of setting the
+        filename which will update the filename shown in the downloads list."""
+        assert self._filename is not None
+        path = pathlib.Path(self._filename)
+        suffix = ''.join(path.suffixes)
+        if suffix:
+            base = path.name[:-len(suffix)]
+        else:
+            base = path.name
+
+        for i in range(2, 1000):
+            path_to_try = path.parent / f'{base}_{i}{suffix}'
+            self._filename = str(path_to_try)
+            if not (path_to_try.exists() or self._get_conflicting_download()):
+                self._set_filename(self._filename)
+                break
+        else:
+            self._die('Alternative filename not available.')
+
     def _do_die(self):
         """Do cleanup steps after a download has died."""
         raise NotImplementedError
@@ -657,7 +679,8 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None,
+                              custom_no_action=None):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
@@ -757,7 +780,8 @@ class AbstractDownloadItem(QObject):
                    "re-download?".format(html.escape(self._filename)))
             self._ask_confirm_question(
                 "Cancel other download?", txt,
-                custom_yes_action=self._cancel_conflicting_download)
+                custom_yes_action=self._cancel_conflicting_download,
+                custom_no_action=self._find_next_filename)
         elif force_overwrite:
             self._after_set_filename()
         elif os.path.isfile(self._filename):
@@ -765,7 +789,8 @@ class AbstractDownloadItem(QObject):
             # overwritten.
             txt = "<b>{}</b> already exists. Overwrite?".format(
                 html.escape(self._filename))
-            self._ask_confirm_question("Overwrite existing file?", txt)
+            self._ask_confirm_question("Overwrite existing file?", txt,
+                custom_no_action=self._find_next_filename)
         # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and
               not os.path.isdir(self._filename)):

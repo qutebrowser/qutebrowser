@@ -137,9 +137,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "state {} (not in requested state)!".format(
                                  filename, self, state_name))
 
-    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None,
+                              custom_no_action=None):
         yes_action = custom_yes_action or self._after_set_filename
-        no_action = functools.partial(self.cancel, remove_data=False)
+        cancel_action = functools.partial(self.cancel, remove_data=False)
+        no_action = custom_no_action or cancel_action
         question = usertypes.Question()
         question.title = title
         question.text = msg
@@ -147,7 +149,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         question.mode = usertypes.PromptMode.yesno
         question.answered_yes.connect(yes_action)
         question.answered_no.connect(no_action)
-        question.cancelled.connect(no_action)
+        question.cancelled.connect(cancel_action)
         self.cancelled.connect(question.abort)
         self.error.connect(question.abort)
         message.global_bridge.ask(question, blocking=True)
