@@ -17,14 +17,14 @@ jaraco.classes==3.2.3
 jeepney==0.8.0
 keyring==23.9.3
 manhole==1.8.0
-more-itertools==8.14.0
+more-itertools==9.0.0
 packaging==21.3
 pep517==0.13.0
 pkginfo==1.8.3
 ply==3.11
 pycparser==2.21
 Pygments==2.13.0
-PyJWT==2.5.0
+PyJWT==2.6.0
 Pympler==1.0.1
 pyparsing==3.0.9
 PyQt-builder==1.14.0
@@ -40,9 +40,8 @@ six==1.16.0
 toml==0.10.2
 tomli==2.0.1
 twine==4.0.1
-types-cryptography==3.3.23.1
 typing_extensions==4.4.0
 uritemplate==4.1.1
 # urllib3==1.26.12
 webencodings==0.5.1
-zipp==3.9.0
+zipp==3.10.0
