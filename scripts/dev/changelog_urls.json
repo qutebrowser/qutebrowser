@@ -97,7 +97,6 @@
   "wrapt": "https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst",
   "pep517": "https://github.com/pypa/pep517/blob/main/doc/changelog.rst",
   "cryptography": "https://cryptography.io/en/latest/changelog.html",
-  "types-cryptography": "https://github.com/python/typeshed/commits/master/stubs/cryptography",
   "toml": "https://github.com/uiri/toml/releases",
   "tomli": "https://github.com/hukkin/tomli/blob/master/CHANGELOG.md",
   "PyQt5": "https://www.riverbankcomputing.com/news",
