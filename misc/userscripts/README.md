@@ -100,6 +100,12 @@ The following userscripts can be found on their own repositories.
 - [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
   A simple interface to manage browser containers by manipulating the basedir
   parameter.
+- [qutebrowser-metascript](https://codeberg.org/mister_monster/qutebrowser-metascript):
+  A user configurable arbitrary sequential command running userscript for qutebrowser
+- [tab-manager](https://codeberg.org/mister_monster/tab-manager):
+  More powerfully manage single window sessions
+- [qutebrowser-url-mutator](https://codeberg.org/mister_monster/qutebrowser-url-mutator):
+  automatically mutates input URLs based on configurable rules
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
