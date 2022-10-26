@@ -128,6 +128,9 @@ Currently, the following tox environments are available:
     - untracked git files
     - VCS conflict markers
     - common spelling mistakes
+* http://mypy-lang.org/[mypy] for static type checking:
+  - `mypy-pyqt5` run mypy with PyQt5 installed
+  - `mypy-pyqt6` run mypy with PyQt6 installed
 
 The default test suite is run with `tox`; the list of default
 environments is obtained with `tox -l`.
@@ -685,6 +688,41 @@ Return:
   - `__magic__` methods
   - other methods
   - overrides of Qt methods
+* Type hinting: the qutebrowser codebase uses type hints liberally to enable
+  static type checking and autocompletion in editors.
+  - We use http://mypy-lang.org/[mypy] in CI jobs to perform static type
+    checking.
+  - Not all of the codebase is covered by type hints currently. We encourage
+    including type hints on all new code and even adding type hints to
+    existing code if you find yourself working on some that isn't already
+    covered. There are some module specific rules in the mypy config file,
+    `.mypy.ini`, to make type hints strictly required in some areas.
+  - More often than not mypy is correct when it raises issues. But don't be
+    afraid to add `# type: ignore[...]` statements or casts if you need to.
+    As an optional part of the language not all type information from third
+    parties is always correct. Mypy will raise a new issue if it spots an
+    "ignore" statement which is no longer needed because the underlying
+    issue has been resolved.
+  - One area where we have to take particular care is in code that deals
+    with differences between PyQt5 and PyQt6. We try to write most code in a
+    way that will work with either backend but when you need to deal with
+    differences you should use a pattern like:
++
+[source,python]
+----
+if machinery.IS_QT5:
+    ... # do PyQt5 specific implementation
+else:
+    # PyQt6
+    ... # do PyQt6 specific implementation
+----
++
+then you have to https://mypy.readthedocs.io/en/latest/command_line.html#cmdoption-mypy-always-true[tell]
+  mypy to treat `machinery.IS_QT5` as a constant value then run mypy twice to
+  cover both branches. There are a handful of variables in
+  `qutebrowser/qt/machinery.py` that mypy needs to know about. There are tox
+  jobs (`mypy-pyqt5` and `mypy-pyqt6`) that take care of telling mypy to use
+  them as constants.
 
 Checklists
 ----------
