@@ -75,8 +75,8 @@ class EngineInfo:
         self.resources_cache_path = resources_cache_path
 
 
-_REDIRECT_ENGINE_URL = QUrl(
-    "https://github.com/gorhill/uBlock/raw/master/src/js/redirect-engine.js"
+_REDIRECT_RESOURCES_URL = QUrl(
+    "https://github.com/gorhill/uBlock/raw/master/src/js/redirect-resources.js"
 )
 
 _SCRIPTLETS_URL = QUrl(
@@ -239,14 +239,14 @@ def _on_all_resources_downloaded(
     )
 
 
-_REDIRECTABLE_RESOURCES_DECL = "const redirectableResources = new Map(["
+_REDIRECTABLE_RESOURCES_DECL = "export default new Map(["
 _MAP_END_RE = r"^\s*\]\s*\)"
 
 
 def _on_redirect_engine_download(  # noqa: C901
     _url: QUrl, fileobj: IO[bytes], engine_info: EngineInfo
 ) -> Optional[blockutils.BlocklistDownloads]:
-    """Download redirect-engine.js, parse it, and get the list of resource urls.
+    """Download redirect-resources.js, parse it, and get the list of resource urls.
 
     To parse it, we take the portion that refers to the map, and turn it into JSON, and
     decode with json.load. The inspiration for this code comes from
@@ -341,7 +341,7 @@ def download_resources(engine_info: EngineInfo) -> blockutils.BlocklistDownloads
 
     Also updates the engine's cache path and resources cache path while we're at it.
     """
-    dl = blockutils.BlocklistDownloads([_REDIRECT_ENGINE_URL])
+    dl = blockutils.BlocklistDownloads([_REDIRECT_RESOURCES_URL])
     dl.single_download_finished.connect(
         functools.partial(_on_redirect_engine_download, engine_info=engine_info)
     )
