@@ -245,8 +245,8 @@ def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
 
 
-def ublock_redirect_engine_js():
-    path = os.path.join(abs_datapath(), "ublock", "redirect-engine.js.gz")
+def ublock_redirect_resources_js():
+    path = os.path.join(abs_datapath(), "ublock", "redirect-resources.js.gz")
     return gzip.open(path)
 
 
