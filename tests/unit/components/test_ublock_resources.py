@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import base64
+import json
 import importlib
 import pathlib
 
@@ -60,6 +61,7 @@ REDIRECT_RESOURCES = [
     ("google-analytics_cx_api.js", ["google-analytics.com/cx/api.js"]),
     ("google-analytics_ga.js", ["google-analytics.com/ga.js"]),
     ("google-analytics_inpage_linkid.js", ["google-analytics.com/inpage_linkid.js"]),
+    ("google-ima.js", []),
     ("googlesyndication_adsbygoogle.js", ["googlesyndication.com/adsbygoogle.js"]),
     ("googletagservices_gpt.js", ["googletagservices.com/gpt.js"]),
     ("hd-main.js", []),
@@ -72,6 +74,7 @@ REDIRECT_RESOURCES = [
     ("nobab2.js", []),
     ("nofab.js", ["fuckadblock.js-3.2.0"]),
     ("noop-0.1s.mp3", ["noopmp3-0.1s", "abp-resource:blank-mp3"]),
+    ("noop-0.5s.mp3", []),
     ("noop-1s.mp4", ["noopmp4-1s"]),
     ("noop.html", ["noopframe"]),
     ("noop.js", ["noopjs", "abp-resource:blank-js"]),
@@ -120,7 +123,7 @@ SCRIPTLET_RESOURCES = [
     ("webrtc-if.js", [], "template"),
     ("no-xhr-if.js", [], "template"),
     ("window-close-if.js", [], "template"),
-    ("window.name-defuser", [], "javascript"),
+    ("window.name-defuser.js", [], "javascript"),
     ("overlay-buster.js", [], "javascript"),
     ("alert-buster.js", [], "javascript"),
     ("gpt-defuser.js", [], "javascript"),
@@ -133,6 +136,8 @@ SCRIPTLET_RESOURCES = [
     ("damoh-defuser.js", [], "javascript"),
     ("twitch-videoad.js", [], "javascript"),
     ("cookie-remover.js", [], "template"),
+    ("xml-prune.js", [], "template"),
+    ("m3u-prune.js", [], "template"),
 ]
 
 
@@ -246,9 +251,9 @@ def resource_aliases(local_resources):
 
 
 @pytest.fixture
-def redirect_engine_js(local_resources):
-    r = local_resources.rsrc("redirect-engine.js")
-    with testutils.ublock_redirect_engine_js() as f:
+def redirect_resources_js(local_resources):
+    r = local_resources.rsrc("redirect-resources.js")
+    with testutils.ublock_redirect_resources_js() as f:
         r.write(f.read())
     return r
 
@@ -267,7 +272,7 @@ def test_redirect_engine_parsing(
     engine_info,
     redirect_resources,
     scriptlets_js,
-    redirect_engine_js,
+    redirect_resources_js,
     resource_aliases,
     local_resources,
 ):
@@ -286,7 +291,7 @@ def test_redirect_engine_parsing(
     ublock_resources._on_all_resources_downloaded = lambda *_: None
 
     dl = ublock_resources._on_redirect_engine_download(
-        QUrl(), testutils.ublock_redirect_engine_js(), engine_info
+        QUrl(), testutils.ublock_redirect_resources_js(), engine_info
     )
     assert dl is not None
     assert dl._urls == [
@@ -303,7 +308,7 @@ def test_parse_resource(
     engine_info,
     redirect_resources,
     scriptlets_js,
-    redirect_engine_js,
+    redirect_resources_js,
     resource_aliases,
     local_resources,
 ):
@@ -354,7 +359,11 @@ def test_serialization(tmp_path, redirect_resources, scriptlet_resources):
     )
 
     with open(path, "rb") as f1, testutils.ublock_resources_cache() as f2:
-        assert f1.read() == f2.read()
+        f1_data = sorted(json.loads(f1.read().decode()), key=lambda r: r["name"])
+        f2_data = sorted(json.loads(f2.read().decode()), key=lambda r: r["name"])
+        assert {r["name"] for r in f1_data} == {r["name"] for r in f2_data}
+        for r1, r2 in zip(f1_data, f2_data):
+            assert r1 == r2
 
     resources = ublock_resources.deserialize_resources_from_file(path)
     assert resources == redirect_resources + scriptlet_resources
@@ -363,7 +372,7 @@ def test_serialization(tmp_path, redirect_resources, scriptlet_resources):
 def test_resources_update(
     config_stub,
     ad_blocker,
-    redirect_engine_js,
+    redirect_resources_js,
     scriptlets_js,
     redirect_resources,
     local_resources,
@@ -375,13 +384,17 @@ def test_resources_update(
         local_resources.url_template()
     )
     ublock_resources._SCRIPTLETS_URL = scriptlets_js.url
-    ublock_resources._REDIRECT_ENGINE_URL = redirect_engine_js.url
+    ublock_resources._REDIRECT_RESOURCES_URL = redirect_resources_js.url
 
     ad_blocker.resources_update()
     with open(
         ad_blocker._resources_cache_path, "rb"
     ) as f1, testutils.ublock_resources_cache() as f2:
-        assert f1.read() == f2.read()
+        f1_data = sorted(json.loads(f1.read().decode()), key=lambda r: r["name"])
+        f2_data = sorted(json.loads(f2.read().decode()), key=lambda r: r["name"])
+        assert {r["name"] for r in f1_data} == {r["name"] for r in f2_data}
+        for r1, r2 in zip(f1_data, f2_data):
+            assert r1 == r2
 
     # This is important because we changed the ublock_resources module's values, and we
     # don't want it messed up for other tests

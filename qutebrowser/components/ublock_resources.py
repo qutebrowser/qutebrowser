@@ -329,9 +329,9 @@ def _on_redirect_engine_download(  # noqa: C901
         return dl
 
     except UnicodeDecodeError:
-        message.error("braveadblock: redirect-engine.js is not in valid utf-8")
+        message.error("braveadblock: redirect-resources.js is not in valid utf-8")
     except (TypeError, json.JSONDecodeError):
-        message.error("braveadblock: redirect-engine.js could not be parsed")
+        message.error("braveadblock: redirect-resources.js could not be parsed")
 
     return None
 
