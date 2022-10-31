@@ -8,7 +8,6 @@
   "mccabe": "https://github.com/PyCQA/mccabe#changes",
   "pytest-cov": "https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst",
   "pytest-xdist": "https://github.com/pytest-dev/pytest-xdist/blob/master/CHANGELOG.rst",
-  "pytest-forked": "https://github.com/pytest-dev/pytest-forked/blob/master/CHANGELOG.rst",
   "pytest-xvfb": "https://github.com/The-Compiler/pytest-xvfb/blob/master/CHANGELOG.rst",
   "PyVirtualDisplay": "https://github.com/ponty/PyVirtualDisplay/commits/master",
   "execnet": "https://execnet.readthedocs.io/en/latest/changelog.html",
