@@ -11,6 +11,6 @@ pyparsing==3.0.9
 setuptools==65.5.0
 six==1.16.0
 tomli==2.0.1
-tox==3.26.0
-virtualenv==20.16.5
+tox==3.27.0
+virtualenv==20.16.6
 wheel==0.37.1

@@ -38,7 +38,7 @@ from scripts import utils
 from scripts.dev import recompile_requirements
 
 BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
-               '.sqlite', '.woff2', '.whl'}
+               '.sqlite', '.woff2', '.whl', '.egg'}
 
 
 def _get_files(
