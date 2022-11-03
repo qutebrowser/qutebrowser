@@ -335,16 +335,15 @@ def print_changed_files():
     print(changes_text)
 
     if utils.ON_CI:
-        print()
-        print('::set-output name=changed::' +
-              files_text.replace('\n', '%0A'))
-        table_header = [
-            '| File | Requirement | old | new |',
-            '|------|-------------|-----|-----|',
-        ]
-        diff_table = '%0A'.join(table_header +
-                                [change.table_str() for change in changes])
-        print('::set-output name=diff::' + diff_table)
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+            f.write('changed=' + files_text.replace('\n', '%0A'))
+            table_header = [
+                '| File | Requirement | old | new |',
+                '|------|-------------|-----|-----|',
+            ]
+            diff_table = '%0A'.join(
+                table_header + [change.table_str() for change in changes])
+            f.write(f'diff={diff_table}')
 
 
 def get_host_python(name):
