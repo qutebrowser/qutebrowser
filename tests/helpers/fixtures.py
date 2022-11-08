@@ -36,7 +36,7 @@ import os.path
 import dataclasses
 
 import pytest
-import py.path  # pylint: disable=no-name-in-module
+import py.path
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
@@ -636,7 +636,7 @@ def redirect_webengine_data(data_tmpdir, monkeypatch):
 def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:
-        yield py.path.local(tdir)  # pylint: disable=no-member
+        yield py.path.local(tdir)
 
 
 class ModelValidator:

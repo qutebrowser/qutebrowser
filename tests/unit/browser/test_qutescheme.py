@@ -23,7 +23,7 @@ import os
 import time
 import logging
 
-import py.path  # pylint: disable=no-name-in-module
+import py.path
 from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
@@ -223,7 +223,7 @@ class TestPDFJSHandler:
     @pytest.fixture
     def download_tmpdir(self):
         tdir = downloads.temp_download_manager.get_tmpdir()
-        yield py.path.local(tdir.name)  # pylint: disable=no-member
+        yield py.path.local(tdir.name)
         tdir.cleanup()
 
     def test_existing_resource(self):
