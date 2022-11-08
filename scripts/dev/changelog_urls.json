@@ -23,7 +23,6 @@
   "soupsieve": "https://facelessuser.github.io/soupsieve/about/changelog/",
   "Flask": "https://flask.palletsprojects.com/en/latest/changes/",
   "Mako": "https://docs.makotemplates.org/en/latest/changelog.html",
-  "glob2": "https://github.com/miracle2k/python-glob2/blob/master/CHANGES",
   "hypothesis": "https://hypothesis.readthedocs.io/en/latest/changes.html",
   "exceptiongroup": "https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst",
   "mypy": "https://mypy-lang.blogspot.com/",
