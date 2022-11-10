@@ -114,12 +114,12 @@ clipboard-copy() {
 
 if ! command -v op > /dev/null; then
     echo "message-error 'Missing required command-line tool: op'" >> "$QUTE_FIFO"
-    exit 0
+    exit 1
 fi
 
 if ! command -v jq > /dev/null; then
     echo "message-error 'Missing required command-line tool: jq'" >> "$QUTE_FIFO"
-    exit 0
+    exit 1
 fi
 
 OP_VERSION="$(op --version)"
@@ -127,7 +127,7 @@ OP_MAJOR_VERSION="$(echo "$OP_VERSION" | grep --only-matching '^[0-9]')"
 
 if [[ "$OP_MAJOR_VERSION" -lt 2 ]]; then
     echo "message-error 'Requires op CLI v2.0.0 or higher, but got: $OP_VERSION'" >> "$QUTE_FIFO"
-    exit 0
+    exit 1
 fi
 
 echo "message-info 'Looking for password for $URL...'" >> "$QUTE_FIFO"
@@ -149,12 +149,12 @@ fi
 
 if [[ -z "$TOKEN" ]]; then
     echo "message-error 'Wrong master password'" >> "$QUTE_FIFO"
-    exit 0
+    exit 1
 fi
 
 if ! LIST_ITEM_OUT="$(op item list --cache --session="$TOKEN" --format=json)"; then
-    echo "message-error 'Failed to list items. See :process for more info'" >> "$QUTE_FIFO"
-    exit 0
+    echo "message-error 'Failed to list items.'" >> "$QUTE_FIFO"
+    exit 1
 fi
 
 MATCHING_ITEMS="$(echo "$LIST_ITEM_OUT" | jq --arg url "$URL" '[.[] | select((.urls//[])[].href | test($url))]')"
@@ -169,7 +169,7 @@ elif [[ "$MATCHING_COUNT" -gt 1 ]]; then
     echo "message-info 'Found $MATCHING_COUNT entries for $URL'" >> "$QUTE_FIFO"
     TITLE="$(echo "$MATCHING_ITEMS" | jq -r '.[] | '"$JQ_TITLE_EXPR" | dmenu-prompt "Select item for $URL")" || TITLE=""
     if [ -n "$TITLE" ]; then
-        UUID=$(echo "$MATCHING_ITEMS" | jq --arg title "$TITLE" -r '[.[] | select('"$JQ_TITLE_EXPR"' | test($title)).id] | first // ""') || UUID=""
+        UUID=$(echo "$MATCHING_ITEMS" | jq --arg title "$TITLE" -r '[.[] | select('"$JQ_TITLE_EXPR"' == $title).id] | first // ""') || UUID=""
     else
         UUID=""
     fi
@@ -177,7 +177,7 @@ else
     echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
     TITLE="$(echo "$LIST_ITEM_OUT" | jq -r '.[] | '"$JQ_TITLE_EXPR" | dmenu-prompt)" || TITLE=""
     if [ -n "$TITLE" ]; then
-        UUID=$(echo "$LIST_ITEM_OUT" | jq --arg title "$TITLE" -r '[.[] | select('"$JQ_TITLE_EXPR"' | test($title)).id] | first // ""') || UUID=""
+        UUID=$(echo "$LIST_ITEM_OUT" | jq --arg title "$TITLE" -r '[.[] | select('"$JQ_TITLE_EXPR"' == $title).id] | first // ""') || UUID=""
     else
         UUID=""
     fi
@@ -185,7 +185,7 @@ fi
 
 if [[ -z "$UUID" ]];then
     echo "message-error 'No item picked.'" >> "$QUTE_FIFO"
-    exit 0
+    exit 1
 fi
 
 ITEM="$(op item get --cache --session="$TOKEN" --format=json "$UUID")"
@@ -195,7 +195,7 @@ PASSWORD="$(echo "$ITEM" | jq -r '[.fields[] | select(.purpose=="PASSWORD") | .v
 
 if [ -z "$PASSWORD" ]; then
     echo "message-error 'No password found in $TITLE'" >> "$QUTE_FIFO"
-    exit 0
+    exit 1
 fi
 
 USERNAME="$(echo "$ITEM" | jq -r '[.fields[] | select(.purpose=="USERNAME") | .value] | first // ""')"
@@ -204,6 +204,7 @@ printjs() {
     js | sed 's,//.*$,,' | tr '\n' ' '
 }
 echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
+echo "message-info 'Using credentials from: $TITLE'" >> "$QUTE_FIFO" 
 
 TOTP="$(echo "$ITEM" | op item get --cache --session="$TOKEN" --otp "$UUID")" || TOTP=""
 if [ -n "$TOTP" ]; then
