@@ -9,7 +9,8 @@ RUN pacman -Suyy --noconfirm \
     python-distlib \
     qt5-base \
     qt5-declarative \
-    {% if webengine %}qt5-webengine python-pyqtwebengine{% else %}qt5-webkit{% endif %} \
+    qt5-webengine \
+    python-pyqtwebengine \
     python-pyqt5 \
     xorg-xinit \
     xorg-server-xvfb \
