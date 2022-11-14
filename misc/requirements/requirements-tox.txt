@@ -4,7 +4,7 @@ distlib==0.3.6
 filelock==3.8.0
 packaging==21.3
 pip==22.3.1
-platformdirs==2.5.3
+platformdirs==2.5.4
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.9
@@ -12,5 +12,5 @@ setuptools==65.5.1
 six==1.16.0
 tomli==2.0.1
 tox==3.27.0
-virtualenv==20.16.6
-wheel==0.38.2
+virtualenv==20.16.7
+wheel==0.38.4
