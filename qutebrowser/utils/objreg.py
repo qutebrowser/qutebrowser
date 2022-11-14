@@ -170,7 +170,7 @@ def _get_tab_registry(win_id: _WindowTab,
         window: Optional[QWidget] = QApplication.activeWindow()
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
-        win_id = window.win_id  # type: ignore[attr-defined]
+        win_id = window.win_id
     elif win_id is None:
         raise TypeError("window is None with scope tab!")
 

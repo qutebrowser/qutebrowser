@@ -233,7 +233,7 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
                                                              self._argname))
         if not hasattr(func, 'qute_args'):
             func.qute_args = {}  # type: ignore[attr-defined]
-        elif func.qute_args is None:  # type: ignore[attr-defined]
+        elif func.qute_args is None:
             raise ValueError("@cmdutils.argument got called above (after) "
                              "@cmdutils.register for {}!".format(funcname))
 
