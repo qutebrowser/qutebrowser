@@ -55,7 +55,7 @@ try:
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import (SafeLoader as YamlLoader,  # type: ignore[misc]
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore[assignment]
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
