@@ -9,8 +9,13 @@ RUN pacman -Suyy --noconfirm \
     python-distlib \
     qt5-base \
     qt5-declarative \
-    {% if webengine %}qt5-webengine python-pyqtwebengine{% else %}qt5-webkit{% endif %} \
+    {% if webengine %}
+    qt5-webengine python-pyqtwebengine \
     python-pyqt5 \
+    {% else %}
+    https://archive.archlinux.org/packages/q/qt5-webkit/qt5-webkit-5.212.0alpha4-18-x86_64.pkg.tar.zst \
+    https://archive.archlinux.org/packages/p/python-pyqt5/python-pyqt5-5.15.7-2-x86_64.pkg.tar.zst \
+    {% endif %}
     xorg-xinit \
     xorg-server-xvfb \
     ttf-bitstream-vera \
