@@ -26,7 +26,7 @@
   "hypothesis": "https://hypothesis.readthedocs.io/en/latest/changes.html",
   "exceptiongroup": "https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst",
   "mypy": "https://mypy-lang.blogspot.com/",
-  "types-PyYAML": "https://github.com/python/typeshed/commits/master/stubs/PyYAML",
+  "types-PyYAML": "https://github.com/python/typeshed/commits/main/stubs/PyYAML",
   "pytest": "https://docs.pytest.org/en/latest/changelog.html",
   "iniconfig": "https://github.com/pytest-dev/iniconfig/blob/master/CHANGELOG",
   "tox": "https://tox.readthedocs.io/en/latest/changelog.html",
