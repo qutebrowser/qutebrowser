@@ -109,15 +109,30 @@ prompt_or_summary () {
     esac
 }
 
+# format tool "aliases", where needed
+usort () { env usort format "$@"; }
+black () { env black -q "$@"; }
+pyupgrade () { git ls-files | grep -F .py | xargs pyupgrade --py37-plus; }
+
 generate_report () {
   # checkout a branch, try to merge each of the open PRs, write the results to
   # a CSV file
   base="${1:-master}"
-  quiet=$2
+  quiet="$2"
+  rewrite_strategy="$3"
+  cmds="$4"
+  pr="$5"
+  report_file=../report-$base.csv
+
+  # prefix for working branch when we are going to re-write stuff so we don't
+  # mess up the pr/* branches and have to re-fetch them.
+  [ -n "$rewrite_strategy" ] && {
+    prefix="tmp-rewrite-"
+    report_file=../report-$base-$rewrite_strategy.csv
+  }
 
   git checkout -q $base
 
-  report_file=../report-$base.csv
   [ -e $report_file ] && [ -z "$quiet" ] && {
     prompt_or_summary "$report_file exists, overwrite?"
   }
@@ -128,9 +143,37 @@ generate_report () {
   }
 
   jq -r '.[] | "\(.number) \(.updatedAt) \(.title)"' < ../prs.json | while read number updated title; do
-    [ -n "$quiet" ] || echo "trying pr/$number $updated $title"
+    [ -n "$pr" ] && [ "$pr" != "$number" ] continue
+    [ -n "$quiet" ] || echo "trying ${prefix}pr/$number $updated $title"
     head_sha=$(git rev-parse HEAD)
-    git merge -q --no-ff --no-edit pr/$number 2>&1 1>/dev/null | grep -v preimage
+
+    case "$rewrite_strategy" in
+      rebase|merge)
+        # Only attempt branches that actually merge cleanly with master.
+        # Theoretically it wouldn't hurt to do all of them but a) running
+        # black via the filter driver is slow b) rebase_with_formatting needs
+        # some work to handle more errors in that case (the "git commit -qam
+        # 'fix lint" bit at least needs to look for conflict markers)
+        # I'm hardcoding master because of a lack of imagination.
+        grep "^$number" ../report-master.csv | grep failed && {
+          echo "pr/$number succeeded already in ../report-master.csv, skipping"
+          continue
+        }
+        rebase_with_formatting "$number" "$base" "$cmds" "$prefix" "$rewrite_strategy" || {
+          report $number $updated "$title" failed 999 999
+          continue
+        }
+        ;;
+      '')
+        true
+        ;;
+      *)
+        echo "Unknown rewrite strategy '$rewrite_strategy'"
+        exit 1
+        ;;
+    esac
+
+    git merge -q --no-ff --no-edit ${prefix}pr/$number 2>&1 1>/dev/null | grep -v preimage
     if [ -e .git/MERGE_HEAD ] ;then
       # merge failed, clean lines staged and conflicting lines in working
       # tree
@@ -149,16 +192,124 @@ generate_report () {
   done
 }
 
+rebase_with_formatting () {
+  number="$1"
+  base="$2"
+  cmds="$3"
+  prefix="${4:-tmp-rewrite-}"
+  strategy="$5"
+
+  # We need to apply formatting to PRs and base them on a reformatted base
+  # branch.
+  # I haven't looked into doing that via a merge but here is an attempt
+  # doing a rebase.
+  # Rebasing directly on to a formatted branch will fail very easily when it
+  # runs into a formatting change. So I'm using git's "filter" attribute to
+  # apply the same formatter to the trees corresponding to the
+  # commits being rebased. Hopefully if we apply the same formatter to the
+  # base branch and to the individual commits from the PRs we can minimize
+  # conflicts.
+  # An alternative to using the filter attribute might be to use something
+  # like the "darker" tool to re-write the commits. I suspect that won't
+  # help with conflicts in the context around changes though.
+
+  # Checkout the parent commit of the branch then apply formatting tools to
+  # it. This will provide a target for rebasing which doesn't have any
+  # additional drift from changes to master. After that then we can rebase
+  # the re-written PR branch to the more current, autoformatted, master.
+  # TODO: It might be possible to skip the intermediate base branch.
+  git checkout -b tmp-master-rewrite-pr/$number `git merge-base origin/master pr/$number`
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    $cmd qutebrowser tests
+    git commit -am "dropme! $cmd" # mark commits for dropping when we rebase onto the more recent master
+  done
+
+  git checkout -b ${prefix}pr/$number pr/$number
+
+  # Setup the filters. A "smudge" filter is configured for each tool then we
+  # add the required tools to a gitattributes file. And make sure to clean
+  # it up later.
+  # Running the formatters as filters is slower than running them directly
+  # because they seem to be run on the files serially. TODO: can we
+  # parallelize them?
+  # Maybe just adding a wrapper around the formatters that caches the output
+  # would be simpler. At least then you just have to sit through them once.
+  git config  --local --get filter.black.smudge >/dev/null || {
+    git config --local filter.black.smudge "black -q -"
+    git config --local filter.isort.smudge "isort -q -"
+    git config --local filter.pyupgrade.smudge "pyupgrade --py27-plus -"
+    git config --local filter.usort.smudge "usort format -"
+  }
+  printf "*.py" > .git/info/attributes
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    printf " filter=$cmd" >> .git/info/attributes
+  done
+  echo >> .git/info/attributes
+
+  # not sure why I had to do the extra git commit in there, there are some
+  # changes left in the working directory sometimes? TODO: change to a
+  # commit --amend -C HEAD after confirming overall results
+  # TODO: look for conflict markers before merging
+  git rebase -q -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
+  exit_code="$?"
+  [ $exit_code -eq 0 ] || git rebase --abort
+  git branch -D tmp-master-rewrite-pr/$number
+  rm .git/info/attributes
+
+  [ $exit_code -eq 0 ] || return $exit_code
+
+  if [ "$strategy" = "rebase" ] ;then
+    # now transplant onto the actual upstream branch -- might have to drop this
+    # if it causes problems.
+    EDITOR='sed -i /dropme/d' git rebase -qi "$base" || {
+      git rebase --abort
+      return 1
+    }
+  fi
+
+  git checkout -q $base
+}
+
 cd qutebrowser
 
 # run as `$0 some-branch` to report on merging all open PRs to a branch you
 # made yourself. Otherwise run without args to try with a bunch of builtin
 # configurations.
+
+strategy=""
+pull_request=""
+while [ -n "$1" ] ;do
+  case "$1" in
+    -s|--rewrite-strategy)
+      shift
+      [ -n "$1" ] || {
+        echo "What strategy?"
+        exit 1
+      }
+      strategy="$1"
+      ;;
+    -p|--pull-request)
+      shift
+      [ -n "$1" ] || {
+        echo "Which PR?"
+        exit 1
+      }
+      pull_request="$1"
+      ;;
+    -*)
+      echo "Unknown argument '$1'"
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+  shift
+done
+
 if [ -n "$1" ] ;then
   generate_report "$1"
 else
-  usort () { env usort format "$@"; }
-  pyupgrade () { git ls-files | grep -F .py | xargs pyupgrade --py37-plus; }
   clean_branches () {
     # only clean up tmp- branches in case I run it on my main qutebrowser
     # checkout by mistake :)
@@ -191,7 +342,7 @@ else
       $cmd qutebrowser tests
       git commit -am "$cmd"
     done
-    generate_report "$branch" y
+    generate_report "$branch" y "$strategy" "$cmds" "$pull_request"
   done
 fi
 
