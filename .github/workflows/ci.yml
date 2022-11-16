@@ -83,11 +83,13 @@ jobs:
       fail-fast: false
       matrix:
         image:
+          - archlinux-webkit
           - archlinux-webengine
           # - archlinux-webengine-unstable
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
+        QUTE_BDD_WEBENGINE: "${{ matrix.image != 'archlinux-webkit' }}"
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
