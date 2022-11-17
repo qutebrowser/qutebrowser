@@ -595,13 +595,13 @@ Changed
 - When a shown message replaces an existing related one (e.g. for zoom levels),
   the replacing now also works even if a different message was shown in between.
 - The `.redirect(...)` method on interceptors now supports an
-  `ignore_unsupported=True` argument which supresses exceptions if a request could
+  `ignore_unsupported=True` argument which suppresses exceptions if a request could
   not be redirected. Note, however, that it is still not public API.
 - When the `--config-py` argument is used, no warning about a missing
   `config.load_autoconfig` is shown anymore, as the argument is typically used
   for temporarily testing a config.
 - The internal `_autosave` session used for crash recovery is now only saved
-  once per minute, since saving it for every page load is a noticable performance
+  once per minute, since saving it for every page load is a noticeable performance
   issue.
 - The `readability-js` userscript now displays a small header with page
   information.
@@ -1029,7 +1029,7 @@ Changed
 - `config.py` files now are required to have either
   `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
   `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
-- Various host-blocking settings have been renamed to accomodate the new ABP-like
+- Various host-blocking settings have been renamed to accommodate the new ABP-like
   adblocker:
   * `content.host_blocking.enabled` -> `content.blocking.enabled` (controlling both blockers)
   * `content.host_blocking.whitelist` -> `content.blocking.whitelist` (controlling both blockers)
@@ -1205,11 +1205,11 @@ Fixed
 ~~~~~
 
 - Setting the `content.headers.referer` setting to `same-domain` (the default)
-  was supposed to truncate referers to only the host with QtWebEngine.
+  was supposed to truncate referrers to only the host with QtWebEngine.
   Unfortunately, this functionality broke in Qt 5.14. It works properly again
   with this release, including a test so this won't happen again.
 - With QtWebEngine 5.15, setting the `content.headers.referer` setting to
-  `never` did still send referers. This is now fixed as well.
+  `never` did still send referrers. This is now fixed as well.
 - In v1.14.0, a regression was introduced, causing a crash when qutebrowser was
   closed after opening a download with PDF.js. This is now fixed.
 - With Qt 5.12, the `Object.fromEntries` JavaScript API is unavailable (it was
@@ -1226,7 +1226,7 @@ Fixed
   conversion was shown. This is now fixed.
 - Ever since Qt 5.11, fetching more completion data when that data is loaded
   lazily (such as with history) and the last visible item is selected was broken.
-  The exact reason is currently unknown, but this release adds a tenative fix.
+  The exact reason is currently unknown, but this release adds a tentative fix.
 - When PgUp/PgDown were used to go beyond the last visible item, the above issue
   caused a crash, which is now also fixed.
 - As a workaround for an overzealous Microsoft Defender false-positive detecting
@@ -1342,9 +1342,9 @@ Changed
   which fixes issues with e.g. formulas on Wikipedia.
 - The `readability-js` userscript now adds some CSS to improve the reader mode
   styling in various scenarios:
-  * Images are now shrinked to the page width, similarly to what Firefox' reader
+  * Images are now shrunk to the page width, similarly to what Firefox' reader
     mode does.
-  * Some images ore now displayed as block (rather than inline) which is what
+  * Some images are now displayed as block (rather than inline) which is what
     Firefox' reader mode does as well.
   * Blockquotes are now styled more distinctively, again based on the Firefox
     reader mode.
@@ -3166,7 +3166,7 @@ Fixed
 - Fix workaround for black screens or crashes with Nvidia cards
 - Handle a filesystem going read-only gracefully
 - Fix crash when setting `fonts.monospace`
-- Fix list options not being modifyable via `.append()` in `config.py`
+- Fix list options not being modifiable via `.append()` in `config.py`
 - Mark the content.notifications setting as QtWebKit only correctly
 - Fix wrong rendering of keys like `<back>` in the completion
 
@@ -3202,7 +3202,7 @@ Major changes
   * New dependency on the QtSql module and Qt sqlite support.
   * New dependency on the https://www.attrs.org/[attrs] project (packaged as
     `python-attr` in some distributions).
-  * The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
+  * The dependency on PyOpenGL (when using QtWebEngine) got removed. Note
     that PyQt5.QtOpenGL is still a dependency.
   * PyQt5.QtOpenGL is now always required, even with QtWebKit.
 - The QtWebEngine backend is now used by default. Note this means that
@@ -4423,7 +4423,7 @@ Changed
     * Add `-s`/`--space` argument to `:set-cmd-text` (as `:set-cmd-text "foo "` will now set the literal text `"foo "`)
 - Ignore `;;` for splitting with some commands like `:bind`.
 - Add unbound (new) default keybindings to config. This also adds a new `<unbound>` special command.
-    * To unbind a command keybinding without binding it to a new key, you now have to bind it to `<unbound>` or it'll be readded automatically.
+    * To unbind a command keybinding without binding it to a new key, you now have to bind it to `<unbound>` or it'll be re-added automatically.
 - If an SSL error is raised multiple times with the same error/certificate/host/scheme/port, the user is only asked once.
 - Jump to last instead of first item when pressing Shift-Tab the first time in the completion.
 - Add a fullscreen keybinding.

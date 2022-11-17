@@ -165,7 +165,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
              'artefact', 'an unix', 'an utf', 'an unicode', 'unparseable',
              'dependancies', 'convertable', 'chosing', 'authentification'}
 
-    # Words which look better when splitted, but might need some fine tuning.
+    # Words which look better when split, but might need some fine tuning.
     words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',
               'eventloops', 'sizehint', 'statemachine', 'metaobject',
               'logrecord'}
