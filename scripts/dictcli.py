@@ -40,7 +40,7 @@ from qutebrowser.config import configdata
 from qutebrowser.utils import standarddir
 
 
-API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
+API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/main/'
 
 
 class InvalidLanguageError(Exception):
