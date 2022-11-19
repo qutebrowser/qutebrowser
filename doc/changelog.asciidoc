@@ -140,6 +140,7 @@ Fixed
   which is probably rarely used with those commands.
 - The `readability` userscript now correctly passes the source URL to
   Breadability, to make relative links work.
+- Update `dictcli.py` to use the `main` branch, fixing a 404 error.
 - Minor documentation fixes
 
 [[v2.5.2]]
