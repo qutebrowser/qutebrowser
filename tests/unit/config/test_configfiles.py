@@ -596,7 +596,7 @@ class TestYaml:
     def unreadable_autoconfig(self, autoconfig):
         autoconfig.fobj.ensure()
         autoconfig.fobj.chmod(0)
-        if os.access(str(autoconfig.fobj), os.R_OK):
+        if os.access(autoconfig.fobj, os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
 

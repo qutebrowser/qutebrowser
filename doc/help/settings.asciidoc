@@ -218,7 +218,7 @@
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<editor.remove_file,editor.remove_file>>|Delete the temporary file upon closing the editor.
 |<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
-|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command`, `fileselect.multiple_files.command` and `fileselect.folder.command` are used to select one file, multiple files, and folders, respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
 |<<fileselect.single_file.command,fileselect.single_file.command>>|Command (and arguments) to use for selecting a single file in forms. The command should write the selected file path to the specified file or stdout.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
@@ -3011,7 +3011,7 @@ Default:
 
 [[fileselect.handler]]
 === fileselect.handler
-Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command`, `fileselect.multiple_files.command` and `fileselect.folder.command` are used to select one file, multiple files, and folders, respectively.
 
 Type: <<types,String>>
 

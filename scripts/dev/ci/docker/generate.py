@@ -27,7 +27,7 @@ import jinja2
 
 def main():
     with open('Dockerfile.j2') as f:
-        template = jinja2.Template(f.read())
+        template = jinja2.Template(f.read(), trim_blocks=True, lstrip_blocks=True)
 
     image = sys.argv[1]
     config = {

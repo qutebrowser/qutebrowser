@@ -171,6 +171,7 @@ Feature: Prompts
         Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
+    @qtwebkit_openssl3_skip
     Scenario: SSL error with content.tls.certificate_errors = block
         When I clear SSL errors
         And I set content.tls.certificate_errors to block
@@ -186,6 +187,7 @@ Feature: Prompts
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
+    @qtwebkit_openssl3_skip
     Scenario: SSL error with content.tls.certificate_errors = ask -> no
         When I clear SSL errors
         And I set content.tls.certificate_errors to ask
@@ -194,6 +196,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
+    @qtwebkit_openssl3_skip
     Scenario: SSL error with content.tls.certificate_errors = ask -> abort
         When I clear SSL errors
         And I set content.tls.certificate_errors to ask
@@ -221,6 +224,7 @@ Feature: Prompts
         Then the javascript message "Script loaded" should be logged
         And the page should contain the plaintext "Script loaded"
 
+    @qtwebkit_openssl3_skip
     Scenario: SSL resource error with content.tls.certificate_errors = ask -> no
         When I clear SSL errors
         And I set content.tls.certificate_errors to ask
@@ -231,6 +235,7 @@ Feature: Prompts
         Then the javascript message "Script loaded" should not be logged
         And the page should contain the plaintext "Script not loaded"
 
+    @qtwebkit_openssl3_skip
     Scenario: SSL resource error with content.tls.certificate_errors = ask-block-thirdparty
         When I clear SSL errors
         And I set content.tls.certificate_errors to ask-block-thirdparty

@@ -128,7 +128,7 @@ class TestFileHandling:
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
         filename.chmod(0o277)
-        if os.access(str(filename), os.R_OK):
+        if os.access(filename, os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
 

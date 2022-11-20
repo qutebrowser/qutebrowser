@@ -1191,8 +1191,9 @@ class CommandDispatcher:
             env['QUTE_TAB_INDEX'] = str(idx + 1)
             env['QUTE_TITLE'] = self._tabbed_browser.widget.page_title(idx)
 
-        # FIXME:qtwebengine: If tab is None, run_async will fail!
         tab = self._tabbed_browser.widget.currentWidget()
+        if tab is None:
+            raise cmdutils.CommandError("No current tab!")
 
         try:
             url = self._tabbed_browser.current_url()

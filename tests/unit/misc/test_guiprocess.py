@@ -403,16 +403,15 @@ def test_failing_to_start(qtbot, proc, caplog, message_mock, monkeypatch, is_fla
         with qtbot.wait_signal(proc.error, timeout=5000):
             proc.start('this_does_not_exist_either', [])
 
-    msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text.startswith(
-        "Testprocess 'this_does_not_exist_either' failed to start:")
+    expected_msg = (
+        "Testprocess 'this_does_not_exist_either' failed to start:"
+        " 'this_does_not_exist_either' doesn't exist or isn't executable"
+    )
+    if is_flatpak:
+        expected_msg += " inside the Flatpak container"
 
-    if not utils.is_windows:
-        expected_msg = (
-            "Hint: Make sure 'this_does_not_exist_either' exists and is executable")
-        if is_flatpak:
-            expected_msg += ' inside the Flatpak container'
-        assert msg.text.endswith(expected_msg)
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == expected_msg
 
     assert not proc.outcome.running
     assert proc.outcome.status is None

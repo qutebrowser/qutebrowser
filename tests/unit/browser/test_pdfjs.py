@@ -178,7 +178,7 @@ def unreadable_file(tmpdir):
     unreadable_file = tmpdir / 'unreadable'
     unreadable_file.ensure()
     unreadable_file.chmod(0)
-    if os.access(str(unreadable_file), os.R_OK):
+    if os.access(unreadable_file, os.R_OK):
         # Docker container or similar
         pytest.skip("File was still readable")
 

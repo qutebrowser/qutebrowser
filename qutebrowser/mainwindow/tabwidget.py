@@ -806,9 +806,21 @@ class TabBarStyle(QCommonStyle):
                        'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',
                        'subControlRect', 'unpolish', 'drawItemText',
                        'sizeFromContents', 'drawPrimitive']:
-            target = getattr(self._style, method)
-            setattr(self, method, functools.partial(target))
+            setattr(self, method, functools.partial(self._fusion_call, method))
         super().__init__()
+
+    def _fusion_call(self, method: str, *args: Any) -> Any:
+        """Wrap a call to self._style to log RuntimeErrors.
+
+        WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5124
+        """
+        target = getattr(self._style, method)
+        try:
+            return target(*args)
+        except RuntimeError:
+            info = f"self._style.{method}{args}"
+            log.misc.warning(f"Got RuntimeError while calling {info}")
+            raise
 
     def _draw_indicator(self, layouts, opt, p):
         """Draw the tab indicator.

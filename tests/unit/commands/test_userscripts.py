@@ -201,6 +201,10 @@ def test_killed_command(qtbot, tmp_path, py_proc, runner, caplog):
         runner.store_text('Hello World')
         runner.store_html('')
 
+    # For some reason, this tends to be flaky on Windows, and we got the
+    # directoryChanged signal *without* the file existing (wut?)...
+    qtbot.wait_until(data_file.exists)
+
     # Make sure the PID was written to the file, not just the file created
     time.sleep(0.5)
 

@@ -45,7 +45,7 @@ jobs:
       - name: Run qutebrowser smoke test
         run: "xvfb-run .venv/bin/python3 -m qutebrowser --no-err-windows --nowindow --temp-basedir about:blank ':later 500 quit'"
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           committer: qutebrowser bot <bot@qutebrowser.org>
           author: qutebrowser bot <bot@qutebrowser.org>

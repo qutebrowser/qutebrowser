@@ -48,7 +48,7 @@ def test_get_file_list(tmpdir, create_file, create_dir, filterfunc, expected):
     if create_file or create_dir:
         path.ensure(dir=create_dir)
 
-    all_files = os.listdir(str(tmpdir))
+    all_files = os.listdir(tmpdir)
 
     result = filescheme.get_file_list(str(tmpdir), all_files, filterfunc)
     item = {'name': 'foo', 'absname': str(path)}

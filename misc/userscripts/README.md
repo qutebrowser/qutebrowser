@@ -80,7 +80,7 @@ The following userscripts can be found on their own repositories.
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
 - [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
-  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://sidhartharya.me/a-quicker-way-to-reach-localhost-with-qutebrowser/)
+  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://blog.sidhartharya.com/a-quicker-way-to-reach-localhost-with-qutebrowser/)
 - [untrack-url](https://github.com/qutebrowser/qutebrowser/discussions/6555),
   convert various URLs (YouTube/Reddit/Twitter/Instagram/Google Maps) to other
   services (Invidious, Teddit, Nitter, Bibliogram, OpenStreetMap).
@@ -100,6 +100,12 @@ The following userscripts can be found on their own repositories.
 - [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
   A simple interface to manage browser containers by manipulating the basedir
   parameter.
+- [qutebrowser-metascript](https://codeberg.org/mister_monster/qutebrowser-metascript):
+  A user configurable arbitrary sequential command running userscript for qutebrowser
+- [tab-manager](https://codeberg.org/mister_monster/tab-manager):
+  More powerfully manage single window sessions
+- [qutebrowser-url-mutator](https://codeberg.org/mister_monster/qutebrowser-url-mutator):
+  automatically mutates input URLs based on configurable rules
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

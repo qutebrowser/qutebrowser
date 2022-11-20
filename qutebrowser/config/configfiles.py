@@ -170,8 +170,7 @@ class StateConfig(configparser.ConfigParser):
         """Detect a qutebrowser version change."""
         old_qutebrowser_version = self['general'].get('version', None)
         if old_qutebrowser_version is None:
-            # https://github.com/python/typeshed/issues/2093
-            return  # type: ignore[unreachable]
+            return
 
         try:
             old_version = utils.VersionNumber.parse(old_qutebrowser_version)

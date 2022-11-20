@@ -97,8 +97,8 @@ jobs:
       - name: Gather info
         id: info
         run: |
-            echo "::set-output name=date::$(date +'%Y-%m-%d')"
-            echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:

@@ -266,18 +266,21 @@ class GUIProcess(QObject):
             QProcess.ProcessError.WriteError: f"Write error for {what}",
             QProcess.ProcessError.ReadError: f"Read error for {what}",
         }
-        error_string = self._proc.errorString()
-        msg = ': '.join([error_descriptions[error], error_string])
 
         # We can't get some kind of error code from Qt...
         # https://bugreports.qt.io/browse/QTBUG-44769
         # but we pre-resolve the executable in Python, which also checks if it's
         # runnable.
-        if self.resolved_cmd is None:  # pragma: no branch
-            msg += f'\nHint: Make sure {self.cmd!r} exists and is executable'
+        if self.resolved_cmd is None:
+            # No point in showing the "No program defined" we got due to
+            # passing None into Qt.
+            error_string = f"{self.cmd!r} doesn't exist or isn't executable"
             if version.is_flatpak():
-                msg += ' inside the Flatpak container'
+                error_string += " inside the Flatpak container"
+        else:  # pragma: no cover
+            error_string = self._proc.errorString()
 
+        msg = ': '.join([error_descriptions[error], error_string])
         message.error(msg)
 
     def _elide_output(self, output: str) -> str:

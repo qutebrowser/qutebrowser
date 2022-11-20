@@ -197,7 +197,7 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
                     'remove it.'.format(venv_dir))
 
     print_command('rm -r', venv_dir, venv=False)
-    shutil.rmtree(str(venv_dir))
+    shutil.rmtree(venv_dir)
 
 
 def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:

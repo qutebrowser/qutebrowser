@@ -38,7 +38,7 @@ from scripts import utils
 from scripts.dev import recompile_requirements
 
 BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
-               '.sqlite', '.woff2', '.whl'}
+               '.sqlite', '.woff2', '.whl', '.egg'}
 
 
 def _get_files(
@@ -64,7 +64,7 @@ def _get_files(
             continue
 
         try:
-            with tokenize.open(str(path)):
+            with tokenize.open(path):
                 pass
         except SyntaxError as e:
             # Could not find encoding
@@ -275,7 +275,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     try:
         ok = True
         for path in _get_files(verbose=args.verbose, ignored=ignored):
-            with tokenize.open(str(path)) as f:
+            with tokenize.open(path) as f:
                 if not _check_spelling_file(path, f, patterns):
                     ok = False
         print()
@@ -325,7 +325,7 @@ def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
             if path.suffix in {'.rst', '.asciidoc'}:
                 # False positives
                 continue
-            with tokenize.open(str(path)) as f:
+            with tokenize.open(path) as f:
                 for line in f:
                     if any(line.startswith(c * 7) for c in '<>=|'):
                         print("Found conflict marker in {}".format(path))

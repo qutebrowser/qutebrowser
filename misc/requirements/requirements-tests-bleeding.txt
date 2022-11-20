@@ -9,7 +9,9 @@ git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-py
 git+https://github.com/pytest-dev/pytest.git
 git+https://github.com/pytest-dev/pytest-bdd.git
 git+https://github.com/ionelmc/pytest-benchmark.git
-git+https://github.com/pytest-dev/pytest-instafail.git
+# WORKAROUND for pytest-instafail using deprectated pytest functionality
+# See https://github.com/pytest-dev/pytest-instafail/pull/26
+git+https://github.com/The-Compiler/pytest-instafail.git@new-hookimpl
 git+https://github.com/pytest-dev/pytest-mock.git
 git+https://github.com/pytest-dev/pytest-qt.git
 git+https://github.com/pytest-dev/pytest-rerunfailures.git

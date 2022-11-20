@@ -36,7 +36,7 @@ import os.path
 import dataclasses
 
 import pytest
-import py.path  # pylint: disable=no-name-in-module
+import py.path
 from qutebrowser.qt.core import QSize, Qt
 from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QVBoxLayout
 from qutebrowser.qt.network import QNetworkCookieJar
@@ -639,7 +639,7 @@ def redirect_webengine_data(data_tmpdir, monkeypatch):
 def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:
-        yield py.path.local(tdir)  # pylint: disable=no-member
+        yield py.path.local(tdir)
 
 
 class ModelValidator:
@@ -720,7 +720,7 @@ def state_config(data_tmpdir, monkeypatch):
 @pytest.fixture
 def unwritable_tmp_path(tmp_path):
     tmp_path.chmod(0)
-    if os.access(str(tmp_path), os.W_OK):
+    if os.access(tmp_path, os.W_OK):
         # Docker container or similar
         pytest.skip("Directory was still writable")
 
