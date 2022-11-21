@@ -8,9 +8,9 @@ platformdirs==2.5.4
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.9
-setuptools==65.5.1
+setuptools==65.6.0
 six==1.16.0
 tomli==2.0.1
-tox==3.27.0
+tox==3.27.1
 virtualenv==20.16.7
 wheel==0.38.4

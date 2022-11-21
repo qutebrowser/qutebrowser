@@ -35,7 +35,7 @@ requests-toolbelt==0.10.1
 rfc3986==2.0.0
 rich==12.6.0
 SecretStorage==3.3.3
-sip==6.7.4
+sip==6.7.5
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
