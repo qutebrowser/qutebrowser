@@ -7,7 +7,7 @@ importlib-resources==5.10.0
 Jinja2==3.1.2
 lxml==4.9.1
 MarkupSafe==2.1.1
-mypy==0.990
+mypy==0.991
 mypy-extensions==0.4.3
 pluggy==1.0.0
 Pygments==2.13.0
