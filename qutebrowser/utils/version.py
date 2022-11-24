@@ -594,6 +594,8 @@ class WebEngineVersions:
         #            5.15.7: Security fixes up to 94.0.4606.61  (2021-09-24)
         #            5.15.8: Security fixes up to 96.0.4664.110 (2021-12-13)
         #            5.15.9: Security fixes up to 98.0.4758.102 (2022-02-14)
+        #            5.15.10: Security fixes up to ???
+        #            5.15.11: Security fixes up to ???
         utils.VersionNumber(5, 15): '87.0.4280.144',  # >= 5.15.3
 
         # Qt 6.2: Chromium 90
@@ -603,17 +605,22 @@ class WebEngineVersions:
         #         6.2.2: Security fixes up to 96.0.4664.45 (2021-11-15)
         #         6.2.3: Security fixes up to 96.0.4664.45 (2021-11-15)
         #         6.2.4: Security fixes up to 98.0.4758.102 (2022-02-14)
+        #         6.2.5: Security fixes up to ???
+        #         6.2.6: Security fixes up to ???
         utils.VersionNumber(6, 2): '90.0.4430.228',
 
         # Qt 6.3: Chromium 94
         #         94.0.4606.126 (2021-11-17)
         #         6.3.0: Security fixes up to 99.0.4844.84 (2022-03-25)
+        #         6.3.1: Security fixes up to 101.0.4951.64 (2022-05-10)
+        #         6.3.2: Security fixes up to 104.0.5112.81 (2022-08-01)
         utils.VersionNumber(6, 3): '94.0.4606.126',
 
-        # Qt 6.4: Chromium 98
-        #         98.0.4758.90 (2022-02-02)
-        #         6.4.0: Security fixes up to ???
-        utils.VersionNumber(6, 4): '98.0.4758.90',
+        # Qt 6.4: Chromium 102
+        #         102.0.5005.177 (~2022-05-24)
+        #         6.4.0: Security fixes up to 104.0.5112.102 (2022-08-16)
+        #         6.4.1: Security fixes up to 107.0.5304.88 (2022-10-27)
+        utils.VersionNumber(6, 4): '102.0.5005.177',
     }
 
     def __post_init__(self) -> None:
