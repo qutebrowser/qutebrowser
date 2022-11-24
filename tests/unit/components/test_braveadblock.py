@@ -430,3 +430,8 @@ def test_corrupt_cache_handling(ad_blocker, message_mock, caplog):
     assert msg.text == (
         "Reading adblock filter data failed (corrupted data?). "
         "Please run :adblock-update.")
+
+
+def test_resource_type_strings_complete():
+    defined = set(braveadblock._RESOURCE_TYPE_STRINGS) - {None}
+    assert defined == set(ResourceType)

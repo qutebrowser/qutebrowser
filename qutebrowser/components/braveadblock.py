@@ -109,6 +109,7 @@ _RESOURCE_TYPE_STRINGS = {
     ResourceType.plugin_resource: "other",
     ResourceType.preload_main_frame: "other",
     ResourceType.preload_sub_frame: "other",
+    ResourceType.websocket: "websocket",
     ResourceType.unknown: "other",
     None: "",
 }

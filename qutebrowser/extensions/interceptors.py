@@ -30,7 +30,7 @@ class ResourceType(enum.Enum):
     """Possible request types that can be received.
 
     Currently corresponds to the QWebEngineUrlRequestInfo Enum:
-    https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
+    https://doc.qt.io/qt-6/qwebengineurlrequestinfo.html#ResourceType-enum
     """
 
     main_frame = 0
@@ -54,6 +54,7 @@ class ResourceType(enum.Enum):
     # 18 is "preload", deprecated in Chromium
     preload_main_frame = 19
     preload_sub_frame = 20
+    websocket = 254
     unknown = 255
 
 
