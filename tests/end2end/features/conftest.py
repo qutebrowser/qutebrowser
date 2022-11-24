@@ -195,6 +195,7 @@ def pdfjs_available(data_tmpdir):
 
 
 @bdd.given('I clear the log')
+@bdd.when('I clear the log')
 def clear_log_lines(quteproc):
     quteproc.clear_data()
 
