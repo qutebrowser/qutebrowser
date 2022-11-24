@@ -646,7 +646,7 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to false
         And I set content.pdfjs to true
         And I open data/misc/test.pdf without waiting
-        And I wait until PDF.js is loaded
+        And I wait until PDF.js is ready
         And I run :click-element id download
         And I wait until the download is finished
         # We get viewer.html as name on QtWebKit...

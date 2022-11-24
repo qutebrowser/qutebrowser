@@ -438,7 +438,7 @@ class QuteProc(testprocess.Process):
         except AttributeError:
             pass
         else:
-            if call.failed or hasattr(call, 'wasxfail'):
+            if call.failed or hasattr(call, 'wasxfail') or call.skipped:
                 super().after_test()
                 return
 

@@ -437,12 +437,12 @@ def update_documentation():
     subprocess.run([sys.executable, update_script], check=True)
 
 
-@bdd.when("I wait until PDF.js is loaded")
+@bdd.when("I wait until PDF.js is ready")
 def wait_pdfjs(quteproc):
     quteproc.wait_for(message="load status for <qutebrowser.browser.* "
         "tab_id=* url='qute://pdfjs/web/viewer.html?*'>: LoadStatus.success")
     try:
-        quteproc.wait_for(message="[qute://pdfjs/web/viewer.html?*] Uncaught TypeError: Cannot read property 'set' of undefined", timeout=100)
+        quteproc.wait_for(message="JS: [qute://pdfjs/web/viewer.html?*] Uncaught TypeError: Cannot read property 'set' of undefined", timeout=100)
     except testprocess.WaitForTimeout:
         pass
     else:
