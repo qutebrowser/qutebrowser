@@ -58,7 +58,7 @@ def is_ignored_lowlevel_message(message):
         'Fontconfig error: Cannot load default config file: No such file: (null)',
         'Fontconfig error: Cannot load default config file',
 
-        # Qt 6.4, from certifiacte error below, but on separate lines
+        # Qt 6.4, from certificate error below, but on separate lines
         '----- Certificate i=0 (*,CN=localhost,O=qutebrowser test certificate) -----',
         'ERROR: No matching issuer found',
     ]
@@ -125,6 +125,8 @@ def is_ignored_chromium_message(line):
         # ERROR: No matching issuer found
         # (Note, subsequent lines above in is_ignored_lowlevel_message)
         'CertVerifyProcBuiltin for localhost failed:',
+        # [320667:320667:1124/135621.718232:ERROR:interface_endpoint_client.cc(687)] Message 4 rejected by interface blink.mojom.WidgetHost
+        'Message 4 rejected by interface blink.mojom.WidgetHost',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
