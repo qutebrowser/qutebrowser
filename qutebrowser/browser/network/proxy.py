@@ -97,7 +97,7 @@ class ProxyFactory(QNetworkProxyFactory):
         if proxy is configtypes.SYSTEM_PROXY:
             # On Linux, use "export http_proxy=socks5://host:port" to manually
             # set system proxy.
-            # ref. https://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
+            # ref. https://doc.qt.io/qt-6/qnetworkproxyfactory.html#systemProxyForQuery
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
             if objects.backend == usertypes.Backend.QtWebEngine:

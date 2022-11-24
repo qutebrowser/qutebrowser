@@ -272,7 +272,7 @@ qt.chromium.process_model:
     See the following pages for more details:
 
       - https://www.chromium.org/developers/design-documents/process-models
-      - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+      - https://doc.qt.io/qt-6/qtwebengine-features.html#process-models
 
 qt.low_end_device_mode:
   renamed: qt.chromium.low_end_device_mode

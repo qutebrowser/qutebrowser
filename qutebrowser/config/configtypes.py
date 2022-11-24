@@ -1167,7 +1167,7 @@ class QssColor(BaseType):
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     * A gradient as explained in
-      https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
+      https://doc.qt.io/qt-6/stylesheet-reference.html#list-of-property-types[the Qt documentation]
       under ``Gradient''
     """
 
