@@ -4,6 +4,7 @@
 # * Install the gh cli and run `gh login`: https://github.com/cli/cli/
 # * install black isort usort pyupgrade and whatever other tools you want to
 #   play with in your active virtualenv
+# * also requires "sponge" from moreutils
 # * move to a new folder for the script to work in: `mkdir pr_mergability && cd pr_mergability`
 # * ../scripts/check_mergability.sh
 #
@@ -234,17 +235,52 @@ rebase_with_formatting () {
   # parallelize them?
   # Maybe just adding a wrapper around the formatters that caches the output
   # would be simpler. At least then you just have to sit through them once.
-  git config  --local --get filter.black.smudge >/dev/null || {
-    git config --local filter.black.smudge "black -q -"
-    git config --local filter.isort.smudge "isort -q -"
-    git config --local filter.pyupgrade.smudge "pyupgrade --py27-plus -"
-    git config --local filter.usort.smudge "usort format -"
-  }
+  git config --local filter.rewrite.smudge "filter-cache"
   printf "*.py" > .git/info/attributes
-  echo "$cmds" | tr ' ' '\n' | while read cmd; do
-    printf " filter=$cmd" >> .git/info/attributes
-  done
+  printf " filter=rewrite" >> .git/info/attributes
   echo >> .git/info/attributes
+
+  mkdir filter-tools 2>/dev/null
+  cat > filter-tools/filter-cache <<EOF
+#!/bin/sh
+# Script to add as filter for git while rebasing.
+# Runs the configured tools in sequence, caches the result of each tool in
+# case you find yourself running through this proecss lots while working on
+# it.
+
+cmds="$cmds"
+inputf="\$(mktemp)"
+cat > "\$inputf"
+
+# TODO: de-dup these with the parent script?
+# Can use aliases here?
+# Call with the file drectly instead of using stdin?
+usort () { env usort format -; }
+black () { env black -q -; }
+isort () { env isort -q -; }
+pyupgrade () { env pyupgrade --py37-plus -; }
+
+run_with_cache () {
+  inputf="\$1"
+  cmd="\$2"
+  input_hash="\$(sha1sum "\$inputf" | cut -d' ' -f1)"
+
+  mkdir -p /tmp/filter-caches/\$cmd 2>/dev/null
+  outputf=/tmp/filter-caches/\$cmd/\$input_hash
+
+  [ -e "\$outputf" ] || \$cmd < "\$inputf" > "\$outputf"
+
+  cat "\$outputf"
+}
+
+echo "\$cmds" | tr ' ' '\n' | while read cmd; do
+  run_with_cache \$inputf "\$cmd" | sponge \$inputf
+done
+
+cat "\$inputf"
+EOF
+  chmod +x filter-tools/filter-cache
+  export PATH="$PWD/filter-tools:$PATH"
 
   # not sure why I had to do the extra git commit in there, there are some
   # changes left in the working directory sometimes? TODO: change to a
@@ -327,10 +363,9 @@ else
   tmp-black_usort black usort
   tmp-black_pyupgrade black pyupgrade
   tmp-black_isort_pyupgrade black isort pyupgrade
-  tmp-black_isort_pyupgrade black usort pyupgrade
+  tmp-black_usort_pyupgrade black usort pyupgrade
   qt6-v2 true"
-  #tools="tmp-black_isort black isort
-  #tmp-black_usort black usort"
+  tools="tmp-black black"
 
   prompt_or_summary "Generate report for all tool configurations?"
   clean_branches
@@ -352,9 +387,19 @@ summary
 # * see if we can run formatters on PR branches before/while merging
 # * do most stuff based off of qt6-v2 instead of master, not like most PRs
 #   will be merged to pre-3.0 master anyway
+# * for strategies where we skip PRs that failed in master include them in the
+#   report to for reference. With a marker to that affect and a total diffstat
+#   so we can see how big they are
+# * *try the more simplistic "Run the formatter on all PR branches then merge"
+#   instead of trying to do it via a rebase*
+# * try rebasing them to an autoformatted qt6-v2 branch
 # notes:
 # after merging qt6-v2 would merging old PRs to old master then somehow merging
 #   the PR merge commit up to the new master easier than rebasing the PR?
 # there is a filter attribute you can use to re-write files before committing.
 #   For this use case probably the same as rebase -i --exec then merge?
 #   >See "Merging branches with differing checkin/checkout attributes" in gitattributes(5)
+# if we go with the strategy of rebasing PRs on formatted commits how to deal
+#   with stopping isort making import loops on every damn PR. Still need to try
+#   rebasing directly on the latest formatted master instead of doing the
+#   intermediated one.
