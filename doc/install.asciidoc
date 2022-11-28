@@ -292,7 +292,7 @@ Nightly builds
 
 If you want to test out new features before an official qutebrowser release, automated
 https://github.com/qutebrowser/qutebrowser/actions/workflows/nightly.yml[nightly
-builds] are available. To download them, open the lastest run (usually the first one),
+builds] are available. To download them, open the latest run (usually the first one),
 then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
@@ -369,7 +369,7 @@ Nightly builds
 
 If you want to test out new features before an official qutebrowser release, automated
 https://github.com/qutebrowser/qutebrowser/actions/workflows/nightly.yml[nightly
-builds] are available. To download them, open the lastest run (usually the first one),
+builds] are available. To download them, open the latest run (usually the first one),
 then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
