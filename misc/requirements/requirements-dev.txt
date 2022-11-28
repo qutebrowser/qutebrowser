@@ -7,12 +7,12 @@ certifi==2022.9.24
 cffi==1.15.1
 charset-normalizer==2.1.1
 commonmark==0.9.1
-cryptography==38.0.3
+cryptography==38.0.4
 docutils==0.19
 github3.py==3.2.0
 hunter==3.5.1
 idna==3.4
-importlib-metadata==5.0.0
+importlib-metadata==5.1.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
 keyring==23.11.0
@@ -42,6 +42,6 @@ tomli==2.0.1
 twine==4.0.1
 typing_extensions==4.4.0
 uritemplate==4.1.1
-# urllib3==1.26.12
+# urllib3==1.26.13
 webencodings==0.5.1
-zipp==3.10.0
+zipp==3.11.0

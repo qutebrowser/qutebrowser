@@ -4,7 +4,7 @@ astroid==2.12.13
 certifi==2022.9.24
 cffi==1.15.1
 charset-normalizer==2.1.1
-cryptography==38.0.3
+cryptography==38.0.4
 dill==0.3.6
 future==0.18.2
 github3.py==3.2.0
@@ -26,5 +26,5 @@ tomlkit==0.11.6
 typed-ast==1.5.4 ; python_version<"3.8"
 typing_extensions==4.4.0
 uritemplate==4.1.1
-# urllib3==1.26.12
+# urllib3==1.26.13
 wrapt==1.14.1
