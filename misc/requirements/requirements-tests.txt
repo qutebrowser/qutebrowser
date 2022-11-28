@@ -12,9 +12,9 @@ execnet==1.9.0
 filelock==3.8.0
 Flask==2.2.2
 hunter==3.5.1
-hypothesis==6.58.0
+hypothesis==6.58.1
 idna==3.4
-importlib-metadata==5.0.0
+importlib-metadata==5.1.0
 iniconfig==1.1.1
 itsdangerous==2.1.2
 jaraco.functools==3.5.2
@@ -38,7 +38,7 @@ pytest-instafail==0.4.2
 pytest-mock==3.10.0
 pytest-qt==4.2.0
 pytest-repeat==0.9.1
-pytest-rerunfailures==10.2
+pytest-rerunfailures==10.3
 pytest-xdist==3.0.2
 pytest-xvfb==2.0.0
 PyVirtualDisplay==3.0
@@ -51,7 +51,7 @@ tldextract==3.4.0
 toml==0.10.2
 tomli==2.0.1
 typing_extensions==4.4.0
-urllib3==1.26.12
+urllib3==1.26.13
 vulture==2.6
 Werkzeug==2.2.2
-zipp==3.10.0
+zipp==3.11.0
