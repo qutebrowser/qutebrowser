@@ -5,7 +5,6 @@ flake8==6.0.0
 flake8-bugbear==22.10.27
 flake8-builtins==2.0.1
 flake8-comprehensions==3.10.1
-flake8-copyright==0.2.3
 flake8-debugger==4.1.2
 flake8-deprecated==2.0.1
 flake8-docstrings==1.6.0
