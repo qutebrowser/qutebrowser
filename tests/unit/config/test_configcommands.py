@@ -517,12 +517,11 @@ class TestUnsetAndClear:
         assert yaml_value(name) == (usertypes.UNSET if save else 'never')
 
 
+@pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
+                         'config_stub', 'key_config_stub')
 class TestSource:
 
     """Test :config-source."""
-
-    pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
-                                         'config_stub', 'key_config_stub')
 
     @pytest.mark.parametrize('location', ['default', 'absolute', 'relative'])
     @pytest.mark.parametrize('clear', [True, False])
@@ -601,13 +600,12 @@ class TestSource:
         assert str(excinfo.value) == expected
 
 
+@pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
+                         'config_stub', 'key_config_stub',
+                         'qapp')
 class TestEdit:
 
     """Tests for :config-edit."""
-
-    pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
-                                         'config_stub', 'key_config_stub',
-                                         'qapp')
 
     def test_no_source(self, commands, mocker):
         mock = mocker.patch('qutebrowser.config.configcommands.editor.'
