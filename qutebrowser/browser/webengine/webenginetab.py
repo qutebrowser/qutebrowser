@@ -1189,6 +1189,7 @@ class _WebEngineScripts(QObject):
 
         versions = version.qtwebengine_versions()
         quirks = [
+            # FIXME:qt6 Double check which of those are still required
             _Quirk(
                 'whatsapp_web',
                 injection_point=QWebEngineScript.InjectionPoint.DocumentReady,
@@ -1200,17 +1201,10 @@ class _WebEngineScripts(QObject):
                 # will be an UA quirk once we set the JS UA as well
                 name='ua-googledocs',
             ),
+
             _Quirk(
                 'string_replaceall',
                 predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
-            ),
-            _Quirk(
-                'globalthis',
-                predicate=versions.webengine < utils.VersionNumber(5, 13),
-            ),
-            _Quirk(
-                'object_fromentries',
-                predicate=versions.webengine < utils.VersionNumber(5, 13),
             ),
             _Quirk(
                 'array_at',

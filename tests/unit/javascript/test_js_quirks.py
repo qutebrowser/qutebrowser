@@ -50,18 +50,6 @@ from qutebrowser.utils import usertypes
         id='replace-all-reserved-string',
     ),
     pytest.param(
-        QUrl('https://test.qutebrowser.org/test'),
-        'typeof globalThis.setTimeout === "function"',
-        True,
-        id='global-this',
-    ),
-    pytest.param(
-        QUrl(),
-        'Object.fromEntries([["0", "a"], ["1", "b"]])',
-        {'0': 'a', '1': 'b'},
-        id='object-fromentries',
-    ),
-    pytest.param(
         QUrl("https://test.qutebrowser.org/linkedin"),
         '[1, 2, 3].at(1)',
         2,
