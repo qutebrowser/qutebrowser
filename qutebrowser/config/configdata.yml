@@ -613,6 +613,7 @@ content.site_specific_quirks.skip:
       - js-string-replaceall
       - js-globalthis
       - js-object-fromentries
+      - js-array-at
       - misc-krunker
       - misc-mathml-darkmode
     none_ok: true
