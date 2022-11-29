@@ -24,10 +24,14 @@ polyfills for. They should either pass because the polyfill is active, or pass b
 the native functionality exists.
 """
 
-import pytest
+import pathlib
 
+import pytest
 from qutebrowser.qt.core import QUrl
+
+import qutebrowser
 from qutebrowser.utils import usertypes
+from qutebrowser.config import configdata
 
 
 @pytest.mark.parametrize('base_url, source, expected', [
@@ -61,3 +65,28 @@ def test_js_quirks(config_stub, js_tester_webengine, base_url, source, expected)
     js_tester_webengine.tab._scripts._inject_site_specific_quirks()
     js_tester_webengine.load('base.html', base_url=base_url)
     js_tester_webengine.run(source, expected, world=usertypes.JsWorld.main)
+
+
+def test_js_quirks_match_files(webengine_tab):
+    quirks_path = pathlib.Path(qutebrowser.__file__).parent / "javascript" / "quirks"
+    suffix = ".user.js"
+    quirks_files = set(p.name[:-len(suffix)] for p in quirks_path.glob(f"*{suffix}"))
+    quirks_code = set(q.filename for q in webengine_tab._scripts._get_quirks())
+    assert quirks_code == quirks_files
+
+
+def test_js_quirks_match_settings(webengine_tab, configdata_init):
+    opt = configdata.DATA["content.site_specific_quirks.skip"]
+    prefix = "js-"
+    valid_values = opt.typ.get_valid_values()
+    assert valid_values is not None
+    quirks_config = set(
+        val[len(prefix):].replace("-", "_")
+        for val in valid_values
+        if val.startswith(prefix)
+    )
+
+    quirks_code = set(q.filename for q in webengine_tab._scripts._get_quirks())
+    quirks_code -= {"googledocs"}  # special case, UA quirk
+
+    assert quirks_code == quirks_config

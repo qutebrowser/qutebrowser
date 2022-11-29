@@ -1182,13 +1182,10 @@ class _WebEngineScripts(QObject):
             log.greasemonkey.debug(f'adding script: {new_script.name()}')
             page_scripts.insert(new_script)
 
-    def _inject_site_specific_quirks(self):
-        """Add site-specific quirk scripts."""
-        if not config.val.content.site_specific_quirks.enabled:
-            return
-
+    def _get_quirks(self):
+        """Get a list of all available JS quirks."""
         versions = version.qtwebengine_versions()
-        quirks = [
+        return [
             # FIXME:qt6 Double check which of those are still required
             _Quirk(
                 'whatsapp_web',
@@ -1212,7 +1209,12 @@ class _WebEngineScripts(QObject):
             ),
         ]
 
-        for quirk in quirks:
+    def _inject_site_specific_quirks(self):
+        """Add site-specific quirk scripts."""
+        if not config.val.content.site_specific_quirks.enabled:
+            return
+
+        for quirk in self._get_quirks():
             if not quirk.predicate:
                 continue
             src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
