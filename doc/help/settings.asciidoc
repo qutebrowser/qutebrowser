@@ -2781,6 +2781,7 @@ Valid values:
  * +js-string-replaceall+
  * +js-globalthis+
  * +js-object-fromentries+
+ * +js-array-at+
  * +misc-krunker+
  * +misc-mathml-darkmode+
 
