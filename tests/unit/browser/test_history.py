@@ -136,7 +136,7 @@ class TestDelete:
 
         completion_diff = completion_before.difference(
             set(web_history.completion))
-        assert completion_diff == {(raw, '', 0)}
+        assert completion_diff == {(raw, '', 0, 1, 0)}
 
 
 class TestAdd:
@@ -167,7 +167,7 @@ class TestAdd:
         if completion_url is None:
             assert not len(web_history.completion)
         else:
-            expected = [(completion_url, title, atime)]
+            expected = [(completion_url, title, atime, 1, atime)]
             assert list(web_history.completion) == expected
 
     def test_no_sql_web_history(self, web_history, monkeypatch):
@@ -186,7 +186,7 @@ class TestAdd:
     @pytest.mark.parametrize('completion', [True, False])
     def test_error(self, monkeypatch, web_history, message_mock, caplog,
                    known_error, completion):
-        def raise_error(url, replace=False):
+        def raise_error(url, replace=False, ignore=False):
             if known_error:
                 raise sql.KnownError("Error message")
             raise sql.BugError("Error message")
@@ -269,6 +269,42 @@ class TestAdd:
         assert len(web_history) == 0
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         assert list(web_history) == hist
+
+    @pytest.mark.parametrize(
+        'urls, expected', [
+            (['http://a', 'http://b', 'http://a'],
+             {'http://a': 2, 'http://b': 1}),
+            (['http://a/a a', 'http://b', 'http://a/a%20a'],
+             {'http://a/a a': 2, 'http://b': 1}),
+        ]
+    )
+    def test_visits(self, web_history, urls, expected):
+        for url in urls:
+            web_history.add_url(QUrl(url))
+        completion = {i.url: i.visits for i in web_history.completion}
+        assert completion == expected
+
+    @pytest.mark.parametrize(
+        'urls, expected', [
+            ([('http://a', 1)], [('http://a', lambda b: 1)]),
+            ([('http://a', 1), ('http://a', 3), ('http://a', 8)],
+             [('http://a', lambda b: 2 * b + 8)]),
+            ([('http://a', 1), ('http://b/b b', 2), ('http://a', 3),
+              ('http://b/b%20b', 3), ('http://b/b b', 4), ('http://b/b b', 9)],
+             [('http://a', lambda b: b + 3),
+              ('http://b/b b', lambda b: 3 * b + 9)]),
+        ]
+    )
+    @pytest.mark.parametrize(
+        'frecency_bonus', [0, 1, 2, 100]
+    )
+    def test_frecency(self, config_stub, web_history, urls, expected, frecency_bonus):
+        config_stub.val.completion.web_history.frecency_bonus = frecency_bonus
+        calculated_expected = {k: v(frecency_bonus) for k, v in expected}
+        for url, atime in urls:
+            web_history.add_url(QUrl(url), atime=atime)
+        completion = {i.url: i.frecency for i in web_history.completion}
+        assert completion == calculated_expected
 
 
 class TestHistoryInterface:
@@ -376,15 +412,15 @@ class TestRebuild:
         web_history.completion.delete('url', 'example.com/2')
 
         hist2 = history.WebHistory(database, progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+        assert list(hist2.completion) == [('example.com/1', '', 1, 1, 1)]
 
         monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
 
         hist3 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
-            ('example.com/1', '', 1),
-            ('example.com/2', '', 2),
+            ('example.com/1', '', 1, 1, 1),
+            ('example.com/2', '', 2, 1, 2),
         ]
         assert not hist3.metainfo['force_rebuild']
 
@@ -397,14 +433,14 @@ class TestRebuild:
 
         hist2 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+        assert list(hist2.completion) == [('example.com/1', '', 1, 1, 1)]
         hist2.metainfo['force_rebuild'] = True
 
         hist3 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
-            ('example.com/1', '', 1),
-            ('example.com/2', '', 2),
+            ('example.com/1', '', 1, 1, 1),
+            ('example.com/2', '', 2, 1, 2),
         ]
         assert not hist3.metainfo['force_rebuild']
 
@@ -422,7 +458,7 @@ class TestRebuild:
 
         hist2 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('http://example.com', '', 1)]
+        assert list(hist2.completion) == [('http://example.com', '', 1, 1, 1)]
 
     def test_pattern_change_rebuild(self, config_stub, web_history, stubs):
         """Ensure that completion is rebuilt when exclude patterns change."""
@@ -436,7 +472,7 @@ class TestRebuild:
         hist2 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [
-            ('http://example.com', '', 1),
+            ('http://example.com', '', 1, 1, 1),
         ]
 
         config_stub.val.completion.web_history.exclude = []
@@ -444,8 +480,8 @@ class TestRebuild:
         hist3 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
-            ('http://example.com', '', 1),
-            ('http://example.org', '', 2)
+            ('http://example.com', '', 1, 1, 1),
+            ('http://example.org', '', 2, 1, 2),
         ]
 
     def test_progress(self, monkeypatch, web_history, config_stub, stubs):
@@ -478,7 +514,7 @@ class TestRebuild:
 
         hist2 = history.WebHistory(web_history.database,
                                    progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+        assert list(hist2.completion) == [('example.com/1', '', 1, 1, 1)]
 
 
 class TestCompletionMetaInfo:

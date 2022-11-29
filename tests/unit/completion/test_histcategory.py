@@ -36,7 +36,8 @@ def hist(data_tmpdir, config_stub):
     db = sql.Database(str(data_tmpdir / 'test_histcategory.db'))
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
-    return sql.SqlTable(db, 'CompletionHistory', ['url', 'title', 'last_atime'])
+    return sql.SqlTable(db, 'CompletionHistory',
+                        ['url', 'title', 'last_atime', 'visits', 'frecency'])
 
 
 @pytest.mark.parametrize('pattern, before, after', [
@@ -197,12 +198,90 @@ def test_set_pattern_hypothesis(hist, pat, caplog):
     ]),
     (1, [], []),  # issue 2849 (crash with empty history)
 ])
-def test_sorting(max_items, before, after, model_validator, hist, config_stub):
+def test_sorting_recency(max_items, before, after, model_validator, hist, config_stub):
     """Validate the filtering and sorting results of set_pattern."""
+    config_stub.val.completion.web_history.sort_criterion = 'recency'
     config_stub.val.completion.web_history.max_items = max_items
     for url, title, atime in before:
         timestamp = datetime.datetime.strptime(atime, '%Y-%m-%d').timestamp()
         hist.insert({'url': url, 'title': title, 'last_atime': timestamp})
+    cat = histcategory.HistoryCategory(database=hist.database)
+    model_validator.set_model(cat)
+    cat.set_pattern('')
+    model_validator.validate(after)
+
+
+@pytest.mark.parametrize('max_items, before, after', [
+    (-1, [
+        ('a', 'a', '2017-04-16', 1),
+        ('b', 'b', '2017-06-16', 3),
+        ('c', 'c', '2017-05-16', 2),
+    ], [
+        ('b', 'b', '2017-06-16'),
+        ('c', 'c', '2017-05-16'),
+        ('a', 'a', '2017-04-16'),
+    ]),
+    (-1, [
+        ('a', 'a', '2017-04-16', 1),
+        ('b', 'b', '2017-06-16', 1),
+        ('c', 'c', '2017-05-16', 1),
+    ], [
+        ('b', 'b', '2017-06-16'),
+        ('c', 'c', '2017-05-16'),
+        ('a', 'a', '2017-04-16'),
+    ]),
+    (2, [
+        ('a', 'a', '2017-04-16', 1),
+        ('b', 'b', '2017-06-16', 3),
+        ('c', 'c', '2017-05-16', 2),
+    ], [
+        ('b', 'b', '2017-06-16'),
+        ('c', 'c', '2017-05-16'),
+    ]),
+])
+def test_sorting_frequency(max_items, before, after, model_validator, hist,
+                           config_stub):
+    """Validate sorting results of set_pattern for frequency."""
+    config_stub.val.completion.web_history.sort_criterion = 'frequency'
+    config_stub.val.completion.web_history.max_items = max_items
+    for url, title, atime, visits in before:
+        timestamp = datetime.datetime.strptime(atime, '%Y-%m-%d').timestamp()
+        hist.insert({'url': url, 'title': title, 'last_atime': timestamp,
+                     'visits': visits})
+    cat = histcategory.HistoryCategory(database=hist.database)
+    model_validator.set_model(cat)
+    cat.set_pattern('')
+    model_validator.validate(after)
+
+
+@pytest.mark.parametrize('max_items, before, after', [
+    (-1, [
+        ('a', 'a', '2017-04-16', 1),
+        ('b', 'b', '2017-06-16', 3),
+        ('c', 'c', '2017-05-16', 2),
+    ], [
+        ('b', 'b', '2017-06-16'),
+        ('c', 'c', '2017-05-16'),
+        ('a', 'a', '2017-04-16'),
+    ]),
+    (2, [
+        ('a', 'a', '2017-04-16', 1),
+        ('b', 'b', '2017-06-16', 3),
+        ('c', 'c', '2017-05-16', 2),
+    ], [
+        ('b', 'b', '2017-06-16'),
+        ('c', 'c', '2017-05-16'),
+    ]),
+])
+def test_sorting_frecency(max_items, before, after, model_validator, hist,
+                          config_stub):
+    """Validate sorting results of set_pattern for frecency."""
+    config_stub.val.completion.web_history.sort_criterion = 'frecency'
+    config_stub.val.completion.web_history.max_items = max_items
+    for url, title, atime, frecency in before:
+        timestamp = datetime.datetime.strptime(atime, '%Y-%m-%d').timestamp()
+        hist.insert({'url': url, 'title': title, 'last_atime': timestamp,
+                     'frecency': frecency})
     cat = histcategory.HistoryCategory(database=hist.database)
     model_validator.set_model(cat)
     cat.set_pattern('')
