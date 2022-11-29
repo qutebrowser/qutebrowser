@@ -1211,7 +1211,11 @@ class _WebEngineScripts(QObject):
             _Quirk(
                 'object_fromentries',
                 predicate=versions.webengine < utils.VersionNumber(5, 13),
-            )
+            ),
+            _Quirk(
+                'array_at',
+                predicate=versions.webengine < utils.VersionNumber(6, 2),
+            ),
         ]
 
         for quirk in quirks:
