@@ -124,6 +124,13 @@ Fixed
 v2.5.3 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `array_at` quirk, polyfilling the
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at[`Array.at` method],
+  which is needed by various websites, but only natively available with Qt 6.2.
+
 Fixed
 ~~~~~
 
