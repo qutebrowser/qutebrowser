@@ -345,6 +345,7 @@ def tab_mute(tab: Optional[apitypes.Tab], to_set: str = None) -> None:
 
     Args:
         count: The tab index to mute or unmute, or None
+        to_set: The mute setting to force: 'true' 'false' or 'None
     """
     if tab is None:
         return
