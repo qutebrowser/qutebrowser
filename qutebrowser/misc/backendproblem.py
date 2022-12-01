@@ -414,6 +414,27 @@ class _BackendProblemChecker:
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
+    def _reenable_pyinstaller_macos_sandboxing(self) -> None:
+        """WORKAROUND for PyInstaller on macOS disabling sandboxing.
+
+        https://github.com/pyinstaller/pyinstaller/pull/6903
+        https://github.com/qutebrowser/qutebrowser/issues/7278
+        """
+        versions = version.qtwebengine_versions(avoid_init=True)
+        if (
+            not hasattr(sys, "frozen") or
+            not utils.is_mac or
+            versions.webengine < utils.VersionNumber(6)
+        ):
+            return
+
+        if 'QTWEBENGINE_DISABLE_SANDBOX' in os.environ:
+            del os.environ['QTWEBENGINE_DISABLE_SANDBOX']
+        else:
+            print("QTWEBENGINE_DISABLE_SANDBOX not found "
+                  "most likely sandbox workaround for pyinstaller is not "
+                  "needed anymore", file=sys.stderr)
+
     def check(self) -> None:
         """Run all checks."""
         self._check_backend_modules()
@@ -423,6 +444,7 @@ class _BackendProblemChecker:
             self._handle_serviceworker_nuking()
             self._check_software_rendering()
             self._confirm_chromium_version_changes()
+            self._reenable_pyinstaller_macos_sandboxing()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
             self._handle_ssl_support(fatal=True)

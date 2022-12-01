@@ -100,7 +100,66 @@ def call_tox(
         env=env, check=True)
 
 
-def run_asciidoc2html() -> None:
+def fixup_qtwebengine_sandboxing():
+    """WORKAROUND for PyInstaller problems with sanboxing on macOS.
+
+    https://github.com/pyinstaller/pyinstaller/pull/6903
+    https://github.com/qutebrowser/qutebrowser/issues/7278
+    """
+    qute_bundle = pathlib.Path('dist') / 'qutebrowser'
+    app_bundle = pathlib.Path('dist') / 'qutebrowser.app'
+
+    print(f"Attempting to fix up QtWebEngine in .app bundle: {app_bundle}")
+
+    app_res = app_bundle / "Contents" / "Resources"
+    qt_resdir = app_res / "PyQt6" / "Qt6" / 'lib' / 'QtWebEngineCore.framework' / 'Resources'
+
+    qute_lib_dir = qute_bundle / "PyQt6" / "Qt6" / 'lib' / 'QtWebEngineCore.framework' / 'Resources'
+
+    for resource in qt_resdir.glob("*.pak"):
+        name = resource.name
+        resource.unlink()
+        shutil.copy(qute_lib_dir / name, resource)
+
+    top_level = app_bundle / "Contents" / "MacOS"
+    qt_libdir = top_level / "PyQt6" / "Qt6" / "lib"
+
+    # For collected Qt .framework bundles, replace the copy of lib in top-level directory
+    # with symlink to the copy from the .framework bundle
+    for framework in qt_libdir.rglob("*.framework"):
+
+        # Infer shared lib name from .framework name
+        lib_name = framework.name[:-len('.framework')]
+        framework_lib_file = framework / "Versions" / "A" / lib_name
+
+        assert framework_lib_file.is_file(), "Framework lib file does not exist!"
+
+        # Check if library exists in top-level directory
+        lib_file = top_level / lib_name
+        if not lib_file.is_file():
+            continue
+
+        rel_framework_lib_file = framework_lib_file.relative_to(top_level)
+
+        print(f"Replacing {lib_file} with symbolic link to {framework_lib_file}; rel path: {rel_framework_lib_file}")
+        lib_file.unlink()
+        lib_file.symlink_to(rel_framework_lib_file)
+
+    # Remove redundant QtWebEngine files - these are actually just symlinks to
+    # counterparts in Resources
+    for file in top_level.glob("qtwebengine_*.pak"):
+        print(f"Removing {file}")
+        file.unlink()
+
+    # Remove redundant QtWebEngine files in Resources (the useful copy is
+    # located within the collected .framework bundle)
+    resources_dir = app_bundle / "Contents" / "Resources"
+    for file in resources_dir.glob("qtwebengine_*.pak"):
+        print(f"Removing {file}")
+        file.unlink()
+
+
+def run_asciidoc2html(args: argparse.Namespace) -> None:
     """Run the asciidoc2html script."""
     utils.print_title("Running asciidoc2html.py")
     call_script('asciidoc2html.py')
@@ -357,6 +416,9 @@ def build_mac(
     call_tox(f'pyinstaller-64bit{"-qt6" if qt6 else ""}', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app(qt6=qt6)
+    if qt6:
+        utils.print_title("fixing up webengine sandboxing")
+        fixup_qtwebengine_sandboxing()
     utils.print_title("Re-signing .app")
     sign_mac_app()
 
