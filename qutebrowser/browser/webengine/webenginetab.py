@@ -1205,7 +1205,7 @@ class _WebEngineScripts(QObject):
             ),
             _Quirk(
                 'array_at',
-                predicate=versions.webengine < utils.VersionNumber(6, 2),
+                predicate=versions.webengine < utils.VersionNumber(6, 3),
             ),
         ]
 
