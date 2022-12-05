@@ -70,9 +70,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Private windows are unavailable with "
                                         "the single-process process model.")
 
-        new_window = mainwindow.MainWindow(private=private)
-        new_window.show()
-        return new_window.tabbed_browser
+        return mainwindow.MainWindow(private=private).tabbed_browser
 
     def _count(self) -> int:
         """Convenience method to get the widget count."""
@@ -138,6 +136,7 @@ class CommandDispatcher:
             assert isinstance(private, bool)
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
+            tabbed_browser.window().show()
         elif tab:
             tabbed_browser.tabopen(url, background=False, related=related)
         elif background:
@@ -416,7 +415,10 @@ class CommandDispatcher:
                 private=self._tabbed_browser.is_private or private)
         else:
             new_tabbed_browser = self._tabbed_browser
+
         newtab = new_tabbed_browser.tabopen(background=bg)
+        new_tabbed_browser.window().show()
+
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs.tabs_are_windows being set)
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -506,6 +508,8 @@ class CommandDispatcher:
                     "The window with id {} is not private".format(win_id))
 
         tabbed_browser.tabopen(self._current_url())
+        tabbed_browser.window().show()
+
         if not keep:
             self._tabbed_browser.close_tab(self._current_widget(),
                                            add_undo=False,
