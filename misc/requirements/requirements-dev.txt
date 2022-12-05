@@ -20,7 +20,7 @@ manhole==1.8.0
 more-itertools==9.0.0
 packaging==21.3
 pep517==0.13.0
-pkginfo==1.8.3
+pkginfo==1.9.2
 ply==3.11
 pycparser==2.21
 Pygments==2.13.0
@@ -39,7 +39,7 @@ sip==6.7.5
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
-twine==4.0.1
+twine==4.0.2
 typing_extensions==4.4.0
 uritemplate==4.1.1
 # urllib3==1.26.13
