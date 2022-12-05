@@ -639,11 +639,10 @@ class TabbedBrowser(QWidget):
 
         if config.val.tabs.tabs_are_windows and self.widget.count() > 0:
             window = mainwindow.MainWindow(private=self.is_private)
+            tab = window.tabbed_browser.tabopen(
+                url=url, background=background, related=related)
             window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            return tabbed_browser.tabopen(url=url, background=background,
-                                          related=related)
+            return tab
 
         tab = browsertab.create(win_id=self._win_id,
                                 private=self.is_private,

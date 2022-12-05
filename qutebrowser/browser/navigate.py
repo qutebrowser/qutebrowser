@@ -219,10 +219,10 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         if window:
             new_window = mainwindow.MainWindow(
                 private=cur_tabbed_browser.is_private)
-            new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
             tabbed_browser.tabopen(url, background=False)
+            new_window.show()
         elif tab:
             cur_tabbed_browser.tabopen(url, background=background)
         else:

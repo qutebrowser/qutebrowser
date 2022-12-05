@@ -83,9 +83,9 @@ class WindowUndoManager(QObject):
             private=False,
             geometry=entry.geometry,
         )
-        window.show()
         window.tabbed_browser.undo_stack = entry.tab_stack
         window.tabbed_browser.undo()
+        window.show()
 
 
 def init():

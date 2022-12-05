@@ -405,8 +405,8 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         elif click_target == usertypes.ClickTarget.window:
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=tabbed_browser.is_private)
-            window.show()
             window.tabbed_browser.tabopen(url)
+            window.show()
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 
