@@ -12,7 +12,7 @@ execnet==1.9.0
 filelock==3.8.0
 Flask==2.2.2
 hunter==3.5.1
-hypothesis==6.58.1
+hypothesis==6.60.0
 idna==3.4
 importlib-metadata==5.1.0
 iniconfig==1.1.1
@@ -39,7 +39,7 @@ pytest-mock==3.10.0
 pytest-qt==4.2.0
 pytest-repeat==0.9.1
 pytest-rerunfailures==10.3
-pytest-xdist==3.0.2
+pytest-xdist==3.1.0
 pytest-xvfb==2.0.0
 PyVirtualDisplay==3.0
 requests==2.28.1

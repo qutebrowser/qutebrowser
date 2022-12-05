@@ -12,5 +12,5 @@ pyparsing==3.0.9
 pyroma==4.1
 requests==2.28.1
 tomli==2.0.1
-trove-classifiers==2022.10.19
+trove-classifiers==2022.12.1
 urllib3==1.26.13
