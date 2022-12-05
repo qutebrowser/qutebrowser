@@ -95,10 +95,11 @@ def raise_window(window, alert=True):
     QCoreApplication.processEvents(
         QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents | QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
 
-    if not sip.isdeleted(window):
+    if sip.isdeleted(window):
         # Could be deleted by the events run above
-        window.activateWindow()
+        return
 
+    window.activateWindow()
     if alert:
         objects.qapp.alert(window)
 
