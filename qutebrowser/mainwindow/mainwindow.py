@@ -48,7 +48,7 @@ win_id_gen = itertools.count(0)
 
 def get_window(*, via_ipc: bool,
                target: str,
-               no_raise: bool = False) -> int:
+               no_raise: bool = False) -> "MainWindow":
     """Helper function for app.py to get a window id.
 
     Args:
@@ -58,11 +58,11 @@ def get_window(*, via_ipc: bool,
         no_raise: suppress target window raising
 
     Return:
-        ID of a window that was used to open URL
+        The MainWindow that was used to open URL
     """
     if not via_ipc:
         # Initial main window
-        return 0
+        return objreg.get("main-window", scope="window", window=0)
 
     window = None
     should_raise = False
@@ -70,20 +70,16 @@ def get_window(*, via_ipc: bool,
     # Try to find the existing tab target if opening in a tab
     if target not in {'window', 'private-window'}:
         window = get_target_window()
-        should_raise = target not in {'tab-silent', 'tab-bg-silent'}
+        window.should_raise = target not in {'tab-silent', 'tab-bg-silent'} and not no_raise
 
     is_private = target == 'private-window'
 
     # Otherwise, or if no window was found, create a new one
     if window is None:
         window = MainWindow(private=is_private)
-        window.show()
-        should_raise = True
+        window.should_raise = not no_raise
 
-    if should_raise and not no_raise:
-        raise_window(window)
-
-    return window.win_id
+    return window
 
 
 def raise_window(window, alert=True):
@@ -133,6 +129,8 @@ class MainWindow(QWidget):
         status: The StatusBar widget.
         tabbed_browser: The TabbedBrowser widget.
         state_before_fullscreen: window state before activation of fullscreen.
+        should_raise: Whether the window should be raised/activated when maybe_raise()
+                      gets called.
         _downloadview: The DownloadView widget.
         _download_model: The DownloadModel instance.
         _vbox: The main QVBoxLayout.
@@ -280,6 +278,8 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
+        self.should_raise = False
+
         stylesheet.set_register(self)
 
     def _init_geometry(self, geometry):
@@ -665,6 +665,12 @@ class MainWindow(QWidget):
                 return False
 
         return True
+
+    def maybe_raise(self) -> None:
+        """Raise the window if self.should_raise is set."""
+        if self.should_raise:
+            raise_window(self)
+            self.should_raise = False
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""

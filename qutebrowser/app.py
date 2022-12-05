@@ -200,6 +200,7 @@ def _process_args(args):
     if not args.override_restore:
         sessions.load_default(args.session)
 
+    new_window = None
     if not sessions.session_manager.did_load:
         log.init.debug("Initializing main window...")
         private = args.target == 'private-window'
@@ -210,14 +211,16 @@ def _process_args(args):
             error.handle_fatal_exc(err, 'Cannot start in private mode',
                                    no_err_windows=args.no_err_windows)
             sys.exit(usertypes.Exit.err_init)
-        window = mainwindow.MainWindow(private=private)
-        if not args.nowindow:
-            window.show()
-        objects.qapp.setActiveWindow(window)
+
+        new_window = mainwindow.MainWindow(private=private)
 
     process_pos_args(args.command)
     _open_startpage()
     _open_special_pages(args)
+
+    if new_window is not None and not args.nowindow:
+        new_window.show()
+        objects.qapp.setActiveWindow(new_window)
 
     delta = datetime.datetime.now() - earlyinit.START_TIME
     log.init.debug("Init finished after {}s".format(delta.total_seconds()))
@@ -242,26 +245,30 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     if command_target in {'window', 'private-window'}:
         command_target = 'tab-silent'
 
-    win_id: Optional[int] = None
+    window: Optional[mainwindow.MainWindow] = None
 
     if via_ipc and (not args or args == ['']):
-        win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                       target=new_window_target)
-        _open_startpage(win_id)
+        window = mainwindow.get_window(via_ipc=via_ipc, target=new_window_target)
+        _open_startpage(window)
+        window.show()
+        window.maybe_raise()
         return
 
     for cmd in args:
         if cmd.startswith(':'):
-            if win_id is None:
-                win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                               target=command_target)
+            if window is None:
+                window = mainwindow.get_window(via_ipc=via_ipc, target=command_target)
+                # FIXME preserving old behavior, but we probably shouldn't be
+                # doing this...
+                # See https://github.com/qutebrowser/qutebrowser/issues/5094
+                window.maybe_raise()
+
             log.init.debug("Startup cmd {!r}".format(cmd))
-            commandrunner = runners.CommandRunner(win_id)
+            commandrunner = runners.CommandRunner(window.win_id)
             commandrunner.run_safely(cmd[1:])
         elif not cmd:
             log.init.debug("Empty argument")
-            win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                           target=new_window_target)
+            window = mainwindow.get_window(via_ipc=via_ipc, target=new_window_target)
         else:
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
@@ -275,7 +282,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 message.error("Error in startup argument '{}': {}".format(
                     cmd, e))
             else:
-                win_id = open_url(url, target=open_target, via_ipc=via_ipc)
+                window = open_url(url, target=open_target, via_ipc=via_ipc)
 
 
 def open_url(url, target=None, no_raise=False, via_ipc=True):
@@ -288,39 +295,37 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
         via_ipc: Whether the arguments were transmitted over IPC.
 
     Return:
-        ID of a window that was used to open URL
+        The MainWindow of a window that was used to open the URL.
     """
     target = target or config.val.new_instance_open_target
     background = target in {'tab-bg', 'tab-bg-silent'}
-    win_id = mainwindow.get_window(via_ipc=via_ipc, target=target,
-                                   no_raise=no_raise)
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
+    window = mainwindow.get_window(via_ipc=via_ipc, target=target, no_raise=no_raise)
     log.init.debug("About to open URL: {}".format(url.toDisplayString()))
-    tabbed_browser.tabopen(url, background=background, related=False)
-    return win_id
+    window.tabbed_browser.tabopen(url, background=background, related=False)
+    window.show()
+    window.maybe_raise()
+    return window
 
 
-def _open_startpage(win_id=None):
+def _open_startpage(window: Optional[mainwindow.MainWindow] = None) -> None:
     """Open startpage.
 
     The startpage is never opened if the given windows are not empty.
 
     Args:
-        win_id: If None, open startpage in all empty windows.
+        window: If None, open startpage in all empty windows.
                 If set, open the startpage in the given window.
     """
-    if win_id is not None:
-        window_ids: Iterable[int] = [win_id]
+    if window is not None:
+        windows: Iterable[mainwindow.MainWindow] = [window]
     else:
-        window_ids = objreg.window_registry
-    for cur_win_id in list(window_ids):  # Copying as the dict could change
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=cur_win_id)
-        if tabbed_browser.widget.count() == 0:
+        windows = objreg.window_registry.values()
+
+    for cur_window in list(windows):  # Copying as the dict could change
+        if cur_window.tabbed_browser.widget.count() == 0:
             log.init.debug("Opening start pages")
             for url in config.val.url.start_pages:
-                tabbed_browser.tabopen(url)
+                cur_window.tabbed_browser.tabopen(url)
 
 
 def _open_special_pages(args):
@@ -425,10 +430,10 @@ def on_focus_changed(_old, new):
 def open_desktopservices_url(url):
     """Handler to open a URL via QDesktopServices."""
     target = config.val.new_instance_open_target
-    win_id = mainwindow.get_window(via_ipc=True, target=target)
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
-    tabbed_browser.tabopen(url)
+    window = mainwindow.get_window(via_ipc=True, target=target)
+    window.tabbed_browser.tabopen(url)
+    window.show()
+    window.maybe_raise()
 
 
 # This is effectively a @config.change_filter
