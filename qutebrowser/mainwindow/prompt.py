@@ -760,9 +760,21 @@ class FilenamePrompt(_BasePrompt):
             self._file_view.setColumnHidden(col, True)
         # Nothing selected initially
         self._file_view.setCurrentIndex(QModelIndex())
-        # The model needs to be sorted so we get the correct first/last index
-        self._file_model.directoryLoaded.connect(
-            lambda: self._file_model.sort(0))
+
+        self._file_model.directoryLoaded.connect(self.on_directory_loaded)
+
+    @pyqtSlot()
+    def on_directory_loaded(self):
+        """Sort the model after a directory gets loaded.
+
+        The model needs to be sorted so we get the correct first/last index.
+
+        NOTE: This needs to be a proper @pystSlot() function, and not a lambda.
+        Otherwise, PyQt seems to fail to disconnect it immediately after the
+        object gets destroyed, and we get segfaults when deleting the directory
+        in unit tests.
+        """
+        self._file_model.sort(0)
 
     def accept(self, value=None, save=False):
         self._check_save_support(save)
