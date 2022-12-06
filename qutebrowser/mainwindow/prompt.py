@@ -131,20 +131,12 @@ class PromptQueue(QObject):
         """Cancel all blocking questions.
 
         Quits and removes all running event loops.
-
-        Return:
-            True if loops needed to be aborted,
-            False otherwise.
         """
-        log.prompt.debug("Shutting down with loops {}".format(self._loops))
+        log.prompt.debug(f"Shutting down with loops {self._loops}")
         self._shutting_down = True
-        if self._loops:
-            for loop in self._loops:
-                loop.quit()
-                loop.deleteLater()
-            return True
-        else:
-            return False
+        for loop in self._loops:
+            loop.quit()
+            loop.deleteLater()
 
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
