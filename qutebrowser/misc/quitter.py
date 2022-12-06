@@ -282,12 +282,10 @@ def quit_(save: bool = False,
     """
     if session is not None and not save:
         raise cmdutils.CommandError("Session name given without --save!")
-    if save:
-        if session is None:
-            session = sessions.default
-        instance.shutdown(session=session)
-    else:
-        instance.shutdown()
+    if save and session is None:
+        session = sessions.default
+
+    instance.shutdown(session=session)
 
 
 @cmdutils.register()
