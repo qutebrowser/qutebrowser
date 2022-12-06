@@ -115,7 +115,7 @@ class CommandDispatcher:
         window: bool = False,
         related: bool = False,
         private: Optional[bool] = None,
-    ):
+    ) -> None:
         """Helper function to open a page.
 
         Args:

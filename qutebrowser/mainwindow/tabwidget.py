@@ -28,7 +28,7 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from qutebrowser.qt.widgets import (QTabWidget, QTabBar, QSizePolicy, QProxyStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QStyleFactory, QCommonStyle)
+                             QCommonStyle)
 from qutebrowser.qt.gui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -854,13 +854,15 @@ class TabBarStyle(QProxyStyle):
                 self._draw_icon(layouts, opt, p)
             alignment = (config.cache['tabs.title.alignment'] |
                          Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextHideMnemonic)
-            self.baseStyle().drawItemText(p,
-                                     layouts.text,
-                                     int(alignment),
-                                     opt.palette,
-                                     bool(opt.state & QStyle.StateFlag.State_Enabled),
-                                     opt.text,
-                                     QPalette.ColorRole.WindowText)
+            self.baseStyle().drawItemText(
+                p,
+                layouts.text,
+                int(alignment),
+                opt.palette,
+                bool(opt.state & QStyle.StateFlag.State_Enabled),
+                opt.text,
+                QPalette.ColorRole.WindowText
+            )
         else:
             raise ValueError("Invalid element {!r}".format(element))
 

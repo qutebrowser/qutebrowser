@@ -65,7 +65,6 @@ def get_window(*, via_ipc: bool,
         return objreg.get("main-window", scope="window", window=0)
 
     window = None
-    should_raise = False
 
     # Try to find the existing tab target if opening in a tab
     if target not in {'window', 'private-window'}:
@@ -278,7 +277,7 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
-        self.should_raise = False
+        self.should_raise: bool = False
 
         stylesheet.set_register(self)
 

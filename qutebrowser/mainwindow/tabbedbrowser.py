@@ -34,7 +34,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
+from qutebrowser.utils import (log, usertypes, utils, qtutils,
                                urlutils, message, jinja, version)
 from qutebrowser.misc import quitter, objects
 
