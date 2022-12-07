@@ -143,10 +143,11 @@ generate_report () {
     echo "$1,$2,\"$3\",$4,$5,$6" >> $report_file
   }
 
+  head_sha=$(git rev-parse HEAD)
   jq -r '.[] | "\(.number) \(.updatedAt) \(.title)"' < ../prs.json | while read number updated title; do
     [ -n "$pr" ] && [ "$pr" != "$number" ] continue
     [ -n "$quiet" ] || echo "trying ${prefix}pr/$number $updated $title"
-    head_sha=$(git rev-parse HEAD)
+    git reset -q --hard $head_sha
 
     case "$rewrite_strategy" in
       rebase|merge)
@@ -187,7 +188,6 @@ generate_report () {
     else
       [ -n "$quiet" ] || echo "#$number merged fine"
       #git show HEAD --oneline --stat
-      git reset -q --hard $head_sha
       report $number $updated "$title" succeeded 0 0
     fi
   done
