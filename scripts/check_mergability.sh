@@ -43,6 +43,29 @@ done
   echo "don't run this from your qutebrowser checkout. Run it from a tmp dir, it'll checkout out a new copy to work on"
   exit 1
 }
+
+TTY="$(tty)"
+DO_PAUSE="no"
+maybepause () {
+  msg="$1"
+  force="$2"
+  if [ -n "$force" ] ;then
+    DO_PAUSE="yes"
+  elif [ "$DO_PAUSE" = "yes" ] ;then
+    true
+  else
+    return
+  fi
+
+  echo "$1, investigate in another terminal, continue? [Step|Continue|Quit]"
+  read response < $TTY
+  case "$response" in
+    [Cc]*) DO_PAUSE="no";;
+    [Qq]*) exit 0;;
+    *) return;;
+  esac
+}
+
 [ -d qutebrowser ] || {
   git clone git@github.com:qutebrowser/qutebrowser.git
   cd qutebrowser
@@ -112,6 +135,7 @@ prompt_or_summary () {
 
 # format tool "aliases", where needed
 usort () { env usort format "$@"; }
+isort () { env isort -q "$@"; }
 black () { env black -q "$@"; }
 pyupgrade () { git ls-files | grep -F .py | xargs pyupgrade --py37-plus; }
 
@@ -183,6 +207,7 @@ generate_report () {
       conflicting_lines=$(git diff | sed -n -e '/<<<<<<< HEAD/,/=======$/p' -e '/=======$/,/>>>>>>> pr/p' | wc -l)
       conflicting_lines=$(($conflicting_lines-4)) # account for markers included in both sed expressions
       [ -n "$quiet" ] || echo "#$number failed merging merged_lines=$merged_lines conflicting_lines=$conflicting_lines"
+      maybepause "merge of ${prefix}pr/$number into $base failed"
       git merge --abort
       report $number $updated "$title" failed $merged_lines $conflicting_lines
     else
@@ -293,7 +318,10 @@ EOF
   # with later changes by the smudge filter. See #7312 for example
   git rebase -q -X theirs -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
   exit_code="$?"
-  [ $exit_code -eq 0 ] || git rebase --abort
+  [ $exit_code -eq 0 ] || {
+    maybepause "rebase -X renormalize of ${prefix}pr/$number onto tmp-master-rewrite-pr/$number failed"
+    git rebase --abort
+  }
   git branch -D tmp-master-rewrite-pr/$number
   rm .git/info/attributes
 
@@ -303,6 +331,7 @@ EOF
     # now transplant onto the actual upstream branch -- might have to drop this
     # if it causes problems.
     EDITOR='sed -i /dropme/d' git rebase -qi "$base" || {
+      maybepause "rebase of ${prefix}pr/$number onto $base failed"
       git rebase --abort
       return 1
     }
