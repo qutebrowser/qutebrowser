@@ -285,8 +285,13 @@ EOF
   # not sure why I had to do the extra git commit in there, there are some
   # changes left in the working directory sometimes? TODO: change to a
   # commit --amend -C HEAD after confirming overall results
+  # Need to revisit some assumptions about the smudge filter, does it always
+  # leave changes in the working tree?
   # TODO: look for conflict markers before merging
-  git rebase -q -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
+  # `theirs` here applies to the incoming commits, so the branch being
+  # rebased. Without that changes made by the smudge filter seem to conflict
+  # with later changes by the smudge filter. See #7312 for example
+  git rebase -q -X theirs -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
   exit_code="$?"
   [ $exit_code -eq 0 ] || git rebase --abort
   git branch -D tmp-master-rewrite-pr/$number
