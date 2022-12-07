@@ -249,7 +249,7 @@ rebase_with_formatting () {
 # it.
 
 cmds="$cmds"
-inputf="\$(mktemp)"
+inputf="\$(mktemp --suffix=rebase)"
 cat > "\$inputf"
 
 # TODO: de-dup these with the parent script?
@@ -265,8 +265,8 @@ run_with_cache () {
   cmd="\$2"
   input_hash="\$(sha1sum "\$inputf" | cut -d' ' -f1)"
 
-  mkdir -p /tmp/filter-caches/\$cmd 2>/dev/null
-  outputf=/tmp/filter-caches/\$cmd/\$input_hash
+  mkdir -p "/tmp/filter-caches/\$cmds/\$cmd" 2>/dev/null
+  outputf="/tmp/filter-caches/\$cmds/\$cmd/\$input_hash"
 
   [ -e "\$outputf" ] || \$cmd < "\$inputf" > "\$outputf"
 
