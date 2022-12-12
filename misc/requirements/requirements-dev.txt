@@ -3,7 +3,7 @@
 bleach==5.0.1
 build==0.9.0
 bump2version==1.0.1
-certifi==2022.9.24
+certifi==2022.12.7
 cffi==1.15.1
 charset-normalizer==2.1.1
 commonmark==0.9.1
@@ -18,7 +18,7 @@ jeepney==0.8.0
 keyring==23.11.0
 manhole==1.8.0
 more-itertools==9.0.0
-packaging==21.3
+packaging==22.0
 pep517==0.13.0
 pkginfo==1.9.2
 ply==3.11
@@ -26,7 +26,6 @@ pycparser==2.21
 Pygments==2.13.0
 PyJWT==2.6.0
 Pympler==1.0.1
-pyparsing==3.0.9
 PyQt-builder==1.14.0
 python-dateutil==2.8.2
 readme-renderer==37.3
