@@ -1,5 +1,4 @@
 {
-  "pyparsing": "https://github.com/pyparsing/pyparsing/blob/master/CHANGES",
   "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/2/index.html",
   "tomlkit": "https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md",
   "dill": "https://github.com/uqfoundation/dill/commits/master",
@@ -30,6 +29,8 @@
   "pytest": "https://docs.pytest.org/en/latest/changelog.html",
   "iniconfig": "https://github.com/pytest-dev/iniconfig/blob/master/CHANGELOG",
   "tox": "https://tox.readthedocs.io/en/latest/changelog.html",
+  "cachetools": "https://github.com/tkem/cachetools/blob/master/CHANGELOG.rst",
+  "pyproject_api": "https://pyproject-api.readthedocs.io/en/latest/changelog.html",
   "PyYAML": "https://github.com/yaml/pyyaml/blob/master/CHANGES",
   "pytest-bdd": "https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst",
   "snowballstemmer": "https://github.com/snowballstem/snowball/blob/master/NEWS",
@@ -77,7 +78,6 @@
   "sphinxcontrib-serializinghtml": "https://www.sphinx-doc.org/en/master/changes.html",
   "jaraco.functools": "https://github.com/jaraco/jaraco.functools/blob/main/CHANGES.rst",
   "parse": "https://github.com/r1chardj0n3s/parse#potential-gotchas",
-  "py": "https://py.readthedocs.io/en/latest/changelog.html#changelog",
   "Pympler": "https://github.com/pympler/pympler/blob/master/CHANGELOG.md",
   "pytest-mock": "https://github.com/pytest-dev/pytest-mock/blob/main/CHANGELOG.rst",
   "pytest-qt": "https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst",
