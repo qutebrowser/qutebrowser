@@ -360,23 +360,19 @@ def get_tab(win_id, target):
         win_id: The window ID to open new tabs in
         target: A usertypes.ClickTarget
     """
-    if target == usertypes.ClickTarget.tab:
-        bg_tab = False
-    elif target == usertypes.ClickTarget.tab_bg:
-        bg_tab = True
-    elif target == usertypes.ClickTarget.window:
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
+    tabbed_browser = objreg.get('tabbed-browser', scope='window', window=win_id)
+    if target == usertypes.ClickTarget.window:
         window = mainwindow.MainWindow(private=tabbed_browser.is_private)
+        tab = window.tabbed_browser.tabopen(url=None, background=False)
         window.show()
-        win_id = window.win_id
-        bg_tab = False
-    else:
-        raise ValueError("Invalid ClickTarget {}".format(target))
+        return tab
+    elif target in [usertypes.ClickTarget.tab, usertypes.ClickTarget.tab_bg]:
+        return tabbed_browser.tabopen(
+            url=None,
+            background=target == usertypes.ClickTarget.tab_bg,
+        )
 
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
-    return tabbed_browser.tabopen(url=None, background=bg_tab)
+    raise ValueError(f"Invalid ClickTarget {target}")
 
 
 def get_user_stylesheet(searching=False):

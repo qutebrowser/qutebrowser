@@ -70,9 +70,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Private windows are unavailable with "
                                         "the single-process process model.")
 
-        new_window = mainwindow.MainWindow(private=private)
-        new_window.show()
-        return new_window.tabbed_browser
+        return mainwindow.MainWindow(private=private).tabbed_browser
 
     def _count(self) -> int:
         """Convenience method to get the widget count."""
@@ -109,8 +107,15 @@ class CommandDispatcher:
             raise cmdutils.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, tab=False, background=False, window=False,
-              related=False, private=None):
+    def _open(
+        self,
+        url: QUrl,
+        tab: bool = False,
+        background: bool = False,
+        window: bool = False,
+        related: bool = False,
+        private: Optional[bool] = None,
+    ) -> None:
         """Helper function to open a page.
 
         Args:
@@ -123,13 +128,15 @@ class CommandDispatcher:
         """
         urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser
-        cmdutils.check_exclusive((tab, background, window, private), 'tbwp')
+        cmdutils.check_exclusive((tab, background, window, private or False), 'tbwp')
         if window and private is None:
             private = self._tabbed_browser.is_private
 
         if window or private:
+            assert isinstance(private, bool)
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
+            tabbed_browser.window().show()
         elif tab:
             tabbed_browser.tabopen(url, background=False, related=related)
         elif background:
@@ -403,14 +410,17 @@ class CommandDispatcher:
         except browsertab.WebTabError as e:
             raise cmdutils.CommandError(e)
 
-        # The new tab could be in a new tabbed_browser (e.g. because of
-        # tabs.tabs_are_windows being set)
         if window or private:
             new_tabbed_browser = self._new_tabbed_browser(
                 private=self._tabbed_browser.is_private or private)
         else:
             new_tabbed_browser = self._tabbed_browser
+
         newtab = new_tabbed_browser.tabopen(background=bg)
+        new_tabbed_browser.window().show()
+
+        # The new tab could be in a new tabbed_browser (e.g. because of
+        # tabs.tabs_are_windows being set)
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
         idx = new_tabbed_browser.widget.indexOf(newtab)
@@ -498,6 +508,8 @@ class CommandDispatcher:
                     "The window with id {} is not private".format(win_id))
 
         tabbed_browser.tabopen(self._current_url())
+        tabbed_browser.window().show()
+
         if not keep:
             self._tabbed_browser.close_tab(self._current_widget(),
                                            add_undo=False,

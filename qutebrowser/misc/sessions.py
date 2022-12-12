@@ -467,7 +467,6 @@ class SessionManager(QObject):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
                                        private=win.get('private', None))
-        window.show()
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
@@ -480,6 +479,8 @@ class SessionManager(QObject):
                 new_tab.set_pinned(True)
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+
+        window.show()
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
