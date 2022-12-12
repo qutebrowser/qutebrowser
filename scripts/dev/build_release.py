@@ -96,15 +96,10 @@ def call_tox(
         env=env, check=True)
 
 
-def run_asciidoc2html(args: argparse.Namespace) -> None:
+def run_asciidoc2html() -> None:
     """Run the asciidoc2html script."""
     utils.print_title("Running asciidoc2html.py")
-    a2h_args = []
-    if args.asciidoc is not None:
-        a2h_args += ['--asciidoc', args.asciidoc]
-    if args.asciidoc_python is not None:
-        a2h_args += ['--asciidoc-python', args.asciidoc_python]
-    call_script('asciidoc2html.py', *a2h_args)
+    call_script('asciidoc2html.py')
 
 
 def _maybe_remove(path: pathlib.Path) -> None:
@@ -684,12 +679,6 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--skip-docs', action='store_true',
                         help="Don't generate docs")
-    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
-                        "If not given, it's searched in PATH.",
-                        nargs='?')
-    parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
-                        "If not given, the current Python interpreter is used.",
-                        nargs='?')
     parser.add_argument('--gh-token', help="GitHub token to use.",
                         nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
@@ -724,7 +713,7 @@ def main() -> None:
     if args.skip_docs:
         pathlib.Path("qutebrowser", "html", "doc").mkdir(parents=True, exist_ok=True)
     else:
-        run_asciidoc2html(args)
+        run_asciidoc2html()
 
     if os.name == 'nt':
         artifacts = build_windows(
