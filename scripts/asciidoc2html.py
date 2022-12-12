@@ -234,11 +234,16 @@ class AsciiDoc:
         for executable in ['asciidoc', 'asciidoc.py']:
             try:
                 subprocess.run([executable, '--version'],
-                               stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL,
+                               capture_output=True,
+                               text=True,
                                check=True)
-            except OSError:
+            except FileNotFoundError:
                 pass
+            except OSError as e:
+                utils.print_error(f"While running {executable}: {e}")
+            except subprocess.CalledProcessError as e:
+                utils.print_error(
+                    f"While running {executable}: {e}\n{e.stdout}\n{e.stderr}")
             else:
                 return [executable]
 
