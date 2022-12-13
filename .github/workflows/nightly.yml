@@ -78,7 +78,7 @@ jobs:
       - name: Install dependencies
         run: |
             python -m pip install -U pip
-            python -m pip install -U -r misc/requirements/requirements-tox.txt -r misc/requirements/requirements-docs.txt
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: Patch qutebrowser for debugging
         if: "contains(matrix.args, '--debug')"
         run: |
