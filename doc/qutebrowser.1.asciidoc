@@ -133,8 +133,14 @@ If you prefer, you can also write to the
 https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
-For security bugs, please contact me directly at me@the-compiler.org, GPG ID
-https://www.the-compiler.org/pubkey.asc[0xFD55A072].
+For security bugs, please contact security@qutebrowser.org (or if GPG
+encryption is desired, contact me@the-compiler.org with GPG ID
+https://www.the-compiler.org/pubkey.asc[0x916EB0C8FD55A072]).
+
+Alternatively,
+https://github.com/qutebrowser/qutebrowser/security/advisories/new[report a vulnerability]
+via GitHub's
+https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability[private reporting feature].
 
 == COPYRIGHT
 This program is free software: you can redistribute it and/or modify it under
