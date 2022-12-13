@@ -97,6 +97,9 @@ def is_ignored_chromium_message(line):
         ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
          'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
 
+        # [916:934:1213/080738.912432:ERROR:address_tracker_linux.cc(214)] Could not bind NETLINK socket: Address already in use (98)
+        'Could not bind NETLINK socket: Address already in use (98)',
+
         # Flatpak with data/crashers/webrtc.html (Qt 6.2)
         # [9044:9113:0512/012126.284773:ERROR:mdns_responder.cc(868)] mDNS responder manager failed to start.
         # [9044:9113:0512/012126.284818:ERROR:mdns_responder.cc(885)] The mDNS responder manager is not started yet.
