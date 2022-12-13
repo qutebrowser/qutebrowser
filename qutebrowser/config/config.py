@@ -109,7 +109,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         and calls the wrapped function if we are.
 
         We assume the function passed doesn't take any parameters. However, it
-        could take a "self" argument, so we can't cleary express this in the
+        could take a "self" argument, so we can't clearly express this in the
         type above.
 
         Args:
@@ -188,7 +188,7 @@ class KeyConfig:
     def get_reverse_bindings_for(self, mode: str) -> '_ReverseBindings':
         """Get a dict of commands to a list of bindings for the mode.
 
-        This is intented for user-facing display of keybindings.
+        This is intended for user-facing display of keybindings.
         As such, bindings for 'set-cmd-text [flags] :<cmd> ...' are translated
         to '<cmd> ...', as from the user's perspective these keys behave like
         bindings for '<cmd>' (that allow for further input before running).

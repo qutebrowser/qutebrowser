@@ -678,9 +678,8 @@ class TestIsVisibleIframe:
         assert not invalid_objects.elems[1]._is_visible(invalid_objects.frame)
 
 
+@pytest.mark.usefixtures('config_stub')
 class TestRectOnView:
-
-    pytestmark = pytest.mark.usefixtures('config_stub')
 
     @pytest.mark.parametrize('js_rect', [
         None,  # real geometry via getElementRects

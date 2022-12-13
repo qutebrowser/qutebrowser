@@ -59,6 +59,12 @@ from qutebrowser.config import configdata
         2,
         id='array-at',
     ),
+    pytest.param(
+        QUrl("https://test.qutebrowser.org/linkedin"),
+        '[1, 2, 3].at(1)',
+        2,
+        id='array-at',
+    ),
 ])
 def test_js_quirks(config_stub, js_tester_webengine, base_url, source, expected):
     config_stub.val.content.site_specific_quirks.skip = []

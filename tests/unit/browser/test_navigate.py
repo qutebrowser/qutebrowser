@@ -26,9 +26,8 @@ from qutebrowser.browser import navigate
 from qutebrowser.utils import urlutils
 
 
+@pytest.mark.usefixtures('config_stub')
 class TestIncDec:
-
-    pytestmark = pytest.mark.usefixtures('config_stub')
 
     @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
     @pytest.mark.parametrize('value', [

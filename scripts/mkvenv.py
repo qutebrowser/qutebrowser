@@ -31,7 +31,7 @@ import shutil
 import venv as pyvenv
 import subprocess
 import platform
-from typing import List, Optional, Tuple, Dict, Union
+from typing import List, Tuple, Dict, Union
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -92,9 +92,6 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
-    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
-                        "If not given, asciidoc is searched in PATH.",
-                        nargs='?',)
     parser.add_argument('--dev',
                         action='store_true',
                         help="Also install dev/test dependencies.")
@@ -475,17 +472,14 @@ def install_qutebrowser(venv_dir: pathlib.Path) -> None:
     pip_install(venv_dir, '-e', str(REPO_ROOT))
 
 
-def regenerate_docs(venv_dir: pathlib.Path, asciidoc: Optional[str]):
+def regenerate_docs(venv_dir: pathlib.Path):
     """Regenerate docs using asciidoc."""
     utils.print_title("Generating documentation")
-    if asciidoc is not None:
-        a2h_args = ['--asciidoc', asciidoc]
-    else:
-        a2h_args = []
-    script_path = pathlib.Path(__file__).parent / 'asciidoc2html.py'
+    pip_install(venv_dir, '-r', str(requirements_file('docs')))
 
-    print_command('python3 scripts/asciidoc2html.py', *a2h_args, venv=True)
-    run_venv(venv_dir, 'python', str(script_path), *a2h_args)
+    script_path = pathlib.Path(__file__).parent / 'asciidoc2html.py'
+    print_command('python3 scripts/asciidoc2html.py', venv=True)
+    run_venv(venv_dir, 'python', str(script_path))
 
 
 def update_repo():
@@ -558,7 +552,7 @@ def run(args) -> None:
     if args.pyqt_type != 'skip' and not args.skip_smoke_test:
         run_qt_smoke_test(venv_dir, pyqt_version=args.pyqt_version)
     if not args.skip_docs:
-        regenerate_docs(venv_dir, args.asciidoc)
+        regenerate_docs(venv_dir)
 
 
 def main():

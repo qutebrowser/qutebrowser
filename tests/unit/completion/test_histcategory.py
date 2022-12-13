@@ -36,7 +36,8 @@ def hist(data_tmpdir, config_stub):
     db = sql.Database(str(data_tmpdir / 'test_histcategory.db'))
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
-    return sql.SqlTable(db, 'CompletionHistory', ['url', 'title', 'last_atime'])
+    yield sql.SqlTable(db, 'CompletionHistory', ['url', 'title', 'last_atime'])
+    db.close()  # pytest could re-use the filename
 
 
 @pytest.mark.parametrize('pattern, before, after', [

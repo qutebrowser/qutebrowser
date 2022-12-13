@@ -412,7 +412,7 @@ class MainWindow(QWidget):
             self._set_decoration(config.val.window.hide_decoration)
 
     def _add_widgets(self):
-        """Add or readd all widgets to the VBox."""
+        """Add or re-add all widgets to the VBox."""
         self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)

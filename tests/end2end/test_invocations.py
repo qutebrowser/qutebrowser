@@ -846,7 +846,7 @@ def test_unavailable_backend(request, quteproc_new):
 def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
     args = _base_args(request.config) + ['--temp-basedir', ':quit']
     args.remove('--debug')
-    args.remove('about:blank')  # interfers with :quit at the end
+    args.remove('about:blank')  # interferes with :quit at the end
 
     quteproc_new.exit_expected = True
     quteproc_new.start(args, env={'XDG_RUNTIME_DIR': str(runtime_tmpdir)})

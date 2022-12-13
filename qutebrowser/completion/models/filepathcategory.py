@@ -19,7 +19,7 @@
 
 """Completion category for filesystem paths.
 
-NOTE: This module deliberatly uses os.path rather than pathlib, because of how
+NOTE: This module deliberately uses os.path rather than pathlib, because of how
 it interacts with the completion, which operates on strings. For example, we
 need to be able to tell the difference between "~/input" and "~/input/". Also,
 if we get "~/input", we want to glob "~/input*" rather than "~/input/*" which

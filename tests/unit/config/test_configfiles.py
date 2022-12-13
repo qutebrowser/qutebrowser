@@ -942,9 +942,8 @@ def confpy(tmp_path, config_tmpdir, data_tmpdir, config_stub, key_config_stub):
     return ConfPy(tmp_path)
 
 
+@pytest.mark.usefixtures('config_stub', 'key_config_stub')
 class TestConfigPyModules:
-
-    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     @pytest.fixture
     def qbmodulepy(self, tmp_path):
@@ -1002,11 +1001,10 @@ class TestConfigPyModules:
         assert sys.path.count(tmp_path) == 1
 
 
+@pytest.mark.usefixtures('config_stub', 'key_config_stub')
 class TestConfigPy:
 
     """Tests for ConfigAPI and read_config_py()."""
-
-    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     def test_assertions(self, confpy):
         """Make sure assertions in config.py work for these tests."""

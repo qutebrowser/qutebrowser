@@ -196,7 +196,7 @@ def _set_cmd_prompt(cmd, txt):
                  marks=pytest.mark.xfail(reason='issue #74')),
     (':set -t -p |', 'section', '', []),
     (':open -- |', None, '', []),
-    (':gibberish nonesense |', None, '', []),
+    (':gibberish nonsense |', None, '', []),
     ('/:help|', None, '', []),
     ('::bind|', 'command', ':bind', []),
     (':-w open |', None, '', []),

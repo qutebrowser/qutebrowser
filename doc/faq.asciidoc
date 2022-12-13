@@ -170,7 +170,7 @@ text/html; qutebrowser %s; needsterminal; nametemplate=%s.html
 ----
 +
 Note that you might want to add additional options to qutebrowser, so that it
-runs as a seperate instance configured to disable JavaScript and avoid network
+runs as a separate instance configured to disable JavaScript and avoid network
 requests, in order to avoid privacy leaks when reading mails. The easiest way
 to do so is by specifying a non-existent proxy server, e.g.:
 +
@@ -376,7 +376,7 @@ There is a total of four possible approaches to get dark websites:
 
 How do I make copy to clipboard buttons work?::
 You can `:set content.javascript.clipboard access` to allow this globally (not
-recommended!), or `:set -u some.domain content.javascript.clipboad access` if
+recommended!), or `:set -u some.domain content.javascript.clipboard access` if
 you want to limit the setting to `some.domain`.
 
 

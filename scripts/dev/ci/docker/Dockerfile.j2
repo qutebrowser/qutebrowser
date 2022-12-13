@@ -29,6 +29,11 @@ RUN pacman -Suyy --noconfirm \
     libyaml \
     xorg-xdpyinfo
 
+# WORKAROUND for https://bugs.archlinux.org/task/76720
+{% if unstable %}
+RUN pacman -U --noconfirm https://archlinux.org/packages/extra/x86_64/mesa/download/
+{% endif %}
+
 {% if not webengine %}
 RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-webkit/qt5-webkit-5.212.0alpha4-18-x86_64.pkg.tar.zst \
