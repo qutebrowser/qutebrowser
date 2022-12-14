@@ -413,6 +413,7 @@ Pre-built colorschemes
 - https://gitlab.com/lovetocode999/selenized-qutebrowser[Selenized]
 - https://github.com/The-Compiler/dotfiles/blob/master/qutebrowser/gruvbox.py[gruvbox]
 - https://www.opencode.net/wakellor957/qb-breath/-/blob/main/qb-breath.py[Manjaro Breath-like]
+- https://github.com/gicrisf/qute-city-lights[City Lights (matte dark)]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
