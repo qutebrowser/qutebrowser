@@ -183,6 +183,11 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt6: bool) -> None:
 
                 # https://github.com/pyinstaller/pyinstaller/pull/6903
                 r"[0-9:]* INFO: Sandboxing disabled by user\.",
+
+                # macOS?
+                (r'\[.*:ERROR:command_buffer_proxy_impl.cc\([0-9]*\)\] '
+                r'ContextResult::kTransientFailure: Failed to send '
+                'GpuControl\.CreateCommandBuffer\.'),
             ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
