@@ -12,10 +12,11 @@ docutils==0.19
 github3.py==3.2.0
 hunter==3.5.1
 idna==3.4
-importlib-metadata==5.1.0
+importlib-metadata==5.2.0
+importlib-resources==5.10.1
 jaraco.classes==3.2.3
 jeepney==0.8.0
-keyring==23.11.0
+keyring==23.13.1
 manhole==1.8.0
 more-itertools==9.0.0
 packaging==22.0
