@@ -2,7 +2,7 @@
   "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/2/index.html",
   "tomlkit": "https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md",
   "dill": "https://github.com/uqfoundation/dill/commits/master",
-  "isort": "https://pycqa.github.io/isort/CHANGELOG/",
+  "isort": "https://pycqa.github.io/isort/CHANGELOG.html",
   "lazy-object-proxy": "https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst",
   "mccabe": "https://github.com/PyCQA/mccabe#changes",
   "pytest-cov": "https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst",
