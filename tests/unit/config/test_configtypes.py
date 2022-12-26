@@ -255,11 +255,14 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        elif (isinstance(klass, functools.partial) and klass.func in [
-                configtypes.ListOrValue, configtypes.List, configtypes.Dict]):
-            # ListOrValue: "- /" -> "/"
-            # List: "- /" -> ["/"]
-            # Dict: '{":": "A"}' -> ':: A'
+
+        # Dict and List deserialize to yaml but serialize to json, so we can't
+        # do a naive round trip test with them. For example:
+        #   ListOrValue: "- /" -> "/"
+        #   List: "- /" -> ["/"]
+        #   Dict: ':: A' -> '{":": "A"}'
+        compound_types = (configtypes.ListOrValue, configtypes.List, configtypes.Dict)
+        if isinstance(typ, compound_types):
             return
 
         assert converted == s
