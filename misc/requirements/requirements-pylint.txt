@@ -9,7 +9,7 @@ dill==0.3.6
 future==0.18.2
 github3.py==3.2.0
 idna==3.4
-isort==5.11.3
+isort==5.11.4
 lazy-object-proxy==1.8.0
 mccabe==0.7.0
 pefile==2022.5.30
