@@ -90,6 +90,7 @@ jobs:
         run: |
             echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
             echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
