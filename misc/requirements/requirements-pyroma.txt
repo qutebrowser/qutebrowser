@@ -7,7 +7,7 @@ docutils==0.19
 idna==3.4
 packaging==22.0
 pep517==0.13.0
-Pygments==2.13.0
+Pygments==2.14.0
 pyroma==4.1
 requests==2.28.1
 tomli==2.0.1

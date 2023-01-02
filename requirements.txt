@@ -2,11 +2,11 @@
 
 adblock==0.6.0
 colorama==0.4.6
-importlib-metadata==5.2.0 ; python_version=="3.7.*"
-importlib-resources==5.10.1 ; python_version=="3.7.*" or python_version=="3.8.*"
+importlib-metadata==6.0.0 ; python_version=="3.7.*"
+importlib-resources==5.10.2 ; python_version=="3.7.*" or python_version=="3.8.*"
 Jinja2==3.1.2
 MarkupSafe==2.1.1
-Pygments==2.13.0
+Pygments==2.14.0
 PyYAML==6.0
 typing_extensions==4.4.0 ; python_version<"3.8"
 zipp==3.11.0
