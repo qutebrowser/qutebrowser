@@ -2,15 +2,15 @@
 
 chardet==5.1.0
 diff-cover==7.3.0
-importlib-metadata==5.2.0
-importlib-resources==5.10.1
+importlib-metadata==6.0.0
+importlib-resources==5.10.2
 Jinja2==3.1.2
 lxml==4.9.2
 MarkupSafe==2.1.1
 mypy==0.991
 mypy-extensions==0.4.3
 pluggy==1.0.0
-Pygments==2.13.0
+Pygments==2.14.0
 PyQt5-stubs==5.15.6.0
 tomli==2.0.1
 types-PyYAML==6.0.12.2
