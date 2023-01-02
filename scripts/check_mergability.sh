@@ -307,15 +307,31 @@ EOF
   chmod +x filter-tools/filter-cache
   export PATH="$PWD/filter-tools:$PATH"
 
-  # not sure why I had to do the extra git commit in there, there are some
-  # changes left in the working directory sometimes? TODO: change to a
-  # commit --amend -C HEAD after confirming overall results
-  # Need to revisit some assumptions about the smudge filter, does it always
-  # leave changes in the working tree?
-  # TODO: look for conflict markers before merging
-  # `theirs` here applies to the incoming commits, so the branch being
-  # rebased. Without that changes made by the smudge filter seem to conflict
-  # with later changes by the smudge filter. See #7312 for example
+  # Description of extra options:
+  # --exec 'git commit -qam "fix lint"': The git smudge filter leaves changes
+  #     in the working tree. So we need to include these in a commit if we
+  #     want to keep them.
+  # --exec '... || true': git commit fails if there is nothing to commit, in
+  #     this case meaning the filter didn't need to make any changes to the
+  #     commit we just applied. So short circuiting to `true` just makes it so
+  #     the result code is always 0 and the rebase continues.
+  # -X theirs: in the case of conflicts, disregard the changes in the working
+  #     tree and apply those from the incoming commit. In this case when you
+  #     have one commit later in a PR that builds on an earlier one, and we
+  #     re-formatted the earlier one, the later one will fail to apply. Since
+  #     we know these commits already build on each other and that any
+  #     conflicts are due to formatting changes, which'll be applied again
+  #     later we can safely disregard the changes.
+  #     So this ends up with the right result but is problematic for two
+  #     reason:
+  #     a) it adds noise to the PRs because formatting changes are applied,
+  #        reverted, then applied again.
+  #     b) if there are any conflicts with the base branches the base branch
+  #        changes will be reverted. In this script we are already checking
+  #        that PRs apply cleanly to their existing base before rebasing them
+  #        on an auto-formatted version of it. So we shouldn't run into that.
+  #        But if this is used in more scenarios it will likely cause some
+  #        frustration.
   git rebase -q -X theirs -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
   exit_code="$?"
   [ $exit_code -eq 0 ] || {
