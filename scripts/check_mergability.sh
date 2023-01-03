@@ -297,7 +297,7 @@ cat > "\$inputf"
 usort () { env usort format -; }
 black () { env black -q -; }
 isort () { env isort -q -; }
-pyupgrade () { env pyupgrade --py37-plus -; }
+pyupgrade () { env pyupgrade --exit-zero-even-if-changed --py37-plus -; }
 
 run_with_cache () {
   inputf="\$1"
@@ -307,7 +307,25 @@ run_with_cache () {
   mkdir -p "/tmp/filter-caches/\$cmds/\$cmd" 2>/dev/null
   outputf="/tmp/filter-caches/\$cmds/\$cmd/\$input_hash"
 
-  [ -e "\$outputf" ] || \$cmd < "\$inputf" > "\$outputf"
+  if [ -e "\$outputf" ] ;then
+    lines="\$(wc -l "\$outputf" | cut -d' ' -f1)"
+    # where are these empty output files coming from???
+    # echo "removing bad cached file '\$outputf'" >&2
+    [ \$lines -eq 0 ] && rm "\$outputf"
+  fi
+
+  if ! [ -e "\$outputf" ] ;then
+    \$cmd < "\$inputf" > "\$outputf"
+    [ \$? -eq 0 ] || {
+      echo "\$cmd failed" >&2
+      cat "\$inputf"
+      return
+    }
+    lines="\$(wc -l "\$outputf" | cut -d' ' -f1)"
+    [ \$lines -eq 0 ] && {
+      echo "tool '\$cmd' produced 0 line output file from '\$inputf'" >&2
+    }
+  fi
 
   cat "\$outputf"
 }
