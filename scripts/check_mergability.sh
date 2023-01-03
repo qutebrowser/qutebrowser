@@ -174,15 +174,32 @@ generate_report () {
     [ -n "$quiet" ] || echo "trying ${prefix}pr/$number $updated $title"
     git reset -q --hard $head_sha
 
+    applies_cleanly_to_master () {
+      number="$1"
+      grep "^$number" ../report-master.csv | grep failed
+      [ $? -eq 1 ]
+      return $?
+    }
+
     case "$rewrite_strategy" in
-      rebase|merge)
+      merge)
+        applies_cleanly_to_master $number || {
+          echo "pr/$number succeeded already in ../report-master.csv, skipping"
+          continue
+        }
+        merge_with_formatting "$number" "$base" "$cmds" "$prefix" "$rewrite_strategy" || {
+          report $number $updated "$title" failed 999 999
+          continue
+        }
+        ;;
+      rebase)
         # Only attempt branches that actually merge cleanly with master.
         # Theoretically it wouldn't hurt to do all of them but a) running
         # black via the filter driver is slow b) rebase_with_formatting needs
         # some work to handle more errors in that case (the "git commit -qam
         # 'fix lint" bit at least needs to look for conflict markers)
         # I'm hardcoding master because of a lack of imagination.
-        grep "^$number" ../report-master.csv | grep failed && {
+        applies_cleanly_to_master $number || {
           echo "pr/$number succeeded already in ../report-master.csv, skipping"
           continue
         }
@@ -219,53 +236,8 @@ generate_report () {
   done
 }
 
-rebase_with_formatting () {
-  number="$1"
-  base="$2"
-  cmds="$3"
-  prefix="${4:-tmp-rewrite-}"
-  strategy="$5"
-
-  # We need to apply formatting to PRs and base them on a reformatted base
-  # branch.
-  # I haven't looked into doing that via a merge but here is an attempt
-  # doing a rebase.
-  # Rebasing directly on to a formatted branch will fail very easily when it
-  # runs into a formatting change. So I'm using git's "filter" attribute to
-  # apply the same formatter to the trees corresponding to the
-  # commits being rebased. Hopefully if we apply the same formatter to the
-  # base branch and to the individual commits from the PRs we can minimize
-  # conflicts.
-  # An alternative to using the filter attribute might be to use something
-  # like the "darker" tool to re-write the commits. I suspect that won't
-  # help with conflicts in the context around changes though.
-
-  # Checkout the parent commit of the branch then apply formatting tools to
-  # it. This will provide a target for rebasing which doesn't have any
-  # additional drift from changes to master. After that then we can rebase
-  # the re-written PR branch to the more current, autoformatted, master.
-  # TODO: It might be possible to skip the intermediate base branch.
-  git checkout -b tmp-master-rewrite-pr/$number `git merge-base origin/master pr/$number`
-  echo "$cmds" | tr ' ' '\n' | while read cmd; do
-    $cmd qutebrowser tests
-    git commit -am "dropme! $cmd" # mark commits for dropping when we rebase onto the more recent master
-  done
-  # Occasionally we get situations where black and pyupgrade build on each
-  # other to enable further changes. So the order you run them matters. But we
-  # have situations where each one enables the other, in both orders. So we
-  # run them all yet again to pick up any lingering changes from the first
-  # run.
-  # If we don't do this the leftover changes can be picked up by the smudge
-  # filter during the first rebase below and added to "fix lint" commits. Then
-  # since they don't have "dropme!" in the messages they stick in the branch
-  # and end up conflicting with the base branch.
-  echo "$cmds" | tr ' ' '\n' | while read cmd; do
-    $cmd qutebrowser tests
-    git commit -am "dropme! $cmd 2"
-  done
-
-  git checkout -b ${prefix}pr/$number pr/$number
-
+add_smudge_filter () {
+  cmds="$1"
   # Setup the filters. A "smudge" filter is configured for each tool then we
   # add the required tools to a gitattributes file. And make sure to clean
   # it up later.
@@ -339,6 +311,105 @@ rm "\$inputf"
 EOF
   chmod +x filter-tools/filter-cache
   export PATH="$PWD/filter-tools:$PATH"
+}
+
+remove_smudge_filter () {
+  # no need to remove the config or script, it's only active when the
+  # attribute is set
+  rm .git/info/attributes
+}
+
+merge_with_formatting () {
+  number="$1"
+  base="$2"
+  cmds="$3"
+  prefix="${4:-tmp-rewrite-}"
+  strategy="$5"
+
+  # Use a temp base branch for now but adding "dropme" commits probably isn't the right
+  # strategy for the end goal of letting PR authors adapt to autoformatter
+  # changes. At that point we'll already have a re-formatted master branch.
+  # Unless we can do the merge then rebase-keep-merges-but-drop-dropme or
+  # something.
+  # TODO: swap out this block to be based off of real master or qt-v2 or $base
+  git checkout -b tmp-master-rewrite-pr/$number `git merge-base origin/master pr/$number`
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    $cmd qutebrowser tests
+    git commit -am "dropme! $cmd" # mark commits for dropping when we rebase onto the more recent master
+  done
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    $cmd qutebrowser tests
+    git commit -am "dropme! $cmd 2"
+  done
+
+  git checkout -b ${prefix}pr/$number pr/$number
+
+  add_smudge_filter "$cmds"
+
+  git merge -X renormalize tmp-master-rewrite-pr/$number
+  exit_code="$?"
+  remove_smudge_filter
+  if [ $exit_code -eq 0 ] ;then
+    git commit -qam "fix lint"
+  else
+    maybepause "merge of ${prefix}pr/$number onto tmp-master-rewrite-pr/$number failed"
+    git merge --abort
+  fi
+  git branch -D tmp-master-rewrite-pr/$number
+
+  [ $exit_code -eq 0 ] || return $exit_code
+
+  git checkout -q $base
+}
+
+rebase_with_formatting () {
+  number="$1"
+  base="$2"
+  cmds="$3"
+  prefix="${4:-tmp-rewrite-}"
+  strategy="$5"
+
+  # We need to apply formatting to PRs and base them on a reformatted base
+  # branch.
+  # I haven't looked into doing that via a merge but here is an attempt
+  # doing a rebase.
+  # Rebasing directly on to a formatted branch will fail very easily when it
+  # runs into a formatting change. So I'm using git's "filter" attribute to
+  # apply the same formatter to the trees corresponding to the
+  # commits being rebased. Hopefully if we apply the same formatter to the
+  # base branch and to the individual commits from the PRs we can minimize
+  # conflicts.
+  # An alternative to using the filter attribute might be to use something
+  # like the "darker" tool to re-write the commits. I suspect that won't
+  # help with conflicts in the context around changes though.
+
+  # Checkout the parent commit of the branch then apply formatting tools to
+  # it. This will provide a target for rebasing which doesn't have any
+  # additional drift from changes to master. After that then we can rebase
+  # the re-written PR branch to the more current, autoformatted, master.
+  # TODO: It might be possible to skip the intermediate base branch.
+  git checkout -b tmp-master-rewrite-pr/$number `git merge-base origin/master pr/$number`
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    $cmd qutebrowser tests
+    git commit -am "dropme! $cmd" # mark commits for dropping when we rebase onto the more recent master
+  done
+  # Occasionally we get situations where black and pyupgrade build on each
+  # other to enable further changes. So the order you run them matters. But we
+  # have situations where each one enables the other, in both orders. So we
+  # run them all yet again to pick up any lingering changes from the first
+  # run.
+  # If we don't do this the leftover changes can be picked up by the smudge
+  # filter during the first rebase below and added to "fix lint" commits. Then
+  # since they don't have "dropme!" in the messages they stick in the branch
+  # and end up conflicting with the base branch.
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    $cmd qutebrowser tests
+    git commit -am "dropme! $cmd 2"
+  done
+
+  git checkout -b ${prefix}pr/$number pr/$number
+
+  add_smudge_filter "$cmds"
 
   # Description of extra options:
   # --exec 'git commit -qam "fix lint"': The git smudge filter leaves changes
@@ -367,12 +438,12 @@ EOF
   #        frustration.
   git rebase -q -X theirs -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
   exit_code="$?"
+  remove_smudge_filter
   [ $exit_code -eq 0 ] || {
     maybepause "rebase -X renormalize of ${prefix}pr/$number onto tmp-master-rewrite-pr/$number failed"
     git rebase --abort
   }
   git branch -D tmp-master-rewrite-pr/$number
-  rm .git/info/attributes
 
   [ $exit_code -eq 0 ] || return $exit_code
 
