@@ -54,6 +54,7 @@ maybepause () {
   elif [ "$DO_PAUSE" = "yes" ] ;then
     true
   else
+    echo "$1"
     return
   fi
 
@@ -169,7 +170,7 @@ generate_report () {
 
   head_sha=$(git rev-parse HEAD)
   jq -r '.[] | "\(.number) \(.updatedAt) \(.title)"' < ../prs.json | while read number updated title; do
-    [ -n "$pr" ] && [ "$pr" != "$number" ] continue
+    [ -n "$pr" ] && [ "$pr" != "$number" ] && continue
     [ -n "$quiet" ] || echo "trying ${prefix}pr/$number $updated $title"
     git reset -q --hard $head_sha
 
@@ -292,7 +293,7 @@ cat > "\$inputf"
 
 # TODO: de-dup these with the parent script?
 # Can use aliases here?
-# Call with the file drectly instead of using stdin?
+# Call with the file directly instead of using stdin?
 usort () { env usort format -; }
 black () { env black -q -; }
 isort () { env isort -q -; }
@@ -316,6 +317,7 @@ echo "\$cmds" | tr ' ' '\n' | while read cmd; do
 done
 
 cat "\$inputf"
+rm "\$inputf"
 EOF
   chmod +x filter-tools/filter-cache
   export PATH="$PWD/filter-tools:$PATH"
