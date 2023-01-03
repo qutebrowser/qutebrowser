@@ -511,7 +511,7 @@ else
   # pre-defined auto-formatter configurations. Branches will be created as
   # needed.
   # format: branch tool1 tool2 ...
-  tools="master true
+  tools_all="master true
   tmp-black black
   tmp-black_isort black isort
   tmp-black_usort black usort
@@ -519,9 +519,15 @@ else
   tmp-black_isort_pyupgrade black isort pyupgrade
   tmp-black_usort_pyupgrade black usort pyupgrade
   qt6-v2 true"
-  tools="tmp-black black"
+  tools="tmp-black_isort_pyupgrade black isort pyupgrade"
 
-  prompt_or_summary "Generate report for all tool configurations?"
+  if [ "$(echo "$tools" | wc -l | cut -d' ' -f1)" -gt 1 ] ;then
+    # TODO: turn this "run it with all tool configurations and see which one
+    # is the worst" thing into a CLI option. This script is a cross between
+    # "gather stats" and "refine merge strategies" now and is in need of a bit
+    # of a refactor.
+    prompt_or_summary "Generate report for all tool configurations?"
+  fi
   clean_branches
 
   echo "$tools" | while read branch cmds; do
