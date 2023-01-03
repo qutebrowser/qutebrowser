@@ -249,6 +249,19 @@ rebase_with_formatting () {
     $cmd qutebrowser tests
     git commit -am "dropme! $cmd" # mark commits for dropping when we rebase onto the more recent master
   done
+  # Occasionally we get situations where black and pyupgrade build on each
+  # other to enable further changes. So the order you run them matters. But we
+  # have situations where each one enables the other, in both orders. So we
+  # run them all yet again to pick up any lingering changes from the first
+  # run.
+  # If we don't do this the leftover changes can be picked up by the smudge
+  # filter during the first rebase below and added to "fix lint" commits. Then
+  # since they don't have "dropme!" in the messages they stick in the branch
+  # and end up conflicting with the base branch.
+  echo "$cmds" | tr ' ' '\n' | while read cmd; do
+    $cmd qutebrowser tests
+    git commit -am "dropme! $cmd 2"
+  done
 
   git checkout -b ${prefix}pr/$number pr/$number
 
@@ -426,6 +439,15 @@ else
     echo "$cmds" | tr ' ' '\n' | while read cmd; do
       $cmd qutebrowser tests
       git commit -am "$cmd"
+    done
+    # Occasionally we get situations where black and pyupgrade build on each
+    # other to enable further changes. So the order you run them matters. But we
+    # have situations where each one enables the other, in both orders. So we
+    # run them all yet again to pick up any lingering changes from the first
+    # run.
+    echo "$cmds" | tr ' ' '\n' | while read cmd; do
+      $cmd qutebrowser tests
+      git commit -am "$cmd second run"
     done
     generate_report "$branch" y "$strategy" "$cmds" "$pull_request"
   done
