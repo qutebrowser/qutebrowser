@@ -411,32 +411,7 @@ rebase_with_formatting () {
 
   add_smudge_filter "$cmds"
 
-  # Description of extra options:
-  # --exec 'git commit -qam "fix lint"': The git smudge filter leaves changes
-  #     in the working tree. So we need to include these in a commit if we
-  #     want to keep them.
-  # --exec '... || true': git commit fails if there is nothing to commit, in
-  #     this case meaning the filter didn't need to make any changes to the
-  #     commit we just applied. So short circuiting to `true` just makes it so
-  #     the result code is always 0 and the rebase continues.
-  # -X theirs: in the case of conflicts, disregard the changes in the working
-  #     tree and apply those from the incoming commit. In this case when you
-  #     have one commit later in a PR that builds on an earlier one, and we
-  #     re-formatted the earlier one, the later one will fail to apply. Since
-  #     we know these commits already build on each other and that any
-  #     conflicts are due to formatting changes, which'll be applied again
-  #     later we can safely disregard the changes.
-  #     So this ends up with the right result but is problematic for two
-  #     reason:
-  #     a) it adds noise to the PRs because formatting changes are applied,
-  #        reverted, then applied again.
-  #     b) if there are any conflicts with the base branches the base branch
-  #        changes will be reverted. In this script we are already checking
-  #        that PRs apply cleanly to their existing base before rebasing them
-  #        on an auto-formatted version of it. So we shouldn't run into that.
-  #        But if this is used in more scenarios it will likely cause some
-  #        frustration.
-  git rebase -q -X theirs -X renormalize --exec 'git commit -qam "fix lint" || true' tmp-master-rewrite-pr/$number
+  git rebase -q -X renormalize tmp-master-rewrite-pr/$number
   exit_code="$?"
   remove_smudge_filter
   [ $exit_code -eq 0 ] || {
