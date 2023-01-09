@@ -5,7 +5,7 @@ certifi==2022.12.7
 charset-normalizer==2.1.1
 docutils==0.19
 idna==3.4
-packaging==22.0
+packaging==23.0
 pep517==0.13.0
 Pygments==2.14.0
 pyroma==4.1

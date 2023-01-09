@@ -19,9 +19,9 @@ jeepney==0.8.0
 keyring==23.13.1
 manhole==1.8.0
 more-itertools==9.0.0
-packaging==22.0
+packaging==23.0
 pep517==0.13.0
-pkginfo==1.9.2
+pkginfo==1.9.6
 ply==3.11
 pycparser==2.21
 Pygments==2.14.0
@@ -33,7 +33,7 @@ readme-renderer==37.3
 requests==2.28.1
 requests-toolbelt==0.10.1
 rfc3986==2.0.0
-rich==13.0.0
+rich==13.0.1
 SecretStorage==3.3.3
 sip==6.7.5
 six==1.16.0
