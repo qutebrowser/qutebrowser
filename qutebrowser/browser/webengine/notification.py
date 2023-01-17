@@ -131,6 +131,10 @@ class DBusError(Error):
         # https://crashes.qutebrowser.org/view/8889d0b5
         # Could not activate remote peer.
         "org.freedesktop.DBus.Error.NameHasNoOwner",
+
+        # https://crashes.qutebrowser.org/view/de62220a
+        # after "Notification daemon did quit!"
+        "org.freedesktop.DBus.Error.UnknownObject",
     }
 
     def __init__(self, msg: QDBusMessage) -> None:
