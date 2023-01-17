@@ -148,6 +148,7 @@ Fixed
 - The `readability` userscript now correctly passes the source URL to
   Breadability, to make relative links work.
 - Update `dictcli.py` to use the `main` branch, fixing a 404 error.
+- Crash with some notification servers when the server did quit.
 - Minor documentation fixes
 
 [[v2.5.2]]
