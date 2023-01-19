@@ -322,7 +322,7 @@ def build_mac(
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller-64', '-r', debug=debug)
+    call_tox('pyinstaller-64bit', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app()
     utils.print_title("Re-signing .app")
@@ -404,7 +404,12 @@ def _build_windows_single(
     _maybe_remove(out_path)
 
     python = _get_windows_python_path(x64=x64)
-    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python, debug=debug)
+    call_tox(
+        f'pyinstaller-{"64bit" if x64 else "32bit"}',
+        '-r',
+        python=python,
+        debug=debug,
+    )
 
     out_pyinstaller = dist_path / "qutebrowser"
     shutil.move(out_pyinstaller, out_path)
