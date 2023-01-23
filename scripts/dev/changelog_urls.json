@@ -150,12 +150,13 @@
   "twine": "https://twine.readthedocs.io/en/stable/changelog.html",
   "webencodings": "https://github.com/gsnedders/python-webencodings/commits/master",
   "PyJWT": "https://github.com/jpadilla/pyjwt/blob/master/CHANGELOG.rst",
-  "commonmark": "https://github.com/readthedocs/commonmark.py/blob/master/CHANGELOG.md",
   "rich": "https://github.com/Textualize/rich/blob/master/CHANGELOG.md",
   "ply": "https://github.com/dabeaz/ply/blob/master/CHANGES",
   "pyobjc-core": "https://pyobjc.readthedocs.io/en/latest/changelog.html",
   "pyobjc-framework-Cocoa": "https://pyobjc.readthedocs.io/en/latest/changelog.html",
   "trove-classifiers": "https://github.com/pypa/trove-classifiers/commits/main",
   "asciidoc": "https://asciidoc-py.github.io/CHANGELOG.html",
-  "pyproject_hooks": "https://pyproject-hooks.readthedocs.io/en/latest/changelog.html"
+  "pyproject_hooks": "https://pyproject-hooks.readthedocs.io/en/latest/changelog.html",
+  "markdown-it-py": "https://github.com/executablebooks/markdown-it-py/blob/master/CHANGELOG.md",
+  "mdurl": "https://github.com/executablebooks/mdurl/commits/master"
 }
