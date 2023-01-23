@@ -448,7 +448,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42, True)
     def func_predicate_true(self):
-        raise Exception
+        raise Exception("its-true")
 
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
@@ -459,12 +459,12 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42, False)
     def func_predicate_false(self):
-        raise Exception
+        raise Exception("its-false")
 
     def test_predicate_false(self, caplog):
         """Test with a False predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            with pytest.raises(Exception):
+            with pytest.raises(Exception, match="its-false"):
                 self.func_predicate_false()
         assert not caplog.records
 
@@ -546,13 +546,17 @@ class TestIsEnum:
         assert not utils.is_enum(23)
 
 
+class SentinalException(Exception):
+    pass
+
+
 class TestRaises:
 
     """Test raises."""
 
     def do_raise(self):
         """Helper function which raises an exception."""
-        raise Exception
+        raise SentinalException
 
     def do_nothing(self):
         """Helper function which does nothing."""
@@ -571,15 +575,15 @@ class TestRaises:
 
     def test_no_args_true(self):
         """Test with no args and an exception which gets raised."""
-        assert utils.raises(Exception, self.do_raise)
+        assert utils.raises(SentinalException, self.do_raise)
 
     def test_no_args_false(self):
         """Test with no args and an exception which does not get raised."""
-        assert not utils.raises(Exception, self.do_nothing)
+        assert not utils.raises(SentinalException, self.do_nothing)
 
     def test_unrelated_exception(self):
         """Test with an unrelated exception."""
-        with pytest.raises(Exception):
+        with pytest.raises(SentinalException):
             utils.raises(ValueError, self.do_raise)
 
 
@@ -891,7 +895,7 @@ def test_ceil_log_hypothesis(number, base):
 @pytest.mark.parametrize('number, base', [(64, 0), (0, 64), (64, -1),
                                           (-1, 64), (1, 1)])
 def test_ceil_log_invalid(number, base):
-    with pytest.raises(Exception):  # ValueError/ZeroDivisionError
+    with pytest.raises((ValueError, ZeroDivisionError)):
         math.log(number, base)
     with pytest.raises(ValueError):
         utils.ceil_log(number, base)
