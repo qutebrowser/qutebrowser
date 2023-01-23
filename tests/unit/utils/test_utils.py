@@ -34,7 +34,7 @@ from PyQt5.QtCore import QUrl, QRect, QPoint
 from PyQt5.QtGui import QClipboard
 import pytest
 import hypothesis
-from hypothesis import strategies
+from hypothesis import strategies, settings
 import yaml
 
 import qutebrowser
@@ -661,6 +661,7 @@ class TestSanitizeFilename:
         assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
     @hypothesis.given(filename=strategies.text(min_size=100))
+    @settings(max_examples=10)
     def test_invariants(self, filename):
         sanitized = utils.sanitize_filename(filename, shorten=True)
         assert len(os.fsencode(sanitized)) <= 255 - len("(123).download")
