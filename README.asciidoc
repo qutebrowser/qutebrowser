@@ -24,9 +24,11 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 **qutebrowser's primary maintainer, The-Compiler, is currently working
 part-time on qutebrowser, funded by donations.** To sustain this for a long
 time, your help is needed! See the
-https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
-information. Depending on your sign-up date and how long you keep a certain
-level, you can get qutebrowser t-shirts, stickers and more!
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] or
+https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[alternative donation methods]
+for more information. Depending on your sign-up date and how
+long you keep a certain level, you can get qutebrowser t-shirts, stickers and
+more!
 // QUTE_WEB_HIDE_END
 
 Screenshots
@@ -148,6 +150,9 @@ Alternatively, the following donation methods are available -- note that
 eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
 for those, please mailto:mail@qutebrowser.org[get in touch] for details.
 
+* https://liberapay.com/The-Compiler[Liberapay], which can handle payments
+  via Credit Card, SEPA bank transfers, or Paypal. Payment fees are paid by me,
+  but they are https://liberapay.com/about/faq#fees[relatively low].
 * SEPA bank transfer inside Europe (**no fees**):
   - Account holder: Florian Bruhin
   - Country: Switzerland
@@ -155,13 +160,16 @@ for those, please mailto:mail@qutebrowser.org[get in touch] for details.
   - IBAN (other): CH80 0900 0000 8711 8587 3
   - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
   - If you need any other information: Contact me at mail@qutebrowser.org.
+  - If possible, **please consider yearly or semi-yearly donations**, because
+    of the additional overhead from many individual transactions for
+    bookkeeping/tax purposes.
 * PayPal:
   https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF],
   https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR],
   https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD].
   **Note: Fees can be very high (around 5-40%, depending on the donated amounts)** - consider
-  using GitHub Sponsors (accepts credit cards or PayPal!) or SEPA bank transfers
-  instead.
+  using GitHub Sponsors (credit card), Liberapay (credit cards, PayPal, or bank
+  transfer) or SEPA bank transfers instead.
 * Cryptocurrencies:
   - Bitcoin: link:bitcoin:bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00[bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00]
   - Bitcoin Cash: link:bitcoincash:1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N[1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N]
