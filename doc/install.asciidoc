@@ -388,20 +388,9 @@ qutebrowser from source.
 ==== Homebrew
 
 ----
-$ brew install qt
-(build PyQt and PyQtWebEngine from source)
+$ brew install pyqt@5
 $ pip3 install qutebrowser
 ----
-
-NOTE: Homebrew does not package PyQtWebEngine (Python wrappers for
-QtWebEngine), so you will need to build that from sources manually.
-
-Since the v1.0 release, qutebrowser uses QtWebEngine by default.
-
-Homebrew's builds of Qt and PyQt don't come with QtWebKit (and `--with-qtwebkit`
-uses an old version of QtWebKit which qutebrowser doesn't support anymore). If
-you want QtWebKit support, you'll need to build an up-to-date QtWebKit
-https://github.com/annulen/webkit/wiki/Building-QtWebKit-on-OS-X[manually].
 
 Packagers
 ---------
