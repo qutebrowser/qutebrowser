@@ -187,7 +187,7 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt6: bool) -> None:
                 # macOS?
                 (r'\[.*:ERROR:command_buffer_proxy_impl.cc\([0-9]*\)\] '
                 r'ContextResult::kTransientFailure: Failed to send '
-                'GpuControl\.CreateCommandBuffer\.'),
+                r'GpuControl\.CreateCommandBuffer\.'),
             ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
