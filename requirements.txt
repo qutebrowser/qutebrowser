@@ -9,7 +9,7 @@ MarkupSafe==2.1.2
 Pygments==2.14.0
 PyYAML==6.0
 typing_extensions==4.4.0 ; python_version<"3.8"
-zipp==3.11.0
+zipp==3.12.0
 # Unpinned due to recompile_requirements.py limitations
 pyobjc-core ; sys_platform=="darwin"
 pyobjc-framework-Cocoa ; sys_platform=="darwin"
