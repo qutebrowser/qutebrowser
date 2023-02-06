@@ -526,9 +526,8 @@ def _format_block(filename, what, data):
     except:
         os.remove(tmpname)
         raise
-    else:
-        os.remove(filename)
-        shutil.move(tmpname, filename)
+    os.remove(filename)
+    shutil.move(tmpname, filename)
 
 
 def regenerate_manpage(filename):

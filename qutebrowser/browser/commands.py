@@ -1294,9 +1294,8 @@ class CommandDispatcher:
             was_added = bookmark_manager.add(url, title, toggle=toggle)
         except urlmarks.Error as e:
             raise cmdutils.CommandError(str(e))
-        else:
-            msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
-            message.info(msg.format(url.toDisplayString()))
+        msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
+        message.info(msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)

@@ -564,19 +564,17 @@ def session_load(name: str, *,
     except SessionError as e:
         raise cmdutils.CommandError("Error while loading session: {}"
                                     .format(e))
-    else:
-        if clear:
-            for win in old_windows:
-                win.close()
-        if delete:
-            try:
-                session_manager.delete(name)
-            except SessionError as e:
-                log.sessions.exception("Error while deleting session!")
-                raise cmdutils.CommandError("Error while deleting session: {}"
-                                            .format(e))
-            else:
-                log.sessions.debug("Loaded & deleted session {}.".format(name))
+    if clear:
+        for win in old_windows:
+            win.close()
+    if delete:
+        try:
+            session_manager.delete(name)
+        except SessionError as e:
+            log.sessions.exception("Error while deleting session!")
+            raise cmdutils.CommandError("Error while deleting session: {}"
+                                        .format(e))
+        log.sessions.debug("Loaded & deleted session {}.".format(name))
 
 
 @cmdutils.register()
@@ -622,11 +620,10 @@ def session_save(name: ArgType = default, *,
                                         with_history=not no_history)
     except SessionError as e:
         raise cmdutils.CommandError("Error while saving session: {}".format(e))
+    if quiet:
+        log.sessions.debug("Saved session {}.".format(name))
     else:
-        if quiet:
-            log.sessions.debug("Saved session {}.".format(name))
-        else:
-            message.info("Saved session {}.".format(name))
+        message.info("Saved session {}.".format(name))
 
 
 @cmdutils.register()
@@ -649,8 +646,7 @@ def session_delete(name: str, *, force: bool = False) -> None:
         log.sessions.exception("Error while deleting session!")
         raise cmdutils.CommandError("Error while deleting session: {}"
                                     .format(e))
-    else:
-        log.sessions.debug("Deleted session {}.".format(name))
+    log.sessions.debug("Deleted session {}.".format(name))
 
 
 def load_default(name):

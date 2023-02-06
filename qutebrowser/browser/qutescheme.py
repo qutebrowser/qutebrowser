@@ -563,9 +563,8 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
         log.misc.warning(
             "pdfjs resource requested but not found: {}".format(e.path))
         raise NotFoundError("Can't find pdfjs resource '{}'".format(e.path))
-    else:
-        mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
-        return mimetype, data
+    mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
+    return mimetype, data
 
 
 @add_handler('warning')
