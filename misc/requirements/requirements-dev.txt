@@ -45,4 +45,4 @@ typing_extensions==4.4.0
 uritemplate==4.1.1
 # urllib3==1.26.14
 webencodings==0.5.1
-zipp==3.12.0
+zipp==3.12.1
