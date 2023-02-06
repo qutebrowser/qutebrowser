@@ -1106,7 +1106,7 @@ class QtColor(BaseType):
         mult = 359.0 if kind == 'h' else 255.0
         if val.endswith('%'):
             val = val[:-1]
-            mult = mult / 100
+            mult /= 100
 
         try:
             return int(float(val) * mult)
