@@ -34,7 +34,7 @@ def test_version(message_mock, caplog):
     with caplog.at_level(logging.WARNING):
         assert spell.version('malformed_filename') is None
     msg = message_mock.getmsg(usertypes.MessageLevel.warning)
-    expected = ("Found a dictionary with a malformed name: malformed_filename")
+    expected = "Found a dictionary with a malformed name: malformed_filename"
     assert msg.text == expected
 
 

@@ -490,7 +490,7 @@ class AbstractZoom(QObject):
             raise ValueError("Can't zoom to factor {}!".format(factor))
 
         default_zoom_factor = float(config.val.zoom.default) / 100
-        self._default_zoom_changed = (factor != default_zoom_factor)
+        self._default_zoom_changed = factor != default_zoom_factor
 
         self._zoom_factor = factor
         self._set_factor_internal(factor)

@@ -281,7 +281,7 @@ class TestArguments:
 
     def test_basedir_relative(self, tmpdir):
         """Test --basedir with a relative path."""
-        basedir = (tmpdir / 'basedir')
+        basedir = tmpdir / 'basedir'
         basedir.ensure(dir=True)
         with tmpdir.as_cwd():
             args = types.SimpleNamespace(basedir='basedir')

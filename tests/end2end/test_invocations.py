@@ -204,9 +204,9 @@ def test_misconfigured_user_dirs(request, server, temp_basedir_env,
     home = tmp_path / 'home'
     home.mkdir()
     temp_basedir_env['HOME'] = str(home)
-    config_userdir_dir = (tmp_path / 'config')
+    config_userdir_dir = tmp_path / 'config'
     config_userdir_dir.mkdir(parents=True)
-    config_userdir_file = (tmp_path / 'config' / 'user-dirs.dirs')
+    config_userdir_file = tmp_path / 'config' / 'user-dirs.dirs'
     config_userdir_file.touch()
 
     assert temp_basedir_env['XDG_CONFIG_HOME'] == str(tmp_path / 'config')
@@ -307,7 +307,7 @@ def test_webengine_download_suffix(request, quteproc_new, tmp_path):
     (tmp_path / 'user-dirs.dirs').write_text(
         'XDG_DOWNLOAD_DIR={}'.format(download_dir))
     env = {'XDG_CONFIG_HOME': str(tmp_path)}
-    args = (['--temp-basedir'] + _base_args(request.config))
+    args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env=env)
 
     quteproc_new.set_setting('downloads.location.prompt', 'false')
