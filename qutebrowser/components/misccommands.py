@@ -405,6 +405,7 @@ def debug_crash(typ: str = 'exception') -> None:
     Args:
         typ: either 'exception' or 'segfault'.
     """
+    # pylint: disable=broad-exception-raised
     if typ == 'segfault':
         os.kill(os.getpid(), signal.SIGSEGV)
         raise Exception("Segfault failed (wat.)")

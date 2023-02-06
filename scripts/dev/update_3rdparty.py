@@ -66,6 +66,7 @@ def download_nsis_plugins():
 
 def find_pdfjs_asset(assets, legacy):
     """Find the PDF.js asset to use."""
+    # pylint: disable=broad-exception-raised
     for asset in assets:
         name = asset["name"]
         if (
@@ -82,6 +83,7 @@ def get_latest_pdfjs_url(gh_token, legacy):
 
     Returns a (version, url)-tuple.
     """
+    # pylint: disable=broad-exception-raised
     github_api = 'https://api.github.com'
     endpoint = 'repos/mozilla/pdf.js/releases/latest'
     request = urllib.request.Request(f'{github_api}/{endpoint}')

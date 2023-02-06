@@ -289,7 +289,7 @@ def pytest_report_header(config):
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
     if utils.is_linux and not os.environ.get('DISPLAY', ''):
-        raise Exception("No display and no Xvfb available!")
+        raise RuntimeError("No display and no Xvfb available!")
 
 
 @pytest.fixture(autouse=True)

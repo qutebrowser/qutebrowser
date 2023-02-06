@@ -630,6 +630,10 @@ class FakeDownloadManager:
         return False
 
 
+class FakeHistoryTick(Exception):
+    pass
+
+
 class FakeHistoryProgress:
 
     """Fake for a WebHistoryProgress object."""
@@ -648,7 +652,7 @@ class FakeHistoryProgress:
 
     def tick(self):
         if self._raise_on_tick:
-            raise Exception('tick-tock')
+            raise FakeHistoryTick('tick-tock')
         self._value += 1
 
     def finish(self):

@@ -91,7 +91,7 @@ class _Hook:
 
     def __call__(self, *args):
         if self.raising:
-            raise Exception("Should not be called!")
+            raise AssertionError("Should not be called!")
         self.called = True
 
 

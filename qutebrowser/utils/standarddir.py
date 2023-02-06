@@ -330,8 +330,10 @@ def _create(path: str) -> None:
         for k, v in os.environ.items():
             if k == 'HOME' or k.startswith('XDG_'):
                 log.init.debug(f"{k} = {v}")
-        raise Exception("Trying to create directory inside /home during "
-                        "tests, this should not happen.")
+        raise AssertionError(
+            "Trying to create directory inside /home during "
+            "tests, this should not happen."
+        )
     os.makedirs(path, 0o700, exist_ok=True)
 
 
