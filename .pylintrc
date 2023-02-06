@@ -16,6 +16,8 @@ load-plugins=qute_pylint.config,
              pylint.extensions.typing,
              pylint.extensions.docparams,
              pylint.extensions.private_import,
+             pylint.extensions.dict_init_mutate,
+             pylint.extensions.dunder
 
 persistent=n
 py-version=3.7

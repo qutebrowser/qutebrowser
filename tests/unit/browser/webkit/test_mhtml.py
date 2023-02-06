@@ -94,8 +94,8 @@ def test_refuses_non_ascii_header_value(checker, header, value):
         'root_content': b'',
         'content_location': 'http://example.com',
         'content_type': 'text/plain',
+        header: value,
     }
-    defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
     with pytest.raises(UnicodeEncodeError, match="'ascii' codec can't encode"):
         writer.write_to(checker.fp)
