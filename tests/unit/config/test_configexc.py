@@ -59,7 +59,7 @@ def test_no_option_error(deleted, renamed, all_names, expected):
 
 def test_no_option_error_clash():
     with pytest.raises(AssertionError):
-        configexc.NoOptionError('opt', deleted=True, renamed='foo')
+        _ = configexc.NoOptionError('opt', deleted=True, renamed='foo')
 
 
 def test_no_autoconfig_error():

@@ -425,7 +425,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42)
     def func_raising(self):
-        raise Exception
+        raise RuntimeError("something went wrong")
 
     def test_raising(self, caplog):
         """Test with a raising function."""
@@ -434,6 +434,7 @@ class TestPreventExceptions:
         assert ret == 42
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
         assert caplog.messages == [expected]
+        assert caplog.records[0].exc_info[1].args[0] == "something went wrong"
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -448,7 +449,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42, True)
     def func_predicate_true(self):
-        raise Exception("its-true")
+        raise RuntimeError("its-true")
 
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
@@ -456,15 +457,16 @@ class TestPreventExceptions:
             ret = self.func_predicate_true()
         assert ret == 42
         assert len(caplog.records) == 1
+        assert caplog.records[0].exc_info[1].args[0] == "its-true"
 
     @utils.prevent_exceptions(42, False)
     def func_predicate_false(self):
-        raise Exception("its-false")
+        raise RuntimeError("its-false")
 
     def test_predicate_false(self, caplog):
         """Test with a False predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            with pytest.raises(Exception, match="its-false"):
+            with pytest.raises(RuntimeError, match="its-false"):
                 self.func_predicate_false()
         assert not caplog.records
 

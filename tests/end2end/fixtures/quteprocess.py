@@ -523,7 +523,7 @@ class QuteProc(testprocess.Process):
         profile = self.request.config.getoption('--qute-profile-subprocs')
         if hasattr(sys, 'frozen'):
             if profile:
-                raise Exception("Can't profile with sys.frozen!")
+                raise RuntimeError("Can't profile with sys.frozen!")
             executable = str(pathlib.Path(sys.executable).parent / 'qutebrowser')
             args = []
         else:

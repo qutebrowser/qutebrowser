@@ -499,6 +499,7 @@ def _format_block(filename, what, data):
         what: What to change (authors, options, etc.)
         data; A list of strings which is the new data.
     """
+    # pylint: disable=broad-exception-raised
     what = what.upper()
     oshandle, tmpname = tempfile.mkstemp()
     try:
@@ -525,9 +526,8 @@ def _format_block(filename, what, data):
     except:
         os.remove(tmpname)
         raise
-    else:
-        os.remove(filename)
-        shutil.move(tmpname, filename)
+    os.remove(filename)
+    shutil.move(tmpname, filename)
 
 
 def regenerate_manpage(filename):

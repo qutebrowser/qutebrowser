@@ -78,7 +78,7 @@ def test_debug_trace_exception(mocker):
     """Check that exceptions thrown by hunter.trace are handled."""
     def _mock_exception():
         """Side effect for testing debug_trace's reraise."""
-        raise Exception('message')
+        raise Exception('message')  # pylint: disable=broad-exception-raised
 
     hunter_mock = mocker.patch.object(misccommands, 'hunter')
     hunter_mock.trace.side_effect = _mock_exception

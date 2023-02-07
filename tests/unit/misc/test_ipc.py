@@ -262,7 +262,7 @@ class TestSocketName:
         elif utils.is_linux:
             pass
         else:
-            raise Exception("Unexpected platform!")
+            raise AssertionError("Unexpected platform!")
 
 
 class TestExceptions:

@@ -223,7 +223,7 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
                 "",
             ]
 
-        raise Exception("\n".join(lines))
+        raise Exception("\n".join(lines))  # pylint: disable=broad-exception-raised
 
 
 def verify_windows_exe(exe_path: pathlib.Path) -> None:
@@ -598,7 +598,7 @@ def read_github_token(
         if optional:
             return None
         else:
-            raise Exception(
+            raise Exception(  # pylint: disable=broad-exception-raised
                 "GitHub token needed, but ~/.gh_token not found, "
                 "and --gh-token not given.")
 
@@ -614,6 +614,7 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
         tag: The name of the release tag
         gh_token: The GitHub token to use
     """
+    # pylint: disable=broad-exception-raised
     import github3
     import github3.exceptions
     utils.print_title("Uploading to github...")

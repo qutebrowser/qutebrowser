@@ -471,7 +471,7 @@ class TestRebuild:
         # Trigger a completion rebuild
         monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
 
-        with pytest.raises(Exception, match='tick-tock'):
+        with pytest.raises(stubs.FakeHistoryTick, match='tick-tock'):
             history.WebHistory(web_history.database, progress=progress)
 
         assert web_history.metainfo['force_rebuild']

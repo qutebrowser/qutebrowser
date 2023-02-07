@@ -406,7 +406,9 @@ class TestTransaction:
             with database.transaction():
                 my_table.insert({'column': 1})
                 my_table.insert({'column': 2})
-                raise Exception('something went horribly wrong')
-        except Exception:
+                raise RuntimeError(
+                    'something went horribly wrong and the transaction will be aborted'
+                )
+        except RuntimeError:
             pass
         assert database.query('select count(*) from my_table').run().value() == 0
