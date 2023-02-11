@@ -72,9 +72,9 @@ class FakeKeyEvent:
     """Fake QKeyPressEvent stub."""
 
     def __init__(self, key, modifiers=0, text=''):
-        self.key = mock.Mock(return_value=key)
-        self.text = mock.Mock(return_value=text)
-        self.modifiers = mock.Mock(return_value=modifiers)
+        self.key = mock.Mock(return_value=key)  # pylint: disable=mock-missing-spec
+        self.text = mock.Mock(return_value=text)  # pylint: disable=mock-missing-spec
+        self.modifiers = mock.Mock(return_value=modifiers)  # pylint: disable=mock-missing-spec
 
 
 class FakeWebFrame:
@@ -95,12 +95,12 @@ class FakeWebFrame:
         """
         if scroll is None:
             scroll = QPoint(0, 0)
-        self.geometry = mock.Mock(return_value=geometry)
-        self.scrollPosition = mock.Mock(return_value=scroll)
-        self.parentFrame = mock.Mock(return_value=parent)
-        self.toPlainText = mock.Mock(return_value=plaintext)
-        self.toHtml = mock.Mock(return_value=html)
-        self.zoomFactor = mock.Mock(return_value=zoom)
+        self.geometry = mock.Mock(return_value=geometry)  # pylint: disable=mock-missing-spec
+        self.scrollPosition = mock.Mock(return_value=scroll)  # pylint: disable=mock-missing-spec
+        self.parentFrame = mock.Mock(return_value=parent)  # pylint: disable=mock-missing-spec
+        self.toPlainText = mock.Mock(return_value=plaintext)  # pylint: disable=mock-missing-spec
+        self.toHtml = mock.Mock(return_value=html)  # pylint: disable=mock-missing-spec
+        self.zoomFactor = mock.Mock(return_value=zoom)  # pylint: disable=mock-missing-spec
 
 
 class FakeChildrenFrame:
@@ -110,7 +110,7 @@ class FakeChildrenFrame:
     def __init__(self, children=None):
         if children is None:
             children = []
-        self.childFrames = mock.Mock(return_value=children)
+        self.childFrames = mock.Mock(return_value=children)  # pylint: disable=mock-missing-spec
 
 
 class FakeQApplication:
@@ -145,7 +145,7 @@ class FakeNetworkReply:
             self.headers = {}
         else:
             self.headers = headers
-        self.url = mock.Mock(return_value=url)
+        self.url = mock.Mock(return_value=url)  # pylint: disable=mock-missing-spec
 
     def hasRawHeader(self, name):
         """Check if the reply has a certain header.

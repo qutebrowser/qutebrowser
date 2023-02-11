@@ -69,7 +69,7 @@ def test_debug_trace(mocker):
     """Check if hunter.trace is properly called."""
     # but only if hunter is available
     pytest.importorskip('hunter')
-    hunter_mock = mocker.patch.object(misccommands, 'hunter')
+    hunter_mock = mocker.patch.object(misccommands, 'hunter')  # pylint: disable=patch-missing-spec
     misccommands.debug_trace(1)
     hunter_mock.trace.assert_called_with(1)
 
@@ -80,7 +80,7 @@ def test_debug_trace_exception(mocker):
         """Side effect for testing debug_trace's reraise."""
         raise Exception('message')  # pylint: disable=broad-exception-raised
 
-    hunter_mock = mocker.patch.object(misccommands, 'hunter')
+    hunter_mock = mocker.patch.object(misccommands, 'hunter')  # pylint: disable=patch-missing-spec
     hunter_mock.trace.side_effect = _mock_exception
     with pytest.raises(cmdutils.CommandError, match='Exception: message'):
         misccommands.debug_trace()

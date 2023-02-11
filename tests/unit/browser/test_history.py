@@ -143,7 +143,7 @@ class TestAdd:
 
     @pytest.fixture
     def mock_time(self, mocker):
-        m = mocker.patch('qutebrowser.browser.history.time')
+        m = mocker.patch('qutebrowser.browser.history.time')  # pylint: disable=patch-missing-spec
         m.time.return_value = 12345
         return 12345
 

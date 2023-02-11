@@ -69,11 +69,20 @@ def main():
     ]
 
     toxinidir = sys.argv[1]
+    pylint_plugin_dir = os.path.join(
+        toxinidir,
+        'scripts',
+        'dev',
+        'pylint_checkers',
+        'qute_pylint',
+    )
     pythonpath = os.environ.get('PYTHONPATH', '').split(os.pathsep) + [
         toxinidir,
+        pylint_plugin_dir,
     ]
 
     args = [
+        '--load-plugins=mock',
         '--disable={}'.format(','.join(disabled)),
         '--ignored-modules=helpers,pytest,PyQt5',
         r'--ignore-long-lines=(<?https?://|^# Copyright 201\d)|^ *def [a-z]',

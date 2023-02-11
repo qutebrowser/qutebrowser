@@ -1514,7 +1514,7 @@ class TestRegex:
         The warning should be passed.
         """
         regex = klass()
-        m = mocker.patch('qutebrowser.config.configtypes.re')
+        m = mocker.patch('qutebrowser.config.configtypes.re')  # pylint: disable=patch-missing-spec
         m.compile.side_effect = lambda *args: warnings.warn(warning)
         m.error = re.error
         with pytest.raises(type(warning)):

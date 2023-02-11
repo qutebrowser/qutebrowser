@@ -567,7 +567,7 @@ class TestSendToRunningInstance:
                                       timeout=5000) as raw_blocker:
                     with testutils.change_cwd(tmp_path):
                         if not has_cwd:
-                            m = mocker.patch('qutebrowser.misc.ipc.os')
+                            m = mocker.patch('qutebrowser.misc.ipc.os')  # pylint: disable=patch-missing-spec
                             m.getcwd.side_effect = OSError
                         sent = ipc.send_to_running_instance(
                             'qute-test', ['foo'], None)

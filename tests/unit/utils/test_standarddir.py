@@ -299,8 +299,8 @@ class TestInitCacheDirTag:
     def test_existent_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test with an existent CACHEDIR.TAG."""
         monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
-        mocker.patch('builtins.open', side_effect=AssertionError)
-        m = mocker.patch('qutebrowser.utils.standarddir.os')
+        mocker.patch('builtins.open', side_effect=AssertionError)  # pylint: disable=patch-missing-spec
+        m = mocker.patch('qutebrowser.utils.standarddir.os')  # pylint: disable=patch-missing-spec
         m.path.join.side_effect = os.path.join
         m.path.exists.return_value = True
         standarddir._init_cachedir_tag()
@@ -364,7 +364,7 @@ class TestCreatingDir:
         """
         (tmpdir / typ).ensure(dir=True)
 
-        m = mocker.patch('qutebrowser.utils.standarddir.os')
+        m = mocker.patch('qutebrowser.utils.standarddir.os')  # pylint: disable=patch-missing-spec
         m.makedirs = os.makedirs
         m.sep = os.sep
         m.path.join = os.path.join

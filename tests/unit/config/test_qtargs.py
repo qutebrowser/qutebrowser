@@ -34,7 +34,7 @@ def parser(mocker):
     Monkey-patches .exit() of the argparser so it doesn't exit on errors.
     """
     parser = qutebrowser.get_argparser()
-    mocker.patch.object(parser, 'exit', side_effect=Exception)
+    mocker.patch.object(parser, 'exit', side_effect=Exception)  # pylint: disable=patch-missing-spec
     return parser
 
 
@@ -118,7 +118,7 @@ def test_no_webengine_available(monkeypatch, config_stub, parser, stubs):
     monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
     fake = stubs.ImportFake({'qutebrowser.browser.webengine': False}, monkeypatch)
-    fake.patch()
+    fake.patch()  # pylint: disable=patch-missing-spec
 
     parsed = parser.parse_args([])
     args = qtargs.qt_args(parsed)

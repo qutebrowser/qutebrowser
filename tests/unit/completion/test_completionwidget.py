@@ -35,6 +35,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     """Create the CompletionView used for testing."""
     # mock the Completer that the widget creates in its constructor
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
+    # pylint: disable-next=patch-missing-spec
     mocker.patch(
         'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
         return_value=None)
@@ -169,7 +170,7 @@ def test_completion_item_focus_fetch(completionview, model, qtbot):
         'fetchMore', 'rowCount', 'index', 'data'])
     cat.canFetchMore = lambda *_: True
     cat.rowCount = lambda *_: 2
-    cat.fetchMore = mock.Mock()
+    cat.fetchMore = mock.Mock()  # pylint: disable=mock-missing-spec
     model.add_category(cat)
     completionview.set_model(model)
     # clear the fetchMore call that happens on set_model
@@ -351,7 +352,7 @@ def test_completion_item_yank_selected(completionview, model,
     completionview.set_model(model)
     completionview.completion_item_focus('next')
 
-    status_command_stub.selectedText = mock.Mock(return_value='something')
+    status_command_stub.selectedText = mock.Mock(return_value='something')  # pylint: disable=mock-missing-spec
     completionview.completion_item_yank(sel)
 
     m.set_clipboard.assert_called_once_with('something', sel)

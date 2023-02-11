@@ -373,7 +373,7 @@ class TestSavefileOpen:
     @pytest.fixture
     def qsavefile_mock(self, mocker):
         """Mock for QSaveFile."""
-        m = mocker.patch('qutebrowser.utils.qtutils.QSaveFile')
+        m = mocker.patch('qutebrowser.utils.qtutils.QSaveFile')  # pylint: disable=patch-missing-spec
         instance = m()
         yield instance
         instance.commit.assert_called_once_with()

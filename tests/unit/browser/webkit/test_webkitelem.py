@@ -56,7 +56,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
                         evaluateJavaScript.
         zoom_text_only: Whether zoom.text_only is set in the config
     """
-    elem = mock.Mock()
+    elem = mock.Mock()  # pylint: disable=mock-missing-spec
     elem.isNull.return_value = null
     elem.geometry.return_value = geometry
     elem.webFrame.return_value = frame
@@ -130,7 +130,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         return style_dict[name]
 
     elem.styleProperty.side_effect = _style_property
-    tab = mock.Mock(autospec=browsertab.AbstractTab)
+    tab = mock.Mock(autospec=browsertab.AbstractTab)  # pylint: disable=mock-missing-spec
     tab.is_deleted.return_value = False
     wrapped = webkitelem.WebKitElement(elem, tab=tab)
     return wrapped

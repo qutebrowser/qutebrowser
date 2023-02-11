@@ -53,12 +53,12 @@ class CompletionWidgetStub(completionwidget.CompletionView):
 
     def __init__(self, parent=None):
         super().__init__(cmd=None, win_id=0, parent=parent)
-        self.hide = unittest.mock.Mock()
-        self.show = unittest.mock.Mock()
-        self.set_pattern = unittest.mock.Mock()
-        self.model = unittest.mock.Mock()
-        self.set_model = unittest.mock.Mock()
-        self.enabled = unittest.mock.Mock()
+        self.hide = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
+        self.show = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
+        self.set_pattern = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
+        self.model = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
+        self.set_model = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
+        self.enabled = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
 
 
 @pytest.fixture
@@ -298,7 +298,7 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
     If quick is True and there is only 1 completion (count == 1),
     then we expect a space to be appended after the current word.
     """
-    model = unittest.mock.Mock()
+    model = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
     completion_widget_stub.model.return_value = model
 
     def check(quick, count, expected_txt, expected_pos):
@@ -338,8 +338,8 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     This test validates that the completion model is not re-set after we
     quick-complete an entry after maxsplit.
     """
-    model = unittest.mock.Mock()
-    model.count = unittest.mock.Mock(return_value=1)
+    model = unittest.mock.Mock()  # pylint: disable=mock-missing-spec
+    model.count = unittest.mock.Mock(return_value=1)  # pylint: disable=mock-missing-spec
     completion_widget_stub.model.return_value = model
     config_stub.val.completion.quick = True
 

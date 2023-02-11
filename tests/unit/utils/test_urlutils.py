@@ -113,7 +113,7 @@ class TestFuzzyUrl:
     @pytest.fixture
     def os_mock(self, mocker):
         """Mock the os module and some os.path functions."""
-        m = mocker.patch('qutebrowser.utils.urlutils.os')
+        m = mocker.patch('qutebrowser.utils.urlutils.os')  # pylint: disable=patch-missing-spec
         # Using / to get the same behavior across OS'
         m.path.join.side_effect = lambda *args: '/'.join(args)
         m.path.expanduser.side_effect = os.path.expanduser
@@ -121,11 +121,11 @@ class TestFuzzyUrl:
 
     @pytest.fixture
     def is_url_mock(self, mocker):
-        return mocker.patch('qutebrowser.utils.urlutils.is_url')
+        return mocker.patch('qutebrowser.utils.urlutils.is_url')  # pylint: disable=patch-missing-spec
 
     @pytest.fixture
     def get_search_url_mock(self, mocker):
-        return mocker.patch('qutebrowser.utils.urlutils._get_search_url')
+        return mocker.patch('qutebrowser.utils.urlutils._get_search_url')  # pylint: disable=patch-missing-spec
 
     def test_file_relative_cwd(self, os_mock):
         """Test with relative=True, cwd set, and an existing file."""
