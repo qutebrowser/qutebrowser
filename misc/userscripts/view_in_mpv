@@ -140,4 +140,4 @@ printjs() {
 echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
 
 msg info "Opening $QUTE_URL with mpv"
-yt-dlp -o - "$QUTE_URL" | "${video_command[@]}" "$@" -
+yt-dlp "$YT_DLP_FLAGS" -o - "$QUTE_URL" | "${video_command[@]}" "$@" -
