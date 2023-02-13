@@ -6,7 +6,7 @@ bump2version==1.0.1
 certifi==2022.12.7
 cffi==1.15.1
 charset-normalizer==3.0.1
-cryptography==39.0.0
+cryptography==39.0.1
 docutils==0.19
 github3.py==3.2.0
 hunter==3.5.1
@@ -36,7 +36,7 @@ requests-toolbelt==0.10.1
 rfc3986==2.0.0
 rich==13.3.1
 SecretStorage==3.3.3
-sip==6.7.6
+sip==6.7.7
 six==1.16.0
 toml==0.10.2
 tomli==2.0.1
@@ -45,4 +45,4 @@ typing_extensions==4.4.0
 uritemplate==4.1.1
 # urllib3==1.26.14
 webencodings==0.5.1
-zipp==3.12.1
+zipp==3.13.0

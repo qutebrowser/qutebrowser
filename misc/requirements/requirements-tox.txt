@@ -7,11 +7,11 @@ distlib==0.3.6
 filelock==3.9.0
 packaging==23.0
 pip==23.0
-platformdirs==2.6.2
+platformdirs==3.0.0
 pluggy==1.0.0
 pyproject_api==1.5.0
-setuptools==67.1.0
+setuptools==67.2.0
 tomli==2.0.1
-tox==4.4.4
-virtualenv==20.17.1
+tox==4.4.5
+virtualenv==20.19.0
 wheel==0.38.4
