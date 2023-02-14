@@ -102,7 +102,7 @@ class ContentDisposition:
 
         if parsed.defects:
             defects = list(parsed.defects)
-            if defects != [cls._IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
+            if defects != [cls._IGNORED_DEFECT]:
                 raise ContentDispositionError(defects)
 
         # https://github.com/python/mypy/issues/12314
