@@ -287,6 +287,8 @@ class PACFetcher(QObject):
                 error = "Invalid encoding of a PAC file: {}"
                 self._error_message = error.format(e)
                 log.network.exception(self._error_message)
+                return
+
             try:
                 self._pac = PACResolver(pacscript)
                 log.network.debug("Successfully evaluated PAC file.")
@@ -294,6 +296,7 @@ class PACFetcher(QObject):
                 error = "Error in PAC evaluation: {}"
                 self._error_message = error.format(e)
                 log.network.exception(self._error_message)
+
         self._manager = None
         self._reply = None
         self.finished.emit()
