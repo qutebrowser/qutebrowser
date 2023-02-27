@@ -10,8 +10,8 @@ pip==23.0.1
 platformdirs==3.0.0
 pluggy==1.0.0
 pyproject_api==1.5.0
-setuptools==67.3.2
+setuptools==67.4.0
 tomli==2.0.1
-tox==4.4.5
+tox==4.4.6
 virtualenv==20.19.0
 wheel==0.38.4

@@ -17,7 +17,7 @@ jaraco.classes==3.2.3
 jeepney==0.8.0
 keyring==23.13.1
 manhole==1.8.0
-markdown-it-py==2.1.0
+markdown-it-py==2.2.0
 mdurl==0.1.2
 more-itertools==9.0.0
 packaging==23.0
@@ -45,4 +45,4 @@ typing_extensions==4.5.0
 uritemplate==4.1.1
 # urllib3==1.26.14
 webencodings==0.5.1
-zipp==3.14.0
+zipp==3.15.0
