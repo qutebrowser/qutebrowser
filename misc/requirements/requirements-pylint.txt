@@ -26,4 +26,4 @@ typed-ast==1.5.4 ; python_version<"3.8"
 typing_extensions==4.5.0
 uritemplate==4.1.1
 # urllib3==1.26.14
-wrapt==1.14.1
+wrapt==1.15.0
