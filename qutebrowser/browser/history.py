@@ -217,19 +217,19 @@ class WebHistory(sql.SqlTable):
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
-        self._between_query = self.database.query('SELECT * FROM History '
-                                                  'where not redirect '
-                                                  'and not url like "qute://%" '
-                                                  'and atime > :earliest '
-                                                  'and atime <= :latest '
-                                                  'ORDER BY atime desc')
+        self._between_query = self.database.query("SELECT * FROM History "
+                                                  "where not redirect "
+                                                  "and not url like 'qute://%' "
+                                                  "and atime > :earliest "
+                                                  "and atime <= :latest "
+                                                  "ORDER BY atime desc")
 
-        self._before_query = self.database.query('SELECT * FROM History '
-                                                 'where not redirect '
-                                                 'and not url like "qute://%" '
-                                                 'and atime <= :latest '
-                                                 'ORDER BY atime desc '
-                                                 'limit :limit offset :offset')
+        self._before_query = self.database.query("SELECT * FROM History "
+                                                 "where not redirect "
+                                                 "and not url like 'qute://%' "
+                                                 "and atime <= :latest "
+                                                 "ORDER BY atime desc "
+                                                 "limit :limit offset :offset")
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
