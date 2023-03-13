@@ -206,37 +206,62 @@ window._qutebrowser.webelem = (function() {
         }
     }
 
-    funcs.find_css = (selector, only_visible) => {
-        let elems;
+    // Recursively finds elements from DOM that have shadowRoot
+    // and returns them in a list
+    function find_elements_with_shadow_root(container = document) {
+        const elems = [];
 
+        for (const elem of container.querySelectorAll("*")) {
+            if (elem.shadowRoot) {
+                elems.push(elem, ...find_elements_with_shadow_root(elem.shadowRoot));
+            }
+        }
+
+        return elems;
+    }
+
+    function find_clickable_elements(selector, only_visible, container = document) {
+        const valid_elems = [];
+
+        let elems;
         try {
-            elems = document.querySelectorAll(selector);
+            elems = container.querySelectorAll(selector);
         } catch (ex) {
             return {"success": false, "error": ex.toString()};
         }
 
-        const subelem_frames = window.frames;
-        const out = [];
-
         for (let i = 0; i < elems.length; ++i) {
             if (!only_visible || is_visible(elems[i])) {
-                out.push(serialize_elem(elems[i]));
+                valid_elems.push(serialize_elem(elems[i]));
             }
         }
+
+        return valid_elems;
+    }
+
+    funcs.find_css = (selector, only_visible) => {
+        const subelem_frames = window.frames;
+        const out = [];
+        out.push(...find_clickable_elements(selector, only_visible));
 
         // Recurse into frames and add them
         for (let i = 0; i < subelem_frames.length; i++) {
             if (iframe_same_domain(subelem_frames[i])) {
                 const frame = subelem_frames[i];
-                const subelems = frame.document.
-                    querySelectorAll(selector);
-                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
-                    if (!only_visible ||
-                        is_visible(subelems[elem_num], frame)) {
-                        out.push(serialize_elem(subelems[elem_num], frame));
-                    }
-                }
+                out.push(
+                    ...find_clickable_elements(selector, only_visible, frame.document)
+                );
             }
+        }
+
+        for (const shadow_root_elem of find_elements_with_shadow_root()) {
+            out.push(
+                ...find_clickable_elements(
+                    selector,
+                    only_visible,
+                    shadow_root_elem.shadowRoot
+                )
+            );
         }
 
         return {"success": true, "result": out};
