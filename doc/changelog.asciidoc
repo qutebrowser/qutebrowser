@@ -121,7 +121,7 @@ Fixed
 - Rare crash when running userscripts with crashed renderer processes.
 
 [[v2.5.4]]
-v2.5.4 (unreleased)
+v2.5.4 (2023-03-13)
 -------------------
 
 Fixed
