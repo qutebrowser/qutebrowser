@@ -92,8 +92,9 @@ jobs:
         image:
           - archlinux-webkit
           - archlinux-webengine
-          # - archlinux-webengine-qt6  # FIXME:qt6 activate
-          # - archlinux-webengine-unstable
+          - archlinux-webengine-qt6
+          - archlinux-webengine-unstable
+          # - archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
@@ -125,7 +126,6 @@ jobs:
           - testenv: py39-pyqt5152
             os: ubuntu-20.04
             python: "3.9"
-          ### PyQt 5.15 (Python 3.10, with coverage)
           ### PyQt 5.15 (Python 3.9, with coverage)
           # FIXME:qt6
           # - testenv: py39-pyqt515-cov
@@ -134,7 +134,7 @@ jobs:
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
             os: ubuntu-20.04
-            python: "3.11-dev"
+            python: "3.11"
           ### PyQt 6.2 (Python 3.9)
           - testenv: py39-pyqt62
             os: ubuntu-20.04
@@ -143,10 +143,14 @@ jobs:
           - testenv: py39-pyqt63
             os: ubuntu-20.04
             python: 3.9
-          ### PyQt 6.4 (Python 3.9)
-          # - testenv: py39-pyqt64
-          #   os: ubuntu-20.04
-          #   python: 3.9
+          ## PyQt 6.4 (Python 3.9)
+          - testenv: py39-pyqt64
+            os: ubuntu-20.04
+            python: 3.9
+          ### PyQt 6.4 (Python 3.11)
+          - testenv: py311-pyqt64
+            os: ubuntu-22.04
+            python: 3.11
           ### macOS Big Sur: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-11
