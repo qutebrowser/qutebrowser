@@ -100,17 +100,25 @@ def _generate_pdfjs_script(filename):
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
-          if (typeof window.PDFJS !== 'undefined') {
-              // v1.x
-              window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
-          } else {
-              // v2.x
-              const options = window.PDFViewerApplicationOptions;
-              options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
-          }
+            if (typeof window.PDFJS !== 'undefined') {
+                // v1.x
+                window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
+            } else {
+                // v2.x+
+                const options = window.PDFViewerApplicationOptions;
+                options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
+            }
 
-          const viewer = window.PDFView || window.PDFViewerApplication;
-          viewer.open({{ url }});
+            if (typeof window.PDFView !== 'undefined') {
+                // < v1.6
+                window.PDFView.open({{ url }});
+            } else {
+                // v1.6+
+                window.PDFViewerApplication.open({
+                    url: {{ url }},
+                    originalUrl: {{ url }}
+                });
+            }
         });
     """).render(url=js_url)
 
