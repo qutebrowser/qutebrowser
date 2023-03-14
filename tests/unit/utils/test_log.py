@@ -275,7 +275,7 @@ class TestInitLog:
         log.init_log(args)
 
         with caplog.at_level(logging.WARNING):
-            warnings.warn("test warning", PendingDeprecationWarning, stacklevel=2)
+            warnings.warn("test warning", PendingDeprecationWarning)
 
         expected = "PendingDeprecationWarning: test warning"
         assert expected in caplog.records[0].message
@@ -285,7 +285,7 @@ class TestInitLog:
         log.init_log(args)
 
         with pytest.raises(PendingDeprecationWarning):
-            warnings.warn("test warning", PendingDeprecationWarning, stacklevel=2)
+            warnings.warn("test warning", PendingDeprecationWarning)
 
     @pytest.mark.parametrize('cli, conf, expected', [
         (None, 'info', logging.INFO),
@@ -386,9 +386,9 @@ def test_stub(caplog, suffix, expected):
 def test_py_warning_filter(caplog):
     logging.captureWarnings(True)
     with log.py_warning_filter(category=UserWarning):
-        warnings.warn("hidden", UserWarning, stacklevel=2)
+        warnings.warn("hidden", UserWarning)
     with caplog.at_level(logging.WARNING):
-        warnings.warn("not hidden", UserWarning, stacklevel=2)
+        warnings.warn("not hidden", UserWarning)
     assert len(caplog.records) == 1
     msg = caplog.messages[0].splitlines()[0]
     assert msg.endswith("UserWarning: not hidden")
@@ -396,17 +396,17 @@ def test_py_warning_filter(caplog):
 
 def test_py_warning_filter_error(caplog):
     warnings.simplefilter('ignore')
-    warnings.warn("hidden", UserWarning, stacklevel=2)
+    warnings.warn("hidden", UserWarning)
 
     with log.py_warning_filter('error'):
         with pytest.raises(UserWarning):
-            warnings.warn("error", UserWarning, stacklevel=2)
+            warnings.warn("error", UserWarning)
 
 
 def test_warning_still_errors():
     # Mainly a sanity check after the tests messing with warnings above.
     with pytest.raises(UserWarning):
-        warnings.warn("error", UserWarning, stacklevel=2)
+        warnings.warn("error", UserWarning)
 
 
 class TestQtMessageHandler:

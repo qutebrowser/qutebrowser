@@ -1521,7 +1521,7 @@ class TestRegex:
         """
         regex = klass()
         m = mocker.patch('qutebrowser.config.configtypes.re')
-        m.compile.side_effect = lambda *args: warnings.warn(warning, stacklevel=2)
+        m.compile.side_effect = lambda *args: warnings.warn(warning)
         m.error = re.error
         with pytest.raises(type(warning)):
             regex.to_py('foo')

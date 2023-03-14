@@ -41,7 +41,7 @@ def test_no_qapp(request):
 
 def test_fail_on_warnings():
     with pytest.raises(PendingDeprecationWarning):
-        warnings.warn('test', PendingDeprecationWarning, stacklevel=2)
+        warnings.warn('test', PendingDeprecationWarning)
 
 
 @pytest.mark.xfail(reason="https://github.com/qutebrowser/qutebrowser/issues/1070",
