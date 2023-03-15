@@ -61,6 +61,18 @@ def is_ignored_lowlevel_message(message):
         # Qt 6.4, from certificate error below, but on separate lines
         '----- Certificate i=0 (*,CN=localhost,O=qutebrowser test certificate) -----',
         'ERROR: No matching issuer found',
+
+        # Qt 6.5 debug, overflow/linebreak from a JS message...
+        # IGNORED: [678403:678403:0315/203342.008878:INFO:CONSOLE(65)] "Refused
+        # to apply inline style because it violates the following Content
+        # Security Policy directive: "default-src none". Either the
+        # 'unsafe-inline' keyword, a hash
+        # ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce
+        # ('nonce-...') is required to enable inline execution. Note also that
+        # 'style-src' was not explicitly set, so 'default-src' is used as a
+        # fallback.
+        # INVALID: ", source: userscript:_qute_stylesheet (65)
+        '", source: userscript:_qute_stylesheet (65)',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -130,6 +142,59 @@ def is_ignored_chromium_message(line):
         'CertVerifyProcBuiltin for localhost failed:',
         # [320667:320667:1124/135621.718232:ERROR:interface_endpoint_client.cc(687)] Message 4 rejected by interface blink.mojom.WidgetHost
         'Message 4 rejected by interface blink.mojom.WidgetHost',
+
+
+        # Qt 5.15.1 debug build (Chromium 83)
+        # '[314297:7:0929/214605.491958:ERROR:context_provider_command_buffer.cc(145)]
+        # GpuChannelHost failed to create command buffer.'
+        # Still present on Qt 6.5
+        'GpuChannelHost failed to create command buffer.',
+
+        # Qt 6.5 debug build
+        # [640812:640865:0315/200415.708148:WARNING:important_file_writer.cc(185)]
+        # Failed to create temporary file to update
+        # /tmp/qutebrowser-basedir-3kvto2eq/data/webengine/user_prefs.json: No
+        # such file or directory (2)
+        # [640812:640864:0315/200415.715398:WARNING:important_file_writer.cc(185)]
+        # Failed to create temporary file to update
+        # /tmp/qutebrowser-basedir-3kvto2eq/data/webengine/Network Persistent
+        # State: No such file or directory (2)
+        'Failed to create temporary file to update *user_prefs.json: No such file or directory (2)',
+        'Failed to create temporary file to update *Network Persistent State: No such file or directory (2)',
+
+        # Qt 6.5 debug build
+        # [645145:645198:0315/200704.324733:WARNING:simple_synchronous_entry.cc(1438)]
+        "Could not open platform files for entry.",
+
+        # Qt 6.5 debug build
+        # [664320:664320:0315/202235.943899:ERROR:node_channel.cc(861)]
+        # Dropping message on closed channel.
+        "Dropping message on closed channel.",
+
+        # Qt 6.5 debug build
+        # tests/end2end/features/test_misc_bdd.py::test_webrtc_renderer_process_crash
+        # [679056:14:0315/203418.631075:WARNING:media_session.cc(949)] RED
+        # codec red is missing an associated payload type.
+        "RED codec red is missing an associated payload type.",
+
+        # Qt 6.5 debug build
+        # tests/end2end/features/test_javascript_bdd.py::test_error_pages_without_js_enabled
+        # and others using internal URL schemes?
+        # [677785:1:0315/203308.328104:ERROR:html_media_element.cc(4874)]
+        # SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected
+        # by URL safety check"}
+        'SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}',
+
+        # Qt 6.5 debug build
+        # [714871:715010:0315/205751.155681:ERROR:surface_manager.cc(419)]
+        # Old/orphaned temporary reference to SurfaceId(FrameSinkId[](14, 3),
+        # LocalSurfaceId(3, 1, 5D04...))
+        "Old/orphaned temporary reference to SurfaceId(FrameSinkId[](*, *), LocalSurfaceId(*, *, *...))",
+
+        # Qt 6.5 debug build
+        # [758352:758352:0315/212511.747791:WARNING:render_widget_host_impl.cc(280)]
+        # Input request on unbound interface
+        "Input request on unbound interface",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
