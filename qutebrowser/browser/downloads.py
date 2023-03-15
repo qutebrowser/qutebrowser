@@ -183,11 +183,11 @@ def get_filename_question(*, suggested_filename, url, parent=None):
         parent: The parent of the question (a QObject).
     """
     suggested_filename = utils.sanitize_filename(suggested_filename)
+    trimmed_url = html.escape(utils.elide(url.toDisplayString(), 100))
 
     q = usertypes.Question(parent)
     q.title = "Save file to:"
-    q.text = "Please enter a location for <b>{}</b>".format(
-        html.escape(url.toDisplayString()))
+    q.text = "Please enter a location for <b>{}</b>".format(trimmed_url)
     q.url = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
