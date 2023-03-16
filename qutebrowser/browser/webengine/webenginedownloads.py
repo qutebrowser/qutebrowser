@@ -22,10 +22,12 @@
 import re
 import os.path
 import functools
+import typing
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
-from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
+from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem, QWebEngineScript
 
+from qutebrowser.qt import sip
 from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
                                utils, version)
@@ -37,6 +39,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     Attributes:
         _qt_item: The wrapped item.
+        _page_destroyed: Whether the page the download was requested on is
+                         destroyed. This is always None before Qt 5.12.
     """
 
     def __init__(self, qt_item: QWebEngineDownloadItem,
@@ -47,9 +51,17 @@ class DownloadItem(downloads.AbstractDownloadItem):
         qt_item.downloadProgress.connect(self.stats.on_download_progress)
         qt_item.stateChanged.connect(self._on_state_changed)
 
+        self._page_destroyed = None  # type: typing.Optional[bool]
+        if qtutils.version_check('5.12'):
+            self._page_destroyed = False
+            qt_item.page().destroyed.connect(self._set_page_destroyed)
+
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
         self.destroyed.connect(self._qt_item.deleteLater)
+
+    def _set_page_destroyed(self):
+        self._page_destroyed = True
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
@@ -312,3 +324,29 @@ class DownloadManager(downloads.AbstractDownloadManager):
         assert self._mhtml_target is None, self._mhtml_target
         self._mhtml_target = target
         tab.action.save_page()
+
+    def _on_pdfjs_requested(self, filename: str, original_url: QUrl,
+                            download: downloads.AbstractDownloadItem) -> None:
+        """Open PDF.js when a download requests it."""
+        if download._page_destroyed is False:
+            page = download._qt_item.page()
+            # calling this after the page is closed causes segmentation fault
+
+            def callback(result):
+                if result:
+                    page.setUrl(pdfjs.get_main_url(filename, original_url))
+                else:
+                    super(DownloadManager, self)._on_pdfjs_requested(
+                        filename, original_url, download)
+
+            if page:
+                assert not sip.isdeleted(page)
+                page.runJavaScript(
+                    'document.body.children.length == 0 || ('
+                    'document.body.children.length == 1 &&'
+                    'document.body.children[0].tagName == "EMBED" &&'
+                    'document.body.children[0].type == "application/pdf")',
+                    QWebEngineScript.ApplicationWorld, callback)
+                return
+
+        super()._on_pdfjs_requested(filename, original_url, download)

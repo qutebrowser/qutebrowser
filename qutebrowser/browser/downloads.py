@@ -925,8 +925,8 @@ class AbstractDownloadManager(QObject):
             dl.stats.update_speed()
         self.data_changed.emit(-1)
 
-    @pyqtSlot(str, QUrl)
-    def _on_pdfjs_requested(self, filename: str, original_url: QUrl) -> None:
+    def _on_pdfjs_requested(self, filename: str, original_url: QUrl,
+                            download: AbstractDownloadItem) -> None:
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
@@ -949,7 +949,8 @@ class AbstractDownloadManager(QObject):
         download.data_changed.connect(
             functools.partial(self._on_data_changed, download))
         download.error.connect(self._on_error)
-        download.pdfjs_requested.connect(self._on_pdfjs_requested)
+        download.pdfjs_requested.connect(functools.partial(
+            self._on_pdfjs_requested, download=download))
 
         download.basename = suggested_filename
         idx = len(self.downloads)
