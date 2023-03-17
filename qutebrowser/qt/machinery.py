@@ -6,6 +6,11 @@
 import os
 import importlib
 
+# Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
+# sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
+#
+# Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
+_DEFAULT_WRAPPER = "PyQt5"
 
 _WRAPPERS = [
     "PyQt6",
@@ -48,7 +53,9 @@ def _select_wrapper():
     env_var = "QUTE_QT_WRAPPER"
     env_wrapper = os.environ.get(env_var)
     if env_wrapper is None:
-        return _autoselect_wrapper()
+        # FIXME:qt6 Go back to the auto-detection once ready
+        # return _autoselect_wrapper()
+        return _DEFAULT_WRAPPER
 
     if env_wrapper not in _WRAPPERS:
         raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
