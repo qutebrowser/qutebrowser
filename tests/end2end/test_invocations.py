@@ -663,20 +663,20 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         'blank',
         'lightness-hsl',
         {
-            # FIXME:qt6 Why #121212 rather than #000000?
-            ('6.4', None): testutils.Color(18, 18, 18),
-            ('6.3', None): testutils.Color(18, 18, 18),
-            (None, None): testutils.Color(0, 0, 0),
+            ('5.15', None): testutils.Color(0, 0, 0),
+            ('6.2', None): testutils.Color(0, 0, 0),
+            # Qt 6.3+ (why #121212 rather than #000000?)
+            (None, None): testutils.Color(18, 18, 18),
         }
     ),
     (
         'blank',
         'brightness-rgb',
         {
-            # FIXME:qt6 Why #121212 rather than #000000?
-            ('6.4', None): testutils.Color(18, 18, 18),
-            ('6.3', None): testutils.Color(18, 18, 18),
-            (None, None): testutils.Color(0, 0, 0)
+            ('5.15', None): testutils.Color(0, 0, 0),
+            ('6.2', None): testutils.Color(0, 0, 0),
+            # Qt 6.3+ (why #121212 rather than #000000?)
+            (None, None): testutils.Color(18, 18, 18),
         }
     ),
 
