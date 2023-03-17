@@ -47,7 +47,7 @@ def test_format_sizes(fmt, expected):
 
 
 @pytest.mark.skipif(not utils.is_linux, reason="Needs Linux")
-def test_result(qapp, caplog):
+def test_result(webengine_versions, qapp, caplog):
     """Test the real result of ELF parsing.
 
     NOTE: If you're a distribution packager (or contributor) and see this test failing,
@@ -60,6 +60,10 @@ def test_result(qapp, caplog):
     pytest.importorskip('qutebrowser.qt.webenginecore')
 
     versions = elf.parse_webenginecore()
+    if webengine_versions.webengine == utils.VersionNumber(6, 5):
+        assert versions is None
+        pytest.xfail("ELF file structure not supported")
+
     assert versions is not None
 
     # No failing mmap
