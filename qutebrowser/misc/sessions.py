@@ -475,16 +475,34 @@ class SessionManager(QObject):
         window.show()
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
-        tab_to_focus = None
-        for i, tab in enumerate(win['tabs']):
-            new_tab = tabbed_browser.tabopen(background=False)
+        # Put the active tab in index 0 to start with because the first tab
+        # added to a QTabWidget will always be shown so we don't want that to
+        # be a background tab.
+        tabs_to_load = win['tabs'][:]
+        active_tabs = (
+            (index, tab)
+            for index, tab in enumerate(win['tabs'])
+            if tab.get('active', False)
+        )
+        index_to_focus, tab_to_focus = next(active_tabs, (None, None))
+        if tab_to_focus is not None:
+            del tabs_to_load[index_to_focus]
+            tabs_to_load.insert(0, tab_to_focus)
+
+        for i, tab in enumerate(tabs_to_load):
+            new_tab = tabbed_browser.tabopen(background=True, related=False, idx=i)
             self._load_tab(new_tab, tab)
-            if tab.get('active', False):
-                tab_to_focus = i
+            # WORKAROUND to get widget and page visibility state in sync
+            # for background tabs after page load on Qt < 5.12 and
+            # to make the the render viewport size match the widget size on
+            # 5.13, see https://github.com/qutebrowser/qutebrowser/issues/4881
+            if i > 0:
+                new_tab.show()
+                new_tab.hide()
             if new_tab.data.pinned:
                 new_tab.set_pinned(True)
         if tab_to_focus is not None:
-            tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+            tabbed_browser.widget.tabBar().moveTab(0, index_to_focus)
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 

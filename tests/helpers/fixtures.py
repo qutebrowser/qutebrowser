@@ -49,9 +49,10 @@ from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes, version
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
-from qutebrowser.misc import savemanager, sql, objects, sessions
+from qutebrowser.misc import savemanager, sql, objects, sessions, quitter
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
+from qutebrowser.mainwindow import tabbedbrowser
 
 
 _qute_scheme_handler = None
@@ -401,6 +402,35 @@ def tabbed_browser_stubs(qapp, stubs, win_registry):
     yield stubs
     objreg.delete('tabbed-browser', scope='window', window=0)
     objreg.delete('tabbed-browser', scope='window', window=1)
+
+
+@pytest.fixture
+def real_tabbed_browser(widget_container, config_stub, mode_manager,
+                        tab_registry, web_tab_setup, web_history, quitter_stub):
+    tb = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
+    widget_container.set_widget(tb)
+    objreg.register('tabbed-browser', tb, scope='window', window=0)
+    yield tb
+    objreg.delete('tabbed-browser', scope='window', window=0)
+
+
+@pytest.fixture
+def app_stub(stubs):
+    """Fixture which provides a fake app object."""
+    stub = stubs.ApplicationStub()
+    objreg.register('app', stub)
+    yield stub
+    objreg.delete('app')
+
+
+@pytest.fixture
+def quitter_stub(monkeypatch):
+    # TODO: make a proper stub for Quitter
+    monkeypatch.setattr(
+        quitter,
+        'instance',
+        unittest.mock.MagicMock(spec=quitter.Quitter),
+    )
 
 
 @pytest.fixture

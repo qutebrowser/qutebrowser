@@ -60,6 +60,12 @@ Feature: Opening pages
             - about:blank (active)
             - data/numbers/5.txt
 
+    Scenario: Opening in a new background tab page reports as hidden
+        Given I open about:blank
+        When I run :tab-only
+        And I run :open -b data:text/html,<script>window.setTimeout(function(){console.log('hidden:'+document.hidden)},0)</script>
+        Then the javascript message "hidden:true" should be logged
+
     Scenario: :open with count
         Given I open about:blank
         When I run :tab-only

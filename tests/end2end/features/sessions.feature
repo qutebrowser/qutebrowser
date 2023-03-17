@@ -396,6 +396,21 @@ Feature: Saving and loading sessions
     Then data/numbers/2.txt should be loaded
     And the session loaded_session should not exist
 
+  Scenario: Loading a session with stacking turned off loads tabs in the right order
+    When I open about:blank?first in a new tab
+    And I open about:blank?middle in a new tab
+    And I open about:blank?last in a new tab
+    And I run :session-save loaded_session
+    And I run :set tabs.new_position.stacking false
+    And I run :session-load --delete --clear loaded_session
+    And I wait for "Loaded & deleted session loaded_session." in the log
+    And I wait until about:blank?last is loaded
+    Then the following tabs should be open:
+        - about:blank
+        - about:blank?first
+        - about:blank?middle
+        - about:blank?last (active)
+
   Scenario: Loading a session which doesn't exist
     When I run :session-load inexistent_session
     Then the error "Session inexistent_session not found!" should be shown
