@@ -2,6 +2,8 @@ Jinja2
 PyYAML
 
 ## Only used on macOS to make borderless windows resizable
+# Not needed anymore with Qt 6.3, but we can't express that
+# here, and it won't hurt either.
 ## our recompile_requirements.py can't really deal with
 ## platform-specific dependencies unfortunately...
 # pyobjc-core

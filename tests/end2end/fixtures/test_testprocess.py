@@ -25,7 +25,7 @@ import contextlib
 import datetime
 
 import pytest
-from PyQt5.QtCore import QProcess
+from qutebrowser.qt.core import QProcess
 
 from end2end.fixtures import testprocess
 
@@ -53,7 +53,7 @@ class PythonProcess(testprocess.Process):
 
     def __init__(self, request):
         super().__init__(request)
-        self.proc.setReadChannel(QProcess.StandardOutput)
+        self.proc.setReadChannel(QProcess.ProcessChannel.StandardOutput)
         self.code = None
 
     def _parse_line(self, line):

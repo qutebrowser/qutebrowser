@@ -25,8 +25,8 @@ import enum
 import dataclasses
 from typing import Optional, Sequence, TypeVar, Union
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -481,9 +481,17 @@ class Timer(QTimer):
             super().start()
 
 
+class UndeferrableError(Exception):
+
+    """An AbstractCertificateErrorWrapper isn't deferrable."""
+
+
 class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
+
+    def __init__(self) -> None:
+        self._certificate_accepted: Optional[bool] = None
 
     def __str__(self) -> str:
         raise NotImplementedError
@@ -496,6 +504,23 @@ class AbstractCertificateErrorWrapper:
 
     def html(self) -> str:
         return f'<p>{html.escape(str(self))}</p>'
+
+    def accept_certificate(self) -> None:
+        self._certificate_accepted = True
+
+    def reject_certificate(self) -> None:
+        self._certificate_accepted = False
+
+    def defer(self) -> None:
+        raise NotImplementedError
+
+    def certificate_was_accepted(self) -> bool:
+        """Check whether the certificate was accepted by the user."""
+        if not self.is_overridable():
+            return False
+        if self._certificate_accepted is None:
+            raise ValueError("No decision taken yet")
+        return self._certificate_accepted
 
 
 @dataclasses.dataclass
@@ -521,7 +546,7 @@ class NavigationRequest:
         #: Navigation initiated by a history action.
         back_forward = 5
         #: Navigation initiated by refreshing the page.
-        reloaded = 6
+        reload = 6
         #: Navigation triggered automatically by page content or remote server
         #: (QtWebEngine >= 5.14 only)
         redirect = 7

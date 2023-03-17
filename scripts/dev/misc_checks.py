@@ -266,6 +266,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     hint_data = pathlib.Path('tests', 'end2end', 'data', 'hints')
     ignored = [
         pathlib.Path('scripts', 'dev', 'misc_checks.py'),
+        pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
@@ -275,6 +276,38 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         ok = True
         for path in _get_files(verbose=args.verbose, ignored=ignored):
             with tokenize.open(path) as f:
+                if not _check_spelling_file(path, f, patterns):
+                    ok = False
+        print()
+        return ok
+    except Exception:
+        traceback.print_exc()
+        return None
+
+
+def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
+    """Check for direct PyQt imports."""
+    ignored = [
+        pathlib.Path("qutebrowser", "qt"),
+        # FIXME:qt6 fix those too?
+        pathlib.Path("misc", "userscripts"),
+        pathlib.Path("scripts"),
+    ]
+    patterns = [
+        (
+            re.compile(r"from PyQt.* import"),
+            "Use 'from qutebrowser.qt.MODULE import ...' instead",
+        ),
+        (
+            re.compile(r"import PyQt.*"),
+            "Use 'import qutebrowser.qt.MODULE' instead",
+        )
+    ]
+    # FIXME:qt6 unify this with check_spelling somehow?
+    try:
+        ok = True
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(str(path)) as f:
                 if not _check_spelling_file(path, f, patterns):
                     ok = False
         print()
@@ -371,6 +404,7 @@ def main() -> int:
         'git': check_git,
         'vcs': check_vcs_conflict,
         'spelling': check_spelling,
+        'pyqt-imports': check_pyqt_imports,
         'userscript-descriptions': check_userscripts_descriptions,
         'userscript-shebangs': check_userscript_shebangs,
         'changelog-urls': check_changelog_urls,

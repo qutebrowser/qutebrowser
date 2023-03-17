@@ -23,7 +23,7 @@ import collections
 import dataclasses
 from typing import MutableSequence, cast, TYPE_CHECKING
 
-from PyQt5.QtCore import QObject, QByteArray
+from qutebrowser.qt.core import QObject, QByteArray
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow import mainwindow
@@ -83,9 +83,9 @@ class WindowUndoManager(QObject):
             private=False,
             geometry=entry.geometry,
         )
-        window.show()
         window.tabbed_browser.undo_stack = entry.tab_stack
         window.tabbed_browser.undo()
+        window.show()
 
 
 def init():

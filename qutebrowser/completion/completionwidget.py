@@ -25,8 +25,8 @@ subclasses to provide completions.
 
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
+from qutebrowser.qt.widgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
@@ -127,14 +127,14 @@ class CompletionView(QTreeView):
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
         self.setAnimated(False)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         # WORKAROUND
         # This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
@@ -277,18 +277,20 @@ class CompletionView(QTreeView):
         direction = -1 if upwards else 1
         while True:
             idx = idx.sibling(idx.row() + direction, 0)
-            if not idx.isValid() and upwards:
+
+            if idx.isValid():
+                child = model.index(0, 0, idx)
+                if child.isValid():
+                    self.scrollTo(idx)  # scroll to ensure the category is visible
+                    return child
+            elif upwards:
                 # wrap around to the first item of the last category
                 return model.last_item().sibling(0, 0)
-            elif not idx.isValid() and not upwards:
+            else:
                 # wrap around to the first item of the first category
                 idx = model.first_item()
                 self.scrollTo(idx.parent())
                 return idx
-            elif idx.isValid() and idx.child(0, 0).isValid():
-                # scroll to ensure the category is visible
-                self.scrollTo(idx)
-                return idx.child(0, 0)
 
         raise utils.Unreachable
 
@@ -339,8 +341,8 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |
-            QItemSelectionModel.Rows)
+            QItemSelectionModel.SelectionFlag.ClearAndSelect |
+            QItemSelectionModel.SelectionFlag.Rows)
 
         # if the last item is focused, try to fetch more
         next_idx = self.indexBelow(idx)

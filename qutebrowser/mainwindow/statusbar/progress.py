@@ -19,8 +19,8 @@
 
 """The progress bar in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, QSize
-from PyQt5.QtWidgets import QProgressBar, QSizePolicy
+from qutebrowser.qt.core import pyqtSlot, QSize
+from qutebrowser.qt.widgets import QProgressBar, QSizePolicy
 
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
@@ -47,7 +47,7 @@ class Progress(QProgressBar):
         super().__init__(parent)
         stylesheet.set_register(self)
         self.enabled = False
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.setTextVisible(False)
         self.hide()
 

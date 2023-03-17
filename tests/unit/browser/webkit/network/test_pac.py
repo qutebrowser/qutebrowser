@@ -22,8 +22,8 @@ import threading
 import logging
 import pytest
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
                              QHostAddress)
 
 from qutebrowser.browser.network import pac
@@ -44,11 +44,11 @@ def _pac_common_test(test_str):
     res = pac.PACResolver(fun_str)
     proxies = res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
     assert len(proxies) == 3
-    assert proxies[0].type() == QNetworkProxy.NoProxy
-    assert proxies[1].type() == QNetworkProxy.HttpProxy
+    assert proxies[0].type() == QNetworkProxy.ProxyType.NoProxy
+    assert proxies[1].type() == QNetworkProxy.ProxyType.HttpProxy
     assert proxies[1].hostName() == "127.0.0.1"
     assert proxies[1].port() == 8080
-    assert proxies[2].type() == QNetworkProxy.Socks5Proxy
+    assert proxies[2].type() == QNetworkProxy.ProxyType.Socks5Proxy
     assert proxies[2].hostName() == "192.168.1.1"
     assert proxies[2].port() == 4444
 

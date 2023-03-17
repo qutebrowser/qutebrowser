@@ -34,8 +34,8 @@ try:
 except ImportError:
     hunter = None
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.printsupport import QPrintPreviewDialog
 
 from qutebrowser.api import cmdutils, apitypes, message, config
 
@@ -81,11 +81,11 @@ def _print_preview(tab: apitypes.Tab) -> None:
 
     tab.printing.check_preview_support()
     diag = QPrintPreviewDialog(tab)
-    diag.setAttribute(Qt.WA_DeleteOnClose)
+    diag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
     diag.setWindowFlags(
         diag.windowFlags() |
-        Qt.WindowMaximizeButtonHint |
-        Qt.WindowMinimizeButtonHint)
+        Qt.WindowType.WindowMaximizeButtonHint |
+        Qt.WindowType.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
     diag.exec()
@@ -324,7 +324,7 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
     Available actions:
     https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
-    https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+    https://doc.qt.io/qt-6/qwebenginepage.html#WebAction-enum (WebEngine)
 
     Args:
         action: The action to execute, e.g. MoveToNextChar.
@@ -365,7 +365,7 @@ def message_error(text: str, rich: bool = False) -> None:
     Args:
         text: The text to show.
         rich: Render the given text as
-              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     message.error(text, rich=rich)
 
@@ -379,7 +379,7 @@ def message_info(text: str, count: int = 1, rich: bool = False) -> None:
         text: The text to show.
         count: How many times to show the message.
         rich: Render the given text as
-              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     for _ in range(count):
         message.info(text, rich=rich)
@@ -392,7 +392,7 @@ def message_warning(text: str, rich: bool = False) -> None:
     Args:
         text: The text to show.
         rich: Render the given text as
-              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     message.warning(text, rich=rich)
 

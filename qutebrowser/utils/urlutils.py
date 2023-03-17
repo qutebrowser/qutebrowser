@@ -28,8 +28,8 @@ import urllib.parse
 import mimetypes
 from typing import Optional, Tuple, Union, Iterable
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
@@ -493,6 +493,19 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     if url1.port() != url2.port():
         return False
 
+    # QUrl.topLevelDomain() got removed in Qt 6:
+    # https://bugreports.qt.io/browse/QTBUG-80308
+    #
+    # However, we should never land here if we are on Qt 6:
+    #
+    # On QtWebEngine, we don't have a QNetworkAccessManager attached to a tab
+    # (all tab-specific downloads happen via the QtWebEngine network stack).
+    # Thus, ensure_valid(url2) above will raise InvalidUrlError, which is
+    # handled in NetworkManager.
+    #
+    # There are no other callers of same_domain, and url2 will only be ever valid when
+    # we use a NetworkManager from QtWebKit. However, QtWebKit is Qt 5 only.
+
     suffix1 = url1.topLevelDomain()
     suffix2 = url2.topLevelDomain()
     if not suffix1:
@@ -522,7 +535,7 @@ def file_url(path: str) -> str:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    return url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:
@@ -544,11 +557,11 @@ def safe_display_string(qurl: QUrl) -> str:
     """
     ensure_valid(qurl)
 
-    host = qurl.host(QUrl.FullyEncoded)
+    host = qurl.host(QUrl.ComponentFormattingOption.FullyEncoded)
     assert '..' not in host, qurl  # https://bugreports.qt.io/browse/QTBUG-60364
 
     for part in host.split('.'):
-        url_host = qurl.host(QUrl.FullyDecoded)
+        url_host = qurl.host(QUrl.ComponentFormattingOption.FullyDecoded)
         if part.startswith('xn--') and host != url_host:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
@@ -581,10 +594,10 @@ def proxy_from_url(url: QUrl) -> Union[QNetworkProxy, pac.PACFetcher]:
         return fetcher
 
     types = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
-        'direct': QNetworkProxy.NoProxy,
+        'http': QNetworkProxy.ProxyType.HttpProxy,
+        'socks': QNetworkProxy.ProxyType.Socks5Proxy,
+        'socks5': QNetworkProxy.ProxyType.Socks5Proxy,
+        'direct': QNetworkProxy.ProxyType.NoProxy,
     }
     if scheme not in types:
         raise InvalidProxyTypeError(scheme)
@@ -613,7 +626,7 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
     urlstr = urllib.parse.unquote(urlstr)
 
     code = urlstr[len('javascript:'):]

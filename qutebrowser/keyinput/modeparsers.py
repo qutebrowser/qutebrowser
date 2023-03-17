@@ -27,8 +27,8 @@ import traceback
 import enum
 from typing import TYPE_CHECKING, Sequence
 
-from PyQt5.QtCore import pyqtSlot, Qt, QObject
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from qutebrowser.qt.core import pyqtSlot, Qt, QObject
+from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.browser import hints
 from qutebrowser.commands import cmdexc
@@ -110,11 +110,11 @@ class NormalKeyParser(CommandKeyParser):
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
                             "currently inhibited.".format(txt))
-            return QKeySequence.NoMatch
+            return QKeySequence.SequenceMatch.NoMatch
 
         match = super().handle(e, dry_run=dry_run)
 
-        if match == QKeySequence.PartialMatch and not dry_run:
+        if match == QKeySequence.SequenceMatch.PartialMatch and not dry_run:
             timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
@@ -178,7 +178,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         """Handle keys for string filtering."""
         log.keyboard.debug("Got filter key 0x{:x} text {}".format(
             e.key(), e.text()))
-        if e.key() == Qt.Key_Backspace:
+        if e.key() == Qt.Key.Key_Backspace:
             log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
                                "sequence '{}'".format(self._last_press,
                                                       self._filtertext,
@@ -186,7 +186,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
             if self._last_press != LastPress.keystring and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self._hintmanager.filter_hints(self._filtertext)
-                return QKeySequence.ExactMatch
+                return QKeySequence.SequenceMatch.ExactMatch
             elif self._last_press == LastPress.keystring and self._sequence:
                 self._sequence = self._sequence[:-1]
                 self.keystring_updated.emit(str(self._sequence))
@@ -195,18 +195,18 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
                     # in numeric mode after the number has been deleted).
                     self._hintmanager.filter_hints(self._filtertext)
                     self._last_press = LastPress.filtertext
-                return QKeySequence.ExactMatch
+                return QKeySequence.SequenceMatch.ExactMatch
             else:
-                return QKeySequence.NoMatch
+                return QKeySequence.SequenceMatch.NoMatch
         elif self._hintmanager.current_mode() != 'number':
-            return QKeySequence.NoMatch
+            return QKeySequence.SequenceMatch.NoMatch
         elif not e.text():
-            return QKeySequence.NoMatch
+            return QKeySequence.SequenceMatch.NoMatch
         else:
             self._filtertext += e.text()
             self._hintmanager.filter_hints(self._filtertext)
             self._last_press = LastPress.filtertext
-            return QKeySequence.ExactMatch
+            return QKeySequence.SequenceMatch.ExactMatch
 
     def handle(self, e: QKeyEvent, *,
                dry_run: bool = False) -> QKeySequence.SequenceMatch:
@@ -217,18 +217,18 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         assert not dry_run
 
         if (self._command_parser.handle(e, dry_run=True) !=
-                QKeySequence.NoMatch):
+                QKeySequence.SequenceMatch.NoMatch):
             log.keyboard.debug("Handling key via command parser")
             self.clear_keystring()
             return self._command_parser.handle(e)
 
         match = super().handle(e)
 
-        if match == QKeySequence.PartialMatch:
+        if match == QKeySequence.SequenceMatch.PartialMatch:
             self._last_press = LastPress.keystring
-        elif match == QKeySequence.ExactMatch:
+        elif match == QKeySequence.SequenceMatch.ExactMatch:
             self._last_press = LastPress.none
-        elif match == QKeySequence.NoMatch:
+        elif match == QKeySequence.SequenceMatch.NoMatch:
             # We couldn't find a keychain so we check if it's a special key.
             return self._handle_filter_key(e)
         else:
@@ -278,12 +278,18 @@ class RegisterKeyParser(CommandKeyParser):
                dry_run: bool = False) -> QKeySequence.SequenceMatch:
         """Override to always match the next key and use the register."""
         match = super().handle(e, dry_run=dry_run)
-        if match or dry_run:
+        if match != QKeySequence.SequenceMatch.NoMatch or dry_run:
             return match
 
-        if keyutils.is_special(Qt.Key(e.key()), e.modifiers()):
+        try:
+            info = keyutils.KeyInfo.from_event(e)
+        except keyutils.InvalidKeyError as ex:
+            # See https://github.com/qutebrowser/qutebrowser/issues/7047
+            log.keyboard.debug(f"Got invalid key: {ex}")
+            return QKeySequence.SequenceMatch.NoMatch
+        if info.is_special():
             # this is not a proper register key, let it pass and keep going
-            return QKeySequence.NoMatch
+            return QKeySequence.SequenceMatch.NoMatch
 
         key = e.text()
 
@@ -307,4 +313,4 @@ class RegisterKeyParser(CommandKeyParser):
 
         self.request_leave.emit(
             self._register_mode, "valid register key", True)
-        return QKeySequence.ExactMatch
+        return QKeySequence.SequenceMatch.ExactMatch

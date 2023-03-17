@@ -33,11 +33,11 @@ import string
 import pytest
 import hypothesis
 import hypothesis.strategies as hst
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import urlmatch
 
-# pylint: disable=line-too-long
+# FIXME:qt6 (lint): disable=line-too-long
 
 
 @pytest.mark.parametrize('pattern, error', [

@@ -23,8 +23,8 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QColor
 
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
@@ -728,12 +728,20 @@ class TestConfig:
             with qtbot.assert_not_emitted(conf.changed):
                 meth('colors.statusbar.normal.bg', '#abcdef', pattern=pattern)
 
-    def test_dump_userconfig(self, conf):
+    @pytest.mark.parametrize("include_hidden", [True, False])
+    def test_dump_userconfig(self, conf, include_hidden):
         conf.set_obj('content.plugins', True)
         conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})
-        lines = ['content.headers.custom = {"X-Foo": "bar"}',
-                 'content.plugins = true']
-        assert conf.dump_userconfig().splitlines() == lines
+        conf.set_obj('content.webgl', False, hide_userconfig=True)
+
+        lines = [
+            'content.headers.custom = {"X-Foo": "bar"}',
+            'content.plugins = true',
+        ]
+        if include_hidden:
+            lines.append("content.webgl = false")
+
+        assert conf.dump_userconfig(include_hidden=include_hidden).splitlines() == lines
 
     def test_dump_userconfig_default(self, conf):
         assert conf.dump_userconfig() == '<Default configuration>'
@@ -771,7 +779,7 @@ class TestContainer:
 
     @pytest.mark.parametrize('configapi, expected', [
         (object(), 'rgb'),
-        (None, QColor.Rgb),
+        (None, QColor.Spec.Rgb),
     ])
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi

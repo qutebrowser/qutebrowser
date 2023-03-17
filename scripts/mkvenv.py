@@ -38,6 +38,14 @@ from scripts import utils, link_pyqt
 
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
+# for --only-binary / --no-binary
+PYQT_PACKAGES = [
+    "PyQt5",
+    "PyQtWebEngine",
+
+    "PyQt6",
+    "PyQt6-WebEngine",
+]
 
 
 class Error(Exception):
@@ -78,6 +86,9 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     parser.add_argument('--pyqt-wheels-dir',
                         default='wheels',
                         help="Directory to get PyQt wheels from.")
+    parser.add_argument('--pyqt-snapshot',
+                        help="Comma-separated list to install from the Riverbank "
+                        "PyQt snapshot server")
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
@@ -105,7 +116,7 @@ def _version_key(v):
     try:
         return tuple(int(v) for c in v.split('.'))
     except ValueError:
-        return 999
+        return (999,)
 
 
 def pyqt_versions() -> List[str]:
@@ -121,6 +132,12 @@ def pyqt_versions() -> List[str]:
 
     versions = sorted(version_set, key=_version_key)
     return versions + ['auto']
+
+
+def _is_qt6_version(version: str) -> bool:
+    """Check if the given version is Qt 6."""
+    # FIXME:qt6 Adjust once auto = Qt 6
+    return version == "6" or version.startswith("6.")
 
 
 def run_venv(
@@ -223,38 +240,46 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
     utils.print_col("No proprietary codec support will be available in "
                     "qutebrowser.", 'bold')
 
-    supported_archs = {
-        'linux': {'x86_64'},
-        'win32': {'x86', 'AMD64'},
-        'darwin': {'x86_64'},
-    }
+    if _is_qt6_version(version):
+        supported_archs = {
+            'linux': {'x86_64'},
+            'win32': {'AMD64'},
+            'darwin': {'x86_64', 'arm64'},
+        }
+    else:
+        supported_archs = {
+            'linux': {'x86_64'},
+            'win32': {'x86', 'AMD64'},
+            'darwin': {'x86_64'},
+        }
+
     if sys.platform not in supported_archs:
-        utils.print_error(f"{sys.platform} is not a supported platform by PyQt5 binary "
+        utils.print_error(f"{sys.platform} is not a supported platform by PyQt binary "
                           "packages, this will most likely fail.")
     elif platform.machine() not in supported_archs[sys.platform]:
         utils.print_error(
-            f"{platform.machine()} is not a supported architecture for PyQt5 binaries "
+            f"{platform.machine()} is not a supported architecture for PyQt binaries "
             f"on {sys.platform}, this will most likely fail.")
     elif sys.platform == 'linux' and platform.libc_ver()[0] != 'glibc':
-        utils.print_error("Non-glibc Linux is not a supported platform for PyQt5 "
+        utils.print_error("Non-glibc Linux is not a supported platform for PyQt "
                           "binaries, this will most likely fail.")
 
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--only-binary', 'PyQt5,PyQtWebEngine')
+                '--only-binary', ','.join(PYQT_PACKAGES))
 
 
 def install_pyqt_source(venv_dir: pathlib.Path, version: str) -> None:
     """Install PyQt from the source tarball."""
     utils.print_title("Installing PyQt from sources")
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--verbose', '--no-binary', 'PyQt5,PyQtWebEngine')
+                '--verbose', '--no-binary', ','.join(PYQT_PACKAGES))
 
 
-def install_pyqt_link(venv_dir: pathlib.Path) -> None:
+def install_pyqt_link(venv_dir: pathlib.Path, version: str) -> None:
     """Install PyQt by linking a system-wide install."""
     utils.print_title("Linking system-wide PyQt")
     lib_path = link_pyqt.get_venv_lib_path(str(venv_dir))
-    link_pyqt.link_pyqt(sys.executable, lib_path)
+    link_pyqt.link_pyqt(sys.executable, lib_path, version=version)
 
 
 def install_pyqt_wheels(venv_dir: pathlib.Path,
@@ -263,6 +288,13 @@ def install_pyqt_wheels(venv_dir: pathlib.Path,
     utils.print_title("Installing PyQt wheels")
     wheels = [str(wheel) for wheel in wheels_dir.glob('*.whl')]
     pip_install(venv_dir, *wheels)
+
+
+def install_pyqt_shapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
+    """Install PyQt packages from the snapshot server."""
+    utils.print_title("Installing PyQt snapshots")
+    pip_install(venv_dir, '-U', *packages, '--no-deps', '--pre',
+                '--index-url', 'https://riverbankcomputing.com/pypi/simple/')
 
 
 def apply_xcb_util_workaround(
@@ -282,7 +314,7 @@ def apply_xcb_util_workaround(
     if pyqt_type != 'binary':
         print("Workaround not needed: Not installing from PyQt binaries.")
         return
-    if pyqt_version not in ['auto', '5.15']:
+    if _is_qt6_version(pyqt_version):
         print("Workaround not needed: Not installing Qt 5.15.")
         return
 
@@ -363,13 +395,13 @@ def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     return all_libs
 
 
-def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
+def run_qt_smoke_test_single(venv_dir: pathlib.Path, *, debug: bool) -> None:
     """Make sure the Qt installation works."""
     utils.print_title("Running Qt smoke test")
     code = [
         'import sys',
-        'from PyQt5.QtWidgets import QApplication',
-        'from PyQt5.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
+        'from qutebrowser.qt.widgets import QApplication',
+        'from qutebrowser.qt.core import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
         'print(f"Python: {sys.version}")',
         'print(f"qVersion: {qVersion()}")',
         'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',
@@ -382,16 +414,35 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
         run_venv(
             venv_dir,
             'python', '-c', '; '.join(code),
-            env={'QT_DEBUG_PLUGINS': '1'},
+            env={'QT_DEBUG_PLUGINS': '1'} if debug else {},
             capture_error=True
         )
     except Error as e:
         proc_e = e.__cause__
         assert isinstance(proc_e, subprocess.CalledProcessError), proc_e
         print(proc_e.stderr)
-        raise Error(
-            f"Smoke test failed with status {proc_e.returncode}. "
-            "You might find additional information in the debug output above.")
+
+        msg = f"Smoke test failed with status {proc_e.returncode}."
+        if debug:
+            msg += " You might find additional information in the debug output above."
+        raise Error(msg)
+
+
+def run_qt_smoke_test(venv_dir: pathlib.Path, *, pyqt_version: str) -> None:
+    """Make sure the Qt installation works."""
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-104415
+    no_debug = pyqt_version in ("6.3", "6") and sys.platform == "darwin"
+    if no_debug:
+        try:
+            run_qt_smoke_test_single(venv_dir, debug=False)
+        except Error as e:
+            print(e)
+            print("Rerunning with debug output...")
+            print("NOTE: This will likely segfault due to a Qt bug:")
+            print("https://bugreports.qt.io/browse/QTBUG-104415")
+            run_qt_smoke_test_single(venv_dir, debug=True)
+    else:
+        run_qt_smoke_test_single(venv_dir, debug=True)
 
 
 def install_requirements(venv_dir: pathlib.Path) -> None:
@@ -444,10 +495,12 @@ def install_pyqt(venv_dir, args):
     """Install PyQt in the virtualenv."""
     if args.pyqt_type == 'binary':
         install_pyqt_binary(venv_dir, args.pyqt_version)
+        if args.pyqt_snapshot:
+            install_pyqt_shapshot(venv_dir, args.pyqt_snapshot.split(','))
     elif args.pyqt_type == 'source':
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
-        install_pyqt_link(venv_dir)
+        install_pyqt_link(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'wheels':
         wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
         install_pyqt_wheels(venv_dir, wheels_dir)
@@ -463,13 +516,19 @@ def run(args) -> None:
     utils.change_cwd()
 
     if (args.pyqt_version != 'auto' and
-            args.pyqt_type not in ['binary', 'source']):
+            args.pyqt_type not in ['binary', 'source', 'link']):
         raise Error('The --pyqt-version option is only available when installing PyQt '
-                    'from binary or source')
+                    'from binary, source, or linking it')
+    if args.pyqt_type == 'link' and args.pyqt_version not in ['auto', '5', '6']:
+        raise Error('Invalid --pyqt-version {args.pyqt_version}, only 5 or 6 '
+                    'permitted with --pyqt-type=link')
 
     if args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
         raise Error('The --pyqt-wheels-dir option is only available when installing '
                     'PyQt from wheels')
+    if args.pyqt_snapshot and args.pyqt_type != 'binary':
+        raise Error('The --pyqt-snapshot option is only available when installing '
+                    'PyQt from binaries')
 
     if args.update:
         utils.print_title("Updating repository")
@@ -484,14 +543,14 @@ def run(args) -> None:
     install_pyqt(venv_dir, args)
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
-    if args.pyqt_type != 'skip' and not args.skip_smoke_test:
-        run_qt_smoke_test(venv_dir)
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
     if args.dev:
         install_dev_requirements(venv_dir)
 
+    if args.pyqt_type != 'skip' and not args.skip_smoke_test:
+        run_qt_smoke_test(venv_dir, pyqt_version=args.pyqt_version)
     if not args.skip_docs:
         regenerate_docs(venv_dir)
 

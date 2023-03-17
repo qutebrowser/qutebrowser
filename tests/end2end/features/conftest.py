@@ -35,8 +35,9 @@ import pytest
 import pytest_bdd as bdd
 
 import qutebrowser
-from qutebrowser.utils import log, utils, docutils
+from qutebrowser.utils import log, utils, docutils, version
 from qutebrowser.browser import pdfjs
+from end2end.fixtures import testprocess
 from helpers import testutils
 
 
@@ -194,6 +195,7 @@ def pdfjs_available(data_tmpdir):
 
 
 @bdd.given('I clear the log')
+@bdd.when('I clear the log')
 def clear_log_lines(quteproc):
     quteproc.clear_data()
 
@@ -434,6 +436,20 @@ def update_documentation():
 
     update_script = os.path.join(script_path, 'asciidoc2html.py')
     subprocess.run([sys.executable, update_script], check=True)
+
+
+@bdd.when("I wait until PDF.js is ready")
+def wait_pdfjs(quteproc):
+    quteproc.wait_for(message="load status for <qutebrowser.browser.* "
+        "tab_id=* url='qute://pdfjs/web/viewer.html?*'>: LoadStatus.success")
+    try:
+        quteproc.wait_for(message="JS: [qute://pdfjs/web/viewer.html?*] Uncaught TypeError: Cannot read property 'set' of undefined", timeout=100)
+    except testprocess.WaitForTimeout:
+        pass
+    else:
+        pytest.skip(f"Non-legacy PDF.js installation: {version._pdfjs_version()}")
+
+    quteproc.wait_for(message="[qute://pdfjs/*] PDF * (PDF.js: *)")
 
 
 ## Then

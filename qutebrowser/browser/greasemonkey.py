@@ -29,7 +29,7 @@ import textwrap
 import dataclasses
 from typing import cast, List, Sequence, Tuple, Optional
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes, message)
@@ -145,7 +145,7 @@ class GreasemonkeyScript:
     def needs_document_end_workaround(self):
         """Check whether to force @run-at document-end.
 
-        This needs to be done on QtWebEngine (since Qt 5.12) for known-broken scripts.
+        This needs to be done on QtWebEngine for known-broken scripts.
 
         On Qt 5.12, accessing the DOM isn't possible with "@run-at
         document-start". It was documented to be impossible before, but seems
@@ -270,7 +270,7 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(QUrl.FullyEncoded)
+        self._url_string = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):

@@ -23,7 +23,7 @@ import functools
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.config import configcommands
 from qutebrowser.api import cmdutils
@@ -212,12 +212,17 @@ class TestSet:
             commands.set(win_id=0, option='foo?')
 
 
-def test_diff(commands, tabbed_browser_stubs):
+@pytest.mark.parametrize("include_hidden, url", [
+    (True, "qute://configdiff?include_hidden=true"),
+    (False, "qute://configdiff"),
+])
+def test_diff(commands, tabbed_browser_stubs, include_hidden, url):
     """Run ':config-diff'.
 
-    Should open qute://configdiff."""
-    commands.config_diff(win_id=0)
-    assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://configdiff')
+    Should open qute://configdiff.
+    """
+    commands.config_diff(win_id=0, include_hidden=include_hidden)
+    assert tabbed_browser_stubs[0].loaded_url == QUrl(url)
 
 
 class TestCycle:

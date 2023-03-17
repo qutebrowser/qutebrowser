@@ -17,11 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+# FIXME:qt6 (lint)
+# pylint: disable=no-name-in-module
+
 """Customized QWebInspector for QtWebKit."""
 
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.webkit import QWebSettings
+from qutebrowser.qt.webkitwidgets import QWebInspector, QWebPage
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets
@@ -40,5 +43,5 @@ class WebKitInspector(inspector.AbstractWebInspector):
 
     def inspect(self, page: QWebPage) -> None:
         settings = QWebSettings.globalSettings()
-        settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        settings.setAttribute(QWebSettings.WebAttribute.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)

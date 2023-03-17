@@ -186,7 +186,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -195,7 +195,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -364,7 +364,7 @@ Feature: Various utility commands.
 
     # This still doesn't set window.navigator.language
     # See https://bugreports.qt.io/browse/QTBUG-61949
-    @qtwebkit_skip @js_headers
+    @qtwebkit_skip
     Scenario: Accept-Language header (JS)
         When I set content.headers.accept_language to it,fr
         And I run :jseval console.log(window.navigator.languages)
@@ -376,7 +376,6 @@ Feature: Various utility commands.
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
 
-    @js_headers
     Scenario: User-agent header (JS)
         When I set content.headers.user_agent to toaster
         And I open about:blank

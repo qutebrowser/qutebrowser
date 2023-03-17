@@ -20,7 +20,7 @@
 """Tests for qutebrowser.misc.utilcmds."""
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils

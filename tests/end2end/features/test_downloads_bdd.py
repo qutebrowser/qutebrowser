@@ -23,7 +23,7 @@ import shlex
 
 import pytest
 import pytest_bdd as bdd
-from PyQt5.QtNetwork import QSslSocket
+from qutebrowser.qt.network import QSslSocket
 bdd.scenarios('downloads.feature')
 
 
@@ -67,6 +67,13 @@ def clean_old_downloads(quteproc):
 def check_ssl():
     if not QSslSocket.supportsSsl():
         pytest.skip("QtNetwork SSL not supported")
+
+
+@bdd.when("I download an SSL redirect page")
+def download_ssl_redirect(server, ssl_server, quteproc):
+    path = "data/downloads/download.bin"
+    url = f"https://localhost:{ssl_server.port}/redirect-http/{path}?port={server.port}"
+    quteproc.send_cmd(f":download {url}")
 
 
 @bdd.when("the unwritable dir is unwritable")

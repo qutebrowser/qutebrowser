@@ -155,12 +155,13 @@ def _parse_yaml_backends_dict(
 
     # The value associated to the key, and whether we should add that backend
     # or not.
+
     conditionals = {
         True: True,
         False: False,
-        'Qt 5.13': qtutils.version_check('5.13'),
-        'Qt 5.14': qtutils.version_check('5.14'),
         'Qt 5.15': qtutils.version_check('5.15'),
+        'Qt 6.2': qtutils.version_check('6.2'),
+        'Qt 6.3': qtutils.version_check('6.3'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:

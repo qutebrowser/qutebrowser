@@ -19,8 +19,8 @@
 
 """Handling of proxies."""
 
-from PyQt5.QtCore import QUrl, pyqtSlot
-from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
+from qutebrowser.qt.core import QUrl, pyqtSlot
+from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.utils import message, usertypes, urlutils, utils
@@ -73,11 +73,11 @@ class ProxyFactory(QNetworkProxyFactory):
             return None
 
     def _set_capabilities(self, proxy):
-        if proxy.type() == QNetworkProxy.NoProxy:
+        if proxy.type() == QNetworkProxy.ProxyType.NoProxy:
             return
 
         capabilities = proxy.capabilities()
-        lookup_cap = QNetworkProxy.HostNameLookupCapability
+        lookup_cap = QNetworkProxy.Capability.HostNameLookupCapability
         if config.val.content.proxy_dns_requests:
             capabilities |= lookup_cap
         else:
@@ -97,7 +97,7 @@ class ProxyFactory(QNetworkProxyFactory):
         if proxy is configtypes.SYSTEM_PROXY:
             # On Linux, use "export http_proxy=socks5://host:port" to manually
             # set system proxy.
-            # ref. https://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
+            # ref. https://doc.qt.io/qt-6/qnetworkproxyfactory.html#systemProxyForQuery
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
             if objects.backend == usertypes.Backend.QtWebEngine:

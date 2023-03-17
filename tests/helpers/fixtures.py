@@ -37,9 +37,9 @@ import dataclasses
 
 import pytest
 import py.path
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtNetwork import QNetworkCookieJar
+from qutebrowser.qt.core import QSize, Qt
+from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QVBoxLayout
+from qutebrowser.qt.network import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import qutebrowser
@@ -126,7 +126,7 @@ class FakeStatusBar(QWidget):
         self.hbox = QHBoxLayout(self)
         self.hbox.addStretch()
         self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet('background-color: red;')
 
     def minimumSizeHint(self):
@@ -177,7 +177,7 @@ def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
-        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        from qutebrowser.qt.webenginecore import QWebEngineProfile
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
@@ -432,27 +432,30 @@ def unicode_encode_err():
 @pytest.fixture(scope='session')
 def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
-    from PyQt5.QtNetwork import QNetworkAccessManager
+    from qutebrowser.qt.network import QNetworkAccessManager
     nam = QNetworkAccessManager()
-    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    try:
+        nam.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+    except AttributeError:
+        # Qt 5 only, deprecated seemingly without replacement.
+        pass
     return nam
 
 
 @pytest.fixture
 def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
-    QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    QtWebEngineWidgets = pytest.importorskip('qutebrowser.qt.webenginewidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
-    yield view
-    view.setPage(None)  # Avoid warning if using QWebEngineProfile
+    return view
 
 
 @pytest.fixture
 def webpage(qnam, monkeypatch):
     """Get a new QWebPage object."""
-    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     class WebPageStub(QtWebKitWidgets.QWebPage):
@@ -477,7 +480,7 @@ def webpage(qnam, monkeypatch):
 @pytest.fixture
 def webview(qtbot, webpage):
     """Get a new QWebView object."""
-    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
@@ -734,7 +737,7 @@ def webengine_versions(testdata_scheme):
     Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
     testdata_scheme here, to make sure that happens before.
     """
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    pytest.importorskip('qutebrowser.qt.webenginewidgets')
     return version.qtwebengine_versions()
 
 

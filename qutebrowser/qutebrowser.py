@@ -52,7 +52,7 @@ except ImportError:
         sys.exit(100)
 check_python_version()
 
-import argparse  # pylint: disable=wrong-import-order
+import argparse  # FIXME:qt6 (lint): disable=wrong-import-order
 from qutebrowser.misc import earlyinit
 
 
@@ -86,7 +86,7 @@ def get_argparser():
                         default="org.qutebrowser.qutebrowser",
                         help="Set the base name of the desktop entry for this "
                         "application. Used to set the app_id under Wayland. See "
-                        "https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop")
+                        "https://doc.qt.io/qt-6/qguiapplication.html#desktopFileName-prop")
     parser.add_argument('--untrusted-args',
                         action='store_true',
                         help="Mark all following arguments as untrusted, which "

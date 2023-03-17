@@ -126,15 +126,19 @@ def get_lib_path(executable, name, required=True):
         raise ValueError("Unexpected output: {!r}".format(output))
 
 
-def link_pyqt(executable, venv_path):
+def link_pyqt(executable, venv_path, *, version='5'):
     """Symlink the systemwide PyQt/sip into the venv.
 
     Args:
         executable: The python executable where the source files are present.
         venv_path: The path to the virtualenv site-packages.
+        version: The PyQt version to use.
     """
+    if version not in ["5", "6"]:
+        raise ValueError(f"Invalid version {version}")
+
     try:
-        get_lib_path(executable, 'PyQt5.sip')
+        get_lib_path(executable, f'PyQt{version}.sip')
     except Error:
         # There is no PyQt5.sip, so we need to copy the toplevel sip.
         sip_file = get_lib_path(executable, 'sip')
@@ -143,7 +147,7 @@ def link_pyqt(executable, venv_path):
         sip_file = None
 
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
-    pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5.QtCore'))
+    pyqt_dir = os.path.dirname(get_lib_path(executable, f'PyQt{version}.QtCore'))
 
     for path in [sip_file, sipconfig_file, pyqt_dir]:
         if path is None:
@@ -211,14 +215,7 @@ def main():
                         action='store_true')
     args = parser.parse_args()
 
-    if args.tox:
-        # Workaround for the lack of negative factors in tox.ini
-        if 'LINK_PYQT_SKIP' in os.environ:
-            print('LINK_PYQT_SKIP set, exiting...')
-            sys.exit(0)
-        executable = get_tox_syspython(args.path)
-    else:
-        executable = sys.executable
+    executable = get_tox_syspython(args.path) if args.tox else sys.executable
 
     venv_path = get_venv_lib_path(args.path)
     link_pyqt(executable, venv_path)

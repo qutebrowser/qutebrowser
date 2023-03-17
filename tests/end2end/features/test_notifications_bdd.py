@@ -20,19 +20,13 @@
 import pytest
 import pytest_bdd as bdd
 
-from qutebrowser.utils import qtutils
-
 
 bdd.scenarios('notifications.feature')
 
 
 pytestmark = [
     pytest.mark.usefixtures('notification_server'),
-    pytest.mark.qtwebengine_notifications,
-    pytest.mark.skipif(
-        not qtutils.version_check('5.14'),
-        reason="Custom notification presenters segfault with Qt/PyQtWebEngine 5.13",
-    ),
+    pytest.mark.qtwebkit_skip,
 ]
 
 
@@ -88,9 +82,6 @@ def notification_image_dimensions(notification_server, width, height):
 
 @bdd.then('the notification should be closed via web')
 def notification_closed(notification_server):
-    if not qtutils.version_check('5.15'):
-        # Signal connection gets lost on Qt 5.14 as the notification gets destroyed
-        pytest.skip("Broken with Qt 5.14")
     msg = notification_server.last_msg()
     assert msg.closed_via_web
 

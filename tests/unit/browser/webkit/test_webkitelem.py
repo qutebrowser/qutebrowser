@@ -27,8 +27,8 @@ import itertools
 import dataclasses
 
 import pytest
-from PyQt5.QtCore import QRect, QPoint, QUrl
-QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+from qutebrowser.qt.core import QRect, QPoint, QUrl
+QWebElement = pytest.importorskip('qutebrowser.qt.webkit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
@@ -124,7 +124,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
 
     def _style_property(name, strategy):
         """Helper function to act as styleProperty method."""
-        if strategy != QWebElement.ComputedStyle:
+        if strategy != QWebElement.StyleResolveStrategy.ComputedStyle:
             raise ValueError("styleProperty called with strategy != "
                              "ComputedStyle ({})!".format(strategy))
         return style_dict[name]

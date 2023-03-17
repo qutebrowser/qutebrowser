@@ -19,7 +19,8 @@
 
 import pytest
 
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from qutebrowser.qt.core import Qt, QObject, pyqtSignal
+from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
 from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import keyutils
@@ -37,8 +38,13 @@ class FakeKeyparser(QObject):
         super().__init__()
         self.passthrough = False
 
-    def handle(self, evt, *, dry_run=False):
-        return False
+    def handle(
+        self,
+        evt: QKeyEvent,
+        *,
+        dry_run: bool = False,
+    ) -> QKeySequence.SequenceMatch:
+        return QKeySequence.SequenceMatch.NoMatch
 
 
 @pytest.fixture
@@ -53,11 +59,11 @@ def set_qapp(monkeypatch, qapp):
 
 
 @pytest.mark.parametrize('key, modifiers, filtered', [
-    (Qt.Key_A, Qt.NoModifier, True),
-    (Qt.Key_Up, Qt.NoModifier, False),
+    (Qt.Key.Key_A, Qt.KeyboardModifier.NoModifier, True),
+    (Qt.Key.Key_Up, Qt.KeyboardModifier.NoModifier, False),
     # https://github.com/qutebrowser/qutebrowser/issues/1207
-    (Qt.Key_A, Qt.ShiftModifier, True),
-    (Qt.Key_A, Qt.ShiftModifier | Qt.ControlModifier, False),
+    (Qt.Key.Key_A, Qt.KeyboardModifier.ShiftModifier, True),
+    (Qt.Key.Key_A, Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier, False),
 ])
 def test_non_alphanumeric(key, modifiers, filtered, modeman):
     """Make sure non-alphanumeric keys are passed through correctly."""

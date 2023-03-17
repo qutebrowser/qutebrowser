@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets

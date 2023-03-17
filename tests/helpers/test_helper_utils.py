@@ -22,6 +22,8 @@ import pytest
 
 from helpers import testutils
 
+from qutebrowser.qt.widgets import QFrame
+
 
 @pytest.mark.parametrize('val1, val2', [
     ({'a': 1}, {'a': 1}),
@@ -78,3 +80,12 @@ def test_pattern_match(pattern, value, expected):
 def test_nop_contextmanager():
     with testutils.nop_contextmanager():
         pass
+
+
+def test_enum_members():
+    expected = {
+        "Plain": QFrame.Shadow.Plain,
+        "Raised": QFrame.Shadow.Raised,
+        "Sunken": QFrame.Shadow.Sunken,
+    }
+    assert testutils.enum_members(QFrame, QFrame.Shadow) == expected

@@ -18,10 +18,9 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl
-pytest.importorskip('PyQt5.QtWebEngineCore')
-from PyQt5.QtWebEngineCore import QWebEngineCookieStore
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+from qutebrowser.qt.core import QUrl
+pytest.importorskip('qutebrowser.qt.webenginecore')
+from qutebrowser.qt.webenginecore import QWebEngineCookieStore, QWebEngineProfile
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch

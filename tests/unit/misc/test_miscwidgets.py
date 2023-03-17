@@ -19,8 +19,8 @@
 
 import logging
 
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.core import Qt, QSize
+from qutebrowser.qt.widgets import QWidget
 import pytest
 
 from qutebrowser.misc import miscwidgets
@@ -48,9 +48,9 @@ class TestCommandLineEdit:
 
         cmd_edit.home(True)
         assert cmd_edit.cursorPosition() == len(':')
-        qtbot.keyClick(cmd_edit, Qt.Key_Delete)
+        qtbot.keyClick(cmd_edit, Qt.Key.Key_Delete)
         assert cmd_edit.text() == ':'
-        qtbot.keyClick(cmd_edit, Qt.Key_Backspace)
+        qtbot.keyClick(cmd_edit, Qt.Key.Key_Backspace)
         assert cmd_edit.text() == ':'
 
         qtbot.keyClicks(cmd_edit, 'hey again')
@@ -76,7 +76,7 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ':hello'
         assert cmd_edit.cursorPosition() == len(':hello')
         for _ in ':hello':
-            qtbot.keyClick(cmd_edit, Qt.Key_Left, modifier=Qt.ShiftModifier)
+            qtbot.keyClick(cmd_edit, Qt.Key.Key_Left, modifier=Qt.KeyboardModifier.ShiftModifier)
         assert cmd_edit.cursorPosition() == len(':')
         assert cmd_edit.selectionStart() == len(':')
 
@@ -110,6 +110,21 @@ class TestWrapperLayout:
 
 class TestFullscreenNotification:
 
+    @pytest.fixture
+    def widget_factory(self, qtbot, key_config_stub, blue_widget):
+        # We need to pass a visible parent widget, so that
+        # FullscreenNotification.__init__ can access
+        # self.window().windowHandle() to get the screen.
+        with qtbot.wait_exposed(blue_widget):
+            blue_widget.show()
+
+        def create():
+            w = miscwidgets.FullscreenNotification(blue_widget)
+            qtbot.add_widget(w)
+            return w
+
+        return create
+
     @pytest.mark.parametrize('bindings, text', [
         ({'<escape>': 'fullscreen --leave'},
          "Press <Escape> to exit fullscreen."),
@@ -117,18 +132,16 @@ class TestFullscreenNotification:
         ({'a': 'fullscreen --leave'}, "Press a to exit fullscreen."),
         ({}, "Page is now fullscreen."),
     ])
-    def test_text(self, qtbot, config_stub, key_config_stub, bindings, text):
+    def test_text(self, widget_factory, config_stub, bindings, text):
         config_stub.val.bindings.default = {}
         config_stub.val.bindings.commands = {'normal': bindings}
-        w = miscwidgets.FullscreenNotification()
-        qtbot.add_widget(w)
-        assert w.text() == text
+        widget = widget_factory()
+        assert widget.text() == text
 
-    def test_timeout(self, qtbot, key_config_stub):
-        w = miscwidgets.FullscreenNotification()
-        qtbot.add_widget(w)
-        with qtbot.wait_signal(w.destroyed):
-            w.set_timeout(1)
+    def test_timeout(self, qtbot, widget_factory):
+        widget = widget_factory()
+        with qtbot.wait_signal(widget.destroyed):
+            widget.set_timeout(1)
 
 
 @pytest.mark.usefixtures('state_config')
@@ -165,10 +178,10 @@ class TestInspectorSplitter:
 
     @pytest.mark.parametrize(
         'position, orientation, inspector_idx, webview_idx', [
-            (inspector.Position.left, Qt.Horizontal, 0, 1),
-            (inspector.Position.right, Qt.Horizontal, 1, 0),
-            (inspector.Position.top, Qt.Vertical, 0, 1),
-            (inspector.Position.bottom, Qt.Vertical, 1, 0),
+            (inspector.Position.left, Qt.Orientation.Horizontal, 0, 1),
+            (inspector.Position.right, Qt.Orientation.Horizontal, 1, 0),
+            (inspector.Position.top, Qt.Orientation.Vertical, 0, 1),
+            (inspector.Position.bottom, Qt.Orientation.Vertical, 1, 0),
         ]
     )
     def test_set_inspector(self, position, orientation,
@@ -260,7 +273,7 @@ class TestInspectorSplitter:
                          new_window_size, exp_inspector_size,
                          position, splitter, fake_inspector, qtbot):
         def resize(dim):
-            size = (QSize(dim, 666) if splitter.orientation() == Qt.Horizontal
+            size = (QSize(dim, 666) if splitter.orientation() == Qt.Orientation.Horizontal
                     else QSize(666, dim))
             splitter.resize(size)
             if splitter.size() != size:

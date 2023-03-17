@@ -118,6 +118,7 @@
 |<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
 |<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
 |<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
+|<<colors.webpage.darkmode.increase_text_contrast,colors.webpage.darkmode.increase_text_contrast>>|Increase text contrast by drawing an outline of the uninverted color.
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
@@ -1671,6 +1672,9 @@ Example configurations from Chromium's `chrome://flags`:
 - "With selective inversion of everything": Combines the two variants
   above.
 
+- "With increased text contrast": Set
+  `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
+
 This setting requires a restart.
 
 This setting is only available with the QtWebEngine backend.
@@ -1699,13 +1703,25 @@ If set to 0, images are left as-is. If set to 1, images are completely grayscale
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Float>>
 
 Default: +pass:[0.0]+
+
+[[colors.webpage.darkmode.increase_text_contrast]]
+=== colors.webpage.darkmode.increase_text_contrast
+Increase text contrast by drawing an outline of the uninverted color.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 6.3 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
@@ -1733,9 +1749,7 @@ The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus thi
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -1754,9 +1768,7 @@ Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
@@ -1769,9 +1781,7 @@ Text colors with brightness below this threshold will be inverted, and above it 
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
@@ -1785,9 +1795,7 @@ The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -2274,7 +2282,7 @@ Type: <<types,String>>
 
 Valid values:
 
- * +always+: Always send the Referer.
+ * +always+: Always send the Referer. With QtWebEngine 6.2+, this value is unavailable and will act like `same-domain`.
  * +never+: Never send the Referer. This is not recommended, as some sites may break.
  * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
 
@@ -2579,8 +2587,6 @@ Allow websites to show notifications.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-On QtWebEngine, this setting requires Qt 5.13 or newer.
-
 Type: <<types,BoolAsk>>
 
 Valid values:
@@ -2595,8 +2601,6 @@ Default: +pass:[ask]+
 === content.notifications.presenter
 What notification presenter to use for web notifications.
 Note that not all implementations support all features of notifications:
-- With PyQt 5.14, any setting other than `qt` does not support  the `click` and
-  `close` events, as well as the `tag` option to replace existing notifications.
 - The `qt` and `systray` options only support showing one notification at the time
   and ignore the `tag` option to replace existing notifications.
 - The `herbe` option only supports showing one notification at the time and doesn't
@@ -2604,16 +2608,14 @@ Note that not all implementations support all features of notifications:
 - The `messages` option doesn't show icons and doesn't support the `click` and
   `close` events.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
 Valid values:
 
  * +auto+: Tries `libnotify`, `systray` and `messages`, uses the first one available without showing error messages.
- * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser. Recommended over `systray` on PyQt 5.14.
+ * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser.
  * +libnotify+: Shows messages via DBus in a libnotify-compatible way. If DBus isn't available, falls back to `systray` or `messages`, but shows an error message.
  * +systray+: Use a notification presenter based on a systray icon. Falls back to `libnotify` or `messages` if not systray is available. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
  * +messages+: Show notifications as qutebrowser messages. Most notification features aren't available.
@@ -2629,9 +2631,7 @@ Note that with the `qt` presenter, origins are never shown.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -2684,9 +2684,7 @@ On Windows, if this setting is set to False, the system-wide animation setting i
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -3635,9 +3633,7 @@ On Linux, disabling this also disables Chromium's MPRIS integration.
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -3853,7 +3849,7 @@ Alternative process models use less resources, but decrease security and robustn
 See the following pages for more details:
 
   - https://www.chromium.org/developers/design-documents/process-models
-  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+  - https://doc.qt.io/qt-6/qtwebengine-features.html#process-models
 
 This setting requires a restart.
 
@@ -3950,7 +3946,7 @@ Default: +pass:[none]+
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
-This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
+This is equivalent to setting QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
 
 This setting requires a restart.
@@ -4032,8 +4028,6 @@ Default: +pass:[true]+
 [[search.wrap]]
 === search.wrap
 Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
-
-On QtWebEngine, this setting requires Qt 5.14 or newer.
 
 Type: <<types,Bool>>
 
@@ -4809,7 +4803,7 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |Proxy|A proxy URL, or `system`/`none`.
 |QssColor|A color value supporting gradients.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-6/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)

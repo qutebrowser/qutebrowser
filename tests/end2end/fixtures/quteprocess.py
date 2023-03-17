@@ -33,8 +33,8 @@ import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, QPoint
-from PyQt5.QtGui import QImage, QColor
+from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
+from qutebrowser.qt.gui import QImage, QColor
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
@@ -54,70 +54,13 @@ def is_ignored_qt_message(pytestconfig, message):
 def is_ignored_lowlevel_message(message):
     """Check if we want to ignore a lowlevel process output."""
     ignored_messages = [
-        # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
-        # ???
-        'Xlib: sequence lost*',
-        # Started appearing with Qt 5.8...
-        # https://patchwork.sourceware.org/patch/10255/
-        ("*_dl_allocate_tls_init: Assertion `listp->slotinfo[cnt].gen <= "
-         "GL(dl_tls_generation)' failed!*"),
-        # ???
-        'getrlimit(RLIMIT_NOFILE) failed',
-        'libpng warning: Skipped (ignored) a chunk between APNG chunks',
-        # Travis CI containers don't have a /etc/machine-id
-        ('*D-Bus library appears to be incorrectly set up; failed to read '
-         'machine uuid: Failed to open "/etc/machine-id": No such file or '
-         'directory'),
-        'See the manual page for dbus-uuidgen to correct this issue.',
-        # Travis CI macOS:
-        # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
-        # selectedTextBackgroundColor from default ()
-        "* Couldn't set selectedTextBackgroundColor from default ()",
-        # Mac Mini:
-        # <<<< VTVideoEncoderSelection >>>>
-        # VTSelectAndCreateVideoEncoderInstanceInternal: no video encoder
-        # found for 'avc1'
-        #
-        # [22:32:03.636] VTSelectAndCreateVideoEncoderInstanceInternal
-        # signalled err=-12908 (err) (Video encoder not available) at
-        # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
-        # VideoToolbox/VTVideoEncoderSelection.c line 1245
-        #
-        # [22:32:03.636] VTCompressionSessionCreate signalled err=-12908 (err)
-        # (Could not select and open encoder instance) at
-        # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
-        # VideoToolbox/VTCompressionSession.c # line 946
-        '*VTSelectAndCreateVideoEncoderInstanceInternal*',
-        '*VTSelectAndCreateVideoEncoderInstanceInternal*',
-        '*VTCompressionSessionCreate*',
-        # During shutdown on AppVeyor:
-        # https://ci.appveyor.com/project/qutebrowser/qutebrowser/build/master-2089/job/or4tbct1oeqsfhfm
-        'QNetworkProxyFactory: factory 0x* has returned an empty result set',
-        # Qt 5.10 with debug Chromium
-        # [1016/155149.941048:WARNING:stack_trace_posix.cc(625)] Failed to open
-        # file: /home/florian/#14687139 (deleted)
-        #   Error: No such file or directory
-        '  Error: No such file or directory',
-        # Qt 5.7.1
-        'qt.network.ssl: QSslSocket: cannot call unresolved function *',
-        # Qt 5.11
-        # DevTools listening on ws://127.0.0.1:37945/devtools/browser/...
-        'DevTools listening on *',
-        # /home/travis/build/qutebrowser/qutebrowser/.tox/py36-pyqt511-cov/lib/
-        # python3.6/site-packages/PyQt5/Qt/libexec/QtWebEngineProcess:
-        # /lib/x86_64-linux-gnu/libdbus-1.so.3: no version information
-        # available (required by /home/travis/build/qutebrowser/qutebrowser/
-        # .tox/py36-pyqt511-cov/lib/python3.6/site-packages/PyQt5/Qt/libexec/
-        # ../lib/libQt5WebEngineCore.so.5)
-        '*/QtWebEngineProcess: /lib/x86_64-linux-gnu/libdbus-1.so.3: no '
-        'version information available (required by '
-        '*/libQt5WebEngineCore.so.5)',
+        # Qt 6.2 / 6.3
+        'Fontconfig error: Cannot load default config file: No such file: (null)',
+        'Fontconfig error: Cannot load default config file',
 
-        # hunter and Python 3.9
-        # https://github.com/ionelmc/python-hunter/issues/87
-        '<frozen importlib._bootstrap>:*: RuntimeWarning: builtins.type size changed, '
-        'may indicate binary incompatibility. Expected 872 from C header, got 880 from '
-        'PyObject',
+        # Qt 6.4, from certificate error below, but on separate lines
+        '----- Certificate i=0 (*,CN=localhost,O=qutebrowser test certificate) -----',
+        'ERROR: No matching issuer found',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -142,186 +85,8 @@ def is_ignored_chromium_message(line):
 
     message = match.group('message')
     ignored_messages = [
-        # [27289:27289:0605/195958.776146:INFO:zygote_host_impl_linux.cc(107)]
-        # No usable sandbox! Update your kernel or see
-        # https://chromium.googlesource.com/chromium/src/+/master/docs/linux_suid_sandbox_development.md
-        # for more information on developing with the SUID sandbox. If you want
-        # to live dangerously and need an immediate workaround, you can try
-        # using --no-sandbox.
-        'No usable sandbox! Update your kernel or see *',
-        # [30981:30992:0605/200633.041364:ERROR:cert_verify_proc_nss.cc(918)]
-        # CERT_PKIXVerifyCert for localhost failed err=-8179
-        'CERT_PKIXVerifyCert for localhost failed err=*',
-        # [1:1:0914/130428.060976:ERROR:broker_posix.cc(41)] Invalid node
-        # channel message
-        'Invalid node channel message',
-
-        # Qt 5.9.3
-        # [30217:30229:1124/141512.682110:ERROR:
-        # cert_verify_proc_openssl.cc(212)]
-        # X509 Verification error self signed certificate : 18 : 0 : 4
-        'X509 Verification error self signed certificate : 18 : 0 : 4',
-        # Qt 5.13
-        # [27789:27805:0325/111821.127349:ERROR:ssl_client_socket_impl.cc(962)]
-        # handshake failed; returned -1, SSL error code 1, net_error -202
-        'handshake failed; returned -1, SSL error code 1, net_error -202',
-
-        # Not reproducible anymore?
-
-        'Running without the SUID sandbox! *',
-        'Unable to locate theme engine in module_path: *',
-        'Could not bind NETLINK socket: Address already in use',
-        # Started appearing in sessions.feature with Qt 5.8...
-        'Invalid node channel message *',
-        # Makes tests fail on Quantumcross' machine
-        ('CreatePlatformSocket() returned an error, errno=97: Address family'
-         'not supported by protocol'),
-
-        # Qt 5.9 with debug Chromium
-
-        # [28121:28121:0605/191637.407848:WARNING:resource_bundle_qt.cpp(114)]
-        # locale_file_path.empty() for locale
-        'locale_file_path.empty() for locale',
-        # [26598:26598:0605/191429.639416:WARNING:audio_manager.cc(317)]
-        # Multiple instances of AudioManager detected
-        'Multiple instances of AudioManager detected',
-        # [25775:25788:0605/191240.931551:ERROR:quarantine_linux.cc(33)]
-        # Could not set extended attribute user.xdg.origin.url on file
-        # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/
-        # downloads/download.bin: Operation not supported
-        ('Could not set extended attribute user.xdg.* on file *: '
-         'Operation not supported*'),
-        # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
-        # WebFrame LEAKED 1 TIMES
-        'WebFrame LEAKED 1 TIMES',
-
-        # Qt 5.10 with debug Chromium
-        # [1016/155149.941048:WARNING:stack_trace_posix.cc(625)] Failed to open
-        # file: /home/florian/#14687139 (deleted)
-        #   Error: No such file or directory
-        'Failed to open file: * (deleted)',
-
-        # macOS on Travis
-        # [5140:5379:0911/063441.239771:ERROR:mach_port_broker.mm(175)]
-        # Unknown process 5176 is sending Mach IPC messages!
-        'Unknown process * is sending Mach IPC messages!',
-        # [5205:44547:0913/142945.003625:ERROR:node_controller.cc(1268)] Error
-        # on receiving Mach ports FFA56F125F699ADB.E28E252911A8704B. Dropping
-        # message.
-        'Error on receiving Mach ports *. Dropping message.',
-
-        # [2734:2746:1107/131154.072032:ERROR:nss_ocsp.cc(591)] No
-        # URLRequestContext for NSS HTTP handler. host: ocsp.digicert.com
-        'No URLRequestContext for NSS HTTP handler. host: *',
-
-        # https://bugreports.qt.io/browse/QTBUG-66661
-        # [23359:23359:0319/115812.168578:WARNING:
-        # render_frame_host_impl.cc(2744)] OnDidStopLoading was called twice.
-        'OnDidStopLoading was called twice.',
-
-        # [30412:30412:0323/074933.387250:ERROR:node_channel.cc(899)] Dropping
-        # message on closed channel.
-        'Dropping message on closed channel.',
-        # [2204:1408:0703/113804.788:ERROR:
-        # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
-        'Lost UI shared context.',
-
-        # [20870:20908:0607/081717.652282:ERROR:block_files.cc(465)] Failed to
-        # open /tmp/qutebrowser-basedir-cg284f_m/data/webengine/GPUCache/data_2
-        'Failed to open *GPUCache*',
-
-        # Qt 5.12
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
-        # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]
-        # Cache is not initialized, cannot RetrieveEntry.
-        'Cache is not initialized, cannot RetrieveEntry.',
-        'Cache is not initialized, cannot AddOrReplaceEntry.',
-        # [10518:10518:0924/121250.186121:WARNING:
-        # render_frame_host_impl.cc(431)]
-        # InterfaceRequest was dropped, the document is no longer active:
-        # content.mojom.RendererAudioOutputStreamFactory
-        'InterfaceRequest was dropped, the document is no longer active: '
-        'content.mojom.RendererAudioOutputStreamFactory',
-        # [1920:2168:0225/112442.664:ERROR:in_progress_cache_impl.cc(124)]
-        # Could not write download entries to file: C:\Users\appveyor\AppData\
-        # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
-        # in_progress_download_metadata_store
-        'Could not write download entries to file: *',
-
-        # Qt 5.13
-        # [32651:32651:0325/130146.300817:WARNING:
-        # render_frame_host_impl.cc(486)]
-        # InterfaceRequest was dropped, the document is no longer active:
-        # resource_coordinator.mojom.FrameCoordinationUnit
-        'InterfaceRequest was dropped, the document is no longer active: '
-        'resource_coordinator.mojom.FrameCoordinationUnit',
-
-        # Qt 5.14
-        # [1:7:1119/162200.709920:ERROR:command_buffer_proxy_impl.cc(124)]
-        # ContextResult::kTransientFailure: Failed to send
-        # GpuChannelMsg_CreateCommandBuffer.
-        'ContextResult::kTransientFailure: Failed to send '
-        'GpuChannelMsg_CreateCommandBuffer.',
-        # [156330:156350:1121/120052.060701:WARNING:
-        # important_file_writer.cc(97)]
-        # temp file failure: /home/florian/.local/share/qutebrowser/
-        # qutebrowser/QtWebEngine/Default/user_prefs.json : could not create
-        # temporary file: No such file or directory (2)
-        'temp file failure: */qutebrowser/qutebrowser/QtWebEngine/Default/'
-        'user_prefs.json : could not create temporary file: No such file or '
-        'directory (2)',
-        # [156330:156330:1121/120052.602236:ERROR:
-        # viz_process_transport_factory.cc(331)]
-        # Switching to software compositing.
-        'Switching to software compositing.',
-        # [160686:160712:1121/121226.457866:ERROR:surface_manager.cc(438)]
-        # Old/orphaned temporary reference to
-        # SurfaceId(FrameSinkId[](5, 2), LocalSurfaceId(8, 1, 7C3A...))
-        'Old/orphaned temporary reference to '
-        'SurfaceId(FrameSinkId[](*), LocalSurfaceId(*))',
-        # [79680:79705:0111/151113.071008:WARNING:
-        # important_file_writer.cc(97)] temp file failure:
-        # /tmp/qutebrowser-basedir-gwkvqpyp/data/webengine/user_prefs.json :
-        # could not create temporary file: No such file or directory (2)
-        # (Only in debug builds)
-        # https://bugreports.qt.io/browse/QTBUG-78319
-        'temp file failure: * : could not create temporary file: No such file '
-        'or directory (2)',
-
-        # Travis
-        # test_ssl_error_with_contentssl_strict__true
-        # [5306:5324:0417/151739.362362:ERROR:address_tracker_linux.cc(171)]
-        # Could not bind NETLINK socket: Address already in use (98)
-        'Could not bind NETLINK socket: Address already in use (98)',
-
-        # Qt 5.15 with AppVeyor
-        # [2968:3108:0601/123442.125:ERROR:mf_helpers.cc(14)] Error in
-        # dxva_video_decode_accelerator_win.cc on line 517
-        'Error in dxva_video_decode_accelerator_win.cc on line 517',
-
-        # Qt 5.15 and debug build
-        # [134188:134199:0609/132454.797229:WARNING:
-        # simple_synchronous_entry.cc(1389)]
-        # Could not open platform files for entry.
-        # [134151:134187:0609/132456.754321:ERROR:process_posix.cc(333)]
-        # Unable to terminate process 134188: No such process (3)
-        # [134151:134187:0609/132456.754414:WARNING:internal_linux.cc(64)]
-        # Failed to read /proc/134188/stat
-        'Could not open platform files for entry.',
-        'Unable to terminate process *: No such process (3)',
-        'Failed to read /proc/*/stat',
-
-        # Qt 5.15.1 debug build (Chromium 83)
-        # '[314297:7:0929/214605.491958:ERROR:context_provider_command_buffer.cc(145)]
-        # GpuChannelHost failed to create command buffer.'
-        'GpuChannelHost failed to create command buffer.',
-        # [338691:4:0929/220114.488847:WARNING:ipc_message_attachment_set.cc(49)]
-        # MessageAttachmentSet destroyed with unconsumed attachments: 0/1
-        'MessageAttachmentSet destroyed with unconsumed attachments: *',
-
-        # GitHub Actions with Qt 5.15.1
-        ('SharedImageManager::ProduceGLTexture: Trying to produce a '
-         'representation from a non-existent mailbox. *'),
+        # GitHub Actions with Qt 5.15.2
+        'SharedImageManager::ProduceGLTexture: Trying to produce a representation from a non-existent mailbox. *',
         ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
          'DoCreateAndTexStorage2DSharedImageINTERNAL: invalid mailbox name'),
         ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
@@ -331,38 +96,40 @@ def is_ignored_chromium_message(line):
          'filtering (maybe)?'),
         ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
          'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
-        'Unable to map Index file',
 
-        # WebRTC with Qt 5.13 / 5.14
-        'Failed to query stereo recording.',
-        'Accepting maxRetransmits = -1 for backwards compatibility',
-        'Accepting maxRetransmitTime = -1 for backwards compatibility',
+        # [916:934:1213/080738.912432:ERROR:address_tracker_linux.cc(214)] Could not bind NETLINK socket: Address already in use (98)
+        'Could not bind NETLINK socket: Address already in use (98)',
 
-        # Windows N:
-        # https://github.com/microsoft/playwright/issues/2901
-        ('DXVAVDA fatal error: could not LoadLibrary: *: The specified '
-         'module could not be found. (0x7E)'),
-
-        # Qt 5.15.3 dev build
-        r'Duplicate id found. Reassigning from * to *',
-
-        # Flatpak
+        # Flatpak with data/crashers/webrtc.html (Qt 6.2)
+        # [9044:9113:0512/012126.284773:ERROR:mdns_responder.cc(868)] mDNS responder manager failed to start.
+        # [9044:9113:0512/012126.284818:ERROR:mdns_responder.cc(885)] The mDNS responder manager is not started yet.
         'mDNS responder manager failed to start.',
         'The mDNS responder manager is not started yet.',
 
-        # GitHub Actions with Qt 5.15.0
-        # [5387:5407:0713/142608.526916:ERROR:cache_util.cc(135)] Unable to
-        # move cache folder
-        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/GPUCache to
-        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/old_GPUCache_000
-        # [5387:5407:0713/142608.526934:ERROR:disk_cache.cc(184)] Unable to
-        # create cache
-        # [5387:5407:0713/142608.526938:ERROR:shader_disk_cache.cc(606)] Shader
-        # Cache Creation failed: -2
-        ('Unable to move cache folder */data/webengine/GPUCache to '
-            '*/data/webengine/old_GPUCache_000'),
-        'Unable to create cache',
-        'Shader Cache Creation failed: -2',
+        # Qt 6.2:
+        # [503633:503650:0509/185222.442798:ERROR:ssl_client_socket_impl.cc(959)] handshake failed; returned -1, SSL error code 1, net_error -202
+        'handshake failed; returned -1, SSL error code 1, net_error -202',
+
+        # Qt 6.2:
+        # [2432160:7:0429/195800.168435:ERROR:command_buffer_proxy_impl.cc(140)] ContextResult::kTransientFailure: Failed to send GpuChannelMsg_CreateCommandBuffer.
+        # Qt 6.3:
+        # [2435381:7:0429/200014.168057:ERROR:command_buffer_proxy_impl.cc(125)] ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer.
+        'ContextResult::kTransientFailure: Failed to send *CreateCommandBuffer.',
+
+        # Qt 6.3:
+        # [4919:8:0530/170658.033287:ERROR:command_buffer_proxy_impl.cc(328)] GPU state invalid after WaitForGetOffsetInRange.
+        'GPU state invalid after WaitForGetOffsetInRange.',
+        # [5469:5503:0621/183219.878182:ERROR:backend_impl.cc(1414)] Unable to map Index file
+        'Unable to map Index file',
+
+        # Qt 6.4:
+        # [2456284:2456339:0715/110322.570154:ERROR:cert_verify_proc_builtin.cc(681)] CertVerifyProcBuiltin for localhost failed:
+        # ----- Certificate i=0 (1.2.840.113549.1.9.1=#6D61696C407175746562726F777365722E6F7267,CN=localhost,O=qutebrowser test certificate) -----
+        # ERROR: No matching issuer found
+        # (Note, subsequent lines above in is_ignored_lowlevel_message)
+        'CertVerifyProcBuiltin for localhost failed:',
+        # [320667:320667:1124/135621.718232:ERROR:interface_endpoint_client.cc(687)] Message 4 rejected by interface blink.mojom.WidgetHost
+        'Message 4 rejected by interface blink.mojom.WidgetHost',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -598,11 +365,11 @@ class QuteProc(testprocess.Process):
             raise ValueError("Either both x/y or neither must be given!")
 
         if x is None and y is None:
-            point = 'PyQt5.QtCore.QPoint(*, *)'  # not counting 0/0 here
+            point = 'Py*.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':
-            point = 'PyQt5.QtCore.QPoint()'
+            point = 'Py*.QtCore.QPoint()'
         else:
-            point = 'PyQt5.QtCore.QPoint({}, {})'.format(x, y)
+            point = 'Py*.QtCore.QPoint({}, {})'.format(x, y)
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
@@ -676,7 +443,7 @@ class QuteProc(testprocess.Process):
         except AttributeError:
             pass
         else:
-            if call.failed or hasattr(call, 'wasxfail'):
+            if call.failed or hasattr(call, 'wasxfail') or call.skipped:
                 super().after_test()
                 return
 
@@ -694,6 +461,21 @@ class QuteProc(testprocess.Process):
         """Wait for an IPC message to arrive."""
         self.wait_for(category='ipc', module='ipc', function='on_ready_read',
                       message='Read from socket *')
+
+    @contextlib.contextmanager
+    def disable_capturing(self):
+        capmanager = self.request.config.pluginmanager.getplugin("capturemanager")
+        with capmanager.global_and_fixture_disabled():
+            yield
+
+    def _after_start(self):
+        """Wait before continuing if requested, e.g. for debugger attachment."""
+        delay = self.request.config.getoption('--qute-delay-start')
+        if delay:
+            with self.disable_capturing():
+                print(f"- waiting {delay}ms for quteprocess "
+                      f"(PID: {self.proc.processId()})...")
+            time.sleep(delay / 1000)
 
     def send_ipc(self, commands, target_arg=''):
         """Send a raw command to the running IPC socket."""
@@ -849,13 +631,13 @@ class QuteProc(testprocess.Process):
 
         # We really need the same representation that the webview uses in
         # its __repr__
-        url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
+        url = utils.elide(qurl.toDisplayString(QUrl.ComponentFormattingOption.EncodeUnicode), 100)
         assert url
 
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\..* "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+            r"Py.*\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
 
         try:

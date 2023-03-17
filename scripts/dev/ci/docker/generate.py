@@ -31,9 +31,10 @@ def main():
 
     image = sys.argv[1]
     config = {
-        'archlinux-webkit': {'webengine': False, 'unstable': False},
-        'archlinux-webengine': {'webengine': True, 'unstable': False},
-        'archlinux-webengine-unstable': {'webengine': True, 'unstable': True},
+        'archlinux-webkit': {'webengine': False, 'unstable': False, 'qt6': False},
+        'archlinux-webengine': {'webengine': True, 'unstable': False, 'qt6': False},
+        'archlinux-webengine-qt6': {'webengine': True, 'unstable': False, 'qt6': True},
+        'archlinux-webengine-unstable': {'webengine': True, 'unstable': True, 'qt6': False},
     }[image]
 
     with open('Dockerfile', 'w') as f:

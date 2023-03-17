@@ -19,16 +19,17 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
-import pathlib
+from typing import Optional
 
-from PyQt5.QtCore import QLibraryInfo
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt import machinery
+from qutebrowser.qt.webenginewidgets import QWebEngineView
+from qutebrowser.qt.webenginecore import QWebEnginePage
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
-from qutebrowser.browser.webengine import webenginesettings
+from qutebrowser.browser.webengine import webenginesettings, webview
 from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import version, usertypes
+from qutebrowser.utils import version, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 
 
@@ -49,9 +50,14 @@ class WebEngineInspectorView(QWebEngineView):
 
         See WebEngineView.createWindow for details.
         """
-        view = self.page().inspectedPage().view()
-        assert isinstance(view, QWebEngineView), view
-        return view.createWindow(wintype)
+        inspected_page = self.page().inspectedPage()
+        if machinery.IS_QT5:
+            view = inspected_page.view()
+            assert isinstance(view, QWebEngineView), view
+            return view.createWindow(wintype)
+        else:  # Qt 6
+            newpage = inspected_page.createWindow(wintype)
+            return webview.WebEngineView.forPage(newpage)
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):
@@ -65,12 +71,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                  parent: QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
-
-        view = WebEngineInspectorView()
-        self._settings = webenginesettings.WebEngineSettings(view.settings())
-        self._set_widget(view)
-        page = view.page()
-        page.windowCloseRequested.connect(self._on_window_close_requested)
+        self._settings: Optional[webenginesettings.WebEngineSettings] = None
 
     def _on_window_close_requested(self) -> None:
         """Called when the 'x' was clicked in the devtools."""
@@ -92,7 +93,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         if dist is None or dist.parsed != version.Distribution.fedora:
             return
 
-        data_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.DataPath))
+        data_path = qtutils.library_path(qtutils.LibraryPath.data)
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
             raise inspector.Error("QtWebEngine devtools resources not found, "
@@ -100,8 +101,22 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                                   "Fedora package.")
 
     def inspect(self, page: QWebEnginePage) -> None:
+        if not self._widget:
+            view = WebEngineInspectorView()
+            inspector_page = QWebEnginePage(
+                page.profile(),
+                self
+            )
+            inspector_page.windowCloseRequested.connect(self._on_window_close_requested)
+            view.setPage(inspector_page)
+            self._settings = webenginesettings.WebEngineSettings(view.settings())
+            self._set_widget(view)
+
         inspector_page = self._widget.page()
+        assert inspector_page.profile() == page.profile()
         inspector_page.setInspectedPage(page)
+
+        assert self._settings is not None
         self._settings.update_for_url(inspector_page.requestedUrl())
 
     def _needs_recreate(self) -> bool:

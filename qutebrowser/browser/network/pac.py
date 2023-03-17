@@ -23,11 +23,11 @@ import sys
 import functools
 from typing import Optional
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
-from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
+from qutebrowser.qt.core import QObject, pyqtSignal, pyqtSlot, QUrl
+from qutebrowser.qt.network import (QNetworkProxy, QNetworkRequest, QHostInfo,
                              QNetworkReply, QNetworkAccessManager,
                              QHostAddress)
-from PyQt5.QtQml import QJSEngine, QJSValue
+from qutebrowser.qt.qml import QJSEngine, QJSValue
 
 from qutebrowser.utils import log, utils, qtutils, resources
 
@@ -109,10 +109,10 @@ class _PACContext(QObject):
             host: hostname to resolve.
         """
         ips = QHostInfo.fromName(host)
-        if ips.error() != QHostInfo.NoError or not ips.addresses():
+        if ips.error() != QHostInfo.HostInfoError.NoError or not ips.addresses():
             err_f = "Failed to resolve host during PAC evaluation: {}"
             log.network.info(err_f.format(host))
-            return QJSValue(QJSValue.NullValue)
+            return QJSValue(QJSValue.SpecialValue.NullValue)
         else:
             return ips.addresses()[0].toString()
 
@@ -123,7 +123,7 @@ class _PACContext(QObject):
         Return the server IP address of the current machine, as a string in
         the dot-separated integer format.
         """
-        return QHostAddress(QHostAddress.LocalHost).toString()
+        return QHostAddress(QHostAddress.SpecialAddress.LocalHost).toString()
 
 
 class PACResolver:
@@ -150,17 +150,17 @@ class PACResolver:
             if len(config) != 1:
                 raise ParseProxyError("Invalid number of parameters for " +
                                       "DIRECT")
-            return QNetworkProxy(QNetworkProxy.NoProxy)
+            return QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)
         elif config[0] == "PROXY":
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for PROXY")
             host, port = PACResolver._parse_proxy_host(config[1])
-            return QNetworkProxy(QNetworkProxy.HttpProxy, host, port)
+            return QNetworkProxy(QNetworkProxy.ProxyType.HttpProxy, host, port)
         elif config[0] in ["SOCKS", "SOCKS5"]:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for SOCKS")
             host, port = PACResolver._parse_proxy_host(config[1])
-            return QNetworkProxy(QNetworkProxy.Socks5Proxy, host, port)
+            return QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, host, port)
         else:
             err = "Unknown proxy type: {}"
             raise ParseProxyError(err.format(config[0]))
@@ -184,7 +184,7 @@ class PACResolver:
         """
         self._engine = QJSEngine()
 
-        self._engine.installExtensions(QJSEngine.ConsoleExtension)
+        self._engine.installExtensions(QJSEngine.Extension.ConsoleExtension)
 
         self._ctx = _PACContext(self._engine)
         self._engine.globalObject().setProperty(
@@ -215,12 +215,12 @@ class PACResolver:
         qtutils.ensure_valid(query.url())
 
         if from_file:
-            string_flags = QUrl.PrettyDecoded
+            string_flags = QUrl.ComponentFormattingOption.PrettyDecoded
         else:
-            string_flags = QUrl.RemoveUserInfo  # type: ignore[assignment]
+            string_flags = QUrl.UrlFormattingOption.RemoveUserInfo  # type: ignore[assignment]
             if query.url().scheme() == 'https':
-                string_flags |= QUrl.RemovePath  # type: ignore[assignment]
-                string_flags |= QUrl.RemoveQuery  # type: ignore[assignment]
+                string_flags |= QUrl.UrlFormattingOption.RemovePath  # type: ignore[assignment]
+                string_flags |= QUrl.UrlFormattingOption.RemoveQuery  # type: ignore[assignment]
 
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
@@ -255,7 +255,7 @@ class PACFetcher(QObject):
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
             self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
-        self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
+        self._manager.setProxy(QNetworkProxy(QNetworkProxy.ProxyType.NoProxy))
         self._pac = None
         self._error_message = None
         self._reply = None
@@ -275,7 +275,7 @@ class PACFetcher(QObject):
     @pyqtSlot()
     def _finish(self):
         assert self._reply is not None
-        if self._reply.error() != QNetworkReply.NoError:
+        if self._reply.error() != QNetworkReply.NetworkError.NoError:
             error = "Can't fetch PAC file from URL, error code {}: {}"
             self._error_message = error.format(
                 self._reply.error(), self._reply.errorString())
@@ -337,4 +337,4 @@ class PACFetcher(QObject):
             # Later NetworkManager.createRequest will detect this and display
             # an error message.
             error_host = "pac-resolve-error.qutebrowser.invalid"
-            return [QNetworkProxy(QNetworkProxy.HttpProxy, error_host, 9)]
+            return [QNetworkProxy(QNetworkProxy.ProxyType.HttpProxy, error_host, 9)]

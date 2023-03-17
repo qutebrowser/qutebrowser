@@ -18,7 +18,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtNetwork import QSslError
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QSslError
 
 from qutebrowser.browser.webkit import certificateerror
 
@@ -34,13 +35,13 @@ class FakeError:
 
 @pytest.mark.parametrize('errors, expected', [
     (
-        [QSslError(QSslError.UnableToGetIssuerCertificate)],
+        [QSslError(QSslError.SslError.UnableToGetIssuerCertificate)],
         ['<p>The issuer certificate could not be found</p>'],
     ),
     (
         [
-            QSslError(QSslError.UnableToGetIssuerCertificate),
-            QSslError(QSslError.UnableToDecryptCertificateSignature),
+            QSslError(QSslError.SslError.UnableToGetIssuerCertificate),
+            QSslError(QSslError.SslError.UnableToDecryptCertificateSignature),
         ],
         [
             '<ul>',
@@ -67,7 +68,8 @@ class FakeError:
         ],
     ),
 ])
-def test_html(errors, expected):
-    wrapper = certificateerror.CertificateErrorWrapper(errors)
+def test_html(stubs, errors, expected):
+    reply = stubs.FakeNetworkReply(url=QUrl("https://example.com"))
+    wrapper = certificateerror.CertificateErrorWrapper(reply=reply, errors=errors)
     lines = [line.strip() for line in wrapper.html().splitlines() if line.strip()]
     assert lines == expected

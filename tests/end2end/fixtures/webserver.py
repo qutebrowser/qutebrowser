@@ -28,7 +28,7 @@ import dataclasses
 from http import HTTPStatus
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
+from qutebrowser.qt.core import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
 
@@ -77,6 +77,7 @@ class Request(testprocess.Line):
             '/redirect-to': [HTTPStatus.FOUND],
             '/relative-redirect': [HTTPStatus.FOUND],
             '/absolute-redirect': [HTTPStatus.FOUND],
+            '/redirect-http/data/downloads/download.bin': [HTTPStatus.FOUND],
 
             '/cookies/set': [HTTPStatus.FOUND],
             '/cookies/set-custom': [HTTPStatus.FOUND],
@@ -84,7 +85,7 @@ class Request(testprocess.Line):
             '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
             '/500': [HTTPStatus.INTERNAL_SERVER_ERROR],
         }
-        for i in range(15):
+        for i in range(25):
             path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]
         for suffix in ['', '1', '2', '3', '4', '5', '6']:
             key = ('/basic-auth/user{suffix}/password{suffix}'

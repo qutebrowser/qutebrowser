@@ -128,6 +128,9 @@ Currently, the following tox environments are available:
     - untracked git files
     - VCS conflict markers
     - common spelling mistakes
+* http://mypy-lang.org/[mypy] for static type checking:
+  - `mypy-pyqt5` run mypy with PyQt5 installed
+  - `mypy-pyqt6` run mypy with PyQt6 installed
 
 The default test suite is run with `tox`; the list of default
 environments is obtained with `tox -l`.
@@ -153,7 +156,7 @@ smallest scope which makes sense. Most of the time, this will be line scope.
 false-positives, let me know! I'm still tweaking the parameters.
 
 
-Running Specific Tests
+Running specific tests
 ~~~~~~~~~~~~~~~~~~~~~~
 
 While you are developing you often don't want to run the full test
@@ -179,6 +182,15 @@ tox -e py37 -- tests/end2end/features/test_tabs_bdd.py -k undo
 # run coverage test for specific file (updates htmlcov/index.html)
 tox -e py37-cov -- tests/unit/browser/test_webelem.py
 ----
+
+Specifying the backend for tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tests automatically pick the backend based on what they manage to import. If
+you have both backends available and you would like the tests to be run with a
+specific one you can set either of a) the environment variable QUTE_TESTS_BACKEND
+, or b) the command line argument --qute-backend, to the desired backend
+(webkit/webengine).
 
 Profiling
 ~~~~~~~~~
@@ -219,7 +231,8 @@ Useful websites
 
 Some resources which might be handy:
 
-* https://doc.qt.io/qt-5/classes.html[The Qt5 reference]
+* https://doc.qt.io/qt-6/classes.html[The Qt 6 reference]
+* https://doc.qt.io/qt-5/classes.html[The Qt 5 reference]
 * https://docs.python.org/3/library/index.html[The Python reference]
 * https://httpbin.org/[httpbin, a test service for HTTP requests/responses]
 * https://requestbin.com/[RequestBin, a service to inspect HTTP requests]
@@ -274,7 +287,7 @@ Other
 Languages] (https://www.rfc-editor.org/errata_search.php?rfc=5646[Errata])
 * https://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
 2.1) Specification]
-* https://doc.qt.io/qt-5/stylesheet-reference.html[Qt Style Sheets Reference]
+* https://doc.qt.io/qt-6/stylesheet-reference.html[Qt Style Sheets Reference]
 * https://mimesniff.spec.whatwg.org/[MIME Sniffing Standard]
 * https://spec.whatwg.org/[WHATWG specifications]
 * https://www.w3.org/html/wg/drafts/html/master/Overview.html[HTML 5.1 Nightly]
@@ -353,7 +366,7 @@ All objects can be printed by starting with the `--debug` flag and using the
 
 The registry is mainly used for <<commands,command handlers>>, but it can
 also be useful in places where using Qt's
-https://doc.qt.io/qt-5/signalsandslots.html[signals and slots] mechanism would
+https://doc.qt.io/qt-6/signalsandslots.html[signals and slots] mechanism would
 be difficult.
 
 Logging
@@ -600,11 +613,14 @@ This is mostly useful for qutebrowser maintainers to work around issues in Qt - 
 The hierarchy of widgets when QtWebEngine is involved looks like this:
 
 - qutebrowser has a `WebEngineTab` object, which is its abstraction over QtWebKit/QtWebEngine.
-- The `WebEngineTab` has a `_widget` attribute, which is the https://doc.qt.io/qt-5/qwebengineview.html[QWebEngineView]
-- That view has a https://doc.qt.io/qt-5/qwebenginepage.html[QWebEnginePage] for everything which doesn't require rendering.
-- The view also has a layout with exactly one element (which also is its `focusProxy()`)
-- That element is the  https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-5/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
-- Calling `rootObject()` on that gives us the https://doc.qt.io/qt-5/qquickitem.html[QQuickItem] where Chromium renders into (?). With it, we can do things like `.setRotation(20)`.
+- The `WebEngineTab` has a `_widget` attribute, which is the https://doc.qt.io/qt-6/qwebengineview.html[QWebEngineView]
+- That view has a https://doc.qt.io/qt-6/qwebenginepage.html[QWebEnginePage] for everything which doesn't require rendering.
+- The view also has a layout with exactly one element (which also is its `focusProxy()`).
+    - Qt 5: That element is the https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp?h=5.15[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-6/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. 
+      It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
+    - Qt 6: That element is the https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/api/qwebengineview.cpp[WebEngineQuickWidget] (it inherits https://doc.qt.io/qt-6/qquickwidget.html[QQuickWidget]).
+      It can be obtained via `tab._widget.focusProxy()`.
+- Calling `rootObject()` on that gives us the https://doc.qt.io/qt-6/qquickitem.html[QQuickItem] where Chromium renders into (?). With it, we can do things like `.setRotation(20)`.
 
 Style conventions
 -----------------
@@ -676,6 +692,41 @@ Return:
   - `__magic__` methods
   - other methods
   - overrides of Qt methods
+* Type hinting: the qutebrowser codebase uses type hints liberally to enable
+  static type checking and autocompletion in editors.
+  - We use http://mypy-lang.org/[mypy] in CI jobs to perform static type
+    checking.
+  - Not all of the codebase is covered by type hints currently. We encourage
+    including type hints on all new code and even adding type hints to
+    existing code if you find yourself working on some that isn't already
+    covered. There are some module specific rules in the mypy config file,
+    `.mypy.ini`, to make type hints strictly required in some areas.
+  - More often than not mypy is correct when it raises issues. But don't be
+    afraid to add `# type: ignore[...]` statements or casts if you need to.
+    As an optional part of the language not all type information from third
+    parties is always correct. Mypy will raise a new issue if it spots an
+    "ignore" statement which is no longer needed because the underlying
+    issue has been resolved.
+  - One area where we have to take particular care is in code that deals
+    with differences between PyQt5 and PyQt6. We try to write most code in a
+    way that will work with either backend but when you need to deal with
+    differences you should use a pattern like:
++
+[source,python]
+----
+if machinery.IS_QT5:
+    ... # do PyQt5 specific implementation
+else:
+    # PyQt6
+    ... # do PyQt6 specific implementation
+----
++
+then you have to https://mypy.readthedocs.io/en/latest/command_line.html#cmdoption-mypy-always-true[tell]
+  mypy to treat `machinery.IS_QT5` as a constant value then run mypy twice to
+  cover both branches. There are a handful of variables in
+  `qutebrowser/qt/machinery.py` that mypy needs to know about. There are tox
+  jobs (`mypy-pyqt5` and `mypy-pyqt6`) that take care of telling mypy to use
+  them as constants.
 
 Checklists
 ----------

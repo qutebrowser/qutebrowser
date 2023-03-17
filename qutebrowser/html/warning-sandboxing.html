@@ -1,0 +1,16 @@
+{% extends "styled.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<span class="note">Note this warning will only appear once. Use <span class="mono">:open
+qute://warning/sandboxing</span> to show it again at a later time.</span>
+
+<p>
+    Due to a <a href="https://github.com/pyinstaller/pyinstaller/pull/6903">PyInstaller issue</a>,
+    Chromium's <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox_faq.md">sandboxing</a>
+    is currently disabled for macOS builds with Qt 6. This means that there will be no additional layer of protection
+    in case of Chromium security bugs. Thus, it's advised to
+    <b>not use this build in production</b>. Hopefully, this situation will be
+    resolved before the final 3.0.0 release.
+</p>
+{% endblock %}

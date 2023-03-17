@@ -28,9 +28,9 @@ import unittest
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess, QFileDevice)
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.core import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
+                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo, Qt)
+from qutebrowser.qt.gui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
@@ -205,13 +205,13 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
 
 
 @pytest.mark.parametrize('status, raising, message', [
-    (QDataStream.Ok, False, None),
-    (QDataStream.ReadPastEnd, True, "The data stream has read past the end of "
-                                    "the data in the underlying device."),
-    (QDataStream.ReadCorruptData, True, "The data stream has read corrupt "
-                                        "data."),
-    (QDataStream.WriteFailed, True, "The data stream cannot write to the "
-                                    "underlying device."),
+    (QDataStream.Status.Ok, False, None),
+    (QDataStream.Status.ReadPastEnd, True,
+     "The data stream has read past the end of the data in the underlying device."),
+    (QDataStream.Status.ReadCorruptData, True,
+     "The data stream has read corrupt data."),
+    (QDataStream.Status.WriteFailed, True,
+     "The data stream cannot write to the underlying device."),
 ])
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
@@ -232,8 +232,7 @@ def test_check_qdatastream(status, raising, message):
 
 def test_qdatastream_status_count():
     """Make sure no new members are added to QDataStream.Status."""
-    values = vars(QDataStream).values()
-    status_vals = [e for e in values if isinstance(e, QDataStream.Status)]
+    status_vals = testutils.enum_members(QDataStream, QDataStream.Status)
     assert len(status_vals) == 4
 
 
@@ -278,12 +277,12 @@ class TestSerializeStream:
     def stream_mock(self):
         """Fixture providing a QDataStream-like mock."""
         m = unittest.mock.MagicMock(spec=QDataStream)
-        m.status.return_value = QDataStream.Ok
+        m.status.return_value = QDataStream.Status.Ok
         return m
 
     def test_serialize_pre_error_mock(self, stream_mock):
         """Test serialize_stream with an error already set."""
-        stream_mock.status.return_value = QDataStream.ReadCorruptData
+        stream_mock.status.return_value = QDataStream.Status.ReadCorruptData
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -295,7 +294,7 @@ class TestSerializeStream:
         """Test serialize_stream with an error while serializing."""
         obj = QPoint()
         stream_mock.__lshift__.side_effect = lambda _other: self._set_status(
-            stream_mock, QDataStream.ReadCorruptData)
+            stream_mock, QDataStream.Status.ReadCorruptData)
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -305,7 +304,7 @@ class TestSerializeStream:
 
     def test_deserialize_pre_error_mock(self, stream_mock):
         """Test deserialize_stream with an error already set."""
-        stream_mock.status.return_value = QDataStream.ReadCorruptData
+        stream_mock.status.return_value = QDataStream.Status.ReadCorruptData
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -317,7 +316,7 @@ class TestSerializeStream:
         """Test deserialize_stream with an error while deserializing."""
         obj = QPoint()
         stream_mock.__rshift__.side_effect = lambda _other: self._set_status(
-            stream_mock, QDataStream.ReadCorruptData)
+            stream_mock, QDataStream.Status.ReadCorruptData)
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -331,10 +330,10 @@ class TestSerializeStream:
         dest_obj = QPoint()
         data = QByteArray()
 
-        write_stream = QDataStream(data, QIODevice.WriteOnly)
+        write_stream = QDataStream(data, QIODevice.OpenModeFlag.WriteOnly)
         qtutils.serialize_stream(write_stream, src_obj)
 
-        read_stream = QDataStream(data, QIODevice.ReadOnly)
+        read_stream = QDataStream(data, QIODevice.OpenModeFlag.ReadOnly)
         qtutils.deserialize_stream(read_stream, dest_obj)
 
         assert src_obj == dest_obj
@@ -343,7 +342,7 @@ class TestSerializeStream:
     def test_serialize_readonly_stream(self):
         """Test serialize_stream with a read-only stream."""
         data = QByteArray()
-        stream = QDataStream(data, QIODevice.ReadOnly)
+        stream = QDataStream(data, QIODevice.OpenModeFlag.ReadOnly)
         with pytest.raises(OSError, match="The data stream cannot write to "
                                           "the underlying device."):
             qtutils.serialize_stream(stream, QPoint())
@@ -353,7 +352,7 @@ class TestSerializeStream:
         """Test deserialize_stream with a write-only stream."""
         data = QByteArray()
         obj = QPoint()
-        stream = QDataStream(data, QIODevice.WriteOnly)
+        stream = QDataStream(data, QIODevice.OpenModeFlag.WriteOnly)
         with pytest.raises(OSError, match="The data stream has read past the "
                            "end of the data in the underlying device."):
             qtutils.deserialize_stream(stream, obj)
@@ -388,7 +387,7 @@ class TestSavefileOpen:
             with qtutils.savefile_open('filename'):
                 pass
 
-        qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(QIODevice.OpenModeFlag.WriteOnly)
         qsavefile_mock.cancelWriting.assert_called_once_with()
 
     def test_mock_exception(self, qsavefile_mock):
@@ -399,7 +398,7 @@ class TestSavefileOpen:
             with qtutils.savefile_open('filename'):
                 raise SavefileTestException
 
-        qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(QIODevice.OpenModeFlag.WriteOnly)
         qsavefile_mock.cancelWriting.assert_called_once_with()
 
     def test_mock_commit_failed(self, qsavefile_mock):
@@ -411,7 +410,7 @@ class TestSavefileOpen:
             with qtutils.savefile_open('filename'):
                 pass
 
-        qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(QIODevice.OpenModeFlag.WriteOnly)
         assert not qsavefile_mock.cancelWriting.called
         assert not qsavefile_mock.errorString.called
 
@@ -426,7 +425,7 @@ class TestSavefileOpen:
         with qtutils.savefile_open('filename') as f:
             f.write("Hello World")
 
-        qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(QIODevice.OpenModeFlag.WriteOnly)
         assert not qsavefile_mock.cancelWriting.called
         qsavefile_mock.write.assert_called_once_with(b"Hello World")
 
@@ -539,10 +538,10 @@ if test_file is not None:
         def open(self, _fname, mode):
             """Open an in-memory PyQIODevice instead of a real file."""
             modes = {
-                'wb': QIODevice.WriteOnly | QIODevice.Truncate,
-                'w': QIODevice.WriteOnly | QIODevice.Text | QIODevice.Truncate,
-                'rb': QIODevice.ReadOnly,
-                'r': QIODevice.ReadOnly | QIODevice.Text,
+                'wb': QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate,
+                'w': QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Text | QIODevice.OpenModeFlag.Truncate,
+                'rb': QIODevice.OpenModeFlag.ReadOnly,
+                'r': QIODevice.OpenModeFlag.ReadOnly | QIODevice.OpenModeFlag.Text,
             }
             try:
                 qt_mode = modes[mode]
@@ -656,14 +655,14 @@ class TestPyQIODevice:
         Args:
             method: The name of the method to call.
         """
-        pyqiodev.open(QIODevice.WriteOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly)
         func = getattr(pyqiodev, method)
         with pytest.raises(OSError, match="Trying to read unreadable file!"):
             func()
 
     def test_unwritable(self, pyqiodev):
         """Test writing with a read-only device."""
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         with pytest.raises(OSError, match="Trying to write to unwritable "
                                           "file!"):
             pyqiodev.write(b'')
@@ -676,7 +675,7 @@ class TestPyQIODevice:
             data: The data to write before checking if the length equals
                   len(data).
         """
-        pyqiodev.open(QIODevice.WriteOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly)
         pyqiodev.write(data)
         assert len(pyqiodev) == len(data)
 
@@ -685,8 +684,8 @@ class TestPyQIODevice:
         qf = QFile(str(tmp_path))
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(qtutils.QtOSError) as excinfo:
-            dev.open(QIODevice.WriteOnly)
-        assert excinfo.value.qt_errno == QFileDevice.OpenError
+            dev.open(QIODevice.OpenModeFlag.WriteOnly)
+        assert excinfo.value.qt_errno == QFileDevice.FileError.OpenError
         assert dev.closed
 
     def test_fileno(self, pyqiodev):
@@ -715,9 +714,9 @@ class TestPyQIODevice:
             data: The expected data to read after seeking.
             raising: Whether seeking should raise OSError.
         """
-        with pyqiodev.open(QIODevice.WriteOnly) as f:
+        with pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly) as f:
             f.write(b'1234567890')
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         if raising:
             with pytest.raises(OSError, match="seek failed!"):
                 pyqiodev.seek(offset, whence)
@@ -736,7 +735,7 @@ class TestPyQIODevice:
         # pylint: enable=no-member,useless-suppression
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
 
@@ -765,7 +764,7 @@ class TestPyQIODevice:
     def test_closed(self, pyqiodev):
         """Test the closed attribute."""
         assert pyqiodev.closed
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         assert not pyqiodev.closed
         pyqiodev.close()
         assert pyqiodev.closed
@@ -773,14 +772,14 @@ class TestPyQIODevice:
     def test_contextmanager(self, pyqiodev):
         """Make sure using the PyQIODevice as context manager works."""
         assert pyqiodev.closed
-        with pyqiodev.open(QIODevice.ReadOnly) as f:
+        with pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly) as f:
             assert not f.closed
             assert f is pyqiodev
         assert pyqiodev.closed
 
     def test_flush(self, pyqiodev):
         """Make sure flushing doesn't raise an exception."""
-        pyqiodev.open(QIODevice.WriteOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly)
         pyqiodev.write(b'test')
         pyqiodev.flush()
 
@@ -795,14 +794,14 @@ class TestPyQIODevice:
             method: The name of the method to call.
             ret: The return value we expect.
         """
-        pyqiodev.open(QIODevice.WriteOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly)
         func = getattr(pyqiodev, method)
         assert func() == ret
 
     @pytest.mark.parametrize('mode, readable, writable', [
-        (QIODevice.ReadOnly, True, False),
-        (QIODevice.ReadWrite, True, True),
-        (QIODevice.WriteOnly, False, True),
+        (QIODevice.OpenModeFlag.ReadOnly, True, False),
+        (QIODevice.OpenModeFlag.ReadWrite, True, True),
+        (QIODevice.OpenModeFlag.WriteOnly, False, True),
     ])
     def test_readable_writable(self, mode, readable, writable, pyqiodev):
         """Test readable() and writable().
@@ -831,19 +830,19 @@ class TestPyQIODevice:
             size: The size to pass to readline()
             chunks: A list of expected chunks to read.
         """
-        with pyqiodev.open(QIODevice.WriteOnly) as f:
+        with pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly) as f:
             f.write(b'one\ntwo\nthree')
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         for i, chunk in enumerate(chunks, start=1):
             print("Expecting chunk {}: {!r}".format(i, chunk))
             assert pyqiodev.readline(size) == chunk
 
     def test_write(self, pyqiodev):
         """Make sure writing and re-reading works."""
-        with pyqiodev.open(QIODevice.WriteOnly) as f:
+        with pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly) as f:
             f.write(b'foo\n')
             f.write(b'bar\n')
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         assert pyqiodev.read() == b'foo\nbar\n'
 
     def test_write_error(self, pyqiodev_failing):
@@ -857,7 +856,7 @@ class TestPyQIODevice:
     def test_write_error_real(self):
         """Test a real write error with /dev/full on supported systems."""
         qf = QFile('/dev/full')
-        qf.open(QIODevice.WriteOnly | QIODevice.Unbuffered)
+        qf.open(QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Unbuffered)
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(OSError, match='No space left on device'):
             dev.write(b'foo')
@@ -876,9 +875,9 @@ class TestPyQIODevice:
             size: The size to pass to read()
             chunks: A list of expected data chunks.
         """
-        with pyqiodev.open(QIODevice.WriteOnly) as f:
+        with pyqiodev.open(QIODevice.OpenModeFlag.WriteOnly) as f:
             f.write(b'1234567890')
-        pyqiodev.open(QIODevice.ReadOnly)
+        pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         for i, chunk in enumerate(chunks):
             print("Expecting chunk {}: {!r}".format(i, chunk))
             assert pyqiodev.read(size) == chunk
@@ -972,9 +971,9 @@ class TestInterpolateColor:
     def test_invalid_colorspace(self, colors):
         """Test an invalid colorspace."""
         with pytest.raises(ValueError):
-            qtutils.interpolate_color(colors.white, colors.black, 10, QColor.Cmyk)
+            qtutils.interpolate_color(colors.white, colors.black, 10, QColor.Spec.Cmyk)
 
-    @pytest.mark.parametrize('colorspace', [QColor.Rgb, QColor.Hsv, QColor.Hsl])
+    @pytest.mark.parametrize('colorspace', [QColor.Spec.Rgb, QColor.Spec.Hsv, QColor.Spec.Hsl])
     def test_0_100(self, colors, colorspace):
         """Test 0% and 100% in different colorspaces."""
         white = qtutils.interpolate_color(colors.white, colors.black, 0, colorspace)
@@ -985,7 +984,7 @@ class TestInterpolateColor:
     def test_interpolation_rgb(self):
         """Test an interpolation in the RGB colorspace."""
         color = qtutils.interpolate_color(
-            testutils.Color(0, 40, 100), testutils.Color(0, 20, 200), 50, QColor.Rgb)
+            testutils.Color(0, 40, 100), testutils.Color(0, 20, 200), 50, QColor.Spec.Rgb)
         assert testutils.Color(color) == testutils.Color(0, 30, 150)
 
     def test_interpolation_hsv(self):
@@ -994,7 +993,7 @@ class TestInterpolateColor:
         stop = testutils.Color()
         start.setHsv(0, 40, 100)
         stop.setHsv(0, 20, 200)
-        color = qtutils.interpolate_color(start, stop, 50, QColor.Hsv)
+        color = qtutils.interpolate_color(start, stop, 50, QColor.Spec.Hsv)
         expected = testutils.Color()
         expected.setHsv(0, 30, 150)
         assert testutils.Color(color) == expected
@@ -1005,12 +1004,12 @@ class TestInterpolateColor:
         stop = testutils.Color()
         start.setHsl(0, 40, 100)
         stop.setHsl(0, 20, 200)
-        color = qtutils.interpolate_color(start, stop, 50, QColor.Hsl)
+        color = qtutils.interpolate_color(start, stop, 50, QColor.Spec.Hsl)
         expected = testutils.Color()
         expected.setHsl(0, 30, 150)
         assert testutils.Color(color) == expected
 
-    @pytest.mark.parametrize('colorspace', [QColor.Rgb, QColor.Hsv, QColor.Hsl])
+    @pytest.mark.parametrize('colorspace', [QColor.Spec.Rgb, QColor.Spec.Hsv, QColor.Spec.Hsl])
     def test_interpolation_alpha(self, colorspace):
         """Test interpolation of colorspace's alpha."""
         start = testutils.Color(0, 0, 0, 30)
@@ -1030,3 +1029,41 @@ class TestInterpolateColor:
             testutils.Color(0, 0, 0), testutils.Color(255, 255, 255), percentage, None)
         assert isinstance(color, QColor)
         assert testutils.Color(color) == testutils.Color(*expected)
+
+
+class TestLibraryPath:
+
+    def test_simple(self):
+        try:
+            # Qt 6
+            path = QLibraryInfo.path(QLibraryInfo.LibraryPath.DataPath)
+        except AttributeError:
+            # Qt 5
+            path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath)
+
+        assert path
+        assert qtutils.library_path(qtutils.LibraryPath.data).as_posix() == path
+
+    @pytest.mark.parametrize("which", list(qtutils.LibraryPath))
+    def test_all(self, which):
+        if utils.is_windows and which == qtutils.LibraryPath.settings:
+            pytest.skip("Settings path not supported on Windows")
+        qtutils.library_path(which)
+        # The returned path doesn't necessarily exist.
+
+    def test_values_match_qt(self):
+        try:
+            # Qt 6
+            enumtype = QLibraryInfo.LibraryPath
+        except AttributeError:
+            enumtype = QLibraryInfo.LibraryLocation
+
+        our_names = {member.value for member in qtutils.LibraryPath}
+        qt_names = set(testutils.enum_members(QLibraryInfo, enumtype))
+        qt_names.discard("ImportsPath")  # Moved to QmlImportsPath in Qt 6
+        assert qt_names == our_names
+
+
+def test_extract_enum_val():
+    value = qtutils.extract_enum_val(Qt.KeyboardModifier.ShiftModifier)
+    assert value == 0x02000000

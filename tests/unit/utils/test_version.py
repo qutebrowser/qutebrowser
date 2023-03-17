@@ -33,7 +33,7 @@ import dataclasses
 import pytest
 import hypothesis
 import hypothesis.strategies
-from PyQt5.QtCore import PYQT_VERSION_STR
+from qutebrowser.qt.core import PYQT_VERSION_STR
 
 import qutebrowser
 from qutebrowser.config import config, websettings
@@ -979,13 +979,12 @@ class TestWebEngineVersions:
         assert version.WebEngineVersions.from_elf(elf_version) == expected
 
     @pytest.mark.parametrize('pyqt_version, chromium_version', [
-        ('5.12.10', '69.0.3497.128'),
-        ('5.14.2', '77.0.3865.129'),
-        ('5.15.1', '80.0.3987.163'),
         ('5.15.2', '83.0.4103.122'),
         ('5.15.3', '87.0.4280.144'),
         ('5.15.4', '87.0.4280.144'),
         ('5.15.5', '87.0.4280.144'),
+        ('6.2.0', '90.0.4430.228'),
+        ('6.3.0', '94.0.4606.126'),
     ])
     def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
         if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
@@ -1006,16 +1005,16 @@ class TestWebEngineVersions:
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
             if '.dev' in PYQT_VERSION_STR:
-                pytest.skip("dev version of PyQt5")
+                pytest.skip("dev version of PyQt")
 
             try:
-                from PyQt5.QtWebEngine import (
+                from qutebrowser.qt.webenginecore import (
                     PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
             except ImportError as e:
-                # QtWebKit or QtWebEngine < 5.13
+                # QtWebKit
                 pytest.skip(str(e))
 
-            if PYQT_WEBENGINE_VERSION >= 0x050F02:
+            if 0x060000 > PYQT_WEBENGINE_VERSION >= 0x050F02:
                 # Starting with Qt 5.15.2, we can only do bad guessing anyways...
                 pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
 
@@ -1063,18 +1062,18 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
+        pytest.importorskip('qutebrowser.qt.webenginewidgets')
         if webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
 
-    def test_fake_ua(self, monkeypatch, caplog):
+    def test_fake_ua(self, monkeypatch, caplog, patch_no_api):
         ver = '77.0.3865.98'
         webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format(ver))
 
         assert version.qtwebengine_versions().chromium == ver
 
-    def test_prefers_saved_user_agent(self, monkeypatch):
+    def test_prefers_saved_user_agent(self, monkeypatch, patch_no_api):
         webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
 
         class FakeProfile:
@@ -1090,17 +1089,21 @@ class TestChromiumVersion:
 
     def test_avoided(self, monkeypatch):
         versions = version.qtwebengine_versions(avoid_init=True)
-        assert versions.source in ['ELF', 'importlib', 'PyQt', 'Qt']
+        assert versions.source in ['api', 'ELF', 'importlib', 'PyQt', 'Qt']
+
+    @pytest.fixture
+    def patch_no_api(self, monkeypatch):
+        """Simulate no PyQt API for getting its version."""
+        monkeypatch.delattr(
+            qutebrowser.qt.webenginecore,
+            "qWebEngineVersion",
+            raising=False,
+        )
 
     @pytest.fixture
     def patch_elf_fail(self, monkeypatch):
         """Simulate parsing the version from ELF to fail."""
         monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
-
-    @pytest.fixture
-    def patch_old_pyqt(self, monkeypatch):
-        """Simulate an old PyQt without PYQT_WEBENGINE_VERSION_STR."""
-        monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
 
     @pytest.fixture
     def patch_no_importlib(self, monkeypatch, stubs):
@@ -1114,7 +1117,7 @@ class TestChromiumVersion:
     @pytest.fixture
     def importlib_patcher(self, monkeypatch):
         """Patch the importlib module."""
-        def _patch(*, qt, qt5):
+        def _patch(*, qt, qt5, qt6):
             try:
                 import importlib.metadata as importlib_metadata
             except ImportError:
@@ -1125,8 +1128,10 @@ class TestChromiumVersion:
                     outcome = qt
                 elif name == 'PyQtWebEngine-Qt5':
                     outcome = qt5
+                elif name == 'PyQt6-WebEngine-Qt6':
+                    outcome = qt6
                 else:
-                    raise utils.Unreachable(outcome)
+                    raise utils.Unreachable(name)
 
                 if outcome is None:
                     raise importlib_metadata.PackageNotFoundError(name)
@@ -1138,16 +1143,14 @@ class TestChromiumVersion:
 
     @pytest.fixture
     def patch_importlib_no_package(self, importlib_patcher):
-        """Simulate importlib not finding PyQtWebEngine-Qt[5]."""
-        importlib_patcher(qt=None, qt5=None)
+        """Simulate importlib not finding PyQtWebEngine Qt packages."""
+        importlib_patcher(qt=None, qt5=None, qt6=None)
 
     @pytest.mark.parametrize('patches, sources', [
-        (['elf_fail'], ['importlib', 'PyQt', 'Qt']),
-        (['elf_fail', 'old_pyqt'], ['importlib', 'Qt']),
-        (['elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
-        (['elf_fail', 'no_importlib', 'old_pyqt'], ['Qt']),
-        (['elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
-        (['elf_fail', 'importlib_no_package', 'old_pyqt'], ['Qt']),
+        (['no_api'], ['ELF', 'importlib', 'PyQt', 'Qt']),
+        (['no_api', 'elf_fail'], ['importlib', 'PyQt', 'Qt']),
+        (['no_api', 'elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
+        (['no_api', 'elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
     ], ids=','.join)
     def test_simulated(self, request, patches, sources):
         """Test various simulated error conditions.
@@ -1163,17 +1166,41 @@ class TestChromiumVersion:
         versions = version.qtwebengine_versions(avoid_init=True)
         assert versions.source in sources
 
-    @pytest.mark.parametrize('qt, qt5, expected', [
-        (None, '5.15.4', utils.VersionNumber(5, 15, 4)),
-        ('5.15.3', None, utils.VersionNumber(5, 15, 3)),
-        ('5.15.3', '5.15.4', utils.VersionNumber(5, 15, 4)),  # -Qt5 takes precedence
+    @pytest.mark.parametrize('qt, qt5, qt6, expected', [
+        pytest.param(
+            None, None, '6.3.0',
+            utils.VersionNumber(6, 3),
+            marks=pytest.mark.qt6_only,
+        ),
+        pytest.param(
+            '5.15.3', '5.15.4', '6.3.0',
+            utils.VersionNumber(6, 3),
+            marks=pytest.mark.qt6_only,
+        ),
+
+        pytest.param(
+            None, '5.15.4', None,
+            utils.VersionNumber(5, 15, 4),
+            marks=pytest.mark.qt5_only,
+        ),
+        pytest.param(
+            '5.15.3', None, None,
+            utils.VersionNumber(5, 15, 3),
+            marks=pytest.mark.qt5_only,
+        ),
+        # -Qt5 takes precedence
+        pytest.param(
+            '5.15.3', '5.15.4', None,
+            utils.VersionNumber(5, 15, 4),
+            marks=pytest.mark.qt5_only,
+        ),
     ])
-    def test_importlib(self, qt, qt5, expected, patch_elf_fail, importlib_patcher):
+    def test_importlib(self, qt, qt5, qt6, expected, patch_elf_fail, patch_no_api, importlib_patcher):
         """Test the importlib version logic with different Qt packages.
 
         With PyQtWebEngine 5.15.4, PyQtWebEngine-Qt was renamed to PyQtWebEngine-Qt5.
         """
-        importlib_patcher(qt=qt, qt5=qt5)
+        importlib_patcher(qt=qt, qt5=qt5, qt6=qt6)
         versions = version.qtwebengine_versions(avoid_init=True)
         assert versions.source == 'importlib'
         assert versions.webengine == expected
@@ -1182,9 +1209,10 @@ class TestChromiumVersion:
         utils.VersionNumber(5, 12, 10),
         utils.VersionNumber(5, 15, 3),
     ])
-    def test_override(self, monkeypatch, override):
+    @pytest.mark.parametrize('avoid_init', [True, False])
+    def test_override(self, monkeypatch, override, avoid_init):
         monkeypatch.setenv('QUTE_QTWEBENGINE_VERSION_OVERRIDE', str(override))
-        versions = version.qtwebengine_versions(avoid_init=True)
+        versions = version.qtwebengine_versions(avoid_init=avoid_init)
         assert versions.source == 'override'
         assert versions.webengine == override
 
@@ -1237,7 +1265,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'objects.qapp': (stubs.FakeQApplication(style='STYLE', platform_name='PLATFORM')
                          if params.qapp else None),
-        'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'qtutils.library_path': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
         'config.instance.yaml_loaded': params.autoconfig_loaded,
@@ -1345,7 +1373,7 @@ class TestOpenGLInfo:
 
     def test_func(self, qapp):
         """Simply call version.opengl_info() and see if it doesn't crash."""
-        pytest.importorskip("PyQt5.QtOpenGL")
+        pytest.importorskip("qutebrowser.qt.opengl")
         version.opengl_info()
 
     def test_func_fake(self, qapp, monkeypatch):

@@ -25,7 +25,7 @@ import shlex
 import shutil
 from typing import Mapping, Sequence, Dict, Optional
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
+from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl, Qt)
 
 from qutebrowser.utils import message, log, utils, usertypes, version
@@ -94,7 +94,7 @@ class ProcessOutcome:
         """
         assert self.status is not None, "Process didn't finish yet"
         assert self.code is not None
-        return self.status == QProcess.NormalExit and self.code == 0
+        return self.status == QProcess.ExitStatus.NormalExit and self.code == 0
 
     def __str__(self) -> str:
         if self.running:
@@ -105,12 +105,12 @@ class ProcessOutcome:
         assert self.status is not None
         assert self.code is not None
 
-        if self.status == QProcess.CrashExit:
+        if self.status == QProcess.ExitStatus.CrashExit:
             return f"{self.what.capitalize()} crashed."
         elif self.was_successful():
             return f"{self.what.capitalize()} exited successfully."
 
-        assert self.status == QProcess.NormalExit
+        assert self.status == QProcess.ExitStatus.NormalExit
         # We call this 'status' here as it makes more sense to the user -
         # it's actually 'code'.
         return f"{self.what.capitalize()} exited with status {self.code}."
@@ -124,7 +124,7 @@ class ProcessOutcome:
             return 'running'
         elif self.status is None:
             return 'not started'
-        elif self.status == QProcess.CrashExit:
+        elif self.status == QProcess.ExitStatus.CrashExit:
             return 'crashed'
         elif self.was_successful():
             return 'successful'
@@ -177,7 +177,7 @@ class GUIProcess(QObject):
         self.stderr: str = ""
 
         self._cleanup_timer = usertypes.Timer(self, 'process-cleanup')
-        self._cleanup_timer.setTimerType(Qt.VeryCoarseTimer)
+        self._cleanup_timer.setTimerType(Qt.TimerType.VeryCoarseTimer)
         self._cleanup_timer.setInterval(3600 * 1000)  # 1h
         self._cleanup_timer.timeout.connect(self._on_cleanup_timer)
         self._cleanup_timer.setSingleShot(True)
@@ -254,17 +254,17 @@ class GUIProcess(QObject):
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
         """Show a message if there was an error while spawning."""
-        if error == QProcess.Crashed and not utils.is_windows:
+        if error == QProcess.ProcessError.Crashed and not utils.is_windows:
             # Already handled via ExitStatus in _on_finished
             return
 
         what = f"{self.what} {self.cmd!r}"
         error_descriptions = {
-            QProcess.FailedToStart: f"{what.capitalize()} failed to start",
-            QProcess.Crashed: f"{what.capitalize()} crashed",
-            QProcess.Timedout: f"{what.capitalize()} timed out",
-            QProcess.WriteError: f"Write error for {what}",
-            QProcess.ReadError: f"Read error for {what}",
+            QProcess.ProcessError.FailedToStart: f"{what.capitalize()} failed to start",
+            QProcess.ProcessError.Crashed: f"{what.capitalize()} crashed",
+            QProcess.ProcessError.Timedout: f"{what.capitalize()} timed out",
+            QProcess.ProcessError.WriteError: f"Write error for {what}",
+            QProcess.ProcessError.ReadError: f"Read error for {what}",
         }
 
         # We can't get some kind of error code from Qt...

@@ -27,11 +27,11 @@ import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
-from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
+from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils, usertypes, version)
+                               utils, usertypes)
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
@@ -64,12 +64,7 @@ def init(parent=None):
 
     # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
     backup_path = base_path / 'before-qt-515'
-
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        webengine_version = version.qtwebengine_versions().webengine
-        do_backup = webengine_version >= utils.VersionNumber(5, 15)
-    else:
-        do_backup = False
+    do_backup = objects.backend == usertypes.Backend.QtWebEngine
 
     if base_path.exists() and not backup_path.exists() and do_backup:
         backup_path.mkdir()
@@ -225,7 +220,7 @@ class SessionManager(QObject):
             # QtWebEngine
             user_data = None
 
-        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
+        data['last_visited'] = item.lastVisited().toString(Qt.DateFormat.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -450,7 +445,7 @@ class SessionManager(QObject):
             if histentry.get("last_visited"):
                 last_visited: Optional[QDateTime] = QDateTime.fromString(
                     histentry.get("last_visited"),
-                    Qt.ISODate,
+                    Qt.DateFormat.ISODate,
                 )
             else:
                 last_visited = None
@@ -472,7 +467,6 @@ class SessionManager(QObject):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
                                        private=win.get('private', None))
-        window.show()
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
@@ -485,6 +479,8 @@ class SessionManager(QObject):
                 new_tab.set_pinned(True)
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+
+        window.show()
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 

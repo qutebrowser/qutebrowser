@@ -22,7 +22,7 @@
 from typing import cast
 import os.path
 
-from PyQt5.QtNetwork import QNetworkDiskCache
+from qutebrowser.qt.network import QNetworkDiskCache
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir

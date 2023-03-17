@@ -30,11 +30,11 @@ import builtins
 import importlib
 import types
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
-from PyQt5.QtGui import QIcon
-from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
+from qutebrowser.qt.core import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
+from qutebrowser.qt.gui import QIcon
+from qutebrowser.qt.network import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
+from qutebrowser.qt.widgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
@@ -135,7 +135,7 @@ class FakeNetworkReply:
     """QNetworkReply stub which provides a Content-Disposition header."""
 
     KNOWN_HEADERS = {
-        QNetworkRequest.ContentTypeHeader: 'Content-Type',
+        QNetworkRequest.KnownHeaders.ContentTypeHeader: 'Content-Type',
     }
 
     def __init__(self, headers=None, url=None):
@@ -302,17 +302,10 @@ class FakeSignal:
 
     Attributes:
         signal: The name of the signal, like pyqtSignal.
-        _func: The function to be invoked when the signal gets called.
     """
 
-    def __init__(self, name='fake', func=None):
+    def __init__(self, name='fake'):
         self.signal = '2{}(int, int)'.format(name)
-        self._func = func
-
-    def __call__(self):
-        if self._func is None:
-            raise TypeError("'FakeSignal' object is not callable")
-        return self._func()
 
     def connect(self, slot):
         """Connect the signal to a slot.

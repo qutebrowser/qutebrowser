@@ -42,7 +42,7 @@ Feature: Keyboard input
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/keyinput/log.html
         And I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :fake-key x
         And I run :devtools
         And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView *>" in the log

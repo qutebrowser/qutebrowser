@@ -5,7 +5,7 @@
 <span class="note">Note this warning will only appear once. Use <span class="mono">:open
 qute://warning/sessions</span> to show it again at a later time.</span>
 
-<p>You're using qutebrowser with Qt 5.15. While this is the recommended Qt version to use (due to QtWebEngine security updates), qutebrowser only provides partial support for session files.</p>
+<p>You're using qutebrowser with Qt >= 5.15. While this is the recommended Qt version to use (due to QtWebEngine security updates), qutebrowser only provides partial support for session files.</p>
 
 <p>Since Qt doesn't provide an API to load the history of a tab, qutebrowser relies on a reverse-engineered binary serialization format to load tab history from session files. With Qt 5.15, unfortunately that format changed (due to the underlying Chromium upgrade), in a way which makes it impossible for qutebrowser to load tab history from existing session data.</p>
 

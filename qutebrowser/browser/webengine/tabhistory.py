@@ -19,7 +19,7 @@
 
 """QWebHistory serializer for QtWebEngine."""
 
-from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
+from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
 
 from qutebrowser.utils import qtutils
 
@@ -124,7 +124,7 @@ def serialize(items):
         segfault!
     """
     data = QByteArray()
-    stream = QDataStream(data, QIODevice.ReadWrite)
+    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
     cur_user_data = None
 
     current_idx = None

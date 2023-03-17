@@ -21,7 +21,9 @@ jobs:
         include:
           - testenv: pylint
           - testenv: flake8
-          - testenv: mypy
+          # FIXME:qt6 (lint)
+          # - testenv: mypy-pyqt6
+          - testenv: mypy-pyqt5
           - testenv: docs
           - testenv: vulture
           - testenv: misc
@@ -90,11 +92,11 @@ jobs:
         image:
           - archlinux-webkit
           - archlinux-webengine
+          # - archlinux-webengine-qt6  # FIXME:qt6 activate
           # - archlinux-webengine-unstable
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
-        QUTE_BDD_WEBENGINE: "${{ matrix.image != 'archlinux-webkit' }}"
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
@@ -119,30 +121,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.12 (Python 3.7)
-          - testenv: py37-pyqt512
-            os: ubuntu-20.04
-            python: "3.7"
-          ### PyQt 5.13 (Python 3.7)
-          - testenv: py37-pyqt513
-            os: ubuntu-20.04
-            python: "3.7"
-          ### PyQt 5.14 (Python 3.8)
-          - testenv: py38-pyqt514
-            os: ubuntu-20.04
-            python: "3.8"
-          ### PyQt 5.15.0 (Python 3.9)
-          - testenv: py39-pyqt5150
+          ### PyQt 5.15.2 (Python 3.9)
+          - testenv: py39-pyqt5152
             os: ubuntu-20.04
             python: "3.9"
           ### PyQt 5.15 (Python 3.10, with coverage)
-          - testenv: py310-pyqt515-cov
-            os: ubuntu-22.04
-            python: "3.10"
+          ### PyQt 5.15 (Python 3.9, with coverage)
+          # FIXME:qt6
+          # - testenv: py39-pyqt515-cov
+          #  os: ubuntu-22.04
+          #  python: "3.10"
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
             os: ubuntu-20.04
             python: "3.11-dev"
+          ### PyQt 6.2 (Python 3.9)
+          - testenv: py39-pyqt62
+            os: ubuntu-20.04
+            python: 3.9
+          ### PyQt 6.3 (Python 3.9)
+          - testenv: py39-pyqt63
+            os: ubuntu-20.04
+            python: 3.9
+          ### PyQt 6.4 (Python 3.9)
+          # - testenv: py39-pyqt64
+          #   os: ubuntu-20.04
+          #   python: 3.9
           ### macOS Big Sur: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-11

@@ -9,10 +9,19 @@ RUN pacman -Su --noconfirm \
     git \
     python-tox \
     python-distlib \
+    {% if qt6 %}
+    qt6-base \
+    qt6-declarative \
+    {% if webengine %}
+    qt6-webengine python-pyqt6-webengine \
+    {% else %}{{ 1/0 }}{% endif %}
+    python-pyqt6 \
+    {% else %}
     qt5-base \
     qt5-declarative \
     {% if webengine %}
     qt5-webengine python-pyqtwebengine \
+    {% endif %}
     python-pyqt5 \
     {% endif %}
     xorg-xinit \
@@ -28,10 +37,15 @@ RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/p/python-pyqt5/python-pyqt5-5.15.7-2-x86_64.pkg.tar.zst
 {% endif %}
 
-{% if webengine %}
-RUN python3 -c "from PyQt5 import QtWebEngineCore, QtWebEngineWidgets"
+{% if qt6 %}
+  {% set pyqt_module = 'PyQt6' %}
 {% else %}
-RUN python3 -c "from PyQt5 import QtWebKit, QtWebKitWidgets"
+  {% set pyqt_module = 'PyQt5' %}
+{% endif %}
+{% if webengine %}
+  RUN python3 -c "from {{ pyqt_module }} import QtWebEngineCore, QtWebEngineWidgets"
+{% else %}
+  RUN python3 -c "from {{ pyqt_module }} import QtWebKit, QtWebKitWidgets"
 {% endif %}
 
 RUN useradd user -u 1001 && \

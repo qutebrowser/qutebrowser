@@ -21,7 +21,7 @@ import logging
 import os.path
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import pdfjs
 from qutebrowser.utils import urlmatch
@@ -52,7 +52,7 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
     assert snippet in content
 
 
-# Note that we got double protection, once because we use QUrl.FullyEncoded and
+# Note that we got double protection, once because we use QUrl.ComponentFormattingOption.FullyEncoded and
 # because we use qutebrowser.utils.javascript.to_js. Characters like " are
 # already replaced by QUrl.
 @pytest.mark.parametrize('filename, expected', [

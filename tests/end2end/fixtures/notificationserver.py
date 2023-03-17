@@ -21,9 +21,9 @@ import dataclasses
 import itertools
 from typing import Dict, List
 
-from PyQt5.QtCore import QObject, QByteArray, QUrl, pyqtSlot
-from PyQt5.QtGui import QImage
-from PyQt5.QtDBus import QDBusConnection, QDBusMessage
+from qutebrowser.qt.core import QObject, QByteArray, QUrl, pyqtSlot
+from qutebrowser.qt.gui import QImage
+from qutebrowser.qt.dbus import QDBusConnection, QDBusMessage
 import pytest
 
 from qutebrowser.browser.webengine import notification
@@ -82,7 +82,7 @@ class TestNotificationServer(QObject):
             notification.DBusNotificationAdapter.PATH,
             notification.DBusNotificationAdapter.INTERFACE,
             self,
-            QDBusConnection.ExportAllSlots,
+            QDBusConnection.RegisterOption.ExportAllSlots,
         )
         return True
 
@@ -151,7 +151,7 @@ class TestNotificationServer(QObject):
         assert channel_count == (4 if has_alpha else 3)
         assert bytes_per_line >= width * channel_count
 
-        qimage_format = QImage.Format_RGBA8888 if has_alpha else QImage.Format_RGB888
+        qimage_format = QImage.Format.Format_RGBA8888 if has_alpha else QImage.Format.Format_RGB888
         img = QImage(data, width, height, bytes_per_line, qimage_format)
         assert not img.isNull()
         assert img.width() == width
@@ -196,7 +196,7 @@ class TestNotificationServer(QObject):
     @pyqtSlot(QDBusMessage, result="uint")
     def Notify(self, dbus_message: QDBusMessage) -> int:
         assert dbus_message.signature() == 'susssasa{sv}i'
-        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+        assert dbus_message.type() == QDBusMessage.MessageType.MethodCallMessage
 
         message = self._parse_notify_args(*dbus_message.arguments())
 
@@ -213,7 +213,7 @@ class TestNotificationServer(QObject):
     def GetCapabilities(self, message: QDBusMessage) -> List[str]:
         assert not message.signature()
         assert not message.arguments()
-        assert message.type() == QDBusMessage.MethodCallMessage
+        assert message.type() == QDBusMessage.MessageType.MethodCallMessage
 
         capabilities = ["actions", "x-kde-origin-name"]
         if self.supports_body_markup:
@@ -232,7 +232,7 @@ class TestNotificationServer(QObject):
     @pyqtSlot(QDBusMessage)
     def CloseNotification(self, dbus_message: QDBusMessage) -> None:
         assert dbus_message.signature() == 'u'
-        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+        assert dbus_message.type() == QDBusMessage.MessageType.MethodCallMessage
 
         message_id = dbus_message.arguments()[0]
         self.messages[message_id].closed_via_web = True
@@ -246,7 +246,7 @@ def notification_server(qapp, quteproc_process):
         # a connection on macOS, since it's theoretically possible to run DBus there.
         pytest.skip("Skipping DBus on Windows")
 
-    qb_pid = quteproc_process.proc.pid()
+    qb_pid = quteproc_process.proc.processId()
     server = TestNotificationServer(
         f"{notification.DBusNotificationAdapter.TEST_SERVICE}{qb_pid}")
     registered = server.register()

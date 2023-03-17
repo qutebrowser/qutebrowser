@@ -27,16 +27,16 @@ import dataclasses
 from typing import (
     Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
-from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
+from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
+from qutebrowser.utils import (log, usertypes, utils, qtutils,
                                urlutils, message, jinja, version)
-from qutebrowser.misc import quitter
+from qutebrowser.misc import quitter, objects
 
 
 @dataclasses.dataclass
@@ -225,11 +225,16 @@ class TabbedBrowser(QWidget):
         self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tab_bar().maybe_hide)
 
-        self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # load_finished instead of load_started as WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-65223
-        self.cur_load_finished.connect(self._leave_modes_on_load)
+        if (
+            objects.backend == usertypes.Backend.QtWebEngine and
+            version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5)
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+            self.cur_load_finished.connect(self._leave_modes_on_load)
+        else:
+            self.cur_load_started.connect(self._leave_modes_on_load)
 
         # handle mode_override
         self.current_tab_changed.connect(lambda tab: self._mode_override(tab.url()))
@@ -634,11 +639,10 @@ class TabbedBrowser(QWidget):
 
         if config.val.tabs.tabs_are_windows and self.widget.count() > 0:
             window = mainwindow.MainWindow(private=self.is_private)
+            tab = window.tabbed_browser.tabopen(
+                url=url, background=background, related=related)
             window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            return tabbed_browser.tabopen(url=url, background=background,
-                                          related=related)
+            return tab
 
         tab = browsertab.create(win_id=self._win_id,
                                 private=self.is_private,
@@ -1051,7 +1055,7 @@ class TabbedBrowser(QWidget):
         """
         # strip the fragment as it may interfere with scrolling
         try:
-            url = self.current_url().adjusted(QUrl.RemoveFragment)
+            url = self.current_url().adjusted(QUrl.UrlFormattingOption.RemoveFragment)
         except qtutils.QtValueError:
             # show an error only if the mark is not automatically set
             if key != "'":
@@ -1074,7 +1078,7 @@ class TabbedBrowser(QWidget):
         """
         try:
             # consider urls that differ only in fragment to be identical
-            urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+            urlkey = self.current_url().adjusted(QUrl.UrlFormattingOption.RemoveFragment)
         except qtutils.QtValueError:
             urlkey = None
 

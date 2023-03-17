@@ -22,8 +22,8 @@
 import functools
 from typing import Optional, FrozenSet
 
-from PyQt5.QtCore import pyqtSlot, QObject
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.core import pyqtSlot, QObject
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.misc import debugcachestats

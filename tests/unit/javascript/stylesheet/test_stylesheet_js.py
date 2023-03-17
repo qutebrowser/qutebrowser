@@ -22,8 +22,8 @@
 import pathlib
 import pytest
 
-QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
-QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
+QtWebEngineCore = pytest.importorskip("qutebrowser.qt.webenginecore")
+QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
 from qutebrowser.utils import javascript
 

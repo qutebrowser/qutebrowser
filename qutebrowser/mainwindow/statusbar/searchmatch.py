@@ -20,7 +20,7 @@
 """The search match indicator in the statusbar."""
 
 
-from PyQt5.QtCore import pyqtSlot
+from qutebrowser.qt.core import pyqtSlot
 
 from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase

@@ -39,6 +39,7 @@ from helpers import testutils
 from qutebrowser.utils import usertypes, utils, version
 from qutebrowser.misc import objects, earlyinit
 
+from qutebrowser.qt import machinery
 # To register commands
 import qutebrowser.app  # pylint: disable=unused-import
 
@@ -112,6 +113,16 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
+        ('qt5_only',
+         pytest.mark.skipif,
+         not machinery.IS_QT5,
+         f"Only runs on Qt 5, not {machinery.WRAPPER}"),
+        ('qt6_only',
+         pytest.mark.skipif,
+         not machinery.IS_QT6,
+         f"Only runs on Qt 6, not {machinery.WRAPPER}"),
+        ('qt5_xfail', pytest.mark.xfail, machinery.IS_QT5, "Fails on Qt 5"),
+        ('qt6_xfail', pytest.mark.skipif, machinery.IS_QT6, "Fails on Qt 6"),
         ('qtwebkit_openssl3_skip',
          pytest.mark.skipif,
          not config.webengine and ssl.OPENSSL_VERSION_INFO[0] == 3,
@@ -213,7 +224,9 @@ def qapp(qapp):
 
 def pytest_addoption(parser):
     parser.addoption('--qute-delay', action='store', default=0, type=int,
-                     help="Delay between qutebrowser commands.")
+                     help="Delay (in ms) between qutebrowser commands.")
+    parser.addoption('--qute-delay-start', action='store', default=0, type=int,
+                     help="Delay (in ms) after qutebrowser process started.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
     parser.addoption('--qute-backend', action='store',
@@ -255,9 +268,9 @@ def _select_backend(config):
     # Fail early if selected backend is not available
     # pylint: disable=unused-import
     if backend == 'webkit':
-        import PyQt5.QtWebKitWidgets
+        import qutebrowser.qt.webkitwidgets
     elif backend == 'webengine':
-        import PyQt5.QtWebEngineWidgets
+        import qutebrowser.qt.webenginewidgets
     else:
         raise utils.Unreachable(backend)
 
@@ -268,12 +281,12 @@ def _auto_select_backend():
     # pylint: disable=unused-import
     try:
         # Try to use QtWebKit as the default backend
-        import PyQt5.QtWebKitWidgets
+        import qutebrowser.qt.webkitwidgets
         return 'webkit'
     except ImportError:
         # Try to use QtWebEngine as a fallback and fail early
         # if that's also not available
-        import PyQt5.QtWebEngineWidgets
+        import qutebrowser.qt.webenginewidgets
         return 'webengine'
 
 

@@ -20,7 +20,7 @@
 import contextlib
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes, message
@@ -90,7 +90,11 @@ def test_word_wrap(view, qtbot):
 ])
 @pytest.mark.parametrize("replace", ["test", None])
 def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
-    """Rich text should be rendered appropriately."""
+    """Rich text should be rendered appropriately.
+
+    This makes sure the title has been rendered as plain text by comparing the
+    heights of the two widgets. To ensure consistent results, we disable word-wrapping.
+    """
     level = usertypes.MessageLevel.info
     text = 'with <h1>markup</h1>'
     text2 = 'with <h1>markup</h1> 2'
@@ -105,6 +109,7 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
     with ctx:
         view.show_message(info1)
         assert len(view._messages) == 1
+        view._messages[0].setWordWrap(False)
 
         height1 = view.sizeHint().height()
         assert height1 > 0
@@ -112,10 +117,14 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
         assert view._messages[0].textFormat() == Qt.TextFormat.PlainText  # default
 
     view.show_message(info2)
-    height2 = view.sizeHint().height()
     assert len(view._messages) == 1
+    view._messages[0].setWordWrap(False)
+
+    height2 = view.sizeHint().height()
+    assert height2 > 0
 
     assert view._messages[0].textFormat() == expected_format
+
     if higher:
         assert height2 > height1
     else:
@@ -239,10 +248,10 @@ def test_replacing_geometry(qtbot, view):
 
 
 @pytest.mark.parametrize('button, count', [
-    (Qt.LeftButton, 0),
-    (Qt.MiddleButton, 0),
-    (Qt.RightButton, 0),
-    (Qt.BackButton, 2),
+    (Qt.MouseButton.LeftButton, 0),
+    (Qt.MouseButton.MiddleButton, 0),
+    (Qt.MouseButton.RightButton, 0),
+    (Qt.MouseButton.BackButton, 2),
 ])
 def test_click_messages(qtbot, view, button, count):
     """Messages should disappear when we click on them."""

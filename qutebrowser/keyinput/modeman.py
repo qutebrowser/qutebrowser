@@ -23,8 +23,8 @@ import functools
 import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
+from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
 from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
@@ -51,17 +51,19 @@ class KeyEvent:
     press/release.
 
     Attributes:
-        key: A Qt.Key member (QKeyEvent::key).
+        key: Usually a Qt.Key member, but could be other ints (QKeyEvent::key).
         text: A string (QKeyEvent::text).
     """
 
-    key: Qt.Key
+    # int instead of Qt.Key:
+    # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    key: int
     text: str
 
     @classmethod
     def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
         """Initialize a KeyEvent from a QKeyEvent."""
-        return cls(Qt.Key(event.key()), event.text())
+        return cls(event.key(), event.text())
 
 
 class NotInModeError(Exception):
@@ -290,14 +292,14 @@ class ModeManager(QObject):
         match = parser.handle(event, dry_run=dry_run)
 
         has_modifier = event.modifiers() not in [
-            Qt.NoModifier,
-            Qt.ShiftModifier,
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
         ]  # type: ignore[comparison-overlap]
         is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
-        if match:
+        if match != QKeySequence.SequenceMatch.NoMatch:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):
@@ -460,9 +462,9 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handlers: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]] = {
-            QEvent.KeyPress: self._handle_keypress,
-            QEvent.KeyRelease: self._handle_keyrelease,
-            QEvent.ShortcutOverride:
+            QEvent.Type.KeyPress: self._handle_keypress,
+            QEvent.Type.KeyRelease: self._handle_keyrelease,
+            QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
         handler = handlers[event.type()]

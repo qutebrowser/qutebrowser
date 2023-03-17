@@ -21,9 +21,9 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies
 import pytest
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextDocument, QColor
-from PyQt5.QtWidgets import QTextEdit
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.gui import QTextDocument, QColor
+from qutebrowser.qt.widgets import QTextEdit
 
 from qutebrowser.completion import completiondelegate
 
@@ -51,7 +51,7 @@ from qutebrowser.completion import completiondelegate
 ])
 def test_highlight(pat, txt, segments):
     doc = QTextDocument(txt)
-    highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+    highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
     highlighter.setFormat = mock.Mock()
     highlighter.highlightBlock(txt)
     highlighter.setFormat.assert_has_calls([
@@ -65,7 +65,7 @@ def test_benchmark_highlight(benchmark):
     doc = QTextDocument(txt)
 
     def bench():
-        highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+        highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
         highlighter.highlightBlock(txt)
 
     benchmark(bench)
@@ -75,7 +75,7 @@ def test_benchmark_highlight(benchmark):
 def test_pattern_hypothesis(text):
     """Make sure we can't produce invalid patterns."""
     doc = QTextDocument()
-    completiondelegate._Highlighter(doc, text, Qt.red)
+    completiondelegate._Highlighter(doc, text, Qt.GlobalColor.red)
 
 
 def test_highlighted(qtbot):
@@ -87,7 +87,7 @@ def test_highlighted(qtbot):
     that is kind of hard, so we just test it in isolation here.
     """
     doc = QTextDocument()
-    completiondelegate._Highlighter(doc, 'Hello', Qt.red)
+    completiondelegate._Highlighter(doc, 'Hello', Qt.GlobalColor.red)
     doc.setPlainText('Hello World')
 
     # Needed so the highlighting actually works.
