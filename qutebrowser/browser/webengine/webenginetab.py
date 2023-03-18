@@ -45,7 +45,7 @@ def _convert_usertype_world_id(
 ) -> Union[QWebEngineScript.ScriptWorldId, int]:
     world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
     if world is None:
-        world_id: world_id_type = QWebEngineScript.ApplicationWorld
+        world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
     elif isinstance(world, int):
         world_id = world
         if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -62,9 +62,9 @@ def _convert_usertype_injection_point(
         injection_point: usertypes.InjectionPoint
 ) -> QWebEngineScript.InjectionPoint:
     return {
-        usertypes.InjectionPoint.creation: QWebEngineScript.DocumentCreation,
-        usertypes.InjectionPoint.ready: QWebEngineScript.DocumentReady,
-        usertypes.InjectionPoint.deferred: QWebEngineScript.Deferred,
+        usertypes.InjectionPoint.creation: QWebEngineScript.InjectionPoint.DocumentCreation,
+        usertypes.InjectionPoint.ready: QWebEngineScript.InjectionPoint.DocumentReady,
+        usertypes.InjectionPoint.deferred: QWebEngineScript.InjectionPoint.Deferred,
     }[injection_point]
 
 

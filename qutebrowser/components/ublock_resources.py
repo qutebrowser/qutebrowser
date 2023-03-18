@@ -29,8 +29,7 @@ import pathlib
 import re
 from typing import Optional, IO, List, Dict
 
-from PyQt5.QtCore import QUrl
-
+from qutebrowser.qt.core import QUrl
 from qutebrowser.api import (
     message,
 )

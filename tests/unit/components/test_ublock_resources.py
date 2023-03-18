@@ -22,10 +22,9 @@ import json
 import importlib
 import pathlib
 
-from PyQt5.QtCore import QUrl
-
 import pytest
 
+from qutebrowser.qt.core import QUrl
 from qutebrowser.components import braveadblock
 
 # I think the following needs to be written in this format for importlib.reload to have
