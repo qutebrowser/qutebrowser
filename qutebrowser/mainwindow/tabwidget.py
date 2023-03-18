@@ -405,7 +405,8 @@ class TabBar(QTabBar):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.setStyle(TabBarStyle())
+        self._our_style = TabBarStyle()
+        self.setStyle(self._our_style)
         self.vertical = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
@@ -695,6 +696,29 @@ class TabBar(QTabBar):
             size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size
+
+    def initStyleOption(self, opt, idx):
+        """Override QTabBar.initStyleOption().
+
+        Used to calculate styling clues from a widget for the GUI layer.
+        """
+        super().initStyleOption(opt, idx)
+
+        # Re-do the text elision that the base QTabBar does, but using a text
+        # rectangle computed by out TabBarStyle. With Qt6 the base class ends
+        # up using QCommonStyle directly for that which has a different opinon
+        # of how vertical tabs should work.
+        text_rect = self._our_style.subElementRect(
+            QStyle.SubElement.SE_TabBarTabText,
+            opt,
+            self,
+        )
+        opt.text = self.fontMetrics().elidedText(
+            self.tabText(idx),
+            self.elideMode(),
+            text_rect.width(),
+            Qt.TextFlag.TextShowMnemonic,
+        )
 
     def paintEvent(self, event):
         """Override paintEvent to draw the tabs like we want to."""

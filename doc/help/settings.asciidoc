@@ -2779,8 +2779,6 @@ Valid values:
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+
- * +js-globalthis+
- * +js-object-fromentries+
  * +js-array-at+
  * +misc-krunker+
  * +misc-mathml-darkmode+

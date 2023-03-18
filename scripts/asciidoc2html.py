@@ -84,12 +84,15 @@ class AsciiDoc:
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
-        # patch image links to use local copy
         replacements = [
+            # patch image links to use local copy
             ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
              "qute://help/img/cheatsheet-big.png"),
             ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
-             "qute://help/img/cheatsheet-small.png")
+             "qute://help/img/cheatsheet-small.png"),
+
+            # patch relative links to work with qute://help flat structure
+            ("link:../", "link:"),
         ]
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 

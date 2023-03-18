@@ -212,7 +212,7 @@ def qapp_args():
     """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
     if testutils.disable_seccomp_bpf_sandbox():
         return [sys.argv[0], testutils.DISABLE_SECCOMP_BPF_FLAG]
-    return []
+    return [sys.argv[0]]
 
 
 @pytest.fixture(scope='session')
