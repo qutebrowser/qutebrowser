@@ -195,6 +195,12 @@ def is_ignored_chromium_message(line):
         # [758352:758352:0315/212511.747791:WARNING:render_widget_host_impl.cc(280)]
         # Input request on unbound interface
         "Input request on unbound interface",
+
+        # Qt 6.{4,5}, possibly relates to a lifecycle mismatch between Qt and
+        # Chromium but no issues have been concretely linked to it yet.
+        # [5464:5464:0318/024215.821650:ERROR:interface_endpoint_client.cc(687)] Message 6 rejected by interface blink.mojom.WidgetHost
+        # [5718:5718:0318/031330.803863:ERROR:interface_endpoint_client.cc(687)] Message 3 rejected by interface blink.mojom.Widget
+        "Message * rejected by interface blink.mojom.Widget*",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
