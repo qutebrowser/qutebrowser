@@ -782,7 +782,7 @@ Feature: Tab management
 
     @qtwebkit_skip
     Scenario: Cloning a tab with a special URL
-        When I open chrome://gpu
+        When I open chrome://sandbox/
         And I run :tab-clone
         Then no crash should happen
 
