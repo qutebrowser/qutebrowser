@@ -781,6 +781,7 @@ Feature: Tab management
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
     @qtwebkit_skip
+    @windows_skip
     Scenario: Cloning a tab with a special URL
         When I open chrome://sandbox/
         And I run :tab-clone
