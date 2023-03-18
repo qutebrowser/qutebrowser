@@ -89,12 +89,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - archlinux-webkit
-          - archlinux-webengine
-          - archlinux-webengine-qt6
-          - archlinux-webengine-unstable
-          # - archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
+        include:
+          - testenv: py
+            image: archlinux-webkit
+          - testenv: py
+            image: archlinux-webengine
+          - testenv: py-qt6
+            image: archlinux-webengine-qt6
+          - testenv: py
+            image: archlinux-webengine-unstable
+            args: ""
+            # - testenv: py
+            #   image: archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
@@ -112,7 +118,7 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e py
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
@@ -35,6 +35,7 @@ def main():
         'archlinux-webengine': {'webengine': True, 'unstable': False, 'qt6': False},
         'archlinux-webengine-qt6': {'webengine': True, 'unstable': False, 'qt6': True},
         'archlinux-webengine-unstable': {'webengine': True, 'unstable': True, 'qt6': False},
+        'archlinux-webengine-unstable-qt6': {'webengine': True, 'unstable': True, 'qt6': True},
     }[image]
 
     with open('Dockerfile', 'w') as f:

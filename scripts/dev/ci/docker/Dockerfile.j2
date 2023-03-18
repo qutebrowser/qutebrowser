@@ -10,19 +10,19 @@ RUN pacman -Su --noconfirm \
     python-tox \
     python-distlib \
     {% if qt6 %}
-    qt6-base \
-    qt6-declarative \
-    {% if webengine %}
-    qt6-webengine python-pyqt6-webengine \
-    {% else %}{{ 1/0 }}{% endif %}
-    python-pyqt6 \
+      qt6-base \
+      qt6-declarative \
+      {% if webengine %}
+        qt6-webengine python-pyqt6-webengine \
+      {% else %}{{ 1/0 }}{% endif %}
+      python-pyqt6 \
     {% else %}
-    qt5-base \
-    qt5-declarative \
-    {% if webengine %}
-    qt5-webengine python-pyqtwebengine \
-    {% endif %}
-    python-pyqt5 \
+      qt5-base \
+      qt5-declarative \
+      {% if webengine %}
+        qt5-webengine python-pyqtwebengine \
+      {% endif %}
+      python-pyqt5 \
     {% endif %}
     xorg-xinit \
     xorg-server-xvfb \
@@ -56,4 +56,4 @@ WORKDIR /home/user
 
 CMD git clone /outside qutebrowser.git && \
     cd qutebrowser.git && \
-    tox -e py
+    tox -e {% if qt6 %}py-qt6{% else %}py{% endif %}

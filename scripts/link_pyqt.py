@@ -140,10 +140,10 @@ def link_pyqt(executable, venv_path, *, version='5'):
     try:
         get_lib_path(executable, f'PyQt{version}.sip')
     except Error:
-        # There is no PyQt5.sip, so we need to copy the toplevel sip.
+        # There is no PyQt*.sip, so we need to copy the toplevel sip.
         sip_file = get_lib_path(executable, 'sip')
     else:
-        # There is a PyQt5.sip, it'll get copied with the PyQt5 dir.
+        # There is a PyQt*.sip, it'll get copied with the PyQt* dir.
         sip_file = None
 
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
@@ -218,7 +218,8 @@ def main():
     executable = get_tox_syspython(args.path) if args.tox else sys.executable
 
     venv_path = get_venv_lib_path(args.path)
-    link_pyqt(executable, venv_path)
+    wrapper = os.environ["QUTE_QT_WRAPPER"]
+    link_pyqt(executable, venv_path, version=wrapper[-1])
 
 
 if __name__ == '__main__':
