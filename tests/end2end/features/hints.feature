@@ -620,3 +620,13 @@ Feature: Using hints
         # Changing tabs will leave hint mode
         And I wait until qute://pyeval/ is loaded
         Then the page should contain the plaintext "'Follow hint...'"
+
+    Scenario: Hinting an input after undoing a tab close
+        When I open about:blank
+        And I open data/hints/link_input.html in a new tab
+        And I run :tab-close
+        And I run :undo
+        And I wait until data/hints/link_input.html is loaded
+        And I run :click-element id qute-input-existing
+        And I run :fake-key -g something
+        Then the javascript message "contents: existingsomething" should be logged

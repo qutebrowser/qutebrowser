@@ -564,6 +564,7 @@ class TabbedBrowser(QWidget):
 
             newtab.history.private_api.deserialize(entry.history)
             newtab.set_pinned(entry.pinned)
+            newtab.setFocus()
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
