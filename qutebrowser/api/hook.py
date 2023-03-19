@@ -78,3 +78,78 @@ class config_changed:
         info = _add_module_info(func)
         info.config_changed_hooks.append((self._filter, func))
         return func
+
+
+class before_load:
+
+    """Decorator to get notified right before page loads.
+
+    The decorated function gets called with two arguments `(tab, url)`. `tab` is the
+    :class:`qutebrowser.api.apitypes.Tab` instance which will do the loading. `url` is a
+    QUrl which represents the url that will be loaded.
+
+    Don't expect to be able to do anything on the DOM during this hook.
+
+    NOTE: The before_load hook may be called multiple times before a page loads.
+
+    Example::
+
+        @hook.before_load()
+        def do_something(tab, url):
+            message.info("Do something before the page loads.")
+    """
+
+    def __call__(
+        self,
+        func: loader.BeforeLoadHookType,
+    ) -> loader.BeforeLoadHookType:
+        info = _add_module_info(func)
+        info.before_load_hooks.append(func)
+        return func
+
+
+class load_started:
+
+    """Decorator to get notified right after page starts loading.
+
+    The decorated function gets called with two arguments `(tab)`. `tab` is the
+    :class:`qutebrowser.api.apitypes.Tab` instance which has started loading.
+
+    Example::
+
+        @hook.load_started()
+        def do_something(tab):
+            message.info("Do something while after the page has started loading.")
+    """
+
+    def __call__(
+        self,
+        func: loader.LoadStartedHookType,
+    ) -> loader.LoadStartedHookType:
+        info = _add_module_info(func)
+        info.load_started_hooks.append(func)
+        return func
+
+
+class load_finished:
+
+    """Decorator to get notified right after page finishing loading.
+
+    The decorated function gets called with two arguments `(tab, ok)`. `tab` is the
+    :class:`qutebrowser.api.apitypes.Tab` instance which just finished loading, and `ok`
+    is a bool which is True when the page loaded correctly.
+
+    Example::
+
+        @hook.load_finished()
+        def do_something(tab, ok):
+            message.info("Do something after the page loads.")
+    """
+
+    def __call__(
+        self,
+        func: loader.LoadFinishedHookType,
+    ) -> loader.LoadFinishedHookType:
+        info = _add_module_info(func)
+        info.load_finished_hooks.append(func)
+        return func

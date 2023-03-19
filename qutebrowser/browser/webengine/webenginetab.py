@@ -4,11 +4,13 @@
 
 """Wrapper over a QWebEngineView."""
 
+from collections import OrderedDict
 import math
 import functools
 import dataclasses
 import re
 import html as html_utils
+import logging
 from typing import cast, Union, Optional
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
@@ -36,6 +38,34 @@ _JS_WORLD_MAP = {
     usertypes.JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld,
     usertypes.JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
 }
+
+
+def _convert_usertype_world_id(
+    world: Optional[Union[usertypes.JsWorld, int]]
+) -> Union[QWebEngineScript.ScriptWorldId, int]:
+    world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
+    if world is None:
+        world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
+    elif isinstance(world, int):
+        world_id = world
+        if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
+            raise browsertab.WebTabError(
+                "World ID should be between 0 and {}"
+                .format(qtutils.MAX_WORLD_ID))
+    else:
+        world_id = _JS_WORLD_MAP[world]
+
+    return world_id
+
+
+def _convert_usertype_injection_point(
+        injection_point: usertypes.InjectionPoint
+) -> QWebEngineScript.InjectionPoint:
+    return {
+        usertypes.InjectionPoint.creation: QWebEngineScript.InjectionPoint.DocumentCreation,
+        usertypes.InjectionPoint.ready: QWebEngineScript.InjectionPoint.DocumentReady,
+        usertypes.InjectionPoint.deferred: QWebEngineScript.InjectionPoint.Deferred,
+    }[injection_point]
 
 
 class WebEngineAction(browsertab.AbstractAction):
@@ -1015,6 +1045,8 @@ class _WebEngineScripts(QObject):
         self._tab = tab
         self._widget = cast(webview.WebEngineView, None)
         self._greasemonkey = greasemonkey.gm_manager
+        self._dynamic_css = OrderedDict()
+        self._web_scripts = OrderedDict()
 
     def connect_signals(self):
         """Connect signals to our private slots."""
@@ -1023,6 +1055,75 @@ class _WebEngineScripts(QObject):
         self._tab.search.cleared.connect(functools.partial(
             self._update_stylesheet, searching=False))
         self._tab.search.finished.connect(self._update_stylesheet)
+
+    def add_dynamic_css(self, name: str, css: str) -> None:
+        """Adds css which is expected to be updated often.
+
+        For example, the css may be updated right before a page load.
+
+        Note that this has lower precedence than the user-specified stylsheets.
+
+        The css will be scheduled to update right away.
+        """
+        self._dynamic_css[name] = css
+        self._init_stylesheet()
+        self._update_stylesheet(self._tab.search.search_displayed)
+
+    def remove_dynamic_css(self, name: str) -> None:
+        """Remove the specified tab-specific css.
+
+        If the given name for the css wasn't added before, nothing happens.
+
+        The css will be scheduled to update right away.
+        """
+        if name in self._dynamic_css:
+            del self._dynamic_css[name]
+            self._init_stylesheet()
+            self._update_stylesheet(self._tab.search.search_displayed)
+
+    def add_web_script(
+        self,
+        name: str,
+        js_code: str,
+        world: Union[QWebEngineScript.ScriptWorldId, int],
+        injection_point: QWebEngineScript.InjectionPoint,
+        subframes: bool,
+    ) -> None:
+        """Adds a web scripts to be run at given injection point.
+
+        Web scripts, similar to greasemonkey scripts, are javascript snippets which are
+        set to be run whenever a page loads. The exact point time in which the script
+        run can be specified with `injection_point`. Web scripts are different to
+        greasemonkey scripts in that the user is given more precise control over their
+        exact parameters (e.g., which world to run in).
+
+        If a script with the name was added before, it will be removed and replaced with
+        the given data.
+        """
+        if name in self._web_scripts:
+            self.remove_web_script(name)
+
+        if logging.getLogger("js").isEnabledFor(logging.DEBUG):
+            js_code = (
+                f'console.log(`Running web script {name} on tab {self._tab.tab_id} '
+                'for "${window.location}" (${window.frames.length} subframes) '
+                f'at point {injection_point} in world {world}`);'
+                f'\n{js_code}'
+            )
+
+        self._web_scripts[name] = js_code
+        self._inject_js(f"_web_script_{name}", js_code, world=world,
+                injection_point=injection_point, subframes=subframes)
+
+    def remove_web_script(self, name: str) -> None:
+        """Remove a web script with the given name.
+
+        If a script with the corresponding name was not previously added, nothing
+        happens.
+        """
+        if name in self._web_scripts:
+            del self._web_scripts[name]
+            self._remove_js(f"_web_script_{name}")
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
@@ -1033,8 +1134,16 @@ class _WebEngineScripts(QObject):
     @pyqtSlot(bool)
     def _update_stylesheet(self, searching=False):
         """Update the custom stylesheet in existing tabs."""
-        css = shared.get_user_stylesheet(searching=searching)
-        code = javascript.assemble('stylesheet', 'set_css', css)
+        css = (
+            '\n'.join(self._dynamic_css.values())
+            + '\n'
+            + shared.get_user_stylesheet(searching=searching)
+        )
+        code = javascript.wrap_global(
+            'stylesheet',
+            resources.read_file('javascript/stylesheet.js'),
+        ) + '\n' + javascript.assemble('stylesheet', 'set_css', css,
+                logging.getLogger("js").isEnabledFor(logging.DEBUG))
         self._tab.run_js_async(code)
 
     def _inject_js(self, name, js_code, *,
@@ -1042,6 +1151,14 @@ class _WebEngineScripts(QObject):
                    injection_point=QWebEngineScript.InjectionPoint.DocumentCreation,
                    subframes=False):
         """Inject the given script to run early on a page load."""
+        if logging.getLogger("js").isEnabledFor(logging.DEBUG):
+            js_code = (
+                f'console.log(`Running userscript {name} on tab {self._tab.tab_id} '
+                'for "${window.location}" (${window.frames.length} subframes) '
+                f'at point {injection_point} in world {world}`);'
+                f'\n{js_code}'
+            )
+
         script = QWebEngineScript()
         script.setInjectionPoint(injection_point)
         script.setSourceCode(js_code)
@@ -1085,11 +1202,16 @@ class _WebEngineScripts(QObject):
         https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
         """
         self._remove_js('stylesheet')
-        css = shared.get_user_stylesheet()
+        css = (
+            '\n'.join(self._dynamic_css.values())
+            + '\n'
+            + shared.get_user_stylesheet()
+        )
         js_code = javascript.wrap_global(
             'stylesheet',
             resources.read_file('javascript/stylesheet.js'),
-            javascript.assemble('stylesheet', 'set_css', css),
+            javascript.assemble('stylesheet', 'set_css', css,
+                logging.getLogger("js").isEnabledFor(logging.DEBUG))
         )
         self._inject_js('stylesheet', js_code, subframes=True)
 
@@ -1349,18 +1471,16 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             self._widget.page().toHtml(callback)
 
-    def run_js_async(self, code, callback=None, *, world=None):
-        world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
-        if world is None:
-            world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
-        elif isinstance(world, int):
-            world_id = world
-            if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
-                raise browsertab.WebTabError(
-                    "World ID should be between 0 and {}"
-                    .format(qtutils.MAX_WORLD_ID))
-        else:
-            world_id = _JS_WORLD_MAP[world]
+    def run_js_async(self, code, callback=None, *, world=None, name=''):
+        world_id = _convert_usertype_world_id(world)
+
+        if logging.getLogger("js").isEnabledFor(logging.DEBUG):
+            code = (
+                f'console.log(`Running async code {name} on tab {self.tab_id} '
+                'for "${window.location}" (${window.frames.length} subframes) '
+                f'in world {world_id}`);'
+                f'\n{code}'
+            )
 
         if callback is None:
             self._widget.page().runJavaScript(code, world_id)
@@ -1394,6 +1514,62 @@ class WebEngineTab(browsertab.AbstractTab):
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
+
+    def add_web_script(
+        self,
+        name: str,
+        js_code: str,
+        world: Optional[Union[usertypes.JsWorld, int]] = None,
+        injection_point: usertypes.InjectionPoint = (
+            usertypes.InjectionPoint.creation
+        ),
+        subframes: bool = False,
+    ) -> None:
+        """Adds a web scripts to be run at given injection point.
+
+        Web scripts, similar to greasemonkey scripts, are javascript snippets which are
+        set to be run whenever a page loads. The exact point time in which the script
+        run can be specified with `injection_point`. Web scripts are different to
+        greasemonkey scripts in that the user is given more precise control over their
+        exact parameters (e.g., which world to run in).
+
+        If a script with the name was added before, it will be removed and replaced with
+        the given data.
+        """
+        self._scripts.add_web_script(
+            name, js_code,
+            _convert_usertype_world_id(world),
+            _convert_usertype_injection_point(injection_point),
+            subframes
+        )
+
+    def remove_web_script(self, name: str) -> None:
+        """Remove a web script with the given name.
+
+        If a script with the corresponding name was not previously added, nothing
+        happens.
+        """
+        self._scripts.remove_web_script(name)
+
+    def add_dynamic_css(self, name: str, css: str) -> None:
+        """Adds css which is expected to be updated often.
+
+        For example, the css may be updated right before a page load.
+
+        Note that this has lower precedence than the user-specified stylsheets.
+
+        The css will be scheduled to update right away.
+        """
+        self._scripts.add_dynamic_css(name, css)
+
+    def remove_dynamic_css(self, name: str) -> None:
+        """Remove the specified tab-specific css.
+
+        If the given name for the css wasn't added before, nothing happens.
+
+        The css will be scheduled to update right away.
+        """
+        self._scripts.remove_dynamic_css(name)
 
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
