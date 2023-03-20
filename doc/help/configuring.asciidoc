@@ -415,6 +415,7 @@ Pre-built colorschemes
 - https://www.opencode.net/wakellor957/qb-breath/-/blob/main/qb-breath.py[Manjaro Breath-like]
 - https://github.com/gicrisf/qute-city-lights[City Lights (matte dark)]
 - https://github.com/catppuccin/qutebrowser[Catppuccin]
+- https://github.com/iruzo/matrix-qutebrowser[Matrix]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
