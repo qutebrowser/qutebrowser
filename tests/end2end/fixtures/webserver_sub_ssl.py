@@ -23,7 +23,6 @@ This script gets called as a QProcess from end2end/conftest.py.
 """
 
 import sys
-import logging
 
 import flask
 
@@ -60,12 +59,6 @@ def favicon():
 @app.after_request
 def log_request(response):
     return webserver_sub.log_request(response)
-
-
-@app.before_first_request
-def turn_off_logging():
-    # Turn off werkzeug logging after the startup message has been printed.
-    logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 
 def main():
