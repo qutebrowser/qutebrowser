@@ -186,7 +186,7 @@ class QuickmarkManager(UrlMarkManager):
 
         if name in self.marks:
             message.confirm_async(
-                title=f"Override existing quickmark?\nOld URL: {self.marks[name]}"
+                title=f"Override existing quickmark?\nOld URL: {self.marks[name]}",
                 yes_action=set_mark, default=True, url=url)
         else:
             set_mark()
