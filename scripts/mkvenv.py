@@ -396,10 +396,10 @@ def _find_libs() -> Dict[Tuple[str, str], List[str]]:
 
 
 def run_qt_smoke_test_single(
-        venv_dir: pathlib.Path, *,
-        debug: bool,
-        pyqt_version: str,
-    ) -> None:
+    venv_dir: pathlib.Path, *,
+    debug: bool,
+    pyqt_version: str,
+) -> None:
     """Make sure the Qt installation works."""
     utils.print_title("Running Qt smoke test")
     code = [
