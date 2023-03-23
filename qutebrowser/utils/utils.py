@@ -270,7 +270,7 @@ class FakeIOStream(io.TextIOBase):
 
     def __init__(self, write_func: Callable[[str], int]) -> None:
         super().__init__()
-        self.write = write_func  # type: ignore[assignment]
+        self.write = write_func  # type: ignore[method-assign]
 
 
 @contextlib.contextmanager

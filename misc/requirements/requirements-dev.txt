@@ -5,13 +5,13 @@ build==0.10.0
 bump2version==1.0.1
 certifi==2022.12.7
 cffi==1.15.1
-charset-normalizer==3.0.1
+charset-normalizer==3.1.0
 cryptography==39.0.2
 docutils==0.19
 github3.py==3.2.0
 hunter==3.5.1
 idna==3.4
-importlib-metadata==6.0.0
+importlib-metadata==6.1.0
 importlib-resources==5.12.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
@@ -43,6 +43,6 @@ tomli==2.0.1
 twine==4.0.2
 typing_extensions==4.5.0
 uritemplate==4.1.1
-# urllib3==1.26.14
+# urllib3==1.26.15
 webencodings==0.5.1
 zipp==3.15.0

@@ -68,7 +68,8 @@ _MODIFIER_MAP = {
 }
 
 try:
-    _NIL_KEY: Union[Qt.Key, int] = Qt.Key(0)
+    # WORKAROUND for https://github.com/PyCQA/pylint/issues/8487
+    _NIL_KEY: Union[Qt.Key, int] = Qt.Key(0)  # pylint: disable=invalid-name
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
