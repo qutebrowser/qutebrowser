@@ -50,6 +50,7 @@ Added
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
       selection via rofi, and inserting TOTP-codes (experimental).
+- New `colors.webpage.darkmode.increase_text_contrast` setting for Qt 6.3+
 
 Removed
 ~~~~~~~
@@ -107,6 +108,34 @@ Changed
   the ones produced by `:download --mhtml`.
 - The "... called unimplemented GM_..." messages are now logged as info JS
   messages instead of errors.
+- JS errors in internal qutebrowser scripts are now shown as errors in the UI.
+- For QtNetwork downloads (e.g. `:adblock-update`), various changes were done
+  for how redirects work:
+  - Insecure redirects (HTTPS -> HTTP) now fail the download.
+  - 20 redirects are now allowed before the download fails rather than only 10
+  - A redirect to the same URL will now fail the download with too many
+    redirects instead of being ignored.
+- When a download fails in a way it'd leave an empty file around, the empty
+  file is now deleted.
+- With Qt 6, setting `content.headers.referer` to `always` will act as if it
+  was set to `same-domain`. The documentation is now updated to point that out.
+- With QtWebEngine 5.15.5+, the load finished workaround was dropped, which
+  should make certain operations happen when the page has started loading rather
+  when it fully finished.
+- `mkvenv.py` has a new `--pyqt-snapshot` flag, allowing to install certain packages
+  from the https://www.riverbankcomputing.com/pypi/[Riverbank development snapshots server]
+- When `QUTE_QTWEBENGINE_VERSION_OVERRIDE` is set, it now always wins, no matter how
+  the version would otherwise have been determined. Note setting this value can break
+  things (if set to a wrong value), and usually isn't needed.
+- When qutebrowser is run with an older QtWebEngine version as on the previous
+  launch, it now prints an error before starting (which causes the underlying
+  Chromium to remove all browsing data such as cookies).
+- The keys "<To Do List>" and "<Contrast adjust>" are now named "<To-do list>"
+  and "<Adjust contrast>", respeectively.
+- The `tox.ini` now requires at least tox 3.20 (was tox 3.15 previously)
+- `:config-diff` now has an `--include-hidden` flag, which also shows
+  internally-set settings.
+- Improved error messages when `:spawn` can't find an executable.
 
 Fixed
 ~~~~~
@@ -122,6 +151,11 @@ Fixed
 - The `progress` and `backforward` statusbar widgets now stay removed if you
   choose to remove them. Previously they would appear again on navigation.
 - Rare crash when running userscripts with crashed renderer processes.
+- Multiple rare crashes when quitting qutebrowser.
+- The `asciidoc2html.py` script now correctly uses the virtualenv-installed
+  asciidoc rather than requiring a system-wide installation.
+- Crash with some notification servers when the server is quitting.
+- Crash when using QtWebKit with PAC and the file has an invalid encoding.
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)
