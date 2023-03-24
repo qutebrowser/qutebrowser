@@ -628,5 +628,6 @@ Feature: Using hints
         And I run :undo
         And I wait until data/hints/link_input.html is loaded
         And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :fake-key -g something
         Then the javascript message "contents: existingsomething" should be logged

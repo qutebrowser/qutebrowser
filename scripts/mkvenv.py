@@ -395,7 +395,11 @@ def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     return all_libs
 
 
-def run_qt_smoke_test_single(venv_dir: pathlib.Path, *, debug: bool) -> None:
+def run_qt_smoke_test_single(
+    venv_dir: pathlib.Path, *,
+    debug: bool,
+    pyqt_version: str,
+) -> None:
     """Make sure the Qt installation works."""
     utils.print_title("Running Qt smoke test")
     code = [
@@ -410,11 +414,17 @@ def run_qt_smoke_test_single(venv_dir: pathlib.Path, *, debug: bool) -> None:
         'print("Qt seems to work properly!")',
         'print()',
     ]
+    env = {
+        'QUTE_QT_WRAPPER': 'PyQt6' if _is_qt6_version(pyqt_version) else 'PyQt5',
+    }
+    if debug:
+        env['QT_DEBUG_PLUGINS'] = '1'
+
     try:
         run_venv(
             venv_dir,
             'python', '-c', '; '.join(code),
-            env={'QT_DEBUG_PLUGINS': '1'} if debug else {},
+            env=env,
             capture_error=True
         )
     except Error as e:
@@ -434,15 +444,15 @@ def run_qt_smoke_test(venv_dir: pathlib.Path, *, pyqt_version: str) -> None:
     no_debug = pyqt_version in ("6.3", "6") and sys.platform == "darwin"
     if no_debug:
         try:
-            run_qt_smoke_test_single(venv_dir, debug=False)
+            run_qt_smoke_test_single(venv_dir, debug=False, pyqt_version=pyqt_version)
         except Error as e:
             print(e)
             print("Rerunning with debug output...")
             print("NOTE: This will likely segfault due to a Qt bug:")
             print("https://bugreports.qt.io/browse/QTBUG-104415")
-            run_qt_smoke_test_single(venv_dir, debug=True)
+            run_qt_smoke_test_single(venv_dir, debug=True, pyqt_version=pyqt_version)
     else:
-        run_qt_smoke_test_single(venv_dir, debug=True)
+        run_qt_smoke_test_single(venv_dir, debug=True, pyqt_version=pyqt_version)
 
 
 def install_requirements(venv_dir: pathlib.Path) -> None:
