@@ -251,25 +251,28 @@ Feature: Using hints
     ### iframes
     Scenario: Using :hint-follow inside an iframe
         When I open data/hints/iframe.html
+        And I wait for "* wrapped loaded" in the log
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Using :hint-follow inside an iframe button
         When I open data/hints/iframe_button.html
+        And I wait for "* wrapped_button loaded" in the log
         And I hint with args "all normal" and follow s
         Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
 
     Scenario: Hinting inputs in an iframe without type
         When I open data/hints/iframe_input.html
+        And I wait for "* input loaded" in the log
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
-    @flaky  # FIXME https://github.com/qutebrowser/qutebrowser/issues/1525
     Scenario: Using :hint-follow inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
+        And I wait for "* simple loaded" in the log
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
         And I hint with args "links normal" and follow a
@@ -291,11 +294,13 @@ Feature: Using hints
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html
+        And I wait for "* wrapped loaded" in the log
         And I hint with args "all current" and follow a
         Then no crash should happen
 
     Scenario: No error when hinting ranged input in frames
         When I open data/hints/issue3711_frame.html
+        And I wait for "* issue3711 loaded" in the log
         And I hint with args "all current" and follow a
         Then no crash should happen
 
