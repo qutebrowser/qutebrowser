@@ -603,7 +603,7 @@ Feature: Downloading things from a website.
         And I set content.tls.certificate_errors to load-insecurely
         And I download an SSL redirect page
         # First error is due to the load-insecurely value above
-        Then the error "Certificate error: The certificate is self-signed, and untrusted" should be shown
+        Then the error "Certificate error: *The certificate is self-signed, and untrusted" should be shown
         And the error "Download error: Insecure redirect" should be shown
         And the downloaded file download.bin should not exist
 
