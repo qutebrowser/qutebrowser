@@ -2,4 +2,4 @@
 
 pathspec==0.11.1
 PyYAML==6.0
-yamllint==1.29.0
+yamllint==1.30.0
