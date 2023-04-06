@@ -148,7 +148,6 @@ Usage:$(2)\
 ${UNINSTALL_FILENAME} [</AllUsers | /CurrentUser> [/Silent]] \
 [/User] [/ClearCache] [/ClearConfig] [/Log[={file}]]\
 `
-LangString MB_MIN_WIN_VER ${LANG_ENGLISH} `This program requires at least Windows ${MIN_WIN_VER}.`
 LangString MB_NON_EMPTY_INSTDIR ${LANG_ENGLISH} `\
 The directory:$(2)$INSTDIR$(2)\
 already exists and contains files!$(2)\
@@ -172,11 +171,9 @@ LangString MB_RESTART_FAILED ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} Setuo failed to restart unelevated.$(2)\
 Click OK to exit.\
 `
-LangString MB_USE32 ${LANG_ENGLISH} `\
-Please run the 32-bit installer of ${PRODUCT_NAME} on this architecture of Windows.\
-`
-LangString MB_USE64 ${LANG_ENGLISH} `\
-Please run the 64-bit installer of ${PRODUCT_NAME} on this architecture of Windows.\
+LangString MB_UNSUPPORTED_OS ${LANG_ENGLISH} `\
+This version of ${PRODUCT_NAME} requires a 64-bit$(1)\
+version of Windows 10 21H2 or later.\
 `
 LangString MB_USER_ABORT ${LANG_ENGLISH} `\
 The installation of ${PRODUCT_NAME} was aborted.$(2)\

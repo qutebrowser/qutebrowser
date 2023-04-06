@@ -153,6 +153,18 @@ Function ${F}.onInit
     ${Quit} ERROR_SUCCESS ''
 
     !if '${F}' == ''
+        check_win_ver:
+        GetWinVer ${Result} Major
+        IntCmpU ${Result} 10 0 _unsupported_os _os_ok
+        ${If} ${IsNativeAMD64}
+            GetWinVer ${Result} Build
+            IntCmpU ${Result} 19044 _os_ok 0 _os_ok
+        ${EndIf}
+        _unsupported_os:
+        ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_UNSUPPORTED_OS)
+        _os_ok:
+        ${Return}
+
         detect_nsis_v2:
         !macro DETECT_NSIS_V2 HKEY CONTEXT MODE
             ${If} $HasPer${CONTEXT}Installation = 0
@@ -183,13 +195,9 @@ Function ${F}.onInit
         ${Return}
 
         detect_nsis_v1:
-        !if ${ARCH} == 'x64'
-            SetRegView 32
-        !endif
+        SetRegView 32
         ReadRegStr $PerMachineUninstallString HKLM '${REG_UNINSTALL}\${PRODUCT_NAME}' 'UninstallString'
-        !if ${ARCH} == 'x64'
-            SetRegView 64
-        !endif
+        SetRegView 64
         StrCmpS $PerMachineUninstallString '' _detect_nsis_v1_end
         System::Call 'Shlwapi::PathUnquoteSpaces(t$PerMachineUninstallString ${r.Result})'
         ${StdUtils.GetParentPath} $PerMachineInstallationFolder ${Result}
@@ -292,28 +300,20 @@ Function ${F}.onInit
             !insertmacro CHECK_MSI ${BITS} 011
             !insertmacro CHECK_MSI ${BITS} 010
         !macroend
-        !if '${ARCH}' == 'x64'
-            !insertmacro CHECK_MSI_ARCH 64
-            SetRegView 32
-        !endif
+        !insertmacro CHECK_MSI_ARCH 64
+        SetRegView 32
         !insertmacro CHECK_MSI_ARCH 32
         !macroundef CHECK_MSI_ARCH
         !macroundef CHECK_MSI
         _detect_msi_end:
-        !if '${ARCH}' == 'x64'
-            SetRegView 64
-        !endif
+        SetRegView 64
         ${Return}
         check_msi_ver:
         ReadRegStr ${RegValue} HKLM '${REG_UNINSTALL}\${MsiGuid}' 'DisplayName'
         ${If} ${RegValue} == '${PRODUCT_NAME}'
-            !if '${ARCH}' == 'x64'
-                SetRegView 64
-            !endif
+            SetRegView 64
             ReadRegStr $PerMachineInstallationFolder HKLM '${REG_MSI_COMPONENTS}\${MsiPathKey}' '${MsiPathStr}'
-            !if '${ARCH}' == 'x64'
-                SetRegView lastused
-            !endif
+            SetRegView lastused
             ${StdUtils.NormalizePath} $PerMachineInstallationFolder $PerMachineInstallationFolder
             ${WriteDebug} $PerMachineInstallationFolder
             ${If} $PerMachineInstallationFolder S!= ''
@@ -332,18 +332,7 @@ Function ${F}.onInit
     init_outer:
     ${Set} $SetupState 0
     !if '${F}' == ''
-        !if ${ARCH} == 'x86'
-            ${If} ${RunningX64}
-                ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_USE64)
-            ${EndIf}
-        !else if ${ARCH} == 'x64'
-            ${IfNot} ${RunningX64}
-                ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_USE32)
-            ${EndIf}
-        !endif
-        ${IfNot} ${AtLeastWin${MIN_WIN_VER}}
-            ${Quit} ERROR_OLD_WIN_VERSION $(MB_MIN_WIN_VER)
-        ${EndIf}
+        ${Call} :check_win_ver
     !endif
     ; Internal switch: check if restarted by '/user',
     ; or the uninstaller is started from the installer

@@ -34,7 +34,12 @@
 !define URL_UPDATE_INFO 'https://qutebrowser.org/doc/install.html'
 !define URL_HELP_LINK 'https://qutebrowser.org/doc/help/'
 
-!define MIN_WIN_VER 8
+; CPU Arch
+!ifdef X86
+    !error '32-bit installer is no longer supported.'
+!endif
+!define ARCH 'x64'
+!define SUFFIX 'amd64'
 
 ; Dark colors
 !define /ifndef DARK_BGCOLOR_0 0x191919
@@ -256,12 +261,8 @@
 
 ### Configurable defines
 
-; The makensis parameters for the second build
-!define MAKENSIS_D
-
 ; Project root path
 !ifdef PRJ_ROOT
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"PRJ_ROOT=${PRJ_ROOT}"'
     !if '${PRJ_ROOT}' == ''
         !define /redef PRJ_ROOT '.'
     !endif
@@ -274,7 +275,6 @@
     !ifdef DIST_DIR
         !error `Both "DIST_PARENT" and "DIST_DIR" cannot be defined.`
     !endif
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"DIST_PARENT=${DIST_PARENT}"'
     !if '${DIST_PARENT}' == ''
         !define /redef DIST_PARENT '.'
     !endif
@@ -282,32 +282,11 @@
     !define DIST_PARENT '${PRJ_ROOT}\dist'
 !endif
 
-!ifdef ARCH ; set the targeted architecture defined in ARCH
-    !if '${ARCH}' == 'x64'
-        !define /redef ARCH 'x64' ; make sure "x64" is in lowercase
-        !define SUFFIX 'amd64'
-    !else if '${ARCH}' == 'x86'
-        !define /redef ARCH 'x86' ; make sure "x86" is in lowercase
-        !define SUFFIX 'win32'
-    !else
-        !error '"ARCH" must be either "x86" or "x64".'
-    !endif
-!else ; if ARCH isn't defined, set to build both architectures
-    !ifdef DIST_DIR
-        !error 'DIST_DIR requires ARCH to be set.'
-    !endif
-    !define ARCH 'x64'
-    !define SUFFIX 'amd64'
-    !define DUAL_BUILD
-    !define /redef MAKENSIS_D `/D"ARCH=x86" /D"NO_DOWNLOADS" /D"KEEP_SCRATCHDIR" ${MAKENSIS_D}`
-!endif
-
 ; Version number and source path of release
 !ifdef VERSION
     !if '${VERSION}' == ''
         !error '"VERSION" cannot be empty.'
     !endif
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"VERSION=${VERSION}"'
 !else ifndef DIST_DIR
     !searchparse /file '${PRJ_ROOT}\qutebrowser\__init__.py' `__version__ = "` VER_MAJOR `.` VER_MINOR `.` VER_PATCH `"`
     !define VERSION '${VER_MAJOR}.${VER_MINOR}.${VER_PATCH}'
@@ -325,7 +304,6 @@
 
 ; Installer output directory
 !ifdef OUTDIR
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"OUTDIR=${OUTDIR}"'
     !if '${OUTDIR}' == ''
         !define /redef OUTDIR '.'
     !endif
@@ -342,12 +320,10 @@
     !tempfile SCRATCHDIR
     !delfile '${SCRATCHDIR}'
 !endif
-!define /redef MAKENSIS_D '${MAKENSIS_D} /D"SCRATCHDIR=${SCRATCHDIR}"'
 
 ; Exe headers packer tool and parameters
 !ifdef PACK
     !searchreplace DPACK `${PACK}` `"` `"""`
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"PACK=${DPACK}"'
     !undef DPACK
     !if '${PACK}' == ''
         !define /redef PACK 'upx --ultra-brute "%1"'
@@ -357,7 +333,6 @@
 ; Installer signing command and parameters
 !ifdef SIGN
     !searchreplace DSIGN `${SIGN}` `"` `"""`
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"SIGN=${DSIGN}"'
     !undef DSIGN
     !if '${SIGN}' == ''
         !define /redef SIGN 'signtool.exe sign /a /tr http://timestamp.digicert.com /td sha256 /fd sha256 "%1"'
@@ -366,7 +341,6 @@
 
 ; WiX binaries
 !ifdef MSI
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"MSI=${MSI}"'
     !if '${MSI}' == ''
         !define CANDLE 'candle.exe'
         !define LIGHT 'light.exe'
@@ -401,7 +375,6 @@
     !if '${INST_ICON}' == ''
         !error `"INST_ICON" cannot be empty.`
     !endif
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"INST_ICON=${INST_ICON}"'
 !else
     !define INST_ICON '${PRJ_ROOT}\qutebrowser\icons\qutebrowser.ico'
 !endif
@@ -411,7 +384,6 @@
     !if '${UNINST_ICON}' == ''
         !error `"UNINST_ICON" cannot be empty.`
     !endif
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"UNINST_ICON=${UNINST_ICON}"'
 !else
     !define UNINST_ICON '${NSISDIR}\Contrib\Graphics\Icons\nsis3-uninstall.ico'
 !endif
@@ -421,7 +393,6 @@
     !if '${WIZARD_IMAGE}' == ''
         !error `"WIZARD_IMAGE" cannot be empty.`
     !endif
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"WIZARD_IMAGE=${WIZARD_IMAGE}"'
 !else
     !define WIZARD_IMAGE '${__FILEDIR__}\setup.bmp'
 !endif
@@ -430,13 +401,10 @@
 !ifdef APP_MUTEX
     !if '${APP_MUTEX}' == ''
         !error '"APP_MUTEX" cannot be empty.'
-    !else
-        !define /redef MAKENSIS_D '${MAKENSIS_D} /D"APP_MUTEX=${APP_MUTEX}"'
     !endif
 !endif
 
 !ifdef DEBUG
-    !define /redef MAKENSIS_D '${MAKENSIS_D} /D"DEBUG=${DEBUG}"'
     !if '${DEBUG}' == ''
         !define /redef DEBUG '${OUTDIR}'
     !endif
@@ -486,10 +454,6 @@ OutFile '${OUTDIR}\${INSTALLER_NAME}.exe'
     !system `${SHELL_PREPARE_SCRATCHDIR}` = 0
     !addincludedir '${SCRATCHDIR}'
     !addplugindir /x86-unicode '${SCRATCHDIR}'
-
-    !ifdef DUAL_BUILD
-        !makensis `${MAKENSIS_D} "${__FILE__}"` = 0
-    !endif
 
     ; Pack the exe header if PACK is defined
     !ifdef PACK

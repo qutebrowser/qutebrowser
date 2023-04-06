@@ -816,9 +816,7 @@
     IntCmpU ${InstDirLength} 3 _reject _reject
     ; Reject $PROGRAMFILES root
     StrCmp $INSTDIR $PROGRAMFILES _reject
-    !if ${ARCH} == 'x64'
-        StrCmp $INSTDIR $PROGRAMFILES64 _reject
-    !endif
+    StrCmp $INSTDIR $PROGRAMFILES64 _reject
     ; Reject $WINDIR parent
     StrLen ${WinDirLength} $WINDIR
     IntCmpU ${InstDirLength} ${WinDirLength} _equal _end _greater
