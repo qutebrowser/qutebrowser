@@ -196,6 +196,11 @@ def is_ignored_chromium_message(line):
         # Input request on unbound interface
         "Input request on unbound interface",
 
+        # Qt 6.5 debug build
+        # [1408271:1408418:0317/201633.360945:ERROR:http_cache_transaction.cc(3622)]
+        # ReadData failed: 0
+        "ReadData failed: 0",
+
         # Qt 6.{4,5}, possibly relates to a lifecycle mismatch between Qt and
         # Chromium but no issues have been concretely linked to it yet.
         # [5464:5464:0318/024215.821650:ERROR:interface_endpoint_client.cc(687)] Message 6 rejected by interface blink.mojom.WidgetHost
