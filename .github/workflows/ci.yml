@@ -122,7 +122,7 @@ jobs:
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
-    timeout-minutes: 45
+    timeout-minutes: 60
     # continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false
@@ -217,7 +217,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     permissions:
       security-events: write
-    timeout-minutes: 60
+    timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
