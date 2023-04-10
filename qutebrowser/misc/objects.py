@@ -43,8 +43,6 @@ class NoBackend:
         raise AssertionError("No backend set!")
 
 
-# WORKAROUND for https://github.com/PyCQA/pylint/issues/8487
-# pylint: disable-next=invalid-name
 backend: Union['usertypes.Backend', NoBackend] = NoBackend()
 commands: Dict[str, 'command.Command'] = {}
 debug_flags: Set[str] = set()
