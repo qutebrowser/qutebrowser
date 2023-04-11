@@ -1189,11 +1189,18 @@ class TestConfigPy:
 
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
-        assert isinstance(error.exception, ValueError)
-        assert error.text == "Error while compiling"
+
+        if sys.version_info >= (3, 12):
+            assert isinstance(error.exception, SyntaxError)
+            assert error.text == "Unhandled exception"
+            assert error.traceback is not None  # tested in more detail by test below
+        else:
+            assert isinstance(error.exception, ValueError)
+            assert error.text == "Error while compiling"
+            assert error.traceback is None
+
         exception_text = 'source code string cannot contain null bytes'
         assert str(error.exception) == exception_text
-        assert error.traceback is None
 
     def test_syntax_error(self, confpy):
         confpy.write('+')
