@@ -199,7 +199,7 @@ Function ${F}.onInit
         ReadRegStr $PerMachineUninstallString HKLM '${REG_UNINSTALL}\${PRODUCT_NAME}' 'UninstallString'
         SetRegView 64
         StrCmpS $PerMachineUninstallString '' _detect_nsis_v1_end
-        System::Call 'Shlwapi::PathUnquoteSpaces(t$PerMachineUninstallString ${r.Result})'
+        System::Call 'shlwapi::PathUnquoteSpaces(t$PerMachineUninstallString ${r.Result})'
         ${StdUtils.GetParentPath} $PerMachineInstallationFolder ${Result}
         ${Set} $PerMachineUninstallString '$PerMachineUninstallString /S _?=$PerMachineInstallationFolder'
         ${Set} $HasPerMachineInstallation 1
@@ -586,39 +586,32 @@ FunctionEnd
 ; setup window, set $DarkMode value. Each page must change the colors of its
 ; controls using its 'Show'.callback.
 Function ${F}onGUIInitMUI
+    ${Reserve} $R0 Result 0
     ${If} ${IsHighContrastModeActive}
         ${Set} $DarkMode 0
-        Return
+    ${Else}
+        System::Call 'uxtheme::#132() i.${r.Result}' ; ShouldAppsUseDarkMode
+        ${Set} $DarkMode ${Result}
     ${EndIf}
-    ${Reserve} $R0 RegVal ''
-    ${Reserve} $R1 Result 0
-    ReadRegDWORD ${RegVal} HKCU 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' 'AppsUseLightTheme'
-    StrCmpS ${RegVal} 1 0 _dark_mode
-    ${Set} $DarkMode 0
-    Goto _end
-    _dark_mode:
-    ${Set} $DarkMode 1
-    System::Call 'DWMAPI::DwmSetWindowAttribute(p$HWNDPARENT, i20, *i1, i4) i.${r.Result}' ; 20H1
-    StrCmpS ${Result} 0 _@
-    System::Call 'DWMAPI::DwmSetWindowAttribute(p$HWNDPARENT, i19, *i1, i4) i.${r.Result}' ; 19H1
-    StrCmpS ${Result} 0 _@
-    System::Call 'USER32::SetProp(p$HWNDPARENT, t"UseImmersiveDarkModeColors", i1)' ; 1809
-    _@:
+    StrCmpS $DarkMode 0 _end
+
+    System::Call 'uxtheme::#135(i1)' ; SetPreferredAppMode
+    System::Call 'dwmapi::DwmSetWindowAttribute(p$HWNDPARENT, i20, *i1, i4)'
     SetCtlColors $HWNDPARENT ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.Header.Image ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
     SetCtlColors $mui.Header.Background ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
     SetCtlColors $mui.Header.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
     SetCtlColors $mui.Header.SubText ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
     SetCtlColors $mui.Button.Next '' ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.Button.Next, w"DarkMode_Explorer", p0)'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.Button.Next, w"DarkMode_Explorer", n)'
     SetCtlColors $mui.Button.Back '' ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.Button.Back, w"DarkMode_Explorer", p0)'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.Button.Back, w"DarkMode_Explorer", n)'
     SetCtlColors $mui.Button.Cancel '' ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.Button.Cancel, w"DarkMode_Explorer", p0)'
-    SetCtlColors $mui.Branding.Text /BRANDING '' ${DARK_BGCOLOR_0}
+    System::Call 'uxtheme::SetWindowTheme(p$mui.Button.Cancel, w"DarkMode_Explorer", n)'
+    SetCtlColors $mui.Branding.Text /BRANDING '' transparent
+
     _end:
     ${Release} Result ''
-    ${Release} RegVal ''
 FunctionEnd
 
 ; Page callbacks
@@ -629,9 +622,9 @@ Function ${F}PageInstallModeShow
     SetCtlColors $MultiUser.InstallModePage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $MultiUser.InstallModePage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $MultiUser.InstallModePage.Description ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$MultiUser.InstallModePage.AllUsers, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$MultiUser.InstallModePage.AllUsers, w" ", w" ")'
     SetCtlColors $MultiUser.InstallModePage.AllUsers ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$MultiUser.InstallModePage.CurrentUser, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$MultiUser.InstallModePage.CurrentUser, w" ", w" ")'
     SetCtlColors $MultiUser.InstallModePage.CurrentUser ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     _end:
 FunctionEnd
@@ -760,10 +753,11 @@ Function ${F}PageComponentsShow
         ${Reserve} $R0 hwndCombo $mui.ComponentsPage.InstTypes
         ${Reserve} $R1 pcbi 0 ; pointer for COMBOBOXINFO structure
         System::Call '*(i52, i, i, i, i, i, i, i, i, i, p, p, p0) p.${r.pcbi}'
-        System::Call 'USER32::GetComboBoxInfo(i${r.hwndCombo}, p${r.pcbi})'
+        System::Call 'user32::GetComboBoxInfo(i${r.hwndCombo}, p${r.pcbi})'
         System::Call '*${pcbi}(i, i, i, i, i, i, i, i, i, i, p, p, p.${r.hwndCombo})'
         System::Free ${pcbi}
         SetCtlColors ${hwndCombo} ${DARK_FGCOLOR} ${DARK_BGCOLOR_2}
+        System::Call 'uxtheme::SetWindowTheme(p$mui.ComponentsPage.InstTypes, w"DarkMode_CFD", n)'
         ${Release} pcbi ''
         ${Release} hwndCombo ''
     !else
@@ -772,11 +766,11 @@ Function ${F}PageComponentsShow
     SetCtlColors $mui.ComponentsPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SendMessage $mui.ComponentsPage.Components ${TVM_SETBKCOLOR} 0 ${DARK_BGCOLOR_2}
     SendMessage $mui.ComponentsPage.Components ${TVM_SETTEXTCOLOR} 0 ${DARK_FGCOLOR}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.ComponentsPage.Components, w"DarkMode_Explorer", p0)'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.ComponentsPage.Components, w"DarkMode_Explorer", n)'
     SetCtlColors $mui.ComponentsPage.ComponentsText ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.DescriptionText ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.DescriptionText.Info ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.ComponentsPage.DescriptionTitle, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.ComponentsPage.DescriptionTitle, w" ", w" ")'
     SetCtlColors $mui.ComponentsPage.DescriptionTitle ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.InstTypesText ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.SpaceRequired ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
@@ -818,9 +812,9 @@ Function ${F}PageInstFilesShow
     StrCmpS $DarkMode 0 _end
     SetCtlColors $mui.InstFilesPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.InstFilesPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.InstFilesPage.ShowLogButton, w"DarkMode_Explorer", p0)'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ShowLogButton, w"DarkMode_Explorer", n)'
     SetCtlColors $mui.InstFilesPage.ShowLogButton ${DARK_FGCOLOR} ${DARK_BGCOLOR_2}
-    System::Call 'UXTHEME::SetWindowTheme(p$mui.InstFilesPage.Log, w"DarkMode_Explorer", p0)'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.Log, w"DarkMode_Explorer", n)'
     SendMessage $mui.InstFilesPage.Log ${LVM_SETBKCOLOR} 0 ${DARK_BGCOLOR_2}
     SendMessage $mui.InstFilesPage.Log ${LVM_SETTEXTCOLOR} 0 ${DARK_FGCOLOR}
     SendMessage $mui.InstFilesPage.Log ${LVM_SETTEXTBKCOLOR} 0 ${DARK_BGCOLOR_2}
@@ -854,7 +848,7 @@ FunctionEnd
         ${Reserve} $R3 CursorPos 0
         ${Reserve} $R4 TextLength 0
 
-        System::Call 'User32::GetWindowText(p$mui.DirectoryPage.Directory, t.${r.InText}, i${NSIS_MAX_STRLEN})'
+        System::Call 'user32::GetWindowText(p$mui.DirectoryPage.Directory, t.${r.InText}, i${NSIS_MAX_STRLEN})'
         StrCpy ${LastChar} ${InText} '' -1
 
         ${If} ${InText} S!= ''
@@ -960,7 +954,7 @@ FunctionEnd
         System::Call '*(i92, i${CFM_COLOR}, i0, i0, i0, i${DARK_FGCOLOR}, i, &w32) p.${r.CharFormat}'
         SendMessage $mui.Licensepage.LicenseText ${EM_SETCHARFORMAT} ${SCF_ALL} ${CharFormat}
         System::Free ${CharFormat}
-        System::Call 'UXTHEME::SetWindowTheme(p$mui.Licensepage.LicenseText, w"DarkMode_Explorer", p0)'
+        System::Call 'uxtheme::SetWindowTheme(p$mui.Licensepage.LicenseText, w"DarkMode_Explorer", n)'
         ${Release} CharFormat ''
         _end:
     FunctionEnd
@@ -970,10 +964,10 @@ FunctionEnd
         StrCmpS $DarkMode 0 _end
         SetCtlColors $mui.DirectoryPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         SetCtlColors $mui.DirectoryPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-        System::Call 'UXTHEME::SetWindowTheme(p$mui.DirectoryPage.DirectoryBox, w" ", w" ")'
+        System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.DirectoryBox, w" ", w" ")'
         SetCtlColors $mui.DirectoryPage.DirectoryBox ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         SetCtlColors $mui.DirectoryPage.Directory ${DARK_FGCOLOR} ${DARK_BGCOLOR_2}
-        System::Call 'UXTHEME::SetWindowTheme(p$mui.DirectoryPage.BrowseButton, w"DarkMode_Explorer", p0)'
+        System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.BrowseButton, w"DarkMode_Explorer", n)'
         SetCtlColors $mui.DirectoryPage.BrowseButton ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         SetCtlColors $mui.DirectoryPage.SpaceRequired ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         SetCtlColors $mui.DirectoryPage.SpaceAvailable ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
@@ -1014,7 +1008,7 @@ FunctionEnd
         SetCtlColors $mui.FinishPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
         SetCtlColors $mui.FinishPage.Title ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
         SetCtlColors $mui.FinishPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
-        System::Call 'UXTHEME::SetWindowTheme(p$mui.FinishPage.Run, w" ", w" ")'
+        System::Call 'uxtheme::SetWindowTheme(p$mui.FinishPage.Run, w" ", w" ")'
         SetCtlColors $mui.FinishPage.Run ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
         _end:
     FunctionEnd
