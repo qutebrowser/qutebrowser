@@ -300,7 +300,7 @@ class TestSerializeStream:
                                           "data."):
             qtutils.serialize_stream(stream_mock, obj)
 
-        assert stream_mock.__lshift__.called_once_with(obj)
+        stream_mock.__lshift__.assert_called_once_with(obj)
 
     def test_deserialize_pre_error_mock(self, stream_mock):
         """Test deserialize_stream with an error already set."""
@@ -322,7 +322,7 @@ class TestSerializeStream:
                                           "data."):
             qtutils.deserialize_stream(stream_mock, obj)
 
-        assert stream_mock.__rshift__.called_once_with(obj)
+        stream_mock.__rshift__.assert_called_once_with(obj)
 
     def test_round_trip_real_stream(self):
         """Test a round trip with a real QDataStream."""
