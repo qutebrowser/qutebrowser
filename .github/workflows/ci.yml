@@ -154,9 +154,10 @@ jobs:
             os: ubuntu-20.04
             python: 3.9
           ### PyQt 6.5 (Python 3.11)
-          - testenv: py311-pyqt65
-            os: ubuntu-22.04
-            python: 3.11
+          # FIXME:qt6 broken
+          # - testenv: py311-pyqt65
+          #   os: ubuntu-22.04
+          #   python: 3.11
           ### macOS Big Sur: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-11
