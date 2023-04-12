@@ -118,10 +118,13 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
-        if (config.cache['hints.uppercase'] and
+        if (config.cache['hints.labels'] and
                 self._context.hint_mode in ['letter', 'word']):
-            matched = html.escape(matched.upper())
-            unmatched = html.escape(unmatched.upper())
+            chars = config.val.hints.chars
+            labels = config.val.hints.labels
+            table = str.maketrans(dict(zip(chars, labels)))
+            matched = html.escape(matched.translate(table))
+            unmatched = html.escape(unmatched.translate(table))
         else:
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)

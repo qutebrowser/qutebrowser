@@ -1621,8 +1621,24 @@ hints.chars:
     completions:
       - ['asdfghjkl', "Home row"]
       - ['aoeuidnths', "Home row (Dvorak)"]
+      - ['hjkl', "Directional keys (Vim)"]
+      - ['hjklyubn', "Directional keys (roguelike)"]
       - ['abcdefghijklmnopqrstuvwxyz', "All letters"]
   desc: Characters used for hint strings.
+
+hints.labels:
+  default:
+  type:
+    name: UniqueCharString
+    none_ok: true
+    completions:
+      - ['←↓↑→', "Arrows for directional keys (Vim)"]
+      - ['←↓↑→↖↗↙↘', "Arrows for directional keys (roguelike)"]
+  desc: >-
+    Labels for hint characters.
+
+    To replace the removed `hints.uppercase` setting, set `c.hints.labels =
+    c.hints.chars.upper()` in `config.py`.
 
 hints.dictionary:
   default: /usr/share/dict/words
@@ -1774,11 +1790,6 @@ hints.selectors:
   supports_pattern: true
   desc: CSS selectors used to determine which elements on a page should have
     hints.
-
-hints.uppercase:
-  default: false
-  type: Bool
-  desc: Make characters in hint strings uppercase.
 
 hints.leave_on_load:
   default: false

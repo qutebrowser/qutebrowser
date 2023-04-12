@@ -463,6 +463,7 @@ class YamlMigrations(QObject):
         self._migrate_bindings_default()
         self._migrate_font_default_family()
         self._migrate_font_replacements()
+        self._migrate_hints_uppercase()
 
         self._migrate_bool('tabs.favicons.show', 'always', 'never')
         self._migrate_bool('scrolling.bar', 'always', 'overlay')
@@ -551,6 +552,23 @@ class YamlMigrations(QObject):
             return
 
         del self._settings['bindings.default']
+        self.changed.emit()
+
+    def _migrate_hints_uppercase(self) -> None:
+        if 'hints.uppercase' not in self._settings:
+            return
+
+        self._settings['hints.labels'] = {}
+
+        for scope, val in self._settings['hints.uppercase'].items():
+            if val and 'hints.chars' in self._settings:
+                labels = self._settings['hints.chars'][scope].upper()
+                self._settings['hints.labels'][scope] = labels
+            elif val and 'hints.chars' not in self._settings:
+                labels = configdata.DATA['hints.chars'].default.upper()
+                self._settings['hints.labels'][scope] = labels
+
+        del self._settings['hints.uppercase']
         self.changed.emit()
 
     def _migrate_font_default_family(self) -> None:
