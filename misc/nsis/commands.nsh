@@ -738,6 +738,12 @@
     Pop ${FileExt}
     ${Set} RegKey '${REG_CLS}\${FileExt}\OpenWithProgids'
     ${Call} :remove_item
+    ${Set} RegKey '${REG_CLS}\${FileExt}'
+    DeleteRegKey /ifnovalues SHCTX ${RegKey}
+    ${IfNot} ${Errors}
+        DetailPrint $(M_DELETE_REG_KEY)${RegKey}
+        ${WriteLog} $(M_DELETE_REG_KEY)${RegKey}
+    ${EndIf}
     IntOp ${ExtCount} ${ExtCount} - 1
     IntCmp ${ExtCount} 0 0 0 _open_with_loop
 
