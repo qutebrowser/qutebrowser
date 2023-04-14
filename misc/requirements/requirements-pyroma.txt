@@ -5,8 +5,8 @@ certifi==2022.12.7
 charset-normalizer==3.1.0
 docutils==0.19
 idna==3.4
-packaging==23.0
-Pygments==2.14.0
+packaging==23.1
+Pygments==2.15.0
 pyproject_hooks==1.0.0
 pyroma==4.2
 requests==2.28.2
