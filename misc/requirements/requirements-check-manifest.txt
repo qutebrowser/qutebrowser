@@ -2,6 +2,6 @@
 
 build==0.10.0
 check-manifest==0.49
-packaging==23.0
+packaging==23.1
 pyproject_hooks==1.0.0
 tomli==2.0.1

@@ -122,7 +122,7 @@ jobs:
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
-    timeout-minutes: 90
+    timeout-minutes: 45
     # continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false

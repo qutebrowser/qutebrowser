@@ -10,7 +10,7 @@ MarkupSafe==2.1.2
 mypy==1.2.0
 mypy-extensions==1.0.0
 pluggy==1.0.0
-Pygments==2.14.0
+Pygments==2.15.0
 PyQt5-stubs==5.15.6.0
 tomli==2.0.1
 types-PyYAML==6.0.12.9
