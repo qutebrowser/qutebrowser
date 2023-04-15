@@ -141,7 +141,7 @@ class CompletionView(QTreeView):
         #
         # Some background: https://bugs.quassel-irc.org/issues/663
         # The proposed fix there was later reverted because it didn't help.
-        self.setUniformRowHeights(True)
+        self._set_uniform_height()
         self.hide()
         # FIXME set elidemode
         # https://github.com/qutebrowser/qutebrowser/issues/118
@@ -162,6 +162,11 @@ class CompletionView(QTreeView):
     def _on_config_changed(self, option):
         if option in ['completion.height', 'completion.shrink']:
             self.update_geometry.emit()
+        elif option == 'completion.uniform_height':
+            self._set_uniform_height()
+
+    def _set_uniform_height(self):
+        self.setUniformRowHeights(config.val.completion.uniform_height)
 
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
