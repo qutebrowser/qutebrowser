@@ -11,7 +11,7 @@ docutils==0.19
 github3.py==3.2.0
 hunter==3.5.1
 idna==3.4
-importlib-metadata==6.3.0
+importlib-metadata==6.4.1
 importlib-resources==5.12.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
