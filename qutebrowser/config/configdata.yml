@@ -2540,6 +2540,7 @@ url.yank_ignored_parameters:
     - utm_campaign
     - utm_term
     - utm_content
+    - utm_name
   desc: URL parameters to strip with `:yank url`.
 
 ## window
