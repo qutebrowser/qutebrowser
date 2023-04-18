@@ -825,7 +825,7 @@ def main() -> None:
     if args.skip_docs:
         pathlib.Path("qutebrowser", "html", "doc").mkdir(parents=True, exist_ok=True)
     else:
-        run_asciidoc2html()
+        run_asciidoc2html(args)
 
     if IS_WINDOWS:
         artifacts = build_windows(
