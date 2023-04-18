@@ -21,9 +21,11 @@
 """Simple launcher for qutebrowser."""
 
 import sys
+import os
 
 import qutebrowser.qutebrowser
 
+os.environ['QUTE_QT_WRAPPER'] = 'PyQt6'
 
 if __name__ == '__main__':
     sys.exit(qutebrowser.qutebrowser.main())

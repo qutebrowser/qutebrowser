@@ -10,7 +10,7 @@ import importlib
 # sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
 #
 # Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
-_DEFAULT_WRAPPER = "PyQt5"
+_DEFAULT_WRAPPER = "PyQt6"
 
 _WRAPPERS = [
     "PyQt6",
