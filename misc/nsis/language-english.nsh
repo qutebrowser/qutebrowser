@@ -113,7 +113,7 @@ Continue?\
 `
 LangString MB_CONFIRM_QUIT ${LANG_ENGLISH} `Are you sure you want to quit $(^Name) Setup?`
 LangString MB_FAIL_INSTALL ${LANG_ENGLISH} `\
-${PRODUCT_NAME} ${VERSION}installation failed.$(1)\
+${PRODUCT_NAME} v${VERSION} installation failed.$(1)\
 Please restart Windows and run the setup again.\
 `
 LangString MB_FAIL_UNINSTALL ${LANG_ENGLISH} `\
@@ -168,7 +168,7 @@ The installation directory still contains files.$(2)\
 Do you want to view its contents?\
 `
 LangString MB_RESTART_FAILED ${LANG_ENGLISH} `\
-${PRODUCT_NAME} Setuo failed to restart unelevated.$(2)\
+${PRODUCT_NAME} Setup failed to restart unelevated.$(1)\
 Click OK to exit.\
 `
 LangString MB_UNSUPPORTED_OS ${LANG_ENGLISH} `\
@@ -176,7 +176,7 @@ This version of ${PRODUCT_NAME} requires a 64-bit$(1)\
 version of Windows 10 21H2 or later.\
 `
 LangString MB_USER_ABORT ${LANG_ENGLISH} `\
-The installation of ${PRODUCT_NAME} was aborted.$(2)\
+The installation of ${PRODUCT_NAME} was aborted.$(1)\
 Click OK to exit Setup.\
 `
 
