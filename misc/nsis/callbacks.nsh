@@ -520,6 +520,7 @@ Function ${F}.onInit
     ${Return}
 
     _start:
+    StrCpy $CancelButtonText $(B_CANCEL)
     ${GetParameters} ${Parameters}
 
     ; /Silent
@@ -998,8 +999,9 @@ FunctionEnd
 
     ; Reset progress bar for aborted installations.
     Function PageInstFilesLeave
-        IfAbort 0 +2
+        IfAbort 0 +3
         SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETPOS} 0 0
+        StrCpy $CancelButtonText $(B_CLOSE)
     FunctionEnd
 
     ; Dark mode for Finish page.

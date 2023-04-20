@@ -85,6 +85,10 @@ LangString M_SKIPPED ${LANG_ENGLISH} $(^Skipped)
 LangString M_UPDATE_REG ${LANG_ENGLISH} `Update registry: `
 LangString M_USER_CANCEL ${LANG_ENGLISH} `Canceled by user`
 
+;Button Texts
+LangString B_CANCEL ${LANG_ENGLISH} `Cancel` ; For some reason $(^CancelBtn) is empty
+LangString B_CLOSE ${LANG_ENGLISH} $(^CloseBtn)
+
 ; MessageBox action texts
 LangString A_RETRY_CANCEL ${LANG_ENGLISH} `$(2)Click Retry to try again, or$(1)Cancel quit.`
 LangString A_ABORT_RETRY_IGNORE ${LANG_ENGLISH} `$(2)Click Abort to quit,$(1)Retry to try again, or$(1)Ignore to skip `

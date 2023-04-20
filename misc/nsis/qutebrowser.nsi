@@ -165,6 +165,10 @@ Var LogHandle
     Var DebugLogHandle
 !endif
 
+Var CancelButtonText
+
+MiscButtonText '' '' $CancelButtonText
+
 ### Custom commands
 
 !include '${FILE_MACROS_NSH}'
