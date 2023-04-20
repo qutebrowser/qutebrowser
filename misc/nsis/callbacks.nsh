@@ -811,6 +811,25 @@ FunctionEnd
 ; Dark mode for InstFiles page.
 Function ${F}PageInstFilesShow
     StrCmpS $DarkMode 0 _end
+
+    ; Dark color for progress bar background
+    ${Reserve} $R0 HResult ''
+    ${Reserve} $R1 ThemeData ''
+    ${Reserve} $0 FillColor '' ; NSIS sytem plugin bug: Direct register memory access works correctly only with $0-$1
+    System::Call 'uxtheme::OpenThemeData(p$mui.InstFilesPage.ProgressBar, w"PROGRESS") p.${r.ThemeData}'
+    StrCmpS ${ThemeData} 0 _@
+    System::Call 'uxtheme::GetThemeColor(p${r.ThemeData}, i${PP_FILL}, i${PBFS_NORMAL}, i${TMT_FILLCOLOR}, @${r.FillColor}) i.${r.HResult}'
+    StrCmpS ${HResult} 0 0 _@@
+    System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ProgressBar, w" ", w" ")'
+    SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBKCOLOR} 0 ${DARK_BGCOLOR_2}
+    SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBARCOLOR} 0 ${FillColor}
+    _@@:
+    System::Call 'uxtheme::CloseThemeData(p${r.ThemeData})'
+    _@:
+    ${Release} FillColor ''
+    ${Release} ThemeData ''
+    ${Release} Hresult ''
+
     SetCtlColors $mui.InstFilesPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.InstFilesPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ShowLogButton, w"DarkMode_Explorer", n)'

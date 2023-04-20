@@ -42,6 +42,11 @@
 !define /ifndef SCF_DEFAULT 0x0000
 !define /ifndef SCF_ALL 0x0004
 
+!define /ifndef PP_FILL 5
+!define /ifndef PBFS_NORMAL 1
+
+!define /ifndef TMT_FILLCOLOR 3802
+
 ; MUI2
 !include 'MUI2.nsh'
 !define MUI_BGCOLOR 'SYSCLR:Window'
