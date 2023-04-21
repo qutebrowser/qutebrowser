@@ -986,6 +986,7 @@ FunctionEnd
         SetCtlColors $mui.DirectoryPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.DirectoryBox, w" ", w" ")'
         SetCtlColors $mui.DirectoryPage.DirectoryBox ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
+        System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.Directory, w"DarkMode_CFD", n)'
         SetCtlColors $mui.DirectoryPage.Directory ${DARK_FGCOLOR} ${DARK_BGCOLOR_2}
         System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.BrowseButton, w"DarkMode_Explorer", n)'
         SetCtlColors $mui.DirectoryPage.BrowseButton ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
