@@ -4665,6 +4665,7 @@ Default:
 - +pass:[utm_campaign]+
 - +pass:[utm_term]+
 - +pass:[utm_content]+
+- +pass:[utm_name]+
 
 [[window.hide_decoration]]
 === window.hide_decoration
