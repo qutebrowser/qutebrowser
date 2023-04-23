@@ -879,6 +879,40 @@ class TestYamlMigrations:
                         'content.media.video_capture']:
             assert data[setting]['global'] == val
 
+    @pytest.mark.parametrize('chars, uppercase', [
+        ('aoeuidnths', True),
+        ('abcdefghijklmnopqrstuvwxyz', True),
+        (None, True),
+        ('aoeuidnths', False),
+        ('abcdefghijklmnopqrstuvwxyz', False),
+        (None, False),
+        ('aoeuidnths', None),
+        ('abcdefghijklmnopqrstuvwxyz', None),
+        (None, None),
+    ])
+    def test_hints_uppercase(self, yaml, autoconfig, chars, uppercase):
+        settings = {}
+        if chars is not None:
+            settings['hints.chars'] = {'global': chars}
+        if uppercase is not None:
+            settings['hints.uppercase'] = {'global': uppercase}
+
+        autoconfig.write(settings)
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        if uppercase:
+            if 'hints.chars' in data:
+                labels = data['hints.chars']['global'].upper()
+                assert data['hints.labels']['global'] == labels
+            else:
+                labels = configdata.DATA['hints.chars'].default.upper()
+                assert data['hints.labels']['global'] == labels
+        else:
+            assert 'hints.labels' not in data
+
     def test_empty_pattern(self, yaml, autoconfig):
         valid_pattern = 'https://example.com/*'
         invalid_pattern = '*://*./*'
