@@ -8,10 +8,10 @@ cffi==1.15.1
 charset-normalizer==3.1.0
 cryptography==40.0.2
 docutils==0.19
-github3.py==3.2.0
+github3.py==4.0.0
 hunter==3.5.1
 idna==3.4
-importlib-metadata==6.4.1
+importlib-metadata==6.6.0
 importlib-resources==5.12.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
@@ -24,7 +24,7 @@ packaging==23.1
 pkginfo==1.9.6
 ply==3.11
 pycparser==2.21
-Pygments==2.15.0
+Pygments==2.15.1
 PyJWT==2.6.0
 Pympler==1.0.1
 pyproject_hooks==1.0.0
@@ -36,7 +36,7 @@ requests-toolbelt==0.10.1
 rfc3986==2.0.0
 rich==13.3.4
 SecretStorage==3.3.3
-sip==6.7.8
+sip==6.7.9
 six==1.16.0
 tomli==2.0.1
 twine==4.0.2
