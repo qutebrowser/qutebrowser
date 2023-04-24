@@ -6,7 +6,7 @@ cffi==1.15.1
 charset-normalizer==3.1.0
 cryptography==40.0.2
 dill==0.3.6
-github3.py==3.2.0
+github3.py==4.0.0
 idna==3.4
 isort==5.11.5
 lazy-object-proxy==1.9.0
