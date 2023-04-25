@@ -22,7 +22,6 @@
 LangString 1 ${LANG_ENGLISH} `$\r$\n`
 LangString 2 ${LANG_ENGLISH} $(1)$(1)
 LangString 3 ${LANG_ENGLISH} $(2)$(1)
-LangString 4 ${LANG_ENGLISH} $(3)$(1)
 
 ; File and registry texts
 LangString DESCRIPTION ${LANG_ENGLISH} `A keyboard-driven, vim-like browser based on Python and Qt.`
@@ -92,6 +91,8 @@ LangString B_CLOSE ${LANG_ENGLISH} $(^CloseBtn)
 ; MessageBox action texts
 LangString A_RETRY_CANCEL ${LANG_ENGLISH} `$(2)Click Retry to try again, or$(1)Cancel quit.`
 LangString A_ABORT_RETRY_IGNORE ${LANG_ENGLISH} `$(2)Click Abort to quit,$(1)Retry to try again, or$(1)Ignore to skip `
+LangString A_RESTART_WINDOWS ${LANG_ENGLISH} `$(1)Please restart Windows and run the setup again.`
+
 
 ; MessageBox texts
 LangString MB_APPLICATION_RUNNING ${LANG_ENGLISH} `\
@@ -117,8 +118,7 @@ Continue?\
 `
 LangString MB_CONFIRM_QUIT ${LANG_ENGLISH} `Are you sure you want to quit $(^Name) Setup?`
 LangString MB_FAIL_INSTALL ${LANG_ENGLISH} `\
-${PRODUCT_NAME} v${VERSION} installation failed.$(1)\
-Please restart Windows and run the setup again.\
+${PRODUCT_NAME} v${VERSION} installation failed.$(A_RESTART_WINDOWS)\
 `
 LangString MB_FAIL_UNINSTALL ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} ${VERSION} could not be fully uninstalled.$(1)\
@@ -126,6 +126,9 @@ Please restart Windows and run the uninstaller again.\
 `
 LangString MB_FILE_ERROR ${LANG_ENGLISH} $(^FileError)
 LangString MB_FILE_ERROR_NO_IGNORE ${LANG_ENGLISH} $(^FileError_NoIgnore)
+LangString MB_GETUSERNAME_FAIL ${LANG_ENGLISH} `\
+${PRODUCT_NAME} Setup failed to retrieve the user name.$(A_RESTART_WINDOWS)\
+`
 LangString MB_HELP_INSTALL ${LANG_ENGLISH} `\
 Usage:$(2)\
 $EXEFILE [</AllUsers | /CurrentUser> [/Silent]] \
@@ -164,8 +167,7 @@ Remove extra files?\
 `
 LangString MB_NOWINDOW_ERROR ${LANG_ENGLISH} `\
 An instance of $(^Name) Setup is already running,$(1)\
-but without having a visible window.$(2)\
-Please restart Windows and run the Setup again.\
+but without having a visible window.$(1)$(A_RESTART_WINDOWS)\
 `
 LangString MB_OPEN_INSTDIR ${LANG_ENGLISH} `\
 The installation directory still contains files.$(2)\

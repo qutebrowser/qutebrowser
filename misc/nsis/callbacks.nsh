@@ -35,16 +35,19 @@ Function ${F}.onInit
     ${Reserve} $R5 MsiGuid ''
     ${Reserve} $R6 MsiPathKey ''
     ${Reserve} $R7 MsiPathStr ''
-    ${Reserve} $R8 RegValue ''
+    ${Reserve} $R8 Value ''
     ${Reserve} $R9 Result ''
     Goto _start
 
     get_user_name:
-    System::Call 'advapi32::GetUserName(t.${r.Result}, *i${NSIS_MAX_STRLEN})'
+    System::Call 'advapi32::GetUserNameW(w.${r.Value}, *i${NSIS_MAX_STRLEN}) i.${r.Result}'
+    ${If} ${Result} = 0
+        ${Quit} ERROR_BAD_USERNAME $(MB_GETUSERNAME_FAIL)
+    ${EndIf}
     ${Return}
     !macro GET_USER_NAME USER_NAME
         ${Call} :get_user_name
-        ${Set} ${USER_NAME} ${Result}
+        ${Set} ${USER_NAME} ${Value}
     !macroend
     !define GetUserName '!insertmacro GET_USER_NAME'
 
@@ -97,7 +100,7 @@ Function ${F}.onInit
     ${Return}
 
     set_single_instance:
-    System::Call 'kernel32::CreateMutex(p0, i1, t"${SETUP_GUID}") p.${r.Handle} ?e'
+    System::Call 'kernel32::CreateMutexW(n, i1, w"${SETUP_GUID}") p.${r.Handle} ?e'
     Pop ${Result}
     ${WriteDebug} Result
     ${If} ${Result} = ${ERROR_ALREADY_EXISTS}
@@ -119,12 +122,14 @@ Function ${F}.onInit
     set_foreground_window:
     FindWindow ${Handle} '#32770' '' '' ${Handle}
     ${If} ${Handle} <> 0
-        StrLen ${Result} ${SetupCaption}
-        IntOp ${Result} ${Result} + 1 ; include null character
-        System::Call 'user32::GetWindowText(p${r.Handle}, t.${r.WindowCaption}, i${r.Result})'
-        StrCmpS ${WindowCaption} ${SetupCaption} 0 set_foreground_window
-        SendMessage ${Handle} ${WM_SYSCOMMAND} ${SC_RESTORE} 0 /TIMEOUT=2000 ; restore if minimized
-        System::Call 'user32::SetForegroundWindow(p${r.Handle})'
+        StrLen ${Value} ${SetupCaption}
+        IntOp ${Value} ${Value} + 1 ; include null character
+        System::Call 'user32::GetWindowTextW(p${r.Handle}, w.${r.WindowCaption}, i${r.Value}) i.${r.Result}'
+        ${If} ${Result} > 0
+            StrCmpS ${WindowCaption} ${SetupCaption} 0 set_foreground_window
+            SendMessage ${Handle} ${WM_SYSCOMMAND} ${SC_RESTORE} 0 /TIMEOUT=2000 ; restore if minimized
+            System::Call 'user32::SetForegroundWindow(p${r.Handle})'
+        ${EndIf}
     ${Else}
         ${Error} ERROR_NOT_FOUND
     ${EndIf}
@@ -143,7 +148,7 @@ Function ${F}.onInit
     !if '${F}' == ''
         ${Do}
             Sleep 2000
-            System::Call 'kernel32::OpenMutex(i0x100000, b0, t"${SETUP_GUID}") p.${r.Handle}'
+            System::Call 'kernel32::OpenMutexW(i${SYNCHRONIZE}, i0, w"${SETUP_GUID}") p.${r.Handle}'
             ${WriteDebug} Handle
             ${If} ${Handle} <> 0
                 System::Call 'kernel32::CloseHandle(p${r.Handle})'
@@ -168,23 +173,23 @@ Function ${F}.onInit
         detect_nsis_v2:
         !macro DETECT_NSIS_V2 HKEY CONTEXT MODE
             ${If} $HasPer${CONTEXT}Installation = 0
-                ReadRegStr ${RegValue} ${HKEY} '${REG_UNINSTALL}\${PRODUCT_NAME}' 'InstallLocation'
-                ${If} ${RegValue} S!= ''
-                    ${Set} $Per${CONTEXT}InstallationFolder ${RegValue}
-                    ${Set} $Per${CONTEXT}UninstallString '"${RegValue}\uninstall.exe" /${MODE} /SS _?=${RegValue}'
+                ReadRegStr ${Value} ${HKEY} '${REG_UNINSTALL}\${PRODUCT_NAME}' 'InstallLocation'
+                ${If} ${Value} S!= ''
+                    ${Set} $Per${CONTEXT}InstallationFolder ${Value}
+                    ${Set} $Per${CONTEXT}UninstallString '"${Value}\uninstall.exe" /${MODE} /SS _?=${Value}'
                     ${If} ${Silent}
-                        ${Set} $Per${CONTEXT}UninstallString '$Per${CONTEXT}UninstallString /S _?=${RegValue}'
+                        ${Set} $Per${CONTEXT}UninstallString '$Per${CONTEXT}UninstallString /S _?=${Value}'
                     ${Else}
-                        ${Set} $Per${CONTEXT}UninstallString '$Per${CONTEXT}UninstallString _?=${RegValue}'
+                        ${Set} $Per${CONTEXT}UninstallString '$Per${CONTEXT}UninstallString _?=${Value}'
                     ${EndIf}
                     ${Set} $HasPer${CONTEXT}Installation 1
                     ${If} $MultiUser.InstallMode == '${MODE}'
                         ${Set} $HasCurrentModeInstallation 1
                     ${EndIf}
                     ClearErrors
-                    ReadRegStr ${RegValue} ${HKEY} '${REG_UNINSTALL}\${PRODUCT_NAME}' 'DisplayVersion'
+                    ReadRegStr ${Value} ${HKEY} '${REG_UNINSTALL}\${PRODUCT_NAME}' 'DisplayVersion'
                     ${IfNot} ${Errors}
-                        ${Set} $Per${CONTEXT}InstallationVersion ${RegValue}
+                        ${Set} $Per${CONTEXT}InstallationVersion ${Value}
                     ${EndIf}
                 ${EndIf}
             ${EndIf}
@@ -199,7 +204,7 @@ Function ${F}.onInit
         ReadRegStr $PerMachineUninstallString HKLM '${REG_UNINSTALL}\${PRODUCT_NAME}' 'UninstallString'
         SetRegView 64
         StrCmpS $PerMachineUninstallString '' _detect_nsis_v1_end
-        System::Call 'shlwapi::PathUnquoteSpaces(t$PerMachineUninstallString ${r.Result})'
+        System::Call 'shlwapi::PathUnquoteSpacesW(w$PerMachineUninstallString ${r.Result})'
         ${StdUtils.GetParentPath} $PerMachineInstallationFolder ${Result}
         ${Set} $PerMachineUninstallString '$PerMachineUninstallString /S _?=$PerMachineInstallationFolder'
         ${Set} $HasPerMachineInstallation 1
@@ -309,8 +314,8 @@ Function ${F}.onInit
         SetRegView 64
         ${Return}
         check_msi_ver:
-        ReadRegStr ${RegValue} HKLM '${REG_UNINSTALL}\${MsiGuid}' 'DisplayName'
-        ${If} ${RegValue} == '${PRODUCT_NAME}'
+        ReadRegStr ${Value} HKLM '${REG_UNINSTALL}\${MsiGuid}' 'DisplayName'
+        ${If} ${Value} == '${PRODUCT_NAME}'
             SetRegView 64
             ReadRegStr $PerMachineInstallationFolder HKLM '${REG_MSI_COMPONENTS}\${MsiPathKey}' '${MsiPathStr}'
             SetRegView lastused
@@ -565,7 +570,7 @@ Function ${F}.onInit
     !macroundef GET_OPTION_STATE
     !macroundef SYNC
     ${Release} Result ''
-    ${Release} RegValue ''
+    ${Release} Value ''
     ${Release} MsiPathStr ''
     ${Release} MsiPathKey ''
     ${Release} MsiGuid ''
@@ -596,8 +601,14 @@ Function ${F}onGUIInitMUI
     ${EndIf}
     StrCmpS $DarkMode 0 _end
 
-    System::Call 'uxtheme::#135(i1)' ; SetPreferredAppMode
-    System::Call 'dwmapi::DwmSetWindowAttribute(p$HWNDPARENT, i20, *i1, i4)'
+    System::Call 'dwmapi::DwmSetWindowAttribute(p$HWNDPARENT, i${DWMWA_USE_IMMERSIVE_DARK_MODE}, *i1, i4) i.${r.Result}'
+    ${If} ${Result} = ${S_OK}
+        System::Call 'uxtheme::#135(i1)' ; SetPreferredAppMode
+    ${Else}
+        ${Set} $DarkMode 0
+        Goto _end
+    ${EndIf}
+
     SetCtlColors $HWNDPARENT ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.Header.Image ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
     SetCtlColors $mui.Header.Background ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
@@ -623,9 +634,9 @@ Function ${F}PageInstallModeShow
     SetCtlColors $MultiUser.InstallModePage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $MultiUser.InstallModePage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $MultiUser.InstallModePage.Description ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'uxtheme::SetWindowTheme(p$MultiUser.InstallModePage.AllUsers, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$MultiUser.InstallModePage.AllUsers, w"", w"")'
     SetCtlColors $MultiUser.InstallModePage.AllUsers ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'uxtheme::SetWindowTheme(p$MultiUser.InstallModePage.CurrentUser, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$MultiUser.InstallModePage.CurrentUser, w"", w"")'
     SetCtlColors $MultiUser.InstallModePage.CurrentUser ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     _end:
 FunctionEnd
@@ -771,7 +782,7 @@ Function ${F}PageComponentsShow
     SetCtlColors $mui.ComponentsPage.ComponentsText ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.DescriptionText ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.DescriptionText.Info ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-    System::Call 'uxtheme::SetWindowTheme(p$mui.ComponentsPage.DescriptionTitle, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.ComponentsPage.DescriptionTitle, w"", w"")'
     SetCtlColors $mui.ComponentsPage.DescriptionTitle ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.InstTypesText ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
     SetCtlColors $mui.ComponentsPage.SpaceRequired ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
@@ -819,7 +830,7 @@ Function ${F}PageInstFilesShow
     System::Call 'uxtheme::OpenThemeData(p$mui.InstFilesPage.ProgressBar, w"PROGRESS") p.${r.ThemeData}'
     StrCmpS ${ThemeData} 0 _@
     System::Call 'uxtheme::GetThemeColor(p${r.ThemeData}, i${PP_FILL}, i${PBFS_NORMAL}, i${TMT_FILLCOLOR}, @${r.FillColor}) i.${r.HResult}'
-    StrCmpS ${HResult} 0 0 _@@
+    StrCmpS ${HResult} ${S_OK} 0 _@@
     System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ProgressBar, w" ", w" ")'
     SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBKCOLOR} 0 ${DARK_BGCOLOR_2}
     SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBARCOLOR} 0 ${FillColor}
@@ -867,8 +878,10 @@ FunctionEnd
         ${Reserve} $R2 LastChar ''
         ${Reserve} $R3 CursorPos 0
         ${Reserve} $R4 TextLength 0
+        ${Reserve} $R6 Result 0
 
-        System::Call 'user32::GetWindowText(p$mui.DirectoryPage.Directory, t.${r.InText}, i${NSIS_MAX_STRLEN})'
+        System::Call 'user32::GetWindowTextW(p$mui.DirectoryPage.Directory, w.${r.InText}, i${NSIS_MAX_STRLEN}) i.${r.Result}'
+        StrCmpS ${Result} 0 _end
         StrCpy ${LastChar} ${InText} '' -1
 
         ${If} ${InText} S!= ''
@@ -878,9 +891,9 @@ FunctionEnd
 
             ${If} ${LastChar} S== '\'
             ${AndIf} ${FileExists} '$INSTDIR\*'
-                System::Call 'kernel32::GetLongPathNameW(t"$INSTDIR", t.${r.OutText}, i${NSIS_MAX_STRLEN}) i.${r.TextLength}'
-                ${If} ${TextLength} > 0
-                ${Andif} ${TextLength} < ${NSIS_MAX_STRLEN}
+                System::Call 'kernel32::GetLongPathNameW(w$INSTDIR, w.${r.OutText}, i${NSIS_MAX_STRLEN}) i.${r.TextLength}'
+                ${If} ${TextLength} U> 0
+                ${Andif} ${TextLength} U< ${NSIS_MAX_STRLEN}
                     ${Set} $INSTDIR ${OutText}
                 ${EndIf}
             ${EndIf}
@@ -911,6 +924,8 @@ FunctionEnd
             Abort
         ${EndIf}
 
+        _end:
+        ${Release} Result ''
         ${Release} TextLength ''
         ${Release} CursorPos ''
         ${Release} LastChar ''
@@ -984,7 +999,7 @@ FunctionEnd
         StrCmpS $DarkMode 0 _end
         SetCtlColors $mui.DirectoryPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         SetCtlColors $mui.DirectoryPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
-        System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.DirectoryBox, w" ", w" ")'
+        System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.DirectoryBox, w"", w"")'
         SetCtlColors $mui.DirectoryPage.DirectoryBox ${DARK_FGCOLOR} ${DARK_BGCOLOR_0}
         System::Call 'uxtheme::SetWindowTheme(p$mui.DirectoryPage.Directory, w"DarkMode_CFD", n)'
         SetCtlColors $mui.DirectoryPage.Directory ${DARK_FGCOLOR} ${DARK_BGCOLOR_2}
@@ -1030,7 +1045,7 @@ FunctionEnd
         SetCtlColors $mui.FinishPage ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
         SetCtlColors $mui.FinishPage.Title ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
         SetCtlColors $mui.FinishPage.Text ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
-        System::Call 'uxtheme::SetWindowTheme(p$mui.FinishPage.Run, w" ", w" ")'
+        System::Call 'uxtheme::SetWindowTheme(p$mui.FinishPage.Run, w"", w"")'
         SetCtlColors $mui.FinishPage.Run ${DARK_FGCOLOR} ${DARK_BGCOLOR_1}
         _end:
     FunctionEnd

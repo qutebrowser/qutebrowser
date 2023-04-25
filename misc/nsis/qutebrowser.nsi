@@ -47,6 +47,8 @@
 
 !define /ifndef TMT_FILLCOLOR 3802
 
+!define /ifndef DWMWA_USE_IMMERSIVE_DARK_MODE 20
+
 ; MUI2
 !include 'MUI2.nsh'
 !define MUI_BGCOLOR 'SYSCLR:Window'

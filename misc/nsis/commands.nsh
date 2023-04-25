@@ -406,12 +406,13 @@
     ${Reserve} $R5 AppExePath '$INSTDIR\${PROGEXE}'
     ${Reserve} $R6 AppExeUnPath ''
     ${Reserve} $R7 AppRunning 0
+    ${Reserve} $R8 Result 0
 
     _start:
     ${Set} AppRunning 0
 
     !ifdef APP_MUTEX
-        System::Call 'kernel32::OpenMutex(i0x100000, b0, t"${APP_MUTEX}") p.${r.MutexHandle}'
+        System::Call 'kernel32::OpenMutexW(i${SYNCHRONIZE}, i0, w"${APP_MUTEX}") p.${r.MutexHandle}'
         ${If} ${MutexHandle} = 0
             ${Set} AppRunning 1
         ${Else}
@@ -447,10 +448,13 @@
     scan_windows:
     FindWindow ${WindowHandle} '' '' '' ${WindowHandle}
     StrCmpS ${WindowHandle} 0 _ret
-    System::Call 'user32::GetWindowThreadProcessId(p${r.WindowHandle}, *p.${r.ProcessId})'
+    System::Call 'user32::GetWindowThreadProcessId(p${r.WindowHandle}, *p.${r.ProcessId}) i.${r.Result}'
+    StrCmpS ${Result} 0 scan_windows
     System::Call 'kernel32::OpenProcess(i${PROCESS_ALL_ACCESS}, i0, p${r.ProcessId}) p.${r.ProcessHandle}'
-    System::Call 'psapi::GetModuleFileNameEx(p${r.ProcessHandle}, in, t.${r.ProcessPath}, i${NSIS_MAX_STRLEN})'
+    StrCmpS ${ProcessHandle} 0 scan_windows
+    System::Call 'psapi::GetModuleFileNameExW(p${r.ProcessHandle}, n, w.${r.ProcessPath}, i${NSIS_MAX_STRLEN}) i.${r.Result}'
     System::Call 'kernel32::CloseHandle(p${r.ProcessHandle})'
+    StrCmpS ${Result} 0 scan_windows
     !ifndef __UNINSTALL__
         StrCmpS ${AppExeUnPath} '' +2
         StrCmp ${ProcessPath} ${AppExeUnPath} _process_detected
@@ -467,6 +471,7 @@
     ${Error} ERROR_LOCK_VIOLATION
 
     _end:
+    ${Release} Result ''
     ${Release} AppRunning ''
     ${Release} AppExeUnPath ''
     ${Release} AppExePath ''
