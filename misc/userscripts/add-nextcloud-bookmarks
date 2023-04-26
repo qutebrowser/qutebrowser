@@ -13,16 +13,18 @@ userscript setup:
 [nextcloud]
 HOST=https://nextcloud.example.com
 USER=username
-;PASSWORD=lamepassword
+PASSWORD=lamepassword
+or
+PASS=get_password_command  #PASS=pass bookmarks/user
 DESCRIPTION=None
 ;TAGS=just-one
 TAGS=read-me-later,added-by-qutebrowser, Another-One
 
-    If settings aren't in the configuration file, the user will be prompted during
-    bookmark creation.  If DESCRIPTION and TAGS are set to None, they will be left
-    blank. If the user does not want to be prompted for a password, it is recommended
+    Settings should be into configuration file. If DESCRIPTION and TAGS are set to None, they will be left
+    blank. If the user does not want to use his password, it is recommended
     to set up an 'app password'.  See the following for instructions:
     https://docs.nextcloud.com/server/latest/user_manual/en/session_management.html#managing-devices  # noqa: E501
+    pass option has been added to avoid clear password in a conf file.
 
 qutebrowser setup:
     add bookmark via hints
