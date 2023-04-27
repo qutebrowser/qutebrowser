@@ -100,12 +100,29 @@ Function ${F}.onInit
     ${Return}
 
     set_single_instance:
-    System::Call 'kernel32::CreateMutexW(n, i1, w"${SETUP_GUID}") p.${r.Handle} ?e'
-    Pop ${Result}
-    ${WriteDebug} Result
+    !macro CREATE_MUTEX IN_MUTEX_NAME OUT_LAST_ERROR
+        System::Call 'kernel32::CreateMutexW(n, i1, w"${IN_MUTEX_NAME}") p.${r.Handle} ?e'
+        Pop ${OUT_LAST_ERROR}
+        ${WriteDebug} OUT_LAST_ERROR
+    !macroend
+    ${If} ${Silent}
+        !insertmacro CREATE_MUTEX "${SILENT_SETUP_GUID}" ${Result}
+        ${If} ${Result} = ${ERROR_ALREADY_EXISTS}
+            ${Quit} ERROR_SINGLE_INSTANCE_APP ''
+        ${EndIf}
+    ${Else}
+        System::Call 'kernel32::OpenMutexW(i${SYNCHRONIZE}, i0, w"${SILENT_SETUP_GUID}") p.${r.Handle}'
+        ${If} ${Handle} <> 0
+            System::Call 'kernel32::CloseHandle(p${r.Handle})'
+            MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION $(MB_ACTIVE_SILENT) /SD IDCANCEL IDRETRY set_single_instance
+            ${Quit} ERROR_SINGLE_INSTANCE_APP ''
+        ${EndIf}
+    ${EndIf}
+    !insertmacro CREATE_MUTEX "${SETUP_GUID}" ${Result}
     ${If} ${Result} = ${ERROR_ALREADY_EXISTS}
         ${Set} SetupCaption $(^SetupCaption)
         ${Set} Handle 0
+        Sleep 500
         ClearErrors
         ${Call} :set_foreground_window
         ${If} ${Errors}
@@ -113,7 +130,7 @@ Function ${F}.onInit
             ${Set} Handle 0
             ${Call} :set_foreground_window
             ${If} ${Errors}
-                ${Quit} ERROR_INSTALL_ALREADY_RUNNING $(MB_NOWINDOW_ERROR)
+                ${Quit} ERROR_INSTALL_ALREADY_RUNNING $(MB_ACTIVE_NO_WINDOW)
             ${EndIf}
         ${EndIf}
         ${Quit} ERROR_SINGLE_INSTANCE_APP ''
@@ -128,12 +145,17 @@ Function ${F}.onInit
         ${If} ${Result} > 0
             StrCmpS ${WindowCaption} ${SetupCaption} 0 set_foreground_window
             SendMessage ${Handle} ${WM_SYSCOMMAND} ${SC_RESTORE} 0 /TIMEOUT=2000 ; restore if minimized
-            System::Call 'user32::SetForegroundWindow(p${r.Handle})'
+            System::Call 'user32::SetForegroundWindow(p${r.Handle}) i.${r.Result}'
+            ${If} ${Result} = 0
+                MessageBox MB_OK|MB_ICONSTOP $(MB_ACTIVE_SETUP)
+                ${Quit} ERROR_SINGLE_INSTANCE_APP ''
+            ${EndIf}
         ${EndIf}
     ${Else}
         ${Error} ERROR_NOT_FOUND
     ${EndIf}
     ${Return}
+    !macroundef CREATE_MUTEX
 
     restart_as_user:
     !if '${F}' == ''

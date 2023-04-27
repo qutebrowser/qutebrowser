@@ -24,6 +24,7 @@
 
 ; Basic information
 !define SETUP_GUID '{D9357122-593C-48F3-B281-01CA55F83947}'
+!define SILENT_SETUP_GUID '{B924D30E-6B63-4FF8-A3A8-DDBDC9218C46}'
 !define PRODUCT_NAME 'qutebrowser'
 !define PROGEXE 'qutebrowser.exe'
 !define COMPANY_NAME 'qutebrowser.org'

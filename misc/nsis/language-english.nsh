@@ -95,6 +95,24 @@ LangString A_RESTART_WINDOWS ${LANG_ENGLISH} `$(1)Please restart Windows and run
 
 
 ; MessageBox texts
+LangString MB_ACTIVE_SETUP ${LANG_ENGLISH} `\
+Another instance of $(^Name) Setup is active.$(1)\
+Please make sure it has competed before running$(1)\
+the setup again.\
+`
+LangString MB_ACTIVE_NO_WINDOW ${LANG_ENGLISH} `\
+An instance of $(^Name) Setup is already running,$(1)\
+but without having a visible window.$(1)$(A_RESTART_WINDOWS)\
+`
+LangString MB_ACTIVE_SILENT ${LANG_ENGLISH} `\
+An instance of $(^Name) Setup is currently$(1)\
+running in silent mode.$(2)\
+Please wait a few minutes and click$(1)\
+Retry to try again, or$(1)\
+Cancel to quit.$(2)\
+If this message persists, please restart Windows$(1)\
+and run the setup again.\
+`
 LangString MB_APPLICATION_RUNNING ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} is currently running.$(2)\
 Please close all of its windows and click$(1)\
@@ -164,10 +182,6 @@ LangString MB_NON_EMPTY_SUBDIR ${LANG_ENGLISH} `\
 The directory:$(2)$0$(2)\
 Contains files that don't belong to the installation.$(2)\
 Remove extra files?\
-`
-LangString MB_NOWINDOW_ERROR ${LANG_ENGLISH} `\
-An instance of $(^Name) Setup is already running,$(1)\
-but without having a visible window.$(1)$(A_RESTART_WINDOWS)\
 `
 LangString MB_OPEN_INSTDIR ${LANG_ENGLISH} `\
 The installation directory still contains files.$(2)\
