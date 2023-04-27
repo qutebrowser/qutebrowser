@@ -398,28 +398,17 @@
 ; Prompt user if the installed application is running.
 ; Set Error if user selects Abort, or on silent mode.
 !macro _D_CheckInactiveApp
-    ${Reserve} $R0 MutexHandle ''
-    ${Reserve} $R1 WindowHandle ''
-    ${Reserve} $R2 ProcessId ''
-    ${Reserve} $R3 ProcessHandle ''
-    ${Reserve} $R4 ProcessPath ''
-    ${Reserve} $R5 AppExePath '$INSTDIR\${PROGEXE}'
-    ${Reserve} $R6 AppExeUnPath ''
-    ${Reserve} $R7 AppRunning 0
-    ${Reserve} $R8 Result 0
+    ${Reserve} $R0 WindowHandle ''
+    ${Reserve} $R1 ProcessId ''
+    ${Reserve} $R2 ProcessHandle ''
+    ${Reserve} $R3 ProcessPath ''
+    ${Reserve} $R4 AppExePath '$INSTDIR\${PROGEXE}'
+    ${Reserve} $R5 AppExeUnPath ''
+    ${Reserve} $R6 AppRunning 0
+    ${Reserve} $R7 Result 0
 
     _start:
     ${Set} AppRunning 0
-
-    !ifdef APP_MUTEX
-        System::Call 'kernel32::OpenMutexW(i${SYNCHRONIZE}, i0, w"${APP_MUTEX}") p.${r.MutexHandle}'
-        ${If} ${MutexHandle} = 0
-            ${Set} AppRunning 1
-        ${Else}
-            System::Call 'kernel32::CloseHandle(p${r.MutexHandle})'
-        ${EndIf}
-        Goto _check_flag
-    !endif
 
     !ifndef __UNINSTALL__
         StrCmp $MultiUser.InstallMode 'AllUsers' 0 _@
@@ -479,7 +468,6 @@
     ${Release} ProcessHandle ''
     ${Release} ProcessId ''
     ${Release} WindowHandle ''
-    ${Release} MutexHandle ''
 !macroend
 
 ; ${DeleteAnyFile} FULL_PATH
