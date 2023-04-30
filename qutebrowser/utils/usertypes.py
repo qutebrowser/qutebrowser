@@ -25,8 +25,11 @@ import enum
 import dataclasses
 from typing import Optional, Sequence, TypeVar, Union
 
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer, QUrl
+try:
+    from qutebrowser.qt.webenginecore import QWebEngineScript
+except ImportError:
+    QWebEngineScript = None
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -314,6 +317,18 @@ class JsWorld(enum.Enum):
     application = enum.auto()  #: Application world, used by qutebrowser internally.
     user = enum.auto()  #: User world, currently not used.
     jseval = enum.auto()  #: World used for the jseval-command.
+
+
+# Mapping worlds from JsWorld to QWebEngineScript world IDs.
+if QWebEngineScript:  # type: ignore[truthy-function]
+    JS_WORLD_MAP = {
+        JsWorld.main: QWebEngineScript.ScriptWorldId.MainWorld,
+        JsWorld.application: QWebEngineScript.ScriptWorldId.ApplicationWorld,
+        JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld,
+        JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
+    }
+else:
+    JS_WORLD_MAP = {}  # type: ignore[unreachable]
 
 
 class JsLogLevel(enum.Enum):

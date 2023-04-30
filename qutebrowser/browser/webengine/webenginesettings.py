@@ -469,7 +469,7 @@ def _inject_greasemonkey_scripts(profile, scripts):
                 continue
         except ValueError:
             try:
-                world = qtutils.JS_WORLD_MAP[usertypes.JsWorld[script.jsworld.lower()]]
+                world = usertypes.JS_WORLD_MAP[usertypes.JsWorld[script.jsworld.lower()]]
             except KeyError:
                 log.greasemonkey.error(
                     f"script {script.name} has invalid value for '@qute-js-world'"

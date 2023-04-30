@@ -25,7 +25,6 @@ Module attributes:
     MINVALS: A dictionary of C/Qt types (as string) mapped to their minimum
              value.
     MAX_WORLD_ID: The highest world ID allowed by QtWebEngine.
-    JS_WORLD_MAP: Mapping form usertypes.JsWorld to QWebEngineScript.ScriptWorldId
 """
 
 
@@ -42,7 +41,6 @@ from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl, QLibraryInfo)
 from qutebrowser.qt.gui import QColor
-from qutebrowser.qt.webenginecore import QWebEngineScript
 try:
     from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
@@ -117,18 +115,6 @@ def version_check(version: str,
 
 
 MAX_WORLD_ID = 256
-
-
-# Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
-if not QWebEngineScript:
-    JS_WORLD_MAP = {}
-else:
-    JS_WORLD_MAP = {
-        usertypes.JsWorld.main: QWebEngineScript.ScriptWorldId.MainWorld,
-        usertypes.JsWorld.application: QWebEngineScript.ScriptWorldId.ApplicationWorld,
-        usertypes.JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld,
-        usertypes.JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
-    }
 
 
 def is_new_qtwebkit() -> bool:
