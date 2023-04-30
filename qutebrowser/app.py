@@ -490,6 +490,9 @@ def _init_modules(*, args):
     log.init.debug("Initializing command history...")
     cmdhistory.init()
 
+    log.init.debug("Initializing Greasemonkey...")
+    greasemonkey.init()
+
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)
@@ -516,9 +519,6 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing downloads...")
     qtnetworkdownloads.init()
-
-    log.init.debug("Initializing Greasemonkey...")
-    greasemonkey.init()
 
     log.init.debug("Misc initialization...")
     macros.init()

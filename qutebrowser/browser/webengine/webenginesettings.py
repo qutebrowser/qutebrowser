@@ -27,20 +27,25 @@ Module attributes:
 import os
 import operator
 import pathlib
+import functools
+import dataclasses
 from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.gui import QFont
 from qutebrowser.qt.widgets import QApplication
-from qutebrowser.qt.webenginecore import QWebEngineSettings, QWebEngineProfile
+from qutebrowser.qt.webenginecore import (
+    QWebEngineSettings, QWebEngineProfile, QWebEngineScript,
+)
 
-from qutebrowser.browser import history
+from qutebrowser.browser import history, shared, greasemonkey
 from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
                                            webenginedownloads, notification)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version)
+                               urlmatch, usertypes, objreg, version,
+                               javascript, resources, utils)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -359,6 +364,235 @@ def init_user_agent():
     _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
 
 
+# TODO: add to javascript module?
+def _script_factory(name, js_code, *,
+                    world=QWebEngineScript.ScriptWorldId.ApplicationWorld,
+                    injection_point=QWebEngineScript.InjectionPoint.DocumentCreation,
+                    subframes=False):
+    """Inject the given script to run early on a page load."""
+    script = QWebEngineScript()
+    script.setInjectionPoint(injection_point)
+    script.setSourceCode(js_code)
+    script.setWorldId(world)
+    script.setRunsOnSubFrames(subframes)
+    script.setName(f'_qute_{name}')
+    return script
+
+
+def _remove_js(scripts, name):
+    """Remove an early QWebEngineScript."""
+    if machinery.IS_QT6:
+        for script in scripts.find(f'_qute_{name}'):
+            scripts.remove(script)
+    else:  # Qt 5
+        script = scripts.findScript(f'_qute_{name}')
+        if not script.isNull():
+            scripts.remove(script)
+
+
+# TODO: unrelated rambling
+# Hmm, change_filter can be told it is being passed a function (unbound
+# method) or method (method on an instantiated object). Here I'm telling it
+# these are object methods, although they aren't, just because the only
+# difference between those modes is that an argument is passed through for the
+# object methods. Called "self" in the wrapper it doesn't have to be.
+# Probably the change_filter decorator could be changed to support passing
+# trough variable arguments and get rid of that split?
+# Also it would be nice to have a decorator that did the change filtering and
+# handled connecting a signal, and passed the new value into the function.
+@config.change_filter('scrolling.bar')
+@config.change_filter('content.user_stylesheets')
+def _stylesheet_option_changed(profile):
+    _inject_stylesheet(profile.scripts())
+
+
+def _inject_stylesheet(scripts):
+    """Initialize custom stylesheets.
+
+    Stylesheet CSS is also overriden in individual tabs when config is updated
+    and when find operations are started and ended.
+
+    Partially inspired by QupZilla:
+    https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
+    """
+    _remove_js(scripts, 'stylesheet')
+    css = shared.get_user_stylesheet()
+    js_code = javascript.wrap_global(
+        'stylesheet',
+        resources.read_file('javascript/stylesheet.js'),
+        javascript.assemble('stylesheet', 'set_css', css),
+    )
+    scripts.insert(_script_factory('stylesheet', js_code, subframes=True))
+
+
+def _remove_all_greasemonkey_scripts(profile_scripts):
+    for script in profile_scripts.toList():
+        if script.name().startswith("GM-"):
+            log.greasemonkey.debug('Removing script: {}'
+                                   .format(script.name()))
+            removed = profile_scripts.remove(script)
+            assert removed, script.name()
+
+
+def _inject_all_greasemonkey_scripts(profile):
+    scripts = greasemonkey.gm_manager.all_scripts()
+    _inject_greasemonkey_scripts(profile, scripts)
+
+
+def _inject_greasemonkey_scripts(profile, scripts):
+    """Register user JavaScript files with the current tab.
+
+    Args:
+        scripts: A list of GreasemonkeyScripts.
+    """
+    profile_scripts = profile.scripts()
+    # Remove and re-add all scripts every time to account for scripts
+    # that have been disabled.
+    _remove_all_greasemonkey_scripts(profile_scripts)
+
+    seen_names = set()
+    for script in scripts:
+        while script.full_name() in seen_names:
+            script.dedup_suffix += 1
+        seen_names.add(script.full_name())
+
+        # TODO: move to use _script_factory to shorten the method?
+        new_script = QWebEngineScript()
+
+        try:
+            world = int(script.jsworld)
+            if not 0 <= world <= qtutils.MAX_WORLD_ID:
+                log.greasemonkey.error(
+                    f"script {script.name} has invalid value for '@qute-js-world'"
+                    f": {script.jsworld}, should be between 0 and "
+                    f"{qtutils.MAX_WORLD_ID}")
+                continue
+        except ValueError:
+            try:
+                world = qtutils.JS_WORLD_MAP[usertypes.JsWorld[script.jsworld.lower()]]
+            except KeyError:
+                log.greasemonkey.error(
+                    f"script {script.name} has invalid value for '@qute-js-world'"
+                    f": {script.jsworld}")
+                continue
+        new_script.setWorldId(world)
+
+        # Corresponds to "@run-at document-end" which is the default according to
+        # https://wiki.greasespot.net/Metadata_Block#.40run-at - however,
+        # QtWebEngine uses QWebEngineScript.InjectionPoint.Deferred (@run-at document-idle) as
+        # default.
+        #
+        # NOTE that this needs to be done before setSourceCode, so that
+        # QtWebEngine's parsing of GreaseMonkey tags will override it if there is a
+        # @run-at comment.
+        new_script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentReady)
+
+        new_script.setSourceCode(script.code())
+        new_script.setName(script.full_name())
+        new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+
+        if script.needs_document_end_workaround():
+            log.greasemonkey.debug(
+                f"Forcing @run-at document-end for {script.name}")
+            new_script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentReady)
+
+        log.greasemonkey.debug(f'adding script: {new_script.name()}')
+        profile_scripts.insert(new_script)
+
+
+@dataclasses.dataclass
+class _Quirk:
+
+    filename: str
+    injection_point: QWebEngineScript.InjectionPoint = (
+        QWebEngineScript.InjectionPoint.DocumentCreation)
+    world: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld
+    predicate: bool = True
+    name: Optional[str] = None
+
+    def __post_init__(self):
+        if self.name is None:
+            self.name = f"js-{self.filename.replace('_', '-')}"
+
+
+def _get_quirks():
+    """Get a list of all available JS quirks."""
+    versions = version.qtwebengine_versions()
+    return [
+        # FIXME:qt6 Double check which of those are still required
+        _Quirk(
+            'whatsapp_web',
+            injection_point=QWebEngineScript.InjectionPoint.DocumentReady,
+            world=QWebEngineScript.ScriptWorldId.ApplicationWorld,
+        ),
+        _Quirk('discord'),
+        _Quirk(
+            'googledocs',
+            # will be an UA quirk once we set the JS UA as well
+            name='ua-googledocs',
+        ),
+
+        _Quirk(
+            'string_replaceall',
+            predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
+        ),
+        _Quirk(
+            'array_at',
+            predicate=versions.webengine < utils.VersionNumber(6, 3),
+        ),
+    ]
+
+
+def _inject_site_specific_quirks(scripts):
+    """Add site-specific quirk scripts."""
+    if not config.val.content.site_specific_quirks.enabled:
+        return
+
+    for quirk in _get_quirks():
+        if not quirk.predicate:
+            continue
+        src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
+        if quirk.name not in config.val.content.site_specific_quirks.skip:
+            scripts.insert(_script_factory(
+                f'quirk_{quirk.filename}',
+                src,
+                world=quirk.world,
+                injection_point=quirk.injection_point,
+            ))
+
+
+def _init_scripts_for_profile(profile: QWebEngineProfile) -> None:
+    scripts = profile.scripts()
+
+    # Early global scripts
+    js_code = javascript.wrap_global(
+        'scripts',
+        resources.read_file('javascript/scroll.js'),
+        resources.read_file('javascript/webelem.js'),
+        resources.read_file('javascript/caret.js'),
+    )
+    # FIXME:qtwebengine what about subframes=True?
+    scripts.insert(_script_factory('js', js_code, subframes=True))
+
+    _inject_stylesheet(scripts)
+    config.instance.changed.connect(
+        functools.partial(
+            _stylesheet_option_changed,
+            profile,
+        )
+    )
+
+    greasemonkey.gm_manager.scripts_reloaded.connect(
+        functools.partial(
+            _inject_all_greasemonkey_scripts,
+            profile,
+        )
+    )
+    _inject_all_greasemonkey_scripts(profile)
+
+    _inject_site_specific_quirks(scripts)
+
+
 def _init_profile(profile: QWebEngineProfile) -> None:
     """Initialize a new QWebEngineProfile.
 
@@ -383,6 +617,8 @@ def _init_profile(profile: QWebEngineProfile) -> None:
         lambda url: profile.clearVisitedLinks([url]))
 
     _global_settings.init_settings()
+
+    _init_scripts_for_profile(profile)
 
 
 def _init_default_profile():
