@@ -49,6 +49,11 @@
 
 !define /ifndef DWMWA_USE_IMMERSIVE_DARK_MODE 20
 
+!define /ifndef OPEN_EXISTING 3
+
+!define /ifndef FILE_FLAG_BACKUP_SEMANTICS 0x02000000
+!define /ifndef FILE_FLAG_OPEN_REPARSE_POINT 0x00200000
+
 ; MUI2
 !include 'MUI2.nsh'
 !define MUI_BGCOLOR 'SYSCLR:Window'

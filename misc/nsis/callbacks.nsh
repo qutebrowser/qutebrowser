@@ -1032,26 +1032,49 @@ FunctionEnd
         _end:
     FunctionEnd
 
-    ; Prompt user if install dir is not empty, or if the application is running.
+    ; Prompt user if install dir is not empty, not writable, or if the application is running.
     Function PageDirectoryLeave
-        StrCmpS $HasCurrentModeInstallation 0 _check_contents
-        StrCmp $MultiUser.InstallMode 'AllUsers' 0 _per_user
-        StrCmp $INSTDIR $PerMachineInstallationFolder _check_app_running _check_contents
-        _per_user:
-        StrCmp $iNSTDIR $PerUserInstallationFolder _check_app_running _check_contents
+        !define /math SHARED_MODE ${FILE_SHARE_READ} | ${FILE_SHARE_WRITE}
+        !define /math FILE_FLAGS ${FILE_FLAG_BACKUP_SEMANTICS} | ${FILE_FLAG_OPEN_REPARSE_POINT}
+        ${Reserve} $R0 Handle ''
+
+        StrCmpS $HasCurrentModeInstallation 0 _check_instdir
+        StrCmp $MultiUser.InstallMode 'AllUsers' 0 +2
+        StrCmp $INSTDIR $PerMachineInstallationFolder _check_app_running _check_instdir
+        StrCmp $iNSTDIR $PerUserInstallationFolder _check_app_running _check_instdir
+
+        _check_instdir:
+        IfFileExists '$INSTDIR\*' _check_contents
+        ClearErrors
+        CreateDirectory $INSTDIR
+        IfErrors 0 _end
+        MessageBox MB_OK|MB_ICONSTOP $(MB_CANT_CREATE_INSTDIR)
+        Abort
+
         _check_contents:
         ClearErrors
         ${CheckCleanInstDir}
-        IfErrors 0 _check_app_running
-        MessageBox MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_INSTDIR) /SD IDYES IDYES _check_app_running
+        IfErrors 0 _check_write_access
+        MessageBox MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_INSTDIR) /SD IDYES IDYES _check_write_access
         Abort
+
+        _check_write_access:
+        System::Call 'kernel32::CreateFileW(w"$INSTDIR", i${GENERIC_WRITE}, i${SHARED_MODE}, n, i${OPEN_EXISTING}, i${FILE_FLAGS}, n) p.${r.Handle}'
+        StrCmpS ${Handle} ${INVALID_HANDLE_VALUE} 0 _close_handle
+        MessageBox MB_OK|MB_ICONSTOP $(MB_CANT_WRITE_INSTDIR)
+        Abort
+        _close_handle:
+        System::Call 'kernel32::CloseHandle(p${r.Handle})'
 
         _check_app_running:
         ClearErrors
         ${CheckInactiveApp}
-        ${If} ${Errors}
-            Abort
-        ${EndIf}
+        IfErrors 0 _end
+        Abort
+
+        _end:
+        ${Release} Handle ''
+        !undef SHARED_MODE FILE_FLAGS
     FunctionEnd
 
     ; Reset progress bar for aborted installations.

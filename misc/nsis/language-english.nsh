@@ -89,10 +89,23 @@ LangString B_CANCEL ${LANG_ENGLISH} `Cancel` ; For some reason $(^CancelBtn) is 
 LangString B_CLOSE ${LANG_ENGLISH} $(^CloseBtn)
 
 ; MessageBox action texts
-LangString A_RETRY_CANCEL ${LANG_ENGLISH} `$(2)Click Retry to try again, or$(1)Cancel quit.`
-LangString A_ABORT_RETRY_IGNORE ${LANG_ENGLISH} `$(2)Click Abort to quit,$(1)Retry to try again, or$(1)Ignore to skip `
-LangString A_RESTART_WINDOWS ${LANG_ENGLISH} `$(1)Please restart Windows and run the setup again.`
-
+LangString A_ABORT_RETRY_IGNORE ${LANG_ENGLISH} `$(2)\
+Click Abort to quit,$(1)\
+Retry to try again, or$(1)\
+Ignore to skip \
+`
+LangString A_CHECK_INSTDIR_PERMISSIONS ${LANG_ENGLISH} `$(2)\
+$INSTDIR$(2)\
+Please make sure that the destination is writable$(1)\
+and that you have sufficient permissions.\
+`
+LangString A_RESTART_WINDOWS ${LANG_ENGLISH} `$(1)\
+Please restart Windows and run the setup again.\
+`
+LangString A_RETRY_CANCEL ${LANG_ENGLISH} `$(2)\
+Click Retry to try again, or$(1)\
+Cancel quit.\
+`
 
 ; MessageBox texts
 LangString MB_ACTIVE_SETUP ${LANG_ENGLISH} `\
@@ -120,10 +133,12 @@ Retry to continue, or$(1)\
 Cancel to abort.\
 `
 LangString MB_CANT_CREATE_FOLDER ${LANG_ENGLISH} $(M_CANT_CREATE_FOLDER)$(2)$0$(A_RETRY_CANCEL)
+LangString MB_CANT_CREATE_INSTDIR ${LANG_ENGLISH} `Could not create the directory:$(A_CHECK_INSTDIR_PERMISSIONS)`
 LangString MB_CANT_DELETE_FILE ${LANG_ENGLISH} $(M_CANT_DELETE_FILE)$(2)$0$(A_RETRY_CANCEL)
 LangString MB_CANT_DELETE_FOLDER ${LANG_ENGLISH} `$(M_CANT_DELETE_FOLDER)$(2)$0$(A_ABORT_RETRY_IGNORE)this folder.`
 LangString MB_CANT_DELETE_REG_ITEM ${LANG_ENGLISH} `$(M_CANT_DELETE_REG_ITEM)$(2)$0$(A_ABORT_RETRY_IGNORE)this registry item.`
 LangString MB_CANT_DELETE_REG_KEY ${LANG_ENGLISH} `$(M_CANT_DELETE_REG_KEY)$(2)$0$(A_ABORT_RETRY_IGNORE)this registry key.`
+LangString MB_CANT_WRITE_INSTDIR ${LANG_ENGLISH} `Could not make changes in the directory:$(A_CHECK_INSTDIR_PERMISSIONS)`
 LangString MB_CANT_WRITE_REG ${LANG_ENGLISH} `$(M_CANT_WRITE_REG)$(2)$0$(A_ABORT_RETRY_IGNORE)$(S_SYS_INT).`
 LangString MB_CHECKSUM_ERROR ${LANG_ENGLISH} $(M_CHECKSUM_ERROR)$(2)$0$(A_RETRY_CANCEL)
 LangString MB_CONFIRM_ABORT ${LANG_ENGLISH} `Are you sure you want to abort the installation?`
