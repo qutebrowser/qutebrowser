@@ -32,3 +32,8 @@ pytest-xdist
 tldextract
 
 #@ ignore: Jinja2, MarkupSafe, colorama
+# Python 3.7
+#@ markers: Flask python_version>="3.8"
+#@ add: Flask==2.2.5 ; python_version=="3.7.*"
+#@ markers: Werkzeug python_version>="3.8"
+#@ add: Werkzeug==2.2.3 ; python_version=="3.7.*"
