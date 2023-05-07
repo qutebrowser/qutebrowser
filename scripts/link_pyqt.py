@@ -28,6 +28,7 @@ import sys
 import subprocess
 import tempfile
 import filecmp
+import json
 
 
 class Error(Exception):
@@ -200,9 +201,15 @@ def get_venv_lib_path(path):
 def get_tox_syspython(tox_path):
     """Get the system python based on a virtualenv created by tox."""
     path = os.path.join(tox_path, '.tox-config1')
-    with open(path, encoding='ascii') as f:
-        line = f.readline()
-    _md5, sys_python = line.rstrip().split(' ', 1)
+    if os.path.exists(path):  # tox3
+        with open(path, encoding='ascii') as f:
+            line = f.readline()
+        _md5, sys_python = line.rstrip().split(' ', 1)
+    else:  # tox4
+        path = os.path.join(tox_path, '.tox-info.json')
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+            sys_python = data["Python"]["executable"]
     # Follow symlinks to get the system-wide interpreter if we have a tox isolated
     # build.
     return os.path.realpath(sys_python)
