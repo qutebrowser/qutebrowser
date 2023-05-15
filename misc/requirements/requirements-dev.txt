@@ -7,7 +7,7 @@ certifi==2023.5.7
 cffi==1.15.1
 charset-normalizer==3.1.0
 cryptography==40.0.2
-docutils==0.19
+docutils==0.20
 github3.py==4.0.1
 hunter==3.6.1
 idna==3.4
@@ -25,7 +25,7 @@ pkginfo==1.9.6
 ply==3.11
 pycparser==2.21
 Pygments==2.15.1
-PyJWT==2.6.0
+PyJWT==2.7.0
 Pympler==1.0.1
 pyproject_hooks==1.0.0
 PyQt-builder==1.15.0
