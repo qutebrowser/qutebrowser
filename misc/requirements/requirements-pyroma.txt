@@ -3,7 +3,7 @@
 build==0.10.0
 certifi==2023.5.7
 charset-normalizer==3.1.0
-docutils==0.19
+docutils==0.20
 idna==3.4
 packaging==23.1
 Pygments==2.15.1

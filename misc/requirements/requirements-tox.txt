@@ -7,7 +7,7 @@ distlib==0.3.6
 filelock==3.12.0
 packaging==23.1
 pip==23.1.2
-platformdirs==3.5.0
+platformdirs==3.5.1
 pluggy==1.0.0
 pyproject_api==1.5.1
 setuptools==67.7.2
