@@ -848,7 +848,7 @@ Function ${F}PageInstFilesShow
     ; Dark color for progress bar background
     ${Reserve} $R0 HResult ''
     ${Reserve} $R1 ThemeData ''
-    ${Reserve} $0 FillColor '' ; NSIS sytem plugin bug: Direct register memory access works correctly only with $0-$1
+    ${Reserve} $0 FillColor '' ; NSIS system plugin bug: Direct register memory access works correctly only with $0-$1
     System::Call 'uxtheme::OpenThemeData(p$mui.InstFilesPage.ProgressBar, w"PROGRESS") p.${r.ThemeData}'
     StrCmpS ${ThemeData} 0 _@
     System::Call 'uxtheme::GetThemeColor(p${r.ThemeData}, i${PP_FILL}, i${PBFS_NORMAL}, i${TMT_FILLCOLOR}, @${r.FillColor}) i.${r.HResult}'
@@ -1111,4 +1111,5 @@ FunctionEnd
         MessageBox MB_ICONSTOP $(MB_FAIL_UNINSTALL) /SD IDOK IDOK +2
         MessageBox MB_ICONSTOP $(MB_FAIL_INSTALL) /SD IDOK
     FunctionEnd
+    !undef F
 !endif

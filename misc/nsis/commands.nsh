@@ -16,179 +16,141 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
-### Define command names
+!define /ifndef F
 
-; Commands using the auto generated macros imported from FILE_MACROS_NSH
-!define PassFiles '!insertmacro PASS_FILES'
-!define PassFilesAndHash '!insertmacro PASS_FILES_AND_HASH'
-!define PassDirs '!insertmacro PASS_DIRS'
-!define PassDirsReverse '!insertmacro PASS_DIRS_REVERSE'
+### Command names, macros, installer-only functions
 
-; Macro commands that help with writing and debugging the code
-!define Call '!insertmacro CALL'
-!define CallAsUser '!insertmacro CALL_U'
-!define Error '!insertmacro ERROR'
-!define Quit '!insertmacro QUIT'
-!define Reserve '!insertmacro RESERVE'
-!define Release '!insertmacro RELEASE'
-!define Return '!insertmacro RETURN'
-!define Set '!insertmacro SET'
+!if '${F}' == ''
+    ; Commands using the auto-generated macros imported from FILE_MACROS_NSH
+    !define PassFiles '!insertmacro PASS_FILES'
+    !define PassFilesAndHash '!insertmacro PASS_FILES_AND_HASH'
+    !define PassDirs '!insertmacro PASS_DIRS'
+    !define PassDirsReverse '!insertmacro PASS_DIRS_REVERSE'
 
-!define CloseLogFile '!insertmacro CLOSE_LOG_FILE'
-!define WriteLog '!insertmacro _C_WriteLog ""'
-!define WriteDebug '!insertmacro _C_WriteLog "${__MACRO__}"'
+    ; Macro commands that help with writing and debugging the code
 
-!define PushFileExts '!insertmacro _C_PushFileExts'
-!define RunAsUser '!insertmacro RUN_U'
-
-!define CheckCleanInstDir '${Call} CheckCleanInstDir'
-!define CheckInactiveApp '${Call} CheckInactiveApp'
-
-!define DeleteAnyFile '!insertmacro _C_DeleteFile ""'
-!define DeleteFile '!insertmacro _C_DeleteFile $INSTDIR'
-!define RemoveDesktopIcon '!insertmacro _C_DeleteFile "" $DesktopIconPath'
-!define RemoveStartMenuIcon '!insertmacro _C_DeleteFile "" $StartMenuIconPath'
-
-!define RemoveDir '!insertmacro _C_RemoveDir'
-
-!define ClearCache '${CallAsUser} ClearCache'
-!define ClearConfig '${CallAsUser} ClearConfig'
-
-!define ClearRegistry '${Call} ClearRegistry'
-
-!define Fail '!insertmacro FAIL'
-
-; Installer only commands
-!define CheckValidInstDir '${Call} CheckValidInstDir'
-!define ClearInstDir '${Call} ClearInstDir'
-!define CreateDesktopIcon '!insertmacro _C_CreateIcon $DesktopIconPath'
-!define CreateStartMenuIcon '!insertmacro _C_CreateIcon $StartMenuIconPath'
-
-### Macros
-
-; ${Call} FUNCTION_OR_LABEL
-!macro CALL DESTINATION
-    !searchparse /noerrors '${DESTINATION}' ':' IS_LABEL
-    ${WriteDebug} `${DESTINATION}`
-    !ifdef IS_LABEL
-        Call ${DESTINATION}
-        !undef IS_LABEL
-    !else
-        !ifndef __UNINSTALL__
+    ; ${Call} FUNCTION_OR_LABEL
+    !define Call '!insertmacro CALL'
+    !macro CALL DESTINATION
+        !searchparse /noerrors '${DESTINATION}' ':' IS_LABEL
+        ${WriteDebug} `${DESTINATION}`
+        !ifdef IS_LABEL
             Call ${DESTINATION}
+            !undef IS_LABEL
         !else
-            Call un.${DESTINATION}
+            !ifndef __UNINSTALL__
+                Call ${DESTINATION}
+            !else
+                Call un.${DESTINATION}
+            !endif
         !endif
-    !endif
-!macroend
+    !macroend
 
-; ${CallAsUser} FUNCTION_OR_LABEL
-!macro CALL_U DESTINATION
-    !searchparse /noerrors '${DESTINATION}' ':' IS_LABEL
-    ${WriteDebug} `${DESTINATION}`
-    !ifdef IS_LABEL
-        !insertmacro UAC_AsUser_Call Label ${IS_LABEL} ${UAC_SYNCREGISTERS}
-        !undef IS_LABEL
-    !else
-        !ifndef __UNINSTALL__
-            !insertmacro UAC_AsUser_Call Function ${DESTINATION} ${UAC_SYNCREGISTERS}
+    ; ${CallAsUser} FUNCTION_OR_LABEL
+    !define CallAsUser '!insertmacro CALL_U'
+    !macro CALL_U DESTINATION
+        !searchparse /noerrors '${DESTINATION}' ':' IS_LABEL
+        ${WriteDebug} `${DESTINATION}`
+        !ifdef IS_LABEL
+            !insertmacro UAC_AsUser_Call Label ${IS_LABEL} ${UAC_SYNCREGISTERS}
+            !undef IS_LABEL
         !else
-            !insertmacro UAC_AsUser_Call Function un.${DESTINATION} ${UAC_SYNCREGISTERS}
+            !ifndef __UNINSTALL__
+                !insertmacro UAC_AsUser_Call Function ${DESTINATION} ${UAC_SYNCREGISTERS}
+            !else
+                !insertmacro UAC_AsUser_Call Function un.${DESTINATION} ${UAC_SYNCREGISTERS}
+            !endif
         !endif
-    !endif
-!macroend
+    !macroend
 
-; ${Error} NAME_OF_ERROR_DEFINE
-!macro ERROR ERROR
-    ${WriteDebug} '${ERROR}'
-    !if ${${ERROR}} <> 0
-        SetErrors
-    !endif
-!macroend
-
-; ${Quit} NAME_OF_ERROR_DEFINE OPT_MESSAGE
-!macro QUIT EXIT_CODE MESSAGE
-    !ifndef ${EXIT_CODE}
-        !error `${EXIT_CODE} not defined`
-    !endif
-    !if '${MESSAGE}' != ''
-        !if ${${EXIT_CODE}} = 0
-            MessageBox MB_ICONINFORMATION '${MESSAGE}' /SD IDOK
-        !else
-            MessageBox MB_ICONSTOP '${MESSAGE}' /SD IDOK
+    ; ${Error} NAME_OF_ERROR_DEFINE
+    !define Error '!insertmacro ERROR'
+    !macro ERROR ERROR
+        ${WriteDebug} '${ERROR}'
+        !if ${${ERROR}} <> 0
+            SetErrors
         !endif
-    !endif
-    ${WriteDebug} '${EXIT_CODE}'
-    SetErrorLevel ${${EXIT_CODE}}
-    Quit
-!macroend
+    !macroend
 
-; ${Reserve} REGISTER TEMP_NAME INIT_VALUE
-!macro RESERVE REGISTER TEMP_NAME INIT_VALUE
-    !ifdef ${TEMP_NAME}
-        !error 'Reserve: "${TEMP_NAME}" already defined'
-    !endif
-    !searchreplace /ignorecase r.${TEMP_NAME} '${REGISTER}' '$R' 'r1'
-    !if '${r.${TEMP_NAME}}' == '${REGISTER}'
-        !searchreplace 'r.${TEMP_NAME}' '${REGISTER}' '$' 'r'
+    ; ${Quit} NAME_OF_ERROR_DEFINE OPT_MESSAGE
+    !define Quit '!insertmacro QUIT'
+    !macro QUIT EXIT_CODE MESSAGE
+        !ifndef ${EXIT_CODE}
+            !error `${EXIT_CODE} not defined`
+        !endif
+        !if '${MESSAGE}' != ''
+            !if ${${EXIT_CODE}} = 0
+                MessageBox MB_ICONINFORMATION '${MESSAGE}' /SD IDOK
+            !else
+                MessageBox MB_ICONSTOP '${MESSAGE}' /SD IDOK
+            !endif
+        !endif
+        ${WriteDebug} '${EXIT_CODE}'
+        SetErrorLevel ${${EXIT_CODE}}
+        Quit
+    !macroend
+
+    ; ${Reserve} REGISTER TEMP_NAME INIT_VALUE
+    !define Reserve '!insertmacro RESERVE'
+    !macro RESERVE REGISTER TEMP_NAME INIT_VALUE
+        !ifdef ${TEMP_NAME}
+            !error 'Reserve: "${TEMP_NAME}" already defined'
+        !endif
+        !searchreplace /ignorecase r.${TEMP_NAME} '${REGISTER}' '$R' 'r1'
         !if '${r.${TEMP_NAME}}' == '${REGISTER}'
-            !error 'Reserve: invalid register name'
+            !searchreplace 'r.${TEMP_NAME}' '${REGISTER}' '$' 'r'
+            !if '${r.${TEMP_NAME}}' == '${REGISTER}'
+                !error 'Reserve: invalid register name'
+            !endif
+            !searchreplace push.${TEMP_NAME} '${REGISTER}' '$' 'p'
+            !searchreplace pop.${TEMP_NAME} '${REGISTER}' '$' 'r'
+        !else
+            !searchreplace /ignorecase push.${TEMP_NAME} '${REGISTER}' '$R' 'P'
+            !searchreplace /ignorecase pop.${TEMP_NAME} '${REGISTER}' '$R' 'R'
         !endif
-        !searchreplace push.${TEMP_NAME} '${REGISTER}' '$' 'p'
-        !searchreplace pop.${TEMP_NAME} '${REGISTER}' '$' 'r'
-    !else
-        !searchreplace /ignorecase push.${TEMP_NAME} '${REGISTER}' '$R' 'P'
-        !searchreplace /ignorecase pop.${TEMP_NAME} '${REGISTER}' '$R' 'R'
-    !endif
-    Push ${REGISTER}
-    StrCpy ${REGISTER} '${INIT_VALUE}'
-    !define ${TEMP_NAME} ${REGISTER}
-!macroend
+        Push ${REGISTER}
+        StrCpy ${REGISTER} '${INIT_VALUE}'
+        !define ${TEMP_NAME} ${REGISTER}
+    !macroend
 
-; ${Release} TEMP_NAME OPT_OUT_VALUE
-!macro RELEASE TEMP_NAME PASS_VALUE
-    !ifndef ${TEMP_NAME}
-        !error 'Release: "${TEMP_NAME}" not defined'
-    !endif
-    !if '${PASS_VALUE}' != ''
-        StrCpy ${PASS_VALUE} ${${TEMP_NAME}}
-    !endif
-    Pop ${${TEMP_NAME}}
+    ; ${Release} TEMP_NAME OPT_OUT_VALUE
+    !define Release '!insertmacro RELEASE'
+    !macro RELEASE TEMP_NAME PASS_VALUE
+        !ifndef ${TEMP_NAME}
+            !error 'Release: "${TEMP_NAME}" not defined'
+        !endif
+        !if '${PASS_VALUE}' != ''
+            StrCpy ${PASS_VALUE} ${${TEMP_NAME}}
+        !endif
+        Pop ${${TEMP_NAME}}
     !undef ${TEMP_NAME} r.${TEMP_NAME} push.${TEMP_NAME} pop.${TEMP_NAME}
-!macroend
+    !macroend
 
-; ${Return}
-!macro RETURN
-    ${WriteDebug} ':'
-    Return
-!macroend
+    ; ${Return}
+    !define Return '!insertmacro RETURN'
+    !macro RETURN
+        ${WriteDebug} ':'
+        Return
+    !macroend
 
-; ${Set} OUT_VARIABLE VALUE
-!macro SET VAR VAL
-    !searchparse /noerrors '${VAR}' '$' IS_VAR
-    !ifdef IS_VAR
-        StrCpy ${VAR} '${VAL}'
-        !undef IS_VAR
-    !else
-        StrCpy ${${VAR}} '${VAL}'
-    !endif
-    ${WriteDebug} `${VAR}`
-!macroend
+    ; ${Set} OUT_VARIABLE VALUE
+    !define Set '!insertmacro SET'
+    !macro SET VAR VAL
+        !searchparse /noerrors '${VAR}' '$' IS_VAR
+        !ifdef IS_VAR
+            StrCpy ${VAR} '${VAL}'
+            !undef IS_VAR
+        !else
+            StrCpy ${${VAR}} '${VAL}'
+        !endif
+        ${WriteDebug} `${VAR}`
+    !macroend
 
-; ${CloseLogFile}
-!macro CLOSE_LOG_FILE
-    ${If} $LogHandle != ''
-        FileClose $LogHandle
-        StrCpy $LogHandle ''
-    ${EndIf}
-!macroend
+    ; Common installer/uninstaller commands
 
-; ${WriteLog} LOG_MESSAGE
-; ${WriteDebug} OPT_DEFINE_NAME_OR_VAR
-!macro _C_WriteLog IN_MACRO IN_MESSAGE
-    !define IN_LINE '${__LINE__}'
-    !if '${IN_MACRO}' == ''
-        !undef IN_LINE
+    ; ${WriteLog} LOG_MESSAGE
+    !define WriteLog '!insertmacro CALL_WriteLog'
+    !macro CALL_WriteLog IN_MESSAGE
         ${If} $LogFile != ''
             ${Reserve} $9 InOutLogFile $LogFile
             ${Reserve} $8 InOutLogHandle $LogHandle
@@ -198,176 +160,286 @@
             ${Release} InOutLogHandle $LogHandle
             ${Release} InOutLogFile $LogFile
         ${EndIf}
-    !else ifdef DEBUG
-        ${Reserve} $9 InOutDebugLogFile $DebugLogFile
-        ${Reserve} $8 InOutDebugLogHandle $DebugLogHandle
-        ${Reserve} $7 InMessage `${__FILE__}$\t@${IN_LINE}`
-        StrCpy $7 $7 -2 ; remove the last '.1' from the line
-        ${Reserve} $6 HasErrors 0
-        ${Reserve} $5 StrLen 0
+    !macroend
 
-        ${If} ${Errors}
-            StrCpy ${HasErrors} 1
-        ${EndIf}
+    ; ${WriteDebug} OPT_DEFINE_NAME_OR_VAR
+    !define WriteDebug '!insertmacro CALL_WriteDebug "${__MACRO__}"'
+    !macro CALL_WriteDebug IN_MACRO IN_MESSAGE
+        !ifdef DEBUG
+            !define IN_LINE '${__LINE__}'
+            ${Reserve} $9 InOutDebugLogFile $DebugLogFile
+            ${Reserve} $8 InOutDebugLogHandle $DebugLogHandle
+            ${Reserve} $7 InMessage `${__FILE__}$\t@${IN_LINE}`
+            StrCpy $7 $7 -2 ; remove the last '.1' from the line
+            ${Reserve} $6 HasErrors 0
+            ${Reserve} $5 StrLen 0
 
-        StrLen ${StrLen} '${IN_LINE}'
-        ${If} ${StrLen} < 9
-            StrCpy ${InMessage} `${InMessage}$\t$\t$\t`
-        ${ElseIf} ${StrLen} < 17
-            StrCpy ${InMessage} `${InMessage}$\t$\t`
-        ${Else}
-            StrCpy ${InMessage} `${InMessage}$\t`
-        ${EndIf}
+            ${If} ${Errors}
+                StrCpy ${HasErrors} 1
+            ${EndIf}
 
-        !ifdef __FUNCTION__
-            StrCpy ${InMessage} `${InMessage}${__FUNCTION__}:$\t`
-            StrLen ${StrLen} '${__FUNCTION__}'
-            !ifdef __UNINSTALL__
-                ${If} ${StrLen} < 9
-                    StrCpy ${InMessage} `${InMessage}$\t$\t`
-                ${ElseIf} ${StrLen} < 16
-                    StrCpy ${InMessage} `${InMessage}$\t`
-                ${EndIf}
-            !else
-                ${If} ${StrLen} < 16
-                    StrCpy ${InMessage} `${InMessage}$\t`
-                ${EndIf}
-            !endif
-        !else ifdef __SECTION__
-            StrCpy ${InMessage} `${InMessage}*${__SECTION__}:$\t`
-            StrLen ${StrLen} '${__SECTION__}'
-            ${If} ${StrLen} < 15
+            StrLen ${StrLen} '${IN_LINE}'
+            ${If} ${StrLen} < 9
+                StrCpy ${InMessage} `${InMessage}$\t$\t$\t`
+            ${ElseIf} ${StrLen} < 17
+                StrCpy ${InMessage} `${InMessage}$\t$\t`
+            ${Else}
                 StrCpy ${InMessage} `${InMessage}$\t`
             ${EndIf}
-        !endif
 
-        !searchparse /noerrors '${IN_MACRO}' '_C_' CALL_MACRO
-        !ifdef CALL_MACRO
-            !define /redef IN_MACRO ''
-            !undef CALL_MACRO
-        !endif
-
-        !if '${IN_MACRO}' == '${__MACRO__}'
-            !define /redef IN_MACRO ''
-        !else ifdef __FUNCTION__
-            !if '${IN_MACRO}' == '_D_${__FUNCTION__}'
-                !define /redef IN_MACRO ''
-            !else if '${IN_MACRO}' == '_I_${__FUNCTION__}'
-                !define /redef IN_MACRO ''
-            !else if '${IN_MACRO}' == '_U_${__FUNCTION__}'
-                !define /redef IN_MACRO ''
+            !ifdef __FUNCTION__
+                StrCpy ${InMessage} `${InMessage}${__FUNCTION__}:$\t`
+                StrLen ${StrLen} '${__FUNCTION__}'
+                !ifdef __UNINSTALL__
+                    ${If} ${StrLen} < 9
+                        StrCpy ${InMessage} `${InMessage}$\t$\t`
+                    ${ElseIf} ${StrLen} < 16
+                        StrCpy ${InMessage} `${InMessage}$\t`
+                    ${EndIf}
+                !else
+                    ${If} ${StrLen} < 16
+                        StrCpy ${InMessage} `${InMessage}$\t`
+                    ${EndIf}
+                !endif
+            !else ifdef __SECTION__
+                StrCpy ${InMessage} `${InMessage}*${__SECTION__}:$\t`
+                StrLen ${StrLen} '${__SECTION__}'
+                ${If} ${StrLen} < 15
+                    StrCpy ${InMessage} `${InMessage}$\t`
+                ${EndIf}
             !endif
-        !endif
 
-        StrCpy ${InMessage} `${InMessage}${IN_MACRO}>$\t`
+            !if '${IN_MACRO}' != 'CALL_U'
+                !searchparse /noerrors '${IN_MACRO}' 'CALL_' CALL_MACRO
+                !ifdef CALL_MACRO
+                    !define /redef IN_MACRO ''
+                    !undef CALL_MACRO
+                !endif
+            !endif
 
-        !searchparse /noerrors '${IN_MESSAGE}' '$' IS_VAR
-        !ifdef IS_VAR
-            !if '${IN_MESSAGE}' != '$${IS_VAR}'
+            !if '${IN_MACRO}' == '${__MACRO__}'
+                !define /redef IN_MACRO ''
+            !else ifdef __FUNCTION__
+                !if '${IN_MACRO}' == '_D_${__FUNCTION__}'
+                    !define /redef IN_MACRO ''
+                !else if '${IN_MACRO}' == '_I_${__FUNCTION__}'
+                    !define /redef IN_MACRO ''
+                !else if '${IN_MACRO}' == '_U_${__FUNCTION__}'
+                    !define /redef IN_MACRO ''
+                !endif
+            !endif
+
+            StrCpy ${InMessage} `${InMessage}${IN_MACRO}>$\t`
+
+            !searchparse /noerrors '${IN_MESSAGE}' '$' IS_VAR
+            !ifdef IS_VAR
+                !if '${IN_MESSAGE}' != '$${IS_VAR}'
+                    !undef IS_VAR
+                !endif
+            !endif
+            !ifdef IS_VAR
+                StrCpy ${InMessage} `${InMessage}$${IN_MESSAGE} = '${IN_MESSAGE}'`
                 !undef IS_VAR
-            !endif
-        !endif
-        !ifdef IS_VAR
-            StrCpy ${InMessage} `${InMessage}$${IN_MESSAGE} = '${IN_MESSAGE}'`
-            !undef IS_VAR
-        !else ifdef '${IN_MESSAGE}'
-            !searchparse /noerrors '${${IN_MESSAGE}}' '!insertmacro' IS_MACRO
-            !ifdef IS_MACRO
-                StrCpy ${InMessage} `${InMessage}${IN_MESSAGE}`
-                !undef IS_MACRO
+            !else ifdef '${IN_MESSAGE}'
+                !searchparse /noerrors '${${IN_MESSAGE}}' '!insertmacro' IS_MACRO
+                !ifdef IS_MACRO
+                    StrCpy ${InMessage} `${InMessage}${IN_MESSAGE}`
+                    !undef IS_MACRO
+                !else
+                    StrCpy ${InMessage} `${InMessage}${IN_MESSAGE} = '${${IN_MESSAGE}}'`
+                !endif
             !else
-                StrCpy ${InMessage} `${InMessage}${IN_MESSAGE} = '${${IN_MESSAGE}}'`
+                StrCpy ${InMessage} `${InMessage}${IN_MESSAGE}`
             !endif
-        !else
-            StrCpy ${InMessage} `${InMessage}${IN_MESSAGE}`
-        !endif
 
-        !ifndef __UNINSTALL__
-            Call WriteLog
-        !else
-            Call un.WriteLog
-        !endif
-        FileClose ${InOutDebugLogHandle}
-        StrCpy ${InOutDebugLogHandle} ''
+            !ifndef __UNINSTALL__
+                Call WriteLog
+            !else
+                Call un.WriteLog
+            !endif
+            FileClose ${InOutDebugLogHandle}
+            StrCpy ${InOutDebugLogHandle} ''
 
-        ${If} ${HasErrors} = 1
-            SetErrors
+            ${If} ${HasErrors} = 1
+                SetErrors
+            ${EndIf}
+
+            ${Release} StrLen ''
+            ${Release} HasErrors ''
+            ${Release} InMessage ''
+            ${Release} InOutDebugLogHandle $DebugLogHandle
+            ${Release} InOutDebugLogFile $DebugLogFile
+            !undef IN_LINE
+        !endif
+    !macroend
+
+    ; ${CloseLogFile}
+    !define CloseLogFile '!insertmacro CLOSE_LOG_FILE'
+    !macro CLOSE_LOG_FILE
+        ${If} $LogHandle != ''
+            FileClose $LogHandle
+            StrCpy $LogHandle ''
         ${EndIf}
+    !macroend
 
-        ${Release} StrLen ''
-        ${Release} HasErrors ''
-        ${Release} InMessage ''
-        ${Release} InOutDebugLogHandle $DebugLogHandle
-        ${Release} InOutDebugLogFile $DebugLogFile
-        !undef IN_LINE
-    !else
-        !undef IN_LINE
-    !endif
-!macroend
-!macro _D_WriteLog
-    ${Reserve} $R0 FileName $9
-    ${Reserve} $R1 FileHandle $8
-    ${Reserve} $R2 LogMessage $7
-    ${Reserve} $R3 Time 0
-    ${Reserve} $0 LangVar ${FileName}
-    StrCmpS ${FileName} '' _end
-    StrCmpS ${FileHandle} '' 0 _set_message
-    _start:
-    ClearErrors
-    FileOpen ${FileHandle} ${FileName} a
-    IfErrors _error
-    FileSeek ${FileHandle} 0 END
-    _set_message:
-    StrCmpS ${LogMessage} '' _write
-    ${StdUtils.Time} ${Time}
-    StrCpy ${LogMessage} '[${Time}] ${LogMessage}'
-    _write:
-    ClearErrors
-    FileWriteUTF16LE /BOM ${FileHandle} '${LogMessage}$(1)'
-    IfErrors 0 _end
-    FileClose ${FileHandle}
-    _error:
-    DetailPrint $(M_CANT_WRITE)${LangVar}
-    MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR) /SD IDABORT IDRETRY _start IDIGNORE _skip
-    Abort $(M_ABORTED)$(M_CANT_WRITE)${LangVar}
-    _skip:
-    StrCpy ${FileName} ''
-    StrCpy ${FileHandle} ''
-    _end:
-    ${Release} LangVar ''
-    ${Release} Time ''
-    ${Release} LogMessage ''
-    ${Release} FileHandle $8
-    ${Release} FileName $9
-!macroend
+    ; ${DeleteAnyFile} FULL_PATH
+    ; ${DeleteFile} INSTDIR_RELATIVE_PATH
+    ; ${RemoveDesktopIcon}
+    ; ${RemoveStartMenuIcon}
+    ;
+    ; File deletion commands.
+    !define DeleteFile '!insertmacro CALL_DeleteFile $INSTDIR'
+    !define DeleteAnyFile '!insertmacro CALL_DeleteFile ""'
+    !define RemoveDesktopIcon '!insertmacro CALL_DeleteFile "" $DesktopIconPath'
+    !define RemoveStartMenuIcon '!insertmacro CALL_DeleteFile "" $StartMenuIconPath'
+    !macro CALL_DeleteFile DIR FILE
+        !if '${DIR}' == ''
+            ${Reserve} $0 DeleteFile.File '${FILE}'
+        !else
+            ${Reserve} $0 DeleteFile.File '${DIR}\${FILE}'
+        !endif
+        ${WriteDebug} DeleteFile.File
+        ${Call} DeleteFile
+        ${Release} DeleteFile.File ''
+    !macroend
 
-; ${PushFileExts} OUT_EXT_COUNT
-!macro _C_PushFileExts OUT_EXT_COUNT
-    ${Call} PushFileExts
-    ${Set} ${OUT_EXT_COUNT} 8
-!macroend
-!macro _D_PushFileExts
-    Push '.xhtml'
-    Push '.xht'
-    Push '.webp'
-    Push '.svg'
-    Push '.shtml'
-    Push '.pdf'
-    Push '.html'
-    Push '.htm'
-!macroend
+    ; ${RemoveDir} FULL_PATH
+    ;
+    ; Remove application directory.
+    !define RemoveDir '!insertmacro CALL_RemoveDir'
+    !macro CALL_RemoveDir IN_DIR
+        ${Reserve} $0 RemoveDir.Dir '${IN_DIR}'
+        ${WriteDebug} RemoveDir.Dir
+        ${Call} RemoveDir
+        ${Release} RemoveDir.Dir ''
+    !macroend
 
-; ${RunAsUser} COMMAND PARAMETERS
-!macro RUN_U COMMAND PARAMETERS
-    ${WriteDebug} COMMAND
-    ${WriteDebug} PARAMETERS
-    !insertmacro UAC_AsUser_ExecShell 'open' '${COMMAND}' '${PARAMETERS}' '' 'SW_SHOW'
-!macroend
+    ; ${PushFileExts} OUT_EXT_COUNT
+    !define PushFileExts '!insertmacro CALL_PushFileExts'
+    !macro CALL_PushFileExts OUT_EXT_COUNT
+        ${Call} PushFileExts
+        ${Set} ${OUT_EXT_COUNT} 8
+    !macroend
 
-; ${CheckCleanInstDir}
-;
+    !define CheckCleanInstDir '${Call} CheckCleanInstDir'
+    !define CheckInactiveApp '${Call} CheckInactiveApp'
+    !define ClearCache '${CallAsUser} ClearCache'
+    !define ClearConfig '${CallAsUser} ClearConfig'
+    !define ClearRegistry '${Call} ClearRegistry'
+
+    ; ${Fail} MESSAGE
+    !define Fail '!insertmacro FAIL'
+    !macro FAIL MESSAGE
+        ${WriteDebug} ''
+        ${WriteLog} '${MESSAGE}'
+        !ifndef __UNINSTALL__
+            SetOutPath $EXEDIR
+            ${If} $RegisterBrowser = 1
+                ${ClearRegistry}
+            ${EndIf}
+            ${ClearInstDir}
+        !endif
+        ${WriteLog} $(M_ABORTED)${MESSAGE}
+        ${CloseLogFile}
+        ${RefreshShellIcons}
+        Abort $(M_ABORTED)${MESSAGE}
+    !macroend
+
+    ; ${RunAsUser} COMMAND PARAMETERS
+    !define RunAsUser '!insertmacro RUN_U'
+    !macro RUN_U COMMAND PARAMETERS
+        ${WriteDebug} COMMAND
+        ${WriteDebug} PARAMETERS
+        !insertmacro UAC_AsUser_ExecShell 'open' '${COMMAND}' '${PARAMETERS}' '' 'SW_SHOW'
+    !macroend
+
+    ; Installer-only (function) commands
+
+    ; ${CheckValidInstDir}
+    ;
+    ; Set Error if $INSTDIR path isn't valid.
+    !define CheckValidInstDir '${Call} CheckValidInstDir'
+    Function CheckValidInstDir
+        ${Reserve} $R0 InstDirLength 0
+        ${Reserve} $R1 WinDirLength 0
+        ${Reserve} $R2 InstDirPart ''
+        ; Reject drive root
+        StrLen ${InstDirLength} $INSTDIR
+        IntCmpU ${InstDirLength} 3 _reject _reject
+        ; Reject $PROGRAMFILES root
+        StrCmp $INSTDIR $PROGRAMFILES _reject
+        StrCmp $INSTDIR $PROGRAMFILES64 _reject
+        ; Reject $WINDIR parent
+        StrLen ${WinDirLength} $WINDIR
+        IntCmpU ${InstDirLength} ${WinDirLength} _equal _end _greater
+        _equal:
+        StrCmp $INSTDIR $WINDIR _reject _end
+        _greater:
+        IntOp ${InstDirLength} ${WinDirLength} + 1
+        StrCpy ${InstDirPart} $INSTDIR ${InstDirLength}
+        StrCmp ${InstDirPart} '$WINDIR\' _reject _end
+        _reject:
+        ${Error} ERROR_BAD_PATHNAME
+        _end:
+        ${Release} InstDirPart ''
+        ${Release} WinDirLength ''
+        ${Release} InstDirLength ''
+    FunctionEnd
+
+    ; ${ClearInstDir}
+    ;
+    ; Remove installation files and shortcuts.
+    !define ClearInstDir '${Call} ClearInstDir'
+    Function ClearInstDir
+        ${Reserve} $R0 InstDirState 0
+        ${DeleteFile} '${PROGEXE}'
+        ${RemoveDesktopIcon}
+        ${RemoveStartMenuIcon}
+        ${PassFiles} '${DeleteFile}'
+        ${PassDirsReverse} '${RemoveDir}'
+        ${DeleteFile} '${UNINSTALL_FILENAME}'
+        ${DirState} $INSTDIR ${InstDirState}
+        ${If} ${InstDirState} = 0
+            ${RemoveDir} $INSTDIR
+        ${EndIf}
+        ${Release} InstDirState ''
+    FunctionEnd
+
+    ; ${CreateDesktopIcon}
+    ; ${CreateStartMenuIcon}
+    ;
+    ; Shortcut icon creation.
+    !define CreateDesktopIcon '!insertmacro CALL_CreateIcon $DesktopIconPath'
+    !define CreateStartMenuIcon '!insertmacro CALL_CreateIcon $StartMenuIconPath'
+    !macro CALL_CreateIcon ICON_PATH
+        ${Reserve} $0 CreateIcon.Target '${ICON_PATH}'
+        ${WriteDebug} CreateIcon.Target
+        ${Call} CreateIcon
+        ${Release} CreateIcon.Target ''
+    !macroend
+    Function CreateIcon
+        ${Reserve} $R0 IconPath $0
+        _start:
+        ClearErrors
+        CreateShortcut ${IconPath} '$INSTDIR\${PROGEXE}'
+        IfErrors 0 _ok
+        ${Error} ERROR_WRITE_FAULT
+        MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR) /SD IDABORT IDRETRY _start IDIGNORE _skip
+        ${Fail} $(M_ERROR_CREATING_SHORTCUT)${IconPath}
+        _skip:
+        ${WriteLog} $(M_SKIPPED)$(M_CREATE_SHORTCUT)${IconPath}
+        Goto _end
+        _ok:
+        ${WriteLog} $(M_CREATE_SHORTCUT)${IconPath}
+        _end:
+        ${Release} IconPath ''
+    FunctionEnd
+!endif
+
+### Common installer/uninstaller functions
+
 ; Set Error if $INSTDIR containts files, excluding $CacheDir.
-!macro _D_CheckCleanInstDir
+Function ${F}CheckCleanInstDir
     ${Reserve} $R0 FileHandle 0
     ${Reserve} $R1 FileName ''
     ClearErrors
@@ -391,13 +463,11 @@
     FindClose ${FileHandle}
     ${Release} FileName ''
     ${Release} FileHandle ''
-!macroend
+FunctionEnd
 
-; ${CheckInactiveApp}
-;
 ; Prompt user if the installed application is running.
 ; Set Error if user selects Abort, or on silent mode.
-!macro _D_CheckInactiveApp
+Function ${F}CheckInactiveApp
     ${Reserve} $R0 WindowHandle ''
     ${Reserve} $R1 ProcessId ''
     ${Reserve} $R2 ProcessHandle ''
@@ -468,112 +538,10 @@
     ${Release} ProcessHandle ''
     ${Release} ProcessId ''
     ${Release} WindowHandle ''
-!macroend
+FunctionEnd
 
-; ${DeleteAnyFile} FULL_PATH
-; ${DeleteFile} INSTDIR_RELATIVE_PATH
-; ${RemoveDesktopIcon}
-; ${RemoveStartMenuIcon}
-;
-; File deletion commands.
-!macro _C_DeleteFile DIR FILE
-    !if '${DIR}' == ''
-        ${Reserve} $0 DeleteFile.File '${FILE}'
-    !else
-        ${Reserve} $0 DeleteFile.File '${DIR}\${FILE}'
-    !endif
-    ${WriteDebug} DeleteFile.File
-    ${Call} DeleteFile
-    ${Release} DeleteFile.File ''
-!macroend
-!macro _D_DeleteFile
-    ${Reserve} $R0 TargetFile $0
-    IfFileExists ${TargetFile} _delete
-    ${Error} ERROR_FILE_NOT_FOUND
-    Goto _end
-    _delete:
-    ClearErrors
-    Delete ${TargetFile}
-    IfErrors 0 _ok
-    ${Error} ERROR_ACCESS_DENIED
-    DetailPrint $(M_CANT_DELETE_FILE)${TargetFile}
-    !ifndef __UNINSTALL__
-        StrCmpS $SetupState 0 _@
-        ${WriteLog} $(M_CANT_DELETE_FILE)${TargetFile}
-        Goto _end
-        _@:
-    !endif
-    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_DELETE_FILE) /SD IDCANCEL IDRETRY _delete
-    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FILE)${TargetFile}
-    Abort $(M_ABORTED)$(M_CANT_DELETE_FILE)${TargetFile}
-    _ok:
-    ${WriteLog} $(M_DELETE_FILE)${TargetFile}
-    _end:
-    ${Release} TargetFile ''
-!macroend
-
-; ${RemoveDir} FULL_PATH
-;
-; Remove application directory.
-!macro _C_RemoveDir IN_DIR
-    ${Reserve} $0 RemoveDir.Dir '${IN_DIR}'
-    ${WriteDebug} RemoveDir.Dir
-    ${Call} RemoveDir
-    ${Release} RemoveDir.Dir ''
-!macroend
-!macro _D_RemoveDir
-    ${Reserve} $R0 TargetDir $0
-    ${Reserve} $R1 State 0
-
-    !ifndef __UNINSTALL__
-        IfFileExists '${TargetDir}\*' _@
-        IfFileExists ${TargetDir} 0 _@
-        ${DeleteAnyFile} ${TargetDir}
-        _@:
-    !endif
-
-    ${DirState} ${TargetDir} ${State}
-    ${WriteDebug} State
-    IntCmp ${State} 0 _remove_dir _end
-    !ifndef __UNINSTALL__
-        StrCmpS $SetupState 1 _skip
-    !endif
-    MessageBox MB_YESNOCANCEL|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_SUBDIR) /SD IDNO IDYES _remove_dir IDNO _skip
-    ${Error} ERROR_CANCELLED
-    DetailPrint $(M_USER_CANCEL)
-    ${WriteLog} $(M_ABORTED)$(M_USER_CANCEL)
-    Abort $(M_ABORTED)$(M_USER_CANCEL)
-
-    _remove_dir:
-    ClearErrors
-    RMDir /r ${TargetDir}
-    IfErrors 0 _ok
-    ${Error} ERROR_ACCESS_DENIED
-    !ifndef __UNINSTALL__
-        StrCmps $SetupState 1 _skip_fail
-    !endif
-    MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_CANT_DELETE_FOLDER) /SD IDIGNORE IDRETRY _remove_dir IDIGNORE _skip_fail
-    ${Error} ERROR_CANCELLED
-    DetailPrint $(M_CANT_DELETE_FOLDER)${TargetDir}
-    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetDir}
-    Abort $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetDir}
-
-    _skip_fail:
-    ${WriteLog} $(M_CANT_DELETE_FOLDER)${TargetDir}
-    _skip:
-    DetailPrint $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetDir}
-    ${WriteLog} $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetDir}
-    Goto _end
-
-    _ok:
-    ${WriteLog} $(M_DELETE_FOLDER)${TargetDir}
-    _end:
-    ${Release} State ''
-    ${Release} TargetDir ''
-!macroend
-
-; ${ClearCache}
-!macro _D_ClearCache
+; Remove browser cache files.
+Function ${F}ClearCache
     ${Reserve} $R0 CacheDirState 0
     ${Reserve} $R1 CacheDirParent '$CacheDir\..'
     ${Reserve} $R2 CacheDirParentState 0
@@ -610,10 +578,10 @@
     ${Release} CacheDirParentState ''
     ${Release} CacheDirParent ''
     ${Release} CacheDirState ''
-!macroend
+FunctionEnd
 
-; ${ClearConfig}
-!macro _D_ClearConfig
+; Remove browser configuration files.
+Function ${F}ClearConfig
     ${Reserve} $R0 ConfigDirState 0
     ${Reserve} $R1 ConfigSubDir '$ConfigDir\config'
 
@@ -638,12 +606,10 @@
     _end:
     ${Release} ConfigSubDir ''
     ${Release} ConfigDirState ''
-!macroend
+FunctionEnd
 
-; ${ClearRegistry}
-;
 ; Remove registry values and keys.
-!macro _D_ClearRegistry
+Function ${F}ClearRegistry
     ${Reserve} $R0 RegKey ''
     ${Reserve} $R1 RegItem ''
     ${Reserve} $R2 RegValue ''
@@ -663,6 +629,11 @@
     ${EndIf}
     Goto _start
 
+    !define RemoveKey '!insertmacro CALL_REMOVE_KEY'
+    !macro CALL_REMOVE_KEY REG_KEY
+        ${Set} RegKey '${REG_KEY}'
+        ${Call} :remove_key
+    !macroend
     remove_key:
     ${Set} LangVar '${HKey}\${RegKey}'
     ClearErrors
@@ -740,39 +711,23 @@
     IntOp ${ExtCount} ${ExtCount} - 1
     IntCmp ${ExtCount} 0 0 0 _open_with_loop
 
-    ${Set} RegKey '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\Application'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\DefaultIcon'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell\open\command'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell\open'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}'
-    ${Call} :remove_key
+    ${RemoveKey} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\Application'
+    ${RemoveKey} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\DefaultIcon'
+    ${RemoveKey} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell\open\command'
+    ${RemoveKey} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell\open'
+    ${RemoveKey} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}\shell'
+    ${RemoveKey} '${REG_CLS}\${HTML_HANDLE}${CurrentUserId}'
 
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\Capabilities\FileAssociations'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\Capabilities\StartMenu'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\Capabilities\URLAssociations'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\Capabilities'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\DefaultIcon'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\InstallInfo'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\shell\open\command'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\shell\open'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}\shell'
-    ${Call} :remove_key
-    ${Set} RegKey '${REG_SMI}${CurrentUserId}'
-    ${Call} :remove_key
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\Capabilities\FileAssociations'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\Capabilities\StartMenu'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\Capabilities\URLAssociations'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\Capabilities'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\DefaultIcon'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\InstallInfo'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\shell\open\command'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\shell\open'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}\shell'
+    ${RemoveKey} '${REG_SMI}${CurrentUserId}'
 
     ${Release} LangVar ''
     ${Release} Index ''
@@ -784,146 +739,138 @@
     ${Release} RegValue ''
     ${Release} Regitem ''
     ${Release} RegKey ''
-!macroend
+    !macroundef CALL_REMOVE_KEY
+    !undef RemoveKey
+FunctionEnd
 
-; ${Fail} MESSAGE
-!macro FAIL MESSAGE
-    ${WriteDebug} ''
-    ${WriteLog} '${MESSAGE}'
+Function ${F}DeleteFile
+    ${Reserve} $R0 TargetFile $0
+    IfFileExists ${TargetFile} _delete
+    ${Error} ERROR_FILE_NOT_FOUND
+    Goto _end
+    _delete:
+    ClearErrors
+    Delete ${TargetFile}
+    IfErrors 0 _ok
+    ${Error} ERROR_ACCESS_DENIED
+    DetailPrint $(M_CANT_DELETE_FILE)${TargetFile}
     !ifndef __UNINSTALL__
-        SetOutPath $EXEDIR
-        ${If} $RegisterBrowser = 1
-            ${ClearRegistry}
-        ${EndIf}
-        ${ClearInstDir}
+        StrCmpS $SetupState 0 _@
+        ${WriteLog} $(M_CANT_DELETE_FILE)${TargetFile}
+        Goto _end
+        _@:
     !endif
-    ${WriteLog} $(M_ABORTED)${MESSAGE}
-    ${CloseLogFile}
-    ${RefreshShellIcons}
-    Abort $(M_ABORTED)${MESSAGE}
-!macroend
-
-;${CheckValidInstDir}
-;
-;Installer only: Set Error if $INSTDIR isn't valid.
-!macro _I_CheckValidInstDir
-    ${Reserve} $R0 InstDirLength 0
-    ${Reserve} $R1 WinDirLength 0
-    ${Reserve} $R2 InstDirPart ''
-    ; Reject drive root
-    StrLen ${InstDirLength} $INSTDIR
-    IntCmpU ${InstDirLength} 3 _reject _reject
-    ; Reject $PROGRAMFILES root
-    StrCmp $INSTDIR $PROGRAMFILES _reject
-    StrCmp $INSTDIR $PROGRAMFILES64 _reject
-    ; Reject $WINDIR parent
-    StrLen ${WinDirLength} $WINDIR
-    IntCmpU ${InstDirLength} ${WinDirLength} _equal _end _greater
-    _equal:
-    StrCmp $INSTDIR $WINDIR _reject _end
-    _greater:
-    IntOp ${InstDirLength} ${WinDirLength} + 1
-    StrCpy ${InstDirPart} $INSTDIR ${InstDirLength}
-    StrCmp ${InstDirPart} '$WINDIR\' _reject _end
-    _reject:
-    ${Error} ERROR_BAD_PATHNAME
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_DELETE_FILE) /SD IDCANCEL IDRETRY _delete
+    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FILE)${TargetFile}
+    Abort $(M_ABORTED)$(M_CANT_DELETE_FILE)${TargetFile}
+    _ok:
+    ${WriteLog} $(M_DELETE_FILE)${TargetFile}
     _end:
-    ${Release} InstDirPart ''
-    ${Release} WinDirLength ''
-    ${Release} InstDirLength ''
-!macroend
+    ${Release} TargetFile ''
+FunctionEnd
 
-;${ClearInstDir}
-;
-; Installer only: Remove installation files and shortcuts.
-!macro _I_ClearInstDir
-    ${Reserve} $R0 InstDirState 0
-    ${DeleteFile} '${PROGEXE}'
-    ${RemoveDesktopIcon}
-    ${RemoveStartMenuIcon}
-    ${PassFiles} '${DeleteFile}'
-    ${PassDirsReverse} '${RemoveDir}'
-    ${DeleteFile} '${UNINSTALL_FILENAME}'
-    ${DirState} $INSTDIR ${InstDirState}
-    ${If} ${InstDirState} = 0
-        ${RemoveDir} $INSTDIR
-    ${EndIf}
-    ${Release} InstDirState ''
-!macroend
+Function ${F}PushFileExts
+    Push '.xhtml'
+    Push '.xht'
+    Push '.webp'
+    Push '.svg'
+    Push '.shtml'
+    Push '.pdf'
+    Push '.html'
+    Push '.htm'
+FunctionEnd
 
-; ${CreateDesktopIcon}
-; ${CreateStartMenuIcon}
-;
-; Installer only: Shortcut icon creation.
-!macro _C_CreateIcon ICON_PATH
-    ${Reserve} $0 CreateIcon.Target '${ICON_PATH}'
-    ${WriteDebug} CreateIcon.Target
-    ${Call} CreateIcon
-    ${Release} CreateIcon.Target ''
-!macroend
-!macro _I_CreateIcon
-    ${Reserve} $R0 IconPath $0
+Function ${F}RemoveDir
+    ${Reserve} $R0 TargetDir $0
+    ${Reserve} $R1 State 0
+
+    !ifndef __UNINSTALL__
+        IfFileExists '${TargetDir}\*' _@
+        IfFileExists ${TargetDir} 0 _@
+        ${DeleteAnyFile} ${TargetDir}
+        _@:
+    !endif
+
+    ${DirState} ${TargetDir} ${State}
+    ${WriteDebug} State
+    IntCmp ${State} 0 _remove_dir _end
+    !ifndef __UNINSTALL__
+        StrCmpS $SetupState 1 _skip
+    !endif
+    MessageBox MB_YESNOCANCEL|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_SUBDIR) /SD IDNO IDYES _remove_dir IDNO _skip
+    ${Error} ERROR_CANCELLED
+    DetailPrint $(M_USER_CANCEL)
+    ${WriteLog} $(M_ABORTED)$(M_USER_CANCEL)
+    Abort $(M_ABORTED)$(M_USER_CANCEL)
+
+    _remove_dir:
+    ClearErrors
+    RMDir /r ${TargetDir}
+    IfErrors 0 _ok
+    ${Error} ERROR_ACCESS_DENIED
+    !ifndef __UNINSTALL__
+        StrCmps $SetupState 1 _skip_fail
+    !endif
+    MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_CANT_DELETE_FOLDER) /SD IDIGNORE IDRETRY _remove_dir IDIGNORE _skip_fail
+    ${Error} ERROR_CANCELLED
+    DetailPrint $(M_CANT_DELETE_FOLDER)${TargetDir}
+    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetDir}
+    Abort $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetDir}
+
+    _skip_fail:
+    ${WriteLog} $(M_CANT_DELETE_FOLDER)${TargetDir}
+    _skip:
+    DetailPrint $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetDir}
+    ${WriteLog} $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetDir}
+    Goto _end
+
+    _ok:
+    ${WriteLog} $(M_DELETE_FOLDER)${TargetDir}
+    _end:
+    ${Release} State ''
+    ${Release} TargetDir ''
+FunctionEnd
+
+Function ${F}WriteLog
+    ${Reserve} $R0 FileName $9
+    ${Reserve} $R1 FileHandle $8
+    ${Reserve} $R2 LogMessage $7
+    ${Reserve} $R3 Time 0
+    ${Reserve} $0 LangVar ${FileName}
+    StrCmpS ${FileName} '' _end
+    StrCmpS ${FileHandle} '' 0 _set_message
     _start:
     ClearErrors
-    CreateShortcut ${IconPath} '$INSTDIR\${PROGEXE}'
-    IfErrors 0 _ok
-    ${Error} ERROR_WRITE_FAULT
+    FileOpen ${FileHandle} ${FileName} a
+    IfErrors _error
+    FileSeek ${FileHandle} 0 END
+    _set_message:
+    StrCmpS ${LogMessage} '' _write
+    ${StdUtils.Time} ${Time}
+    StrCpy ${LogMessage} '[${Time}] ${LogMessage}'
+    _write:
+    ClearErrors
+    FileWriteUTF16LE /BOM ${FileHandle} '${LogMessage}$(1)'
+    IfErrors 0 _end
+    FileClose ${FileHandle}
+    _error:
+    DetailPrint $(M_CANT_WRITE)${LangVar}
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR) /SD IDABORT IDRETRY _start IDIGNORE _skip
-    ${Fail} $(M_ERROR_CREATING_SHORTCUT)${IconPath}
+    Abort $(M_ABORTED)$(M_CANT_WRITE)${LangVar}
     _skip:
-    ${WriteLog} $(M_SKIPPED)$(M_CREATE_SHORTCUT)${IconPath}
-    Goto _end
-    _ok:
-    ${WriteLog} $(M_CREATE_SHORTCUT)${IconPath}
+    StrCpy ${FileName} ''
+    StrCpy ${FileHandle} ''
     _end:
-    ${Release} IconPath ''
-!macroend
+    ${Release} LangVar ''
+    ${Release} Time ''
+    ${Release} LogMessage ''
+    ${Release} FileHandle $8
+    ${Release} FileName $9
+FunctionEnd
 
-### Import functions
-
-!macro IMP_FUNC FUNC
-    !ifmacrodef _D_${FUNC}
-        !ifmacrodef _I_${FUNC} | _U_${FUNC}
-            !error `Too many defines: "${FUNC}"`
-        !endif
-        Function ${FUNC}
-            !insertmacro _D_${FUNC}
-        FunctionEnd
-        Function un.${FUNC}
-            !insertmacro _D_${FUNC}
-        FunctionEnd
-    !else
-        !ifmacrondef _I_${FUNC} & _U_${FUNC}
-            !error `Not defined or already imported: "${FUNC}"`
-        !endif
-        !ifmacrodef _I_${FUNC}
-            Function ${FUNC}
-                !insertmacro _I_${FUNC}
-            FunctionEnd
-            !macroundef _I_${FUNC}
-        !endif
-        !ifmacrodef _U_${FUNC}
-            Function un.${FUNC}
-                !insertmacro _U_${FUNC}
-            FunctionEnd
-            !macroundef _U_${FUNC}
-        !endif
-    !endif
-    !ifmacrodef _D_${FUNC}
-        !macroundef _D_${FUNC}
-    !endif
-!macroend
-
-!insertmacro IMP_FUNC CheckCleanInstDir
-!insertmacro IMP_FUNC CheckInactiveApp
-!insertmacro IMP_FUNC CheckValidInstDir
-!insertmacro IMP_FUNC ClearCache
-!insertmacro IMP_FUNC ClearConfig
-!insertmacro IMP_FUNC ClearInstDir
-!insertmacro IMP_FUNC ClearRegistry
-!insertmacro IMP_FUNC CreateIcon
-!insertmacro IMP_FUNC DeleteFile
-!insertmacro IMP_FUNC PushFileExts
-!insertmacro IMP_FUNC RemoveDir
-!insertmacro IMP_FUNC WriteLog
-!macroundef IMP_FUNC
+; Import uninstaller functions
+!if '${F}' == ''
+    !define /redef F 'un.'
+    !include '${__FILEDIR__}\${__FILE__}'
+    !undef F
+!endif
