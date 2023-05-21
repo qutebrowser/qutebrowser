@@ -40,6 +40,7 @@ import py.path
 from qutebrowser.qt.core import QSize, Qt
 from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QVBoxLayout
 from qutebrowser.qt.network import QNetworkCookieJar
+from qutebrowser.qt.webenginecore import QWebEngineProfile  # TODO: will this break on webkit?
 
 import helpers.stubs as stubsmod
 import qutebrowser
@@ -230,9 +231,36 @@ def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
 
 
 @pytest.fixture
+def default_profile(testdata_scheme, monkeypatch):
+    """Make sure the qutebrowser default profile is set.
+
+    This profile is not currently fully set up the same as the real one would
+    be.
+    webenginesettings._init_default_profile() does more setup, for example
+    setting cache and data dirs, but that method can't be called multiple
+    times which makes it hard to use in a fixture. Maybe we should make that
+    method re-runnable or pull out the non-global stuff when called with an
+    existing profile.
+
+    There is a similar fixture in
+    tests/unit/browser/webengine/test_webenginesettings.py which we should
+    look at merging into this.
+    """
+    webenginesettings = pytest.importorskip(
+        'qutebrowser.browser.webengine.webenginesettings')
+
+    profile = QWebEngineProfile()
+    _qute_scheme_handler.install(profile)
+
+    webenginesettings._init_scripts_for_profile(profile)
+
+    monkeypatch.setattr(webenginesettings, 'default_profile', profile)
+
+
+@pytest.fixture
 def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
                   tabbed_browser_stubs, mode_manager, widget_container,
-                  monkeypatch):
+                  monkeypatch, default_profile):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
 
     tabwidget = tabbed_browser_stubs[0].widget
