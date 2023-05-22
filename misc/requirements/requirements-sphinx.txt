@@ -4,7 +4,7 @@ alabaster==0.7.13
 Babel==2.12.1
 certifi==2023.5.7
 charset-normalizer==3.1.0
-docutils==0.20
+docutils==0.20.1
 idna==3.4
 imagesize==1.4.1
 importlib-metadata==6.6.0
