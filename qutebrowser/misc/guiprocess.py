@@ -328,7 +328,7 @@ class GUIProcess(QObject):
                 log.procs.error("Process stdout:\n" + self.stdout.strip())
             if self.stderr:
                 log.procs.error("Process stderr:\n" + self.stderr.strip())
-            message.error(str(self.outcome) + " See :process for details.")
+            message.error(f"{self.outcome} See :process {self.pid} for details.")
 
     @pyqtSlot()
     def _on_started(self) -> None:

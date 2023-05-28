@@ -32,9 +32,10 @@ from qutebrowser.qt import sip
 
 
 @pytest.fixture
-def proc(qtbot, caplog):
+def proc(qtbot, caplog, monkeypatch):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess('testprocess')
+    monkeypatch.setattr(p._proc, 'processId', lambda: 1234)
     yield p
     if not sip.isdeleted(p._proc) and p._proc.state() != QProcess.ProcessState.NotRunning:
         with caplog.at_level(logging.ERROR):
@@ -429,7 +430,7 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
             proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    expected = "Testprocess exited with status 1. See :process for details."
+    expected = "Testprocess exited with status 1. See :process 1234 for details."
     assert msg.text == expected
 
     assert not proc.outcome.running
@@ -450,7 +451,7 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
             """))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text == "Testprocess crashed. See :process for details."
+    assert msg.text == "Testprocess crashed. See :process 1234 for details."
 
     assert not proc.outcome.running
     assert proc.outcome.status == QProcess.ExitStatus.CrashExit
@@ -471,7 +472,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
             """))
     assert caplog.messages[-2] == 'Process {}:\ntest'.format(stream)
     assert caplog.messages[-1] == (
-        'Testprocess exited with status 1. See :process for details.')
+        'Testprocess exited with status 1. See :process 1234 for details.')
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
