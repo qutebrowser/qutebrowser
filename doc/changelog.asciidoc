@@ -139,6 +139,10 @@ Changed
 - When a process fails, the error message now suggests using `:process PID` with
   the correct PID (rather than always showing the latest process, which might not
   be the failing one)
+- When a process got killed with `SIGTERM`, no error message is now displayed
+  anymore (unless started with `:spawn --verbose`). 
+- When a process got killed by a signal, the signal name is now displayed in
+  the message.
 
 Fixed
 ~~~~~
