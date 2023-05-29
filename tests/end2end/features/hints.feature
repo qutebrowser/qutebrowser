@@ -62,23 +62,23 @@ Feature: Using hints
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "-- all spawn -v (python-executable) -c ''" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "all spawn -v (python-executable) -c ''" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Using :hint spawn with flags and --rapid (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "--rapid all spawn -v (python-executable) -c ''" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     @posix
     Scenario: Using :hint spawn with flags passed to the command (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "--rapid all spawn -v echo -e foo" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Using :hint run
         When I open data/hints/html/simple.html

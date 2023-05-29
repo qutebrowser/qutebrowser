@@ -134,7 +134,7 @@ class ProcessOutcome:
             sig = self._crash_signal()
             if sig is None:
                 return f"{msg}."
-            return f"{msg} ({sig.name})." 
+            return f"{msg} ({sig.name})."
         elif self.was_successful():
             return f"{self.what.capitalize()} exited successfully."
 
