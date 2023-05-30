@@ -323,8 +323,9 @@
 
     !define CheckCleanInstDir '${Call} CheckCleanInstDir'
     !define CheckInactiveApp '${Call} CheckInactiveApp'
-    !define ClearCache '${CallAsUser} ClearCache'
-    !define ClearConfig '${CallAsUser} ClearConfig'
+    !define ClearCache '${Call} ClearCache'
+    !define ClearConfig '${Call} ClearConfig'
+    !define ClearDataDirsCheck '${Call} ClearDataDirsCheck'
     !define ClearRegistry '${Call} ClearRegistry'
 
     ; ${Fail} MESSAGE
@@ -542,70 +543,108 @@ FunctionEnd
 
 ; Remove browser cache files.
 Function ${F}ClearCache
-    ${Reserve} $R0 CacheDirState 0
-    ${Reserve} $R1 CacheDirParent '$CacheDir\..'
-    ${Reserve} $R2 CacheDirParentState 0
-    ${Reserve} $R3 CacheSubDir '$CacheDir\http'
+    ${Reserve} $R0 CacheParentDir ''
+    ${Reserve} $R1 CacheParentState 0
 
-    IfFileExists '$CacheDir\*' _start _end
+    ${StdUtils.NormalizePath} ${CacheParentDir} '$CacheDir\..'
+    goto _start
 
-    _remove_subdir:
-    IfFileExists '${CacheSubDir}\*' 0 _return
-    RMDir /r ${CacheSubDir}
-    ${WriteLog} $(M_DELETE_FOLDER)${CacheSubDir}
-    _return:
+    remove_cache_dir:
+    ClearErrors
+    ${If} ${FileExists} '$CacheDir\*'
+        RMDir /r $CacheDir
+        ClearErrors
+    ${Else}
+        ${Error} ERROR_PATH_NOT_FOUND
+    ${EndIf}
+    ${Return}
+
+    check_cache_parent:
+    ${DirState} ${CacheParentDir} ${CacheParentState}
+    ${WriteDebug} CacheParentState
+    ${Return}
+
+    remove_cache_parent:
+    ClearErrors
+    RMDir ${CacheParentDir}
     ${Return}
 
     _start:
-    call :_remove_subdir
-    ${Set} CacheSubDir '$CacheDir\webengine'
-    call :_remove_subdir
-    ${DeleteAnyFile} '$CacheDir\CACHEDIR.TAG'
-
-    ${DirState} $CacheDir ${CacheDirState}
-    ${If} ${CacheDirState} = 0
-        ${RemoveDir} $CacheDir
+    DetailPrint $(M_DELETE_FOLDER)$CacheDir
+    ${CallAsUser} :remove_cache_dir
+    ${IfNot} ${Errors}
+        ${WriteLog} $(M_DELETE_FOLDER)$CacheDir
     ${EndIf}
 
-    ${StdUtils.NormalizePath} ${CacheDirParent} ${CacheDirParent}
-    ${DirState} ${CacheDirParent} ${CacheDirParentState}
-    ${If} ${CacheDirParentState} = 0
-        ${RemoveDir} ${CacheDirParent}
+    ${CallAsUser} :check_cache_parent
+    ${If} ${CacheParentState} = 0
+        DetailPrint $(M_DELETE_FOLDER)${CacheParentDir}
+        ${CallAsUser} :remove_cache_parent
+        ${IfNot} ${Errors}
+            ${WriteLog} $(M_DELETE_FOLDER)${CacheParentDir}
+        ${EndIf}
     ${EndIf}
 
-    _end:
-    ${Release} CacheSubDir ''
-    ${Release} CacheDirParentState ''
-    ${Release} CacheDirParent ''
-    ${Release} CacheDirState ''
+    ${Release} CacheParentState ''
+    ${Release} CacheParentDir ''
 FunctionEnd
 
 ; Remove browser configuration files.
 Function ${F}ClearConfig
-    ${Reserve} $R0 ConfigDirState 0
-    ${Reserve} $R1 ConfigSubDir '$ConfigDir\config'
+    goto _start
 
-    IfFileExists '$ConfigDir\*' _start _end
-
-    _remove_subdir:
-    IfFileExists '${ConfigSubDir}\*' 0 _return
-    RMDir /r ${ConfigSubDir}
-    ${WriteLog} $(M_DELETE_FOLDER)${ConfigSubDir}
-    _return:
+    remove_config_dir:
+    ClearErrors
+    ${If} ${FileExists} '$ConfigDir\*'
+        RMDir /r $ConfigDir
+        ClearErrors
+    ${Else}
+        ${Error} ERROR_PATH_NOT_FOUND
+    ${EndIf}
     ${Return}
 
     _start:
-    call :_remove_subdir
-    ${Set} ConfigSubDir '$ConfigDir\data'
-    call :_remove_subdir
+    DetailPrint $(M_DELETE_FOLDER)$ConfigDir
+    ${CallAsUser} :remove_config_dir
+    ${IfNot} ${Errors}
+        ${WriteLog} $(M_DELETE_FOLDER)$ConfigDir
+    ${EndIf}
+FunctionEnd
 
-    ${DirState} $ConfigDir ${ConfigDirState}
-    StrCmpS ${ConfigDirState} 0 0 _end
-    ${RemoveDir} $ConfigDir
+Function ${F}ClearDataDirsCheck
+    ${Reserve} $R0 DirStatePath ''
+    ${Reserve} $R1 DirStateResult ''
 
-    _end:
-    ${Release} ConfigSubDir ''
-    ${Release} ConfigDirState ''
+    goto _start
+
+    check_dir_state:
+    ${DirState} ${DirStatePath} ${DirStateResult}
+    ${WriteDebug} DirStateResult
+    ${Return}
+
+    _start:
+    ${If} $ClearConfig = 1
+        ${Set} DirStatePath $ConfigDir
+        ${CallAsUser} :check_dir_state
+        ${If} ${DirStateResult} = 1
+            MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_CONFIG_DIR) /SD IDNO IDNO _@
+            ${RunAsUser} $ConfigDir ''
+            _@:
+        ${EndIf}
+    ${EndIf}
+
+    ${If} $ClearCache = 1
+        ${Set} DirStatePath $CacheDir
+        ${CallAsUser} :check_dir_state
+        ${If} ${DirStateResult} = 1
+            MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_CACHE_DIR) /SD IDNO IDNO _@@
+            ${RunAsUser} $CacheDir ''
+            _@@:
+        ${EndIf}
+    ${EndIf}
+
+    ${Release} DirStateResult ''
+    ${Release} DirStatePath ''
 FunctionEnd
 
 ; Remove registry values and keys.

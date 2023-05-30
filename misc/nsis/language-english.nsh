@@ -106,6 +106,9 @@ LangString A_RETRY_CANCEL ${LANG_ENGLISH} `$(2)\
 Click Retry to try again, or$(1)\
 Cancel quit.\
 `
+LangString A_VIEW_DIR_CONTENTS ${LANG_ENGLISH} `$(2)\
+Do you want to view its contents?\
+`
 
 ; MessageBox texts
 LangString MB_ACTIVE_SETUP ${LANG_ENGLISH} `\
@@ -198,9 +201,20 @@ The directory:$(2)$0$(2)\
 Contains files that don't belong to the installation.$(2)\
 Remove extra files?\
 `
+LangString MB_OPEN_CACHE_DIR ${LANG_ENGLISH} `\
+The cache directory:$(2)$CacheDir$(2)\
+could not be completely erased.\
+$(A_VIEW_DIR_CONTENTS)\
+`
+LangString MB_OPEN_CONFIG_DIR ${LANG_ENGLISH} `\
+The configuration directory:$(2)$ConfigDir$(2)\
+could not be completely erased.\
+$(A_VIEW_DIR_CONTENTS)\
+`
 LangString MB_OPEN_INSTDIR ${LANG_ENGLISH} `\
-The installation directory still contains files.$(2)\
-Do you want to view its contents?\
+The installation directory:$(2)$INSTDIR$(2)\
+still contains files.\
+$(A_VIEW_DIR_CONTENTS)\
 `
 LangString MB_RESTART_FAILED ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} Setup failed to restart unelevated.$(1)\

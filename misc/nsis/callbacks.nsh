@@ -674,6 +674,7 @@ Function ${F}PageComponentsPre
     ${Reserve} $R4 RegValue ''
     ${Reserve} $R5 CurrentUserId ''
     ${Reserve} $R6 CurrentUserString ''
+    ${Reserve} $R7 DataDir ''
 
     !insertmacro MULTIUSER_GetCurrentUserString ${CurrentUserString}
     StrCmp $MultiUser.InstallMode 'AllUsers' _start
@@ -701,6 +702,23 @@ Function ${F}PageComponentsPre
     _set_flag:
     ${WriteDebug} Flag
     SectionSetFlags ${SectionId} ${Flag}
+    ${Return}
+
+    init_data_section:
+    ${CallAsUser} :check_data_dir
+    ${If} ${DataDir} == ''
+        ${Set} SectionVar 0
+        SectionSetText ${SectionId} ''
+    ${ElseIf} ${SectionVar} = 1
+        SectionGetFlags ${SectionId} ${Flag}
+        IntOp ${Flag} ${Flag} | 1
+        SectionSetFlags ${SectionId} ${Flag}
+    ${EndIf}
+    ${Return}
+    check_data_dir:
+    ${IfNot} ${FileExists} '${DataDir}\*'
+        ${Set} DataDir ''
+    ${EndIf}
     ${Return}
 
     _start:
@@ -750,20 +768,17 @@ Function ${F}PageComponentsPre
         SectionSetText ${un.SectionGroupShortcuts} ''
     !endif
 
-    !macro INIT_DATA_SECTION DATA_DIR DATA_VAR DATA_SEC
-        ${IfNot} ${FileExists} '${DATA_DIR}\*'
-            ${Set} ${DATA_VAR} 0
-            SectionSetText ${DATA_SEC} ''
-        ${ElseIf} ${DATA_VAR} = 1
-            SectionGetFlags ${DATA_SEC} ${Flag}
-            IntOp ${Flag} ${Flag} | 1
-            SectionSetFlags ${DATA_SEC} ${Flag}
-        ${EndIf}
-    !macroend
-    !insertmacro INIT_DATA_SECTION $CacheDir $ClearCache ${${F}SectionClearCache}
-    !insertmacro INIT_DATA_SECTION $ConfigDir $ClearConfig ${${F}SectionClearConfig}
-    !macroundef INIT_DATA_SECTION
+    ${Set} DataDir $CacheDir
+    ${Set} SectionVar $ClearCache
+    ${Set} SectionId ${${F}SectionClearCache}
+    ${Call} :init_data_section
 
+    ${Set} DataDir $ConfigDir
+    ${Set} SectionVar $ClearConfig
+    ${Set} SectionId ${${F}SectionClearConfig}
+    ${Call} :init_data_section
+
+    ${Release} DataDir ''
     ${Release} CurrentUserString ''
     ${Release} CurrentUserId ''
     ${Release} RegValue ''

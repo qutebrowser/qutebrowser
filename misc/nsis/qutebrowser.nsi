@@ -595,6 +595,8 @@ Section '-Write Install Info'
     ${CloseLogFile}
     ${RefreshShellIcons}
 
+    ${ClearDataDirsCheck}
+
     ${Release} LangVar ''
     ${Release} RegValue ''
     ${Release} RegKey ''
@@ -674,15 +676,18 @@ Section '-Uninstall'
     ${CloseLogFile}
     ${RefreshShellIcons}
 
-    StrCmpS ${InstDirState} 1 0 _end
-    ClearErrors
-    ${CheckCleanInstDir}
-    IfErrors 0 _end
-    StrCmpS $SetupState 1 _end
-    MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_INSTDIR) /SD IDNO IDNO _end
-    ExecShell 'open' $INSTDIR
+    ${If} $SetupState = 0
+    ${AndIf} ${InstDirState} = 1
+        ClearErrors
+        ${CheckCleanInstDir}
+        ${If} ${Errors}
+            MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_INSTDIR) /SD IDNO IDNO _@
+            ExecShell 'open' $INSTDIR
+            _@:
+        ${EndIf}
+        ${ClearDataDirsCheck}
+    ${EndIf}
 
-    _end:
     ${Release} InstDirState ''
 SectionEnd
 
