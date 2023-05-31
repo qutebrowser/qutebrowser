@@ -7,8 +7,10 @@ RUN sed -i '/^# after the header/a[kde-unstable]\nInclude = /etc/pacman.d/mirror
 RUN pacman -Sy --noconfirm archlinux-keyring
 RUN pacman -Su --noconfirm \
     git \
+    {% if not webengine %}
     python-tox \
     python-distlib \
+    {% endif %}
     {% if qt6 %}
       qt6-base \
       qt6-declarative \
@@ -20,9 +22,10 @@ RUN pacman -Su --noconfirm \
       qt5-base \
       qt5-declarative \
       {% if webengine %}
-        qt5-webengine python-pyqtwebengine \
+        qt5-webengine \
+        python-pyqtwebengine \
+        python-pyqt5 \
       {% endif %}
-      python-pyqt5 \
     {% endif %}
     xorg-xinit \
     xorg-server-xvfb \
@@ -34,7 +37,9 @@ RUN pacman -Su --noconfirm \
 {% if not webengine %}
 RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-webkit/qt5-webkit-5.212.0alpha4-18-x86_64.pkg.tar.zst \
-    https://archive.archlinux.org/packages/p/python-pyqt5/python-pyqt5-5.15.7-2-x86_64.pkg.tar.zst
+    https://archive.archlinux.org/packages/p/python-pyqt5/python-pyqt5-5.15.7-2-x86_64.pkg.tar.zst \
+    https://archive.archlinux.org/packages/p/python/python-3.10.10-1-x86_64.pkg.tar.zst
+RUN pip install tox
 {% endif %}
 
 {% if qt6 %}
