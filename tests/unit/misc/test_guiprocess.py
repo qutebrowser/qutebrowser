@@ -443,15 +443,15 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     assert not proc.outcome.was_successful()
 
 
+@pytest.mark.posix  # Seems to be a normal exit on Windows
 @pytest.mark.parametrize("signal, message, state_str, verbose", [
-    pytest.param(
+    (
         signal.SIGSEGV,
         "Testprocess crashed with status 11 (SIGSEGV).",
         "crashed",
         False,
-        marks=pytest.mark.posix  # Can't seem to simulate a crash on Windows
     ),
-    pytest.param(
+    (
         signal.SIGTERM,
         "Testprocess terminated with status 15 (SIGTERM).",
         "terminated",
