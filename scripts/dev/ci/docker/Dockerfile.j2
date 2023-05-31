@@ -7,7 +7,7 @@ RUN sed -i '/^# after the header/a[kde-unstable]\nInclude = /etc/pacman.d/mirror
 RUN pacman -Sy --noconfirm archlinux-keyring
 RUN pacman -Su --noconfirm \
     git \
-    {% if not webengine %}
+    {% if webengine %}
     python-tox \
     python-distlib \
     {% endif %}
