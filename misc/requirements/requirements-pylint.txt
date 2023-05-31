@@ -18,12 +18,12 @@ PyJWT==2.7.0
 pylint==2.17.4
 python-dateutil==2.8.2
 ./scripts/dev/pylint_checkers
-requests==2.30.0
+requests==2.31.0
 six==1.16.0
 tomli==2.0.1
 tomlkit==0.11.8
 typed-ast==1.5.4 ; python_version<"3.8"
-typing_extensions==4.5.0
+typing_extensions==4.6.2
 uritemplate==4.1.1
 # urllib3==2.0.2
 wrapt==1.15.0
