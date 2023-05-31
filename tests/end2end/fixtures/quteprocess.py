@@ -73,6 +73,9 @@ def is_ignored_lowlevel_message(message):
         # fallback.
         # INVALID: ", source: userscript:_qute_stylesheet (65)
         '", source: userscript:_qute_stylesheet (65)',
+
+        # Randomly started showing up on Qt 5.15.2
+        'QPaintDevice: Cannot destroy paint device that is being painted',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
