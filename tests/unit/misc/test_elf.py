@@ -60,7 +60,7 @@ def test_result(webengine_versions, qapp, caplog):
     pytest.importorskip('qutebrowser.qt.webenginecore')
 
     versions = elf.parse_webenginecore()
-    if webengine_versions.webengine == utils.VersionNumber(6, 5):
+    if webengine_versions.webengine.strip_patch() == utils.VersionNumber(6, 5):
         assert versions is None
         pytest.xfail("ELF file structure not supported")
 
