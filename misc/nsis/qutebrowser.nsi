@@ -522,13 +522,9 @@ SectionGroup /e $(S_SYS_INT) SectionGroupIntegration
 
     Section /o $(S_DEFAULT_BROWSER) SectionDefaultBrowser
         SectionIn 1
-        StrCmpS $RegisterBrowser 0 _end
-        ${If} ${AtLeastWin10}
+        ${If} $RegisterBrowser = 1
             ${RunAsUser} 'ms-settings:defaultapps' ''
-        ${Else}
-            ${RunAsUser} '$SYSDIR\control.exe' '/name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings?pszAppName=${PRODUCT_NAME}'
         ${EndIf}
-        _end:
     SectionEnd
 SectionGroupEnd
 
