@@ -2726,6 +2726,26 @@ colors.contextmenu.bg:
 colors.contextmenu.fg:
   renamed: colors.contextmenu.menu.fg
 
+colors.tooltip.bg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Background color of tooltips.
+
+    If set to null, the Qt default is used.
+
+colors.tooltip.fg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Foreground color of tooltips.
+
+    If set to null, the Qt default is used.
+
 colors.contextmenu.menu.bg:
   type:
     name: QssColor
@@ -3391,6 +3411,16 @@ fonts.completion.category:
   default: bold default_size default_family
   type: Font
   desc: Font used in the completion categories.
+
+fonts.tooltip:
+  type:
+    name: Font
+    none_ok: true
+  default: null
+  desc: >-
+    Font used for tooltips.
+
+    If set to null, the Qt default is used.
 
 fonts.contextmenu:
   type:

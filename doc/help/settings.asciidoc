@@ -112,6 +112,8 @@
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
+|<<colors.tooltip.bg,colors.tooltip.bg>>|Background color of tooltips.
+|<<colors.tooltip.fg,colors.tooltip.fg>>|Foreground color of tooltips.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
 |<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
 |<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
@@ -237,6 +239,7 @@
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
 |<<fonts.tabs.selected,fonts.tabs.selected>>|Font used for selected tabs.
 |<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used for unselected tabs.
+|<<fonts.tooltip,fonts.tooltip>>|Font used for tooltips.
 |<<fonts.web.family.cursive,fonts.web.family.cursive>>|Font family for cursive fonts.
 |<<fonts.web.family.fantasy,fonts.web.family.fantasy>>|Font family for fantasy fonts.
 |<<fonts.web.family.fixed,fonts.web.family.fixed>>|Font family for fixed fonts.
@@ -1613,6 +1616,24 @@ Foreground color of selected odd tabs.
 Type: <<types,QtColor>>
 
 Default: +pass:[white]+
+
+[[colors.tooltip.bg]]
+=== colors.tooltip.bg
+Background color of tooltips.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.tooltip.fg]]
+=== colors.tooltip.fg
+Foreground color of tooltips.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
 
 [[colors.webpage.bg]]
 === colors.webpage.bg
@@ -3185,6 +3206,15 @@ Font used for unselected tabs.
 Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
+
+[[fonts.tooltip]]
+=== fonts.tooltip
+Font used for tooltips.
+If set to null, the Qt default is used.
+
+Type: <<types,Font>>
+
+Default: empty
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive
