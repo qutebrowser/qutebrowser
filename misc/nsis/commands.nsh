@@ -52,13 +52,13 @@
         !searchparse /noerrors '${DESTINATION}' ':' IS_LABEL
         ${WriteDebug} `${DESTINATION}`
         !ifdef IS_LABEL
-            !insertmacro UAC_AsUser_Call Label ${IS_LABEL} ${UAC_SYNCREGISTERS}
+            !insertmacro UAC_AsUser_Call Label ${IS_LABEL} ${UAC_SYNCREGISTERS}|${UAC_SYNCINSTDIR}
             !undef IS_LABEL
         !else
             !ifndef __UNINSTALL__
-                !insertmacro UAC_AsUser_Call Function ${DESTINATION} ${UAC_SYNCREGISTERS}
+                !insertmacro UAC_AsUser_Call Function ${DESTINATION} ${UAC_SYNCREGISTERS}|${UAC_SYNCINSTDIR}
             !else
-                !insertmacro UAC_AsUser_Call Function un.${DESTINATION} ${UAC_SYNCREGISTERS}
+                !insertmacro UAC_AsUser_Call Function un.${DESTINATION} ${UAC_SYNCREGISTERS}|${UAC_SYNCINSTDIR}
             !endif
         !endif
     !macroend
@@ -328,6 +328,31 @@
     !define ClearDataDirsCheck '${Call} ClearDataDirsCheck'
     !define ClearRegistry '${Call} ClearRegistry'
 
+    !define ExecShellAsUser '!insertmacro EXEC_SHELL_AS_USER'
+    !macro EXEC_SHELL_AS_USER ACTION COMMAND PARAMETERS SHOW
+        !define LABEL_ID ${__LINE__}
+        ${Reserve} $0 ExecShellResult 0
+        ${If} $IsInnerInstance = 1
+            DetailPrint `$(^ExecShell)${ACTION} ${COMMAND} ${PARAMETERS}`
+        ${EndIf}
+        ${CallAsUser} :exec_shell_${LABEL_ID}
+        ${If} ${ExecShellResult} <> 0
+            SetErrors
+        ${EndIf}
+        Goto _end_${LABEL_ID}
+
+        exec_shell_${LABEL_ID}:
+        ExecShell '${ACTION}' '${COMMAND}' '${PARAMETERS}' ${SHOW}
+        ${If} ${Errors}
+            ${Set} ${ExecShellResult} 1
+        ${EndIf}
+        ${Return}
+
+        _end_${LABEL_ID}:
+        ${Release} ExecShellResult ''
+        !undef LABEL_ID
+    !macroend
+
     ; ${Fail} MESSAGE
     !define Fail '!insertmacro FAIL'
     !macro FAIL MESSAGE
@@ -344,14 +369,6 @@
         ${CloseLogFile}
         ${RefreshShellIcons}
         Abort $(M_ABORTED)${MESSAGE}
-    !macroend
-
-    ; ${RunAsUser} COMMAND PARAMETERS
-    !define RunAsUser '!insertmacro RUN_U'
-    !macro RUN_U COMMAND PARAMETERS
-        ${WriteDebug} COMMAND
-        ${WriteDebug} PARAMETERS
-        !insertmacro UAC_AsUser_ExecShell 'open' '${COMMAND}' '${PARAMETERS}' '' 'SW_SHOW'
     !macroend
 
     ; Installer-only (function) commands
@@ -614,10 +631,22 @@ FunctionEnd
 Function ${F}ClearDataDirsCheck
     ${Reserve} $R0 DirStatePath ''
     ${Reserve} $R1 DirStateResult ''
+    ${Reserve} $R2 MsgBoxText ''
 
     goto _start
 
-    check_dir_state:
+    check_dir:
+    ${CallAsUser} :get_dir_state
+    StrCmpS ${DirStateResult} 1 0 _ret
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION ${MsgBoxText} /SD IDNO IDNO _ret
+    ClearErrors
+    ${ExecShellAsUser} open ${DirStatePath} '' SW_SHOWNORMAL
+    IfErrors 0 _ret
+    MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DIR_FAIL)${DirStatePath} /SD IDOK
+    _ret:
+    ${Return}
+
+    get_dir_state:
     ${DirState} ${DirStatePath} ${DirStateResult}
     ${WriteDebug} DirStateResult
     ${Return}
@@ -625,24 +654,17 @@ Function ${F}ClearDataDirsCheck
     _start:
     ${If} $ClearConfig = 1
         ${Set} DirStatePath $ConfigDir
-        ${CallAsUser} :check_dir_state
-        ${If} ${DirStateResult} = 1
-            MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_CONFIG_DIR) /SD IDNO IDNO _@
-            ${RunAsUser} $ConfigDir ''
-            _@:
-        ${EndIf}
+        StrCpy ${MsgBoxText} $(MB_OPEN_CONFIG_DIR)
+        ${Call} :check_dir
     ${EndIf}
 
     ${If} $ClearCache = 1
         ${Set} DirStatePath $CacheDir
-        ${CallAsUser} :check_dir_state
-        ${If} ${DirStateResult} = 1
-            MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_CACHE_DIR) /SD IDNO IDNO _@@
-            ${RunAsUser} $CacheDir ''
-            _@@:
-        ${EndIf}
+        StrCpy ${MsgBoxText} $(MB_OPEN_CACHE_DIR)
+        ${Call} :check_dir
     ${EndIf}
 
+    ${Release} MsgBoxText ''
     ${Release} DirStateResult ''
     ${Release} DirStatePath ''
 FunctionEnd

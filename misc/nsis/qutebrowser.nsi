@@ -522,9 +522,12 @@ SectionGroup /e $(S_SYS_INT) SectionGroupIntegration
 
     Section /o $(S_DEFAULT_BROWSER) SectionDefaultBrowser
         SectionIn 1
-        ${If} $RegisterBrowser = 1
-            ${RunAsUser} 'ms-settings:defaultapps' ''
-        ${EndIf}
+        StrCmpS $RegisterBrowser 0 _end
+        ClearErrors
+        ${ExecShellAsUser} open 'ms-settings:defaultapps' '' SW_SHOWNORMAL
+        IfErrors 0 _end
+        MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DEFAULT_APPS_FAIL) /SD IDOK
+        _end:
     SectionEnd
 SectionGroupEnd
 
@@ -678,11 +681,14 @@ Section '-Uninstall'
         ${CheckCleanInstDir}
         ${If} ${Errors}
             MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_INSTDIR) /SD IDNO IDNO _@
+            ClearErrors
             ExecShell 'open' $INSTDIR
+            IfErrors 0 _@
+            MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DIR_FAIL)$INSTDIR /SD IDOK
             _@:
         ${EndIf}
-        ${ClearDataDirsCheck}
     ${EndIf}
+    ${ClearDataDirsCheck}
 
     ${Release} InstDirState ''
 SectionEnd

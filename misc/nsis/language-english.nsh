@@ -211,14 +211,26 @@ The configuration directory:$(2)$ConfigDir$(2)\
 could not be completely erased.\
 $(A_VIEW_DIR_CONTENTS)\
 `
+LangString MB_OPEN_DEFAULT_APPS_FAIL ${LANG_ENGLISH} `\
+Setup failed to open the Default Apps settings.\
+`
+LangString MB_OPEN_DIR_FAIL ${LANG_ENGLISH} `\
+Setup failed to open the directory:$(2)\
+`
 LangString MB_OPEN_INSTDIR ${LANG_ENGLISH} `\
 The installation directory:$(2)$INSTDIR$(2)\
 still contains files.\
 $(A_VIEW_DIR_CONTENTS)\
 `
-LangString MB_RESTART_FAILED ${LANG_ENGLISH} `\
+LangString MB_RESTART_FAIL ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} Setup failed to restart unelevated.$(1)\
 Click OK to exit.\
+`
+LangString MB_RUN_APP_FAIL ${LANG_ENGLISH} `\
+Setup failed to run ${PRODUCT_NAME}.$(3)\
+Please make sure that the executable:$(2)\
+$INSTDIR\${PROGEXE}$(2)\
+is not being blocked by your antivirus.\
 `
 LangString MB_UNSUPPORTED_OS ${LANG_ENGLISH} `\
 This version of ${PRODUCT_NAME} requires a 64-bit$(1)\

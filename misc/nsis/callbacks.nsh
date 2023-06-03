@@ -165,7 +165,7 @@ Function ${F}.onInit
     !endif
     ${WriteDebug} Result
     ${If} ${Result} != 'ok'
-        ${Quit} ERROR_GEN_FAILURE $(MB_RESTART_FAILED)
+        ${Quit} ERROR_GEN_FAILURE $(MB_RESTART_FAIL)
     ${EndIf}
     !if '${F}' == ''
         ${Do}
@@ -1114,7 +1114,11 @@ FunctionEnd
     Function PageFinishRun
         ShowWindow $HWNDPARENT ${SW_MINIMIZE}
         HideWindow
-        ${RunAsUser} '$INSTDIR\${PROGEXE}' ''
+        ClearErrors
+        ${ExecShellAsUser} open '$INSTDIR\${PROGEXE}' '' SW_SHOWNORMAL
+        IfErrors 0 _end
+        MessageBox MB_OK|MB_ICONSTOP $(MB_RUN_APP_FAIL) /SD IDOK
+        _end:
     FunctionEnd
 
     ; Import the uninstaller functions
