@@ -144,6 +144,9 @@ Changed
   anymore (unless started with `:spawn --verbose`). 
 - When a process got killed by a signal, the signal name is now displayed in
   the message.
+- The qute-pass will now try looking up candidate pass entries based on the
+  calling tab's verbatim netloc (hostname including port and username) if it
+  can't find a match with an earlier candidate (FQDN, IPv4 etc).
 
 Fixed
 ~~~~~
