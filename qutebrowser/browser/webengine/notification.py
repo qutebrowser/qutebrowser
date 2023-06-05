@@ -637,7 +637,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         if error == QProcess.ProcessError.Crashed:
             return
         name = debug.qenum_key(QProcess.ProcessError, error)
-        raise Error(f'herbe process error: {name}')
+        self.error.emit(f'herbe process error: {name}')
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:

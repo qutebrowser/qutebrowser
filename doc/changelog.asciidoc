@@ -168,6 +168,7 @@ Fixed
 - Crash with some notification servers when the server is quitting.
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.
+- Crash when the "herbe" notification presenter doesn't start correctly.
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)
