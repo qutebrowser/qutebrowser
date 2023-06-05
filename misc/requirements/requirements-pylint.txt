@@ -4,7 +4,7 @@ astroid==2.15.5
 certifi==2023.5.7
 cffi==1.15.1
 charset-normalizer==3.1.0
-cryptography==40.0.2
+cryptography==41.0.1
 dill==0.3.6
 github3.py==4.0.1
 idna==3.4
@@ -23,7 +23,7 @@ six==1.16.0
 tomli==2.0.1
 tomlkit==0.11.8
 typed-ast==1.5.4 ; python_version<"3.8"
-typing_extensions==4.6.2
+typing_extensions==4.6.3
 uritemplate==4.1.1
 # urllib3==2.0.2
 wrapt==1.15.0
