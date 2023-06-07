@@ -190,7 +190,7 @@ def debug_flag_error(flag):
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
                    'log-scroll-pos', 'log-sensitive-keys', 'stack', 'chromium',
                    'wait-renderer-process', 'avoid-chromium-init', 'werror',
-                   'test-notification-service']
+                   'test-notification-service', 'log-qt-events']
 
     if flag in valid_flags:
         return flag

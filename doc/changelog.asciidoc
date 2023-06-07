@@ -52,6 +52,7 @@ Added
       selection via rofi, and inserting TOTP-codes (experimental).
 - New `colors.webpage.darkmode.increase_text_contrast` setting for Qt 6.3+
 - New `fonts.tooltip`, `colors.tooltip.bg` and `colors.tooltip.fg` settings.
+- New `log-qt-events` debug flag for `-D`
 
 Removed
 ~~~~~~~

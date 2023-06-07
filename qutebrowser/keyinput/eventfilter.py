@@ -26,7 +26,7 @@ from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, debug, log
 
 
 class EventFilter(QObject):
@@ -47,6 +47,7 @@ class EventFilter(QObject):
             QEvent.Type.KeyRelease: self._handle_key_event,
             QEvent.Type.ShortcutOverride: self._handle_key_event,
         }
+        self._log_qt_events = "log-qt-events" in objects.debug_flags
 
     def install(self) -> None:
         objects.qapp.installEventFilter(self)
@@ -86,6 +87,15 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
+        if self._log_qt_events:
+            try:
+                source = repr(obj)
+            except AttributeError:  # might not be fully initialized yet
+                source = type(obj).__name__
+
+            evtype = debug.qenum_key(QEvent.Type, event.type())
+            log.misc.debug(f"{source} got event: {evtype}")
+
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
