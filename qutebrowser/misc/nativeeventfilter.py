@@ -33,18 +33,12 @@ from qutebrowser.misc import objects
 _instance = None
 
 
-class xcb_generic_event_t(ctypes.Structure):
-    """https://xcb.freedesktop.org/manual/structxcb__generic__event__t.html"""
-    _fields_ = [
-        ("response_type", ctypes.c_uint8),
-        ("pad0", ctypes.c_uint8),
-        ("sequence", ctypes.c_uint16),
-        ("pad", ctypes.c_uint32 * 7),
-        ("full_sequence", ctypes.c_uint32),
-    ]
-
 class xcb_ge_generic_event_t(ctypes.Structure):
-    """https://xcb.freedesktop.org/manual/structxcb__ge__generic__event__t.html"""
+    """See https://xcb.freedesktop.org/manual/structxcb__ge__generic__event__t.html.
+
+    Also used for xcb_generic_event_t as the structures overlap:
+    https://xcb.freedesktop.org/manual/structxcb__generic__event__t.html
+    """
     _fields_ = [
         ("response_type", ctypes.c_uint8),
         ("extension", ctypes.c_uint8),
@@ -67,7 +61,7 @@ _PROBLEMATIC_XINPUT_EVENTS = [
 ]
 
 class xcb_query_extension_reply_t(ctypes.Structure):
-    """https://xcb.freedesktop.org/manual/structxcb__query__extension__reply__t.html"""
+    """https://xcb.freedesktop.org/manual/structxcb__query__extension__reply__t.html."""
     _fields_ = [
         ('response_type', ctypes.c_uint8),
         ('pad0', ctypes.c_uint8),
@@ -106,17 +100,22 @@ class NativeEventFilter(QAbstractNativeEventFilter):
         xcb.xcb_disconnect(conn)
 
     def nativeEventFilter(self, evtype: bytes, message: int) -> Tuple[bool, int]:
+        # We're only installed when the platform plugin is xcb
         assert evtype == b'xcb_generic_event_t', evtype
-        event = ctypes.cast(int(message), ctypes.POINTER(xcb_generic_event_t)).contents
 
-        if event.response_type == _XCB_GE_GENERIC:
-            event = ctypes.cast(int(message), ctypes.POINTER(xcb_ge_generic_event_t)).contents
-            if (
-                event.extension == self.xinput_opcode and
-                event.event_type in _PROBLEMATIC_XINPUT_EVENTS
-            ):
-                print("Ignoring problematic XInput event", event.event_type)
-                return (True, 0)
+        # We cast to xcb_ge_generic_event_t, which overlaps with xcb_generic_event_t.
+        # .extension and .event_type will only make sense if this is an
+        # XCB_GE_GENERIC event, but this is the first thing we check in the 'if'
+        # below anyways.
+        event = ctypes.cast(int(message), ctypes.POINTER(xcb_ge_generic_event_t)).contents
+
+        if (
+            event.response_type == _XCB_GE_GENERIC and
+            event.extension == self.xinput_opcode and
+            event.event_type in _PROBLEMATIC_XINPUT_EVENTS
+        ):
+            print("Ignoring problematic XInput event", event.event_type)
+            return (True, 0)
 
         return (False, 0)
 
