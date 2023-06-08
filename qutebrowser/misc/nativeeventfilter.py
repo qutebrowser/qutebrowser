@@ -98,6 +98,14 @@ class xcb_query_extension_reply_t(ctypes.Structure):
 
 
 class NativeEventFilter(QAbstractNativeEventFilter):
+
+    # Return values for nativeEventFilter.
+    #
+    # Tuple because PyQt uses the second value as the *result out-pointer, which
+    # according to the Qt documentation is only used on Windows.
+    _PASS_EVENT_RET = (False, 0)
+    _FILTER_EVENT_RET = (True, 0)
+
     def __init__(self) -> None:
         super().__init__()
         xcb = ctypes.cdll.LoadLibrary("libxcb.so.1")
@@ -123,6 +131,8 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
         xcb.xcb_disconnect(conn)
 
+        self._active = False  # Set to true when getting hierarchy event
+
     def nativeEventFilter(self, evtype: bytes, message: int) -> Tuple[bool, int]:
         # We're only installed when the platform plugin is xcb
         assert evtype == b"xcb_generic_event_t", evtype
@@ -138,13 +148,19 @@ class NativeEventFilter(QAbstractNativeEventFilter):
         if (
             event.response_type == _XCB_GE_GENERIC
             and event.extension == self.xinput_opcode
-            and event.event_type in _PROBLEMATIC_XINPUT_EVENTS
         ):
-            name = XcbInputOpcodes(event.event_type).name
-            log.misc.warning(f"Ignoring problematic XInput event {name}")
-            return (True, 0)
+            if not self._active and event.event_type == XcbInputOpcodes.HIERARCHY:
+                log.misc.warning(
+                    "Got XInput HIERARCHY event, future swipe/pinch/touch events will "
+                    "be ignored to avoid a Qt 6.5.1 crash"
+                )
+                self._active = True
+            elif self._active and event.event_type in _PROBLEMATIC_XINPUT_EVENTS:
+                name = XcbInputOpcodes(event.event_type).name
+                log.misc.warning(f"Ignoring problematic XInput event {name}")
+                return self._FILTER_EVENT_RET
 
-        return (False, 0)
+        return self._PASS_EVENT_RET
 
 
 def init() -> None:
