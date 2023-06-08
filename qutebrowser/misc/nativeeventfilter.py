@@ -22,12 +22,13 @@
 This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG-114334.
 """
 
-from typing import Tuple
+from typing import Tuple, Union
 import enum
 import ctypes
 import ctypes.util
 
-from qutebrowser.qt.core import QAbstractNativeEventFilter, qVersion
+from qutebrowser.qt import sip
+from qutebrowser.qt.core import QAbstractNativeEventFilter, QByteArray, qVersion
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import log
@@ -36,8 +37,11 @@ from qutebrowser.utils import log
 # Needs to be saved to avoid garbage collection
 _instance = None
 
+# Using C-style naming for C structures in this file
+# pylint: disable=invalid-name
 
-class xcb_ge_generic_event_t(ctypes.Structure):
+
+class xcb_ge_generic_event_t(ctypes.Structure):  # noqa: N801
     """See https://xcb.freedesktop.org/manual/structxcb__ge__generic__event__t.html.
 
     Also used for xcb_generic_event_t as the structures overlap:
@@ -83,7 +87,7 @@ class XcbInputOpcodes(enum.IntEnum):
 _PROBLEMATIC_XINPUT_EVENTS = set(XcbInputOpcodes) - {XcbInputOpcodes.HIERARCHY}
 
 
-class xcb_query_extension_reply_t(ctypes.Structure):
+class xcb_query_extension_reply_t(ctypes.Structure):  # noqa: N801
     """https://xcb.freedesktop.org/manual/structxcb__query__extension__reply__t.html."""
 
     _fields_ = [
@@ -98,7 +102,12 @@ class xcb_query_extension_reply_t(ctypes.Structure):
     ]
 
 
+# pylint: enable=invalid-name
+
+
 class NativeEventFilter(QAbstractNativeEventFilter):
+
+    """Event filter for XCB messages to work around Qt 6.5.1 crash."""
 
     # Return values for nativeEventFilter.
     #
@@ -129,14 +138,17 @@ class NativeEventFilter(QAbstractNativeEventFilter):
             reply = xcb.xcb_query_extension_reply(conn, cookie, None)
             assert reply
 
-            if not reply.contents.present:
-                self.xinput_opcode = None
-            else:
+            if reply.contents.present:
                 self.xinput_opcode = reply.contents.major_opcode
+            else:
+                self.xinput_opcode = None
         finally:
             xcb.xcb_disconnect(conn)
 
-    def nativeEventFilter(self, evtype: bytes, message: int) -> Tuple[bool, int]:
+    def nativeEventFilter(
+        self, evtype: Union[bytes, QByteArray], message: sip.voidptr
+    ) -> Tuple[bool, int]:
+        """Handle XCB events."""
         # We're only installed when the platform plugin is xcb
         assert evtype == b"xcb_generic_event_t", evtype
 
@@ -155,18 +167,20 @@ class NativeEventFilter(QAbstractNativeEventFilter):
             if not self._active and event.event_type == XcbInputOpcodes.HIERARCHY:
                 log.misc.warning(
                     "Got XInput HIERARCHY event, future swipe/pinch/touch events will "
-                    "be ignored to avoid a Qt 6.5.1 crash"
+                    "be ignored to avoid a Qt 6.5.1 crash. Restart qutebrowser to make "
+                    "them work again."
                 )
                 self._active = True
             elif self._active and event.event_type in _PROBLEMATIC_XINPUT_EVENTS:
                 name = XcbInputOpcodes(event.event_type).name
-                log.misc.warning(f"Ignoring problematic XInput event {name}")
+                log.misc.debug(f"Ignoring problematic XInput event {name}")
                 return self._FILTER_EVENT_RET
 
         return self._PASS_EVENT_RET
 
 
 def init() -> None:
+    """Install the native event filter if needed."""
     global _instance
 
     platform = objects.qapp.platformName()
@@ -176,5 +190,6 @@ def init() -> None:
     if platform != "xcb" or qt_version != "6.5.1":
         return
 
+    log.misc.debug("Installing native event filter to work around Qt 6.5.1 crash")
     _instance = NativeEventFilter()
     objects.qapp.installNativeEventFilter(_instance)
