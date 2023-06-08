@@ -74,11 +74,12 @@ except ValueError:
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
     _NIL_KEY = 0
 
-_ModifierType = Qt.KeyboardModifier
 if machinery.IS_QT6:
     _KeyInfoType = QKeyCombination
+    _ModifierType = Qt.KeyboardModifier
 else:
     _KeyInfoType = int
+    _ModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
 
 
 _SPECIAL_NAMES = {
@@ -487,7 +488,7 @@ class KeyInfo:
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
         mods = self.modifiers & ~modifiers
-        return KeyInfo(key=self.key, modifiers=mods)  # type: ignore[arg-type]
+        return KeyInfo(key=self.key, modifiers=mods)
 
     def is_special(self) -> bool:
         """Check whether this key requires special key syntax."""
@@ -662,7 +663,7 @@ class KeySequence:
         _assert_plain_modifier(cast(Qt.KeyboardModifier, ev.modifiers()))
 
         key = _remap_unicode(key, ev.text())
-        modifiers = ev.modifiers()
+        modifiers: _ModifierType = ev.modifiers()
 
         if key == _NIL_KEY:
             raise KeyParseError(None, "Got nil key!")
@@ -687,10 +688,10 @@ class KeySequence:
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
         shift_modifier = Qt.KeyboardModifier.ShiftModifier
-        if (modifiers == shift_modifier and  # type: ignore[comparison-overlap]
+        if (modifiers == shift_modifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifier.NoModifier  # type: ignore[assignment]
+            modifiers = Qt.KeyboardModifier.NoModifier
 
         # On macOS, swap Ctrl and Meta back
         #
