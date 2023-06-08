@@ -41,6 +41,7 @@ class xcb_ge_generic_event_t(ctypes.Structure):
     Also used for xcb_generic_event_t as the structures overlap:
     https://xcb.freedesktop.org/manual/structxcb__generic__event__t.html
     """
+
     _fields_ = [
         ("response_type", ctypes.c_uint8),
         ("extension", ctypes.c_uint8),
@@ -57,44 +58,45 @@ _PROBLEMATIC_XINPUT_EVENTS = [
     18,  # XCB_INPUT_TOUCH_BEGIN
     19,  # XCB_INPUT_TOUCH_UPDATE
     20,  # XCB_INPUT_TOUCH_END
-
     27,  # XCB_INPUT_GESTURE_PINCH_BEGIN
     28,  # XCB_INPUT_GESTURE_PINCH_UPDATE
     29,  # XCB_INPUT_GESTURE_PINCH_END
-
     30,  # XCB_INPUT_GESTURE_SWIPE_BEGIN
     31,  # XCB_INPUT_GESTURE_SWIPE_UPDATE
     32,  # XCB_INPUT_GESTURE_SWIPE_END
 ]
 
+
 class xcb_query_extension_reply_t(ctypes.Structure):
     """https://xcb.freedesktop.org/manual/structxcb__query__extension__reply__t.html."""
+
     _fields_ = [
-        ('response_type', ctypes.c_uint8),
-        ('pad0', ctypes.c_uint8),
-        ('sequence', ctypes.c_uint16),
-        ('length', ctypes.c_uint32),
-        ('present', ctypes.c_uint8),
-        ('major_opcode', ctypes.c_uint8),
-        ('first_event', ctypes.c_uint8),
-        ('first_error', ctypes.c_uint8),
+        ("response_type", ctypes.c_uint8),
+        ("pad0", ctypes.c_uint8),
+        ("sequence", ctypes.c_uint16),
+        ("length", ctypes.c_uint32),
+        ("present", ctypes.c_uint8),
+        ("major_opcode", ctypes.c_uint8),
+        ("first_event", ctypes.c_uint8),
+        ("first_error", ctypes.c_uint8),
     ]
 
 
 class NativeEventFilter(QAbstractNativeEventFilter):
-
     def __init__(self) -> None:
         super().__init__()
-        xcb = ctypes.cdll.LoadLibrary('libxcb.so.1')
+        xcb = ctypes.cdll.LoadLibrary("libxcb.so.1")
         xcb.xcb_connect.restype = ctypes.POINTER(ctypes.c_void_p)
-        xcb.xcb_query_extension_reply.restype = ctypes.POINTER(xcb_query_extension_reply_t)
+        xcb.xcb_query_extension_reply.restype = ctypes.POINTER(
+            xcb_query_extension_reply_t
+        )
 
         conn = xcb.xcb_connect(None, None)
         assert conn
         assert not xcb.xcb_connection_has_error(conn)
 
         # Get major opcode ID of Xinput extension
-        name = b'XInputExtension'
+        name = b"XInputExtension"
         cookie = xcb.xcb_query_extension(conn, len(name), name)
         reply = xcb.xcb_query_extension_reply(conn, cookie, None)
         assert reply
@@ -108,18 +110,20 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
     def nativeEventFilter(self, evtype: bytes, message: int) -> Tuple[bool, int]:
         # We're only installed when the platform plugin is xcb
-        assert evtype == b'xcb_generic_event_t', evtype
+        assert evtype == b"xcb_generic_event_t", evtype
 
         # We cast to xcb_ge_generic_event_t, which overlaps with xcb_generic_event_t.
         # .extension and .event_type will only make sense if this is an
         # XCB_GE_GENERIC event, but this is the first thing we check in the 'if'
         # below anyways.
-        event = ctypes.cast(int(message), ctypes.POINTER(xcb_ge_generic_event_t)).contents
+        event = ctypes.cast(
+            int(message), ctypes.POINTER(xcb_ge_generic_event_t)
+        ).contents
 
         if (
-            event.response_type == _XCB_GE_GENERIC and
-            event.extension == self.xinput_opcode and
-            event.event_type in _PROBLEMATIC_XINPUT_EVENTS
+            event.response_type == _XCB_GE_GENERIC
+            and event.extension == self.xinput_opcode
+            and event.event_type in _PROBLEMATIC_XINPUT_EVENTS
         ):
             log.misc.warning(f"Ignoring problematic XInput event {event.event_type}")
             return (True, 0)
@@ -134,7 +138,7 @@ def init() -> None:
     qt_version = qVersion()
     log.misc.debug(f"Platform {platform}, Qt {qt_version}")
 
-    if platform != 'xcb' or qt_version != '6.5.1':
+    if platform != "xcb" or qt_version != "6.5.1":
         return
 
     _instance = NativeEventFilter()
