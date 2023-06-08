@@ -65,7 +65,7 @@ from qutebrowser.keyinput import macros, eventfilter
 from qutebrowser.mainwindow import mainwindow, prompt, windowundo
 from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
-                              objects, quitter)
+                              objects, quitter, nativeeventfilter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                resources, usertypes, standarddir,
                                error, qtutils, debug)
@@ -523,6 +523,7 @@ def _init_modules(*, args):
     log.init.debug("Misc initialization...")
     macros.init()
     windowundo.init()
+    nativeeventfilter.init()
 
 
 class Application(QApplication):
