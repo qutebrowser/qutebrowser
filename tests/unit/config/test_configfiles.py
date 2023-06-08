@@ -1190,7 +1190,7 @@ class TestConfigPy:
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
 
-        if sys.version_info >= (3, 12):
+        if sys.version_info >= (3, 11, 4):
             assert isinstance(error.exception, SyntaxError)
             assert error.text == "Unhandled exception"
             assert error.traceback is not None  # tested in more detail by test below
