@@ -22,11 +22,13 @@
 This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG-114334.
 """
 
+from typing import Tuple
 import ctypes
 
-from qutebrowser.qt.core import QAbstractNativeEventFilter
+from qutebrowser.qt.core import QAbstractNativeEventFilter, qVersion
 
 from qutebrowser.misc import objects
+from qutebrowser.utils import log
 
 
 # Needs to be saved to avoid garbage collection
@@ -52,9 +54,14 @@ class xcb_ge_generic_event_t(ctypes.Structure):
 
 _XCB_GE_GENERIC = 35
 _PROBLEMATIC_XINPUT_EVENTS = [
+    18,  # XCB_INPUT_TOUCH_BEGIN
+    19,  # XCB_INPUT_TOUCH_UPDATE
+    20,  # XCB_INPUT_TOUCH_END
+
     27,  # XCB_INPUT_GESTURE_PINCH_BEGIN
     28,  # XCB_INPUT_GESTURE_PINCH_UPDATE
     29,  # XCB_INPUT_GESTURE_PINCH_END
+
     30,  # XCB_INPUT_GESTURE_SWIPE_BEGIN
     31,  # XCB_INPUT_GESTURE_SWIPE_UPDATE
     32,  # XCB_INPUT_GESTURE_SWIPE_END
@@ -114,7 +121,7 @@ class NativeEventFilter(QAbstractNativeEventFilter):
             event.extension == self.xinput_opcode and
             event.event_type in _PROBLEMATIC_XINPUT_EVENTS
         ):
-            print("Ignoring problematic XInput event", event.event_type)
+            log.misc.warning(f"Ignoring problematic XInput event {event.event_type}")
             return (True, 0)
 
         return (False, 0)
@@ -122,5 +129,13 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
 def init() -> None:
     global _instance
+
+    platform = objects.qapp.platformName()
+    qt_version = qVersion()
+    log.misc.debug(f"Platform {platform}, Qt {qt_version}")
+
+    if platform != 'xcb' or qt_version != '6.5.1':
+        return
+
     _instance = NativeEventFilter()
     objects.qapp.installNativeEventFilter(_instance)
