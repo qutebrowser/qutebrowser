@@ -25,6 +25,7 @@ This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG
 from typing import Tuple
 import enum
 import ctypes
+import ctypes.util
 
 from qutebrowser.qt.core import QAbstractNativeEventFilter, qVersion
 
@@ -108,7 +109,9 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
     def __init__(self) -> None:
         super().__init__()
-        xcb = ctypes.cdll.LoadLibrary("libxcb.so.1")
+        self._active = False  # Set to true when getting hierarchy event
+
+        xcb = ctypes.CDLL(ctypes.util.find_library("xcb"))
         xcb.xcb_connect.restype = ctypes.POINTER(ctypes.c_void_p)
         xcb.xcb_query_extension_reply.restype = ctypes.POINTER(
             xcb_query_extension_reply_t
@@ -116,22 +119,22 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
         conn = xcb.xcb_connect(None, None)
         assert conn
-        assert not xcb.xcb_connection_has_error(conn)
 
-        # Get major opcode ID of Xinput extension
-        name = b"XInputExtension"
-        cookie = xcb.xcb_query_extension(conn, len(name), name)
-        reply = xcb.xcb_query_extension_reply(conn, cookie, None)
-        assert reply
+        try:
+            assert not xcb.xcb_connection_has_error(conn)
 
-        if not reply.contents.present:
-            self.xinput_opcode = None
-        else:
-            self.xinput_opcode = reply.contents.major_opcode
+            # Get major opcode ID of Xinput extension
+            name = b"XInputExtension"
+            cookie = xcb.xcb_query_extension(conn, len(name), name)
+            reply = xcb.xcb_query_extension_reply(conn, cookie, None)
+            assert reply
 
-        xcb.xcb_disconnect(conn)
-
-        self._active = False  # Set to true when getting hierarchy event
+            if not reply.contents.present:
+                self.xinput_opcode = None
+            else:
+                self.xinput_opcode = reply.contents.major_opcode
+        finally:
+            xcb.xcb_disconnect(conn)
 
     def nativeEventFilter(self, evtype: bytes, message: int) -> Tuple[bool, int]:
         # We're only installed when the platform plugin is xcb
