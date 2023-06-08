@@ -23,6 +23,7 @@ This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG
 """
 
 from typing import Tuple
+import enum
 import ctypes
 
 from qutebrowser.qt.core import QAbstractNativeEventFilter, qVersion
@@ -54,17 +55,31 @@ class xcb_ge_generic_event_t(ctypes.Structure):
 
 
 _XCB_GE_GENERIC = 35
-_PROBLEMATIC_XINPUT_EVENTS = [
-    18,  # XCB_INPUT_TOUCH_BEGIN
-    19,  # XCB_INPUT_TOUCH_UPDATE
-    20,  # XCB_INPUT_TOUCH_END
-    27,  # XCB_INPUT_GESTURE_PINCH_BEGIN
-    28,  # XCB_INPUT_GESTURE_PINCH_UPDATE
-    29,  # XCB_INPUT_GESTURE_PINCH_END
-    30,  # XCB_INPUT_GESTURE_SWIPE_BEGIN
-    31,  # XCB_INPUT_GESTURE_SWIPE_UPDATE
-    32,  # XCB_INPUT_GESTURE_SWIPE_END
-]
+
+
+class XcbInputOpcodes(enum.IntEnum):
+
+    """https://xcb.freedesktop.org/manual/group__XCB__Input__API.html.
+
+    NOTE: If adding anything new here, adjust _PROBLEMATIC_XINPUT_EVENTS below!
+    """
+
+    HIERARCHY = 11
+
+    TOUCH_BEGIN = 18
+    TOUCH_UPDATE = 19
+    TOUCH_END = 20
+
+    GESTURE_PINCH_BEGIN = 27
+    GESTURE_PINCH_UPDATE = 28
+    GESTURE_PINCH_END = 29
+
+    GESTURE_SWIPE_BEGIN = 30
+    GESTURE_SWIPE_UPDATE = 31
+    GESTURE_SWIPE_END = 32
+
+
+_PROBLEMATIC_XINPUT_EVENTS = set(XcbInputOpcodes) - {XcbInputOpcodes.HIERARCHY}
 
 
 class xcb_query_extension_reply_t(ctypes.Structure):
@@ -125,7 +140,8 @@ class NativeEventFilter(QAbstractNativeEventFilter):
             and event.extension == self.xinput_opcode
             and event.event_type in _PROBLEMATIC_XINPUT_EVENTS
         ):
-            log.misc.warning(f"Ignoring problematic XInput event {event.event_type}")
+            name = XcbInputOpcodes(event.event_type).name
+            log.misc.warning(f"Ignoring problematic XInput event {name}")
             return (True, 0)
 
         return (False, 0)
