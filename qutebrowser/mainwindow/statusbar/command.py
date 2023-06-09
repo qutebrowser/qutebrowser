@@ -276,7 +276,7 @@ class Command(misc.CommandLineEdit):
                           'prefix deleted')
         elif e.key() == Qt.Key.Key_Return:
             e.ignore()
-        elif e.key() == Qt.Key.Key_Insert and e.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+        elif e.key() == Qt.Key.Key_Insert and e.modifiers() == Qt.KeyboardModifier.ShiftModifier:  # type: ignore[comparison-overlap]
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:

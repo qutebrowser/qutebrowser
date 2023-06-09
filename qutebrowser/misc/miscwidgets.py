@@ -33,7 +33,6 @@ from qutebrowser.browser import inspector
 from qutebrowser.keyinput import keyutils, modeman
 
 
-
 class CommandLineEdit(QLineEdit):
 
     """A QLineEdit with a history and prompt chars.
