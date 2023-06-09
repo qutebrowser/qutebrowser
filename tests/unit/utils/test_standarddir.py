@@ -482,9 +482,10 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
     home_dir.ensure(dir=True)
     monkeypatch.setenv('HOME', str(home_dir))
 
+    # check=False on Python 3.12 as WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2023-June/045331.html
     proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
                           text=True,
-                          check=True,
+                          check=sys.version_info != (3, 12, 0, "beta", 2),
                           stdout=subprocess.PIPE)
     sub_locations = json.loads(proc.stdout)
 
