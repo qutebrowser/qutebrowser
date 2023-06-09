@@ -33,39 +33,6 @@ from qutebrowser.browser import inspector
 from qutebrowser.keyinput import keyutils, modeman
 
 
-class MinimalLineEditMixin:
-
-    """A mixin to give a QLineEdit a minimal look and nicer repr()."""
-
-    def __init__(self):
-        self.setStyleSheet(  # type: ignore[attr-defined]
-            """
-            QLineEdit {
-                border: 0px;
-                padding-left: 1px;
-                background-color: transparent;
-            }
-            """
-        )
-        self.setAttribute(  # type: ignore[attr-defined]
-            Qt.WidgetAttribute.WA_MacShowFocusRect, False)
-
-    def keyPressEvent(self, e):
-        """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key.Key_Insert and e.modifiers() == Qt.KeyboardModifier.ShiftModifier:
-            try:
-                text = utils.get_clipboard(selection=True, fallback=True)
-            except utils.ClipboardError:
-                e.ignore()
-            else:
-                e.accept()
-                self.insert(text)  # type: ignore[attr-defined]
-            return
-        super().keyPressEvent(e)  # type: ignore[misc]
-
-    def __repr__(self):
-        return utils.get_repr(self)
-
 
 class CommandLineEdit(QLineEdit):
 
@@ -77,7 +44,7 @@ class CommandLineEdit(QLineEdit):
         _promptlen: The length of the current prompt.
     """
 
-    def __init__(self, *, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)
