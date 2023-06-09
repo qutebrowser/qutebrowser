@@ -357,15 +357,17 @@ class TestGitStr:
         On fixture teardown, it makes sure it got called with git-commit-id as
         argument.
         """
+        # pylint: disable-next=patch-missing-spec
         mocker.patch('qutebrowser.utils.version.subprocess',
                      side_effect=AssertionError)
-        m = mocker.patch('qutebrowser.utils.version.resources.read_file')
+        m = mocker.patch('qutebrowser.utils.version.resources.read_file')  # pylint: disable=patch-missing-spec
         yield m
         m.assert_called_with('git-commit-id')
 
     @pytest.fixture
     def git_str_subprocess_fake(self, mocker, monkeypatch):
         """Fixture patching _git_str_subprocess with a GitStrSubprocessFake."""
+        # pylint: disable-next=patch-missing-spec
         mocker.patch('qutebrowser.utils.version.subprocess',
                      side_effect=AssertionError)
         fake = GitStrSubprocessFake()
@@ -406,8 +408,9 @@ class TestGitStr:
     def test_normal_path_oserror(self, mocker, git_str_subprocess_fake,
                                  caplog):
         """Test with things raising OSError."""
-        m = mocker.patch('qutebrowser.utils.version.os')
+        m = mocker.patch('qutebrowser.utils.version.os')  # pylint: disable=patch-missing-spec
         m.path.join.side_effect = OSError
+        # pylint: disable-next=patch-missing-spec
         mocker.patch('qutebrowser.utils.version.resources.read_file',
                      side_effect=OSError)
         with caplog.at_level(logging.ERROR, 'misc'):
@@ -514,8 +517,9 @@ class TestGitStrSubprocess:
         Args:
             exc: The exception to raise.
         """
-        m = mocker.patch('qutebrowser.utils.version.os')
+        m = mocker.patch('qutebrowser.utils.version.os')  # pylint: disable=patch-missing-spec
         m.path.isdir.return_value = True
+        # pylint: disable-next=patch-missing-spec
         mocker.patch('qutebrowser.utils.version.subprocess.run',
                      side_effect=exc)
         ret = version._git_str_subprocess(str(tmp_path))
@@ -637,7 +641,7 @@ def test_path_info(monkeypatch, equal):
 def import_fake(stubs, monkeypatch):
     """Fixture to patch imports using ImportFake."""
     fake = stubs.ImportFake({mod: True for mod in version.MODULE_INFO}, monkeypatch)
-    fake.patch()
+    fake.patch()  # pylint: disable=patch-missing-spec
     return fake
 
 
@@ -862,6 +866,7 @@ class TestPDFJSVersion:
     """Tests for _pdfjs_version."""
 
     def test_not_found(self, mocker):
+        # pylint: disable-next=patch-missing-spec
         mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
                      side_effect=pdfjs.PDFJSNotFound('/build/pdf.js'))
         assert version._pdfjs_version() == 'no'
@@ -1112,7 +1117,7 @@ class TestChromiumVersion:
             'importlib_metadata': False,
             'importlib.metadata': False,
         }, monkeypatch)
-        import_fake.patch()
+        import_fake.patch()  # pylint: disable=patch-missing-spec
 
     @pytest.fixture
     def importlib_patcher(self, monkeypatch):

@@ -79,6 +79,7 @@ def test_text_elide_none(mocker, qtbot):
     label = TextBase()
     qtbot.add_widget(label)
     label.setText('')
+    # pylint: disable-next=patch-missing-spec
     mock = mocker.patch(
         'qutebrowser.mainwindow.statusbar.textbase.TextBase.fontMetrics')
     label._update_elided_text(20)

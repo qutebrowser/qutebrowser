@@ -35,7 +35,7 @@ def keyseq(s):
 
 def _create_keyparser(mode):
     kp = basekeyparser.BaseKeyParser(mode=mode, win_id=0)
-    kp.execute = mock.Mock()
+    kp.execute = mock.Mock()  # pylint: disable=mock-missing-spec
     return kp
 
 

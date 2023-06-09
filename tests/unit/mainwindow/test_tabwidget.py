@@ -74,7 +74,7 @@ class TestTabWidget:
 
     @pytest.fixture
     def paint_spy(self, monkeypatch):
-        spy = Mock()
+        spy = Mock()  # pylint: disable=mock-missing-spec
         monkeypatch.setattr(tabwidget, "QStylePainter", spy)
         return spy
 
@@ -83,7 +83,7 @@ class TestTabWidget:
         widget.setMaximumWidth(100)
         widget.addTab(fake_web_tab(), "one two three four")
 
-        fake_paint_event = Mock()
+        fake_paint_event = Mock()  # pylint: disable=mock-missing-spec
         fake_paint_event.region.return_value.intersects.return_value = True
         widget.tabBar().paintEvent(fake_paint_event)
 
@@ -97,7 +97,7 @@ class TestTabWidget:
         widget.setMaximumWidth(200)
         widget.addTab(fake_web_tab(), "one two three four")
 
-        fake_paint_event = Mock()
+        fake_paint_event = Mock()  # pylint: disable=mock-missing-spec
         fake_paint_event.region.return_value.intersects.return_value = True
         widget.tabBar().paintEvent(fake_paint_event)
 

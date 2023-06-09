@@ -52,7 +52,7 @@ from qutebrowser.completion import completiondelegate
 def test_highlight(pat, txt, segments):
     doc = QTextDocument(txt)
     highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
-    highlighter.setFormat = mock.Mock()
+    highlighter.setFormat = mock.Mock()  # pylint: disable=mock-missing-spec
     highlighter.highlightBlock(txt)
     highlighter.setFormat.assert_has_calls([
         mock.call(s[0], s[1], mock.ANY) for s in segments

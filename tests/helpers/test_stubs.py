@@ -32,8 +32,8 @@ def timer(stubs):
 
 def test_timeout(timer):
     """Test whether timeout calls the functions."""
-    func = mock.Mock()
-    func2 = mock.Mock()
+    func = mock.Mock()  # pylint: disable=mock-missing-spec
+    func2 = mock.Mock()  # pylint: disable=mock-missing-spec
     timer.timeout.connect(func)
     timer.timeout.connect(func2)
     func.assert_not_called()
@@ -45,7 +45,7 @@ def test_timeout(timer):
 
 def test_disconnect_all(timer):
     """Test disconnect without arguments."""
-    func = mock.Mock()
+    func = mock.Mock()  # pylint: disable=mock-missing-spec
     timer.timeout.connect(func)
     timer.timeout.disconnect()
     timer.timeout.emit()
@@ -54,7 +54,7 @@ def test_disconnect_all(timer):
 
 def test_disconnect_one(timer):
     """Test disconnect with a single argument."""
-    func = mock.Mock()
+    func = mock.Mock()  # pylint: disable=mock-missing-spec
     timer.timeout.connect(func)
     timer.timeout.disconnect(func)
     timer.timeout.emit()
@@ -69,8 +69,8 @@ def test_disconnect_all_invalid(timer):
 
 def test_disconnect_one_invalid(timer):
     """Test disconnecting with an invalid connection."""
-    func1 = mock.Mock()
-    func2 = mock.Mock()
+    func1 = mock.Mock()  # pylint: disable=mock-missing-spec
+    func2 = mock.Mock()  # pylint: disable=mock-missing-spec
     timer.timeout.connect(func1)
     with pytest.raises(TypeError):
         timer.timeout.disconnect(func2)

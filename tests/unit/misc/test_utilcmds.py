@@ -33,7 +33,7 @@ def test_repeat_command_initial(mocker, mode_manager):
     If :repeat-command is called initially, it should err, because there's
     nothing to repeat.
     """
-    objreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')
+    objreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')  # pylint: disable=patch-missing-spec
     objreg_mock.get.return_value = mode_manager
     with pytest.raises(cmdutils.CommandError,
                        match="You didn't do anything yet."):
@@ -56,9 +56,9 @@ class FakeWindow:
 def test_window_only(mocker, monkeypatch):
     """Verify that window_only doesn't close the current or deleted windows."""
     test_windows = {0: FakeWindow(), 1: FakeWindow(True), 2: FakeWindow()}
-    winreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')
+    winreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')  # pylint: disable=patch-missing-spec
     winreg_mock.window_registry = test_windows
-    sip_mock = mocker.patch('qutebrowser.misc.utilcmds.sip')
+    sip_mock = mocker.patch('qutebrowser.misc.utilcmds.sip')  # pylint: disable=patch-missing-spec
     sip_mock.isdeleted.side_effect = lambda window: window.deleted
     utilcmds.window_only(current_win_id=0)
     assert not test_windows[0].closed

@@ -39,7 +39,7 @@ class TestBaseLineParser:
 
     def test_prepare_save_missing(self, mocker, lineparser):
         """Test if _prepare_save does what it's supposed to do."""
-        os_mock = mocker.patch('qutebrowser.misc.lineparser.os')
+        os_mock = mocker.patch('qutebrowser.misc.lineparser.os')  # pylint: disable=patch-missing-spec
         lineparser._prepare_save()
         os_mock.makedirs.assert_called_with(self.CONFDIR, 0o755, exist_ok=True)
 

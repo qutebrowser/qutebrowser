@@ -241,6 +241,7 @@ class TestDirbrowserHtml:
         assert not parsed.parent
 
     def test_oserror(self, mocker):
+        # pylint: disable-next=patch-missing-spec
         m = mocker.patch('qutebrowser.browser.webkit.network.filescheme.'
                          'os.listdir')
         m.side_effect = OSError('Error message')
@@ -278,7 +279,7 @@ class TestFileSchemeHandler:
         req = QNetworkRequest(url)
 
         err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
-        mocker.patch('os.path.isdir', side_effect=err)
+        mocker.patch('os.path.isdir', side_effect=err)  # pylint: disable=patch-missing-spec
 
         reply = filescheme.handler(req, None, None)
         assert reply is None

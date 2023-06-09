@@ -199,7 +199,7 @@ class TestFileHandling:
         with qtbot.wait_signal(editor.file_updated):
             _update_file(editor._filename, 'bar')
 
-        mocker.patch('tempfile.NamedTemporaryFile', side_effect=OSError)
+        mocker.patch('tempfile.NamedTemporaryFile', side_effect=OSError)  # pylint: disable=patch-missing-spec
         with caplog.at_level(logging.ERROR):
             editor.backup()
 

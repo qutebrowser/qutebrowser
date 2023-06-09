@@ -55,17 +55,17 @@ class FakeOutput:
 
 @pytest.fixture
 def subprocess_mock(mocker):
-    return mocker.patch('subprocess.run')
+    return mocker.patch('subprocess.run')  # pylint: disable=patch-missing-spec
 
 
 @pytest.fixture
 def qutecommand_mock(mocker):
-    return mocker.patch.object(qute_lastpass, 'qute_command')
+    return mocker.patch.object(qute_lastpass, 'qute_command')  # pylint: disable=patch-missing-spec
 
 
 @pytest.fixture
 def stderr_mock(mocker):
-    return mocker.patch.object(qute_lastpass, 'stderr')
+    return mocker.patch.object(qute_lastpass, 'stderr')  # pylint: disable=patch-missing-spec
 
 
 # Default arguments passed to qute-lastpass

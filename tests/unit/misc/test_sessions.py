@@ -228,6 +228,7 @@ class TestSave:
         OSError('foo'), UnicodeEncodeError('ascii', '', 0, 2, 'foo'),
         yaml.YAMLError('foo')])
     def test_fake_exception(self, mocker, sess_man, tmp_path, exception):
+        # pylint: disable-next=patch-missing-spec
         mocker.patch('qutebrowser.misc.sessions.yaml.dump',
                      side_effect=exception)
 
