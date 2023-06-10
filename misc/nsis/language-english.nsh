@@ -161,6 +161,11 @@ ${PRODUCT_NAME} ${VERSION} could not be fully uninstalled.$(1)\
 Please restart Windows and run the uninstaller again.\
 `
 LangString MB_FILE_ERROR ${LANG_ENGLISH} $(^FileError)
+LangString MB_FILE_ERROR_NO_ABORT ${LANG_ENGLISH} `\
+Error opening file for writing:$(2)$0$(2)\
+Click Retry to try again, or$(1)\
+Cancel to skip this file.\
+`
 LangString MB_FILE_ERROR_NO_IGNORE ${LANG_ENGLISH} $(^FileError_NoIgnore)
 LangString MB_GETUSERNAME_FAIL ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} Setup failed to retrieve the user name.$(A_RESTART_WINDOWS)\

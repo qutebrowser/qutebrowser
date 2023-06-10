@@ -916,8 +916,12 @@ Function ${F}WriteLog
     FileClose ${FileHandle}
     _error:
     DetailPrint $(M_CANT_WRITE)${LangVar}
+    StrCmpS $SetupState 3 0 +2
+    MessageBox MB_RETRYCANCEL|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR_NO_ABORT) /SD IDCANCEL IDRETRY _start IDCANCEL _skip
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR) /SD IDABORT IDRETRY _start IDIGNORE _skip
-    Abort $(M_ABORTED)$(M_CANT_WRITE)${LangVar}
+    ${CloseLogFile}
+    ${Set} $LogFile ''
+    ${Fail} $(M_ABORTED)$(M_CANT_WRITE)${LangVar}
     _skip:
     StrCpy ${FileName} ''
     StrCpy ${FileHandle} ''

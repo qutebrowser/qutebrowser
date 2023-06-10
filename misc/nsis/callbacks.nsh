@@ -93,6 +93,7 @@ Function ${F}.onInit
             ${StdUtils.NormalizePath} $LogFile $LogFile
             ${If} ${FileExists} "$LogFile\*"
                 ${Set} $LogFile "$LogFile\${DEFAULT_LOG_FILENAME}"
+                ${StdUtils.NormalizePath} $LogFile $LogFile
             ${EndIf}
         ${EndIf}
         ${WriteDebug} $LogFile
