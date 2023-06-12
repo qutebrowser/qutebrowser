@@ -381,6 +381,15 @@
         ${Reserve} $R0 InstDirLength 0
         ${Reserve} $R1 WinDirLength 0
         ${Reserve} $R2 InstDirPart ''
+        ; Reject path of different install mode.
+        StrCmp $MultiUser.InstallMode 'AllUsers' 0 _@
+        StrCmpS $HasPerUserInstallation 1 0 _@@
+        StrCmp $INSTDIR $PerUserInstallationFolder _reject _@@
+        _@:
+        StrCmp $MultiUser.InstallMode 'CurrentUser' 0 _@@
+        StrCmpS $HasPerMachineInstallation 1 0 _@@
+        StrCmp $INSTDIR $PerMachineInstallationFolder _reject
+        _@@:
         ; Reject drive root
         StrLen ${InstDirLength} $INSTDIR
         IntCmpU ${InstDirLength} 3 _reject _reject
