@@ -18,26 +18,20 @@ from qutebrowser.qt import machinery
 
 machinery.init()
 
-# While upstream recommends using PyQt6.sip ever since PyQt6 5.11, some distributions
-# still package later versions of PyQt6 with a top-level "sip" rather than "PyQt6.sip".
-_VENDORED_SIP = False
-
 if machinery.USE_PYSIDE6:  # pylint: disable=no-else-raise
     raise machinery.Unavailable()
 elif machinery.USE_PYQT5:
     try:
         from PyQt5.sip import *
-        _VENDORED_SIP = True
     except ImportError:
-        pass
+        from sip import *  # type: ignore[import]
 elif machinery.USE_PYQT6:
     try:
         from PyQt6.sip import *
-        _VENDORED_SIP = True
     except ImportError:
-        pass
+        # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some
+        # distributions still package later versions of PyQt5 with a top-level
+        # "sip" rather than "PyQt5.sip".
+        from sip import *  # type: ignore[import]
 else:
     raise machinery.UnknownWrapper()
-
-if not _VENDORED_SIP:
-    from sip import *  # type: ignore[import]
