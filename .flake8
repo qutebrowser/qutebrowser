@@ -62,6 +62,7 @@ min-version = 3.7.0
 max-complexity = 12
 per-file-ignores =
     qutebrowser/api/hook.py : N801
+    qutebrowser/qt/*.py : F403
     tests/* : B011,B028,D100,D101
     tests/unit/browser/test_history.py : D100,D101,N806
     tests/helpers/fixtures.py : D100,D101,N806

@@ -1,8 +1,10 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# FIXME:qt6 (lint)
-# pylint: disable=missing-module-docstring
-# flake8: noqa
 # pyright: reportConstantRedefinition=false
+
+"""Qt wrapper selection.
+
+Contains selection logic and globals for Qt wrapper selection.
+"""
 
 import os
 import sys
@@ -25,7 +27,7 @@ WRAPPERS = [
 
 
 class Error(Exception):
-    pass
+    """Base class for all exceptions in this module."""
 
 
 class Unavailable(Error, ImportError):
@@ -37,7 +39,10 @@ class Unavailable(Error, ImportError):
 
 
 class UnknownWrapper(Error):
-    pass
+    """Raised when an Qt module is imported but the wrapper values are unknown.
+
+    Should never happen (unless a new wrapper is added).
+    """
 
 
 def _autoselect_wrapper() -> str:
