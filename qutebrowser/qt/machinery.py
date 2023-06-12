@@ -89,14 +89,34 @@ def _select_wrapper(args: Union[argparse.Namespace, None]) -> str:
 
 # Values are set in init(). If you see a NameError here, it means something tried to
 # import Qt (or check for its availability) before machinery.init() was called.
+
+#: The name of the wrapper to be used, one of WRAPPERS.
+#: Should not be used directly, use one of the USE_* or IS_* constants below
+#: instead, as those are supported by type checking.
 WRAPPER: str
+
+#: Whether we're using PyQt5. Consider using IS_QT5 or IS_PYQT instead.
 USE_PYQT5: bool
+
+#: Whether we're using PyQt6. Consider using IS_QT6 or IS_PYQT instead.
 USE_PYQT6: bool
+
+#: Whether we're using PySide6. Consider using IS_QT6 or IS_PYSIDE instead.
 USE_PYSIDE6: bool
+
+#: Whether we are using any Qt 5 wrapper.
 IS_QT5: bool
+
+#: Whether we are using any Qt 6 wrapper.
 IS_QT6: bool
+
+#: Whether we are using any PyQt wrapper.
 IS_PYQT: bool
+
+#: Whether we are using any PySide wrapper.
 IS_PYSIDE: bool
+
+#: The name of the package imported.
 PACKAGE: str
 
 _initialized = False
