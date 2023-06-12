@@ -146,7 +146,7 @@ def init(args: Optional[argparse.Namespace] = None) -> None:
     else:
         # Explicit initialization can happen exactly once, and if it's used, there
         # should not be any implicit initialization (qutebrowser.qt imports) before it.
-        if _initialized:
+        if _initialized:  # pylint: disable=else-if-used
             raise Error("init() already called before application init")
     _initialized = True
 

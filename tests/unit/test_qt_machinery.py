@@ -22,7 +22,7 @@
 import sys
 import argparse
 import typing
-from typing import Any, Optional
+from typing import Any, Optional, Dict, List
 
 import pytest
 
@@ -42,7 +42,7 @@ def modules():
 
 def test_autoselect_none_available(
     stubs: Any,
-    modules: dict[str, bool],
+    modules: Dict[str, bool],
     monkeypatch: pytest.MonkeyPatch,
 ):
     stubs.ImportFake(modules, monkeypatch).patch()
@@ -62,8 +62,8 @@ def test_autoselect_none_available(
 )
 def test_autoselect(
     stubs: Any,
-    modules: dict[str, bool],
-    available: list[str],
+    modules: Dict[str, bool],
+    available: List[str],
     expected: str,
     monkeypatch: pytest.MonkeyPatch,
 ):

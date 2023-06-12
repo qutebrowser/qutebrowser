@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# pylint: disable=import-error,wildcard-import,unused-wildcard-import
+# pylint: disable=wildcard-import,unused-wildcard-import
 
 """Wrapped Qt imports for PyQt5.sip/PyQt6.sip.
 
@@ -32,6 +32,6 @@ elif machinery.USE_PYQT6:
         # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some
         # distributions still package later versions of PyQt5 with a top-level
         # "sip" rather than "PyQt5.sip".
-        from sip import *  # type: ignore[import]
+        from sip import *
 else:
     raise machinery.UnknownWrapper()
