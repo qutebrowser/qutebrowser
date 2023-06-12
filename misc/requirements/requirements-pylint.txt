@@ -12,7 +12,7 @@ isort==5.11.5
 lazy-object-proxy==1.9.0
 mccabe==0.7.0
 pefile==2023.2.7
-platformdirs==3.5.1
+platformdirs==3.5.3
 pycparser==2.21
 PyJWT==2.7.0
 pylint==2.17.4
@@ -25,5 +25,5 @@ tomlkit==0.11.8
 typed-ast==1.5.4 ; python_version<"3.8"
 typing_extensions==4.6.3
 uritemplate==4.1.1
-# urllib3==2.0.2
+# urllib3==2.0.3
 wrapt==1.15.0
