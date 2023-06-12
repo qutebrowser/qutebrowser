@@ -5,6 +5,8 @@
 
 from qutebrowser.qt import machinery
 
+machinery.init()
+
 
 if machinery.USE_PYSIDE6:
     from PySide6.QtWidgets import *

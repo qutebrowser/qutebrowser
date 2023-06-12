@@ -5,6 +5,8 @@
 
 from qutebrowser.qt import machinery
 
+machinery.init()
+
 # While upstream recommends using PyQt6.sip ever since PyQt6 5.11, some distributions
 # still package later versions of PyQt6 with a top-level "sip" rather than "PyQt6.sip".
 _VENDORED_SIP = False
