@@ -2,9 +2,13 @@
 # FIXME:qt6 (lint)
 # pylint: disable=missing-module-docstring
 # flake8: noqa
+# pyright: reportConstantRedefinition=false
 
 import os
+import sys
+import argparse
 import importlib
+from typing import Union
 
 # Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
 # sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
@@ -12,7 +16,7 @@ import importlib
 # Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
 _DEFAULT_WRAPPER = "PyQt5"
 
-_WRAPPERS = [
+WRAPPERS = [
     "PyQt6",
     "PyQt5",
     # Needs more work
@@ -36,8 +40,13 @@ class UnknownWrapper(Error):
     pass
 
 
-def _autoselect_wrapper():
-    for wrapper in _WRAPPERS:
+def _autoselect_wrapper() -> str:
+    """Autoselect a Qt wrapper.
+
+    This goes through all wrappers defined in WRAPPER.
+    The first one which can be imported is returned.
+    """
+    for wrapper in WRAPPERS:
         try:
             importlib.import_module(wrapper)
         except ImportError:
@@ -45,42 +54,99 @@ def _autoselect_wrapper():
             continue
         return wrapper
 
-    wrappers = ", ".join(_WRAPPERS)
+    wrappers = ", ".join(WRAPPERS)
     raise Error(f"No Qt wrapper found, tried {wrappers}")
 
 
-def _select_wrapper():
+def _select_wrapper(args: Union[argparse.Namespace, None]) -> str:
+    """Select a Qt wrapper.
+
+    - If --qt-wrapper is given, use that.
+    - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
+    - Otherwise, use PyQt5 (FIXME:qt6 autoselect).
+    """
+    if args is not None and args.qt_wrapper is not None:
+        assert args.qt_wrapper in WRAPPERS, args.qt_wrapper  # ensured by argparse
+        return args.qt_wrapper
+
     env_var = "QUTE_QT_WRAPPER"
     env_wrapper = os.environ.get(env_var)
-    if env_wrapper is None:
-        # FIXME:qt6 Go back to the auto-detection once ready
-        # return _autoselect_wrapper()
-        return _DEFAULT_WRAPPER
+    if env_wrapper is not None:
+        if env_wrapper not in WRAPPERS:
+            raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
+                        f"allowed: {', '.join(WRAPPERS)}")
+        return env_wrapper
 
-    if env_wrapper not in _WRAPPERS:
-        raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
-                    f"allowed: {', '.join(_WRAPPERS)}")
-
-    return env_wrapper
-
-
-WRAPPER = _select_wrapper()
-USE_PYQT5 = WRAPPER == "PyQt5"
-USE_PYQT6 = WRAPPER == "PyQt6"
-USE_PYSIDE6 = WRAPPER == "PySide6"
-assert USE_PYQT5 ^ USE_PYQT6 ^ USE_PYSIDE6
-
-IS_QT5 = USE_PYQT5
-IS_QT6 = USE_PYQT6 or USE_PYSIDE6
-IS_PYQT = USE_PYQT5 or USE_PYQT6
-IS_PYSIDE = USE_PYSIDE6
-assert IS_QT5 ^ IS_QT6
-assert IS_PYQT ^ IS_PYSIDE
+    # FIXME:qt6 Go back to the auto-detection once ready
+    # return _autoselect_wrapper()
+    return _DEFAULT_WRAPPER
 
 
-if USE_PYQT5:
-    PACKAGE = "PyQt5"
-elif USE_PYQT6:
-    PACKAGE = "PyQt6"
-elif USE_PYSIDE6:
-    PACKAGE = "PySide6"
+# Values are set in init(). If you see a NameError here, it means something tried to
+# import Qt (or check for its availability) before machinery.init() was called.
+WRAPPER: str
+USE_PYQT5: bool
+USE_PYQT6: bool
+USE_PYSIDE6: bool
+IS_QT5: bool
+IS_QT6: bool
+IS_PYQT: bool
+IS_PYSIDE: bool
+PACKAGE: str
+
+_initialized = False
+
+
+def init(args: Union[argparse.Namespace, None] = None) -> None:
+    """Initialize Qt wrapper globals.
+
+    There is two ways how this function can be called:
+
+    - Explicitly, during qutebrowser startup, where it gets called before
+      earlyinit.early_init() in qutebrowser.py (i.e. after we have an argument
+      parser, but before any kinds of Qt usage). This allows `args` to be passed,
+      which is used to select the Qt wrapper (if --qt-wrapper is given).
+
+    - Implicitly, when any of the qutebrowser.qt.* modules in this package is imported.
+      This should never happen during normal qutebrowser usage, but means that any
+      qutebrowser module can be imported without having to worry about machinery.init().
+      This is useful for e.g. tests or manual interactive usage of the qutebrowser code.
+      In this case, `args` will be None.
+    """
+    global WRAPPER, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
+        IS_PYQT, IS_PYSIDE, PACKAGE, _initialized
+
+    if args is None:
+        # Implicit initialization can happen multiple times
+        # (all subsequent calls are a no-op)
+        if _initialized:
+            return
+    else:
+        # Explicit initialization can happen exactly once, and if it's used, there
+        # should not be any implicit initialization (qutebrowser.qt imports) before it.
+        assert not _initialized, "init() already called before application init"
+    _initialized = True
+
+    for name in WRAPPERS:
+        # If any Qt wrapper has been imported before this, all hope is lost.
+        assert name not in sys.modules, f"{name} already imported"
+
+    WRAPPER = _select_wrapper(args)
+    USE_PYQT5 = WRAPPER == "PyQt5"
+    USE_PYQT6 = WRAPPER == "PyQt6"
+    USE_PYSIDE6 = WRAPPER == "PySide6"
+    assert USE_PYQT5 ^ USE_PYQT6 ^ USE_PYSIDE6
+
+    IS_QT5 = USE_PYQT5
+    IS_QT6 = USE_PYQT6 or USE_PYSIDE6
+    IS_PYQT = USE_PYQT5 or USE_PYQT6
+    IS_PYSIDE = USE_PYSIDE6
+    assert IS_QT5 ^ IS_QT6
+    assert IS_PYQT ^ IS_PYSIDE
+
+    if USE_PYQT5:
+        PACKAGE = "PyQt5"
+    elif USE_PYQT6:
+        PACKAGE = "PyQt6"
+    elif USE_PYSIDE6:
+        PACKAGE = "PySide6"

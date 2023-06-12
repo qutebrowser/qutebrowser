@@ -54,6 +54,7 @@ check_python_version()
 
 import argparse  # FIXME:qt6 (lint): disable=wrong-import-order
 from qutebrowser.misc import earlyinit
+from qutebrowser.qt import machinery
 
 
 def get_argparser():
@@ -82,6 +83,11 @@ def get_argparser():
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
+    parser.add_argument('--qt-wrapper', choices=machinery.WRAPPERS,
+                        help="Which Qt wrapper to use. This can also be set "
+                        "via the QUTE_QT_WRAPPER environment variable. "
+                        "If both are set, the command line argument takes "
+                        "precedence.")
     parser.add_argument('--desktop-file-name',
                         default="org.qutebrowser.qutebrowser",
                         help="Set the base name of the desktop entry for this "
@@ -238,6 +244,7 @@ def main():
     args = parser.parse_args(argv)
     if args.json_args is not None:
         args = _unpack_json_args(args)
+    machinery.init(args)
     earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # version checking and other early initialization)
