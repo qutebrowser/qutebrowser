@@ -10,7 +10,7 @@ import os
 import sys
 import argparse
 import importlib
-from typing import Union
+from typing import Optional
 
 # Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
 # sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
@@ -63,7 +63,7 @@ def _autoselect_wrapper() -> str:
     raise Error(f"No Qt wrapper found, tried {wrappers}")
 
 
-def _select_wrapper(args: Union[argparse.Namespace, None]) -> str:
+def _select_wrapper(args: Optional[argparse.Namespace]) -> str:
     """Select a Qt wrapper.
 
     - If --qt-wrapper is given, use that.
@@ -119,7 +119,7 @@ IS_PYSIDE: bool
 _initialized = False
 
 
-def init(args: Union[argparse.Namespace, None] = None) -> None:
+def init(args: Optional[argparse.Namespace] = None) -> None:
     """Initialize Qt wrapper globals.
 
     There is two ways how this function can be called:
@@ -146,12 +146,14 @@ def init(args: Union[argparse.Namespace, None] = None) -> None:
     else:
         # Explicit initialization can happen exactly once, and if it's used, there
         # should not be any implicit initialization (qutebrowser.qt imports) before it.
-        assert not _initialized, "init() already called before application init"
+        if _initialized:
+            raise Error("init() already called before application init")
     _initialized = True
 
     for name in WRAPPERS:
         # If any Qt wrapper has been imported before this, all hope is lost.
-        assert name not in sys.modules, f"{name} already imported"
+        if name in sys.modules:
+            raise Error(f"{name} already imported")
 
     WRAPPER = _select_wrapper(args)
     USE_PYQT5 = WRAPPER == "PyQt5"
