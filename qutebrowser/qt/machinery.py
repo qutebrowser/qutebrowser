@@ -116,9 +116,6 @@ IS_PYQT: bool
 #: Whether we are using any PySide wrapper.
 IS_PYSIDE: bool
 
-#: The name of the package imported.
-PACKAGE: str
-
 _initialized = False
 
 
@@ -139,7 +136,7 @@ def init(args: Union[argparse.Namespace, None] = None) -> None:
       In this case, `args` will be None.
     """
     global WRAPPER, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
-        IS_PYQT, IS_PYSIDE, PACKAGE, _initialized
+        IS_PYQT, IS_PYSIDE, _initialized
 
     if args is None:
         # Implicit initialization can happen multiple times
@@ -168,10 +165,3 @@ def init(args: Union[argparse.Namespace, None] = None) -> None:
     IS_PYSIDE = USE_PYSIDE6
     assert IS_QT5 ^ IS_QT6
     assert IS_PYQT ^ IS_PYSIDE
-
-    if USE_PYQT5:
-        PACKAGE = "PyQt5"
-    elif USE_PYQT6:
-        PACKAGE = "PyQt6"
-    elif USE_PYSIDE6:
-        PACKAGE = "PySide6"

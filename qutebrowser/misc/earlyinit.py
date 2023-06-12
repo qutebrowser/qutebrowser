@@ -140,7 +140,7 @@ def check_pyqt():
     """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
     from qutebrowser.qt import machinery
 
-    packages = [f'{machinery.PACKAGE}.QtCore', f'{machinery.PACKAGE}.QtWidgets']
+    packages = [f'{machinery.WRAPPER}.QtCore', f'{machinery.WRAPPER}.QtWidgets']
     for name in packages:
         try:
             importlib.import_module(name)
@@ -247,7 +247,7 @@ def check_libraries():
     }
 
     for subpkg in ['QtQml', 'QtOpenGL', 'QtDBus']:
-        package = f'{machinery.PACKAGE}.{subpkg}'
+        package = f'{machinery.WRAPPER}.{subpkg}'
         modules[package] = _missing_str(package)
 
     if sys.version_info < (3, 9):
