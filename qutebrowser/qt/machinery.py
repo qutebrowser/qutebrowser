@@ -124,10 +124,16 @@ def _autoselect_wrapper() -> SelectionInfo:
     for wrapper in WRAPPERS:
         try:
             importlib.import_module(wrapper)
-        except ImportError as e:
+        except ModuleNotFoundError as e:
+            # Wrapper not available -> try the next one.
             info.set_module(wrapper, f"{type(e).__name__}: {e}")
             continue
+        except ImportError as e:
+            # Any other ImportError -> stop to surface the error.
+            info.set_module(wrapper, f"{type(e).__name__}: {e}")
+            break
 
+        # Wrapper imported successfully -> use it.
         info.set_module(wrapper, "success")
         info.wrapper = wrapper
         return info

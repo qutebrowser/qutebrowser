@@ -22,7 +22,7 @@
 import sys
 import argparse
 import typing
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict, Union
 
 import pytest
 
@@ -126,51 +126,74 @@ def modules():
 @pytest.mark.parametrize(
     "available, expected",
     [
-        (
-            [],
+        pytest.param(
+            {
+                "PyQt5": ModuleNotFoundError("hiding somewhere"),
+                "PyQt6": ModuleNotFoundError("hiding somewhere"),
+            },
             machinery.SelectionInfo(
                 wrapper=None,
                 reason=machinery.SelectionReason.auto,
-                pyqt6="ImportError: Fake ImportError for PyQt6.",
-                pyqt5="ImportError: Fake ImportError for PyQt5.",
+                pyqt6="ModuleNotFoundError: hiding somewhere",
+                pyqt5="ModuleNotFoundError: hiding somewhere",
             ),
+            id="none-available",
         ),
-        (
-            ["PyQt6"],
+        pytest.param(
+            {
+                "PyQt5": ModuleNotFoundError("hiding somewhere"),
+                "PyQt6": True,
+            },
             machinery.SelectionInfo(
                 wrapper="PyQt6", reason=machinery.SelectionReason.auto, pyqt6="success"
             ),
+            id="only-pyqt6",
         ),
-        (
-            ["PyQt5"],
+        pytest.param(
+            {
+                "PyQt5": True,
+                "PyQt6": ModuleNotFoundError("hiding somewhere"),
+            },
             machinery.SelectionInfo(
                 wrapper="PyQt5",
                 reason=machinery.SelectionReason.auto,
-                pyqt6="ImportError: Fake ImportError for PyQt6.",
+                pyqt6="ModuleNotFoundError: hiding somewhere",
                 pyqt5="success",
             ),
+            id="only-pyqt5",
         ),
-        (
-            ["PyQt5", "PyQt6"],
+        pytest.param(
+            {"PyQt5": True, "PyQt6": True},
             machinery.SelectionInfo(
                 wrapper="PyQt6",
                 reason=machinery.SelectionReason.auto,
                 pyqt6="success",
                 pyqt5=None,
             ),
+            id="both",
+        ),
+        pytest.param(
+            {
+                "PyQt6": ImportError("Fake ImportError for PyQt6."),
+                "PyQt5": True,
+            },
+            machinery.SelectionInfo(
+                wrapper=None,
+                reason=machinery.SelectionReason.auto,
+                pyqt6="ImportError: Fake ImportError for PyQt6.",
+                pyqt5=None,
+            ),
+            id="import-error",
         ),
     ],
 )
 def test_autoselect(
     stubs: Any,
-    modules: Dict[str, bool],
-    available: List[str],
+    available: Dict[str, Union[bool, Exception]],
     expected: machinery.SelectionInfo,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    for wrapper in available:
-        modules[wrapper] = True
-    stubs.ImportFake(modules, monkeypatch).patch()
+    stubs.ImportFake(available, monkeypatch).patch()
     assert machinery._autoselect_wrapper() == expected
 
 
