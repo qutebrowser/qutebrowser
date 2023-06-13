@@ -143,6 +143,9 @@ def whitelist_generator():  # noqa: C901
     yield 'ParserDictType'
     yield 'qutebrowser.config.configutils.Values._VmapKeyType'
 
+    # used in tests
+    yield 'qutebrowser.qt.machinery.SelectionReason.fake'
+
     # ELF
     yield 'qutebrowser.misc.elf.Endianness.big'
     for name in ['phoff', 'ehsize', 'phentsize', 'phnum']:

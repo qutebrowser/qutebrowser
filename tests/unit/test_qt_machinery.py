@@ -164,7 +164,7 @@ def test_init_properly(
 
     info = machinery.SelectionInfo(
         wrapper=selected_wrapper,
-        reason=machinery.SelectionReason.FAKE,
+        reason=machinery.SelectionReason.fake,
     )
     monkeypatch.setattr(machinery, "_select_wrapper", lambda args: info)
 

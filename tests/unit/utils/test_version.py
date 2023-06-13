@@ -1272,7 +1272,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'config.instance.yaml_loaded': params.autoconfig_loaded,
         'machinery.INFO': machinery.SelectionInfo(
             wrapper="QT WRAPPER",
-            reason=machinery.SelectionReason.FAKE
+            reason=machinery.SelectionReason.fake
         ),
     }
 
