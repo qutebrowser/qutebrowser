@@ -29,6 +29,7 @@ import argparse
 import dataclasses
 from typing import Any, Optional, Sequence, Tuple
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt
 from qutebrowser.qt.widgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
                              QMessageBox, QWidget)
@@ -97,6 +98,8 @@ def _error_text(
                  f"setting the <i>backend = '{other_setting}'</i> option "
                  f"(if you have a <i>config.py</i> file, you'll need to set "
                  f"this manually). {warning}</p>")
+
+    text += f"<p>{machinery.INFO.to_html()}</p>"
     return text
 
 
@@ -260,9 +263,11 @@ class _BackendProblemChecker:
                     "<p>The errors encountered were:<ul>"
                     "<li><b>QtWebKit:</b> {webkit_error}"
                     "<li><b>QtWebEngine:</b> {webengine_error}"
-                    "</ul></p>".format(
+                    "</ul></p><p>{info}</p>".format(
                         webkit_error=html.escape(imports.webkit_error),
-                        webengine_error=html.escape(imports.webengine_error)))
+                        webengine_error=html.escape(imports.webengine_error),
+                        info=machinery.INFO.to_html(),
+                    ))
             errbox = msgbox.msgbox(parent=None,
                                    title="No backend library found!",
                                    text=text,
@@ -328,6 +333,7 @@ class _BackendProblemChecker:
         """Ask if there are Chromium downgrades or a Qt 5 -> 6 upgrade."""
         versions = version.qtwebengine_versions(avoid_init=True)
         change = configfiles.state.chromium_version_changed
+        info = f"<br><br>{machinery.INFO.to_html()}"
         if change == configfiles.VersionChange.major:
             # FIXME:qt6 Remove this before the release, as it typically should
             # not concern users?
@@ -340,7 +346,7 @@ class _BackendProblemChecker:
                 "Chromium data will be invalid and discarded.<br><br>"
                 "This affects page data such as cookies, but not data managed by "
                 "qutebrowser, such as your configuration or <tt>:open</tt> history."
-            )
+            ) + info
         elif change == configfiles.VersionChange.downgrade:
             text = (
                 "Chromium/QtWebEngine downgrade detected:<br>"
@@ -349,7 +355,7 @@ class _BackendProblemChecker:
                 "Data managed by Chromium will be discarded if you continue.<br><br>"
                 "This affects page data such as cookies, but not data managed by "
                 "qutebrowser, such as your configuration or <tt>:open</tt> history."
-            )
+            ) + info
         else:
             return
 

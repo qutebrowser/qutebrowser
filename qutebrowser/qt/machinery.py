@@ -12,6 +12,7 @@ Contains selection logic and globals for Qt wrapper selection.
 import os
 import sys
 import enum
+import html
 import argparse
 import importlib
 import dataclasses
@@ -107,6 +108,9 @@ class SelectionInfo:
 
         lines.append(f"selected: {self.wrapper} (via {self.reason.value})")
         return "\n".join(lines)
+
+    def to_html(self) -> str:
+        return html.escape(str(self)).replace("\n", "<br>")
 
 
 def _autoselect_wrapper() -> SelectionInfo:

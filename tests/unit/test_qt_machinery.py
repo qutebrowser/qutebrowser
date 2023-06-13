@@ -114,6 +114,7 @@ def test_selectioninfo_set_module():
 )
 def test_selectioninfo_str(info: machinery.SelectionInfo, expected: str):
     assert str(info) == expected
+    assert info.to_html() == expected.replace("\n", "<br>")
 
 
 @pytest.fixture
