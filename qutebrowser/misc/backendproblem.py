@@ -25,6 +25,7 @@ import functools
 import html
 import enum
 import shutil
+import os.path
 import argparse
 import dataclasses
 from typing import Any, Optional, Sequence, Tuple
@@ -334,27 +335,38 @@ class _BackendProblemChecker:
         versions = version.qtwebengine_versions(avoid_init=True)
         change = configfiles.state.chromium_version_changed
         info = f"<br><br>{machinery.INFO.to_html()}"
+        if machinery.INFO.reason == machinery.SelectionReason.auto:
+            info += (
+                "<br><br>"
+                "You can use <tt>--qt-wrapper</tt> or set <tt>QUTE_QT_WRAPPER</tt> "
+                "in your environment to override this."
+            )
+        webengine_data_dir = os.path.join(standarddir.data(), "webengine")
+
         if change == configfiles.VersionChange.major:
-            # FIXME:qt6 Remove this before the release, as it typically should
-            # not concern users?
+            icon = QMessageBox.Icon.Information
             text = (
                 "Chromium/QtWebEngine upgrade detected:<br>"
                 f"You are <b>upgrading to QtWebEngine {versions.webengine}</b> but "
                 "used Qt 5 for the last qutebrowser launch.<br><br>"
                 "Data managed by Chromium will be upgraded. This is a <b>one-way "
                 "operation:</b> If you open qutebrowser with Qt 5 again later, any "
-                "Chromium data will be invalid and discarded.<br><br>"
+                "Chromium data will be <b>invalid and discarded</b>.<br><br>"
                 "This affects page data such as cookies, but not data managed by "
-                "qutebrowser, such as your configuration or <tt>:open</tt> history."
+                "qutebrowser, such as your configuration or <tt>:open</tt> history.<br>"
+                f"The affected data is in <tt>{webengine_data_dir}</tt>."
             ) + info
         elif change == configfiles.VersionChange.downgrade:
+            icon = QMessageBox.Icon.Warning
             text = (
                 "Chromium/QtWebEngine downgrade detected:<br>"
                 f"You are <b>downgrading to QtWebEngine {versions.webengine}</b>."
                 "<br><br>"
-                "Data managed by Chromium will be discarded if you continue.<br><br>"
+                "Data managed by Chromium <b>will be discarded</b> if you continue."
+                "<br><br>"
                 "This affects page data such as cookies, but not data managed by "
-                "qutebrowser, such as your configuration or <tt>:open</tt> history."
+                "qutebrowser, such as your configuration or <tt>:open</tt> history.<br>"
+                f"The affected data is in <tt>{webengine_data_dir}</tt>."
             ) + info
         else:
             return
@@ -363,7 +375,7 @@ class _BackendProblemChecker:
             parent=None,
             title="QtWebEngine version change",
             text=text,
-            icon=QMessageBox.Icon.Warning,
+            icon=icon,
             plain_text=False,
             buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Abort,
         )
