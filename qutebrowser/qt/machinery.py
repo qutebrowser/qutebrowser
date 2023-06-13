@@ -277,8 +277,10 @@ def init(args: argparse.Namespace) -> SelectionInfo:
         raise Error("init() already called before application init")
 
     info = _select_wrapper(args)
+    if info.wrapper is not None:
+        _set_globals(info)
+
     # If info is None here (no Qt wrapper available), we'll show an error later
     # in earlyinit.py.
 
-    _set_globals(info)
     return info
