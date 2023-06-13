@@ -1345,8 +1345,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         PYTHON IMPLEMENTATION: PYTHON VERSION
         PyQt: PYQT VERSION
 
-        Qt wrapper:
-        selected: QT WRAPPER (via fake)
+        Qt wrapper: QT WRAPPER (via fake)
 
         MODULE VERSION 1
         MODULE VERSION 2
