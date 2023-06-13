@@ -91,9 +91,14 @@ class SelectionInfo:
     wrapper: Optional[str] = None
     reason: SelectionReason = SelectionReason.unknown
 
-    def set_module(self, name: str, outcome: str) -> None:
+    def set_module_error(self, name: str, error: Exception) -> None:
         """Set the outcome for a module import."""
-        setattr(self, name.lower(), outcome)
+        setattr(self, name.lower(), f"{type(error).__name__}: {error}")
+
+    def use_wrapper(self, wrapper: str) -> None:
+        """Set the wrapper to use."""
+        self.wrapper = wrapper
+        setattr(self, wrapper.lower(), "success")
 
     def __str__(self) -> str:
         if self.pyqt5 is None and self.pyqt6 is None:
@@ -126,16 +131,15 @@ def _autoselect_wrapper() -> SelectionInfo:
             importlib.import_module(wrapper)
         except ModuleNotFoundError as e:
             # Wrapper not available -> try the next one.
-            info.set_module(wrapper, f"{type(e).__name__}: {e}")
+            info.set_module_error(wrapper, e)
             continue
         except ImportError as e:
             # Any other ImportError -> stop to surface the error.
-            info.set_module(wrapper, f"{type(e).__name__}: {e}")
+            info.set_module_error(wrapper, e)
             break
 
         # Wrapper imported successfully -> use it.
-        info.set_module(wrapper, "success")
-        info.wrapper = wrapper
+        info.use_wrapper(wrapper)
         return info
 
     # SelectionInfo with wrapper=None but all error reports

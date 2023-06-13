@@ -68,14 +68,25 @@ def test_importerror_exceptions(exception: Exception):
         raise exception
 
 
-def test_selectioninfo_set_module():
+def test_selectioninfo_set_module_error():
     info = machinery.SelectionInfo()
-    info.set_module("PyQt5", "ImportError: Python imploded")
+    info.set_module_error("PyQt5", ImportError("Python imploded"))
     assert info == machinery.SelectionInfo(
         wrapper=None,
         reason=machinery.SelectionReason.unknown,
         pyqt5="ImportError: Python imploded",
         pyqt6=None,
+    )
+
+
+def test_selectioninfo_use_wrapper():
+    info = machinery.SelectionInfo()
+    info.use_wrapper("PyQt6")
+    assert info == machinery.SelectionInfo(
+        wrapper="PyQt6",
+        reason=machinery.SelectionReason.unknown,
+        pyqt5=None,
+        pyqt6="success",
     )
 
 
