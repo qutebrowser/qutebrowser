@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2023 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """Test qutebrowser.qt.machinery."""
 
+import re
 import sys
 import html
 import argparse
@@ -339,7 +340,6 @@ class TestInit:
         ):
             machinery.init(args=empty_args)
 
-    @pytest.mark.xfail(reason="autodetect not used yet")
     def test_none_available_implicit(
         self,
         stubs: Any,
@@ -347,12 +347,25 @@ class TestInit:
         monkeypatch: pytest.MonkeyPatch,
         undo_init: None,
     ):
+        # FIXME:qt6 Also try without this once auto is default
+        monkeypatch.setenv("QUTE_QT_WRAPPER", "auto")
         stubs.ImportFake(modules, monkeypatch).patch()
-        message = "No Qt wrapper was importable."  # FIXME maybe check info too
-        with pytest.raises(machinery.NoWrapperAvailableError, match=message):
+
+        message_lines = [
+            "No Qt wrapper was importable.",
+            "",
+            "Qt wrapper info:",
+            "  PyQt5: not imported",
+            "  PyQt6: ImportError: Fake ImportError for PyQt6.",
+            "  -> selected: None (via autoselect)",
+        ]
+
+        with pytest.raises(
+            machinery.NoWrapperAvailableError,
+            match=re.escape("\n".join(message_lines)),
+        ):
             machinery.init_implicit()
 
-    @pytest.mark.xfail(reason="autodetect not used yet")
     def test_none_available_explicit(
         self,
         stubs: Any,
@@ -361,13 +374,16 @@ class TestInit:
         empty_args: argparse.Namespace,
         undo_init: None,
     ):
+        # FIXME:qt6 Also try without this once auto is default
+        monkeypatch.setenv("QUTE_QT_WRAPPER", "auto")
         stubs.ImportFake(modules, monkeypatch).patch()
+
         info = machinery.init(args=empty_args)
         assert info == machinery.SelectionInfo(
             wrapper=None,
-            reason=machinery.SelectionReason.default,
+            reason=machinery.SelectionReason.auto,
             pyqt6="ImportError: Fake ImportError for PyQt6.",
-            pyqt5="ImportError: Fake ImportError for PyQt5.",
+            pyqt5=None,
         )
 
     @pytest.mark.parametrize(
