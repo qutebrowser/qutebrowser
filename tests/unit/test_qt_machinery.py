@@ -20,6 +20,7 @@
 """Test qutebrowser.qt.machinery."""
 
 import sys
+import html
 import argparse
 import typing
 from typing import Any, Optional, Dict, Union
@@ -116,16 +117,17 @@ def test_selectioninfo_use_wrapper():
             ),
             (
                 "Qt wrapper info:\n"
-                "PyQt5: ImportError: Python imploded\n"
-                "PyQt6: success\n"
-                "selected: PyQt6 (via autoselect)"
+                "  PyQt5: ImportError: Python imploded\n"
+                "  PyQt6: success\n"
+                "  -> selected: PyQt6 (via autoselect)"
             ),
         ),
     ],
 )
 def test_selectioninfo_str(info: machinery.SelectionInfo, expected: str):
     assert str(info) == expected
-    assert info.to_html() == expected.replace("\n", "<br>")
+    # The test is somewhat duplicating the logic here, but it's a good sanity check.
+    assert info.to_html() == html.escape(expected).replace("\n", "<br>")
 
 
 @pytest.fixture
