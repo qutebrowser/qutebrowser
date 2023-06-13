@@ -131,7 +131,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
 
     env_var = "QUTE_QT_WRAPPER"
     env_wrapper = os.environ.get(env_var)
-    if env_wrapper is not None:
+    if env_wrapper:
         if env_wrapper not in WRAPPERS:
             raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
                         f"allowed: {', '.join(WRAPPERS)}")

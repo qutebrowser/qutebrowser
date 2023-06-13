@@ -79,9 +79,11 @@ def test_autoselect(
         # Defaults with no overrides
         (None, None, "PyQt5"),
         (argparse.Namespace(qt_wrapper=None), None, "PyQt5"),
+        (argparse.Namespace(qt_wrapper=None), "", "PyQt5"),
         # Only argument given
         (argparse.Namespace(qt_wrapper="PyQt6"), None, "PyQt6"),
         (argparse.Namespace(qt_wrapper="PyQt5"), None, "PyQt5"),
+        (argparse.Namespace(qt_wrapper="PyQt5"), "", "PyQt5"),
         # Only environment variable given
         (None, "PyQt6", "PyQt6"),
         (None, "PyQt5", "PyQt5"),
