@@ -10,6 +10,7 @@ import os
 import sys
 import argparse
 import importlib
+import dataclasses
 from typing import Optional
 
 # Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
@@ -35,7 +36,7 @@ class Unavailable(Error, ImportError):
     """Raised when a module is unavailable with the given wrapper."""
 
     def __init__(self) -> None:
-        super().__init__(f"Unavailable with {WRAPPER}")
+        super().__init__(f"Unavailable with {INFO.wrapper}")
 
 
 class UnknownWrapper(Error):
@@ -45,25 +46,53 @@ class UnknownWrapper(Error):
     """
 
 
-def _autoselect_wrapper() -> str:
+@dataclasses.dataclass
+class SelectionInfo:
+    """Information about outcomes of importing Qt wrappers."""
+
+    pyqt5: str = "not tried"
+    pyqt6: str = "not tried"
+    wrapper: Optional[str] = None
+    reason: Optional[str] = None
+
+    def set_module(self, name: str, outcome: str) -> None:
+        """Set the outcome for a module import."""
+        setattr(self, name.lower(), outcome)
+
+    def __str__(self) -> str:
+        return (
+            "Qt wrapper:\n"
+            f"PyQt5: {self.pyqt5}\n"
+            f"PyQt6: {self.pyqt6}\n"
+            f"selected: {self.wrapper} (via {self.reason})"
+        )
+
+
+def _autoselect_wrapper() -> SelectionInfo:
     """Autoselect a Qt wrapper.
 
     This goes through all wrappers defined in WRAPPER.
     The first one which can be imported is returned.
     """
+    info = SelectionInfo(reason="autoselect")
+
     for wrapper in WRAPPERS:
         try:
             importlib.import_module(wrapper)
-        except ImportError:
-            # FIXME:qt6 show/log this somewhere?
+        except ImportError as e:
+            info.set_module(wrapper, str(e))
             continue
-        return wrapper
 
+        info.set_module(wrapper, "success")
+        info.wrapper = wrapper
+        return info
+
+    # FIXME return a SelectionInfo here instead so we can handle this in earlyinit?
     wrappers = ", ".join(WRAPPERS)
     raise Error(f"No Qt wrapper found, tried {wrappers}")
 
 
-def _select_wrapper(args: Optional[argparse.Namespace]) -> str:
+def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
     """Select a Qt wrapper.
 
     - If --qt-wrapper is given, use that.
@@ -72,7 +101,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> str:
     """
     if args is not None and args.qt_wrapper is not None:
         assert args.qt_wrapper in WRAPPERS, args.qt_wrapper  # ensured by argparse
-        return args.qt_wrapper
+        return SelectionInfo(wrapper=args.qt_wrapper, reason="--qt-wrapper")
 
     env_var = "QUTE_QT_WRAPPER"
     env_wrapper = os.environ.get(env_var)
@@ -80,20 +109,22 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> str:
         if env_wrapper not in WRAPPERS:
             raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
                         f"allowed: {', '.join(WRAPPERS)}")
-        return env_wrapper
+        return SelectionInfo(wrapper=env_wrapper, reason="QUTE_QT_WRAPPER")
 
     # FIXME:qt6 Go back to the auto-detection once ready
+    # FIXME:qt6 Make sure to still consider _DEFAULT_WRAPPER for packagers
+    # (rename to _WRAPPER_OVERRIDE since our sed command is broken anyways then?)
     # return _autoselect_wrapper()
-    return _DEFAULT_WRAPPER
+    return SelectionInfo(wrapper=_DEFAULT_WRAPPER, reason="default")
 
 
 # Values are set in init(). If you see a NameError here, it means something tried to
 # import Qt (or check for its availability) before machinery.init() was called.
 
-#: The name of the wrapper to be used, one of WRAPPERS.
+#: Information about the wrapper that ended up being selected.
 #: Should not be used directly, use one of the USE_* or IS_* constants below
 #: instead, as those are supported by type checking.
-WRAPPER: str
+INFO: SelectionInfo
 
 #: Whether we're using PyQt5. Consider using IS_QT5 or IS_PYQT instead.
 USE_PYQT5: bool
@@ -135,7 +166,7 @@ def init(args: Optional[argparse.Namespace] = None) -> None:
       This is useful for e.g. tests or manual interactive usage of the qutebrowser code.
       In this case, `args` will be None.
     """
-    global WRAPPER, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
+    global INFO, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
         IS_PYQT, IS_PYSIDE, _initialized
 
     if args is None:
@@ -155,10 +186,10 @@ def init(args: Optional[argparse.Namespace] = None) -> None:
         if name in sys.modules:
             raise Error(f"{name} already imported")
 
-    WRAPPER = _select_wrapper(args)
-    USE_PYQT5 = WRAPPER == "PyQt5"
-    USE_PYQT6 = WRAPPER == "PyQt6"
-    USE_PYSIDE6 = WRAPPER == "PySide6"
+    INFO = _select_wrapper(args)
+    USE_PYQT5 = INFO.wrapper == "PyQt5"
+    USE_PYQT6 = INFO.wrapper == "PyQt6"
+    USE_PYSIDE6 = INFO.wrapper == "PySide6"
     assert USE_PYQT5 ^ USE_PYQT6 ^ USE_PYSIDE6
 
     IS_QT5 = USE_PYQT5

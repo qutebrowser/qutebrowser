@@ -882,6 +882,8 @@ def version_info() -> str:
                         platform.python_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
+        str(machinery.INFO),
+        '',
     ]
 
     lines += _module_versions()

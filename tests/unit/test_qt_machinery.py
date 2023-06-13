@@ -152,17 +152,19 @@ def test_init_properly(
         "IS_PYQT",
         "IS_PYSIDE",
     ]
+    all_vars = bool_vars + ["INFO"]
     # Make sure we didn't forget anything that's declared in the module.
     # Not sure if this is a good idea. Might remove it in the future if it breaks.
-    assert set(typing.get_type_hints(machinery).keys()) == set(bool_vars) | {"WRAPPER"}
+    assert set(typing.get_type_hints(machinery).keys()) == set(all_vars)
 
-    for var in ["WRAPPER"] + bool_vars:
+    for var in all_vars:
         monkeypatch.delattr(machinery, var)
 
-    monkeypatch.setattr(machinery, "_select_wrapper", lambda args: selected_wrapper)
+    info = machinery.SelectionInfo(wrapper=selected_wrapper, reason="fake")
+    monkeypatch.setattr(machinery, "_select_wrapper", lambda args: info)
 
     machinery.init()
-    assert machinery.WRAPPER == selected_wrapper
+    assert machinery.INFO == info
 
     expected_vars = dict.fromkeys(bool_vars, False)
     expected_vars.update(dict.fromkeys(true_vars, True))
