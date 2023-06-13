@@ -55,16 +55,37 @@ def test_autoselect_none_available(
 @pytest.mark.parametrize(
     "available, expected",
     [
-        (["PyQt6"], "PyQt6"),
-        (["PyQt5"], "PyQt5"),
-        (["PyQt5", "PyQt6"], "PyQt6"),
+        (
+            ["PyQt6"],
+            machinery.SelectionInfo(
+                wrapper="PyQt6", reason=machinery.SelectionReason.auto, pyqt6="success"
+            ),
+        ),
+        (
+            ["PyQt5"],
+            machinery.SelectionInfo(
+                wrapper="PyQt5",
+                reason=machinery.SelectionReason.auto,
+                pyqt6="Fake ImportError for PyQt6.",
+                pyqt5="success",
+            ),
+        ),
+        (
+            ["PyQt5", "PyQt6"],
+            machinery.SelectionInfo(
+                wrapper="PyQt6",
+                reason=machinery.SelectionReason.auto,
+                pyqt6="success",
+                pyqt5=None,
+            ),
+        ),
     ],
 )
 def test_autoselect(
     stubs: Any,
     modules: Dict[str, bool],
     available: List[str],
-    expected: str,
+    expected: machinery.SelectionInfo,
     monkeypatch: pytest.MonkeyPatch,
 ):
     for wrapper in available:
@@ -77,26 +98,92 @@ def test_autoselect(
     "args, env, expected",
     [
         # Defaults with no overrides
-        (None, None, "PyQt5"),
-        (argparse.Namespace(qt_wrapper=None), None, "PyQt5"),
-        (argparse.Namespace(qt_wrapper=None), "", "PyQt5"),
+        (
+            None,
+            None,
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.default
+            ),
+        ),
+        (
+            argparse.Namespace(qt_wrapper=None),
+            None,
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.default
+            ),
+        ),
+        (
+            argparse.Namespace(qt_wrapper=None),
+            "",
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.default
+            ),
+        ),
         # Only argument given
-        (argparse.Namespace(qt_wrapper="PyQt6"), None, "PyQt6"),
-        (argparse.Namespace(qt_wrapper="PyQt5"), None, "PyQt5"),
-        (argparse.Namespace(qt_wrapper="PyQt5"), "", "PyQt5"),
+        (
+            argparse.Namespace(qt_wrapper="PyQt6"),
+            None,
+            machinery.SelectionInfo(
+                wrapper="PyQt6", reason=machinery.SelectionReason.cli
+            ),
+        ),
+        (
+            argparse.Namespace(qt_wrapper="PyQt5"),
+            None,
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.cli
+            ),
+        ),
+        (
+            argparse.Namespace(qt_wrapper="PyQt5"),
+            "",
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.cli
+            ),
+        ),
         # Only environment variable given
-        (None, "PyQt6", "PyQt6"),
-        (None, "PyQt5", "PyQt5"),
+        (
+            None,
+            "PyQt6",
+            machinery.SelectionInfo(
+                wrapper="PyQt6", reason=machinery.SelectionReason.env
+            ),
+        ),
+        (
+            None,
+            "PyQt5",
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.env
+            ),
+        ),
         # Both given
-        (argparse.Namespace(qt_wrapper="PyQt5"), "PyQt6", "PyQt5"),
-        (argparse.Namespace(qt_wrapper="PyQt6"), "PyQt5", "PyQt6"),
-        (argparse.Namespace(qt_wrapper="PyQt6"), "PyQt6", "PyQt6"),
+        (
+            argparse.Namespace(qt_wrapper="PyQt5"),
+            "PyQt6",
+            machinery.SelectionInfo(
+                wrapper="PyQt5", reason=machinery.SelectionReason.cli
+            ),
+        ),
+        (
+            argparse.Namespace(qt_wrapper="PyQt6"),
+            "PyQt5",
+            machinery.SelectionInfo(
+                wrapper="PyQt6", reason=machinery.SelectionReason.cli
+            ),
+        ),
+        (
+            argparse.Namespace(qt_wrapper="PyQt6"),
+            "PyQt6",
+            machinery.SelectionInfo(
+                wrapper="PyQt6", reason=machinery.SelectionReason.cli
+            ),
+        ),
     ],
 )
 def test_select_wrapper(
     args: Optional[argparse.Namespace],
     env: Optional[str],
-    expected: str,
+    expected: machinery.SelectionInfo,
     monkeypatch: pytest.MonkeyPatch,
 ):
     if env is None:
