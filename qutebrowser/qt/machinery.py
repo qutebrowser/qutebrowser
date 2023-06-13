@@ -139,6 +139,11 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
     - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
     - Otherwise, use PyQt5 (FIXME:qt6 autoselect).
     """
+    for name in WRAPPERS:
+        # If any Qt wrapper has been imported before this, all hope is lost.
+        if name in sys.modules:
+            raise Error(f"{name} already imported")
+
     if args is not None and args.qt_wrapper is not None:
         assert args.qt_wrapper in WRAPPERS, args.qt_wrapper  # ensured by argparse
         return SelectionInfo(wrapper=args.qt_wrapper, reason=SelectionReason.cli)
@@ -190,56 +195,24 @@ IS_PYSIDE: bool
 _initialized = False
 
 
-def init(args: Optional[argparse.Namespace] = None) -> SelectionInfo:
-    """Initialize Qt wrapper globals.
+def _set_globals(info: SelectionInfo) -> None:
+    """Set all global variables in this module based on the given SelectionInfo.
 
-    There is two ways how this function can be called:
-
-    - Explicitly, during qutebrowser startup, where it gets called before
-      earlyinit.early_init() in qutebrowser.py (i.e. after we have an argument
-      parser, but before any kinds of Qt usage). This allows `args` to be passed,
-      which is used to select the Qt wrapper (if --qt-wrapper is given).
-
-    - Implicitly, when any of the qutebrowser.qt.* modules in this package is imported.
-      This should never happen during normal qutebrowser usage, but means that any
-      qutebrowser module can be imported without having to worry about machinery.init().
-      This is useful for e.g. tests or manual interactive usage of the qutebrowser code.
-      In this case, `args` will be None.
+    Those are split into multiple global variables because that way we can teach mypy
+    about them via --always-true and --always-false, see tox.ini.
     """
     global INFO, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
         IS_PYQT, IS_PYSIDE, _initialized
 
-    if args is None:
-        # Implicit initialization can happen multiple times
-        # (all subsequent calls are a no-op)
-        if _initialized:
-            return None  # FIXME:qt6
-    else:
-        # Explicit initialization can happen exactly once, and if it's used, there
-        # should not be any implicit initialization (qutebrowser.qt imports) before it.
-        if _initialized:  # pylint: disable=else-if-used
-            raise Error("init() already called before application init")
+    assert info.wrapper is not None, info
+    assert not _initialized
+
     _initialized = True
-
-    for name in WRAPPERS:
-        # If any Qt wrapper has been imported before this, all hope is lost.
-        if name in sys.modules:
-            raise Error(f"{name} already imported")
-
-    INFO = _select_wrapper(args)
-    if INFO.wrapper is None:
-        # No Qt wrapper was importable.
-        if args is None:
-            # Implicit initialization -> raise error immediately
-            raise NoWrapperAvailableError(INFO)
-        else:
-            # Explicit initialization -> show error in earlyinit.py
-            return INFO
-
-    USE_PYQT5 = INFO.wrapper == "PyQt5"
-    USE_PYQT6 = INFO.wrapper == "PyQt6"
-    USE_PYSIDE6 = INFO.wrapper == "PySide6"
-    assert USE_PYQT5 ^ USE_PYQT6 ^ USE_PYSIDE6
+    INFO = info
+    USE_PYQT5 = info.wrapper == "PyQt5"
+    USE_PYQT6 = info.wrapper == "PyQt6"
+    USE_PYSIDE6 = info.wrapper == "PySide6"
+    assert USE_PYQT5 + USE_PYQT6 + USE_PYSIDE6 == 1
 
     IS_QT5 = USE_PYQT5
     IS_QT6 = USE_PYQT6 or USE_PYSIDE6
@@ -248,4 +221,49 @@ def init(args: Optional[argparse.Namespace] = None) -> SelectionInfo:
     assert IS_QT5 ^ IS_QT6
     assert IS_PYQT ^ IS_PYSIDE
 
-    return INFO
+
+def init_implicit() -> None:
+    """Initialize Qt wrapper globals implicitly at Qt import time.
+
+    This gets called when any qutebrowser.qt module is imported, and implicitly
+    initializes the Qt wrapper globals.
+
+    After this is called, no explicit initialization via machinery.init() is possible
+    anymore - thus, this should never be called before init() when running qutebrowser
+    as an application (and any further calls will be a no-op).
+
+    However, this ensures that any qutebrowser module can be imported without
+    having to worry about machinery.init().  This is useful for e.g. tests or
+    manual interactive usage of the qutebrowser code.
+    """
+    if _initialized:
+        # Implicit initialization can happen multiple times
+        # (all subsequent calls are a no-op)
+        return None
+
+    info = _select_wrapper(args=None)
+    if info.wrapper is None:
+        raise NoWrapperAvailableError(info)
+
+    _set_globals(info)
+
+
+def init(args: argparse.Namespace) -> SelectionInfo:
+    """Initialize Qt wrapper globals during qutebrowser application start.
+
+    This gets called from earlyinit.py, i.e. after we have an argument parser,
+    but before any kinds of Qt usage. This allows `args` to be passed, which is
+    used to select the Qt wrapper (if --qt-wrapper is given).
+
+    If any qutebrowser.qt module is imported before this, init_implicit() will be called
+    instead, which means this can't be called anymore.
+    """
+    if _initialized:
+        raise Error("init() already called before application init")
+
+    info = _select_wrapper(args)
+    # If info is None here (no Qt wrapper available), we'll show an error later
+    # in earlyinit.py.
+
+    _set_globals(info)
+    return info

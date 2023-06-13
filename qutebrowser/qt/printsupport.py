@@ -14,7 +14,7 @@ https://doc.qt.io/qt-6/qtprintsupport-index.html
 
 from qutebrowser.qt import machinery
 
-machinery.init()
+machinery.init_implicit()
 
 
 if machinery.USE_PYSIDE6:

@@ -15,7 +15,7 @@ https://qtwebkit.github.io/doc/qtwebkit/qtwebkitwidgets-index.html
 
 from qutebrowser.qt import machinery
 
-machinery.init()
+machinery.init_implicit()
 
 
 if machinery.USE_PYSIDE6:

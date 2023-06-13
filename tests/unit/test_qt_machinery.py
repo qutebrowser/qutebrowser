@@ -29,6 +29,15 @@ import pytest
 from qutebrowser.qt import machinery
 
 
+@pytest.fixture
+def undo_init(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Pretend Qt support isn't initialized yet and Qt was never imported."""
+    monkeypatch.setattr(machinery, "_initialized", False)
+    monkeypatch.delenv("QUTE_QT_WRAPPER", raising=False)
+    for wrapper in machinery.WRAPPERS:
+        monkeypatch.delitem(sys.modules, wrapper, raising=False)
+
+
 @pytest.mark.parametrize(
     "exception",
     [
@@ -81,9 +90,10 @@ def test_selectioninfo_set_module():
                 "PyQt5: ImportError: Python imploded\n"
                 "PyQt6: success\n"
                 "selected: PyQt6 (via autoselect)"
-            )
+            ),
         ),
-    ])
+    ],
+)
 def test_selectioninfo_str(info: machinery.SelectionInfo, expected: str):
     assert str(info) == expected
 
@@ -236,6 +246,7 @@ def test_select_wrapper(
     env: Optional[str],
     expected: machinery.SelectionInfo,
     monkeypatch: pytest.MonkeyPatch,
+    undo_init: None,
 ):
     if env is None:
         monkeypatch.delenv("QUTE_QT_WRAPPER", raising=False)
@@ -245,109 +256,116 @@ def test_select_wrapper(
     assert machinery._select_wrapper(args) == expected
 
 
-@pytest.fixture
-def undo_init(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Pretend Qt support isn't initialized yet and Qt was never imported."""
-    for wrapper in machinery.WRAPPERS:
-        monkeypatch.delitem(sys.modules, wrapper, raising=False)
-    monkeypatch.setattr(machinery, "_initialized", False)
-    monkeypatch.delenv("QUTE_QT_WRAPPER", raising=False)
-
-
-def test_init_multiple_implicit(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(machinery, "_initialized", True)
-    machinery.init()
-    machinery.init()
-
-
-def test_init_multiple_explicit(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(machinery, "_initialized", True)
-    machinery.init()
-
-    with pytest.raises(
-        machinery.Error, match=r"init\(\) already called before application init"
-    ):
-        machinery.init(args=argparse.Namespace(qt_wrapper="PyQt6"))
-
-
-def test_init_after_qt_import(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(machinery, "_initialized", False)
+def test_select_wrapper_after_qt_import():
+    assert any(wrapper in sys.modules for wrapper in machinery.WRAPPERS)
     with pytest.raises(machinery.Error, match="Py.* already imported"):
-        machinery.init()
+        machinery._select_wrapper(args=None)
 
 
-@pytest.mark.xfail(reason="autodetect not used yet")
-def test_init_none_available_implicit(
-    stubs: Any,
-    modules: Dict[str, bool],
-    monkeypatch: pytest.MonkeyPatch,
-    undo_init: None,
-):
-    stubs.ImportFake(modules, monkeypatch).patch()
-    message = "No Qt wrapper was importable."  # FIXME maybe check info too
-    with pytest.raises(machinery.NoWrapperAvailableError, match=message):
-        machinery.init(args=None)
+class TestInit:
+    @pytest.fixture
+    def empty_args(self) -> argparse.Namespace:
+        return argparse.Namespace(qt_wrapper=None)
 
+    def test_multiple_implicit(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(machinery, "_initialized", True)
+        machinery.init_implicit()
+        machinery.init_implicit()
 
-@pytest.mark.xfail(reason="autodetect not used yet")
-def test_init_none_available_explicit(
-    stubs: Any,
-    modules: Dict[str, bool],
-    monkeypatch: pytest.MonkeyPatch,
-    undo_init: None,
-):
-    stubs.ImportFake(modules, monkeypatch).patch()
-    info = machinery.init(args=argparse.Namespace(qt_wrapper=None))
-    assert info == machinery.SelectionInfo(
-        wrapper=None,
-        reason=machinery.SelectionReason.default,
-        pyqt6="ImportError: Fake ImportError for PyQt6.",
-        pyqt5="ImportError: Fake ImportError for PyQt5.",
+    def test_multiple_explicit(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        empty_args: argparse.Namespace,
+    ):
+        monkeypatch.setattr(machinery, "_initialized", True)
+
+        with pytest.raises(
+            machinery.Error, match=r"init\(\) already called before application init"
+        ):
+            machinery.init(args=empty_args)
+
+    @pytest.mark.xfail(reason="autodetect not used yet")
+    def test_none_available_implicit(
+        self,
+        stubs: Any,
+        modules: Dict[str, bool],
+        monkeypatch: pytest.MonkeyPatch,
+        undo_init: None,
+    ):
+        stubs.ImportFake(modules, monkeypatch).patch()
+        message = "No Qt wrapper was importable."  # FIXME maybe check info too
+        with pytest.raises(machinery.NoWrapperAvailableError, match=message):
+            machinery.init_implicit()
+
+    @pytest.mark.xfail(reason="autodetect not used yet")
+    def test_none_available_explicit(
+        self,
+        stubs: Any,
+        modules: Dict[str, bool],
+        monkeypatch: pytest.MonkeyPatch,
+        empty_args: argparse.Namespace,
+        undo_init: None,
+    ):
+        stubs.ImportFake(modules, monkeypatch).patch()
+        info = machinery.init(args=empty_args)
+        assert info == machinery.SelectionInfo(
+            wrapper=None,
+            reason=machinery.SelectionReason.default,
+            pyqt6="ImportError: Fake ImportError for PyQt6.",
+            pyqt5="ImportError: Fake ImportError for PyQt5.",
+        )
+
+    @pytest.mark.parametrize(
+        "selected_wrapper, true_vars",
+        [
+            ("PyQt6", ["USE_PYQT6", "IS_QT6", "IS_PYQT"]),
+            ("PyQt5", ["USE_PYQT5", "IS_QT5", "IS_PYQT"]),
+            ("PySide6", ["USE_PYSIDE6", "IS_QT6", "IS_PYSIDE"]),
+        ],
     )
+    @pytest.mark.parametrize("explicit", [True, False])
+    def test_properly(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        selected_wrapper: str,
+        true_vars: str,
+        explicit: bool,
+        empty_args: argparse.Namespace,
+        undo_init: None,
+    ):
+        bool_vars = [
+            "USE_PYQT5",
+            "USE_PYQT6",
+            "USE_PYSIDE6",
+            "IS_QT5",
+            "IS_QT6",
+            "IS_PYQT",
+            "IS_PYSIDE",
+        ]
+        all_vars = bool_vars + ["INFO"]
+        # Make sure we didn't forget anything that's declared in the module.
+        # Not sure if this is a good idea. Might remove it in the future if it breaks.
+        assert set(typing.get_type_hints(machinery).keys()) == set(all_vars)
 
+        for var in all_vars:
+            monkeypatch.delattr(machinery, var)
 
-@pytest.mark.parametrize(
-    "selected_wrapper, true_vars",
-    [
-        ("PyQt6", ["USE_PYQT6", "IS_QT6", "IS_PYQT"]),
-        ("PyQt5", ["USE_PYQT5", "IS_QT5", "IS_PYQT"]),
-        ("PySide6", ["USE_PYSIDE6", "IS_QT6", "IS_PYSIDE"]),
-    ],
-)
-def test_init_properly(
-    monkeypatch: pytest.MonkeyPatch,
-    selected_wrapper: str,
-    true_vars: str,
-    undo_init: None,
-):
-    bool_vars = [
-        "USE_PYQT5",
-        "USE_PYQT6",
-        "USE_PYSIDE6",
-        "IS_QT5",
-        "IS_QT6",
-        "IS_PYQT",
-        "IS_PYSIDE",
-    ]
-    all_vars = bool_vars + ["INFO"]
-    # Make sure we didn't forget anything that's declared in the module.
-    # Not sure if this is a good idea. Might remove it in the future if it breaks.
-    assert set(typing.get_type_hints(machinery).keys()) == set(all_vars)
+        info = machinery.SelectionInfo(
+            wrapper=selected_wrapper,
+            reason=machinery.SelectionReason.fake,
+        )
+        monkeypatch.setattr(machinery, "_select_wrapper", lambda args: info)
 
-    for var in all_vars:
-        monkeypatch.delattr(machinery, var)
+        if explicit:
+            ret = machinery.init(empty_args)
+            assert ret == info
+        else:
+            machinery.init_implicit()
 
-    info = machinery.SelectionInfo(
-        wrapper=selected_wrapper,
-        reason=machinery.SelectionReason.fake,
-    )
-    monkeypatch.setattr(machinery, "_select_wrapper", lambda args: info)
+        assert machinery.INFO == info
 
-    machinery.init()
-    assert machinery.INFO == info
+        expected_vars = dict.fromkeys(bool_vars, False)
+        expected_vars.update(dict.fromkeys(true_vars, True))
+        actual_vars = {var: getattr(machinery, var) for var in bool_vars}
 
-    expected_vars = dict.fromkeys(bool_vars, False)
-    expected_vars.update(dict.fromkeys(true_vars, True))
-    actual_vars = {var: getattr(machinery, var) for var in bool_vars}
-
-    assert expected_vars == actual_vars
+        assert expected_vars == actual_vars

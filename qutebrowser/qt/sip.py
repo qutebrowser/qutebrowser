@@ -16,7 +16,7 @@ Note that we don't yet abstract between PySide/PyQt here.
 
 from qutebrowser.qt import machinery
 
-machinery.init()
+machinery.init_implicit()
 
 if machinery.USE_PYSIDE6:  # pylint: disable=no-else-raise
     raise machinery.Unavailable()
