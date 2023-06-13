@@ -29,13 +29,31 @@ import pytest
 from qutebrowser.qt import machinery
 
 
-@pytest.fixture
+# All global variables in machinery.py
+MACHINERY_VARS = {
+    "USE_PYQT5",
+    "USE_PYQT6",
+    "USE_PYSIDE6",
+    "IS_QT5",
+    "IS_QT6",
+    "IS_PYQT",
+    "IS_PYSIDE",
+    "INFO",
+}
+# Make sure we didn't forget anything that's declared in the module.
+# Not sure if this is a good idea. Might remove it in the future if it breaks.
+assert set(typing.get_type_hints(machinery).keys()) == MACHINERY_VARS
+
+
+@pytest.fixture(autouse=True)
 def undo_init(monkeypatch: pytest.MonkeyPatch) -> None:
     """Pretend Qt support isn't initialized yet and Qt was never imported."""
     monkeypatch.setattr(machinery, "_initialized", False)
     monkeypatch.delenv("QUTE_QT_WRAPPER", raising=False)
     for wrapper in machinery.WRAPPERS:
         monkeypatch.delitem(sys.modules, wrapper, raising=False)
+    for var in MACHINERY_VARS:
+        monkeypatch.delattr(machinery, var)
 
 
 @pytest.mark.parametrize(
@@ -256,9 +274,9 @@ def test_select_wrapper(
     assert machinery._select_wrapper(args) == expected
 
 
-def test_select_wrapper_after_qt_import():
-    assert any(wrapper in sys.modules for wrapper in machinery.WRAPPERS)
-    with pytest.raises(machinery.Error, match="Py.* already imported"):
+def test_select_wrapper_after_qt_import(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setitem(sys.modules, "PyQt6", None)
+    with pytest.raises(machinery.Error, match="PyQt6 already imported"):
         machinery._select_wrapper(args=None)
 
 
@@ -333,23 +351,6 @@ class TestInit:
         empty_args: argparse.Namespace,
         undo_init: None,
     ):
-        bool_vars = [
-            "USE_PYQT5",
-            "USE_PYQT6",
-            "USE_PYSIDE6",
-            "IS_QT5",
-            "IS_QT6",
-            "IS_PYQT",
-            "IS_PYSIDE",
-        ]
-        all_vars = bool_vars + ["INFO"]
-        # Make sure we didn't forget anything that's declared in the module.
-        # Not sure if this is a good idea. Might remove it in the future if it breaks.
-        assert set(typing.get_type_hints(machinery).keys()) == set(all_vars)
-
-        for var in all_vars:
-            monkeypatch.delattr(machinery, var)
-
         info = machinery.SelectionInfo(
             wrapper=selected_wrapper,
             reason=machinery.SelectionReason.fake,
@@ -364,6 +365,7 @@ class TestInit:
 
         assert machinery.INFO == info
 
+        bool_vars = MACHINERY_VARS - {"INFO"}
         expected_vars = dict.fromkeys(bool_vars, False)
         expected_vars.update(dict.fromkeys(true_vars, True))
         actual_vars = {var: getattr(machinery, var) for var in bool_vars}
