@@ -155,7 +155,7 @@ def _fatal_qt_error(text: str) -> NoReturn:
     sys.exit(1)
 
 
-def check_qt_available(info: machinery.SelectionInfo):
+def check_qt_available(info: machinery.SelectionInfo) -> None:
     """Check if Qt core modules (QtCore/QtWidgets) are installed."""
     if info.wrapper is None:
         _fatal_qt_error(f"No Qt wrapper was importable.\n\n{info}")
@@ -172,7 +172,6 @@ def check_qt_available(info: machinery.SelectionInfo):
             text = text.replace('%ERROR%', str(e))
             text += '\n\n' + str(info)
             _fatal_qt_error(text)
-
 
 
 def qt_version(qversion=None, qt_version_str=None):
@@ -253,7 +252,6 @@ def _check_modules(modules):
 
 def check_libraries():
     """Check if all needed Python libraries are installed."""
-    from qutebrowser.qt import machinery
     modules = {
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),

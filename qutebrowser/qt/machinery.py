@@ -239,7 +239,7 @@ def init_implicit() -> None:
     if _initialized:
         # Implicit initialization can happen multiple times
         # (all subsequent calls are a no-op)
-        return None
+        return
 
     info = _select_wrapper(args=None)
     if info.wrapper is None:

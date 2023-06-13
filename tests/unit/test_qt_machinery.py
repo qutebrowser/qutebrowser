@@ -22,7 +22,7 @@
 import sys
 import argparse
 import typing
-from typing import Any, Optional, Dict, List, Type
+from typing import Any, Optional, Dict, List
 
 import pytest
 
