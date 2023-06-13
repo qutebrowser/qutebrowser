@@ -118,8 +118,8 @@ def test_selectioninfo_use_wrapper():
             ),
             (
                 "Qt wrapper info:\n"
-                "  PyQt5: ImportError: Python imploded\n"
                 "  PyQt6: success\n"
+                "  PyQt5: ImportError: Python imploded\n"
                 "  -> selected: PyQt6 (via autoselect)"
             ),
         ),
@@ -129,6 +129,19 @@ def test_selectioninfo_str(info: machinery.SelectionInfo, expected: str):
     assert str(info) == expected
     # The test is somewhat duplicating the logic here, but it's a good sanity check.
     assert info.to_html() == html.escape(expected).replace("\n", "<br>")
+
+
+def test_selectioninfo_str_wrapper_precedence():
+    """The order of the wrappers should be the same as in machinery.WRAPPERS."""
+    info = machinery.SelectionInfo(
+        wrapper="PyQt6",
+        reason=machinery.SelectionReason.auto,
+        pyqt5="ImportError: Python imploded",
+        pyqt6="success",
+    )
+    lines = str(info).splitlines()[1:-1]
+    wrappers = [line.split(":")[0].strip() for line in lines]
+    assert wrappers == machinery.WRAPPERS
 
 
 @pytest.fixture
@@ -355,8 +368,8 @@ class TestInit:
             "No Qt wrapper was importable.",
             "",
             "Qt wrapper info:",
-            "  PyQt5: not imported",
             "  PyQt6: ImportError: Fake ImportError for PyQt6.",
+            "  PyQt5: not imported",
             "  -> selected: None (via autoselect)",
         ]
 

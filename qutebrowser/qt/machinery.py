@@ -105,12 +105,12 @@ class SelectionInfo:
             # No autoselect -> shorter output
             return f"Qt wrapper: {self.wrapper} (via {self.reason.value})"
 
-        pyqt5 = self.pyqt5 or "not imported"
         pyqt6 = self.pyqt6 or "not imported"
+        pyqt5 = self.pyqt5 or "not imported"
         lines = [
             "Qt wrapper info:",
-            f"  PyQt5: {pyqt5}",
             f"  PyQt6: {pyqt6}",
+            f"  PyQt5: {pyqt5}",
             f"  -> selected: {self.wrapper} (via {self.reason.value})"
         ]
         return "\n".join(lines)
