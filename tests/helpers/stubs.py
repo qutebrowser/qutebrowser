@@ -695,7 +695,8 @@ class ImportFake:
 
     Attributes:
         modules: A dict mapping module names to bools. If True, the import will
-                 succeed. Otherwise, it'll fail with ImportError.
+                 succeed. If an exception is given, it will be raised.
+                 Otherwise, it'll fail with a fake ImportError.
         version_attribute: The name to use in the fake modules for the version
                            attribute.
         version: The version to use for the modules.
@@ -727,6 +728,8 @@ class ImportFake:
         if name not in self.modules:
             # Not one of the modules to test -> use real import
             return None
+        elif isinstance(self.modules[name], Exception):
+            raise self.modules[name]
         elif self.modules[name]:
             ns = types.SimpleNamespace()
             if self.version_attribute is not None:

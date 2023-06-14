@@ -1,9 +1,20 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# FIXME:qt6 (lint)
-# pylint: disable=missing-module-docstring,import-error,wildcard-import,unused-wildcard-import
-# flake8: noqa
+# pylint: disable=import-error,wildcard-import,unused-wildcard-import
+
+"""Wrapped Qt imports for Qt Core.
+
+All code in qutebrowser should use this module instead of importing from
+PyQt/PySide directly. This allows supporting both Qt 5 and Qt 6.
+
+See machinery.py for details on how Qt wrapper selection works.
+
+Any API exported from this module is based on the Qt 6 API:
+https://doc.qt.io/qt-6/qtcore-index.html
+"""
 
 from qutebrowser.qt import machinery
+
+machinery.init_implicit()
 
 
 if machinery.USE_PYSIDE6:
