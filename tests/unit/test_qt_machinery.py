@@ -24,7 +24,7 @@ import sys
 import html
 import argparse
 import typing
-from typing import Any, Optional, Dict, Union
+from typing import Any, Optional, List, Dict, Union
 
 import pytest
 
@@ -76,8 +76,7 @@ def test_selectioninfo_set_module_error():
     assert info == machinery.SelectionInfo(
         wrapper=None,
         reason=machinery.SelectionReason.unknown,
-        pyqt5="ImportError: Python imploded",
-        pyqt6=None,
+        outcomes={"PyQt5": "ImportError: Python imploded"},
     )
 
 
@@ -87,8 +86,7 @@ def test_selectioninfo_use_wrapper():
     assert info == machinery.SelectionInfo(
         wrapper="PyQt6",
         reason=machinery.SelectionReason.unknown,
-        pyqt5=None,
-        pyqt6="success",
+        outcomes={"PyQt6": "success"},
     )
 
 
@@ -113,8 +111,10 @@ def test_selectioninfo_use_wrapper():
             machinery.SelectionInfo(
                 wrapper="PyQt6",
                 reason=machinery.SelectionReason.auto,
-                pyqt5="ImportError: Python imploded",
-                pyqt6="success",
+                outcomes={
+                    "PyQt6": "success",
+                    "PyQt5": "ImportError: Python imploded",
+                },
             ),
             (
                 "Qt wrapper info:\n"
@@ -131,14 +131,16 @@ def test_selectioninfo_str(info: machinery.SelectionInfo, expected: str):
     assert info.to_html() == html.escape(expected).replace("\n", "<br>")
 
 
-def test_selectioninfo_str_wrapper_precedence():
+@pytest.mark.parametrize("order", [["PyQt5", "PyQt6"], ["PyQt6", "PyQt5"]])
+def test_selectioninfo_str_wrapper_precedence(order: List[str]):
     """The order of the wrappers should be the same as in machinery.WRAPPERS."""
     info = machinery.SelectionInfo(
         wrapper="PyQt6",
         reason=machinery.SelectionReason.auto,
-        pyqt5="ImportError: Python imploded",
-        pyqt6="success",
     )
+    for module in order:
+        info.set_module_error(module, ImportError("Python imploded"))
+
     lines = str(info).splitlines()[1:-1]
     wrappers = [line.split(":")[0].strip() for line in lines]
     assert wrappers == machinery.WRAPPERS
@@ -161,8 +163,10 @@ def modules():
             machinery.SelectionInfo(
                 wrapper=None,
                 reason=machinery.SelectionReason.auto,
-                pyqt6="ModuleNotFoundError: hiding somewhere",
-                pyqt5="ModuleNotFoundError: hiding somewhere",
+                outcomes={
+                    "PyQt5": "ModuleNotFoundError: hiding somewhere",
+                    "PyQt6": "ModuleNotFoundError: hiding somewhere",
+                },
             ),
             id="none-available",
         ),
@@ -172,7 +176,9 @@ def modules():
                 "PyQt6": True,
             },
             machinery.SelectionInfo(
-                wrapper="PyQt6", reason=machinery.SelectionReason.auto, pyqt6="success"
+                wrapper="PyQt6",
+                reason=machinery.SelectionReason.auto,
+                outcomes={"PyQt6": "success"},
             ),
             id="only-pyqt6",
         ),
@@ -184,8 +190,10 @@ def modules():
             machinery.SelectionInfo(
                 wrapper="PyQt5",
                 reason=machinery.SelectionReason.auto,
-                pyqt6="ModuleNotFoundError: hiding somewhere",
-                pyqt5="success",
+                outcomes={
+                    "PyQt6": "ModuleNotFoundError: hiding somewhere",
+                    "PyQt5": "success",
+                },
             ),
             id="only-pyqt5",
         ),
@@ -194,8 +202,7 @@ def modules():
             machinery.SelectionInfo(
                 wrapper="PyQt6",
                 reason=machinery.SelectionReason.auto,
-                pyqt6="success",
-                pyqt5=None,
+                outcomes={"PyQt6": "success"},
             ),
             id="both",
         ),
@@ -207,8 +214,9 @@ def modules():
             machinery.SelectionInfo(
                 wrapper=None,
                 reason=machinery.SelectionReason.auto,
-                pyqt6="ImportError: Fake ImportError for PyQt6.",
-                pyqt5=None,
+                outcomes={
+                    "PyQt6": "ImportError: Fake ImportError for PyQt6.",
+                }
             ),
             id="import-error",
         ),
@@ -395,8 +403,9 @@ class TestInit:
         assert info == machinery.SelectionInfo(
             wrapper=None,
             reason=machinery.SelectionReason.auto,
-            pyqt6="ImportError: Fake ImportError for PyQt6.",
-            pyqt5=None,
+            outcomes={
+                "PyQt6": "ImportError: Fake ImportError for PyQt6.",
+            }
         )
 
     @pytest.mark.parametrize(

@@ -16,7 +16,7 @@ import html
 import argparse
 import importlib
 import dataclasses
-from typing import Optional
+from typing import Optional, Dict
 
 # Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
 # sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
@@ -86,33 +86,31 @@ class SelectionReason(enum.Enum):
 class SelectionInfo:
     """Information about outcomes of importing Qt wrappers."""
 
-    pyqt5: Optional[str] = None
-    pyqt6: Optional[str] = None
     wrapper: Optional[str] = None
+    outcomes: Dict[str, str] = dataclasses.field(default_factory=dict)
     reason: SelectionReason = SelectionReason.unknown
 
     def set_module_error(self, name: str, error: Exception) -> None:
         """Set the outcome for a module import."""
-        setattr(self, name.lower(), f"{type(error).__name__}: {error}")
+        self.outcomes[name] = f"{type(error).__name__}: {error}"
 
     def use_wrapper(self, wrapper: str) -> None:
         """Set the wrapper to use."""
         self.wrapper = wrapper
-        setattr(self, wrapper.lower(), "success")
+        self.outcomes[wrapper] = "success"
 
     def __str__(self) -> str:
-        if self.pyqt5 is None and self.pyqt6 is None:
-            # No autoselect -> shorter output
+        if not self.outcomes:
+            # No modules were tried to be imported (no autoselection)
+            # Thus, we can have a shorter output instead of adding noise.
             return f"Qt wrapper: {self.wrapper} (via {self.reason.value})"
 
-        pyqt6 = self.pyqt6 or "not imported"
-        pyqt5 = self.pyqt5 or "not imported"
-        lines = [
-            "Qt wrapper info:",
-            f"  PyQt6: {pyqt6}",
-            f"  PyQt5: {pyqt5}",
-            f"  -> selected: {self.wrapper} (via {self.reason.value})"
-        ]
+        lines = ["Qt wrapper info:"]
+        for wrapper in WRAPPERS:
+            outcome = self.outcomes.get(wrapper, "not imported")
+            lines.append(f"  {wrapper}: {outcome}")
+
+        lines.append(f"  -> selected: {self.wrapper} (via {self.reason.value})")
         return "\n".join(lines)
 
     def to_html(self) -> str:
