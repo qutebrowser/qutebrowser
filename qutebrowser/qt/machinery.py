@@ -14,6 +14,7 @@ import sys
 import enum
 import html
 import argparse
+import warnings
 import importlib
 import dataclasses
 from typing import Optional, Dict
@@ -152,10 +153,11 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
     - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
     - Otherwise, use PyQt5 (FIXME:qt6 autoselect).
     """
+    # If any Qt wrapper has been imported before this, something strange might
+    # be happening.
     for name in WRAPPERS:
-        # If any Qt wrapper has been imported before this, all hope is lost.
         if name in sys.modules:
-            raise Error(f"{name} already imported")
+            warnings.warn(f"{name} already imported", stacklevel=1)
 
     if args is not None and args.qt_wrapper is not None:
         assert args.qt_wrapper in WRAPPERS, args.qt_wrapper  # ensured by argparse

@@ -335,7 +335,7 @@ def test_select_wrapper(
 
 def test_select_wrapper_after_qt_import(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(sys.modules, "PyQt6", None)
-    with pytest.raises(machinery.Error, match="PyQt6 already imported"):
+    with pytest.warns(UserWarning, match="PyQt6 already imported"):
         machinery._select_wrapper(args=None)
 
 
