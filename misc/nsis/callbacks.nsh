@@ -358,8 +358,8 @@ Function ${F}.onInit
     !endif
 
     init_outer:
-    ${Set} $SetupState 0
     !if '${F}' == ''
+        ${Set} $SetupState ${INSTALLER_PREPARE}
         ${Call} :check_win_ver
     !endif
     ; Internal switch: check if restarted by '/user',
@@ -367,8 +367,10 @@ Function ${F}.onInit
     ${GetOptionState} '${SETUP_GUID}' ''
     !if '${F}' != ''
         ${If} ${Result} = 0
-            ${Set} $SetupState 1
+            ${Set} $SetupState ${UNINSTALLER_UNDER_INSTALLER}
             SetAutoClose true
+        ${Else}
+            ${Set} $SetupState ${UNINSTALLER_STANDALONE}
         ${EndIf}
     !endif
     ; /User
@@ -395,10 +397,10 @@ Function ${F}.onInit
         ${GetOptionState} '?' ''
     ${EndIf}
     ${If} ${Result} = 1
-        !ifdef __UNINSTALL__
-            ${Quit} ERROR_SUCCESS $(MB_HELP_UNINSTALL)$(MB_HELP_EXIT_CODES)
-        !else
+        !if '${F}' == ''
             ${Quit} ERROR_SUCCESS $(MB_HELP_INSTALL)$(MB_HELP_EXIT_CODES)
+        !else
+            ${Quit} ERROR_SUCCESS $(MB_HELP_UNINSTALL)$(MB_HELP_EXIT_CODES)
         !endif
     ${EndIf}
     ${GetOptionState} 'ClearCache' $ClearCache
@@ -428,7 +430,7 @@ Function ${F}.onInit
             ${Call} :set_single_instance
         ${EndIf}
     !else
-        ${If} $SetupState = 0
+        ${If} $SetupState = ${UNINSTALLER_STANDALONE}
             ${Call} :set_single_instance
         ${EndIf}
     !endif
@@ -789,7 +791,7 @@ Function ${F}PageComponentsPre
     ${Release} SectionId ''
     !if '${F}' != ''
         IfSilent +3
-        StrCmpS $SetupState 0 +2
+        StrCmpS $SetupState ${UNINSTALLER_STANDALONE} +2
         Abort
     !endif
 FunctionEnd
@@ -869,7 +871,7 @@ Function ${F}PageInstFilesShow
     StrCmpS ${ThemeData} 0 _@
     System::Call 'uxtheme::GetThemeColor(p${r.ThemeData}, i${PP_FILL}, i${PBFS_NORMAL}, i${TMT_FILLCOLOR}, @${r.FillColor}) i.${r.HResult}'
     StrCmpS ${HResult} ${S_OK} 0 _@@
-    System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ProgressBar, w" ", w" ")'
+    System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ProgressBar, w"", w"")'
     SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBKCOLOR} 0 ${DARK_BGCOLOR_2}
     SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBARCOLOR} 0 ${FillColor}
     _@@:
@@ -972,7 +974,7 @@ FunctionEnd
     FunctionEnd
 
     Function .onInstFailed
-        StrCmpS $SetupState 3 +2
+        StrCmpS $SetupState ${INSTALLER_ABORT} +2
         MessageBox MB_ICONSTOP $(MB_FAIL_INSTALL) /SD IDOK IDOK +2
         MessageBox MB_ICONSTOP $(MB_USER_ABORT) /SD IDOK
     FunctionEnd
@@ -980,20 +982,20 @@ FunctionEnd
     ; Confirm user abort. Called by .onUserAbort which is used by MUI.
     Function onUserAbort
         ${WriteDebug} $SetupState
-        StrCmpS $SetupState 1 _confirm
+        StrCmpS $SetupState ${INSTALLER_ACTIVE} _confirm
         MessageBox MB_YESNO|MB_ICONQUESTION $(MB_CONFIRM_QUIT) IDYES _end IDNO _resume
         _confirm:
         EnableWindow $mui.Button.Cancel ${SW_HIDE}
         LockWindow on
-        ${Set} $SetupState 2
+        ${Set} $SetupState ${INSTALLER_PAUSE}
         MessageBox MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION|MB_TOPMOST $(MB_CONFIRM_ABORT) IDYES _abort
-        ${Set} $SetupState 1
+        ${Set} $SetupState ${INSTALLER_ACTIVE}
         LockWindow off
         EnableWindow $mui.Button.Cancel ${SW_NORMAL}
         _resume:
         Abort ; Aborts the abort!
         _abort:
-        ${Set} $SetupState 3
+        ${Set} $SetupState ${INSTALLER_ABORT}
         LockWindow off
         Abort
         _end:
@@ -1056,14 +1058,15 @@ FunctionEnd
 
         StrCmpS $HasCurrentModeInstallation 0 _check_instdir
         StrCmp $MultiUser.InstallMode 'AllUsers' 0 +2
-        StrCmp $INSTDIR $PerMachineInstallationFolder _check_app_running _check_instdir
-        StrCmp $iNSTDIR $PerUserInstallationFolder _check_app_running _check_instdir
+        StrCmp $INSTDIR $PerMachineInstallationFolder _check_write_access _check_instdir
+        StrCmp $iNSTDIR $PerUserInstallationFolder _check_write_access _check_instdir
 
         _check_instdir:
         IfFileExists '$INSTDIR\*' _check_contents
         ClearErrors
         CreateDirectory $INSTDIR
-        IfErrors 0 _end
+        RMDIR $INSTDIR
+        IfErrors 0 _check_app_running
         MessageBox MB_OK|MB_ICONSTOP $(MB_CANT_CREATE_INSTDIR)
         Abort
 
@@ -1127,7 +1130,7 @@ FunctionEnd
     !include '${__FILEDIR__}\${__FILE__}'
 !else ; uninstaller only
     Function un.onUninstFailed
-        StrCmpS $SetupState 1 +2
+        StrCmpS $SetupState ${UNINSTALLER_UNDER_INSTALLER} +2
         MessageBox MB_ICONSTOP $(MB_FAIL_UNINSTALL) /SD IDOK IDOK +2
         MessageBox MB_ICONSTOP $(MB_FAIL_INSTALL) /SD IDOK
     FunctionEnd

@@ -158,8 +158,12 @@ Var StartMenuIconPath
 Var CacheDir
 Var ConfigDir
 
-; Installer: 0 = idle, 1 = start, 2 = pause, 3 = abort
-; Uninstaller: 0 = normal, 1 = running from installer
+!define INSTALLER_PREPARE 0
+!define INSTALLER_ACTIVE 1
+!define INSTALLER_PAUSE 2
+!define INSTALLER_ABORT 3
+!define UNINSTALLER_STANDALONE 4
+!define UNINSTALLER_UNDER_INSTALLER 5
 Var SetupState
 
 ; Components: -1 = not set from command line, 0 = disabled, 1 = enabled
@@ -314,7 +318,7 @@ Section $(S_FILES) SectionProgramFiles
     ${Return}
 
     _check_cancel:
-    IntCmp $SetupState 2 0 _return _user_abort
+    IntCmp $SetupState ${INSTALLER_PAUSE} 0 _return _user_abort
     Sleep 500
     Goto _check_cancel
     _user_abort:
@@ -323,7 +327,7 @@ Section $(S_FILES) SectionProgramFiles
     _start:
     !insertmacro MKDIR $INSTDIR
     SetOutPath $INSTDIR
-    ${Set} $SetupState 1
+    ${Set} $SetupState ${INSTALLER_ACTIVE}
     EnableWindow $mui.Button.Cancel ${SW_NORMAL}
     ${PassDirs} '!insertmacro MKDIR'
     ${PassFilesAndHash} '!insertmacro EXTRACT'
@@ -619,7 +623,7 @@ SectionEnd
 
 Section un.$(S_FILES) un.SectionProgramFiles
     SectionIn RO
-    ${If} $SetupState = 0
+    ${If} $SetupState = ${UNINSTALLER_STANDALONE}
     ${AndIf} ${FileExists} $LogFile
         ${WriteLog} ''
     ${EndIf}
@@ -629,7 +633,7 @@ SectionEnd
 
 Section un.$(S_REGISTRY) un.SectionRegistry
     SectionIn RO
-    ${If} $SetupState = 0
+    ${If} $SetupState = ${UNINSTALLER_STANDALONE}
         ${ClearRegistry}
     ${EndIf}
 SectionEnd
@@ -668,14 +672,14 @@ Section '-Uninstall'
         ${EndIf}
     ${EndIf}
 
-    ${If} $SetupState = 0
+    ${If} $SetupState = ${UNINSTALLER_STANDALONE}
         ${WriteLog} $(M_COMPLETED)
         ${WriteLog} ''
     ${EndIf}
     ${CloseLogFile}
     ${RefreshShellIcons}
 
-    ${If} $SetupState = 0
+    ${If} $SetupState = ${UNINSTALLER_STANDALONE}
     ${AndIf} ${InstDirState} = 1
         ClearErrors
         ${CheckCleanInstDir}

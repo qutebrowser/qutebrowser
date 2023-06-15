@@ -507,7 +507,7 @@ Function ${F}CheckInactiveApp
     _start:
     ${Set} AppRunning 0
 
-    !ifndef __UNINSTALL__
+    !if '${F}' == ''
         StrCmp $MultiUser.InstallMode 'AllUsers' 0 _@
         StrCmpS $HasPerMachineInstallation 1 0 _@@
         StrCmp $PerMachineInstallationFolder $INSTDIR _@@
@@ -541,7 +541,7 @@ Function ${F}CheckInactiveApp
     System::Call 'psapi::GetModuleFileNameExW(p${r.ProcessHandle}, n, w.${r.ProcessPath}, i${NSIS_MAX_STRLEN}) i.${r.Result}'
     System::Call 'kernel32::CloseHandle(p${r.ProcessHandle})'
     StrCmpS ${Result} 0 scan_windows
-    !ifndef __UNINSTALL__
+    !if '${F}' == ''
         StrCmpS ${AppExeUnPath} '' +2
         StrCmp ${ProcessPath} ${AppExeUnPath} _process_detected
     !endif
@@ -716,8 +716,8 @@ Function ${F}ClearRegistry
     _return:
     ${Return}
     _remove_key_error:
-    !ifndef __UNINSTALL__
-        StrCmpS $SetupState 1 _skip_key
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ACTIVE} _skip_key
     !endif
     DetailPrint $(M_CANT_DELETE_REG_KEY)${LangVar}
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_CANT_DELETE_REG_KEY) /SD IDIGNORE IDRETRY remove_key IDIGNORE _skip_key
@@ -748,8 +748,8 @@ Function ${F}ClearRegistry
     ${WriteLog} $(M_DELETE_REG_ITEM)${LangVar}
     ${Return}
     _remove_item_error:
-    !ifndef __UNINSTALL__
-        StrCmpS $SetupState 1 _skip_item
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ACTIVE} _skip_item
     !endif
     DetailPrint $(M_CANT_DELETE_REG_KEY)${LangVar}
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_CANT_DELETE_REG_ITEM) /SD IDIGNORE IDRETRY remove_item IDIGNORE _skip_item
@@ -824,8 +824,8 @@ Function ${F}DeleteFile
     IfErrors 0 _ok
     ${Error} ERROR_ACCESS_DENIED
     DetailPrint $(M_CANT_DELETE_FILE)${TargetFile}
-    !ifndef __UNINSTALL__
-        StrCmpS $SetupState 0 _@
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_PREPARE} _@
         ${WriteLog} $(M_CANT_DELETE_FILE)${TargetFile}
         Goto _end
         _@:
@@ -854,7 +854,7 @@ Function ${F}RemoveDir
     ${Reserve} $R0 TargetDir $0
     ${Reserve} $R1 State 0
 
-    !ifndef __UNINSTALL__
+    !if '${F}' == ''
         IfFileExists '${TargetDir}\*' _@
         IfFileExists ${TargetDir} 0 _@
         ${DeleteAnyFile} ${TargetDir}
@@ -864,8 +864,8 @@ Function ${F}RemoveDir
     ${DirState} ${TargetDir} ${State}
     ${WriteDebug} State
     IntCmp ${State} 0 _remove_dir _end
-    !ifndef __UNINSTALL__
-        StrCmpS $SetupState 1 _skip
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ACTIVE} _skip
     !endif
     MessageBox MB_YESNOCANCEL|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_SUBDIR) /SD IDNO IDYES _remove_dir IDNO _skip
     ${Error} ERROR_CANCELLED
@@ -878,8 +878,8 @@ Function ${F}RemoveDir
     RMDir /r ${TargetDir}
     IfErrors 0 _ok
     ${Error} ERROR_ACCESS_DENIED
-    !ifndef __UNINSTALL__
-        StrCmps $SetupState 1 _skip_fail
+    !if '${F}' == ''
+        StrCmps $SetupState ${INSTALLER_ACTIVE} _skip_fail
     !endif
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_CANT_DELETE_FOLDER) /SD IDIGNORE IDRETRY _remove_dir IDIGNORE _skip_fail
     ${Error} ERROR_CANCELLED
@@ -925,8 +925,10 @@ Function ${F}WriteLog
     FileClose ${FileHandle}
     _error:
     DetailPrint $(M_CANT_WRITE)${LangVar}
-    StrCmpS $SetupState 3 0 +2
-    MessageBox MB_RETRYCANCEL|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR_NO_ABORT) /SD IDCANCEL IDRETRY _start IDCANCEL _skip
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ABORT} 0 +2
+        MessageBox MB_RETRYCANCEL|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR_NO_ABORT) /SD IDCANCEL IDRETRY _start IDCANCEL _skip
+    !endif
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_FILE_ERROR) /SD IDABORT IDRETRY _start IDIGNORE _skip
     ${CloseLogFile}
     ${Set} $LogFile ''
