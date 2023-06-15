@@ -513,6 +513,9 @@ def install_pyqt(venv_dir, args):
         install_pyqt_link(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'wheels':
         wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
+        if not wheels_dir.is_dir():
+            raise Error(
+                f"Wheels directory {wheels_dir} doesn't exist or is not a directory")
         install_pyqt_wheels(venv_dir, wheels_dir)
     elif args.pyqt_type == 'skip':
         pass
