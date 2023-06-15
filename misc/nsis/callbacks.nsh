@@ -869,7 +869,7 @@ Function ${F}PageInstFilesShow
     ${Reserve} $0 FillColor '' ; NSIS system plugin bug: Direct register memory access works correctly only with $0-$1
     System::Call 'uxtheme::OpenThemeData(p$mui.InstFilesPage.ProgressBar, w"PROGRESS") p.${r.ThemeData}'
     StrCmpS ${ThemeData} 0 _@
-    System::Call 'uxtheme::GetThemeColor(p${r.ThemeData}, i${PP_FILL}, i${PBFS_NORMAL}, i${TMT_FILLCOLOR}, @${r.FillColor}) i.${r.HResult}'
+    System::Call 'uxtheme::GetThemeColor(p${r.ThemeData}, i${PP_FILL}, i${PBFS_NORMAL}, i${TMT_FILLCOLORHINT}, @${r.FillColor}) i.${r.HResult}'
     StrCmpS ${HResult} ${S_OK} 0 _@@
     System::Call 'uxtheme::SetWindowTheme(p$mui.InstFilesPage.ProgressBar, w"", w"")'
     SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETBKCOLOR} 0 ${DARK_BGCOLOR_2}

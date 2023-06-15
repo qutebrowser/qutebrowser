@@ -45,7 +45,7 @@
 !define /ifndef PP_FILL 5
 !define /ifndef PBFS_NORMAL 1
 
-!define /ifndef TMT_FILLCOLOR 3802
+!define /ifndef TMT_FILLCOLORHINT 3821
 
 !define /ifndef DWMWA_USE_IMMERSIVE_DARK_MODE 20
 
