@@ -528,10 +528,8 @@ def run(args) -> None:
     venv_dir = pathlib.Path(args.venv_dir)
     utils.change_cwd()
 
-    if (args.pyqt_version != 'auto' and
-            args.pyqt_type not in ['binary', 'source', 'link']):
-        raise Error('The --pyqt-version option is only available when installing PyQt '
-                    'from binary, source, or linking it')
+    if args.pyqt_version != 'auto' and args.pyqt_type == 'skip':
+        raise Error('Cannot use --pyqt-version with --pyqt-type skip')
     if args.pyqt_type == 'link' and args.pyqt_version not in ['auto', '5', '6']:
         raise Error('Invalid --pyqt-version {args.pyqt_version}, only 5 or 6 '
                     'permitted with --pyqt-type=link')
