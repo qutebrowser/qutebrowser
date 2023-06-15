@@ -342,6 +342,7 @@
         Goto _end_${LABEL_ID}
 
         exec_shell_${LABEL_ID}:
+        ClearErrors
         ExecShell '${ACTION}' '${COMMAND}' '${PARAMETERS}' ${SHOW}
         ${If} ${Errors}
             ${Set} ${ExecShellResult} 1
