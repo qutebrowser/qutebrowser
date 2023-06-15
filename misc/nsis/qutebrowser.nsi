@@ -173,6 +173,8 @@ Var StartMenuIcon
 Var ClearCache
 Var ClearConfig
 
+Var OpenDefaultApps
+
 Var LogFile
 Var LogHandle
 
@@ -202,6 +204,8 @@ Section '-Installer Uninstall'
     ${Reserve} $R1 UninstallDir ''
     ${Reserve} $R2 UninstallDirState ''
     ${Reserve} $R3 UninstallString ''
+
+    ${Set} $OpenDefaultApps 0
 
     ${If} ${FileExists} $LogFile
         ${WriteLog} ''
@@ -527,10 +531,7 @@ SectionGroup /e $(S_SYS_INT) SectionGroupIntegration
     Section /o $(S_DEFAULT_BROWSER) SectionDefaultBrowser
         SectionIn 1
         StrCmpS $RegisterBrowser 0 _end
-        ClearErrors
-        ${ExecShellAsUser} open 'ms-settings:defaultapps' '' SW_SHOWNORMAL
-        IfErrors 0 _end
-        MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DEFAULT_APPS_FAIL) /SD IDOK
+        ${Set} $OpenDefaultApps 1
         _end:
     SectionEnd
 SectionGroupEnd
@@ -579,7 +580,7 @@ Section '-Write Install Info'
     WriteUninstaller '${UNINSTALL_FILENAME}'
     IfErrors _file_error
     ${WriteLog} '$(M_CREATED_UNINSTALLER)$INSTDIR\${UNINSTALL_FILENAME}'
-    Goto _end
+    Goto _finish
 
     _file_error:
     ${Set} LangVar '$INSTDIR\${UNINSTALL_FILENAME}'
@@ -592,7 +593,7 @@ Section '-Write Install Info'
     MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_WRITE_REG) /SD IDCANCEL IDRETRY _write_reg
     ${Fail} $(M_CANT_WRITE_REG)${LangVar}
 
-    _end:
+    _finish:
     ${WriteLog} $(M_COMPLETED)
     ${WriteLog} ''
     ${CloseLogFile}
@@ -600,6 +601,13 @@ Section '-Write Install Info'
 
     ${ClearDataDirsCheck}
 
+    StrCmpS $OpenDefaultApps 0 _end
+    ClearErrors
+    ${ExecShellAsUser} open 'ms-settings:defaultapps' '' SW_SHOWNORMAL
+    IfErrors 0 _end
+    MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DEFAULT_APPS_FAIL) /SD IDOK
+
+    _end:
     ${Release} LangVar ''
     ${Release} RegValue ''
     ${Release} RegKey ''
