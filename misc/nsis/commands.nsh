@@ -180,15 +180,13 @@
 
             StrLen ${StrLen} '${IN_LINE}'
             ${If} ${StrLen} < 9
-                StrCpy ${InMessage} `${InMessage}$\t$\t$\t`
-            ${ElseIf} ${StrLen} < 17
                 StrCpy ${InMessage} `${InMessage}$\t$\t`
-            ${Else}
+            ${ElseIf} ${StrLen} < 17
                 StrCpy ${InMessage} `${InMessage}$\t`
             ${EndIf}
 
             !ifdef __FUNCTION__
-                StrCpy ${InMessage} `${InMessage}${__FUNCTION__}:$\t`
+                StrCpy ${InMessage} `${InMessage}${__FUNCTION__}:$\t$\t`
                 StrLen ${StrLen} '${__FUNCTION__}'
                 !ifdef __UNINSTALL__
                     ${If} ${StrLen} < 9
@@ -204,28 +202,20 @@
             !else ifdef __SECTION__
                 StrCpy ${InMessage} `${InMessage}*${__SECTION__}:$\t`
                 StrLen ${StrLen} '${__SECTION__}'
-                ${If} ${StrLen} < 15
+                ${If} ${StrLen} < 14
+                    StrCpy ${InMessage} `${InMessage}$\t$\t`
+                ${ElseIf} ${StrLen} < 22
                     StrCpy ${InMessage} `${InMessage}$\t`
                 ${EndIf}
             !endif
 
-            !if '${IN_MACRO}' != 'CALL_U'
+            !if '${IN_MACRO}' == '${__MACRO__}'
+                !define /redef IN_MACRO ''
+            !else if '${IN_MACRO}' != 'CALL_U'
                 !searchparse /noerrors '${IN_MACRO}' 'CALL_' CALL_MACRO
                 !ifdef CALL_MACRO
                     !define /redef IN_MACRO ''
                     !undef CALL_MACRO
-                !endif
-            !endif
-
-            !if '${IN_MACRO}' == '${__MACRO__}'
-                !define /redef IN_MACRO ''
-            !else ifdef __FUNCTION__
-                !if '${IN_MACRO}' == '_D_${__FUNCTION__}'
-                    !define /redef IN_MACRO ''
-                !else if '${IN_MACRO}' == '_I_${__FUNCTION__}'
-                    !define /redef IN_MACRO ''
-                !else if '${IN_MACRO}' == '_U_${__FUNCTION__}'
-                    !define /redef IN_MACRO ''
                 !endif
             !endif
 
