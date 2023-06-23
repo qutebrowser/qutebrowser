@@ -24,10 +24,13 @@ import sys
 import html
 import argparse
 import typing
-from typing import Any, Optional, List, Dict, Union
+import pkgutil
+import importlib
+from typing import Any, Optional, List, Dict, Union, Iterator
 
 import pytest
 
+from qutebrowser import qt
 from qutebrowser.qt import machinery
 
 
@@ -446,3 +449,28 @@ class TestInit:
         actual_vars = {var: getattr(machinery, var) for var in bool_vars}
 
         assert expected_vars == actual_vars
+
+
+def _find_qt_packages() -> Iterator[str]:
+    """Find all Qt wrapper modules."""
+    for _finder, name, is_pkg in pkgutil.walk_packages(
+        path=qt.__path__,
+        prefix=qt.__name__ + ".",
+    ):
+        assert not is_pkg, name
+        if name != machinery.__name__:
+            yield name
+
+
+@pytest.mark.parametrize("package", _find_qt_packages())
+def test_implicit_init(package: str, monkeypatch: pytest.MonkeyPatch):
+    """Make sure importing any Qt submodule does an implicit init."""
+    monkeypatch.delitem(sys.modules, package, raising=False)
+    assert not machinery._initialized
+
+    try:
+        importlib.import_module(package)
+    except machinery.Unavailable as e:
+        pytest.skip(f"{package} not available: {e}")
+
+    assert machinery._initialized
