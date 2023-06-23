@@ -16,50 +16,50 @@ jobs:
         include:
           - os: macos-11
             branch: master
+            toxenv: build-release-qt5
+            name: qt5-macos
+          - os: windows-2019
+            args: --64bit
+            branch: master
+            toxenv: build-release-qt5
+            name: qt5-windows-64bit
+          - os: windows-2019
+            args: --32bit
+            branch: master
+            toxenv: build-release-qt5
+            name: qt5-windows-32bit
+
+          - os: macos-11
+            args: --debug
+            branch: master
+            toxenv: build-release-qt5
+            name: qt5-macos-debug
+          - os: windows-2019
+            args: --64bit --debug
+            branch: master
+            toxenv: build-release-qt5
+            name: qt5-windows-64bit-debug
+          - os: windows-2019
+            args: --32bit --debug
+            branch: master
+            toxenv: build-release-qt5
+            name: qt5-windows-32bit-debug
+
+          - os: macos-11
             toxenv: build-release
             name: macos
           - os: windows-2019
             args: --64bit
-            branch: master
             toxenv: build-release
             name: windows-64bit
-          - os: windows-2019
-            args: --32bit
-            branch: master
-            toxenv: build-release
-            name: windows-32bit
-
           - os: macos-11
             args: --debug
-            branch: master
             toxenv: build-release
             name: macos-debug
           - os: windows-2019
             args: --64bit --debug
-            branch: master
             toxenv: build-release
             name: windows-64bit-debug
-          - os: windows-2019
-            args: --32bit --debug
-            branch: master
-            toxenv: build-release
-            name: windows-32bit-debug
-
-          - os: macos-11
-            toxenv: build-release-qt6
-            name: qt6-macos
-          - os: windows-2019
-            args: --64bit
-            toxenv: build-release-qt6
-            name: qt6-windows-64bit
-          - os: macos-11
-            args: --debug
-            toxenv: build-release-qt6
-            name: qt6-macos-debug
-          - os: windows-2019
-            args: --64bit --debug
-            toxenv: build-release-qt6
-            name: qt6-windows-64bit-debug
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 45
     steps:

@@ -15,14 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
-
 """QtWebKit specific part of history."""
 
 import functools
 
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkit import QWebHistoryInterface
+# pylint: enable=no-name-in-module
 
 from qutebrowser.utils import debug
 from qutebrowser.misc import debugcachestats

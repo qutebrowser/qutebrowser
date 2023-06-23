@@ -1,6 +1,6 @@
 [MASTER]
 ignore=resources.py
-extension-pkg-whitelist=PyQt5,sip
+extension-pkg-whitelist=PyQt5,PyQt6,sip
 load-plugins=qute_pylint.config,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,

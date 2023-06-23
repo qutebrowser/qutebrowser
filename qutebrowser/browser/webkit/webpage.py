@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
-
 """The main browser widgets."""
 
 import html
@@ -28,7 +25,9 @@ from qutebrowser.qt.gui import QDesktopServices
 from qutebrowser.qt.network import QNetworkReply, QNetworkRequest
 from qutebrowser.qt.widgets import QFileDialog
 from qutebrowser.qt.printsupport import QPrintDialog
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey

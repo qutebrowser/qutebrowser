@@ -1,4 +1,4 @@
-# pylint: disable=import-error,wildcard-import,unused-import
+# pylint: disable=import-error,wildcard-import,unused-import,unused-wildcard-import
 
 """Wrapped Qt imports for Qt OpenGL.
 

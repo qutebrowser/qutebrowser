@@ -15,14 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
-
 """The main browser widgets."""
 
 from qutebrowser.qt.core import pyqtSignal, Qt
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkit import QWebSettings
 from qutebrowser.qt.webkitwidgets import QWebView, QWebPage
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman

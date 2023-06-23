@@ -37,9 +37,7 @@ from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 if machinery.IS_QT6:
-    # FIXME:qt6 (lint) how come pylint isn't picking this up with both backends
-    # installed?
-    from qutebrowser.qt.core import QKeyCombination  # pylint: disable=no-name-in-module
+    from qutebrowser.qt.core import QKeyCombination
 else:
     QKeyCombination = None  # QKeyCombination was added in Qt 6
 

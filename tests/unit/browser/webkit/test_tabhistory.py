@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
-
 """Tests for webelement.tabhistory."""
 
 import dataclasses
@@ -26,7 +23,9 @@ from typing import Any
 import pytest
 pytest.importorskip('qutebrowser.qt.webkit')
 from qutebrowser.qt.core import QUrl, QPoint
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkit import QWebHistory
+# pylint: enable=no-name-in-module
 
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item

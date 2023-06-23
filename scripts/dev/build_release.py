@@ -136,7 +136,7 @@ def _smoke_test_run(
     return subprocess.run(argv, check=True, capture_output=True)
 
 
-def smoke_test(executable: pathlib.Path, debug: bool, qt6: bool) -> None:
+def smoke_test(executable: pathlib.Path, debug: bool, qt5: bool) -> None:
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
@@ -176,7 +176,7 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt6: bool) -> None:
             r'ContextResult::kTransientFailure: Failed to send '
             r'.*CreateCommandBuffer\.'),
         ])
-        if qt6:
+        if not qt5:
             stderr_whitelist.extend([
                 # FIXME:qt6 Qt 6.3 on macOS
                 r'[0-9:]* WARNING: Incompatible version of OpenSSL',
@@ -257,10 +257,10 @@ def verify_windows_exe(exe_path: pathlib.Path) -> None:
     assert pe.verify_checksum()
 
 
-def patch_mac_app(qt6: bool) -> None:
+def patch_mac_app(qt5: bool) -> None:
     """Patch .app to save some space and make it signable."""
     dist_path = pathlib.Path('dist')
-    ver = '6' if qt6 else '5'
+    ver = '5' if qt5 else '6'
     app_path = dist_path / 'qutebrowser.app'
 
     contents_path = app_path / 'Contents'
@@ -280,7 +280,7 @@ def patch_mac_app(qt6: bool) -> None:
             file_path.unlink()
         file_path.symlink_to(target)
 
-    if qt6:
+    if not qt5:
         # Symlinking QtWebEngineCore.framework does not seem to work with Qt 6.
         # Also, the symlinking/moving before signing doesn't seem to be required.
         return
@@ -333,7 +333,7 @@ def _mac_bin_path(base: pathlib.Path) -> pathlib.Path:
 def build_mac(
     *,
     gh_token: Optional[str],
-    qt6: bool,
+    qt5: bool,
     skip_packaging: bool,
     debug: bool,
 ) -> List[Artifact]:
@@ -348,20 +348,20 @@ def build_mac(
         shutil.rmtree(d, ignore_errors=True)
 
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=not qt6, fancy_dmg=False,
+    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=qt5, fancy_dmg=False,
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
-    call_tox(f'pyinstaller-64bit{"-qt6" if qt6 else ""}', '-r', debug=debug)
+    call_tox(f'pyinstaller-64bit{"-qt5" if qt5 else ""}', '-r', debug=debug)
     utils.print_title("Patching .app")
-    patch_mac_app(qt6=qt6)
+    patch_mac_app(qt5=qt5)
     utils.print_title("Re-signing .app")
     sign_mac_app()
 
     dist_path = pathlib.Path("dist")
 
     utils.print_title("Running pre-dmg smoke test")
-    smoke_test(_mac_bin_path(dist_path), debug=debug, qt6=qt6)
+    smoke_test(_mac_bin_path(dist_path), debug=debug, qt5=qt5)
 
     if skip_packaging:
         return []
@@ -371,7 +371,7 @@ def build_mac(
     subprocess.run(['make', '-f', dmg_makefile_path], check=True)
 
     suffix = "-debug" if debug else ""
-    suffix += "-qt6" if qt6 else ""
+    suffix += "-qt5" if qt5 else ""
     dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
     pathlib.Path('qutebrowser.dmg').rename(dmg_path)
 
@@ -383,7 +383,7 @@ def build_mac(
             subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmp_path], check=True)
             try:
-                smoke_test(_mac_bin_path(tmp_path), debug=debug, qt6=qt6)
+                smoke_test(_mac_bin_path(tmp_path), debug=debug, qt5=qt5)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
@@ -422,7 +422,7 @@ def _get_windows_python_path(x64: bool) -> pathlib.Path:
 
 def _build_windows_single(
     *, x64: bool,
-    qt6: bool,
+    qt5: bool,
     skip_packaging: bool,
     debug: bool,
 ) -> List[Artifact]:
@@ -437,9 +437,9 @@ def _build_windows_single(
 
     python = _get_windows_python_path(x64=x64)
     suffix = "64bit" if x64 else "32bit"
-    if qt6:
+    if qt5:
         # FIXME:qt6 does this regress 391623d5ec983ecfc4512c7305c4b7a293ac3872?
-        suffix += "-qt6"
+        suffix += "-qt5"
     call_tox(f'pyinstaller-{suffix}', '-r', python=python, debug=debug)
 
     out_pyinstaller = dist_path / "qutebrowser"
@@ -450,7 +450,7 @@ def _build_windows_single(
     verify_windows_exe(exe_path)
 
     utils.print_title(f"Running {human_arch} smoke test")
-    smoke_test(exe_path, debug=debug, qt6=qt6)
+    smoke_test(exe_path, debug=debug, qt5=qt5)
 
     if skip_packaging:
         return []
@@ -463,7 +463,7 @@ def _build_windows_single(
         desc_arch=human_arch,
         desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
         debug=debug,
-        qt6=qt6,
+        qt5=qt5,
     )
 
 
@@ -472,12 +472,12 @@ def build_windows(
     skip_packaging: bool,
     only_32bit: bool,
     only_64bit: bool,
-    qt6: bool,
+    qt5: bool,
     debug: bool,
 ) -> List[Artifact]:
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=not qt6,
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=qt5,
                         fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
@@ -493,14 +493,14 @@ def build_windows(
             x64=True,
             skip_packaging=skip_packaging,
             debug=debug,
-            qt6=qt6,
+            qt5=qt5,
         )
-    if not only_64bit and not qt6:
+    if not only_64bit and not qt5:
         artifacts += _build_windows_single(
             x64=False,
             skip_packaging=skip_packaging,
             debug=debug,
-            qt6=qt6,
+            qt5=qt5,
         )
 
     return artifacts
@@ -514,7 +514,7 @@ def _package_windows_single(
     desc_suffix: str,
     filename_arch: str,
     debug: bool,
-    qt6: bool,
+    qt5: bool,
 ) -> List[Artifact]:
     """Build the given installer/zip for windows."""
     artifacts = []
@@ -532,8 +532,8 @@ def _package_windows_single(
     ]
     if debug:
         name_parts.append('debug')
-    if qt6:
-        name_parts.append('qt6')
+    if qt5:
+        name_parts.append('qt5')
     name = '-'.join(name_parts) + '.exe'
 
     artifacts.append(Artifact(
@@ -552,8 +552,8 @@ def _package_windows_single(
     ]
     if debug:
         zip_name_parts.append('debug')
-    if qt6:
-        zip_name_parts.append('qt6')
+    if qt5:
+        zip_name_parts.append('qt5')
     zip_name = '-'.join(zip_name_parts) + '.zip'
 
     zip_path = dist_path / zip_name
@@ -738,8 +738,8 @@ def main() -> None:
                         help="Skip Windows 32 bit build.", dest='only_64bit')
     parser.add_argument('--debug', action='store_true', required=False,
                         help="Build a debug build.")
-    parser.add_argument('--qt6', action='store_true', required=False,
-                        help="Build against PyQt6")
+    parser.add_argument('--qt5', action='store_true', required=False,
+                        help="Build against PyQt5")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -768,14 +768,14 @@ def main() -> None:
             skip_packaging=args.skip_packaging,
             only_32bit=args.only_32bit,
             only_64bit=args.only_64bit,
-            qt6=args.qt6,
+            qt5=args.qt5,
             debug=args.debug,
         )
     elif IS_MACOS:
         artifacts = build_mac(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
-            qt6=args.qt6,
+            qt5=args.qt5,
             debug=args.debug,
         )
     else:

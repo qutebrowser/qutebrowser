@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
 
 """Wrapper over our (QtWebKit) WebView."""
 
@@ -28,8 +26,10 @@ from typing import cast, Iterable, Optional
 from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from qutebrowser.qt.gui import QIcon
 from qutebrowser.qt.widgets import QWidget
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
 from qutebrowser.qt.webkit import QWebSettings, QWebHistory, QWebElement
+# pylint: enable=no-name-in-module
 from qutebrowser.qt.printsupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
