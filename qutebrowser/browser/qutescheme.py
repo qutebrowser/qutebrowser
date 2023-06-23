@@ -22,6 +22,7 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import sys
 import html
 import json
 import os
@@ -583,6 +584,12 @@ def qute_warning(url: QUrl) -> _HandlerRet:
     elif path == '/sandboxing':
         src = jinja.render('warning-sandboxing.html',
                            title='Qt 6 macOS sandboxing warning')
+    elif path == '/qt5':
+        is_venv = hasattr(sys, 'real_prefix') or sys.base_prefix != sys.prefix
+        src = jinja.render('warning-qt5.html',
+                           title='Switch to Qt 6',
+                           is_venv=is_venv,
+                           prefix=sys.prefix)
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src
