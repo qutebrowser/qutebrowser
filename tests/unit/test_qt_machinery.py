@@ -214,7 +214,7 @@ def modules():
                 reason=machinery.SelectionReason.auto,
                 outcomes={
                     "PyQt6": "ImportError: Fake ImportError for PyQt6.",
-                }
+                },
             ),
             id="import-error",
         ),
@@ -403,7 +403,7 @@ class TestInit:
             reason=machinery.SelectionReason.auto,
             outcomes={
                 "PyQt6": "ImportError: Fake ImportError for PyQt6.",
-            }
+            },
         )
 
     @pytest.mark.parametrize(

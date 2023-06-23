@@ -168,8 +168,10 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
         if env_wrapper == "auto":
             return _autoselect_wrapper()
         elif env_wrapper not in WRAPPERS:
-            raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
-                        f"allowed: {', '.join(WRAPPERS)}")
+            raise Error(
+                f"Unknown wrapper {env_wrapper} set via {env_var}, "
+                f"allowed: {', '.join(WRAPPERS)}"
+            )
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
     # FIXME:qt6 Go back to the auto-detection once ready
@@ -217,8 +219,7 @@ def _set_globals(info: SelectionInfo) -> None:
     Those are split into multiple global variables because that way we can teach mypy
     about them via --always-true and --always-false, see tox.ini.
     """
-    global INFO, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
-        IS_PYQT, IS_PYSIDE, _initialized
+    global INFO, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, IS_PYQT, IS_PYSIDE, _initialized
 
     assert info.wrapper is not None, info
     assert not _initialized
