@@ -18,9 +18,6 @@ jobs:
           - archlinux-webengine-qt6
     steps:
       - uses: actions/checkout@v3
-        with:
-          # FIXME:qt6 remove again once merged
-          ref: ${{ matrix.image == 'archlinux-webengine-qt6' && 'qt6-v2' || '' }}
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'

@@ -46,22 +46,18 @@ jobs:
             name: windows-32bit-debug
 
           - os: macos-11
-            branch: qt6-v2
             toxenv: build-release-qt6
             name: qt6-macos
           - os: windows-2019
             args: --64bit
-            branch: qt6-v2
             toxenv: build-release-qt6
             name: qt6-windows-64bit
           - os: macos-11
             args: --debug
-            branch: qt6-v2
             toxenv: build-release-qt6
             name: qt6-macos-debug
           - os: windows-2019
             args: --64bit --debug
-            branch: qt6-v2
             toxenv: build-release-qt6
             name: qt6-windows-64bit-debug
     runs-on: "${{ matrix.os }}"
