@@ -19,6 +19,17 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.0.0 (unreleased)
 -------------------
 
+Major changes
+~~~~~~~~~~~~~
+
+- qutebrowser now supports Qt 6 and uses it by default. Qt 5.15 is used as a
+  fallback if Qt 6 is unavailable. This behavior can be customized in three ways
+  (in order of precedence):
+  * Via `--qt-wrapper PyQt5` or `--qt-wrapper PyQt6` command-line arguments.
+  * Via the `QUTE_QT_WRAPPER` environment variable, set to `PyQt6` or `PyQt5`.
+  * For packagers wanting to provide packages specific to a Qt version,
+    patch `qutebrowser/qt/machinery.py` and set `_WRAPPER_OVERRIDE`.
+
 Added
 ~~~~~
 
