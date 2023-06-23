@@ -23,6 +23,7 @@ import html
 import argparse
 import typing
 from typing import Any, Optional, List, Dict, Union
+import dataclasses
 
 import pytest
 
@@ -230,84 +231,122 @@ def test_autoselect(
     assert machinery._autoselect_wrapper() == expected
 
 
+@dataclasses.dataclass
+class SelectWrapperCase:
+    name: str
+    expected: machinery.SelectionInfo
+    args: Optional[argparse.Namespace] = None
+    env: Optional[str] = None
+    override: Optional[str] = None
+
+    def __str__(self):
+        return self.name
+
+
 class TestSelectWrapper:
     @pytest.mark.parametrize(
-        "args, env, expected",
+        "tc",
         [
             # Only argument given
-            (
-                argparse.Namespace(qt_wrapper="PyQt6"),
-                None,
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt6-arg",
+                args=argparse.Namespace(qt_wrapper="PyQt6"),
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt6", reason=machinery.SelectionReason.cli
                 ),
             ),
-            (
-                argparse.Namespace(qt_wrapper="PyQt5"),
-                None,
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt5-arg",
+                args=argparse.Namespace(qt_wrapper="PyQt5"),
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt5", reason=machinery.SelectionReason.cli
                 ),
             ),
-            (
-                argparse.Namespace(qt_wrapper="PyQt5"),
-                "",
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt6-arg-empty-env",
+                args=argparse.Namespace(qt_wrapper="PyQt5"),
+                env="",
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt5", reason=machinery.SelectionReason.cli
                 ),
             ),
             # Only environment variable given
-            (
-                None,
-                "PyQt6",
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt6-env",
+                env="PyQt6",
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt6", reason=machinery.SelectionReason.env
                 ),
             ),
-            (
-                None,
-                "PyQt5",
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt5-env",
+                env="PyQt5",
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt5", reason=machinery.SelectionReason.env
                 ),
             ),
             # Both given
-            (
-                argparse.Namespace(qt_wrapper="PyQt5"),
-                "PyQt6",
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt5-arg-pyqt6-env",
+                args=argparse.Namespace(qt_wrapper="PyQt5"),
+                env="PyQt6",
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt5", reason=machinery.SelectionReason.cli
                 ),
             ),
-            (
-                argparse.Namespace(qt_wrapper="PyQt6"),
-                "PyQt5",
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt6-arg-pyqt5-env",
+                args=argparse.Namespace(qt_wrapper="PyQt6"),
+                env="PyQt5",
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt6", reason=machinery.SelectionReason.cli
                 ),
             ),
-            (
-                argparse.Namespace(qt_wrapper="PyQt6"),
-                "PyQt6",
-                machinery.SelectionInfo(
+            SelectWrapperCase(
+                "pyqt6-arg-pyqt6-env",
+                args=argparse.Namespace(qt_wrapper="PyQt6"),
+                env="PyQt6",
+                expected=machinery.SelectionInfo(
                     wrapper="PyQt6", reason=machinery.SelectionReason.cli
+                ),
+            ),
+            # Override
+            SelectWrapperCase(
+                "override-only",
+                override="PyQt6",
+                expected=machinery.SelectionInfo(
+                    wrapper="PyQt6", reason=machinery.SelectionReason.override
+                ),
+            ),
+            SelectWrapperCase(
+                "override-arg",
+                args=argparse.Namespace(qt_wrapper="PyQt5"),
+                override="PyQt6",
+                expected=machinery.SelectionInfo(
+                    wrapper="PyQt5", reason=machinery.SelectionReason.cli
+                ),
+            ),
+            SelectWrapperCase(
+                "override-env",
+                env="PyQt5",
+                override="PyQt6",
+                expected=machinery.SelectionInfo(
+                    wrapper="PyQt5", reason=machinery.SelectionReason.env
                 ),
             ),
         ],
+        ids=str,
     )
-    def test_select(
-        self,
-        args: Optional[argparse.Namespace],
-        env: Optional[str],
-        expected: machinery.SelectionInfo,
-        monkeypatch: pytest.MonkeyPatch,
-    ):
-        if env is None:
+    def test_select(self, tc: SelectWrapperCase, monkeypatch: pytest.MonkeyPatch):
+        if tc.env is None:
             monkeypatch.delenv("QUTE_QT_WRAPPER", raising=False)
         else:
-            monkeypatch.setenv("QUTE_QT_WRAPPER", env)
+            monkeypatch.setenv("QUTE_QT_WRAPPER", tc.env)
 
-        assert machinery._select_wrapper(args) == expected
+        if tc.override is not None:
+            monkeypatch.setattr(machinery, "_WRAPPER_OVERRIDE", tc.override)
+
+        assert machinery._select_wrapper(tc.args) == tc.expected
 
     @pytest.mark.parametrize(
         "args, env",
@@ -337,6 +376,11 @@ class TestSelectWrapper:
     def test_after_qt_import(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setitem(sys.modules, "PyQt6", None)
         with pytest.warns(UserWarning, match="PyQt6 already imported"):
+            machinery._select_wrapper(args=None)
+
+    def test_invalid_override(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(machinery, "_WRAPPER_OVERRIDE", "invalid")
+        with pytest.raises(AssertionError, match="invalid"):
             machinery._select_wrapper(args=None)
 
 

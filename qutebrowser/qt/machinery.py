@@ -18,11 +18,11 @@ import importlib
 import dataclasses
 from typing import Optional, Dict
 
-# Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
-# sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
+# Packagers: Patch the line below to enforce a Qt wrapper, e.g.:
+# sed -i 's/_WRAPPER_OVERRIDE = .*/_WRAPPER_OVERRIDE = "PyQt6"/' qutebrowser/qt/machinery.py
 #
 # Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
-_DEFAULT_WRAPPER = "PyQt5"
+_WRAPPER_OVERRIDE = None
 
 WRAPPERS = [
     "PyQt6",
@@ -77,6 +77,9 @@ class SelectionReason(enum.Enum):
 
     #: The wrapper was faked/patched out (e.g. in tests).
     fake = "fake"
+
+    #: The wrapper was overridden by patching _WRAPPER_OVERRIDE.
+    override = "override"
 
     #: The reason was not set.
     unknown = "unknown"
@@ -174,8 +177,10 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
             )
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
-    # FIXME:qt6 Make sure to still consider _DEFAULT_WRAPPER for packagers
-    # (rename to _WRAPPER_OVERRIDE since our sed command is broken anyways then?)
+    if _WRAPPER_OVERRIDE is not None:
+        assert _WRAPPER_OVERRIDE in WRAPPERS, _WRAPPER_OVERRIDE
+        return SelectionInfo(wrapper=_WRAPPER_OVERRIDE, reason=SelectionReason.override)
+
     return _autoselect_wrapper()
 
 
