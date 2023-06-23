@@ -134,8 +134,7 @@ def pyqt_versions() -> List[str]:
 
 def _is_qt6_version(version: str) -> bool:
     """Check if the given version is Qt 6."""
-    # FIXME:qt6 Adjust once auto = Qt 6
-    return version == "6" or version.startswith("6.")
+    return version in ["auto", "6"] or version.startswith("6.")
 
 
 def run_venv(
@@ -228,7 +227,7 @@ def requirements_file(name: str) -> pathlib.Path:
 
 def pyqt_requirements_file(version: str) -> pathlib.Path:
     """Get the filename of the requirements file for the given PyQt version."""
-    name = 'pyqt' if version == 'auto' else 'pyqt-{}'.format(version)
+    name = 'pyqt-6' if version == 'auto' else f'pyqt-{version}'
     return requirements_file(name)
 
 
@@ -439,7 +438,7 @@ def run_qt_smoke_test_single(
 def run_qt_smoke_test(venv_dir: pathlib.Path, *, pyqt_version: str) -> None:
     """Make sure the Qt installation works."""
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-104415
-    no_debug = pyqt_version in ("6.3", "6") and sys.platform == "darwin"
+    no_debug = pyqt_version == "6.3" and sys.platform == "darwin"
     if no_debug:
         try:
             run_qt_smoke_test_single(venv_dir, debug=False, pyqt_version=pyqt_version)
