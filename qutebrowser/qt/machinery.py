@@ -150,7 +150,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
 
     - If --qt-wrapper is given, use that.
     - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
-    - Otherwise, use PyQt5 (FIXME:qt6 autoselect).
+    - Otherwise, try the wrappers in WRAPPER in order (PyQt6 -> PyQt5)
     """
     # If any Qt wrapper has been imported before this, something strange might
     # be happening.
@@ -174,11 +174,9 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
             )
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
-    # FIXME:qt6 Go back to the auto-detection once ready
     # FIXME:qt6 Make sure to still consider _DEFAULT_WRAPPER for packagers
     # (rename to _WRAPPER_OVERRIDE since our sed command is broken anyways then?)
-    # return _autoselect_wrapper()
-    return SelectionInfo(wrapper=_DEFAULT_WRAPPER, reason=SelectionReason.default)
+    return _autoselect_wrapper()
 
 
 # Values are set in init(). If you see a NameError here, it means something tried to
