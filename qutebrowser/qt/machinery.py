@@ -178,8 +178,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
     if _WRAPPER_OVERRIDE is not None:
-        pass  # type: ignore[unreachable]
-        assert _WRAPPER_OVERRIDE in WRAPPERS, _WRAPPER_OVERRIDE
+        assert _WRAPPER_OVERRIDE in WRAPPERS  # type: ignore[unreachable]
         return SelectionInfo(wrapper=_WRAPPER_OVERRIDE, reason=SelectionReason.override)
 
     return _autoselect_wrapper()

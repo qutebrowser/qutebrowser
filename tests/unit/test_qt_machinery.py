@@ -380,7 +380,7 @@ class TestSelectWrapper:
 
     def test_invalid_override(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(machinery, "_WRAPPER_OVERRIDE", "invalid")
-        with pytest.raises(AssertionError, match="invalid"):
+        with pytest.raises(AssertionError):
             machinery._select_wrapper(args=None)
 
 
