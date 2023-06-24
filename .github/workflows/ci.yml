@@ -115,9 +115,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up problem matchers
-        run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
+        run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
