@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint): disable=line-too-long
+# FIXME:v4 (lint): disable=line-too-long
 
 
 """Data used by test_keyutils.py to test all keys."""

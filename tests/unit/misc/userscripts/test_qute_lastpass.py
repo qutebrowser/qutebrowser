@@ -203,7 +203,7 @@ class TestQuteLastPassMain:
         exit_code = qute_lastpass.main(arguments_mock)
 
         assert exit_code == qute_lastpass.ExitCodes.FAILURE
-        # FIXME:qt6 (lint): disable=line-too-long
+        # FIXME:v4 (lint): disable=line-too-long
         stderr_mock.assert_called_with(
             "LastPass CLI returned for www.example.com - Error: Could not find decryption key. Perhaps you need to login with `lpass login`.")
         qutecommand_mock.assert_not_called()

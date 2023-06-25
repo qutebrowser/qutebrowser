@@ -37,7 +37,7 @@ from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import urlmatch
 
-# FIXME:qt6 (lint): disable=line-too-long
+# FIXME:v4 (lint): disable=line-too-long
 
 
 _INVALID_IP_MESSAGE = (
