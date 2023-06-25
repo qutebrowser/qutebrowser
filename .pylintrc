@@ -58,8 +58,8 @@ disable=locally-disabled,
         missing-type-doc,
         missing-param-doc,
         useless-param-doc,
-        wrong-import-order,  # FIXME:qt6 (lint)
-        ungrouped-imports,  # FIXME:qt6 (lint)
+        wrong-import-order,  # doesn't work with qutebrowser.qt, even with known-third-party set
+        ungrouped-imports,   # ditto
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

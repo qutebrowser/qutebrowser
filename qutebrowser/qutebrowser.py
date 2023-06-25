@@ -50,7 +50,7 @@ except ImportError:
         sys.exit(100)
 check_python_version()
 
-import argparse  # FIXME:qt6 (lint): disable=wrong-import-order
+import argparse
 from qutebrowser.misc import earlyinit
 from qutebrowser.qt import machinery
 
