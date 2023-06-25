@@ -275,9 +275,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    if sys.version_info != (3, 12, 0, "beta", 2):
-        # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2023-June/045331.html
-        assert proc.exitStatus() == QProcess.ExitStatus.NormalExit
+    assert proc.exitStatus() == QProcess.ExitStatus.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
