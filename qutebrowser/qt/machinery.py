@@ -3,6 +3,16 @@
 """Qt wrapper selection.
 
 Contains selection logic and globals for Qt wrapper selection.
+
+All other files in this package are intended to be simple wrappers around Qt imports.
+Depending on what is set in this module, they import from PyQt5 or PyQt6.
+
+The import wrappers are intended to be as thin as possible. They will not unify
+API-level differences between Qt 5 and Qt 6. This is best handled by the calling code,
+which has a better picture of what changed between APIs and how to best handle it.
+
+What they *will* do is handle simple 1:1 renames of classes, or moves between
+modules (where they aim to always expose the Qt 6 API). See e.g. webenginecore.py.
 """
 
 # NOTE: No qutebrowser or PyQt import should be done here (at import time),
