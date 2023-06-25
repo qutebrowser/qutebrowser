@@ -406,15 +406,34 @@ class TestInit:
         ):
             machinery.init(args=empty_args)
 
+    @pytest.fixture(params=["auto", "", None])
+    def qt_auto_env(
+        self,
+        request: pytest.FixtureRequest,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Trigger wrapper autoselection via environment variable.
+
+        Autoselection should be used in three scenarios:
+
+        - The environment variable is set to "auto".
+        - The environment variable is set to an empty string.
+        - The environment variable is not set at all.
+
+        We run test_none_available_*() for all three scenarios.
+        """
+        if request.param is None:
+            monkeypatch.delenv("QUTE_QT_WRAPPER", raising=False)
+        else:
+            monkeypatch.setenv("QUTE_QT_WRAPPER", request.param)
+
     def test_none_available_implicit(
         self,
         stubs: Any,
         modules: Dict[str, bool],
         monkeypatch: pytest.MonkeyPatch,
-        undo_init: None,
+        qt_auto_env: None,
     ):
-        # FIXME:qt6 Also try without this once auto is default
-        monkeypatch.setenv("QUTE_QT_WRAPPER", "auto")
         stubs.ImportFake(modules, monkeypatch).patch()
 
         message_lines = [
@@ -438,10 +457,8 @@ class TestInit:
         modules: Dict[str, bool],
         monkeypatch: pytest.MonkeyPatch,
         empty_args: argparse.Namespace,
-        undo_init: None,
+        qt_auto_env: None,
     ):
-        # FIXME:qt6 Also try without this once auto is default
-        monkeypatch.setenv("QUTE_QT_WRAPPER", "auto")
         stubs.ImportFake(modules, monkeypatch).patch()
 
         info = machinery.init(args=empty_args)
@@ -469,7 +486,6 @@ class TestInit:
         true_vars: str,
         explicit: bool,
         empty_args: argparse.Namespace,
-        undo_init: None,
     ):
         info = machinery.SelectionInfo(
             wrapper=selected_wrapper,
