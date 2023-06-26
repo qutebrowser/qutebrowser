@@ -60,8 +60,8 @@ The following userscripts can be found on their own repositories.
   bookmark manager.
 - [qb-scripts](https://github.com/peterjschroeder/qb-scripts): a small pack of
   userscripts.
-- [instapaper.zsh](https://github.com/dmcgrady/instapaper.zsh): Add URL to
-  your [Instapaper][] bookmark manager.
+- [instapaper.zsh](https://github.com/vicentealencar/instapaper.zsh): Add URL to
+  your [Instapaper][] bookmark manager (original repository by dmcgrady vanished).
 - [qtb.us](https://github.com/Chinggis6/qtb.us): small pack of userscripts.
 - [pinboard.zsh](https://github.com/dmix/pinboard.zsh): Add URL to your
   [Pinboard][] bookmark manager.
@@ -73,7 +73,7 @@ The following userscripts can be found on their own repositories.
   selections via Google Translate.
 - [qute-snippets](https://github.com/Aledosim/qute-snippets): Bind text snippets to a keyword
    and retrieve they when you want.
-- [doi](https://github.com/cadadr/configuration/blob/master/qutebrowser/userscripts/doi):
+- [doi](https://github.com/cadadr/configuration/blob/default/dotfiles/qutebrowser/userscripts/doi):
   Opens DOIs on Sci-Hub.
 - [qute-1password](https://github.com/fmartingr/qute-1password):
   Qutebrowser userscript to fill 1password credentials
