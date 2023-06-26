@@ -144,7 +144,7 @@
   "SecretStorage": "https://github.com/mitya57/secretstorage/blob/master/changelog",
   "bleach": "https://github.com/mozilla/bleach/blob/main/CHANGES",
   "jeepney": "https://gitlab.com/takluyver/jeepney/-/blob/master/docs/release-notes.rst",
-  "keyring": "https://github.com/jaraco/keyring/blob/main/CHANGES.rst",
+  "keyring": "https://github.com/jaraco/keyring/blob/main/NEWS.rst",
   "jaraco.classes": "https://github.com/jaraco/jaraco.classes/blob/main/CHANGES.rst",
   "pkginfo": "https://bazaar.launchpad.net/~tseaver/pkginfo/trunk/view/head:/CHANGES.txt",
   "readme-renderer": "https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst",
