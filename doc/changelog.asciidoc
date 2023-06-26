@@ -170,6 +170,8 @@ Fixed
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.
 - Crash when the "herbe" notification presenter doesn't start correctly.
+- Crash when using `:print --pdf` with a directory where its parent directory
+  did not exist.
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)

@@ -96,8 +96,12 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
     tab.printing.check_pdf_support()
     filename = os.path.expanduser(filename)
     directory = os.path.dirname(filename)
-    if directory and not os.path.exists(directory):
-        os.mkdir(directory)
+
+    try:
+        os.makedirs(directory, exist_ok=True)
+    except OSError as e:
+        raise cmdutils.CommandError(e)
+
     tab.printing.to_pdf(filename)
     _LOGGER.debug("Print to file: {}".format(filename))
 

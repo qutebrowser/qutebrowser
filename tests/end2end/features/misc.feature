@@ -313,6 +313,12 @@ Feature: Various utility commands.
         And I wait for "Print to file: *" in the log or skip the test
         Then the PDF hello.pdf should exist in the tmpdir
 
+    Scenario: print --pdf with subdirectory
+        When I open data/hello.txt
+        And I run :print --pdf (tmpdir)/subdir/subdir2/hello.pdf
+        And I wait for "Print to file: *" in the log or skip the test
+        Then no crash should happen
+
     ## https://github.com/qutebrowser/qutebrowser/issues/504
 
     Scenario: Focusing download widget via Tab
