@@ -305,12 +305,10 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
-    # FIXME:qtwebengine use a finer skipping here
-    @qtwebengine_skip: printing to pdf is not implemented with older Qt versions
     Scenario: print --pdf
         When I open data/hello.txt
         And I run :print --pdf (tmpdir)/hello.pdf
-        And I wait for "Print to file: *" in the log or skip the test
+        And I wait for "Printed to *" in the log
         Then the PDF hello.pdf should exist in the tmpdir
 
     Scenario: print --pdf with subdirectory
