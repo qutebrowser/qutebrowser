@@ -37,3 +37,5 @@ tldextract
 #@ add: Flask==2.2.5 ; python_version=="3.7.*"
 #@ markers: Werkzeug python_version>="3.8"
 #@ add: Werkzeug==2.2.3 ; python_version=="3.7.*"
+#@ markers: jaraco.functools python_version>="3.8"
+#@ add: jaraco.functools<3.8.0 ; python_version=="3.7.*"

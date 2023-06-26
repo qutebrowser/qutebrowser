@@ -76,7 +76,7 @@
   "sphinxcontrib-jsmath": "https://www.sphinx-doc.org/en/master/changes.html",
   "sphinxcontrib-qthelp": "https://www.sphinx-doc.org/en/master/changes.html",
   "sphinxcontrib-serializinghtml": "https://www.sphinx-doc.org/en/master/changes.html",
-  "jaraco.functools": "https://github.com/jaraco/jaraco.functools/blob/main/CHANGES.rst",
+  "jaraco.functools": "https://jaracofunctools.readthedocs.io/en/latest/history.html",
   "parse": "https://github.com/r1chardj0n3s/parse#potential-gotchas",
   "Pympler": "https://github.com/pympler/pympler/blob/master/CHANGELOG.md",
   "pytest-mock": "https://github.com/pytest-dev/pytest-mock/blob/main/CHANGELOG.rst",
