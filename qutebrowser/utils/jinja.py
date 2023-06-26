@@ -142,7 +142,7 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 
 
 @debugcachestats.register()
-@functools.lru_cache()
+@functools.lru_cache
 def template_config_variables(template: str) -> FrozenSet[str]:
     """Return the config variables used in the template."""
     unvisted_nodes: List[jinja2.nodes.Node] = [environment.parse(template)]

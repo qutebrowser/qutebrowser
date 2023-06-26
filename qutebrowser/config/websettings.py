@@ -203,7 +203,7 @@ class AbstractSettings:
 
 
 @debugcachestats.register(name='user agent cache')
-@functools.lru_cache()
+@functools.lru_cache
 def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
     if backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings

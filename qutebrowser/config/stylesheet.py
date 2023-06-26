@@ -48,7 +48,7 @@ def set_register(obj: QWidget,
 
 
 @debugcachestats.register()
-@functools.lru_cache()
+@functools.lru_cache
 def _render_stylesheet(stylesheet: str) -> str:
     """Render the given stylesheet jinja template."""
     with jinja.environment.no_autoescape():

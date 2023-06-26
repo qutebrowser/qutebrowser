@@ -128,7 +128,7 @@ class ErrorNetworkReply(QNetworkReply):
 
     def readData(self, _maxlen):
         """No data available."""
-        return bytes()
+        return b''
 
     def isFinished(self):
         return True
@@ -150,4 +150,4 @@ class RedirectNetworkReply(QNetworkReply):
         """Called when there's e.g. a redirection limit."""
 
     def readData(self, _maxlen):
-        return bytes()
+        return b''
