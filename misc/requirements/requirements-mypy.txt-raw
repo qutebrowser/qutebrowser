@@ -7,4 +7,3 @@ types-PyYAML
 
 # So stubs are available even on newer Python versions
 importlib_resources
-importlib_metadata

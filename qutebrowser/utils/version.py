@@ -33,6 +33,7 @@ import datetime
 import getpass
 import functools
 import dataclasses
+import importlib.metadata
 from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
@@ -520,19 +521,9 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
     PyQtWebEngine 5.15.4 renamed it to PyQtWebEngine-Qt5...:
     https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043699.html
 
-    Here, we try to use importlib.metadata or its backport (optional dependency) to
-    figure out that version number. If PyQtWebEngine is installed via pip, this will
-    give us an accurate answer.
+    Here, we try to use importlib.metadata to figure out that version number.
+    If PyQtWebEngine is installed via pip, this will give us an accurate answer.
     """
-    try:
-        import importlib.metadata as importlib_metadata  # type: ignore[import]
-    except ImportError:
-        try:
-            import importlib_metadata
-        except ImportError:
-            log.misc.debug("Neither importlib.metadata nor backport available")
-            return None
-
     names = (
         ['PyQt6-WebEngine-Qt6']
         if machinery.IS_QT6 else
@@ -541,8 +532,8 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
 
     for name in names:
         try:
-            return importlib_metadata.version(name)
-        except importlib_metadata.PackageNotFoundError:
+            return importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
             log.misc.debug(f"{name} not found")
 
     return None

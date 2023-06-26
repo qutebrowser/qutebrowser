@@ -19,7 +19,7 @@
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-At this point we can be sure we have all python 3.7 features available.
+At this point we can be sure we have all python 3.8 features available.
 """
 
 try:

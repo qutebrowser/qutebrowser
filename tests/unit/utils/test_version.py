@@ -29,6 +29,7 @@ import logging
 import textwrap
 import datetime
 import dataclasses
+import importlib.metadata
 
 import pytest
 import hypothesis
@@ -1107,23 +1108,9 @@ class TestChromiumVersion:
         monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
 
     @pytest.fixture
-    def patch_no_importlib(self, monkeypatch, stubs):
-        """Simulate missing importlib modules."""
-        import_fake = stubs.ImportFake({
-            'importlib_metadata': False,
-            'importlib.metadata': False,
-        }, monkeypatch)
-        import_fake.patch()
-
-    @pytest.fixture
     def importlib_patcher(self, monkeypatch):
         """Patch the importlib module."""
         def _patch(*, qt, qt5, qt6):
-            try:
-                import importlib.metadata as importlib_metadata
-            except ImportError:
-                importlib_metadata = pytest.importorskip("importlib_metadata")
-
             def _fake_version(name):
                 if name == 'PyQtWebEngine-Qt':
                     outcome = qt
@@ -1135,10 +1122,10 @@ class TestChromiumVersion:
                     raise utils.Unreachable(name)
 
                 if outcome is None:
-                    raise importlib_metadata.PackageNotFoundError(name)
+                    raise importlib.metadata.PackageNotFoundError(name)
                 return outcome
 
-            monkeypatch.setattr(importlib_metadata, 'version', _fake_version)
+            monkeypatch.setattr(importlib.metadata, 'version', _fake_version)
 
         return _patch
 
@@ -1150,7 +1137,6 @@ class TestChromiumVersion:
     @pytest.mark.parametrize('patches, sources', [
         (['no_api'], ['ELF', 'importlib', 'PyQt', 'Qt']),
         (['no_api', 'elf_fail'], ['importlib', 'PyQt', 'Qt']),
-        (['no_api', 'elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
         (['no_api', 'elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
     ], ids=','.join)
     def test_simulated(self, request, patches, sources):

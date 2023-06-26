@@ -20,10 +20,4 @@ Pygments  # For :view-source --pygments or on QtWebKit
 colorama  # Colored log output on Windows
 adblock  # Improved adblocking
 
-# Optional, only relevant when installing PyQt5/PyQtWebEngine via pip.
-importlib-metadata  # Determining PyQt version
-typing_extensions  # from importlib-metadata
-
-#@ markers: importlib-resources python_version=="3.7.*" or python_version=="3.8.*"
-#@ markers: importlib-metadata python_version=="3.7.*"
-#@ markers: typing_extensions python_version<"3.8"
+#@ markers: importlib-resources python_version=="3.8.*"

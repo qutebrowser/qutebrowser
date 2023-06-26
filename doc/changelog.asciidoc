@@ -57,9 +57,9 @@ Added
 Removed
 ~~~~~~~
 
-- Support for Python 3.6 is dropped, as it's been
-  https://discuss.python.org/t/python-3-6-rides-into-the-sunset/12964[end-of-life upstream]
-  since December 2021. Python 3.7.0 or newer is now required.
+- Python 3.8.0 or newer is now required.
+  - Support for Python 3.6 and 3.7 is dropped, as they both reached
+    their [end of life] in December 2021 and June 2023, respectively.
 - Support for Qt/PyQt before 5.15.0 and QtWebEngine before 5.15.2 are now
   dropped, as older Qt versions are
   https://endoflife.date/qt[end-of-life upstream] since mid/late 2020

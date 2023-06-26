@@ -8,7 +8,7 @@ cryptography==41.0.1
 dill==0.3.6
 github3.py==4.0.1
 idna==3.4
-isort==5.11.5
+isort==5.12.0
 lazy-object-proxy==1.9.0
 mccabe==0.7.0
 pefile==2023.2.7
@@ -20,10 +20,7 @@ python-dateutil==2.8.2
 ./scripts/dev/pylint_checkers
 requests==2.31.0
 six==1.16.0
-tomli==2.0.1
 tomlkit==0.11.8
-typed-ast==1.5.4 ; python_version<"3.8"
-typing_extensions==4.6.3
 uritemplate==4.1.1
 # urllib3==2.0.3
 wrapt==1.15.0

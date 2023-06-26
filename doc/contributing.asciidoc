@@ -111,9 +111,9 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py37`, `py38`, ...: Run pytest for python 3.7/3.8/... with the system-wide PyQt.
-  - `py37-pyqt512`, ..., `py37-pyqt515`: Run pytest with the given PyQt version (`py37-*` also works).
-  - `py37-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
+  - `py38`, `py39`, ...: Run pytest for python 3.8/3.9/... with the system-wide PyQt.
+  - `py38-pyqt515`, ..., `py38-pyqt65`: Run pytest with the given PyQt version (`py39-*` etc. also works).
+  - `py38-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].
 * `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
   unused code portions.
@@ -171,16 +171,16 @@ Examples:
 
 ----
 # run only pytest tests which failed in last run:
-tox -e py37 -- --lf
+tox -e py38 -- --lf
 
 # run only the end2end feature tests:
-tox -e py37 -- tests/end2end/features
+tox -e py38 -- tests/end2end/features
 
 # run everything with undo in the generated name, based on the scenario text
-tox -e py37 -- tests/end2end/features/test_tabs_bdd.py -k undo
+tox -e py38 -- tests/end2end/features/test_tabs_bdd.py -k undo
 
 # run coverage test for specific file (updates htmlcov/index.html)
-tox -e py37-cov -- tests/unit/browser/test_webelem.py
+tox -e py38-cov -- tests/unit/browser/test_webelem.py
 ----
 
 Specifying the backend for tests

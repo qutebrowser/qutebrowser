@@ -82,7 +82,7 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.7 or newer
+* https://www.python.org/[Python] 3.8 or newer
 * https://www.qt.io/[Qt], either 6.2.0 or newer, or 5.15.0 or newer, with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase or qtdeclarative in some distributions)
@@ -103,7 +103,7 @@ websites and using it for transmission of sensitive data._
 * https://palletsprojects.com/p/jinja/[jinja2]
 * https://github.com/yaml/pyyaml[PyYAML]
 
-On older Python versions (3.7/3.8), the following backports are also required:
+On Python 3.8, the following backport is also required:
 
 * https://importlib-resources.readthedocs.io/[importlib_resources]
 
@@ -119,10 +119,6 @@ The following libraries are optional:
   QtWebEngine backend.
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
-* https://importlib-metadata.readthedocs.io/[importlib_metadata] on Python 3.7,
-  to improve QtWebEngine version detection when PyQtWebEngine is
-  installed via pip (thus, this dependency usually isn't relevant for
-  packagers).
 * https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 

@@ -128,10 +128,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.15.2 (Python 3.7)
+          ### PyQt 5.15.2 (Python 3.8)
           - testenv: py37-pyqt5152
             os: ubuntu-20.04
-            python: "3.7"
+            python: "3.8"
           ### PyQt 5.15 (Python 3.10, with coverage)
           # FIXME:qt6
           # - testenv: py310-pyqt515-cov
@@ -141,10 +141,10 @@ jobs:
           - testenv: py311-pyqt515
             os: ubuntu-20.04
             python: "3.11"
-          ### PyQt 6.2 (Python 3.7)
+          ### PyQt 6.2 (Python 3.8)
           - testenv: py37-pyqt62
             os: ubuntu-20.04
-            python: "3.7"
+            python: "3.8"
           ### PyQt 6.3 (Python 3.8)
           - testenv: py38-pyqt63
             os: ubuntu-20.04

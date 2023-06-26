@@ -20,7 +20,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.dunder
 
 persistent=n
-py-version=3.7
+py-version=3.8
 
 [MESSAGES CONTROL]
 enable=all
@@ -52,6 +52,7 @@ disable=locally-disabled,
         too-few-public-methods,
         import-outside-toplevel,
         consider-using-f-string,
+        consider-using-assignment-expr,
         logging-fstring-interpolation,
         raise-missing-from,
         consider-using-tuple,
