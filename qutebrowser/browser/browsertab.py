@@ -20,6 +20,7 @@
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
 import enum
+import pathlib
 import itertools
 import functools
 import dataclasses
@@ -273,7 +274,7 @@ class AbstractPrinting(QObject):
         """
         raise NotImplementedError
 
-    def to_pdf(self, filename: str) -> None:
+    def to_pdf(self, path: pathlib.Path) -> None:
         """Print the tab to a PDF with the given filename."""
         raise NotImplementedError
 

@@ -96,8 +96,8 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
         raise browsertab.WebTabError(
             "Print previews are unsupported with QtWebEngine")
 
-    def to_pdf(self, filename):
-        self._widget.page().printToPdf(filename)
+    def to_pdf(self, path):
+        self._widget.page().printToPdf(str(path))
 
     def to_printer(self, printer):
         if machinery.IS_QT5:

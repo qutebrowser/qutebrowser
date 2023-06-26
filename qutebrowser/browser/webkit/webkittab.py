@@ -92,12 +92,12 @@ class WebKitPrinting(browsertab.AbstractPrinting):
     def check_preview_support(self):
         pass
 
-    def to_pdf(self, filename):
+    def to_pdf(self, path):
         printer = QPrinter()
-        printer.setOutputFileName(filename)
+        printer.setOutputFileName(str(path))
         self._widget.print(printer)
         # Can't find out whether there was an error...
-        self.pdf_printing_finished.emit(filename, True)
+        self.pdf_printing_finished.emit(str(path), True)
 
     def to_printer(self, printer):
         self._widget.print(printer)
