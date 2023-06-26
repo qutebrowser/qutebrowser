@@ -15,7 +15,7 @@ importlib-metadata==6.7.0
 importlib-resources==5.12.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
-keyring==23.13.1
+keyring==24.2.0
 manhole==1.8.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
@@ -30,7 +30,7 @@ Pympler==1.0.1
 pyproject_hooks==1.0.0
 PyQt-builder==1.15.1
 python-dateutil==2.8.2
-readme-renderer==37.3
+readme-renderer==40.0
 requests==2.31.0
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
