@@ -37,7 +37,7 @@ import configparser
 from os import environ, path
 from sys import argv, exit
 
-from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+from PyQt6.QtWidgets import QApplication, QInputDialog, QLineEdit
 from requests import post
 from requests.auth import HTTPBasicAuth
 
@@ -50,7 +50,7 @@ def get_text(name, info):
             None,
             "add-nextcloud-cookbook userscript",
             "Please enter {}".format(info),
-            QLineEdit.Password,
+            QLineEdit.EchoMode.Password,
         )
     else:
         text, ok = QInputDialog.getText(
