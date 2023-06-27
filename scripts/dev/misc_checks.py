@@ -291,7 +291,6 @@ def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
     """Check for direct PyQt imports."""
     ignored = [
         pathlib.Path("qutebrowser", "qt"),
-        # FIXME:qt6 fix those too?
         pathlib.Path("misc", "userscripts"),
         pathlib.Path("scripts"),
     ]
