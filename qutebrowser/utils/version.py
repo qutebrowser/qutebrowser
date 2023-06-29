@@ -34,7 +34,7 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
+from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast, Any,
                     TYPE_CHECKING)
 
 from qutebrowser.qt import machinery
@@ -1037,9 +1037,8 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
                 vf = ctx.versionFunctions(vp)
             else:
                 # Qt 6
-                # FIXME:qt6 (lint)
                 from qutebrowser.qt.opengl import QOpenGLVersionFunctionsFactory
-                vf = QOpenGLVersionFunctionsFactory.get(vp, ctx)
+                vf: Any = QOpenGLVersionFunctionsFactory.get(vp, ctx)
         except ImportError as e:
             log.init.debug("Importing version functions failed: {}".format(e))
             return None
@@ -1050,10 +1049,8 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
             return None
 
         # FIXME:mypy PyQt6-stubs issue?
-        vendor = vf.glGetString(
-            vf.GL_VENDOR)  # type: ignore[attr-defined,unused-ignore]
-        version = vf.glGetString(
-            vf.GL_VERSION)  # type: ignore[attr-defined,unused-ignore]
+        vendor = vf.glGetString(vf.GL_VENDOR)
+        version = vf.glGetString(vf.GL_VERSION)
 
         return OpenGLInfo.parse(vendor=vendor, version=version)
     finally:
