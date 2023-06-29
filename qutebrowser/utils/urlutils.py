@@ -43,8 +43,11 @@ from qutebrowser.browser.network import pac
 
 
 if machinery.IS_QT6:
-    URL_FLAGS_T = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+    UrlFlagsType = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+
     class FormatOption:
+        """Simple wrapper around Qt enums to fix typing problems on Qt 5."""
+
         ENCODED = QUrl.ComponentFormattingOption.FullyEncoded
         ENCODE_UNICODE = QUrl.ComponentFormattingOption.EncodeUnicode
         DECODE_RESERVED = QUrl.ComponentFormattingOption.DecodeReserved
@@ -52,7 +55,7 @@ if machinery.IS_QT6:
         REMOVE_SCHEME = QUrl.UrlFormattingOption.RemoveScheme
         REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
 else:
-    URL_FLAGS_T = Union[
+    UrlFlagsType = Union[
         QUrl.FormattingOptions,
         QUrl.UrlFormattingOption,
         QUrl.ComponentFormattingOption,
@@ -64,7 +67,8 @@ else:
 
         Teach mypy that | works for QUrl.FormattingOptions.
         """
-        def __or__(self, f: URL_FLAGS_T) -> '_QtFormattingOptions':
+
+        def __or__(self, f: UrlFlagsType) -> '_QtFormattingOptions':
             return super() | f  # type: ignore[operator,return-value]
 
     class FormatOption:
@@ -73,6 +77,7 @@ else:
         Pretend that all ComponentFormattingOption values are also valid
         QUrl.FormattingOptions values, i.e. can be passed to QUrl.toString().
         """
+
         ENCODED = cast(
             _QtFormattingOptions, QUrl.ComponentFormattingOption.FullyEncoded)
         ENCODE_UNICODE = cast(
@@ -84,8 +89,6 @@ else:
             _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveScheme)
         REMOVE_PASSWORD = cast(
             _QtFormattingOptions, QUrl.UrlFormattingOption.RemovePassword)
-
-
 
 
 # URL schemes supported by QtWebEngine

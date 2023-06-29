@@ -215,7 +215,7 @@ class PACResolver:
         """
         qtutils.ensure_valid(query.url())
 
-        string_flags: urlutils.URL_FLAGS_T
+        string_flags: urlutils.UrlFlagsType
         if from_file:
             string_flags = QUrl.ComponentFormattingOption.PrettyDecoded
         else:

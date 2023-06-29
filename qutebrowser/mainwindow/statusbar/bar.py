@@ -23,7 +23,6 @@ import enum
 import dataclasses
 
 from qutebrowser.qt.core import pyqtSignal, pyqtProperty, pyqtSlot, Qt, QSize, QTimer
-from qutebrowser.qt.core import pyqtProperty
 from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab

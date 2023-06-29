@@ -30,6 +30,7 @@ from qutebrowser.utils import log, qtutils
 # FIXME:mypy PyQt6-stubs issue?
 _QUTE = QByteArray(b'qute')  # type: ignore[call-overload,unused-ignore]
 
+
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
     """Handle qute://* requests on QtWebEngine."""
