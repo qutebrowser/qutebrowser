@@ -106,6 +106,12 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
             self._widget.print(printer)
 
 
+if machinery.IS_QT5:
+    _FIND_FLAG_T = Union[QWebEnginePage.FindFlag, QWebEnginePage.FindFlags]
+else:
+    _FIND_FLAG_T = QWebEnginePage.FindFlag
+
+
 @dataclasses.dataclass
 class _FindFlags:
 
@@ -114,13 +120,11 @@ class _FindFlags:
 
     def to_qt(self):
         """Convert flags into Qt flags."""
-        # FIXME:mypy Those should be correct, reevaluate with PyQt6-stubs
-        flags = QWebEnginePage.FindFlag(0)
+        flags: _FIND_FLAG_T = QWebEnginePage.FindFlag(0)
         if self.case_sensitive:
-            flags |= (  # type: ignore[assignment]
-                QWebEnginePage.FindFlag.FindCaseSensitively)
+            flags |= QWebEnginePage.FindFlag.FindCaseSensitively
         if self.backward:
-            flags |= QWebEnginePage.FindFlag.FindBackward  # type: ignore[assignment]
+            flags |= QWebEnginePage.FindFlag.FindBackward
         return flags
 
     def __bool__(self):

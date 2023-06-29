@@ -1112,7 +1112,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         bits = qimage.constBits().asstring(size)
         # FIXME:mypy PyQt6-stubs issue
-        image_data.add(QByteArray(bits))  # type: ignore[call-overload]
+        image_data.add(QByteArray(bits))  # type: ignore[call-overload,unused-ignore]
 
         image_data.endStructure()
         return image_data

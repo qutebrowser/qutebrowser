@@ -1073,7 +1073,7 @@ class AbstractTab(QWidget):
         # FIXME:v4 ignore needed for QtWebKit
         self.data.splitter = miscwidgets.InspectorSplitter(
             win_id=self.win_id,
-            main_webview=widget,  # type: ignore[arg-type]
+            main_webview=widget,  # type: ignore[arg-type,unused-ignore]
         )
         self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
@@ -1182,7 +1182,7 @@ class AbstractTab(QWidget):
     def _on_load_finished(self, ok: bool) -> None:
         assert self._widget is not None
         # FIXME:mypy PyQt6-stubs issue?
-        if sip.isdeleted(self._widget):  # type: ignore[arg-type]
+        if sip.isdeleted(self._widget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
@@ -1318,7 +1318,7 @@ class AbstractTab(QWidget):
         else:
             qtutils.ensure_valid(rect)
             # FIXME:v4 ignore needed for QtWebKit
-            pic = self._widget.grab(rect)  # type: ignore[arg-type]
+            pic = self._widget.grab(rect)  # type: ignore[arg-type,unused-ignore]
 
         if pic.isNull():
             return None
@@ -1343,4 +1343,4 @@ class AbstractTab(QWidget):
     def is_deleted(self) -> bool:
         assert self._widget is not None
         # FIXME:mypy PyQt6-stubs issue?
-        return sip.isdeleted(self._widget)  # type: ignore[arg-type]
+        return sip.isdeleted(self._widget)

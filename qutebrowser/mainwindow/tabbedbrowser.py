@@ -221,7 +221,8 @@ class TabbedBrowser(QWidget):
         self._tab_insert_idx_right = -1
         self.is_shutting_down = False
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
-        self.widget.new_tab_requested.connect(self.tabopen)  # type: ignore[arg-type]
+        self.widget.new_tab_requested.connect(  # type: ignore[arg-type,unused-ignore]
+            self.tabopen)
         self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tab_bar().maybe_hide)
 

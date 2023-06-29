@@ -1045,13 +1045,15 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
             return None
 
         if vf is None:
-            log.init.debug(  # type: ignore[unreachable]
+            log.init.debug(  # type: ignore[unreachable,unused-ignore]
                 "Getting version functions failed!")
             return None
 
         # FIXME:mypy PyQt6-stubs issue?
-        vendor = vf.glGetString(vf.GL_VENDOR)  # type: ignore[attr-defined]
-        version = vf.glGetString(vf.GL_VERSION)  # type: ignore[attr-defined]
+        vendor = vf.glGetString(
+            vf.GL_VENDOR)  # type: ignore[attr-defined,unused-ignore]
+        version = vf.glGetString(
+            vf.GL_VERSION)  # type: ignore[attr-defined,unused-ignore]
 
         return OpenGLInfo.parse(vendor=vendor, version=version)
     finally:

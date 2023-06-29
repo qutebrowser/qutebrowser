@@ -227,7 +227,7 @@ def qflags_key(base: Type[sip.simplewrapper],
     for bit in bits:
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
-        enum_value = klass(bit)  # type: ignore[call-arg]
+        enum_value = klass(bit)  # type: ignore[call-arg,unused-ignore]
         names.append(qenum_key(base, enum_value, klass))
     return '|'.join(names)
 

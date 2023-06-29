@@ -42,6 +42,17 @@ from qutebrowser.browser.network import pac
 # https://github.com/qutebrowser/qutebrowser/issues/108
 
 
+if machinery.IS_QT6:
+    URL_FLAGS_T = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+else:
+    URL_FLAGS_T = Union[
+        QUrl.FormattingOptions,
+        QUrl.UrlFormattingOption,
+        QUrl.ComponentFormattingOption,
+        QUrl.ComponentFormattingOptions,
+    ]
+
+
 # URL schemes supported by QtWebEngine
 WEBENGINE_SCHEMES = [
     'about',
@@ -508,8 +519,8 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     # we use a NetworkManager from QtWebKit. However, QtWebKit is Qt 5 only.
     assert machinery.IS_QT6, machinery.INFO
 
-    suffix1 = url1.topLevelDomain()  # type: ignore[attr-defined]
-    suffix2 = url2.topLevelDomain()  # type: ignore[attr-defined]
+    suffix1 = url1.topLevelDomain()  # type: ignore[attr-defined,unused-ignore]
+    suffix2 = url2.topLevelDomain()  # type: ignore[attr-defined,unused-ignore]
     if not suffix1:
         return url1.host() == url2.host()
 

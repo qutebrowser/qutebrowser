@@ -81,7 +81,8 @@ class HTTPClient(QObject):
         request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader,
                           'application/x-www-form-urlencoded;charset=utf-8')
         # FIXME:mypy PyQt6-stubs issue
-        reply = self._nam.post(request, encoded_data)  # type: ignore[call-overload]
+        reply = self._nam.post(  # type: ignore[call-overload,unused-ignore]
+            request, encoded_data)
         self._handle_reply(reply)
 
     def get(self, url):

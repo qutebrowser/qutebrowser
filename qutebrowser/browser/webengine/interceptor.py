@@ -36,8 +36,8 @@ class WebEngineRequest(interceptors.Request):
 
     _WHITELISTED_REQUEST_METHODS = {
         # FIXME:mypy PyQt6-stubs issue?
-        QByteArray(b'GET'),  # type: ignore[call-overload]
-        QByteArray(b'HEAD'),  # type: ignore[call-overload]
+        QByteArray(b'GET'),  # type: ignore[call-overload,unused-ignore]
+        QByteArray(b'HEAD'),  # type: ignore[call-overload,unused-ignore]
     }
 
     def __init__(self, *args, webengine_info, **kwargs):

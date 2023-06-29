@@ -459,7 +459,8 @@ class QtValueError(ValueError):
 if machinery.IS_QT6:
     _ProcessEventFlagType = QEventLoop.ProcessEventsFlag
 else:
-    _ProcessEventFlagType = QEventLoop.ProcessEventsFlags
+    _ProcessEventFlagType = Union[
+        QEventLoop.ProcessEventsFlag, QEventLoop.ProcessEventsFlags]
 
 
 class EventLoop(QEventLoop):
@@ -474,15 +475,15 @@ class EventLoop(QEventLoop):
         self._executing = False
 
     def exec(
-            self,
-            flags: _ProcessEventFlagType = (
-                QEventLoop.ProcessEventsFlag.AllEvents  # type: ignore[assignment]
-            ),
+        self,
+        flags: _ProcessEventFlagType = QEventLoop.ProcessEventsFlag.AllEvents,
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
+        if machinery.IS_QT5:
+            flags = cast(QEventLoop.ProcessEventsFlags, flags)
         status = super().exec(flags)
         self._executing = False
         return status
