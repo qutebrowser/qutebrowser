@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import (
-    qtutils, log, utils, debug, message, objreg, resources,
+    qtutils, log, utils, debug, message, objreg, resources, urlutils
 )
 from qutebrowser.qt import sip
 
@@ -1179,9 +1179,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         if self._capabilities.kde_origin_name or not is_useful_origin:
             prefix = None
         elif self._capabilities.body_markup and self._capabilities.body_hyperlinks:
-            href = html.escape(
-                origin_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
-            )
+            href = html.escape(origin_url.toString(urlutils.FormatOption.ENCODED))
             text = html.escape(urlstr, quote=False)
             prefix = f'<a href="{href}">{text}</a>'
         elif self._capabilities.body_markup:

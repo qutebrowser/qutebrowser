@@ -26,7 +26,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union, Iterable
+from typing import Optional, Tuple, Union, Iterable, cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QUrl
@@ -44,6 +44,13 @@ from qutebrowser.browser.network import pac
 
 if machinery.IS_QT6:
     URL_FLAGS_T = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+    class FormatOption:
+        ENCODED = QUrl.ComponentFormattingOption.FullyEncoded
+        ENCODE_UNICODE = QUrl.ComponentFormattingOption.EncodeUnicode
+        DECODE_RESERVED = QUrl.ComponentFormattingOption.DecodeReserved
+
+        REMOVE_SCHEME = QUrl.UrlFormattingOption.RemoveScheme
+        REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
 else:
     URL_FLAGS_T = Union[
         QUrl.FormattingOptions,
@@ -51,6 +58,34 @@ else:
         QUrl.ComponentFormattingOption,
         QUrl.ComponentFormattingOptions,
     ]
+
+    class _QtFormattingOptions(QUrl.FormattingOptions):
+        """WORKAROUND for invalid stubs.
+
+        Teach mypy that | works for QUrl.FormattingOptions.
+        """
+        def __or__(self, f: URL_FLAGS_T) -> '_QtFormattingOptions':
+            return super() | f  # type: ignore[operator,return-value]
+
+    class FormatOption:
+        """WORKAROUND for invalid stubs.
+
+        Pretend that all ComponentFormattingOption values are also valid
+        QUrl.FormattingOptions values, i.e. can be passed to QUrl.toString().
+        """
+        ENCODED = cast(
+            _QtFormattingOptions, QUrl.ComponentFormattingOption.FullyEncoded)
+        ENCODE_UNICODE = cast(
+            _QtFormattingOptions, QUrl.ComponentFormattingOption.EncodeUnicode)
+        DECODE_RESERVED = cast(
+            _QtFormattingOptions, QUrl.ComponentFormattingOption.DecodeReserved)
+
+        REMOVE_SCHEME = cast(
+            _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveScheme)
+        REMOVE_PASSWORD = cast(
+            _QtFormattingOptions, QUrl.UrlFormattingOption.RemovePassword)
+
+
 
 
 # URL schemes supported by QtWebEngine
@@ -548,7 +583,7 @@ def file_url(path: str) -> str:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
+    return url.toString(FormatOption.ENCODED)
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:
@@ -639,7 +674,7 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
+    urlstr = url.toString(FormatOption.ENCODED)
     urlstr = urllib.parse.unquote(urlstr)
 
     code = urlstr[len('javascript:'):]

@@ -718,9 +718,10 @@ class CommandDispatcher:
         assert what in ['url', 'pretty-url'], what
 
         if what == 'pretty-url':
-            flags = QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.DecodeReserved
+            flags = urlutils.FormatOption.DECODE_RESERVED
         else:
-            flags = QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded
+            flags = urlutils.FormatOption.ENCODED
+        flags |= urlutils.FormatOption.REMOVE_PASSWORD
 
         url = QUrl(self._current_url())
         url_query = QUrlQuery()

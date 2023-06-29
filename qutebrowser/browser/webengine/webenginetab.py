@@ -39,7 +39,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webengineinspector)
 
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               resources, message, jinja, debug, version)
+                               resources, message, jinja, debug, version, urlutils)
 from qutebrowser.qt import sip, machinery
 from qutebrowser.misc import objects, miscwidgets
 
@@ -1437,7 +1437,7 @@ class WebEngineTab(browsertab.AbstractTab):
         title = self.title()
         title_url = QUrl(url)
         title_url.setScheme('')
-        title_url_str = title_url.toDisplayString(QUrl.UrlFormattingOption.RemoveScheme)
+        title_url_str = title_url.toDisplayString(urlutils.FormatOption.REMOVE_SCHEME)
         if title == title_url_str.strip('/'):
             title = ""
 

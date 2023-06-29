@@ -352,7 +352,8 @@ def _unset_modifier_bits(
     """
     if machinery.IS_QT5:
         return cast(_ModifierType, modifiers & ~mask)
-    return Qt.KeyboardModifier(modifiers.value & ~mask.value)
+    else:
+        return Qt.KeyboardModifier(modifiers.value & ~mask.value)
 
 
 @dataclasses.dataclass(frozen=True, order=True)

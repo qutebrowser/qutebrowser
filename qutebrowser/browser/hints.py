@@ -38,7 +38,7 @@ from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
 from qutebrowser.browser import webelem, history
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
+from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils, urlutils
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -252,9 +252,9 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        flags = QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword
+        flags = urlutils.FormatOption.ENCODED | urlutils.FormatOption.REMOVE_PASSWORD
         if url.scheme() == 'mailto':
-            flags |= QUrl.UrlFormattingOption.RemoveScheme
+            flags |= urlutils.FormatOption.REMOVE_SCHEME
         urlstr = url.toString(flags)
 
         new_content = urlstr
@@ -276,15 +276,14 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
+        urlstr = url.toString(urlutils.FormatOption.ENCODED)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        flags = QUrl.ComponentFormattingOption.FullyEncoded
-        urlstr = url.toDisplayString(flags)
+        urlstr = url.toDisplayString(urlutils.FormatOption.ENCODED)
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
@@ -325,7 +324,7 @@ class HintActions:
 
         cmd = context.args[0]
         args = context.args[1:]
-        flags = QUrl.ComponentFormattingOption.FullyEncoded
+        flags = urlutils.FormatOption.ENCODED
 
         env = {
             'QUTE_MODE': 'hints',
