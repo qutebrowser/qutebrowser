@@ -1044,8 +1044,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
             return None
 
         if vf is None:
-            log.init.debug(  # type: ignore[unreachable,unused-ignore]
-                "Getting version functions failed!")
+            log.init.debug("Getting version functions failed!")
             return None
 
         # FIXME:mypy PyQt6-stubs issue?

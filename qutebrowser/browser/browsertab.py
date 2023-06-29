@@ -1339,6 +1339,7 @@ class AbstractTab(QWidget):
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def is_deleted(self) -> bool:
+        """Check if the tab has been deleted."""
         assert self._widget is not None
         # FIXME:v4 cast needed for QtWebKit
         if machinery.IS_QT6:

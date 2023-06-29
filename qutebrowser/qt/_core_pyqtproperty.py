@@ -1,33 +1,38 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-"""
-# FIXME:mypy PyQt6-stubs issue
-# WORKAROUND for missing pyqtProperty typing, ported from PyQt5-stubs:
-# https://github.com/python-qt-tools/PyQt5-stubs/blob/5.15.6.0/PyQt5-stubs/QtCore.pyi#L70-L111
+"""WORKAROUND for missing pyqtProperty typing, ported from PyQt5-stubs:
+
+FIXME:mypy PyQt6-stubs issue
+https://github.com/python-qt-tools/PyQt5-stubs/blob/5.15.6.0/PyQt5-stubs/QtCore.pyi#L70-L111
 """
 
 # flake8: noqa
-# pylint: disable=invalid-name,undefined-variable,too-many-arguments,redefined-builtin,unused-argument
+# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument,import-error
 
 import typing
 from PyQt6.QtCore import QObjectT, pyqtSignal
 
 if typing.TYPE_CHECKING:
+    TPropertyTypeVal = typing.TypeVar("TPropertyTypeVal")
 
-    TPropertyTypeVal = typing.TypeVar('TPropertyTypeVal')
-
-    TPropGetter = typing.TypeVar('TPropGetter', bound=typing.Callable[[QObjectT], TPropertyTypeVal])
-    TPropSetter = typing.TypeVar('TPropSetter', bound=typing.Callable[[QObjectT, TPropertyTypeVal], None])
-    TPropDeleter = typing.TypeVar('TPropDeleter', bound=typing.Callable[[QObjectT], None])
-    TPropResetter = typing.TypeVar('TPropResetter', bound=typing.Callable[[QObjectT], None])
+    TPropGetter = typing.TypeVar(
+        "TPropGetter", bound=typing.Callable[[QObjectT], TPropertyTypeVal]
+    )
+    TPropSetter = typing.TypeVar(
+        "TPropSetter", bound=typing.Callable[[QObjectT, TPropertyTypeVal], None]
+    )
+    TPropDeleter = typing.TypeVar(
+        "TPropDeleter", bound=typing.Callable[[QObjectT], None]
+    )
+    TPropResetter = typing.TypeVar(
+        "TPropResetter", bound=typing.Callable[[QObjectT], None]
+    )
 
     class pyqtProperty:
         def __init__(
             self,
             type: typing.Union[type, str],
-            fget: typing.Optional[
-                typing.Callable[[QObjectT], TPropertyTypeVal]
-            ] = None,
+            fget: typing.Optional[typing.Callable[[QObjectT], TPropertyTypeVal]] = None,
             fset: typing.Optional[
                 typing.Callable[[QObjectT, TPropertyTypeVal], None]
             ] = None,

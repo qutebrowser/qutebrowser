@@ -22,7 +22,7 @@
 
 """The main browser widgets."""
 
-from qutebrowser.qt.core import pyqtSignal, Qt, QUrl
+from qutebrowser.qt.core import pyqtSignal, Qt
 from qutebrowser.qt.webkit import QWebSettings
 from qutebrowser.qt.webkitwidgets import QWebView, QWebPage
 

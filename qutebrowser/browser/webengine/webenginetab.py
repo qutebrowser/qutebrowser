@@ -107,9 +107,9 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
 
 if machinery.IS_QT5:
-    _FIND_FLAG_T = Union[QWebEnginePage.FindFlag, QWebEnginePage.FindFlags]
+    _FindFlagType = Union[QWebEnginePage.FindFlag, QWebEnginePage.FindFlags]
 else:
-    _FIND_FLAG_T = QWebEnginePage.FindFlag
+    _FindFlagType = QWebEnginePage.FindFlag
 
 
 @dataclasses.dataclass
@@ -120,7 +120,7 @@ class _FindFlags:
 
     def to_qt(self):
         """Convert flags into Qt flags."""
-        flags: _FIND_FLAG_T = QWebEnginePage.FindFlag(0)
+        flags: _FindFlagType = QWebEnginePage.FindFlag(0)
         if self.case_sensitive:
             flags |= QWebEnginePage.FindFlag.FindCaseSensitively
         if self.backward:
