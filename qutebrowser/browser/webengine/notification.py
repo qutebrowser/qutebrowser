@@ -61,8 +61,7 @@ from qutebrowser.qt.widgets import QSystemTrayIcon
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
     # on installs that don't have these
-    from qutebrowser.qt.webenginecore import QWebEngineNotification
-    from qutebrowser.qt.webenginewidgets import QWebEngineProfile
+    from qutebrowser.qt.webenginecore import QWebEngineNotification, QWebEngineProfile
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects

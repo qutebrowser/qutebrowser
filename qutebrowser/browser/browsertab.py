@@ -37,8 +37,9 @@ from qutebrowser.qt.network import QNetworkAccessManager
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory, QWebHistoryItem
     from qutebrowser.qt.webkitwidgets import QWebPage, QWebView
-    from qutebrowser.qt.webenginewidgets import (
-        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage, QWebEngineView)
+    from qutebrowser.qt.webenginecore import (
+        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
+    from qutebrowser.qt.webenginewidgets import QWebEngineView
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, websettings

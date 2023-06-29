@@ -47,7 +47,7 @@ except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory
-    from qutebrowser.qt.webenginewidgets import QWebEngineHistory
+    from qutebrowser.qt.webenginecore import QWebEngineHistory
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
