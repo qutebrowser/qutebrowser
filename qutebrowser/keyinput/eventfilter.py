@@ -93,7 +93,7 @@ class EventFilter(QObject):
             except AttributeError:  # might not be fully initialized yet
                 source = type(obj).__name__
 
-            evtype = debug.qenum_key(QEvent.Type, event.type())
+            evtype = debug.qenum_key(QEvent, cast(QEvent.Type, event.type()))
             log.misc.debug(f"{source} got event: {evtype}")
 
         if not isinstance(obj, QWindow):

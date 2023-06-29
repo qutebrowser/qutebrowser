@@ -635,7 +635,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
     def _on_error(self, error: QProcess.ProcessError) -> None:
         if error == QProcess.ProcessError.Crashed:
             return
-        name = debug.qenum_key(QProcess.ProcessError, error)
+        name = debug.qenum_key(QProcess, error)
         self.error.emit(f'herbe process error: {name}')
 
     @pyqtSlot(int)
@@ -917,8 +917,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         typ = msg.type()
         if typ != expected_type:
-            type_str = debug.qenum_key(QDBusMessage.MessageType, typ)
-            expected_type_str = debug.qenum_key(QDBusMessage.MessageType, expected_type)
+            type_str = debug.qenum_key(QDBusMessage, typ)
+            expected_type_str = debug.qenum_key(QDBusMessage, expected_type)
             raise Error(
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {msg.arguments()})")

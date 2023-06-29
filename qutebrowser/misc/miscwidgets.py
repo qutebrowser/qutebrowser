@@ -464,8 +464,8 @@ class KeyTesterWidget(QWidget):
         lines = [
             str(keyutils.KeyInfo.from_event(e)),
             '',
-            f"key: {debug.qenum_key(Qt.Key, e.key(), klass=Qt.Key)}",
-            f"modifiers: {debug.qflags_key(Qt.KeyboardModifier, e.modifiers())}",
+            f"key: {debug.qenum_key(Qt, e.key(), klass=Qt.Key)}",
+            f"modifiers: {debug.qflags_key(Qt, e.modifiers())}",
             'text: {!r}'.format(e.text()),
         ]
         self._label.setText('\n'.join(lines))
