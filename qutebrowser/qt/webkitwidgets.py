@@ -13,6 +13,8 @@ Any API exported from this module is based on the QtWebKit 5.212 API:
 https://qtwebkit.github.io/doc/qtwebkit/qtwebkitwidgets-index.html
 """
 
+import typing
+
 from qutebrowser.qt import machinery
 
 machinery.init_implicit()
@@ -20,7 +22,12 @@ machinery.init_implicit()
 
 if machinery.USE_PYSIDE6:
     raise machinery.Unavailable()
-elif machinery.USE_PYQT5:
+elif machinery.USE_PYQT5 or typing.TYPE_CHECKING:
+    # If we use mypy (even on Qt 6), we pretend to have WebKit available.
+    # This avoids central API (like BrowserTab) being Any because the webkit part of
+    # the unions there is missing.
+    # This causes various issues inside browser/webkit/, but we ignore those in
+    # .mypy.ini because we don't really care much about QtWebKit anymore.
     from PyQt5.QtWebKitWidgets import *
 elif machinery.USE_PYQT6:
     raise machinery.Unavailable()
