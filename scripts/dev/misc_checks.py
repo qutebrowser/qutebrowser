@@ -268,6 +268,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         pathlib.Path('scripts', 'dev', 'misc_checks.py'),
         pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
+        pathlib.Path('qutebrowser', 'qt', '_core_pyqtproperty.py'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]

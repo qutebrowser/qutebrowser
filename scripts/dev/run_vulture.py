@@ -192,7 +192,10 @@ def run(files):
         whitelist_file.close()
 
         vult = vulture.Vulture(verbose=False)
-        vult.scavenge(files + [whitelist_file.name])
+        vult.scavenge(
+            files + [whitelist_file.name],
+            exclude="qutebrowser/qt/_core_pyqtproperty.py",
+        )
 
         os.remove(whitelist_file.name)
 
