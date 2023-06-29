@@ -19,7 +19,7 @@
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
-from qutebrowser.qt.core import QBuffer, QIODevice, QUrl
+from qutebrowser.qt.core import QBuffer, QIODevice, QUrl, QByteArray
 from qutebrowser.qt.webenginecore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob,
                                    QWebEngineUrlScheme)
@@ -27,6 +27,8 @@ from qutebrowser.qt.webenginecore import (QWebEngineUrlSchemeHandler,
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
 
+# FIXME:mypy PyQt6-stubs issue?
+_QUTE = QByteArray(b'qute')  # type: ignore[call-overload]
 
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
@@ -35,9 +37,9 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
         if QWebEngineUrlScheme is not None:
-            assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
+            assert QWebEngineUrlScheme.schemeByName(_QUTE) is not None
 
-        profile.installUrlSchemeHandler(b'qute', self)
+        profile.installUrlSchemeHandler(_QUTE, self)
 
     def _check_initiator(self, job):
         """Check whether the initiator of the job should be allowed.
@@ -135,8 +137,8 @@ def init():
     classes.
     """
     if QWebEngineUrlScheme is not None:
-        assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
-        scheme = QWebEngineUrlScheme(b'qute')
+        assert not QWebEngineUrlScheme.schemeByName(_QUTE).name()
+        scheme = QWebEngineUrlScheme(_QUTE)
         scheme.setFlags(
             QWebEngineUrlScheme.Flag.LocalScheme |
             QWebEngineUrlScheme.Flag.LocalAccessAllowed)

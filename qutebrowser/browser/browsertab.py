@@ -1312,12 +1312,13 @@ class AbstractTab(QWidget):
             pic = self._widget.grab()
         else:
             qtutils.ensure_valid(rect)
-            pic = self._widget.grab(rect)
+            # FIXME:v4 ignore needed for QtWebKit
+            pic = self._widget.grab(rect)  # type: ignore[arg-type]
 
         if pic.isNull():
             return None
 
-        return pic
+        return cast(QPixmap, pic)  # FIXME:v4 cast needed for QtWebKit
 
     def __repr__(self) -> str:
         try:

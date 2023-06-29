@@ -101,7 +101,7 @@ class EventFilter(QObject):
             # we're not interested in it anymore.
             return False
 
-        typ = event.type()
+        typ = cast(QEvent.Type, event.type())
 
         if typ not in self._handlers:
             return False

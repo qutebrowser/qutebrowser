@@ -22,7 +22,8 @@
 import enum
 import dataclasses
 
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt, QSize, QTimer
+from qutebrowser.qt.core import pyqtProperty  # type: ignore[attr-defined]
 from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
