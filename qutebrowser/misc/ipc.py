@@ -276,12 +276,15 @@ class IPCServer(QObject):
 
         socket.errorOccurred.connect(self.on_error)
 
-        if socket.error() not in [
+        # FIXME:v4 Ignore needed due to overloaded signal/method in Qt 5
+        socket_error = socket.error()  # type: ignore[operator,unused-ignore]
+        if socket_error not in [
             QLocalSocket.LocalSocketError.UnknownSocketError,
             QLocalSocket.LocalSocketError.PeerClosedError
         ]:
             log.ipc.debug("We got an error immediately.")
-            self.on_error(socket.error())
+            self.on_error(socket_error)
+
         socket.disconnected.connect(self.on_disconnected)
         if socket.state() == QLocalSocket.LocalSocketState.UnconnectedState:
             log.ipc.debug("Socket was disconnected immediately.")

@@ -19,8 +19,9 @@
 
 """The commandline in the statusbar."""
 
-from typing import Optional
+from typing import Optional, cast
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt, QSize
 from qutebrowser.qt.gui import QKeyEvent
 from qutebrowser.qt.widgets import QSizePolicy, QWidget
@@ -269,6 +270,11 @@ class Command(misc.CommandLineEdit):
         Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
         without command_accept to be called.
         """
+        if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
+            shift = cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.ShiftModifier)
+        else:
+            shift = Qt.KeyboardModifier.ShiftModifier
+
         text = self.text()
         if text in modeparsers.STARTCHARS and e.key() == Qt.Key.Key_Backspace:
             e.accept()
@@ -276,7 +282,7 @@ class Command(misc.CommandLineEdit):
                           'prefix deleted')
         elif e.key() == Qt.Key.Key_Return:
             e.ignore()
-        elif e.key() == Qt.Key.Key_Insert and e.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+        elif e.key() == Qt.Key.Key_Insert and e.modifiers() == shift:
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:

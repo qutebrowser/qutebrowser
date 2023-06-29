@@ -292,10 +292,18 @@ class ModeManager(QObject):
                             "{}".format(curmode, utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
-        has_modifier = event.modifiers() not in [
-            Qt.KeyboardModifier.NoModifier,
-            Qt.KeyboardModifier.ShiftModifier,
-        ]
+        if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
+            ignored_modifiers = [
+                cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.NoModifier),
+                cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.ShiftModifier),
+            ]
+        else:
+            ignored_modifiers = [
+                Qt.KeyboardModifier.NoModifier,
+                Qt.KeyboardModifier.ShiftModifier,
+            ]
+        has_modifier = event.modifiers() not in ignored_modifiers
+
         is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
