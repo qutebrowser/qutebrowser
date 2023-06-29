@@ -21,6 +21,7 @@
 
 from typing import cast
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
 from qutebrowser.qt.gui import QKeyEvent, QWindow
 
@@ -87,29 +88,31 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
+        ev_type = event.type()
+        if machinery.IS_QT6:
+            ev_type = cast(QEvent.Type, ev_type)
+
         if self._log_qt_events:
             try:
                 source = repr(obj)
             except AttributeError:  # might not be fully initialized yet
                 source = type(obj).__name__
 
-            evtype = debug.qenum_key(QEvent, cast(QEvent.Type, event.type()))
-            log.misc.debug(f"{source} got event: {evtype}")
+            ev_type_str = debug.qenum_key(QEvent, ev_type)
+            log.misc.debug(f"{source} got event: {ev_type_str}")
 
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
 
-        typ = cast(QEvent.Type, event.type())
-
-        if typ not in self._handlers:
+        if ev_type not in self._handlers:
             return False
 
         if not self._activated:
             return False
 
-        handler = self._handlers[typ]
+        handler = self._handlers[ev_type]
         try:
             return handler(cast(QKeyEvent, event))
         except:

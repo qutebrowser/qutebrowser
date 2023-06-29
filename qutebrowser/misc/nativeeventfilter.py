@@ -27,7 +27,7 @@ import enum
 import ctypes
 import ctypes.util
 
-from qutebrowser.qt import sip
+from qutebrowser.qt import sip, machinery
 from qutebrowser.qt.core import QAbstractNativeEventFilter, QByteArray, qVersion
 
 from qutebrowser.misc import objects
@@ -105,6 +105,12 @@ class xcb_query_extension_reply_t(ctypes.Structure):  # noqa: N801
 # pylint: enable=invalid-name
 
 
+if machinery.IS_QT6:
+    _POINTER_RET_T = sip.voidptr
+else:
+    _POINTER_RET_T = int
+
+
 class NativeEventFilter(QAbstractNativeEventFilter):
 
     """Event filter for XCB messages to work around Qt 6.5.1 crash."""
@@ -113,8 +119,8 @@ class NativeEventFilter(QAbstractNativeEventFilter):
     #
     # Tuple because PyQt uses the second value as the *result out-pointer, which
     # according to the Qt documentation is only used on Windows.
-    _PASS_EVENT_RET = (False, cast(sip.voidptr, 0))
-    _FILTER_EVENT_RET = (True, cast(sip.voidptr, 0))
+    _PASS_EVENT_RET = (False, cast(_POINTER_RET_T, 0))
+    _FILTER_EVENT_RET = (True, cast(_POINTER_RET_T, 0))
 
     def __init__(self) -> None:
         super().__init__()
@@ -147,7 +153,7 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
     def nativeEventFilter(
         self, evtype: Union[bytes, QByteArray], message: sip.voidptr
-    ) -> Tuple[bool, sip.voidptr]:
+    ) -> Tuple[bool, _POINTER_RET_T]:
         """Handle XCB events."""
         # We're only installed when the platform plugin is xcb
         assert evtype == b"xcb_generic_event_t", evtype

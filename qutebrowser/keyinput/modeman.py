@@ -23,6 +23,7 @@ import functools
 import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
@@ -467,7 +468,11 @@ class ModeManager(QObject):
             QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
-        handler = handlers[cast(QEvent.Type, event.type())]
+        ev_type = event.type()
+        if machinery.IS_QT6:
+            ev_type = cast(QEvent.Type, ev_type)
+
+        handler = handlers[ev_type]
         return handler(cast(QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')

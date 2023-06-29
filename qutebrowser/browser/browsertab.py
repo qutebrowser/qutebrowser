@@ -27,6 +27,7 @@ import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
                     Sequence, Set, Type, Union, Tuple)
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect)
 from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
@@ -1322,7 +1323,11 @@ class AbstractTab(QWidget):
         if pic.isNull():
             return None
 
-        return cast(QPixmap, pic)  # FIXME:v4 cast needed for QtWebKit
+        if machinery.IS_QT6:
+            # FIXME:v4 cast needed for QtWebKit
+            pic = cast(QPixmap, pic)
+
+        return pic
 
     def __repr__(self) -> str:
         try:
