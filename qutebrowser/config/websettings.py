@@ -261,7 +261,7 @@ def clear_private_data() -> None:
     elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import cookies
         assert cookies.ram_cookie_jar is not None
-        cookies.ram_cookie_jar.setAllCookies([])
+        cookies.ram_cookie_jar.setAllCookies([])  # type: ignore[unreachable]
     else:
         raise utils.Unreachable(objects.backend)
 
