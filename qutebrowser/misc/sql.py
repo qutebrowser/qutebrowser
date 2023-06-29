@@ -349,7 +349,7 @@ class Query:
             msg = f'Failed to {step} query "{query}": "{error.text()}"'
             raise_sqlite_error(msg, error)
 
-    def _validate_bound_values(self):
+    def _validate_bound_values(self) -> None:
         """Make sure all placeholders are bound."""
         qt_bound_values = self.query.boundValues()
         if machinery.IS_QT5:
