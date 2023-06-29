@@ -3,6 +3,7 @@ lxml  # For HTML reports
 diff-cover
 
 PyQt5-stubs
+git+https://github.com/python-qt-tools/PyQt6-stubs.git
 types-PyYAML
 
 # So stubs are available even on newer Python versions
