@@ -555,7 +555,7 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     #
     # There are no other callers of same_domain, and url2 will only be ever valid when
     # we use a NetworkManager from QtWebKit. However, QtWebKit is Qt 5 only.
-    assert machinery.IS_QT6, machinery.INFO
+    assert machinery.IS_QT5, machinery.INFO
 
     suffix1 = url1.topLevelDomain()  # type: ignore[attr-defined,unused-ignore]
     suffix2 = url2.topLevelDomain()  # type: ignore[attr-defined,unused-ignore]
