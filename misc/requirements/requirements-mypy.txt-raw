@@ -5,6 +5,8 @@ diff-cover
 PyQt5-stubs
 git+https://github.com/python-qt-tools/PyQt6-stubs.git
 types-PyYAML
+types-colorama
+types-Pygments
 
 # So stubs are available even on newer Python versions
 importlib_resources

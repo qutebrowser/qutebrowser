@@ -33,14 +33,14 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union)
+                    Optional, Set, Tuple, Union, TextIO, cast)
 
 from qutebrowser.qt import core as qtcore
 # Optional imports
 try:
     import colorama
 except ImportError:
-    colorama = None
+    colorama = None  # type: ignore[assignment]
 
 if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
@@ -279,7 +279,7 @@ def _init_handlers(
     else:
         strip = False if force_color else None
         if use_colorama:
-            stream = colorama.AnsiToWin32(sys.stderr, strip=strip)
+            stream = cast(TextIO, colorama.AnsiToWin32(sys.stderr, strip=strip))
         else:
             stream = sys.stderr
         console_handler = logging.StreamHandler(stream)
