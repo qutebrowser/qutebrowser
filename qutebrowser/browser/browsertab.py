@@ -1181,8 +1181,7 @@ class AbstractTab(QWidget):
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         assert self._widget is not None
-        # FIXME:mypy PyQt6-stubs issue?
-        if sip.isdeleted(self._widget):
+        if self.is_deleted():
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
@@ -1342,5 +1341,9 @@ class AbstractTab(QWidget):
 
     def is_deleted(self) -> bool:
         assert self._widget is not None
-        # FIXME:mypy PyQt6-stubs issue?
-        return sip.isdeleted(self._widget)
+        # FIXME:v4 cast needed for QtWebKit
+        if machinery.IS_QT6:
+            widget = cast(QWidget, self._widget)
+        else:
+            widget = self._widget
+        return sip.isdeleted(widget)
