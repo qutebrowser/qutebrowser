@@ -1069,8 +1069,11 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: Union["QWebView", "QWebEngineView"]) -> None:
         # pylint: disable=protected-access
         self._widget = widget
+        # FIXME:v4 ignore needed for QtWebKit
         self.data.splitter = miscwidgets.InspectorSplitter(
-            win_id=self.win_id, main_webview=widget)
+            win_id=self.win_id,
+            main_webview=widget,  # type: ignore[arg-type]
+        )
         self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()
@@ -1177,7 +1180,8 @@ class AbstractTab(QWidget):
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         assert self._widget is not None
-        if sip.isdeleted(self._widget):
+        # FIXME:mypy PyQt6-stubs issue?
+        if sip.isdeleted(self._widget):  # type: ignore[arg-type]
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
@@ -1333,4 +1337,5 @@ class AbstractTab(QWidget):
 
     def is_deleted(self) -> bool:
         assert self._widget is not None
-        return sip.isdeleted(self._widget)
+        # FIXME:mypy PyQt6-stubs issue?
+        return sip.isdeleted(self._widget)  # type: ignore[arg-type]
