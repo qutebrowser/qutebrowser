@@ -548,7 +548,7 @@ def file_url(path: str) -> str:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+    return url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:
@@ -639,7 +639,7 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
     urlstr = urllib.parse.unquote(urlstr)
 
     code = urlstr[len('javascript:'):]

@@ -295,7 +295,7 @@ class ModeManager(QObject):
         has_modifier = event.modifiers() not in [
             Qt.KeyboardModifier.NoModifier,
             Qt.KeyboardModifier.ShiftModifier,
-        ]  # type: ignore[comparison-overlap]
+        ]
         is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']

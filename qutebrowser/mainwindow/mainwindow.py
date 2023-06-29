@@ -580,7 +580,7 @@ class MainWindow(QWidget):
         refresh_window = self.isVisible()
         if hidden:
             modifiers = Qt.WindowType.CustomizeWindowHint | Qt.WindowType.NoDropShadowWindowHint
-            window_flags |= modifiers  # type: ignore[assignment]
+            window_flags |= modifiers
         self.setWindowFlags(window_flags)
 
         if utils.is_mac and hidden and not qtutils.version_check('6.3', compiled=False):

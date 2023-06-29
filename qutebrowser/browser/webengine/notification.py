@@ -1180,7 +1180,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             prefix = None
         elif self._capabilities.body_markup and self._capabilities.body_hyperlinks:
             href = html.escape(
-                origin_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+                origin_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
             )
             text = html.escape(urlstr, quote=False)
             prefix = f'<a href="{href}">{text}</a>'

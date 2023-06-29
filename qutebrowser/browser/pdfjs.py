@@ -95,8 +95,7 @@ def _generate_pdfjs_script(filename):
     url_query.addQueryItem('filename', filename)
     url.setQuery(url_query)
 
-    js_url = javascript.to_js(
-        url.toString(QUrl.ComponentFormattingOption.FullyEncoded))  # type: ignore[arg-type]
+    js_url = javascript.to_js(url.toString(QUrl.ComponentFormattingOption.FullyEncoded))
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
@@ -245,7 +244,7 @@ def get_main_url(filename: str, original_url: QUrl) -> QUrl:
     query = QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
-    urlstr = original_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = original_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
     query.addQueryItem('source', urlstr)
     url.setQuery(query)
     return url

@@ -254,7 +254,7 @@ class HintActions:
 
         flags = QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword
         if url.scheme() == 'mailto':
-            flags |= QUrl.UrlFormattingOption.RemoveScheme  # type: ignore[operator]
+            flags |= QUrl.UrlFormattingOption.RemoveScheme
         urlstr = url.toString(flags)
 
         new_content = urlstr
@@ -276,7 +276,7 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
@@ -284,7 +284,7 @@ class HintActions:
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
         flags = QUrl.ComponentFormattingOption.FullyEncoded
-        urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
+        urlstr = url.toDisplayString(flags)
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
@@ -331,13 +331,12 @@ class HintActions:
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
-            'QUTE_CURRENT_URL':
-                context.baseurl.toString(flags),  # type: ignore[arg-type]
+            'QUTE_CURRENT_URL': context.baseurl.toString(flags),
         }
 
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
+            env['QUTE_URL'] = url.toString(flags)
 
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,

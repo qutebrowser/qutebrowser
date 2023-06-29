@@ -114,7 +114,7 @@ class Environment(jinja2.Environment):
         url = QUrl('qute://resource')
         url.setPath('/' + path)
         urlutils.ensure_valid(url)
-        urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         return urlstr
 
     def _data_url(self, path: str) -> str:

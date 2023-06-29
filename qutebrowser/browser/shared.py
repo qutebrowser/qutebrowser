@@ -229,9 +229,7 @@ def handle_certificate_error(
     # scheme might not match.
     is_resource = (
         first_party_url.isValid() and
-        not request_url.matches(
-            first_party_url,
-            QUrl.UrlFormattingOption.RemoveScheme))  # type: ignore[arg-type]
+        not request_url.matches(first_party_url, QUrl.UrlFormattingOption.RemoveScheme))
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -261,7 +259,7 @@ def handle_certificate_error(
             error=error,
         )
         urlstr = request_url.toString(
-            QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+            QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
         title = "Certificate error"
 
         try:
