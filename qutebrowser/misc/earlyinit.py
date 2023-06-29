@@ -286,12 +286,9 @@ def configure_pyqt():
     pyqtRemoveInputHook()
 
     from qutebrowser.qt import sip
-    try:
-        sip.enableoverflowchecking(True)
-    except AttributeError:
+    if machinery.IS_QT5:
         # default in PyQt6
-        # FIXME:qt6 solve this in qutebrowser/qt/sip.py equivalent?
-        pass
+        sip.enableoverflowchecking(True)
 
 
 def init_log(args):

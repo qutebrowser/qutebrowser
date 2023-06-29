@@ -691,11 +691,12 @@ def _as_uint32(x: int) -> QVariant:
     variant = QVariant(x)
 
     if machinery.IS_QT5:
-        target_type = QVariant.Type.UInt
+        target = QVariant.Type.UInt
     else:  # Qt 6
-        target_type = QMetaType(QMetaType.Type.UInt.value)
+        # FIXME:mypy PyQt6-stubs issue
+        target = QMetaType(QMetaType.Type.UInt.value)  # type: ignore[call-overload]
 
-    successful = variant.convert(target_type)
+    successful = variant.convert(target)
     assert successful
     return variant
 
@@ -1110,7 +1111,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             return None
 
         bits = qimage.constBits().asstring(size)
-        image_data.add(QByteArray(bits))
+        # FIXME:mypy PyQt6-stubs issue
+        image_data.add(QByteArray(bits))  # type: ignore[call-overload]
 
         image_data.endStructure()
         return image_data

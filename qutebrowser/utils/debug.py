@@ -100,7 +100,7 @@ def log_signals(obj: QObject) -> QObject:
 
 
 if machinery.IS_QT6:
-    _EnumValueType = enum.Enum
+    _EnumValueType = Union[enum.Enum, int]
 else:
     _EnumValueType = Union[sip.simplewrapper, int]
 
@@ -219,9 +219,9 @@ def qflags_key(base: Type[sip.simplewrapper],
     bits = []
     names = []
     mask = 0x01
-    value = qtutils.extract_enum_val(value)
-    while mask <= value:
-        if value & mask:
+    intval = qtutils.extract_enum_val(value)
+    while mask <= intval:
+        if intval & mask:
             bits.append(mask)
         mask <<= 1
     for bit in bits:

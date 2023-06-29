@@ -32,6 +32,6 @@ elif machinery.USE_PYQT6:
         # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some
         # distributions still package later versions of PyQt5 with a top-level
         # "sip" rather than "PyQt5.sip".
-        from sip import *
+        from sip import *  # type: ignore[import]
 else:
     raise machinery.UnknownWrapper()

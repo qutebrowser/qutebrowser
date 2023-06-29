@@ -28,6 +28,7 @@ import urllib.parse
 import mimetypes
 from typing import Optional, Tuple, Union, Iterable
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QUrl
 from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
 
@@ -505,9 +506,10 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     #
     # There are no other callers of same_domain, and url2 will only be ever valid when
     # we use a NetworkManager from QtWebKit. However, QtWebKit is Qt 5 only.
+    assert machinery.IS_QT6, machinery.INFO
 
-    suffix1 = url1.topLevelDomain()
-    suffix2 = url2.topLevelDomain()
+    suffix1 = url1.topLevelDomain()  # type: ignore[attr-defined]
+    suffix2 = url2.topLevelDomain()  # type: ignore[attr-defined]
     if not suffix1:
         return url1.host() == url2.host()
 

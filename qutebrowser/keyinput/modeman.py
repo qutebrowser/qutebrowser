@@ -467,7 +467,7 @@ class ModeManager(QObject):
             QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
-        handler = handlers[event.type()]
+        handler = handlers[cast(QEvent.Type, event.type())]
         return handler(cast(QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')

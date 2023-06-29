@@ -22,7 +22,7 @@
 This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG-114334.
 """
 
-from typing import Tuple, Union
+from typing import Tuple, Union, cast
 import enum
 import ctypes
 import ctypes.util
@@ -113,8 +113,8 @@ class NativeEventFilter(QAbstractNativeEventFilter):
     #
     # Tuple because PyQt uses the second value as the *result out-pointer, which
     # according to the Qt documentation is only used on Windows.
-    _PASS_EVENT_RET = (False, 0)
-    _FILTER_EVENT_RET = (True, 0)
+    _PASS_EVENT_RET = (False, cast(sip.voidptr, 0))
+    _FILTER_EVENT_RET = (True, cast(sip.voidptr, 0))
 
     def __init__(self) -> None:
         super().__init__()
@@ -147,7 +147,7 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
     def nativeEventFilter(
         self, evtype: Union[bytes, QByteArray], message: sip.voidptr
-    ) -> Tuple[bool, int]:
+    ) -> Tuple[bool, sip.voidptr]:
         """Handle XCB events."""
         # We're only installed when the platform plugin is xcb
         assert evtype == b"xcb_generic_event_t", evtype

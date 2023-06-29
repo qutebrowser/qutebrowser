@@ -228,8 +228,8 @@ def _check_valid_utf8(s: str, data: Union[Qt.Key, _ModifierType]) -> None:
     try:
         s.encode('utf-8')
     except UnicodeEncodeError as e:  # pragma: no cover
-        raise ValueError("Invalid encoding in 0x{:x} -> {}: {}"
-                         .format(int(data), s, e))
+        i = qtutils.extract_enum_val(data)
+        raise ValueError(f"Invalid encoding in 0x{i:x} -> {s}: {e}")
 
 
 def _key_to_string(key: Qt.Key) -> str:
@@ -399,7 +399,7 @@ class KeyInfo:
         except ValueError as ex:
             raise InvalidKeyError(str(ex))
         key = _remap_unicode(key, e.text())
-        modifiers = cast(Qt.KeyboardModifier, e.modifiers())
+        modifiers = e.modifiers()
         return cls(key, modifiers)
 
     @classmethod
@@ -675,7 +675,7 @@ class KeySequence:
             raise KeyParseError(None, f"Got invalid key: {e}")
 
         _assert_plain_key(key)
-        _assert_plain_modifier(cast(Qt.KeyboardModifier, ev.modifiers()))
+        _assert_plain_modifier(ev.modifiers())
 
         key = _remap_unicode(key, ev.text())
         modifiers: _ModifierType = ev.modifiers()
@@ -725,7 +725,7 @@ class KeySequence:
                 modifiers |= Qt.KeyboardModifier.ControlModifier
 
         infos = list(self)
-        infos.append(KeyInfo(key, cast(Qt.KeyboardModifier, modifiers)))
+        infos.append(KeyInfo(key, modifiers))
 
         return self.__class__(*infos)
 
