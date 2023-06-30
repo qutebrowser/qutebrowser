@@ -62,6 +62,7 @@ def reduce_args(config_stub, version_patcher, monkeypatch):
     version_patcher('5.15.3')
     config_stub.val.content.headers.referer = 'always'
     config_stub.val.scrolling.bar = 'never'
+    config_stub.val.qt.chromium.experimental_web_platform_features = 'never'
     monkeypatch.setattr(qtargs.utils, 'is_mac', False)
     # Avoid WebRTC pipewire feature
     monkeypatch.setattr(qtargs.utils, 'is_linux', False)
