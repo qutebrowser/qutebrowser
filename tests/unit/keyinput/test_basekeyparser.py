@@ -171,7 +171,7 @@ class TestHandle:
         assert not prompt_keyparser._count
 
     def test_invalid_key(self, prompt_keyparser):
-        keys = [Qt.Key.Key_B, 0x0]
+        keys = [Qt.Key.Key_B, keyutils._NIL_KEY]
         for key in keys:
             info = keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)
             prompt_keyparser.handle(info.to_event())
