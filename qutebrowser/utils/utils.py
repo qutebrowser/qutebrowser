@@ -33,15 +33,7 @@ import shlex
 import mimetypes
 from typing import (Any, Callable, IO, Iterator,
                     Optional, Sequence, Tuple, List, Type, Union,
-                    TypeVar, TYPE_CHECKING)
-try:
-    # Protocol was added in Python 3.8
-    from typing import Protocol
-except ImportError:  # pragma: no cover
-    if not TYPE_CHECKING:
-        class Protocol:
-
-            """Empty stub at runtime."""
+                    TypeVar, Protocol)
 
 from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
 from qutebrowser.qt.gui import QClipboard, QDesktopServices

@@ -32,7 +32,7 @@ import pathlib
 import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
-                    Optional, Union, Tuple, cast)
+                    Optional, Union, Tuple, Protocol, cast)
 
 from qutebrowser.qt import machinery, sip
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
@@ -157,7 +157,7 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
         return arg
 
 
-class Validatable(utils.Protocol):
+class Validatable(Protocol):
 
     """An object with an isValid() method (e.g. QUrl)."""
 

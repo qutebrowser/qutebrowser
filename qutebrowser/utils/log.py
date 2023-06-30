@@ -31,7 +31,7 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union, TextIO, cast)
+                    Optional, Set, Tuple, Union, TextIO, Literal, cast)
 
 from qutebrowser.qt import core as qtcore
 # Optional imports
@@ -241,11 +241,13 @@ def disable_qt_msghandler() -> Iterator[None]:
 
 
 @contextlib.contextmanager
-def py_warning_filter(action: str = 'ignore', **kwargs: Any) -> Iterator[None]:
+def py_warning_filter(
+    action:
+        Literal['default', 'error', 'ignore', 'always', 'module', 'once'] = 'ignore',
+    **kwargs: Any,
+) -> Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
-    # FIXME Use Literal['default', 'error', 'ignore', 'always', 'module', 'once']
-    # once we use Python 3.8 or typing_extensions
-    warnings.filterwarnings(action, **kwargs)  # type: ignore[arg-type]
+    warnings.filterwarnings(action, **kwargs)
     yield
     if _log_inited:
         _init_py_warnings()
@@ -726,10 +728,10 @@ class ColoredFormatter(logging.Formatter):
 
     def __init__(self, fmt: str,
                  datefmt: str,
-                 style: str, *,
+                 style: Literal["%", "{", "$"],
+                 *,
                  use_colors: bool) -> None:
-        # FIXME Use Literal["%", "{", "$"] once we use Python 3.8 or typing_extensions
-        super().__init__(fmt, datefmt, style)  # type: ignore[arg-type]
+        super().__init__(fmt, datefmt, style)
         self.use_colors = use_colors
 
     def format(self, record: logging.LogRecord) -> str:
