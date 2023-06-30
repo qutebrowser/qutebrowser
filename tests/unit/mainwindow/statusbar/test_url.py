@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Clayton Craft (craftyguy) <craftyguy@gmail.com>
 #
 # This file is part of qutebrowser.

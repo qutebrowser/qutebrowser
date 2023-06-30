@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # pylint: disable=import-error,wildcard-import,unused-wildcard-import,unused-import
 
 """Wrapped Qt imports for Qt Gui.

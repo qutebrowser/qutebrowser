@@ -1,5 +1,3 @@
-# vim: ft=dosini fileencoding=utf-8:
-
 [MASTER]
 ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip

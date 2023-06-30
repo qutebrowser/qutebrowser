@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Searching on a page
     Searching text on the page (like /foo) with different options.
 

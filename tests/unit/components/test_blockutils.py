@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 #!/usr/bin/env python3
 
 # Copyright 2020-2021 Árni Dagur <arni@dagur.eu>
