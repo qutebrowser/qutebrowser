@@ -678,7 +678,6 @@ Return:
 +
 * The layout of a module should be roughly like this:
   - Shebang (`#!/usr/bin/python`, if needed)
-  - vim-modeline (`# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et`)
   - Copyright
   - GPL boilerplate
   - Module docstring
