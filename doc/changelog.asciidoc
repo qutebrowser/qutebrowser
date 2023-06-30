@@ -50,6 +50,9 @@ Added
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
       selection via rofi, and inserting TOTP-codes (experimental).
+- New `qt.chromium.experimental_web_platform_features` setting, which is enabled
+  on Qt 5 by default, to maximize compatibility with websites despite an aging
+  Chromium backend.
 - New `colors.webpage.darkmode.increase_text_contrast` setting for Qt 6.3+
 - New `fonts.tooltip`, `colors.tooltip.bg` and `colors.tooltip.fg` settings.
 - New `log-qt-events` debug flag for `-D`

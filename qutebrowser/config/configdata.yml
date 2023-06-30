@@ -327,6 +327,23 @@ qt.chromium.sandboxing:
     - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
   # yamllint enable rule:line-length
 
+qt.chromium.experimental_web_platform_features:
+  type:
+    name: String
+    valid_values:
+      - always: Enable experimental web platform features.
+      - auto: Enable experimental web platform features when using Qt 5.
+      - never: Disable experimental web platform features.
+  default: auto
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Enables Web Platform features that are in development.
+
+    This passes the `--enable-experimental-web-platform-features` flag to
+    Chromium. By default, this is enabled with Qt 5 to maximize compatibility
+    despite an aging Chromium base.
+
 qt.highdpi:
   type: Bool
   default: false

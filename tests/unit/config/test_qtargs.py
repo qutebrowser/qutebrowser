@@ -22,6 +22,7 @@ import logging
 
 import pytest
 
+from qutebrowser.qt import machinery
 from qutebrowser import qutebrowser
 from qutebrowser.config import qtargs, configdata
 from qutebrowser.utils import usertypes, version
@@ -487,6 +488,20 @@ class TestWebEngineArgs:
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
         assert '--lang=de' in args
+
+    @pytest.mark.parametrize('value, has_arg', [
+        ('always', True),
+        ('auto', machinery.IS_QT5),
+        ('never', False),
+    ])
+    def test_experimental_web_platform_features(
+        self, value, has_arg, parser, config_stub,
+    ):
+        config_stub.val.qt.chromium.experimental_web_platform_features = value
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+        assert ('--enable-experimental-web-platform-features' in args) == has_arg
 
     @pytest.mark.parametrize("version, expected", [
         ('5.15.2', False),
