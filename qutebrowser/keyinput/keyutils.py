@@ -39,9 +39,7 @@ from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 if machinery.IS_QT6:
-    # FIXME:qt6 (lint) how come pylint isn't picking this up with both backends
-    # installed?
-    from qutebrowser.qt.core import QKeyCombination  # pylint: disable=no-name-in-module
+    from qutebrowser.qt.core import QKeyCombination
 else:
     QKeyCombination = None  # QKeyCombination was added in Qt 6
 
@@ -351,7 +349,7 @@ def _unset_modifier_bits(
     https://github.com/python/cpython/issues/105497
     """
     if machinery.IS_QT5:
-        return cast(_ModifierType, modifiers & ~mask)
+        return Qt.KeyboardModifiers(modifiers & ~mask)  # can lose type if it's 0
     else:
         return Qt.KeyboardModifier(modifiers.value & ~mask.value)
 
@@ -371,11 +369,14 @@ class KeyInfo:
 
     def __post_init__(self) -> None:
         """Run some validation on the key/modifier values."""
-        # This is mainly useful while porting from Qt 5 to 6.
-        # FIXME:qt6 do we want to remove or keep this (and fix the remaining
-        # issues) when done?
-        # assert isinstance(self.key, Qt.Key), self.key
-        # assert isinstance(self.modifiers, Qt.KeyboardModifier), self.modifiers
+        # This changed with Qt 6, and e.g. to_qt() relies on this.
+        if machinery.IS_QT5:
+            modifier_classes = (Qt.KeyboardModifier, Qt.KeyboardModifiers)
+        elif machinery.IS_QT6:
+            modifier_classes = Qt.KeyboardModifier
+        assert isinstance(self.key, Qt.Key), self.key
+        assert isinstance(self.modifiers, modifier_classes), self.modifiers
+
         _assert_plain_key(self.key)
         _assert_plain_modifier(self.modifiers)
 
@@ -490,16 +491,7 @@ class KeyInfo:
         if machinery.IS_QT5:
             return int(self.key) | int(self.modifiers)
         else:
-            try:
-                # FIXME:qt6 We might want to consider only supporting KeyInfo to be
-                # instanciated with a real Qt.Key, not with ints. See __post_init__.
-                key = Qt.Key(self.key)
-            except ValueError as e:
-                # WORKAROUND for
-                # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-                raise InvalidKeyError(e)
-
-            return QKeyCombination(self.modifiers, key)
+            return QKeyCombination(self.modifiers, self.key)
 
     def with_stripped_modifiers(self, modifiers: Qt.KeyboardModifier) -> "KeyInfo":
         mods = _unset_modifier_bits(self.modifiers, modifiers)
