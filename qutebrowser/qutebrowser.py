@@ -104,12 +104,6 @@ def get_argparser():
                         help=argparse.SUPPRESS,
                         action='store_true')
 
-    # WORKAROUND to be able to restart from older qutebrowser versions into this one.
-    # Should be removed at some point.
-    parser.add_argument('--enable-webengine-inspector',
-                        help=argparse.SUPPRESS,
-                        action='store_true')
-
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
                        help="Override the configured console loglevel",

@@ -64,6 +64,9 @@ Removed
   dropped, as older Qt versions are
   https://endoflife.date/qt[end-of-life upstream] since mid/late 2020
   (5.13/5.14) and late 2021 (5.12 LTS).
+- The `--enable-webengine-inspector` flag is now dropped. It used to be ignored
+  but still accepted, to allow doing a `:restart` from versions older than v2.0.0.
+  Thus, switching from v1.x.x directly to v3.0.0 via `:restart` will not be possible.
 - It's planned to drop support for various legacy platforms and libraries which
   are unsupported upstream, such as:
   * The QtWebKit backend
