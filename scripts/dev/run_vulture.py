@@ -100,8 +100,6 @@ def whitelist_generator():  # noqa: C901
 
     for attr in ['msgs', 'priority', 'visit_attribute']:
         yield 'scripts.dev.pylint_checkers.config.' + attr
-    for attr in ['visit_call', 'process_module']:
-        yield 'scripts.dev.pylint_checkers.modeline.' + attr
 
     for name, _member in inspect.getmembers(configtypes, inspect.isclass):
         yield 'qutebrowser.config.configtypes.' + name
