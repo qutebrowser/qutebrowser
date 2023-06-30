@@ -94,6 +94,9 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
                 req, _version = recompile_requirements.parse_versioned_line(line)
                 if req.startswith('./'):
                     continue
+                if " @ " in req:  # vcs URL
+                    req = req.split(" @ ")[0]
+
                 all_requirements.add(req)
                 if req not in recompile_requirements.CHANGELOG_URLS:
                     missing.add(req)

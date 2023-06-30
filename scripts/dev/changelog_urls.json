@@ -104,6 +104,7 @@
   "PyQt-builder": "https://www.riverbankcomputing.com/news",
   "PyQt5-sip": "https://www.riverbankcomputing.com/news",
   "PyQt5-stubs": "https://github.com/python-qt-tools/PyQt5-stubs/blob/master/CHANGELOG.md",
+  "PyQt6-stubs": "https://github.com/python-qt-tools/PyQt6-stubs/commits/main",
   "sip": "https://www.riverbankcomputing.com/news",
   "PyQt6": "https://www.riverbankcomputing.com/news",
   "PyQt6-Qt6": "https://www.riverbankcomputing.com/news",

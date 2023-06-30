@@ -44,7 +44,6 @@ except ImportError:
 
 if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
-    from typing import TextIO
 
 _log_inited = False
 _args = None
