@@ -2788,7 +2788,6 @@ Default: +pass:[true]+
 [[content.site_specific_quirks.skip]]
 === content.site_specific_quirks.skip
 Disable a list of named quirks.
-The js-string-replaceall quirk is needed for Nextcloud Calendar < 2.2.0 with QtWebEngine < 5.15.3. However, the workaround is not fully compliant to the ECMAScript spec and might cause issues on other websites, so it's disabled by default.
 
 Type: <<types,FlagList>>
 
@@ -2805,9 +2804,7 @@ Valid values:
  * +misc-krunker+
  * +misc-mathml-darkmode+
 
-Default: 
-
-- +pass:[js-string-replaceall]+
+Default: empty
 
 [[content.tls.certificate_errors]]
 === content.tls.certificate_errors

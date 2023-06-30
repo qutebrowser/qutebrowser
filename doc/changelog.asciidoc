@@ -154,6 +154,10 @@ Changed
 - The qute-pass will now try looking up candidate pass entries based on the
   calling tab's verbatim netloc (hostname including port and username) if it
   can't find a match with an earlier candidate (FQDN, IPv4 etc).
+- The `js-string-replaceall` quirk is now removed from the default
+  `content.site_specific_quirks.skip`, so that `String.replaceAll` is now
+  polyfilled on QtWebEngine < 5.15.3, hopefully improving website
+  compaitibility.
 
 Fixed
 ~~~~~
