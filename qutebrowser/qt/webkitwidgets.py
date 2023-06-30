@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # pylint: disable=wildcard-import,no-else-raise
 
 """Wrapped Qt imports for Qt WebKit Widgets.

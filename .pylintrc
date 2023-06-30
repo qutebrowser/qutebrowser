@@ -1,10 +1,7 @@
-# vim: ft=dosini fileencoding=utf-8:
-
 [MASTER]
 ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip
 load-plugins=qute_pylint.config,
-             qute_pylint.modeline,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
              pylint.extensions.overlapping_exceptions,

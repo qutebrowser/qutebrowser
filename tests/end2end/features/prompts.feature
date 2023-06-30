@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Prompts
     Various prompts (javascript, SSL errors, authentication, etc.)
 

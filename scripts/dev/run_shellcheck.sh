@@ -1,6 +1,4 @@
 #!/bin/bash
-# vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
