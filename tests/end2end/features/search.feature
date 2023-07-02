@@ -147,6 +147,14 @@ Feature: Searching on a page
         And I run :search-next
         Then the error "No search done yet." should be shown
 
+    # https://github.com/qutebrowser/qutebrowser/issues/7275
+    @qtwebkit_skip
+    Scenario: Jumping to next without matches
+        When I run :search doesnotmatch
+        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I run :search-next
+        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+
     Scenario: Repeating search in a second tab (issue #940)
         When I open data/search.html in a new tab
         And I run :search foo
@@ -221,6 +229,14 @@ Feature: Searching on a page
         When I open data/search.html in a new window
         And I run :search-prev
         Then the error "No search done yet." should be shown
+
+    # https://github.com/qutebrowser/qutebrowser/issues/7275
+    @qtwebkit_skip
+    Scenario: Jumping to previous without matches
+        When I run :search doesnotmatch
+        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I run :search-prev
+        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
 
     ## wrapping
 
