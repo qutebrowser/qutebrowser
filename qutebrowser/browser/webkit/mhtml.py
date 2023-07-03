@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Daniel Schadt
 #
@@ -36,7 +34,7 @@ import quopri
 import dataclasses
 from typing import MutableMapping, Set, Tuple, Callable
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem

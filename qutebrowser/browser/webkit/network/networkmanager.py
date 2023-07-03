@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -24,8 +22,8 @@ import html
 import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray
+from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
                              QNetworkProxy)
 
 from qutebrowser.config import config
@@ -79,7 +77,7 @@ def _is_secure_cipher(cipher):
         return False
     # OpenSSL should already protect against this in a better way
     # elif (('CBC3' in tokens or 'CBC' in tokens) and (cipher.protocol() not in
-    #         [QSsl.TlsV1_0, QSsl.TlsV1_1, QSsl.TlsV1_2])):
+    #         [QSsl.SslProtocol.TlsV1_0, QSsl.SslProtocol.TlsV1_1, QSsl.SslProtocol.TlsV1_2])):
     #     # https://en.wikipedia.org/wiki/POODLE
     #     return False
     ### These things should never happen as those are already filtered out by
@@ -103,8 +101,8 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    sslconfig = QSslConfiguration.defaultConfiguration()
-    default_ciphers = sslconfig.ciphers()
+    ssl_config = QSslConfiguration.defaultConfiguration()
+    default_ciphers = ssl_config.ciphers()
     log.init.vdebug(  # type: ignore[attr-defined]
         "Default Qt ciphers: {}".format(
             ', '.join(c.name() for c in default_ciphers)))
@@ -120,7 +118,7 @@ def init():
     if bad_ciphers:
         log.init.debug("Disabling bad ciphers: {}".format(
             ', '.join(c.name() for c in bad_ciphers)))
-        sslconfig.setCiphers(good_ciphers)
+        ssl_config.setCiphers(good_ciphers)
 
 
 _SavedErrorsType = MutableMapping[
@@ -239,12 +237,16 @@ class NetworkManager(QNetworkAccessManager):
 
     def shutdown(self):
         """Abort all running requests."""
-        self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+        try:
+            self.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+        except AttributeError:
+            # Qt 5 only, deprecated seemingly without replacement.
+            pass
         self.shutting_down.emit()
 
     # No @pyqtSlot here, see
     # https://github.com/qutebrowser/qutebrowser/issues/2213
-    def on_ssl_errors(self, reply, qt_errors):  # noqa: C901 pragma: no mccabe
+    def on_ssl_errors(self, reply, qt_errors):
         """Decide if SSL errors should be ignored or not.
 
         This slot is called on SSL/TLS errors by the self.sslErrors signal.
@@ -253,7 +255,7 @@ class NetworkManager(QNetworkAccessManager):
             reply: The QNetworkReply that is encountering the errors.
             qt_errors: A list of errors.
         """
-        errors = certificateerror.CertificateErrorWrapper(qt_errors)
+        errors = certificateerror.CertificateErrorWrapper(reply, qt_errors)
         log.network.debug("Certificate errors: {!r}".format(errors))
         try:
             host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
@@ -281,14 +283,14 @@ class NetworkManager(QNetworkAccessManager):
         tab = self._get_tab()
         first_party_url = QUrl() if tab is None else tab.data.last_navigation.url
 
-        ignore = shared.ignore_certificate_error(
+        shared.handle_certificate_error(
             request_url=reply.url(),
             first_party_url=first_party_url,
             error=errors,
             abort_on=abort_on,
         )
-        if ignore:
-            reply.ignoreSslErrors()
+
+        if errors.certificate_was_accepted():
             if host_tpl is not None:
                 self._accepted_ssl_errors[host_tpl].add(errors)
         elif host_tpl is not None:
@@ -406,14 +408,14 @@ class NetworkManager(QNetworkAccessManager):
             proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
-                    req, proxy_error, QNetworkReply.UnknownProxyError,
+                    req, proxy_error, QNetworkReply.NetworkError.UnknownProxyError,
                     self)
 
         if not req.url().isValid():
             log.network.debug("Ignoring invalid requested URL: {}".format(
                 req.url().errorString()))
             return networkreply.ErrorNetworkReply(
-                req, "Invalid request URL", QNetworkReply.HostNotFoundError,
+                req, "Invalid request URL", QNetworkReply.NetworkError.HostNotFoundError,
                 self)
 
         for header, value in shared.custom_headers(url=req.url()):
@@ -433,7 +435,7 @@ class NetworkManager(QNetworkAccessManager):
         interceptors.run(request)
         if request.is_blocked:
             return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.NetworkError.ContentAccessDenied,
                 self)
 
         if 'log-requests' in objects.debug_flags:

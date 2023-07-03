@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -26,10 +24,11 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union, Iterable
+from typing import Optional, Tuple, Union, Iterable, cast
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
@@ -39,6 +38,55 @@ from qutebrowser.browser.network import pac
 
 # FIXME: we probably could raise some exceptions on invalid URLs
 # https://github.com/qutebrowser/qutebrowser/issues/108
+
+
+if machinery.IS_QT6:
+    UrlFlagsType = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+
+    class FormatOption:
+        """Simple wrapper around Qt enums to fix typing problems on Qt 5."""
+
+        ENCODED = QUrl.ComponentFormattingOption.FullyEncoded
+        ENCODE_UNICODE = QUrl.ComponentFormattingOption.EncodeUnicode
+        DECODE_RESERVED = QUrl.ComponentFormattingOption.DecodeReserved
+
+        REMOVE_SCHEME = QUrl.UrlFormattingOption.RemoveScheme
+        REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
+else:
+    UrlFlagsType = Union[
+        QUrl.FormattingOptions,
+        QUrl.UrlFormattingOption,
+        QUrl.ComponentFormattingOption,
+        QUrl.ComponentFormattingOptions,
+    ]
+
+    class _QtFormattingOptions(QUrl.FormattingOptions):
+        """WORKAROUND for invalid stubs.
+
+        Teach mypy that | works for QUrl.FormattingOptions.
+        """
+
+        def __or__(self, f: UrlFlagsType) -> '_QtFormattingOptions':
+            return super() | f  # type: ignore[operator,return-value]
+
+    class FormatOption:
+        """WORKAROUND for invalid stubs.
+
+        Pretend that all ComponentFormattingOption values are also valid
+        QUrl.FormattingOptions values, i.e. can be passed to QUrl.toString().
+        """
+
+        ENCODED = cast(
+            _QtFormattingOptions, QUrl.ComponentFormattingOption.FullyEncoded)
+        ENCODE_UNICODE = cast(
+            _QtFormattingOptions, QUrl.ComponentFormattingOption.EncodeUnicode)
+        DECODE_RESERVED = cast(
+            _QtFormattingOptions, QUrl.ComponentFormattingOption.DecodeReserved)
+
+        REMOVE_SCHEME = cast(
+            _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveScheme)
+        REMOVE_PASSWORD = cast(
+            _QtFormattingOptions, QUrl.UrlFormattingOption.RemovePassword)
 
 
 # URL schemes supported by QtWebEngine
@@ -493,8 +541,22 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     if url1.port() != url2.port():
         return False
 
-    suffix1 = url1.topLevelDomain()
-    suffix2 = url2.topLevelDomain()
+    # QUrl.topLevelDomain() got removed in Qt 6:
+    # https://bugreports.qt.io/browse/QTBUG-80308
+    #
+    # However, we should never land here if we are on Qt 6:
+    #
+    # On QtWebEngine, we don't have a QNetworkAccessManager attached to a tab
+    # (all tab-specific downloads happen via the QtWebEngine network stack).
+    # Thus, ensure_valid(url2) above will raise InvalidUrlError, which is
+    # handled in NetworkManager.
+    #
+    # There are no other callers of same_domain, and url2 will only be ever valid when
+    # we use a NetworkManager from QtWebKit. However, QtWebKit is Qt 5 only.
+    assert machinery.IS_QT5, machinery.INFO
+
+    suffix1 = url1.topLevelDomain()  # type: ignore[attr-defined,unused-ignore]
+    suffix2 = url2.topLevelDomain()  # type: ignore[attr-defined,unused-ignore]
     if not suffix1:
         return url1.host() == url2.host()
 
@@ -522,7 +584,7 @@ def file_url(path: str) -> str:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    return url.toString(FormatOption.ENCODED)
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:
@@ -544,11 +606,11 @@ def safe_display_string(qurl: QUrl) -> str:
     """
     ensure_valid(qurl)
 
-    host = qurl.host(QUrl.FullyEncoded)
+    host = qurl.host(QUrl.ComponentFormattingOption.FullyEncoded)
     assert '..' not in host, qurl  # https://bugreports.qt.io/browse/QTBUG-60364
 
     for part in host.split('.'):
-        url_host = qurl.host(QUrl.FullyDecoded)
+        url_host = qurl.host(QUrl.ComponentFormattingOption.FullyDecoded)
         if part.startswith('xn--') and host != url_host:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
@@ -581,10 +643,10 @@ def proxy_from_url(url: QUrl) -> Union[QNetworkProxy, pac.PACFetcher]:
         return fetcher
 
     types = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
-        'direct': QNetworkProxy.NoProxy,
+        'http': QNetworkProxy.ProxyType.HttpProxy,
+        'socks': QNetworkProxy.ProxyType.Socks5Proxy,
+        'socks5': QNetworkProxy.ProxyType.Socks5Proxy,
+        'direct': QNetworkProxy.ProxyType.NoProxy,
     }
     if scheme not in types:
         raise InvalidProxyTypeError(scheme)
@@ -613,7 +675,7 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = url.toString(FormatOption.ENCODED)
     urlstr = urllib.parse.unquote(urlstr)
 
     code = urlstr[len('javascript:'):]

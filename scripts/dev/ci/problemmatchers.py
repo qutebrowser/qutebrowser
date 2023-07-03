@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -64,6 +62,22 @@ MATCHERS = {
                     "message": 4,
                     "code": 5,
                     "loop": True,
+                },
+            ],
+        },
+    ],
+
+    # https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
+    "actionlint": [
+        {
+            "pattern": [
+                {
+                    "regexp": r"^(?:\x1b\[\d+m)?(.+?)(?:\x1b\[\d+m)*:(?:\x1b\[\d+m)*(\d+)(?:\x1b\[\d+m)*:(?:\x1b\[\d+m)*(\d+)(?:\x1b\[\d+m)*: (?:\x1b\[\d+m)*(.+?)(?:\x1b\[\d+m)* \[(.+?)\]$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4,
+                    "code": 5,
                 },
             ],
         },

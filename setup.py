@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -73,7 +71,7 @@ try:
         zip_safe=True,
         install_requires=['jinja2', 'PyYAML',
                           'importlib_resources>=1.1.0; python_version < "3.9"'],
-        python_requires='>=3.7',
+        python_requires='>=3.8',
         name='qutebrowser',
         version=_get_constant('version'),
         description=_get_constant('description'),
@@ -95,9 +93,10 @@ try:
             'Operating System :: MacOS',
             'Operating System :: POSIX :: BSD',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             'Topic :: Internet',
             'Topic :: Internet :: WWW/HTTP',
             'Topic :: Internet :: WWW/HTTP :: Browsers',

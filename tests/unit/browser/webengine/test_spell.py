@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
@@ -34,7 +32,7 @@ def test_version(message_mock, caplog):
     with caplog.at_level(logging.WARNING):
         assert spell.version('malformed_filename') is None
     msg = message_mock.getmsg(usertypes.MessageLevel.warning)
-    expected = ("Found a dictionary with a malformed name: malformed_filename")
+    expected = "Found a dictionary with a malformed name: malformed_filename"
     assert msg.text == expected
 
 

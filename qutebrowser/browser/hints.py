@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -30,15 +28,15 @@ from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
-from PyQt5.QtWidgets import QLabel
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
+from qutebrowser.qt.widgets import QLabel
 
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
 from qutebrowser.browser import webelem, history
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
+from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils, urlutils
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -92,12 +90,12 @@ class HintLabel(QLabel):
         self._context = context
         self.elem = elem
 
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(Qt.TextFormat.RichText)
 
         # Make sure we can style the background via a style sheet, and we don't
         # get any extra text indent from Qt.
         # The real stylesheet lives in mainwindow.py for performance reasons..
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
@@ -252,10 +250,10 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        flags = QUrl.FullyEncoded | QUrl.RemovePassword
+        flags = urlutils.FormatOption.ENCODED | urlutils.FormatOption.REMOVE_PASSWORD
         if url.scheme() == 'mailto':
-            flags |= QUrl.RemoveScheme
-        urlstr = url.toString(flags)  # type: ignore[arg-type]
+            flags |= urlutils.FormatOption.REMOVE_SCHEME
+        urlstr = url.toString(flags)
 
         new_content = urlstr
 
@@ -276,15 +274,14 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(urlutils.FormatOption.ENCODED)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        flags = QUrl.FullyEncoded
-        urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
+        urlstr = url.toDisplayString(urlutils.FormatOption.ENCODED)
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
@@ -325,19 +322,18 @@ class HintActions:
 
         cmd = context.args[0]
         args = context.args[1:]
-        flags = QUrl.FullyEncoded
+        flags = urlutils.FormatOption.ENCODED
 
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
-            'QUTE_CURRENT_URL':
-                context.baseurl.toString(flags),  # type: ignore[arg-type]
+            'QUTE_CURRENT_URL': context.baseurl.toString(flags),
         }
 
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
+            env['QUTE_URL'] = url.toString(flags)
 
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
@@ -357,7 +353,7 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
+            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
@@ -657,6 +653,7 @@ class HintManager(QObject):
             self._context.labels[string] = label
 
         keyparser = self._get_keyparser(usertypes.KeyMode.hint)
+        assert isinstance(keyparser, modeparsers.HintKeyParser), keyparser
         keyparser.update_bindings(strings)
 
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
@@ -852,6 +849,7 @@ class HintManager(QObject):
             # apply auto_follow_timeout
             timeout = config.val.hints.auto_follow_timeout
             normal_parser = self._get_keyparser(usertypes.KeyMode.normal)
+            assert isinstance(normal_parser, modeparsers.NormalKeyParser), normal_parser
             normal_parser.set_inhibited_timeout(timeout)
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
@@ -927,6 +925,7 @@ class HintManager(QObject):
                 self._context.labels[string] = label
 
             keyparser = self._get_keyparser(usertypes.KeyMode.hint)
+            assert isinstance(keyparser, modeparsers.HintKeyParser), keyparser
             keyparser.update_bindings(strings, preserve_filter=True)
 
             # Note: filter_hints can be called with non-None filterstr only

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 lamarpavel
 #
@@ -19,8 +17,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime
-from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
+from qutebrowser.qt.core import QUrl, QDateTime
+from qutebrowser.qt.network import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
 
@@ -30,10 +28,19 @@ def disk_cache(tmpdir, config_stub):
     return cache.DiskCache(str(tmpdir))
 
 
-def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
+def build_metadata(url='http://qutebrowser.org/'):
     metadata = QNetworkCacheMetaData()
     metadata.setUrl(QUrl(url))
+    # https://codereview.qt-project.org/c/qt/qtbase/+/465547
+    metadata.setRawHeaders([(b"X-Hello", b"World")])
+
     assert metadata.isValid()
+    assert metadata.rawHeaders()
+    return metadata
+
+
+def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
+    metadata = build_metadata(url)
     device = cache.prepare(metadata)
     assert device is not None
     device.write(content)
@@ -71,12 +78,8 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
 
 def test_cache_existing_metadata_file(tmpdir, disk_cache):
     """Test querying existing meta data file from activated cache."""
-    url = 'http://qutebrowser.org'
     content = b'foobar'
-
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
-    assert metadata.isValid()
+    metadata = build_metadata()
 
     device = disk_cache.prepare(metadata)
     assert device is not None
@@ -173,8 +176,7 @@ def test_cache_full(tmpdir):
     content2 = b'ohmycert'
     preload_cache(disk_cache, url2, content2)
 
-    metadata = QNetworkCacheMetaData()
-    metadata.setUrl(QUrl(url))
+    metadata = build_metadata(url)
     soon = QDateTime.currentDateTime().addMonths(4)
     assert soon.isValid()
     metadata.setLastModified(soon)

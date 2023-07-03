@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
@@ -23,7 +21,7 @@ import dataclasses
 import time
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-from PyQt5.QtCore import QObject
+from qutebrowser.qt.core import QObject
 
 from qutebrowser.utils import usertypes
 

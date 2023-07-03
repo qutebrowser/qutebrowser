@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
@@ -22,8 +20,8 @@
 import pathlib
 import pytest
 
-QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
-QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
+QtWebEngineCore = pytest.importorskip("qutebrowser.qt.webenginecore")
+QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
 from qutebrowser.utils import javascript
 

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,13 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os.path
 import base64
 import dataclasses
 
 import pytest
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+pytest.importorskip('qutebrowser.qt.webenginecore')
+from qutebrowser.qt.webenginecore import QWebEngineProfile
 
 from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads
@@ -154,7 +151,8 @@ class TestDataUrlWorkaround:
         def check_item(item):
             assert item.mimeType() == 'application/pdf'
             assert item.url().scheme() == 'data'
-            assert os.path.basename(item.path()) == expected_names.before
+            assert item.downloadFileName() == expected_names.before
+
             return True
 
         with qtbot.wait_signal(webengine_profile.downloadRequested,

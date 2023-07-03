@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -25,8 +23,8 @@ import contextlib
 import pathlib
 from typing import cast, Mapping, MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog, QApplication
+from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, pyqtSignal
+from qutebrowser.qt.widgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
@@ -217,19 +215,19 @@ class WebHistory(sql.SqlTable):
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
-        self._between_query = self.database.query('SELECT * FROM History '
-                                                  'where not redirect '
-                                                  'and not url like "qute://%" '
-                                                  'and atime > :earliest '
-                                                  'and atime <= :latest '
-                                                  'ORDER BY atime desc')
+        self._between_query = self.database.query("SELECT * FROM History "
+                                                  "where not redirect "
+                                                  "and not url like 'qute://%' "
+                                                  "and atime > :earliest "
+                                                  "and atime <= :latest "
+                                                  "ORDER BY atime desc")
 
-        self._before_query = self.database.query('SELECT * FROM History '
-                                                 'where not redirect '
-                                                 'and not url like "qute://%" '
-                                                 'and atime <= :latest '
-                                                 'ORDER BY atime desc '
-                                                 'limit :limit offset :offset')
+        self._before_query = self.database.query("SELECT * FROM History "
+                                                 "where not redirect "
+                                                 "and not url like 'qute://%' "
+                                                 "and atime <= :latest "
+                                                 "ORDER BY atime desc "
+                                                 "limit :limit offset :offset")
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
@@ -435,10 +433,10 @@ class WebHistory(sql.SqlTable):
             }, replace=True)
 
     def _format_url(self, url):
-        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        return url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
 
     def _format_completion_url(self, url):
-        return url.toString(QUrl.RemovePassword)
+        return url.toString(QUrl.UrlFormattingOption.RemovePassword)
 
 
 @cmdutils.register()

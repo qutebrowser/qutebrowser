@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -403,21 +401,12 @@ class Command:
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
 
-        try:
-            origin = typing.get_origin(typ)  # type: ignore[attr-defined]
-        except AttributeError:
-            # typing.get_origin was added in Python 3.8
-            origin = getattr(typ, '__origin__', None)
-
+        origin = typing.get_origin(typ)
         if origin is Union:
-            try:
-                types = list(typing.get_args(typ))  # type: ignore[attr-defined]
-            except AttributeError:
-                # typing.get_args was added in Python 3.8
-                types = list(typ.__args__)
-
+            types = list(typing.get_args(typ))
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
+
             choices = self.get_arg_info(param).choices
             value = argparser.multitype_conv(param, types, value,
                                              str_choices=choices)

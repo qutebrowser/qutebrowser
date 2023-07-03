@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -25,7 +23,8 @@ import argparse
 import pathlib
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from PyQt5.QtCore import QLibraryInfo, QLocale
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import QLocale
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -75,10 +74,15 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         log.init.debug("QtWebEngine requested, but unavailable...")
         return argv
 
+    versions = version.qtwebengine_versions(avoid_init=True)
+    if versions.webengine >= utils.VersionNumber(6, 4):
+        # https://codereview.qt-project.org/c/qt/qtwebengine/+/376704
+        argv.insert(1, "--webEngineArgs")
+
     special_prefixes = (_ENABLE_FEATURES, _DISABLE_FEATURES, _BLINK_SETTINGS)
     special_flags = [flag for flag in argv if flag.startswith(special_prefixes)]
     argv = [flag for flag in argv if not flag.startswith(special_prefixes)]
-    argv += list(_qtwebengine_args(namespace, special_flags))
+    argv += list(_qtwebengine_args(versions, namespace, special_flags))
 
     return argv
 
@@ -93,6 +97,8 @@ def _qtwebengine_features(
         versions: The WebEngineVersions to get flags for.
         special_flags: Existing flags passed via the commandline.
     """
+    assert versions.chromium_major is not None
+
     enabled_features = []
     disabled_features = []
 
@@ -108,7 +114,7 @@ def _qtwebengine_features(
         else:
             raise utils.Unreachable(flag)
 
-    if versions.webengine >= utils.VersionNumber(5, 15, 1) and utils.is_linux:
+    if utils.is_linux:
         # Enable WebRTC PipeWire for screen capturing on Wayland.
         #
         # This is disabled in Chromium by default because of the "dialog hell":
@@ -118,7 +124,7 @@ def _qtwebengine_features(
         # However, we don't have Chromium's confirmation dialog in qutebrowser,
         # so we should only get qutebrowser's permission dialog.
         #
-        # In theory this would be supported with Qt 5.13 already, but
+        # In theory this would be supported with Qt 5.15.0 already, but
         # QtWebEngine only started picking up PipeWire correctly with Qt
         # 5.15.1.
         #
@@ -143,8 +149,8 @@ def _qtwebengine_features(
         if config.val.scrolling.bar == 'overlay':
             enabled_features.append('OverlayScrollbar')
 
-    if (versions.webengine >= utils.VersionNumber(5, 14) and
-            config.val.content.headers.referer == 'same-domain'):
+    if (config.val.content.headers.referer == 'same-domain' and
+            versions.chromium_major < 89):
         # Handling of reduced-referrer-granularity in Chromium 76+
         # https://chromium-review.googlesource.com/c/chromium/src/+/1572699
         #
@@ -199,7 +205,7 @@ def _webengine_locales_path() -> pathlib.Path:
         # not QtWebEngine.
         base = pathlib.Path('/app/translations')
     else:
-        base = pathlib.Path(QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+        base = qtutils.library_path(qtutils.LibraryPath.translations)
     return base / 'qtwebengine_locales'
 
 
@@ -210,7 +216,7 @@ def _get_lang_override(
     """Get a --lang switch to override Qt's locale handling.
 
     This is needed as a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
-    There is no fix yet, but we assume it'll be fixed with QtWebEngine 5.15.4.
+    Fixed with QtWebEngine 5.15.4.
     """
     if not config.val.qt.workarounds.locale:
         return None
@@ -239,29 +245,15 @@ def _get_lang_override(
 
 
 def _qtwebengine_args(
+        versions: version.WebEngineVersions,
         namespace: argparse.Namespace,
         special_flags: Sequence[str],
 ) -> Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
-    versions = version.qtwebengine_versions(avoid_init=True)
-
-    qt_514_ver = utils.VersionNumber(5, 14)
-    qt_515_ver = utils.VersionNumber(5, 15)
-    if qt_514_ver <= versions.webengine < qt_515_ver:
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-82105
-        yield '--disable-shared-workers'
-
-    # WORKAROUND equivalent to
     # https://codereview.qt-project.org/c/qt/qtwebengine/+/256786
-    # also see:
     # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265753
-    if versions.webengine >= utils.VersionNumber(5, 12, 3):
-        if 'stack' in namespace.debug_flags:
-            # Only actually available in Qt 5.12.5, but let's save another
-            # check, as passing the option won't hurt.
-            yield '--enable-in-process-stack-traces'
-    elif 'stack' not in namespace.debug_flags:
-        yield '--disable-in-process-stack-traces'
+    if 'stack' in namespace.debug_flags:
+        yield '--enable-in-process-stack-traces'
 
     lang_override = _get_lang_override(
         webengine_version=versions.webengine,
@@ -294,83 +286,62 @@ def _qtwebengine_args(
     if disabled_features:
         yield _DISABLE_FEATURES + ','.join(disabled_features)
 
-    yield from _qtwebengine_settings_args(versions)
+    yield from _qtwebengine_settings_args()
 
 
-def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
-    settings: Dict[str, Dict[Any, Optional[str]]] = {
-        'qt.force_software_rendering': {
-            'software-opengl': None,
-            'qt-quick': None,
-            'chromium': '--disable-gpu',
-            'none': None,
-        },
-        'content.canvas_reading': {
-            True: None,
-            False: '--disable-reading-from-canvas',
-        },
-        'content.webrtc_ip_handling_policy': {
-            'all-interfaces': None,
-            'default-public-and-private-interfaces':
-                '--force-webrtc-ip-handling-policy='
-                'default_public_and_private_interfaces',
-            'default-public-interface-only':
-                '--force-webrtc-ip-handling-policy='
-                'default_public_interface_only',
-            'disable-non-proxied-udp':
-                '--force-webrtc-ip-handling-policy='
-                'disable_non_proxied_udp',
-        },
-        'qt.chromium.process_model': {
-            'process-per-site-instance': None,
-            'process-per-site': '--process-per-site',
-            'single-process': '--single-process',
-        },
-        'qt.chromium.low_end_device_mode': {
-            'auto': None,
-            'always': '--enable-low-end-device-mode',
-            'never': '--disable-low-end-device-mode',
-        },
-        'content.headers.referer': {
-            'always': None,
-        },
-        'content.prefers_reduced_motion': {
-            True: '--force-prefers-reduced-motion',
-            False: None,
-        },
-        'qt.chromium.sandboxing': {
-            'enable-all': None,
-            'disable-seccomp-bpf': '--disable-seccomp-filter-sandbox',
-            'disable-all': '--no-sandbox',
-        }
-    }
-    qt_514_ver = utils.VersionNumber(5, 14)
+_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
+    'qt.force_software_rendering': {
+        'software-opengl': None,
+        'qt-quick': None,
+        'chromium': '--disable-gpu',
+        'none': None,
+    },
+    'content.canvas_reading': {
+        True: None,
+        False: '--disable-reading-from-canvas',
+    },
+    'content.webrtc_ip_handling_policy': {
+        'all-interfaces': None,
+        'default-public-and-private-interfaces':
+            '--force-webrtc-ip-handling-policy='
+            'default_public_and_private_interfaces',
+        'default-public-interface-only':
+            '--force-webrtc-ip-handling-policy='
+            'default_public_interface_only',
+        'disable-non-proxied-udp':
+            '--force-webrtc-ip-handling-policy='
+            'disable_non_proxied_udp',
+    },
+    'qt.chromium.process_model': {
+        'process-per-site-instance': None,
+        'process-per-site': '--process-per-site',
+        'single-process': '--single-process',
+    },
+    'qt.chromium.low_end_device_mode': {
+        'auto': None,
+        'always': '--enable-low-end-device-mode',
+        'never': '--disable-low-end-device-mode',
+    },
+    'content.prefers_reduced_motion': {
+        True: '--force-prefers-reduced-motion',
+        False: None,
+    },
+    'qt.chromium.sandboxing': {
+        'enable-all': None,
+        'disable-seccomp-bpf': '--disable-seccomp-filter-sandbox',
+        'disable-all': '--no-sandbox',
+    },
+    'qt.chromium.experimental_web_platform_features': {
+        'always': '--enable-experimental-web-platform-features',
+        'never': None,
+        'auto':
+            '--enable-experimental-web-platform-features' if machinery.IS_QT5 else None,
+    },
+}
 
-    if qt_514_ver <= versions.webengine < utils.VersionNumber(5, 15, 2):
-        # In Qt 5.14 to 5.15.1, `--force-dark-mode` is used to set the
-        # preferred colorscheme. In Qt 5.15.2, this is handled by a
-        # blink-setting in browser/webengine/darkmode.py instead.
-        settings['colors.webpage.preferred_color_scheme'] = {
-            'dark': '--force-dark-mode',
-            'light': None,
-            'auto': None,
-        }
 
-    referrer_setting = settings['content.headers.referer']
-    if versions.webengine >= qt_514_ver:
-        # Starting with Qt 5.14, this is handled via --enable-features
-        referrer_setting['same-domain'] = None
-    else:
-        referrer_setting['same-domain'] = '--reduced-referrer-granularity'
-
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60203
-    can_override_referer = (
-        versions.webengine >= utils.VersionNumber(5, 12, 4) and
-        versions.webengine != utils.VersionNumber(5, 13)
-    )
-    referrer_setting['never'] = None if can_override_referer else '--no-referrers'
-
-    for setting, args in sorted(settings.items()):
+def _qtwebengine_settings_args() -> Iterator[str]:
+    for setting, args in sorted(_WEBENGINE_SETTINGS.items()):
         arg = args[config.instance.get(setting)]
         if arg is not None:
             yield arg
@@ -411,10 +382,7 @@ def init_envvars() -> None:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
 
     if config.val.qt.highdpi:
-        env_var = ('QT_ENABLE_HIGHDPI_SCALING'
-                   if qtutils.version_check('5.14', compiled=False)
-                   else 'QT_AUTO_SCREEN_SCALE_FACTOR')
-        os.environ[env_var] = '1'
+        os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
 
     for var, val in config.val.qt.environ.items():
         if val is None and var in os.environ:

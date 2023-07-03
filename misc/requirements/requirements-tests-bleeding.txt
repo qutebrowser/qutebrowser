@@ -7,9 +7,7 @@ git+https://github.com/pallets/flask.git
 git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to work
 git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
 git+https://github.com/pytest-dev/pytest.git
-# Problematic: https://github.com/pytest-dev/pytest-bdd/issues/447
-# git+https://github.com/pytest-dev/pytest-bdd.git
-pytest-bdd<5
+git+https://github.com/pytest-dev/pytest-bdd.git
 git+https://github.com/ionelmc/pytest-benchmark.git
 git+https://github.com/pytest-dev/pytest-instafail.git
 git+https://github.com/pytest-dev/pytest-mock.git
@@ -24,8 +22,6 @@ git+https://github.com/pytest-dev/pytest-cov.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
 git+https://github.com/pytest-dev/pytest-xdist.git
 git+https://github.com/john-kurkowski/tldextract
-# https://github.com/hjwp/pytest-icdiff/pull/20
-# git+https://github.com/hjwp/pytest-icdiff.git
 
 # Problematic: needs rust (and some time to build)
 # git+https://github.com/ArniDagur/python-adblock.git

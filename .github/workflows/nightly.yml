@@ -1,0 +1,123 @@
+name: Nightly builds
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every day at 04:05 UTC
+    # https://crontab.guru/#05_04_*_*_*
+    - cron: '05 04 * * *'
+
+jobs:
+  pyinstaller:
+    if: "github.repository == 'qutebrowser/qutebrowser'"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-11
+            branch: master
+            toxenv: build-release
+            name: macos
+          - os: windows-2019
+            args: --64bit
+            branch: master
+            toxenv: build-release
+            name: windows-64bit
+          - os: windows-2019
+            args: --32bit
+            branch: master
+            toxenv: build-release
+            name: windows-32bit
+
+          - os: macos-11
+            args: --debug
+            branch: master
+            toxenv: build-release
+            name: macos-debug
+          - os: windows-2019
+            args: --64bit --debug
+            branch: master
+            toxenv: build-release
+            name: windows-64bit-debug
+          - os: windows-2019
+            args: --32bit --debug
+            branch: master
+            toxenv: build-release
+            name: windows-32bit-debug
+
+          - os: macos-11
+            toxenv: build-release-qt6
+            name: qt6-macos
+          - os: windows-2019
+            args: --64bit
+            toxenv: build-release-qt6
+            name: qt6-windows-64bit
+          - os: macos-11
+            args: --debug
+            toxenv: build-release-qt6
+            name: qt6-macos-debug
+          - os: windows-2019
+            args: --64bit --debug
+            toxenv: build-release-qt6
+            name: qt6-windows-64bit-debug
+    runs-on: "${{ matrix.os }}"
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: "${{ matrix.branch }}"
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Patch qutebrowser for debugging
+        if: "contains(matrix.args, '--debug')"
+        run: |
+          sed -i '' '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py
+      - name: Run tox
+        run: "tox -e ${{ matrix.toxenv }} -- --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: "qutebrowser-nightly-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.name }}"
+          path: |
+            dist/qutebrowser-*.dmg
+            dist/qutebrowser-*-windows-standalone-*.zip
+            dist/qutebrowser-*-*.exe
+          if-no-files-found: error
+
+  irc:
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    needs: [pyinstaller]
+    if: "always() && github.repository == 'qutebrowser/qutebrowser'"
+    steps:
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "needs.pyinstaller.result == 'success'"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "needs.pyinstaller.result != 'success'"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            pyinstaller: ${{ needs.pyinstaller.result }}"

@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Yanking and pasting.
     :yank, {clipboard} and {primary} can be used to copy/paste the URL or title
     from/to the clipboard and primary selection.

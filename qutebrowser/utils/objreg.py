@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -25,9 +23,9 @@ import functools
 from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
                     Optional, Sequence, Union)
 
-from PyQt5.QtCore import QObject, QTimer
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.core import QObject, QTimer
+from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.utils import log, usertypes, utils
 if TYPE_CHECKING:
@@ -205,7 +203,7 @@ def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
         raise RegistryUnavailableError('window')
 
     try:
-        return win.registry
+        return win.registry  # type: ignore[attr-defined]
     except AttributeError:
         raise RegistryUnavailableError('window')
 

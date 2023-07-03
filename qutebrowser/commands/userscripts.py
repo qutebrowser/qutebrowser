@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -24,7 +22,7 @@ import os.path
 import tempfile
 from typing import cast, Any, MutableMapping, Tuple
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
 import qutebrowser
 from qutebrowser.utils import message, log, objreg, standarddir, utils
@@ -62,9 +60,8 @@ class _QtFIFOReader(QObject):
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(cast(sip.voidptr, fd),
-                                         QSocketNotifier.Read, self)
-        self._notifier.activated.connect(  # type: ignore[attr-defined]
-            self.read_line)
+                                         QSocketNotifier.Type.Read, self)
+        self._notifier.activated.connect(self.read_line)
 
     @pyqtSlot()
     def read_line(self):

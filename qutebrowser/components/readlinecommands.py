@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,7 +20,7 @@
 import os
 from typing import Iterable, Optional, MutableMapping, Any, Callable
 
-from PyQt5.QtWidgets import QApplication, QLineEdit
+from qutebrowser.qt.widgets import QApplication, QLineEdit
 
 from qutebrowser.api import cmdutils
 
@@ -42,7 +40,7 @@ class _ReadlineBridge:
         """Get the currently active QLineEdit."""
         # FIXME add this to api.utils or so
         qapp = QApplication.instance()
-        assert qapp is not None
+        assert isinstance(qapp, QApplication), qapp
         w = qapp.focusWidget()
 
         if isinstance(w, QLineEdit):

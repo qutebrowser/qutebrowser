@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,6 +20,7 @@
 import os
 import pathlib
 import sys
+import ssl
 
 import pytest
 import hypothesis
@@ -38,6 +37,7 @@ from helpers import testutils
 from qutebrowser.utils import usertypes, utils, version
 from qutebrowser.misc import objects, earlyinit
 
+from qutebrowser.qt import machinery
 # To register commands
 import qutebrowser.app  # pylint: disable=unused-import
 
@@ -111,6 +111,20 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
+        ('qt5_only',
+         pytest.mark.skipif,
+         not machinery.IS_QT5,
+         f"Only runs on Qt 5, not {machinery.INFO.wrapper}"),
+        ('qt6_only',
+         pytest.mark.skipif,
+         not machinery.IS_QT6,
+         f"Only runs on Qt 6, not {machinery.INFO.wrapper}"),
+        ('qt5_xfail', pytest.mark.xfail, machinery.IS_QT5, "Fails on Qt 5"),
+        ('qt6_xfail', pytest.mark.skipif, machinery.IS_QT6, "Fails on Qt 6"),
+        ('qtwebkit_openssl3_skip',
+         pytest.mark.skipif,
+         not config.webengine and ssl.OPENSSL_VERSION_INFO[0] == 3,
+         "Failing due to cheroot: https://github.com/cherrypy/cheroot/issues/346"),
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
@@ -196,7 +210,7 @@ def qapp_args():
     """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
     if testutils.disable_seccomp_bpf_sandbox():
         return [sys.argv[0], testutils.DISABLE_SECCOMP_BPF_FLAG]
-    return []
+    return [sys.argv[0]]
 
 
 @pytest.fixture(scope='session')
@@ -208,7 +222,9 @@ def qapp(qapp):
 
 def pytest_addoption(parser):
     parser.addoption('--qute-delay', action='store', default=0, type=int,
-                     help="Delay between qutebrowser commands.")
+                     help="Delay (in ms) between qutebrowser commands.")
+    parser.addoption('--qute-delay-start', action='store', default=0, type=int,
+                     help="Delay (in ms) after qutebrowser process started.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
     parser.addoption('--qute-backend', action='store',
@@ -250,9 +266,9 @@ def _select_backend(config):
     # Fail early if selected backend is not available
     # pylint: disable=unused-import
     if backend == 'webkit':
-        import PyQt5.QtWebKitWidgets
+        import qutebrowser.qt.webkitwidgets
     elif backend == 'webengine':
-        import PyQt5.QtWebEngineWidgets
+        import qutebrowser.qt.webenginewidgets
     else:
         raise utils.Unreachable(backend)
 
@@ -263,12 +279,12 @@ def _auto_select_backend():
     # pylint: disable=unused-import
     try:
         # Try to use QtWebKit as the default backend
-        import PyQt5.QtWebKitWidgets
+        import qutebrowser.qt.webkitwidgets
         return 'webkit'
     except ImportError:
         # Try to use QtWebEngine as a fallback and fail early
         # if that's also not available
-        import PyQt5.QtWebEngineWidgets
+        import qutebrowser.qt.webenginewidgets
         return 'webengine'
 
 
@@ -284,7 +300,7 @@ def pytest_report_header(config):
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
     if utils.is_linux and not os.environ.get('DISPLAY', ''):
-        raise Exception("No display and no Xvfb available!")
+        raise RuntimeError("No display and no Xvfb available!")
 
 
 @pytest.fixture(autouse=True)
@@ -335,9 +351,9 @@ def check_yaml_c_exts():
     """Make sure PyYAML C extensions are available on CI.
 
     Not available yet with a nightly Python, see:
-    https://github.com/yaml/pyyaml/issues/416
+    https://github.com/yaml/pyyaml/issues/630
     """
-    if testutils.ON_CI and sys.version_info[:2] != (3, 10):
+    if testutils.ON_CI and sys.version_info[:2] != (3, 11):
         from yaml import CLoader  # pylint: disable=unused-import
 
 

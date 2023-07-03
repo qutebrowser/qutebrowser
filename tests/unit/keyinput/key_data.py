@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# pylint: disable=line-too-long
+# FIXME:v4 (lint): disable=line-too-long
 
 
 """Data used by test_keyutils.py to test all keys."""
@@ -25,7 +23,7 @@
 import dataclasses
 from typing import Optional
 
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 
 
 @dataclasses.dataclass(order=True)
@@ -50,7 +48,7 @@ class Key:
 
     def __post_init__(self):
         if self.attribute:
-            self.member = getattr(Qt, 'Key_' + self.attribute, None)
+            self.member = getattr(Qt.Key, 'Key_' + self.attribute, None)
         if self.name is None:
             self.name = self.attribute
 
@@ -62,7 +60,7 @@ class Modifier:
 
     Attributes:
         attribute: The name of the Qt::KeyboardModifier attribute
-                   ('Shift' -> Qt.ShiftModifier)
+                   ('Shift' -> Qt.KeyboardModifier.ShiftModifier)
         name: The name returned by str(KeyInfo) with that modifier.
         member: The numeric value.
     """
@@ -72,7 +70,7 @@ class Modifier:
     member: Optional[int] = None
 
     def __post_init__(self):
-        self.member = getattr(Qt, self.attribute + 'Modifier')
+        self.member = getattr(Qt.KeyboardModifier, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute
 
@@ -450,6 +448,8 @@ KEYS = [
     Key('LaunchD', 'Launch (D)'),
     Key('LaunchE', 'Launch (E)'),
     Key('LaunchF', 'Launch (F)'),
+    Key('LaunchG', 'Launch (G)', qtest=False),
+    Key('LaunchH', 'Launch (H)', qtest=False),
     Key('MonBrightnessUp', 'Monitor Brightness Up', qtest=False),
     Key('MonBrightnessDown', 'Monitor Brightness Down', qtest=False),
     Key('KeyboardLightOnOff', 'Keyboard Light On/Off', qtest=False),
@@ -476,7 +476,7 @@ KEYS = [
     Key('Book', qtest=False),
     Key('CD', qtest=False),
     Key('Calculator', qtest=False),
-    Key('ToDoList', 'To Do List', qtest=False),
+    Key('ToDoList', 'To-do list', qtest=False),
     Key('ClearGrab', 'Clear Grab', qtest=False),
     Key('Close', qtest=False),
     Key('Copy', qtest=False),
@@ -541,10 +541,7 @@ KEYS = [
     Key('TopMenu', 'Top Menu', qtest=False),
     Key('PowerDown', 'Power Down', qtest=False),
     Key('Suspend', qtest=False),
-    Key('ContrastAdjust', 'Contrast Adjust', qtest=False),
-
-    Key('LaunchG', 'Launch (G)', qtest=False),
-    Key('LaunchH', 'Launch (H)', qtest=False),
+    Key('ContrastAdjust', 'Adjust contrast', qtest=False),
 
     Key('TouchpadToggle', 'Touchpad Toggle', qtest=False),
     Key('TouchpadOn', 'Touchpad On', qtest=False),

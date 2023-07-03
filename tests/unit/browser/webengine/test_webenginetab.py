@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,10 +21,10 @@ import logging
 import textwrap
 
 import pytest
-QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
-QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
-QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
-QWebEngineScript = QtWebEngineWidgets.QWebEngineScript
+QtWebEngineCore = pytest.importorskip("qutebrowser.qt.webenginecore")
+QWebEnginePage = QtWebEngineCore.QWebEnginePage
+QWebEngineScriptCollection = QtWebEngineCore.QWebEngineScriptCollection
+QWebEngineScript = QtWebEngineCore.QWebEngineScript
 
 from qutebrowser.browser import greasemonkey
 from qutebrowser.utils import usertypes
@@ -131,17 +129,17 @@ class TestWebengineScripts:
         scripts_helper.inject(scripts)
 
         script = scripts_helper.get_script()
-        assert script.injectionPoint() == QWebEngineScript.DocumentReady
+        assert script.injectionPoint() == QWebEngineScript.InjectionPoint.DocumentReady
 
     @pytest.mark.parametrize('run_at, expected', [
         # UserScript::DocumentElementCreation
-        ('document-start', QWebEngineScript.DocumentCreation),
+        ('document-start', QWebEngineScript.InjectionPoint.DocumentCreation),
         # UserScript::DocumentLoadFinished
-        ('document-end', QWebEngineScript.DocumentReady),
+        ('document-end', QWebEngineScript.InjectionPoint.DocumentReady),
         # UserScript::AfterLoad
-        ('document-idle', QWebEngineScript.Deferred),
+        ('document-idle', QWebEngineScript.InjectionPoint.Deferred),
         # default according to https://wiki.greasespot.net/Metadata_Block#.40run-at
-        (None, QWebEngineScript.DocumentReady),
+        (None, QWebEngineScript.InjectionPoint.DocumentReady),
     ])
     def test_greasemonkey_run_at_values(self, scripts_helper, run_at, expected):
         if run_at is None:
@@ -204,13 +202,44 @@ class TestWebengineScripts:
         scripts_helper.inject([script3])
 
 
-def test_notification_permission_workaround():
-    """Make sure the value for QWebEnginePage::Notifications is correct."""
-    try:
-        notifications = QWebEnginePage.Notifications
-    except AttributeError:
-        pytest.skip("No Notifications member")
+class TestFindFlags:
 
-    permissions = webenginetab._WebEnginePermissions
-    assert permissions._options[notifications] == 'content.notifications.enabled'
-    assert permissions._messages[notifications] == 'show notifications'
+    @pytest.mark.parametrize("case_sensitive, backward, expected", [
+        (True, True, (QWebEnginePage.FindFlag.FindCaseSensitively |
+                      QWebEnginePage.FindFlag.FindBackward)),
+        (True, False, QWebEnginePage.FindFlag.FindCaseSensitively),
+        (False, True, QWebEnginePage.FindFlag.FindBackward),
+        (False, False, QWebEnginePage.FindFlag(0)),
+    ])
+    def test_to_qt(self, case_sensitive, backward, expected):
+        flags = webenginetab._FindFlags(
+            case_sensitive=case_sensitive,
+            backward=backward,
+        )
+        assert flags.to_qt() == expected
+
+    @pytest.mark.parametrize("case_sensitive, backward, expected", [
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
+    ])
+    def test_bool(self, case_sensitive, backward, expected):
+        flags = webenginetab._FindFlags(
+            case_sensitive=case_sensitive,
+            backward=backward,
+        )
+        assert bool(flags) == expected
+
+    @pytest.mark.parametrize("case_sensitive, backward, expected", [
+        (True, True, "FindCaseSensitively|FindBackward"),
+        (True, False, "FindCaseSensitively"),
+        (False, True, "FindBackward"),
+        (False, False, "<no find flags>"),
+    ])
+    def test_str(self, case_sensitive, backward, expected):
+        flags = webenginetab._FindFlags(
+            case_sensitive=case_sensitive,
+            backward=backward,
+        )
+        assert str(flags) == expected

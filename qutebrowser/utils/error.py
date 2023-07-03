@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,7 +17,7 @@
 
 """Tools related to error printing/displaying."""
 
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt.widgets import QMessageBox
 
 from qutebrowser.utils import log, utils
 
@@ -70,5 +68,5 @@ def handle_fatal_exc(exc: BaseException,
             msg_text = str(exc)
         if post_text:
             msg_text += '\n\n{}'.format(post_text)
-        msgbox = QMessageBox(QMessageBox.Critical, title, msg_text)
+        msgbox = QMessageBox(QMessageBox.Icon.Critical, title, msg_text)
         msgbox.exec()

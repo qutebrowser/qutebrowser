@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,7 +21,7 @@
 
 import io
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
+from qutebrowser.qt.core import QObject, pyqtSignal, pyqtSlot, QUrl
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
 from qutebrowser.utils import objreg

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -78,7 +76,7 @@ def test_debug_trace_exception(mocker):
     """Check that exceptions thrown by hunter.trace are handled."""
     def _mock_exception():
         """Side effect for testing debug_trace's reraise."""
-        raise Exception('message')
+        raise Exception('message')  # pylint: disable=broad-exception-raised
 
     hunter_mock = mocker.patch.object(misccommands, 'hunter')
     hunter_mock.trace.side_effect = _mock_exception

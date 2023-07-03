@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -24,7 +22,7 @@ import re
 import contextlib
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject
+from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, parser
@@ -55,9 +53,9 @@ def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
     replacements: Dict[str, _ReplacementFunction] = {
         'url': lambda tb: _url(tb).toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword),
+            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword),
         'url:pretty': lambda tb: _url(tb).toString(
-            QUrl.DecodeReserved | QUrl.RemovePassword),
+            QUrl.ComponentFormattingOption.DecodeReserved | QUrl.UrlFormattingOption.RemovePassword),
         'url:domain': lambda tb: "{}://{}{}".format(
             _url(tb).scheme(), _url(tb).host(),
             ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
@@ -138,9 +136,12 @@ class CommandRunner(AbstractCommandRunner):
         _win_id: The window this CommandRunner is associated with.
     """
 
-    def __init__(self, win_id, partial_match=False, parent=None):
+    def __init__(self, win_id, partial_match=False, find_similar=True, parent=None):
         super().__init__(parent)
-        self._parser = parser.CommandParser(partial_match=partial_match)
+        self._parser = parser.CommandParser(
+            partial_match=partial_match,
+            find_similar=find_similar,
+        )
         self._win_id = win_id
 
     @contextlib.contextmanager

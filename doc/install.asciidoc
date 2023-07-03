@@ -38,7 +38,7 @@ version (Qt 5.7, based on a Chromium from March 2016). Furthermore, it packages 
 Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
 QtWebEngine) and also comes with Python 3.5.
 
-You should be able to install a newer Python (3.7+) using the
+You should be able to install a newer Python (3.8+) using the
 https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or
 https://github.com/pyenv/pyenv[pyenv], and then proceed to
 <<tox,install qutebrowser in a virtualenv>>. However, this is currently untested. If you
@@ -48,7 +48,7 @@ instructions!
 Note you'll need some basic libraries to use the virtualenv-installed PyQt:
 
 ----
-# apt install --no-install-recommends git ca-certificates python3 python3-venv asciidoc libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev libnss3
+# apt install --no-install-recommends git ca-certificates python3 python3-venv libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev libnss3 libasound2
 ----
 
 // FIXME not needed anymore?
@@ -69,6 +69,12 @@ from January 2018 is packaged, with QtWebEngine 5.9 based on a Chromium from Jan
 2017. It's recommended to either upgrade to Ubuntu 20.04 LTS or <<tox,install
 qutebrowser in a virtualenv>> with a newer PyQt/Qt binary instead.
 
+Note you'll need some basic libraries to use the virtualenv-installed PyQt:
+
+----
+# apt install --no-install-recommends git ca-certificates python3 python3-venv libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev libnss3 libasound2
+----
+
 Ubuntu 20.04 LTS / Linux Mint 20 (or newer)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -87,7 +93,7 @@ Additional hints
   this for you):
 +
 ----
-# apt install --no-install-recommends asciidoc
+$ pip install -r misc/requirements/requirements-docs.txt  # or install asciidoc manually
 $ python3 scripts/asciidoc2html.py
 ----
 
@@ -237,14 +243,9 @@ Via Flatpak
 
 qutebrowser is available
 https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
-as `org.qutebrowser.qutebrowser`.
-
-NOTE: The Flatpak package is
-https://github.com/flathub/org.qutebrowser.qutebrowser/issues/8#issuecomment-799579975[looking for (co-)maintainers].
-The package recently was updated after being out of date for multiple years. It
-currently (March 2021) is up to date again. If that situation changes, consider
-to <<tox,install qutebrowser in a virtualenv>> instead, which is one of the
-officially maintained options and will always be up-to-date.
+as `org.qutebrowser.qutebrowser`. See the
+https://github.com/flathub/org.qutebrowser.qutebrowser/wiki[qutebrowser Flatpak documentation]
+for more information about setting up certain features with the Flatpak sandbox.
 
 On FreeBSD
 ----------
@@ -290,14 +291,15 @@ Nightly builds
 ~~~~~~~~~~~~~~
 
 If you want to test out new features before an official qutebrowser release, automated
-https://github.com/qutebrowser/qutebrowser/actions/workflows/bleeding.yml[nightly
-builds] are available. To download them, open the lastest run (usually the first one),
-then download the archive at the bottom of the page. Note that due to GitHub
-limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug) are contained in a
-single archive.
+https://github.com/qutebrowser/qutebrowser/actions/workflows/nightly.yml[nightly
+builds] are available. To download them, open the latest run (usually the first one),
+then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
 track down issues.
+
+NOTE: Due to GitHub limitations, you need to be signed in with a GitHub account
+to download the files.
 
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -342,6 +344,19 @@ The binary release ships with a QtWebEngine built without proprietary codec
 support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
 
+NOTE: Currently, qutebrowser
+https://github.com/qutebrowser/qutebrowser/issues/5020[does not use] macOS'
+https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution[Notarization],
+due to https://github.com/pyinstaller/pyinstaller/issues/6612[PyInstaller issues]
+(as well as the requirement to
+https://developer.apple.com/support/compare-memberships/[pay USD 100 per year to Apple]).
+Depending on your system settings, this might lead to errors such as
+"qutebrowser.app can't be opened because Apple cannot check it for malicious
+software." or "can't be opened because it is from an unidentified developer".
+You should be able to open the .app by right-clicking it and selecting "Open", see the
+https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac[macOS documentation]
+for details.
+
 This binary is also available through the https://brew.sh/[Homebrew] package
 manager as a https://github.com/Homebrew/homebrew-cask[cask]:
 
@@ -353,14 +368,15 @@ Nightly builds
 ~~~~~~~~~~~~~~
 
 If you want to test out new features before an official qutebrowser release, automated
-https://github.com/qutebrowser/qutebrowser/actions/workflows/bleeding.yml[nightly
-builds] are available. To download them, open the lastest run (usually the first one),
-then download the archive at the bottom of the page. Note that due to GitHub
-limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug) are contained in a
-single archive.
+https://github.com/qutebrowser/qutebrowser/actions/workflows/nightly.yml[nightly
+builds] are available. To download them, open the latest run (usually the first one),
+then download the archive at the bottom of the page.
 
 Those builds also include variants with debug logging enabled, which can be useful to
 track down issues.
+
+NOTE: Due to GitHub limitations, you need to be signed in with a GitHub account
+to download the files.
 
 Manual Install
 ~~~~~~~~~~~~~~
@@ -372,20 +388,9 @@ qutebrowser from source.
 ==== Homebrew
 
 ----
-$ brew install qt
-(build PyQt and PyQtWebEngine from source)
+$ brew install pyqt@5
 $ pip3 install qutebrowser
 ----
-
-NOTE: Homebrew does not package PyQtWebEngine (Python wrappers for
-QtWebEngine), so you will need to build that from sources manually.
-
-Since the v1.0 release, qutebrowser uses QtWebEngine by default.
-
-Homebrew's builds of Qt and PyQt don't come with QtWebKit (and `--with-qtwebkit`
-uses an old version of QtWebKit which qutebrowser doesn't support anymore). If
-you want QtWebKit support, you'll need to build an up-to-date QtWebKit
-https://github.com/annulen/webkit/wiki/Building-QtWebKit-on-OS-X[manually].
 
 Packagers
 ---------
@@ -447,7 +452,7 @@ This installs all needed Python dependencies in a `.venv` subfolder
 This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
 binary, but has a few caveats:
 
-- Make sure your `python3` is Python 3.7 or newer, otherwise you'll get a "No
+- Make sure your `python3` is Python 3.8 or newer, otherwise you'll get a "No
   matching distribution found" error and/or qutebrowser will not run.
 - It only works on 64-bit x86 systems, with other architectures you'll get the
   same error.
@@ -474,7 +479,7 @@ PyQt/Qt install instead of installing PyQt in the virtualenv. However, unless
 you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
 also typically means you'll be using an older release of QtWebEngine.
 
-On Windows, run `set PYTHON=C:\path\to\python.exe` (CMD) or ``$Env:PYTHON =
+On Windows, run `set PYTHON=C:\path\to\python.exe` (CMD) or `$Env:PYTHON =
 "..."` (Powershell) first.
 
 There is a third mode, `mkvenv.py --pyqt-type source` which uses a system-wide
@@ -496,18 +501,6 @@ You can create a simple wrapper script to start qutebrowser somewhere in your
 ----
 #!/bin/bash
 ~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
-----
-
-Building the docs
-~~~~~~~~~~~~~~~~~
-
-To build the documentation, install `asciidoc` (note that LaTeX which comes as
-optional/recommended dependency with some distributions is not required).
-
-Then, run:
-
-----
-$ python3 scripts/asciidoc2html.py
 ----
 
 Updating

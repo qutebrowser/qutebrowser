@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -67,4 +65,5 @@ def check_history(quteproc, server, tmpdir, expected):
 
 @bdd.then("the history should be empty")
 def check_history_empty(quteproc, server, tmpdir):
+    quteproc.wait_for(message='DELETE FROM History', category='sql')
     check_history(quteproc, server, tmpdir, '')

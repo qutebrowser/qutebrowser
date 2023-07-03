@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -18,6 +16,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.commands.parser."""
+
+import re
 
 import pytest
 
@@ -64,7 +64,7 @@ class TestCommandParser:
         and https://github.com/qutebrowser/qutebrowser/issues/1773
         """
         p = parser.CommandParser()
-        with pytest.raises(cmdexc.NoSuchCommandError):
+        with pytest.raises(cmdexc.EmptyCommandError):
             p.parse_all(command)
 
     @pytest.mark.parametrize('command, name, args', [
@@ -135,3 +135,13 @@ class TestCompletions:
 
         result = p.parse('tw')
         assert result.cmd.name == 'two'
+
+
+@pytest.mark.parametrize("find_similar, msg", [
+    (True, "tabfocus: no such command (did you mean :tab-focus?)"),
+    (False, "tabfocus: no such command"),
+])
+def test_find_similar(find_similar, msg):
+    p = parser.CommandParser(find_similar=find_similar)
+    with pytest.raises(cmdexc.NoSuchCommandError, match=re.escape(msg)):
+        p.parse_all("tabfocus", aliases=False)

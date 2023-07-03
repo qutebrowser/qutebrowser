@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,7 +21,7 @@ import argparse
 import os.path
 import sys
 
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt.widgets import QMessageBox
 
 from qutebrowser.api import config as configapi
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
@@ -135,7 +133,7 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
                                text=_init_errors.to_html(),
-                               icon=QMessageBox.Warning,
+                               icon=QMessageBox.Icon.Warning,
                                plain_text=False)
         errbox.exec()
 

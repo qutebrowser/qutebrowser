@@ -62,8 +62,11 @@ show it.
 *--backend* '{webkit,webengine}'::
     Which backend to use.
 
+*--qt-wrapper* '{PyQt6,PyQt5}'::
+    Which Qt wrapper to use. This can also be set via the QUTE_QT_WRAPPER environment variable. If both are set, the command line argument takes precedence.
+
 *--desktop-file-name* 'DESKTOP_FILE_NAME'::
-    Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop
+    Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-6/qguiapplication.html#desktopFileName-prop
 
 *--untrusted-args*::
     Mark all following arguments as untrusted, which enforces that they are URLs/search terms (and not flags or commands)
@@ -133,8 +136,14 @@ If you prefer, you can also write to the
 https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
-For security bugs, please contact me directly at me@the-compiler.org, GPG ID
-https://www.the-compiler.org/pubkey.asc[0xFD55A072].
+For security bugs, please contact security@qutebrowser.org (or if GPG
+encryption is desired, contact me@the-compiler.org with GPG ID
+https://www.the-compiler.org/pubkey.asc[0x916EB0C8FD55A072]).
+
+Alternatively,
+https://github.com/qutebrowser/qutebrowser/security/advisories/new[report a vulnerability]
+via GitHub's
+https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability[private reporting feature].
 
 == COPYRIGHT
 This program is free software: you can redistribute it and/or modify it under

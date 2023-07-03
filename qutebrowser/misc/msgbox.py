@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,8 +17,8 @@
 
 """Convenience functions to show message boxes."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.widgets import QMessageBox
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import log
@@ -34,7 +32,7 @@ class DummyBox:
         pass
 
 
-def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
+def msgbox(parent, title, text, *, icon, buttons=QMessageBox.StandardButton.Ok,
            on_finished=None, plain_text=None):
     """Display a QMessageBox with the given icon.
 
@@ -56,15 +54,15 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         return DummyBox()
 
     box = QMessageBox(parent)
-    box.setAttribute(Qt.WA_DeleteOnClose)
+    box.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:
         box.finished.connect(on_finished)
     if plain_text:
-        box.setTextFormat(Qt.PlainText)
+        box.setTextFormat(Qt.TextFormat.PlainText)
     elif plain_text is not None:
-        box.setTextFormat(Qt.RichText)
+        box.setTextFormat(Qt.TextFormat.RichText)
     box.setWindowTitle(title)
     box.setText(text)
     box.show()
@@ -81,4 +79,4 @@ def information(*args, **kwargs):
     Return:
         A new QMessageBox.
     """
-    return msgbox(*args, icon=QMessageBox.Information, **kwargs)
+    return msgbox(*args, icon=QMessageBox.Icon.Information, **kwargs)

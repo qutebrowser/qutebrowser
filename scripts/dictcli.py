@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
@@ -40,7 +38,7 @@ from qutebrowser.config import configdata
 from qutebrowser.utils import standarddir
 
 
-API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
+API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/main/'
 
 
 class InvalidLanguageError(Exception):

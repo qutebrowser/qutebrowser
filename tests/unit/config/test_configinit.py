@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -427,7 +426,7 @@ def test_get_backend(monkeypatch, args, config_stub,
     real_import = __import__
 
     def fake_import(name, *args, **kwargs):
-        if name != 'PyQt5.QtWebKit':
+        if name != 'qutebrowser.qt.webkit':
             return real_import(name, *args, **kwargs)
         raise ImportError
 

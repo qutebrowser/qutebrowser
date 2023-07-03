@@ -1,6 +1,4 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,13 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Wrappers around Qt/PyQt code."""
+import pytest
+webview = pytest.importorskip('qutebrowser.browser.webkit.webview')
 
-# pylint: disable=unused-import
 
-# While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some distributions
-# still package later versions of PyQt5 with a top-level "sip" rather than "PyQt5.sip".
-try:
-    from PyQt5 import sip
-except ImportError:
-    import sip  # type: ignore[import, no-redef]
+@pytest.fixture
+def real_webview(webkit_tab, qtbot):
+    wv = webview.WebView(win_id=0, tab_id=0, tab=webkit_tab, private=False)
+    qtbot.add_widget(wv)
+    return wv
+
+
+def test_background_color_none(config_stub, real_webview):
+    config_stub.val.colors.webpage.bg = None

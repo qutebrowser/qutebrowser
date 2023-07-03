@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -28,6 +26,7 @@ import sys
 import subprocess
 import tempfile
 import filecmp
+import json
 
 
 class Error(Exception):
@@ -126,24 +125,28 @@ def get_lib_path(executable, name, required=True):
         raise ValueError("Unexpected output: {!r}".format(output))
 
 
-def link_pyqt(executable, venv_path):
+def link_pyqt(executable, venv_path, *, version='5'):
     """Symlink the systemwide PyQt/sip into the venv.
 
     Args:
         executable: The python executable where the source files are present.
         venv_path: The path to the virtualenv site-packages.
+        version: The PyQt version to use.
     """
+    if version not in ["5", "6"]:
+        raise ValueError(f"Invalid version {version}")
+
     try:
-        get_lib_path(executable, 'PyQt5.sip')
+        get_lib_path(executable, f'PyQt{version}.sip')
     except Error:
-        # There is no PyQt5.sip, so we need to copy the toplevel sip.
+        # There is no PyQt*.sip, so we need to copy the toplevel sip.
         sip_file = get_lib_path(executable, 'sip')
     else:
-        # There is a PyQt5.sip, it'll get copied with the PyQt5 dir.
+        # There is a PyQt*.sip, it'll get copied with the PyQt* dir.
         sip_file = None
 
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
-    pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5.QtCore'))
+    pyqt_dir = os.path.dirname(get_lib_path(executable, f'PyQt{version}.QtCore'))
 
     for path in [sip_file, sipconfig_file, pyqt_dir]:
         if path is None:
@@ -196,9 +199,15 @@ def get_venv_lib_path(path):
 def get_tox_syspython(tox_path):
     """Get the system python based on a virtualenv created by tox."""
     path = os.path.join(tox_path, '.tox-config1')
-    with open(path, encoding='ascii') as f:
-        line = f.readline()
-    _md5, sys_python = line.rstrip().split(' ', 1)
+    if os.path.exists(path):  # tox3
+        with open(path, encoding='ascii') as f:
+            line = f.readline()
+        _md5, sys_python = line.rstrip().split(' ', 1)
+    else:  # tox4
+        path = os.path.join(tox_path, '.tox-info.json')
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+            sys_python = data["Python"]["executable"]
     # Follow symlinks to get the system-wide interpreter if we have a tox isolated
     # build.
     return os.path.realpath(sys_python)
@@ -211,17 +220,11 @@ def main():
                         action='store_true')
     args = parser.parse_args()
 
-    if args.tox:
-        # Workaround for the lack of negative factors in tox.ini
-        if 'LINK_PYQT_SKIP' in os.environ:
-            print('LINK_PYQT_SKIP set, exiting...')
-            sys.exit(0)
-        executable = get_tox_syspython(args.path)
-    else:
-        executable = sys.executable
+    executable = get_tox_syspython(args.path) if args.tox else sys.executable
 
     venv_path = get_venv_lib_path(args.path)
-    link_pyqt(executable, venv_path)
+    wrapper = os.environ["QUTE_QT_WRAPPER"]
+    link_pyqt(executable, venv_path, version=wrapper[-1])
 
 
 if __name__ == '__main__':

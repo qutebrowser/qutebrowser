@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,12 +19,13 @@
 
 from typing import cast
 
-from PyQt5.QtCore import pyqtSlot, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent, QWindow
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
+from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, debug, log
 
 
 class EventFilter(QObject):
@@ -43,10 +42,11 @@ class EventFilter(QObject):
         super().__init__(parent)
         self._activated = True
         self._handlers = {
-            QEvent.KeyPress: self._handle_key_event,
-            QEvent.KeyRelease: self._handle_key_event,
-            QEvent.ShortcutOverride: self._handle_key_event,
+            QEvent.Type.KeyPress: self._handle_key_event,
+            QEvent.Type.KeyRelease: self._handle_key_event,
+            QEvent.Type.ShortcutOverride: self._handle_key_event,
         }
+        self._log_qt_events = "log-qt-events" in objects.debug_flags
 
     def install(self) -> None:
         objects.qapp.installEventFilter(self)
@@ -86,20 +86,31 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
+        ev_type = event.type()
+        if machinery.IS_QT6:
+            ev_type = cast(QEvent.Type, ev_type)
+
+        if self._log_qt_events:
+            try:
+                source = repr(obj)
+            except AttributeError:  # might not be fully initialized yet
+                source = type(obj).__name__
+
+            ev_type_str = debug.qenum_key(QEvent, ev_type)
+            log.misc.debug(f"{source} got event: {ev_type_str}")
+
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
 
-        typ = event.type()
-
-        if typ not in self._handlers:
+        if ev_type not in self._handlers:
             return False
 
         if not self._activated:
             return False
 
-        handler = self._handlers[typ]
+        handler = self._handlers[ev_type]
         try:
             return handler(cast(QKeyEvent, event))
         except:

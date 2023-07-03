@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -24,7 +22,7 @@ import logging
 import pytest
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser.webkit import http
 
@@ -42,6 +40,21 @@ def test_no_content_disposition(stubs, url, expected):
     inline, filename = http.parse_content_disposition(reply)
     assert inline
     assert filename == expected
+
+
+@pytest.mark.parametrize('value', [
+    # https://github.com/python/cpython/issues/87112
+    'inline; 0*²'.encode("iso-8859-1"),
+    # https://github.com/python/cpython/issues/81672
+    b'"',
+    # https://github.com/python/cpython/issues/93010
+    b'attachment; 0*00="foo"',
+    # FIXME: Should probably have more tests if this is still relevant after
+    # dropping QtWebKit.
+])
+def test_parse_content_disposition_invalid(value):
+    with pytest.raises(http.ContentDispositionError):
+        http.ContentDisposition.parse(value)
 
 
 @pytest.mark.parametrize('template', [

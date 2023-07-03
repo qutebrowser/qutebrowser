@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -27,8 +25,8 @@ import sys
 import traceback
 from typing import Optional
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils

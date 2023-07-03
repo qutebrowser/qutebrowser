@@ -32,6 +32,7 @@ include doc/qutebrowser.1.asciidoc
 include doc/changelog.asciidoc
 prune qutebrowser/3rdparty
 exclude mypy.ini
+exclude pyrightconfig.json
 exclude tox.ini
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore

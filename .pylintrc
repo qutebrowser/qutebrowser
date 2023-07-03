@@ -1,10 +1,7 @@
-# vim: ft=dosini fileencoding=utf-8:
-
 [MASTER]
 ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip
 load-plugins=qute_pylint.config,
-             qute_pylint.modeline,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
              pylint.extensions.overlapping_exceptions,
@@ -16,17 +13,17 @@ load-plugins=qute_pylint.config,
              pylint.extensions.typing,
              pylint.extensions.docparams,
              pylint.extensions.private_import,
+             pylint.extensions.dict_init_mutate,
+             pylint.extensions.dunder
 
 persistent=n
-py-version=3.7
+py-version=3.8
 
 [MESSAGES CONTROL]
 enable=all
 disable=locally-disabled,
-        locally-enabled,
         suppressed-message,
         fixme,
-        no-self-use,
         cyclic-import,
         blacklisted-name,
         logging-format-interpolation,
@@ -51,8 +48,8 @@ disable=locally-disabled,
         too-many-statements,
         too-few-public-methods,
         import-outside-toplevel,
-        bad-continuation,  # This lint disagrees with Black
         consider-using-f-string,
+        consider-using-assignment-expr,
         logging-fstring-interpolation,
         raise-missing-from,
         consider-using-tuple,
@@ -61,6 +58,8 @@ disable=locally-disabled,
         missing-type-doc,
         missing-param-doc,
         useless-param-doc,
+        wrong-import-order,  # FIXME:qt6 (lint)
+        ungrouped-imports,  # FIXME:qt6 (lint)
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
@@ -75,7 +74,8 @@ no-docstring-rgx=(^_|^main$)
 class-const-naming-style = snake_case
 
 [FORMAT]
-max-line-length=88
+# FIXME:v4 (lint) down to 88 again once we use black
+max-line-length=190
 ignore-long-lines=(<?https?://|file://|^# Copyright 201\d|link:)
 expected-line-ending-format=LF
 

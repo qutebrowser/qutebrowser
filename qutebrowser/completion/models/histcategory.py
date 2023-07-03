@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
@@ -21,8 +19,8 @@
 
 from typing import Optional
 
-from PyQt5.QtSql import QSqlQueryModel
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.sql import QSqlQueryModel
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,8 +19,8 @@
 
 from typing import Sequence
 
-from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import pyqtSignal, QDateTime
+from qutebrowser.qt.network import QNetworkCookie, QNetworkCookieJar
+from qutebrowser.qt.core import pyqtSignal, QDateTime
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir, objreg, log

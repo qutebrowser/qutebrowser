@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -20,8 +18,8 @@
 import hypothesis
 from hypothesis import strategies
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QLabel
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.widgets import QLabel
 
 from qutebrowser.config import configutils, configdata, configtypes, configexc
 from qutebrowser.utils import urlmatch, usertypes, qtutils

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
@@ -22,9 +20,9 @@
 
 import os
 
-from PyQt5.QtCore import QUrl, QUrlQuery
+from qutebrowser.qt.core import QUrl, QUrlQuery
 
-from qutebrowser.utils import resources, javascript, jinja, standarddir, log
+from qutebrowser.utils import resources, javascript, jinja, standarddir, log, urlutils
 from qutebrowser.config import config
 
 
@@ -95,22 +93,29 @@ def _generate_pdfjs_script(filename):
     url_query.addQueryItem('filename', filename)
     url.setQuery(url_query)
 
-    js_url = javascript.to_js(
-        url.toString(QUrl.FullyEncoded))  # type: ignore[arg-type]
+    js_url = javascript.to_js(url.toString(urlutils.FormatOption.ENCODED))
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
-          if (typeof window.PDFJS !== 'undefined') {
-              // v1.x
-              window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
-          } else {
-              // v2.x
-              const options = window.PDFViewerApplicationOptions;
-              options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
-          }
+            if (typeof window.PDFJS !== 'undefined') {
+                // v1.x
+                window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
+            } else {
+                // v2.x+
+                const options = window.PDFViewerApplicationOptions;
+                options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
+            }
 
-          const viewer = window.PDFView || window.PDFViewerApplication;
-          viewer.open({{ url }});
+            if (typeof window.PDFView !== 'undefined') {
+                // < v1.6
+                window.PDFView.open({{ url }});
+            } else {
+                // v1.6+
+                window.PDFViewerApplication.open({
+                    url: {{ url }},
+                    originalUrl: {{ url }}
+                });
+            }
         });
     """).render(url=js_url)
 
@@ -237,7 +242,7 @@ def get_main_url(filename: str, original_url: QUrl) -> QUrl:
     query = QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
-    urlstr = original_url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = original_url.toString(urlutils.FormatOption.ENCODED)
     query.addQueryItem('source', urlstr)
     url.setQuery(query)
     return url

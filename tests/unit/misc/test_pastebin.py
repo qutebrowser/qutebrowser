@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 # Copyright 2016-2018 Anna Kobak (avk) <awerk@onet.eu>:
 #
@@ -19,7 +17,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.misc import httpclient, pastebin
 

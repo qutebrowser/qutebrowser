@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -28,10 +26,10 @@ import textwrap
 import logging
 import subprocess
 
-from PyQt5.QtCore import QStandardPaths
+from qutebrowser.qt.core import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir, utils, qtutils, version
+from qutebrowser.utils import standarddir, utils, version
 
 
 # Use a different application name for tests to make sure we don't change real
@@ -114,8 +112,8 @@ def test_fake_windows(tmpdir, monkeypatch, what):
 def test_fake_haiku(tmpdir, monkeypatch):
     """Test getting data dir on HaikuOS."""
     locations = {
-        QStandardPaths.AppDataLocation: '',
-        QStandardPaths.ConfigLocation: str(tmpdir / 'config' / APPNAME),
+        QStandardPaths.StandardLocation.AppDataLocation: '',
+        QStandardPaths.StandardLocation.ConfigLocation: str(tmpdir / 'config' / APPNAME),
     }
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         locations.get)
@@ -135,14 +133,14 @@ class TestWritableLocation:
             'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
-            standarddir._writable_location(QStandardPaths.AppDataLocation)
+            standarddir._writable_location(QStandardPaths.StandardLocation.AppDataLocation)
 
     def test_sep(self, monkeypatch):
         """Make sure the right kind of separator is used."""
         monkeypatch.setattr(standarddir.os, 'sep', '\\')
         monkeypatch.setattr(standarddir.os.path, 'join',
                             lambda *parts: '\\'.join(parts))
-        loc = standarddir._writable_location(QStandardPaths.AppDataLocation)
+        loc = standarddir._writable_location(QStandardPaths.StandardLocation.AppDataLocation)
         assert '/' not in loc
         assert '\\' in loc
 
@@ -191,21 +189,6 @@ class TestStandardDir:
         """Test dirs with XDG_*_HOME not set."""
         standarddir._init_dirs()
         assert func() == str(tmp_path.joinpath(*subdirs))
-
-    @pytest.mark.linux
-    @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
-    @pytest.mark.skipif(
-        qtutils.version_check('5.14', compiled=False),
-        reason="Qt 5.14 automatically creates missing runtime dirs")
-    def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
-        """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
-        tmpdir_env = tmpdir / 'temp'
-        tmpdir_env.ensure(dir=True)
-        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
-        monkeypatch.setenv('TMPDIR', str(tmpdir_env))
-
-        standarddir._init_runtime(args=None)
-        assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
     @pytest.mark.linux
     @pytest.mark.parametrize('args_basedir', [True, False])
@@ -281,7 +264,7 @@ class TestArguments:
 
     def test_basedir_relative(self, tmpdir):
         """Test --basedir with a relative path."""
-        basedir = (tmpdir / 'basedir')
+        basedir = tmpdir / 'basedir'
         basedir.ensure(dir=True)
         with tmpdir.as_cwd():
             args = types.SimpleNamespace(basedir='basedir')
@@ -471,7 +454,7 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
-        from PyQt5.QtWidgets import QApplication
+        from qutebrowser.qt.widgets import QApplication
         from qutebrowser.utils import standarddir
 
         assert QApplication.instance() is None

@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Going back and forward.
     Testing the :back/:forward commands.
 
@@ -137,10 +135,20 @@ Feature: Going back and forward.
         When I run :back
         Then the error "At beginning of history." should be shown
 
+    Scenario: Going back without history and --quiet
+        Given I open data/backforward/1.txt
+        When I run :back --quiet
+        Then "At beginning of history." should be logged
+
     Scenario: Going forward without history
         Given I open data/backforward/1.txt
         When I run :forward
         Then the error "At end of history." should be shown
+
+    Scenario: Going forward without history and --quiet
+        Given I open data/backforward/1.txt
+        When I run :forward --quiet
+        Then "At end of history." should be logged
 
     @qtwebengine_skip: Getting 'at beginning of history' when going back
     Scenario: Going forward too much with count.

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,7 +21,7 @@ import shlex
 
 import pytest
 import pytest_bdd as bdd
-from PyQt5.QtNetwork import QSslSocket
+from qutebrowser.qt.network import QSslSocket
 bdd.scenarios('downloads.feature')
 
 
@@ -38,7 +36,7 @@ def download_dir(tmpdir):
     downloads.ensure(dir=True)
     (downloads / 'subdir').ensure(dir=True)
     try:
-        os.mkfifo(str(downloads / 'fifo'))
+        os.mkfifo(downloads / 'fifo')
     except AttributeError:
         pass
     unwritable = downloads / 'unwritable'
@@ -69,10 +67,17 @@ def check_ssl():
         pytest.skip("QtNetwork SSL not supported")
 
 
+@bdd.when("I download an SSL redirect page")
+def download_ssl_redirect(server, ssl_server, quteproc):
+    path = "data/downloads/download.bin"
+    url = f"https://localhost:{ssl_server.port}/redirect-http/{path}?port={server.port}"
+    quteproc.send_cmd(f":download {url}")
+
+
 @bdd.when("the unwritable dir is unwritable")
 def check_unwritable(tmpdir):
     unwritable = tmpdir / 'downloads' / 'unwritable'
-    if os.access(str(unwritable), os.W_OK):
+    if os.access(unwritable, os.W_OK):
         # Docker container or similar
         pytest.skip("Unwritable dir was writable")
 
@@ -166,4 +171,4 @@ def delete_file(tmpdir, filename):
 def fifo_should_be_fifo(tmpdir):
     download_dir = tmpdir / 'downloads'
     assert download_dir.exists()
-    assert not os.path.isfile(str(download_dir / 'fifo'))
+    assert not os.path.isfile(download_dir / 'fifo')

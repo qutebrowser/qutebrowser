@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -26,9 +24,9 @@ import dataclasses
 
 import pytest
 import pytestqt.wait_signal
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
+from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QProcess, QObject,
                           QElapsedTimer, QProcessEnvironment)
-from PyQt5.QtTest import QSignalSpy
+from qutebrowser.qt.test import QSignalSpy
 
 from helpers import testutils
 
@@ -151,7 +149,7 @@ class Process(QObject):
         self._invalid = []
         self._data = []
         self.proc = QProcess()
-        self.proc.setReadChannel(QProcess.StandardError)
+        self.proc.setReadChannel(QProcess.ProcessChannel.StandardError)
         self.exit_expected = None  # Not started at all yet
 
     def _log(self, line):
@@ -325,7 +323,7 @@ class Process(QObject):
 
     def is_running(self):
         """Check if the process is currently running."""
-        return self.proc.state() == QProcess.Running
+        return self.proc.state() == QProcess.ProcessState.Running
 
     def _match_data(self, value, expected):
         """Helper for wait_for to match a given value.

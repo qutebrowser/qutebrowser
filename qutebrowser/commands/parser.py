@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
@@ -43,10 +41,18 @@ class CommandParser:
 
     Attributes:
         _partial_match: Whether to allow partial command matches.
+        _find_similar: Whether to find similar matches on unknown commands.
+                       If we use this for completion, errors are not shown in the UI,
+                       so we don't need to search.
     """
 
-    def __init__(self, partial_match: bool = False) -> None:
+    def __init__(
+        self,
+        partial_match: bool = False,
+        find_similar: bool = False,
+    ) -> None:
         self._partial_match = partial_match
+        self._find_similar = find_similar
 
     def _get_alias(self, text: str, *, default: str) -> str:
         """Get an alias from the config.
@@ -95,7 +101,7 @@ class CommandParser:
         """
         text = text.strip().lstrip(':').strip()
         if not text:
-            raise cmdexc.NoSuchCommandError("No command given")
+            raise cmdexc.EmptyCommandError
 
         if aliases:
             text = self._get_alias(text, default=text)
@@ -128,7 +134,7 @@ class CommandParser:
         cmdstr, sep, argstr = text.partition(' ')
 
         if not cmdstr:
-            raise cmdexc.NoSuchCommandError("No command given")
+            raise cmdexc.EmptyCommandError
 
         if self._partial_match:
             cmdstr = self._completion_match(cmdstr)
@@ -136,7 +142,10 @@ class CommandParser:
         try:
             cmd = objects.commands[cmdstr]
         except KeyError:
-            raise cmdexc.NoSuchCommandError(f'{cmdstr}: no such command')
+            raise cmdexc.NoSuchCommandError.for_cmd(
+                cmdstr,
+                all_commands=list(objects.commands) if self._find_similar else [],
+            )
 
         args = self._split_args(cmd, argstr, keep)
         if keep and args:

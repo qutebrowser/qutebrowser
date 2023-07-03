@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,7 +20,7 @@
 import logging
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import history
 from qutebrowser.utils import urlutils, usertypes
@@ -276,7 +274,7 @@ class TestHistoryInterface:
     @pytest.fixture
     def hist_interface(self, web_history):
         # pylint: disable=invalid-name
-        QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
+        QtWebKit = pytest.importorskip('qutebrowser.qt.webkit')
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
@@ -304,7 +302,7 @@ class TestInit:
             history.web_history.setParent(None)
             history.web_history = None
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            from qutebrowser.qt.webkit import QWebHistoryInterface
             QWebHistoryInterface.setDefaultInterface(None)
         except ImportError:
             pass
@@ -313,7 +311,7 @@ class TestInit:
                                          usertypes.Backend.QtWebKit])
     def test_init(self, backend, qapp, tmpdir, data_tmpdir, monkeypatch, cleanup_init):
         if backend == usertypes.Backend.QtWebKit:
-            pytest.importorskip('PyQt5.QtWebKitWidgets')
+            pytest.importorskip('qutebrowser.qt.webkitwidgets')
         else:
             assert backend == usertypes.Backend.QtWebEngine
 
@@ -322,7 +320,7 @@ class TestInit:
         assert history.web_history.parent() is qapp
 
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            from qutebrowser.qt.webkit import QWebHistoryInterface
         except ImportError:
             QWebHistoryInterface = None
 
@@ -471,7 +469,7 @@ class TestRebuild:
         # Trigger a completion rebuild
         monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
 
-        with pytest.raises(Exception, match='tick-tock'):
+        with pytest.raises(stubs.FakeHistoryTick, match='tick-tock'):
             history.WebHistory(web_history.database, progress=progress)
 
         assert web_history.metainfo['force_rebuild']

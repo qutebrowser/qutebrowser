@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -33,18 +31,17 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union)
+                    Optional, Set, Tuple, Union, TextIO, Literal, cast)
 
-from PyQt5 import QtCore
+from qutebrowser.qt import core as qtcore
 # Optional imports
 try:
     import colorama
 except ImportError:
-    colorama = None
+    colorama = None  # type: ignore[assignment]
 
 if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
-    from typing import TextIO
 
 _log_inited = False
 _args = None
@@ -211,13 +208,13 @@ def init_log(args: argparse.Namespace) -> None:
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
-    QtCore.qInstallMessageHandler(qt_message_handler)
+    qtcore.qInstallMessageHandler(qt_message_handler)
     _log_inited = True
 
 
-@QtCore.pyqtSlot()
+@qtcore.pyqtSlot()
 def shutdown_log() -> None:
-    QtCore.qInstallMessageHandler(None)
+    qtcore.qInstallMessageHandler(None)
 
 
 def _init_py_warnings() -> None:
@@ -236,19 +233,21 @@ def _init_py_warnings() -> None:
 @contextlib.contextmanager
 def disable_qt_msghandler() -> Iterator[None]:
     """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = QtCore.qInstallMessageHandler(None)
+    old_handler = qtcore.qInstallMessageHandler(None)
     try:
         yield
     finally:
-        QtCore.qInstallMessageHandler(old_handler)
+        qtcore.qInstallMessageHandler(old_handler)
 
 
 @contextlib.contextmanager
-def py_warning_filter(action: str = 'ignore', **kwargs: Any) -> Iterator[None]:
+def py_warning_filter(
+    action:
+        Literal['default', 'error', 'ignore', 'always', 'module', 'once'] = 'ignore',
+    **kwargs: Any,
+) -> Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
-    # FIXME Use Literal['default', 'error', 'ignore', 'always', 'module', 'once']
-    # once we use Python 3.8 or typing_extensions
-    warnings.filterwarnings(action, **kwargs)  # type: ignore[arg-type]
+    warnings.filterwarnings(action, **kwargs)
     yield
     if _log_inited:
         _init_py_warnings()
@@ -279,7 +278,7 @@ def _init_handlers(
     else:
         strip = False if force_color else None
         if use_colorama:
-            stream = colorama.AnsiToWin32(sys.stderr, strip=strip)
+            stream = cast(TextIO, colorama.AnsiToWin32(sys.stderr, strip=strip))
         else:
             stream = sys.stderr
         console_handler = logging.StreamHandler(stream)
@@ -378,8 +377,8 @@ def change_console_formatter(level: int) -> None:
         assert isinstance(old_formatter, JSONFormatter), old_formatter
 
 
-def qt_message_handler(msg_type: QtCore.QtMsgType,
-                       context: QtCore.QMessageLogContext,
+def qt_message_handler(msg_type: qtcore.QtMsgType,
+                       context: qtcore.QMessageLogContext,
                        msg: str) -> None:
     """Qt message handler to redirect qWarning etc. to the logging system.
 
@@ -392,18 +391,12 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     # Note we map critical to ERROR as it's actually "just" an error, and fatal
     # to critical.
     qt_to_logging = {
-        QtCore.QtDebugMsg: logging.DEBUG,
-        QtCore.QtWarningMsg: logging.WARNING,
-        QtCore.QtCriticalMsg: logging.ERROR,
-        QtCore.QtFatalMsg: logging.CRITICAL,
+        qtcore.QtMsgType.QtDebugMsg: logging.DEBUG,
+        qtcore.QtMsgType.QtWarningMsg: logging.WARNING,
+        qtcore.QtMsgType.QtCriticalMsg: logging.ERROR,
+        qtcore.QtMsgType.QtFatalMsg: logging.CRITICAL,
+        qtcore.QtMsgType.QtInfoMsg: logging.INFO,
     }
-    try:
-        qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
-    except AttributeError:
-        # Added in Qt 5.5.
-        # While we don't support Qt < 5.5 anymore, logging still needs to work so that
-        # the Qt version warning in earlyinit.py does.
-        pass
 
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.
@@ -468,6 +461,8 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
         # https://bugreports.qt.io/browse/QTBUG-76391
         "Attribute Qt::AA_ShareOpenGLContexts must be set before "
         "QCoreApplication is created.",
+        # Qt 6.4 beta 1: https://bugreports.qt.io/browse/QTBUG-104741
+        "GL format 0 is not supported",
     ]
     # not using utils.is_mac here, because we can't be sure we can successfully
     # import the utils module here.
@@ -482,6 +477,11 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
         msg = "Logged empty message!"
 
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
+        level = logging.DEBUG
+    elif context.category == "qt.webenginecontext" and (
+        msg.strip().startswith("GL Type: ") or  # Qt 6.3
+        msg.strip().startswith("GLImplementation:")  # Qt 6.2
+    ):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]
@@ -728,10 +728,10 @@ class ColoredFormatter(logging.Formatter):
 
     def __init__(self, fmt: str,
                  datefmt: str,
-                 style: str, *,
+                 style: Literal["%", "{", "$"],
+                 *,
                  use_colors: bool) -> None:
-        # FIXME Use Literal["%", "{", "$"] once we use Python 3.8 or typing_extensions
-        super().__init__(fmt, datefmt, style)  # type: ignore[arg-type]
+        super().__init__(fmt, datefmt, style)
         self.use_colors = use_colors
 
     def format(self, record: logging.LogRecord) -> str:
@@ -780,9 +780,9 @@ class HTMLFormatter(logging.Formatter):
         if record_clone.levelname in self._log_colors:
             color = self._log_colors[record_clone.levelname]
             color_str = self._colordict[color]
-            record_clone.log_color = color_str  # type: ignore[attr-defined]
+            record_clone.log_color = color_str
         else:
-            record_clone.log_color = ''  # type: ignore[attr-defined]
+            record_clone.log_color = ''
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record_clone, field))

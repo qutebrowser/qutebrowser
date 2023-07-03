@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Tab management
     Tests for various :tab-* commands.
 
@@ -512,7 +510,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move with count 23
-        Then the error "Can't move tab to position 23!" should be shown.
+        Then the error "Can't move tab to position 23!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -543,7 +541,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move -5
-        Then the error "Can't move tab to position -1!" should be shown.
+        Then the error "Can't move tab to position -1!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -564,7 +562,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move -2 with count 4
-        Then the error "Can't move tab to position 4!" should be shown.
+        Then the error "Can't move tab to position 4!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -674,7 +672,7 @@ Feature: Tab management
 
     Scenario: :tab-clone with -b and -w
         When I run :tab-clone -b -w
-        Then the error "Only one of -b/-w/-p can be given!" should be shown.
+        Then the error "Only one of -b/-w/-p can be given!" should be shown
 
     Scenario: Cloning a tab with history and title
         When I open data/title.html
@@ -781,8 +779,9 @@ Feature: Tab management
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
     @qtwebkit_skip
+    @windows_skip
     Scenario: Cloning a tab with a special URL
-        When I open chrome://gpu
+        When I open chrome://sandbox/
         And I run :tab-clone
         Then no crash should happen
 

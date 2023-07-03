@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -27,9 +25,9 @@ import functools
 import glob
 import textwrap
 import dataclasses
-from typing import cast, List, Sequence
+from typing import cast, List, Sequence, Tuple, Optional
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes, message)
@@ -145,7 +143,7 @@ class GreasemonkeyScript:
     def needs_document_end_workaround(self):
         """Check whether to force @run-at document-end.
 
-        This needs to be done on QtWebEngine (since Qt 5.12) for known-broken scripts.
+        This needs to be done on QtWebEngine for known-broken scripts.
 
         On Qt 5.12, accessing the DOM isn't possible with "@run-at
         document-start". It was documented to be impossible before, but seems
@@ -227,6 +225,38 @@ class MatchingScripts:
     idle: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
 
 
+@dataclasses.dataclass
+class LoadResults:
+
+    """The results of loading all Greasemonkey scripts."""
+
+    successful: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    errors: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
+
+    def successful_str(self) -> str:
+        """Get a string with all successfully loaded scripts.
+
+        This can be used e.g. for a message.info() call.
+        """
+        if not self.successful:
+            return "No Greasemonkey scripts loaded"
+
+        names = '\n'.join(str(script) for script in sorted(self.successful, key=str))
+        return f"Loaded Greasemonkey scripts:\n\n{names}"
+
+    def error_str(self) -> Optional[str]:
+        """Get a string with all errors during script loading.
+
+        This can be used e.g. for a message.error() call.
+        If there were no errors, None is returned.
+        """
+        if not self.errors:
+            return None
+
+        lines = '\n'.join(f"{script}: {error}" for script, error in sorted(self.errors))
+        return f"Greasemonkey scripts failed to load:\n\n{lines}"
+
+
 class GreasemonkeyMatcher:
 
     """Check whether scripts should be loaded for a given URL."""
@@ -238,7 +268,7 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(QUrl.FullyEncoded)
+        self._url_string = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):
@@ -282,9 +312,7 @@ class GreasemonkeyManager(QObject):
         self._run_idle: List[GreasemonkeyScript] = []
         self._in_progress_dls: List[downloads.AbstractDownloadItem] = []
 
-        self.load_scripts()
-
-    def load_scripts(self, *, force: bool = False) -> List[GreasemonkeyScript]:
+    def load_scripts(self, *, force: bool = False) -> LoadResults:
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -295,30 +323,32 @@ class GreasemonkeyManager(QObject):
                    re-download them.
 
         Return:
-            A list of loaded scripts.
+            A LoadResults object describing the outcome.
         """
         self._run_start = []
         self._run_end = []
         self._run_idle = []
 
-        scripts = []
+        successful = []
+        errors = []
         for scripts_dir in _scripts_dirs():
             scripts_dir = os.path.abspath(scripts_dir)
             log.greasemonkey.debug("Reading scripts from: {}".format(scripts_dir))
 
             for script_filename in glob.glob(os.path.join(scripts_dir, '*.js')):
-                if not os.path.isfile(script_filename):
-                    continue
                 script_path = os.path.join(scripts_dir, script_filename)
-                with open(script_path, encoding='utf-8-sig') as script_file:
-                    script = GreasemonkeyScript.parse(script_file.read(),
-                                                      script_filename)
-                    assert script.name, script
-                    self.add_script(script, force)
-                    scripts.append(script)
+                try:
+                    with open(script_path, encoding='utf-8-sig') as script_file:
+                        script = GreasemonkeyScript.parse(
+                            script_file.read(), script_filename)
+                        assert script.name, script
+                        self.add_script(script, force)
+                        successful.append(script)
+                except OSError as e:
+                    errors.append((os.path.basename(script_filename), str(e)))
 
         self.scripts_reloaded.emit()
-        return sorted(scripts, key=str)
+        return LoadResults(successful=successful, errors=errors)
 
     def add_script(self, script, force=False):
         """Add a GreasemonkeyScript to this manager.
@@ -380,7 +410,7 @@ class GreasemonkeyManager(QObject):
         """
         # See if we are still waiting on any required scripts for this one
         for dl in self._in_progress_dls:
-            if dl.requested_url in script.requires:
+            if dl.requested_url in script.requires:  # type: ignore[attr-defined]
                 return False
 
         # Need to add the required scripts to the IIFE now
@@ -414,6 +444,7 @@ class GreasemonkeyManager(QObject):
                                                   force_overwrite=True)
             download = download_manager.get(QUrl(url), target=target,
                                             auto_remove=True)
+            # FIXME:mypy Build this into downloads instead of patching here?
             download.requested_url = url
             self._in_progress_dls.append(download)
             if download.successful:
@@ -459,16 +490,23 @@ def greasemonkey_reload(force: bool = False, quiet: bool = False) -> None:
                 re-download them.
         quiet: Suppress message after loading scripts.
     """
-    scripts = gm_manager.load_scripts(force=force)
-    names = '\n'.join(str(script) for script in scripts)
+    result = gm_manager.load_scripts(force=force)
     if not quiet:
-        message.info(f"Loaded scripts:\n\n{names}")
+        message.info(result.successful_str())
+
+    errors = result.error_str()
+    if errors is not None:
+        message.error(errors)
 
 
 def init():
     """Initialize Greasemonkey support."""
     global gm_manager
     gm_manager = GreasemonkeyManager()
+    result = gm_manager.load_scripts()
+    errors = result.error_str()
+    if errors is not None:
+        message.error(errors)
 
     for scripts_dir in _scripts_dirs():
         try:

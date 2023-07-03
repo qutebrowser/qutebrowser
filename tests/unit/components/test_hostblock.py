@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 #!/usr/bin/env python3
 
 # Copyright 2015 Corentin Julé <corentinjule@gmail.com>
@@ -24,7 +23,7 @@ import logging
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.components import hostblock
 from qutebrowser.utils import urlmatch

@@ -45,7 +45,6 @@ Suggested bindings similar to Uzbl's `formfiller` script:
 """
 
 EPILOG = """Dependencies: tldextract (Python 3 module), pass, pass-otp (optional).
-For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
 
 WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
 you decide to submit a crash report!"""
@@ -59,6 +58,7 @@ import re
 import shlex
 import subprocess
 import sys
+from urllib.parse import urlparse
 
 import tldextract
 
@@ -222,7 +222,7 @@ def main(arguments):
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
-    # (if a non-public suffix was used).
+    # (if a non-public suffix was used), and the URL netloc.
     candidates = set()
     attempted_targets = []
 
@@ -231,7 +231,9 @@ def main(arguments):
         private_domain = ('.'.join((extract_result.subdomain, extract_result.domain))
                           if extract_result.subdomain else extract_result.domain)
 
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
+    netloc = urlparse(arguments.url).netloc
+
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain, netloc]):
         attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         if not target_candidates:

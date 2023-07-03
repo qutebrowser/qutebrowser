@@ -43,6 +43,9 @@ ShowUninstDetails hide
 !addplugindir /x86-unicode ".\plugins\x86-unicode"
 !addincludedir ".\include"
 
+!define MUI_BGCOLOR "SYSCLR:Window"
+!define MUI_TEXTCOLOR "SYSCLR:WindowText"
+
 !include MUI2.nsh
 !include NsisMultiUser.nsh
 !include StdUtils.nsh

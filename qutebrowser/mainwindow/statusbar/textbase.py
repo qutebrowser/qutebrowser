@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,9 +17,9 @@
 
 """Base text widgets for statusbar."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel, QSizePolicy
-from PyQt5.QtGui import QPainter
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.widgets import QLabel, QSizePolicy
+from qutebrowser.qt.gui import QPainter
 
 from qutebrowser.utils import qtutils, utils
 
@@ -40,9 +38,9 @@ class TextBase(QLabel):
         _elided_text: The current elided text.
     """
 
-    def __init__(self, parent=None, elidemode=Qt.ElideRight):
+    def __init__(self, parent=None, elidemode=Qt.TextElideMode.ElideRight):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         self._elidemode = elidemode
         self._elided_text = ''
 
@@ -57,7 +55,7 @@ class TextBase(QLabel):
         """
         if self.text():
             self._elided_text = self.fontMetrics().elidedText(
-                self.text(), self._elidemode, width, Qt.TextShowMnemonic)
+                self.text(), self._elidemode, width, Qt.TextFlag.TextShowMnemonic)
         else:
             self._elided_text = ''
 
@@ -68,7 +66,7 @@ class TextBase(QLabel):
             txt: The text to set (string).
         """
         super().setText(txt)
-        if self._elidemode != Qt.ElideNone:
+        if self._elidemode != Qt.TextElideMode.ElideNone:
             self._update_elided_text(self.geometry().width())
 
     def resizeEvent(self, e):
@@ -80,7 +78,7 @@ class TextBase(QLabel):
 
     def paintEvent(self, e):
         """Override QLabel::paintEvent to draw elided text."""
-        if self._elidemode == Qt.ElideNone:
+        if self._elidemode == Qt.TextElideMode.ElideNone:
             super().paintEvent(e)
         else:
             e.accept()

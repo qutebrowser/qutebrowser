@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -25,7 +23,7 @@ import dataclasses
 import os.path
 from typing import Type
 
-from PyQt5.QtNetwork import QNetworkRequest
+from qutebrowser.qt.network import QNetworkRequest
 
 from qutebrowser.utils import log, utils
 
@@ -89,17 +87,20 @@ class ContentDisposition:
         try:
             parsed = reg('Content-Disposition', decoded)
         except IndexError:  # pragma: no cover
-            # WORKAROUND for https://bugs.python.org/issue37491
+            # WORKAROUND for https://github.com/python/cpython/issues/81672
             # Fixed in Python 3.7.5 and 3.8.0.
             # Still getting failures on 3.10 on CI though
             raise ContentDispositionError("Missing closing quote character")
-        except ValueError:  # pragma: no cover
-            # WORKAROUND for https://bugs.python.org/issue42946
+        except ValueError:
+            # WORKAROUND for https://github.com/python/cpython/issues/87112
             raise ContentDispositionError("Non-ASCII digit")
+        except AttributeError:  # pragma: no cover
+            # WORKAROUND for https://github.com/python/cpython/issues/93010
+            raise ContentDispositionError("Section number has an invalid leading 0")
 
         if parsed.defects:
             defects = list(parsed.defects)
-            if defects != [cls._IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
+            if defects != [cls._IGNORED_DEFECT]:
                 raise ContentDispositionError(defects)
 
         # https://github.com/python/mypy/issues/12314
@@ -159,7 +160,7 @@ def parse_content_disposition(reply):
         # os.path.basename later.
         try:
             value = bytes(reply.rawHeader(content_disposition_header))
-            log.network.debug("Parsing Content-Disposition: {value!r}")
+            log.network.debug(f"Parsing Content-Disposition: {value!r}")
             content_disposition = ContentDisposition.parse(value)
             filename = content_disposition.filename()
         except ContentDispositionError as e:
@@ -188,7 +189,7 @@ def parse_content_type(reply):
         A [mimetype, rest] list, or [None, None] if unset.
         Rest can be None.
     """
-    content_type = reply.header(QNetworkRequest.ContentTypeHeader)
+    content_type = reply.header(QNetworkRequest.KnownHeaders.ContentTypeHeader)
     if content_type is None:
         return [None, None]
     if ';' in content_type:

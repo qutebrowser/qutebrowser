@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>:
 #
 # This file is part of qutebrowser.
@@ -21,9 +19,9 @@
 
 from unittest import mock
 
-import sip
+from qutebrowser.qt import sip
 import pytest
-from PyQt5.QtCore import QObject
+from qutebrowser.qt.core import QObject
 
 from helpers import testutils
 from qutebrowser.misc import throttle

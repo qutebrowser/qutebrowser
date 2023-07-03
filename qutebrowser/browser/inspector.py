@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,17 +20,21 @@
 import base64
 import binascii
 import enum
-from typing import cast, Optional
+from typing import cast, Optional, Any
 
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
-from PyQt5.QtGui import QCloseEvent
+from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QEvent
+from qutebrowser.qt.gui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
-from qutebrowser.config import configfiles
+from qutebrowser.config import configfiles, config
 from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
+
+
+# FIXME:mypy How to annotate this properly without running into Liskov issues?
+_WidgetType = Any
 
 
 class Position(enum.Enum):
@@ -70,7 +72,7 @@ class _EventFilter(QObject):
 
     def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
         """Translate mouse presses to a clicked signal."""
-        if event.type() == QEvent.MouseButtonPress:
+        if event.type() == QEvent.Type.MouseButtonPress:
             self.clicked.emit()
         return False
 
@@ -93,7 +95,7 @@ class AbstractWebInspector(QWidget):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
         self._position: Optional[Position] = None
@@ -105,7 +107,7 @@ class AbstractWebInspector(QWidget):
             eventfilter=self._event_filter,
             parent=self)
 
-    def _set_widget(self, widget: QWidget) -> None:
+    def _set_widget(self, widget: _WidgetType) -> None:
         self._widget = widget
         self._widget.setWindowTitle("Web Inspector")
         self._widget.installEventFilter(self._child_event_filter)
@@ -133,7 +135,8 @@ class AbstractWebInspector(QWidget):
     @pyqtSlot()
     def _on_clicked(self) -> None:
         """Enter insert mode if a docked inspector was clicked."""
-        if self._position != Position.window:
+        if (self._position != Position.window and
+                config.val.input.insert_mode.auto_enter):
             modeman.enter(self._win_id, usertypes.KeyMode.insert,
                           reason='Inspector clicked', only_if_normal=True)
 
@@ -198,7 +201,8 @@ class AbstractWebInspector(QWidget):
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['inspector']['window'] = geom
 
-    def inspect(self, page: QWidget) -> None:
+    # FIXME:mypy How to annotate 'page' properly without running into Liskov issues?
+    def inspect(self, page: Any) -> None:
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,7 +17,7 @@
 
 """Scroll percentage displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from qutebrowser.qt.core import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle
@@ -32,7 +30,7 @@ class Percentage(textbase.TextBase):
 
     def __init__(self, parent=None):
         """Constructor. Set percentage to 0%."""
-        super().__init__(parent, elidemode=Qt.ElideNone)
+        super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
         self._strings = self._calc_strings()
         self._set_text = throttle.Throttle(self.setText, 100, parent=self)
         self.set_perc(0, 0)

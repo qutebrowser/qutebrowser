@@ -129,11 +129,11 @@
     // Stub these two so that the gm4 polyfill script doesn't try to
     // create broken versions as attributes of window.
     function GM_getResourceText(caption, commandFunc, accessKey) {
-        console.error(`${GM_info.script.name} called unimplemented GM_getResourceText`);
+        console.info(`${GM_info.script.name} called unimplemented GM_getResourceText`);
     }
 
     function GM_registerMenuCommand(caption, commandFunc, accessKey) {
-        console.error(`${GM_info.script.name} called unimplemented GM_registerMenuCommand`);
+        console.info(`${GM_info.script.name} called unimplemented GM_registerMenuCommand`);
     }
 
     // Mock the greasemonkey 4.0 async API.
