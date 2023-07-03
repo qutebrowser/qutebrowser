@@ -40,7 +40,7 @@ sip==6.7.9
 six==1.16.0
 tomli==2.0.1
 twine==4.0.2
-typing_extensions==4.6.3
+typing_extensions==4.7.1
 uritemplate==4.1.1
 # urllib3==2.0.3
 webencodings==0.5.1
