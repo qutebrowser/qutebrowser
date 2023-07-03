@@ -165,5 +165,6 @@
   "pyproject_hooks": "https://pyproject-hooks.readthedocs.io/en/latest/changelog.html",
   "markdown-it-py": "https://github.com/executablebooks/markdown-it-py/blob/master/CHANGELOG.md",
   "mdurl": "https://github.com/executablebooks/mdurl/commits/master",
-  "blinker": "https://blinker.readthedocs.io/en/stable/#changes"
+  "blinker": "https://blinker.readthedocs.io/en/stable/#changes",
+  "exceptiongroup": "https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst"
 }
