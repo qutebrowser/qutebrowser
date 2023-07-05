@@ -158,6 +158,7 @@ Changed
   `content.site_specific_quirks.skip`, so that `String.replaceAll` is now
   polyfilled on QtWebEngine < 5.15.3, hopefully improving website
   compaitibility.
+- Hints are now displayed for elements setting an `aria-haspopup` attribute.
 
 Fixed
 ~~~~~

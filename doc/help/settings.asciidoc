@@ -3510,6 +3510,7 @@ Default:
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+
 * +pass:[[role=&quot;treeitem&quot;\]]+
+* +pass:[[aria-haspopup\]]+
 * +pass:[[ng-click\]]+
 * +pass:[[ngClick\]]+
 * +pass:[[data-ng-click\]]+
