@@ -16,3 +16,11 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Loggers and utilities related to Qt logging."""
+
+
+from qutebrowser.qt import core as qtcore
+
+
+@qtcore.pyqtSlot()
+def shutdown_log() -> None:
+    qtcore.qInstallMessageHandler(None)

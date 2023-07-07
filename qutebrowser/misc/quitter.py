@@ -37,7 +37,7 @@ except ImportError:
 
 import qutebrowser
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtlog
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
@@ -304,5 +304,5 @@ def init(args: argparse.Namespace) -> None:
     """Initialize the global Quitter instance."""
     global instance
     instance = Quitter(args=args, parent=objects.qapp)
-    instance.shutting_down.connect(log.shutdown_log)
+    instance.shutting_down.connect(qtlog.shutdown_log)
     objects.qapp.lastWindowClosed.connect(instance.on_last_window_closed)

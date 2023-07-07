@@ -213,11 +213,6 @@ def init_log(args: argparse.Namespace) -> None:
     _log_inited = True
 
 
-@qtcore.pyqtSlot()
-def shutdown_log() -> None:
-    qtcore.qInstallMessageHandler(None)
-
-
 def _init_py_warnings() -> None:
     """Initialize Python warning handling."""
     assert _args is not None
