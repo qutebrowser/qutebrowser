@@ -11,7 +11,6 @@ mypy-extensions==1.0.0
 pluggy==1.2.0
 Pygments==2.15.1
 PyQt5-stubs==5.15.6.0
-PyQt6-stubs @ git+https://github.com/python-qt-tools/PyQt6-stubs.git@f623a641cd5cdff53342177e4fbbf9cae8172336
 tomli==2.0.1
 types-colorama==0.4.15.11
 types-docutils==0.20.0.1

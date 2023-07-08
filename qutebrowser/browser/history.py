@@ -23,8 +23,9 @@ import contextlib
 import pathlib
 from typing import cast, Mapping, MutableSequence, Optional
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, pyqtSignal
-from qutebrowser.qt.widgets import QProgressDialog, QApplication
+from qutebrowser.qt.widgets import QProgressDialog, QApplication, QPushButton
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
@@ -54,7 +55,13 @@ class HistoryProgress:
         self._progress.setMaximum(0)  # unknown
         self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
-        self._progress.setCancelButton(None)
+
+        no_button = None
+        if machinery.IS_QT6:
+            # FIXME:mypy PyQt6 stubs issue
+            no_button = cast(QPushButton, None)
+
+        self._progress.setCancelButton(no_button)
         self._progress.setAutoClose(False)
         self._progress.show()
         QApplication.processEvents()

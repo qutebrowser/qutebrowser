@@ -87,8 +87,6 @@ class EventFilter(QObject):
             True if the event should be filtered, False if it's passed through.
         """
         ev_type = event.type()
-        if machinery.IS_QT6:
-            ev_type = cast(QEvent.Type, ev_type)
 
         if self._log_qt_events:
             try:

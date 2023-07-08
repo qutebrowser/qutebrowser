@@ -25,8 +25,7 @@ from qutebrowser.qt.webenginecore import (QWebEngineUrlSchemeHandler,
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
 
-# FIXME:mypy PyQt6-stubs issue?
-_QUTE = QByteArray(b'qute')  # type: ignore[call-overload,unused-ignore]
+_QUTE = QByteArray(b'qute')
 
 
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):

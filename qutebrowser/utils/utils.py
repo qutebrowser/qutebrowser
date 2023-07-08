@@ -128,17 +128,20 @@ class VersionNumber:
             return NotImplemented
         return self._ver != other._ver
 
+    # FIXME:mypy type ignores below needed for PyQt5-stubs:
+    # Unsupported left operand type for ... ("QVersionNumber")
+
     def __ge__(self, other: 'VersionNumber') -> bool:
-        return self._ver >= other._ver  # type: ignore[operator]
+        return self._ver >= other._ver  # type: ignore[operator,unused-ignore]
 
     def __gt__(self, other: 'VersionNumber') -> bool:
-        return self._ver > other._ver  # type: ignore[operator]
+        return self._ver > other._ver  # type: ignore[operator,unused-ignore]
 
     def __le__(self, other: 'VersionNumber') -> bool:
-        return self._ver <= other._ver  # type: ignore[operator]
+        return self._ver <= other._ver  # type: ignore[operator,unused-ignore]
 
     def __lt__(self, other: 'VersionNumber') -> bool:
-        return self._ver < other._ver  # type: ignore[operator]
+        return self._ver < other._ver  # type: ignore[operator,unused-ignore]
 
 
 class Unreachable(Exception):

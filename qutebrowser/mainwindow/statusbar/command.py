@@ -259,6 +259,9 @@ class Command(misc.CommandLineEdit):
         else:
             raise utils.Unreachable("setText got called with invalid text "
                                     "'{}'!".format(text))
+        # FIXME:mypy PyQt6 stubs issue
+        if machinery.IS_QT6:
+            text = cast(str, text)
         super().setText(text)
 
     def keyPressEvent(self, e: QKeyEvent) -> None:
