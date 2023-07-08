@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,8 +20,8 @@
 import functools
 from typing import Callable, MutableSequence, Tuple, Union
 
-from PyQt5.QtCore import pyqtSlot, QSize, Qt
-from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
+from qutebrowser.qt.core import pyqtSlot, QSize, Qt
+from qutebrowser.qt.widgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import stylesheet
@@ -62,11 +60,11 @@ class DownloadView(QListView):
         if not utils.is_mac:
             self.setStyle(QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setResizeMode(QListView.Adjust)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        self.setFocusPolicy(Qt.NoFocus)
-        self.setFlow(QListView.LeftToRight)
+        self.setResizeMode(QListView.ResizeMode.Adjust)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setFlow(QListView.Flow.LeftToRight)
         self.setSpacing(1)
         self._menu = None
         model.rowsInserted.connect(self._update_geometry)
@@ -74,7 +72,7 @@ class DownloadView(QListView):
         model.dataChanged.connect(self._update_geometry)
         self.setModel(model)
         self.setWrapping(True)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
         self.clicked.connect(self.on_clicked)
 
@@ -85,6 +83,15 @@ class DownloadView(QListView):
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
+
+    def _model(self) -> downloads.DownloadModel:
+        """Get the current download model.
+
+        Ensures the model is not None.
+        """
+        model = self.model()
+        assert isinstance(model, downloads.DownloadModel), model
+        return model
 
     @pyqtSlot()
     def _update_geometry(self):
@@ -112,7 +119,7 @@ class DownloadView(QListView):
         """
         if not index.isValid():
             return
-        item = self.model().data(index, downloads.ModelRole.item)
+        item = self._model().data(index, downloads.ModelRole.item)
         if item.done and item.successful:
             item.open_file()
             item.remove()
@@ -126,7 +133,7 @@ class DownloadView(QListView):
         Args:
             item: The DownloadItem to get the actions for, or None.
         """
-        model = self.model()
+        model = self._model()
         actions: _ActionListType = []
         if item is None:
             pass
@@ -154,7 +161,7 @@ class DownloadView(QListView):
         """Show the context menu."""
         index = self.indexAt(point)
         if index.isValid():
-            item = self.model().data(index, downloads.ModelRole.item)
+            item = self._model().data(index, downloads.ModelRole.item)
         else:
             item = None
         self._menu = QMenu(self)
@@ -176,7 +183,7 @@ class DownloadView(QListView):
 
     def sizeHint(self):
         """Return sizeHint based on the view contents."""
-        idx = self.model().last_index()
+        idx = self._model().last_index()
         bottom = self.visualRect(idx).bottom()
         if bottom != -1:
             margins = self.contentsMargins()

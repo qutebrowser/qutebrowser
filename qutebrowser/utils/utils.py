@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -26,6 +24,7 @@ import re
 import sys
 import enum
 import json
+import fnmatch
 import datetime
 import traceback
 import functools
@@ -33,20 +32,12 @@ import contextlib
 import shlex
 import mimetypes
 from typing import (Any, Callable, IO, Iterator,
-                    Optional, Sequence, Tuple, Type, Union,
-                    TypeVar, TYPE_CHECKING)
-try:
-    # Protocol was added in Python 3.8
-    from typing import Protocol
-except ImportError:  # pragma: no cover
-    if not TYPE_CHECKING:
-        class Protocol:
+                    Optional, Sequence, Tuple, List, Type, Union,
+                    TypeVar, Protocol)
 
-            """Empty stub at runtime."""
-
-from PyQt5.QtCore import QUrl, QVersionNumber, QRect
-from PyQt5.QtGui import QClipboard, QDesktopServices
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
+from qutebrowser.qt.gui import QClipboard, QDesktopServices
+from qutebrowser.qt.widgets import QApplication
 
 import yaml
 try:
@@ -54,7 +45,7 @@ try:
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import (SafeLoader as YamlLoader,  # type: ignore[misc]
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore[assignment]
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
@@ -269,7 +260,7 @@ class FakeIOStream(io.TextIOBase):
 
     def __init__(self, write_func: Callable[[str], int]) -> None:
         super().__init__()
-        self.write = write_func  # type: ignore[assignment]
+        self.write = write_func  # type: ignore[method-assign]
 
 
 @contextlib.contextmanager
@@ -535,7 +526,7 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
         fake_clipboard = data
     else:
-        mode = QClipboard.Selection if selection else QClipboard.Clipboard
+        mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
         QApplication.clipboard().setText(data, mode=mode)
 
 
@@ -561,7 +552,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
         data = fake_clipboard
         fake_clipboard = None
     else:
-        mode = QClipboard.Selection if selection else QClipboard.Clipboard
+        mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
         data = QApplication.clipboard().text(mode=mode)
 
     target = "Primary selection" if selection else "Clipboard"
@@ -839,3 +830,28 @@ def parse_rect(s: str) -> QRect:
         raise ValueError("Invalid rectangle")
 
     return rect
+
+
+def parse_point(s: str) -> QPoint:
+    """Parse a point string like 13,-42."""
+    try:
+        x, y = map(int, s.split(',', maxsplit=1))
+    except ValueError:
+        raise ValueError(f"String {s} does not match X,Y")
+
+    try:
+        return QPoint(x, y)
+    except OverflowError as e:
+        raise ValueError(e)
+
+
+def match_globs(patterns: List[str], value: str) -> Optional[str]:
+    """Match a list of glob-like patterns against a value.
+
+    Return:
+        The first matching pattern if there was a match, None with no match.
+    """
+    for pattern in patterns:
+        if fnmatch.fnmatchcase(name=value, pat=pattern):
+            return pattern
+    return None

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -20,27 +18,30 @@
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
 import enum
+import pathlib
 import itertools
 import functools
 import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union)
+                    Sequence, Set, Type, Union, Tuple)
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect)
-from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QApplication, QDialog
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtNetwork import QNetworkAccessManager
+from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
+from qutebrowser.qt.widgets import QApplication, QWidget
+from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
+from qutebrowser.qt.network import QNetworkAccessManager
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
-    from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import (
+    from qutebrowser.qt.webkit import QWebHistory, QWebHistoryItem
+    from qutebrowser.qt.webkitwidgets import QWebPage, QWebView
+    from qutebrowser.qt.webenginecore import (
         QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
+    from qutebrowser.qt.webenginewidgets import QWebEngineView
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message, jinja)
 from qutebrowser.misc import miscwidgets, objects, sessions
@@ -55,6 +56,7 @@ from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.misc.notree import Node
 
 tab_id_gen = itertools.count(0)
+_WidgetType = Union["QWebView", "QWebEngineView"]
 
 
 def create(win_id: int,
@@ -154,11 +156,10 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    action_class: Type[Union['QWebPage', 'QWebEnginePage']]
     action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def exit_fullscreen(self) -> None:
@@ -171,9 +172,10 @@ class AbstractAction:
 
     def run_string(self, name: str) -> None:
         """Run a webaction based on its name."""
-        member = getattr(self.action_class, name, None)
-        if not isinstance(member, self.action_base):
-            raise WebTabError("{} is not a valid web action!".format(name))
+        try:
+            member = getattr(self.action_base, name)
+        except AttributeError:
+            raise WebTabError(f"{name} is not a valid web action!")
         self._widget.triggerPageAction(member)
 
     def show_source(self, pygments: bool = False) -> None:
@@ -226,13 +228,37 @@ class AbstractAction:
         self._tab.dump_async(show_source_cb)
 
 
-class AbstractPrinting:
+class AbstractPrinting(QObject):
 
     """Attribute ``printing`` of AbstractTab for printing the page."""
 
-    def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+    printing_finished = pyqtSignal(bool)
+    pdf_printing_finished = pyqtSignal(str, bool)  # filename, ok
+
+    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
+        self._dialog: Optional[QPrintDialog] = None
+        self.printing_finished.connect(self._on_printing_finished)
+        self.pdf_printing_finished.connect(self._on_pdf_printing_finished)
+
+    @pyqtSlot(bool)
+    def _on_printing_finished(self, ok: bool) -> None:
+        # Only reporting error here, as the user has feedback from the dialog
+        # (and probably their printer) already.
+        if not ok:
+            message.error("Printing failed!")
+        if self._dialog is not None:
+            self._dialog.deleteLater()
+            self._dialog = None
+
+    @pyqtSlot(str, bool)
+    def _on_pdf_printing_finished(self, path: str, ok: bool) -> None:
+        if ok:
+            message.info(f"Printed to {path}")
+        else:
+            message.error(f"Printing to {path} failed!")
 
     def check_pdf_support(self) -> None:
         """Check whether writing to PDFs is supported.
@@ -250,41 +276,78 @@ class AbstractPrinting:
         """
         raise NotImplementedError
 
-    def to_pdf(self, filename: str) -> bool:
+    def to_pdf(self, path: pathlib.Path) -> None:
         """Print the tab to a PDF with the given filename."""
         raise NotImplementedError
 
-    def to_printer(self, printer: QPrinter,
-                   callback: Callable[[bool], None] = None) -> None:
+    def to_printer(self, printer: QPrinter) -> None:
         """Print the tab.
 
         Args:
             printer: The QPrinter to print to.
-            callback: Called with a boolean
-                      (True if printing succeeded, False otherwise)
         """
         raise NotImplementedError
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        def print_callback(ok: bool) -> None:
-            """Called when printing finished."""
-            if not ok:
-                message.error("Printing failed!")
-            diag.deleteLater()
+        self._dialog = dialog = QPrintDialog(self._tab)
+        self._dialog.open(lambda: self.to_printer(dialog.printer()))
+        # Gets cleaned up in on_printing_finished
 
-        def do_print() -> None:
-            """Called when the dialog was closed."""
-            self.to_printer(diag.printer(), print_callback)
 
-        diag = QPrintDialog(self._tab)
-        if utils.is_mac:
-            # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec()
-            if ret == QDialog.Accepted:
-                do_print()
-        else:
-            diag.open(do_print)
+@dataclasses.dataclass
+class SearchMatch:
+
+    """The currently highlighted search match.
+
+    Attributes:
+        current: The currently active search match on the page.
+                 0 if no search is active or the feature isn't available.
+        total: The total number of search matches on the page.
+               0 if no search is active or the feature isn't available.
+    """
+
+    current: int = 0
+    total: int = 0
+
+    def reset(self) -> None:
+        """Reset match counter information.
+
+        Stale information could lead to next_result or prev_result misbehaving.
+        """
+        self.current = 0
+        self.total = 0
+
+    def is_null(self) -> bool:
+        """Whether the SearchMatch is set to zero."""
+        return self.current == 0 and self.total == 0
+
+    def at_limit(self, going_up: bool) -> bool:
+        """Whether the SearchMatch is currently at the first/last result."""
+        return (
+            self.total != 0 and
+            (
+                going_up and self.current == 1 or
+                not going_up and self.current == self.total
+            )
+        )
+
+    def __str__(self) -> str:
+        return f"{self.current}/{self.total}"
+
+
+class SearchNavigationResult(enum.Enum):
+
+    """The outcome of calling prev_/next_result."""
+
+    found = enum.auto()
+    not_found = enum.auto()
+
+    wrapped_bottom = enum.auto()
+    wrap_prevented_bottom = enum.auto()
+
+    wrapped_top = enum.auto()
+    wrap_prevented_top = enum.auto()
 
 
 class AbstractSearch(QObject):
@@ -295,24 +358,32 @@ class AbstractSearch(QObject):
         text: The last thing this view was searched for.
         search_displayed: Whether we're currently displaying search results in
                           this view.
+        match: The currently active search match.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
+
+    Signals:
+        finished: A search has finished. True if the text was found, false otherwise.
+        match_changed: The currently active search match has changed.
+                       Emits SearchMatch(0, 0) if no search is active.
+                       Will not be emitted if search matches are not available.
+        cleared: An existing search was cleared.
     """
 
-    #: Signal emitted when a search was finished
-    #: (True if the text was found, False otherwise)
     finished = pyqtSignal(bool)
-    #: Signal emitted when an existing search was cleared.
+    match_changed = pyqtSignal(SearchMatch)
     cleared = pyqtSignal()
 
     _Callback = Callable[[bool], None]
+    _NavCallback = Callable[[SearchNavigationResult], None]
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self.text: Optional[str] = None
         self.search_displayed = False
+        self.match = SearchMatch()
 
     def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
         """Check if case-sensitivity should be used.
@@ -333,7 +404,6 @@ class AbstractSearch(QObject):
     def search(self, text: str, *,
                ignore_case: usertypes.IgnoreCase = usertypes.IgnoreCase.never,
                reverse: bool = False,
-               wrap: bool = True,
                result_cb: _Callback = None) -> None:
         """Find the given text on the page.
 
@@ -341,7 +411,6 @@ class AbstractSearch(QObject):
             text: The text to search for.
             ignore_case: Search case-insensitively.
             reverse: Reverse search direction.
-            wrap: Allow wrapping at the top or bottom of the page.
             result_cb: Called with a bool indicating whether a match was found.
         """
         raise NotImplementedError
@@ -350,19 +419,21 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self, *, result_cb: _Callback = None) -> None:
+    def prev_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
         """Go to the previous result of the current search.
 
         Args:
-            result_cb: Called with a bool indicating whether a match was found.
+            wrap: Allow wrapping at the top or bottom of the page.
+            callback: Called with a SearchNavigationResult.
         """
         raise NotImplementedError
 
-    def next_result(self, *, result_cb: _Callback = None) -> None:
+    def next_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
         """Go to the next result of the current search.
 
         Args:
-            result_cb: Called with a bool indicating whether a match was found.
+            wrap: Allow wrapping at the top or bottom of the page.
+            callback: Called with a SearchNavigationResult.
         """
         raise NotImplementedError
 
@@ -374,7 +445,7 @@ class AbstractZoom(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         # Whether zoom was changed from the default.
         self._default_zoom_changed = False
         self._init_neighborlist()
@@ -427,7 +498,7 @@ class AbstractZoom(QObject):
             raise ValueError("Can't zoom to factor {}!".format(factor))
 
         default_zoom_factor = float(config.val.zoom.default) / 100
-        self._default_zoom_changed = (factor != default_zoom_factor)
+        self._default_zoom_changed = factor != default_zoom_factor
 
         self._zoom_factor = factor
         self._set_factor_internal(factor)
@@ -468,7 +539,7 @@ class AbstractCaret(QObject):
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
@@ -540,9 +611,9 @@ class AbstractCaret(QObject):
     def _follow_enter(self, tab: bool) -> None:
         """Follow a link by faking an enter press."""
         if tab:
-            self._tab.fake_key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            self._tab.fake_key_press(Qt.Key.Key_Enter, modifier=Qt.KeyboardModifier.ControlModifier)
         else:
-            self._tab.fake_key_press(Qt.Key_Enter)
+            self._tab.fake_key_press(Qt.Key.Key_Enter)
 
     def follow_selected(self, *, tab: bool = False) -> None:
         raise NotImplementedError
@@ -561,7 +632,7 @@ class AbstractScroller(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         if 'log-scroll-pos' in objects.debug_flags:
             self.perc_changed.connect(self._log_scroll_pos_change)
 
@@ -570,16 +641,16 @@ class AbstractScroller(QObject):
         log.webview.vdebug(  # type: ignore[attr-defined]
             "Scroll position changed to {}".format(self.pos_px()))
 
-    def _init_widget(self, widget: QWidget) -> None:
+    def _init_widget(self, widget: _WidgetType) -> None:
         self._widget = widget
 
-    def pos_px(self) -> int:
+    def pos_px(self) -> QPoint:
         raise NotImplementedError
 
-    def pos_perc(self) -> int:
+    def pos_perc(self) -> Tuple[int, int]:
         raise NotImplementedError
 
-    def to_perc(self, x: int = None, y: int = None) -> None:
+    def to_perc(self, x: float = None, y: float = None) -> None:
         raise NotImplementedError
 
     def to_point(self, point: QPoint) -> None:
@@ -629,6 +700,8 @@ class AbstractHistoryPrivate:
 
     """Private API related to the history."""
 
+    _history: Union["QWebHistory", "QWebEngineHistory"]
+
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
         raise NotImplementedError
@@ -663,6 +736,9 @@ class AbstractHistory:
             raise WebTabError("count needs to be positive!")
 
     def current_idx(self) -> int:
+        raise NotImplementedError
+
+    def current_item(self) -> Union['QWebHistoryItem', 'QWebEngineHistoryItem']:
         raise NotImplementedError
 
     def back(self, count: int = 1) -> None:
@@ -713,7 +789,7 @@ class AbstractElements:
     _ErrorCallback = Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def find_css(self, selector: str,
@@ -774,7 +850,7 @@ class AbstractAudio(QObject):
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
@@ -806,11 +882,11 @@ class AbstractTabPrivate:
 
     def __init__(self, mode_manager: modeman.ModeManager,
                  tab: 'AbstractTab') -> None:
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._tab = tab
         self._mode_manager = mode_manager
 
-    def event_target(self) -> QWidget:
+    def event_target(self) -> Optional[QWidget]:
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
@@ -850,7 +926,7 @@ class AbstractTabPrivate:
     def shutdown(self) -> None:
         raise NotImplementedError
 
-    def run_js_sync(self, code: str) -> None:
+    def run_js_sync(self, code: str) -> Any:
         """Run javascript sync.
 
         Result will be returned when running JS is complete.
@@ -869,7 +945,7 @@ class AbstractTabPrivate:
         self._tab.data.inspector = None
         self.toggle_inspector(inspector.Position.window)
 
-    def toggle_inspector(self, position: inspector.Position) -> None:
+    def toggle_inspector(self, position: Optional[inspector.Position]) -> None:
         """Show/hide (and if needed, create) the web inspector for this tab."""
         tabdata = self._tab.data
         if tabdata.inspector is None:
@@ -946,6 +1022,19 @@ class AbstractTab(QWidget):
     # for a given hostname anyways.
     _insecure_hosts: Set[str] = set()
 
+    # Sub-APIs initialized by subclasses
+    history: AbstractHistory
+    scroller: AbstractScroller
+    caret: AbstractCaret
+    zoom: AbstractZoom
+    search: AbstractSearch
+    printing: AbstractPrinting
+    action: AbstractAction
+    elements: AbstractElements
+    audio: AbstractAudio
+    private_api: AbstractTabPrivate
+    settings: websettings.AbstractSettings
+
     def __init__(self, *, win_id: int,
                  mode_manager: 'modeman.ModeManager',
                  private: bool,
@@ -964,7 +1053,7 @@ class AbstractTab(QWidget):
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
-        self._widget = cast(QWidget, None)
+        self._widget = cast(_WidgetType, None)
         self._progress = 0
         self._load_status = usertypes.LoadStatus.none
         self._tab_event_filter = eventfilter.TabEventFilter(
@@ -983,11 +1072,14 @@ class AbstractTab(QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
-    def _set_widget(self, widget: QWidget) -> None:
+    def _set_widget(self, widget: Union["QWebView", "QWebEngineView"]) -> None:
         # pylint: disable=protected-access
         self._widget = widget
+        # FIXME:v4 ignore needed for QtWebKit
         self.data.splitter = miscwidgets.InspectorSplitter(
-            win_id=self.win_id, main_webview=widget)
+            win_id=self.win_id,
+            main_webview=widget,  # type: ignore[arg-type,unused-ignore]
+        )
         self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()
@@ -1094,7 +1186,7 @@ class AbstractTab(QWidget):
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         assert self._widget is not None
-        if sip.isdeleted(self._widget):
+        if self.is_deleted():
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
@@ -1162,10 +1254,10 @@ class AbstractTab(QWidget):
 
     def fake_key_press(self,
                        key: Qt.Key,
-                       modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
+                       modifier: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> None:
         """Send a fake key event to this tab."""
-        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+        press_evt = QKeyEvent(QEvent.Type.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.Type.KeyRelease, key, modifier,
                                 0, 0, 0)
         self.send_event(press_evt)
         self.send_event(release_evt)
@@ -1202,7 +1294,7 @@ class AbstractTab(QWidget):
     def title(self) -> str:
         raise NotImplementedError
 
-    def icon(self) -> None:
+    def icon(self) -> QIcon:
         raise NotImplementedError
 
     def set_html(self, html: str, base_url: QUrl = QUrl()) -> None:
@@ -1229,18 +1321,22 @@ class AbstractTab(QWidget):
             pic = self._widget.grab()
         else:
             qtutils.ensure_valid(rect)
-            pic = self._widget.grab(rect)
+            # FIXME:v4 ignore needed for QtWebKit
+            pic = self._widget.grab(rect)  # type: ignore[arg-type,unused-ignore]
 
         if pic.isNull():
             return None
+
+        if machinery.IS_QT6:
+            # FIXME:v4 cast needed for QtWebKit
+            pic = cast(QPixmap, pic)
 
         return pic
 
     def __repr__(self) -> str:
         try:
             qurl = self.url()
-            url = qurl.toDisplayString(
-                QUrl.EncodeUnicode)  # type: ignore[arg-type]
+            url = qurl.toDisplayString(urlutils.FormatOption.ENCODE_UNICODE)
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:
@@ -1248,5 +1344,11 @@ class AbstractTab(QWidget):
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def is_deleted(self) -> bool:
+        """Check if the tab has been deleted."""
         assert self._widget is not None
-        return sip.isdeleted(self._widget)
+        # FIXME:v4 cast needed for QtWebKit
+        if machinery.IS_QT6:
+            widget = cast(QWidget, self._widget)
+        else:
+            widget = self._widget
+        return sip.isdeleted(widget)

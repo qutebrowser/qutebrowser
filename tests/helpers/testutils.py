@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,6 +19,7 @@
 
 import io
 import re
+import enum
 import gzip
 import pprint
 import os.path
@@ -31,16 +30,11 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.gui import QColor
 
-from qutebrowser.utils import qtutils, log, utils, version
+from qutebrowser.utils import log, utils, version
 
 ON_CI = 'CI' in os.environ
-
-qt513 = pytest.mark.skipif(
-    not qtutils.version_check('5.13'), reason="Needs Qt 5.13 or newer")
-qt514 = pytest.mark.skipif(
-    not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 
 
 class Color(QColor):
@@ -224,11 +218,11 @@ def nop_contextmanager():
 def change_cwd(path):
     """Use a path as current working directory."""
     old_cwd = pathlib.Path.cwd()
-    os.chdir(str(path))
+    os.chdir(path)
     try:
         yield
     finally:
-        os.chdir(str(old_cwd))
+        os.chdir(old_cwd)
 
 
 @contextlib.contextmanager
@@ -273,27 +267,13 @@ def disable_seccomp_bpf_sandbox():
     newer kernels.
     """
     try:
-        from PyQt5 import QtWebEngine  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
     except ImportError:
         # no QtWebEngine available
         return False
 
-    affected_versions = set()
-    for base, patch_range in [
-            # 5.12.0 to 5.12.10 (inclusive)
-            ('5.12', range(0, 11)),
-            # 5.13.0 to 5.13.2 (inclusive)
-            ('5.13', range(0, 3)),
-            # 5.14.0
-            ('5.14', [0]),
-            # 5.15.0 to 5.15.2 (inclusive)
-            ('5.15', range(0, 3)),
-    ]:
-        for patch in patch_range:
-            affected_versions.add(utils.VersionNumber.parse(f'{base}.{patch}'))
-
     versions = version.qtwebengine_versions(avoid_init=True)
-    return versions.webengine in affected_versions
+    return versions.webengine == utils.VersionNumber(5, 15, 2)
 
 
 def import_userscript(name):
@@ -311,3 +291,17 @@ def import_userscript(name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def enum_members(base, enumtype):
+    """Get all members of a Qt enum."""
+    if issubclass(enumtype, enum.Enum):
+        # PyQt 6
+        return {m.name: m for m in enumtype}
+    else:
+        # PyQt 5
+        return {
+            name: value
+            for name, value in vars(base).items()
+            if isinstance(value, enumtype)
+        }

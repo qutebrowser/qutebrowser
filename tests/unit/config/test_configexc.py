@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -32,20 +31,34 @@ def test_validation_error():
     assert str(e) == "Invalid value 'val' - msg"
 
 
-@pytest.mark.parametrize('deleted, renamed, expected', [
-    (False, None, "No option 'opt'"),
-    (True, None, "No option 'opt' (this option was removed from qutebrowser)"),
-    (False, 'new', "No option 'opt' (this option was renamed to 'new')"),
+@pytest.mark.parametrize('deleted, renamed, all_names, expected', [
+    (False, None, [], "No option 'opt'"),
+    (True, None, [], "No option 'opt' (this option was removed from qutebrowser)"),
+    (False, 'new', [], "No option 'opt' (this option was renamed to 'new')"),
+    (False, None, ["opto"], "No option 'opt' (did you mean 'opto'?)"),
+    (False, None, ["thisdoesnotmatch"], "No option 'opt'"),
+    (
+        True,
+        None,
+        ["opto"],
+        "No option 'opt' (this option was removed from qutebrowser)",
+    ),
+    (False, 'new', ["opto"], "No option 'opt' (this option was renamed to 'new')"),
 ])
-def test_no_option_error(deleted, renamed, expected):
-    e = configexc.NoOptionError('opt', deleted=deleted, renamed=renamed)
+def test_no_option_error(deleted, renamed, all_names, expected):
+    e = configexc.NoOptionError(
+        'opt',
+        deleted=deleted,
+        renamed=renamed,
+        all_names=all_names,
+    )
     assert e.option == 'opt'
     assert str(e) == expected
 
 
 def test_no_option_error_clash():
     with pytest.raises(AssertionError):
-        configexc.NoOptionError('opt', deleted=True, renamed='foo')
+        _ = configexc.NoOptionError('opt', deleted=True, renamed='foo')
 
 
 def test_no_autoconfig_error():
@@ -56,7 +69,7 @@ def test_no_autoconfig_error():
 
 @pytest.mark.parametrize('raw_backends', [
     None,
-    {'QtWebEngine': 'Qt 5.11', 'QtWebKit': False}
+    {'QtWebEngine': 'Qt 5.15', 'QtWebKit': False}
 ])
 def test_backend_error(raw_backends):
     e = configexc.BackendError('foo', usertypes.Backend.QtWebKit, raw_backends)
@@ -66,8 +79,8 @@ def test_backend_error(raw_backends):
 
 def test_backend_error_condition():
     e = configexc.BackendError('foo', usertypes.Backend.QtWebEngine,
-                               {'QtWebEngine': 'Qt 5.11', 'QtWebKit': True})
-    expected = "The foo setting needs Qt 5.11 with the QtWebEngine backend!"
+                               {'QtWebEngine': 'Qt 6.11', 'QtWebKit': True})
+    expected = "The foo setting needs Qt 6.11 with the QtWebEngine backend!"
     assert str(e) == expected
 
 

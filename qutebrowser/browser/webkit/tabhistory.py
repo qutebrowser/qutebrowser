@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,7 +19,7 @@
 
 from typing import Any, List, Mapping
 
-from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
+from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
 
 from qutebrowser.utils import qtutils
 
@@ -50,10 +48,10 @@ def _serialize_items(items, current_idx, stream):
 
 def _serialize_item(item):
     data = {
-        'originalURLString': item.original_url.toString(QUrl.FullyEncoded),
+        'originalURLString': item.original_url.toString(QUrl.ComponentFormattingOption.FullyEncoded),
         'scrollPosition': {'x': 0, 'y': 0},
         'title': item.title,
-        'urlString': item.url.toString(QUrl.FullyEncoded),
+        'urlString': item.url.toString(QUrl.ComponentFormattingOption.FullyEncoded),
     }
     try:
         data['scrollPosition']['x'] = item.user_data['scroll-pos'].x()
@@ -80,7 +78,7 @@ def serialize(items):
         segfault!
     """
     data = QByteArray()
-    stream = QDataStream(data, QIODevice.ReadWrite)
+    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
     user_data: List[Mapping[str, Any]] = []
 
     current_idx = None

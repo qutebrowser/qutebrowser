@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,8 +19,7 @@
 
 import enum
 
-from PyQt5.QtCore import (pyqtSlot, pyqtProperty,  # type: ignore[attr-defined]
-                          QUrl)
+from qutebrowser.qt.core import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import stylesheet
@@ -92,7 +89,7 @@ class UrlText(textbase.TextBase):
         self._normal_url = None
         self._normal_url_type = UrlType.normal
 
-    @pyqtProperty(str)
+    @pyqtProperty(str)  # type: ignore[type-var]
     def urltype(self):
         """Getter for self.urltype, so it can be used as Qt property.
 

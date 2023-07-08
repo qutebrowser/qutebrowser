@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -91,7 +89,7 @@ class _Hook:
 
     def __call__(self, *args):
         if self.raising:
-            raise Exception("Should not be called!")
+            raise AssertionError("Should not be called!")
         self.called = True
 
 

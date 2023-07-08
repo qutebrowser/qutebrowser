@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -18,7 +16,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-pytest.importorskip('PyQt5.QtWebKitWidgets')
+pytest.importorskip('qutebrowser.qt.webkitwidgets')
 
 from qutebrowser.browser.webkit import webkitsettings
 

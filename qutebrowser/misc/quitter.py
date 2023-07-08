@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -31,7 +29,7 @@ import functools
 import subprocess
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
 
-from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+from qutebrowser.qt.core import QObject, pyqtSignal, QTimer
 try:
     import hunter
 except ImportError:
@@ -221,21 +219,18 @@ class Quitter(QObject):
             status, session))
 
         sessions.shutdown(session, last_window=last_window)
+        prompt.prompt_queue.shutdown()
 
-        if prompt.prompt_queue.shutdown():
-            # If shutdown was called while we were asking a question, we're in
-            # a still sub-eventloop (which gets quit now) and not in the main
-            # one.
-            # This means we need to defer the real shutdown to when we're back
-            # in the real main event loop, or we'll get a segfault.
-            log.destroy.debug("Deferring real shutdown because question was "
-                              "active.")
-            QTimer.singleShot(0, functools.partial(self._shutdown_2, status,
-                                                   is_restart=is_restart))
-        else:
-            # If we have no questions to shut down, we are already in the real
-            # event loop, so we can shut down immediately.
-            self._shutdown_2(status, is_restart=is_restart)
+        # If shutdown was called while we were asking a question, we're in
+        # a still sub-eventloop (which gets quit now) and not in the main
+        # one.
+        # But there's also other situations where it's problematic to shut down
+        # immediately (e.g. when we're just starting up).
+        # This means we need to defer the real shutdown to when we're back
+        # in the real main event loop, or we'll get a segfault.
+        log.destroy.debug("Deferring shutdown stage 2")
+        QTimer.singleShot(
+            0, functools.partial(self._shutdown_2, status, is_restart=is_restart))
 
     def _shutdown_2(self, status: int, is_restart: bool) -> None:
         """Second stage of shutdown."""
@@ -282,12 +277,10 @@ def quit_(save: bool = False,
     """
     if session is not None and not save:
         raise cmdutils.CommandError("Session name given without --save!")
-    if save:
-        if session is None:
-            session = sessions.default
-        instance.shutdown(session=session)
-    else:
-        instance.shutdown()
+    if save and session is None:
+        session = sessions.default
+
+    instance.shutdown(session=session)
 
 
 @cmdutils.register()

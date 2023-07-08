@@ -1,6 +1,4 @@
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # This file is part of qutebrowser.
 #
 # qutebrowser is free software: you can redistribute it and/or modify
@@ -28,7 +26,7 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.7 is required to run qutebrowser, but it's "
+TEXT = (r"At least Python 3.8 is required to run qutebrowser, but it's "
         r"running with \d+\.\d+\.\d+.")
 
 

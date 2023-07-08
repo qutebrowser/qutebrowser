@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -30,11 +28,11 @@ import shlex
 import math
 import operator
 
-from PyQt5.QtCore import QUrl, QRect
-from PyQt5.QtGui import QClipboard
+from qutebrowser.qt.core import QUrl, QRect, QPoint
+from qutebrowser.qt.gui import QClipboard
 import pytest
 import hypothesis
-from hypothesis import strategies
+from hypothesis import strategies, settings
 import yaml
 
 import qutebrowser
@@ -425,7 +423,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42)
     def func_raising(self):
-        raise Exception
+        raise RuntimeError("something went wrong")
 
     def test_raising(self, caplog):
         """Test with a raising function."""
@@ -434,6 +432,7 @@ class TestPreventExceptions:
         assert ret == 42
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
         assert caplog.messages == [expected]
+        assert caplog.records[0].exc_info[1].args[0] == "something went wrong"
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -448,7 +447,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42, True)
     def func_predicate_true(self):
-        raise Exception
+        raise RuntimeError("its-true")
 
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
@@ -456,15 +455,16 @@ class TestPreventExceptions:
             ret = self.func_predicate_true()
         assert ret == 42
         assert len(caplog.records) == 1
+        assert caplog.records[0].exc_info[1].args[0] == "its-true"
 
     @utils.prevent_exceptions(42, False)
     def func_predicate_false(self):
-        raise Exception
+        raise RuntimeError("its-false")
 
     def test_predicate_false(self, caplog):
         """Test with a False predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError, match="its-false"):
                 self.func_predicate_false()
         assert not caplog.records
 
@@ -546,13 +546,17 @@ class TestIsEnum:
         assert not utils.is_enum(23)
 
 
+class SentinalException(Exception):
+    pass
+
+
 class TestRaises:
 
     """Test raises."""
 
     def do_raise(self):
         """Helper function which raises an exception."""
-        raise Exception
+        raise SentinalException
 
     def do_nothing(self):
         """Helper function which does nothing."""
@@ -571,15 +575,15 @@ class TestRaises:
 
     def test_no_args_true(self):
         """Test with no args and an exception which gets raised."""
-        assert utils.raises(Exception, self.do_raise)
+        assert utils.raises(SentinalException, self.do_raise)
 
     def test_no_args_false(self):
         """Test with no args and an exception which does not get raised."""
-        assert not utils.raises(Exception, self.do_nothing)
+        assert not utils.raises(SentinalException, self.do_nothing)
 
     def test_unrelated_exception(self):
         """Test with an unrelated exception."""
-        with pytest.raises(Exception):
+        with pytest.raises(SentinalException):
             utils.raises(ValueError, self.do_raise)
 
 
@@ -602,6 +606,15 @@ class TestSanitizeFilename:
 
     LONG_EXTENSION = (LONG_FILENAME.replace("filename", ".extension")
                       .replace(".txt", ""))
+
+    # first four-byte unicode char
+    U10K = "\U00010000"
+
+    LONG_4BYTE = U10K * 64
+    LONG_4BYTE_SHORTENED = U10K * 60
+
+    LONG_4BYTE_EXT = f"{U10K * 8}.{U10K * 64}"
+    LONG_4BYTE_EXT_SHORTENED = f"{U10K}.{U10K * 59}"
 
     @pytest.mark.parametrize('inp, expected', [
         pytest.param('normal.txt', 'normal.txt',
@@ -629,6 +642,14 @@ class TestSanitizeFilename:
             LONG_EXTENSION.replace("this is a very long .extension",
                                    "this .extension"),
         ),
+        (
+            LONG_4BYTE,
+            LONG_4BYTE_SHORTENED,
+        ),
+        (
+            LONG_4BYTE_EXT,
+            LONG_4BYTE_EXT_SHORTENED,
+        )
     ])
     @pytest.mark.linux
     def test_shorten(self, inp, expected):
@@ -640,6 +661,7 @@ class TestSanitizeFilename:
         assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
     @hypothesis.given(filename=strategies.text(min_size=100))
+    @settings(max_examples=10)
     def test_invariants(self, filename):
         sanitized = utils.sanitize_filename(filename, shorten=True)
         assert len(os.fsencode(sanitized)) <= 255 - len("(123).download")
@@ -659,7 +681,7 @@ class TestGetSetClipboard:
     def test_set(self, clipboard_mock, caplog):
         utils.set_clipboard('Hello World')
         clipboard_mock.setText.assert_called_with('Hello World',
-                                                  mode=QClipboard.Clipboard)
+                                                  mode=QClipboard.Mode.Clipboard)
         assert not caplog.records
 
     def test_set_unsupported_selection(self, clipboard_mock):
@@ -750,7 +772,7 @@ class TestOpenFile:
 
     @pytest.fixture
     def openurl_mock(self, mocker):
-        return mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+        return mocker.patch('qutebrowser.qt.gui.QDesktopServices.openUrl', spec={},
                             new_callable=mocker.Mock)
 
     def test_system_default_application(self, caplog, config_stub,
@@ -874,7 +896,7 @@ def test_ceil_log_hypothesis(number, base):
 @pytest.mark.parametrize('number, base', [(64, 0), (0, 64), (64, -1),
                                           (-1, 64), (1, 1)])
 def test_ceil_log_invalid(number, base):
-    with pytest.raises(Exception):  # ValueError/ZeroDivisionError
+    with pytest.raises((ValueError, ZeroDivisionError)):
         math.log(number, base)
     with pytest.raises(ValueError):
         utils.ceil_log(number, base)
@@ -1026,3 +1048,57 @@ class TestParseRect:
             utils.parse_rect(s)
         except ValueError as e:
             print(e)
+
+
+class TestParsePoint:
+
+    @pytest.mark.parametrize('value, expected', [
+        ('1,1', QPoint(1, 1)),
+        ('123,789', QPoint(123, 789)),
+        ('-123,-789', QPoint(-123, -789)),
+    ])
+    def test_valid(self, value, expected):
+        assert utils.parse_point(value) == expected
+
+    @pytest.mark.parametrize('value, message', [
+        ('1x1', "String 1x1 does not match X,Y"),
+        ('1e0,1', "String 1e0,1 does not match X,Y"),
+        ('a,1', "String a,1 does not match X,Y"),
+        ('¹,1', "String ¹,1 does not match X,Y"),
+        ('1,,1', "String 1,,1 does not match X,Y"),
+        ('1', "String 1 does not match X,Y"),
+    ])
+    def test_invalid(self, value, message):
+        with pytest.raises(ValueError) as excinfo:
+            utils.parse_point(value)
+        assert str(excinfo.value) == message
+
+    @hypothesis.given(strategies.text())
+    def test_hypothesis_text(self, s):
+        try:
+            utils.parse_point(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.tuples(
+        strategies.integers(),
+        strategies.integers(),
+    ).map(lambda t: ",".join(map(str, t))))
+    def test_hypothesis_sophisticated(self, s):
+        try:
+            utils.parse_point(s)
+        except ValueError as e:
+            print(e)
+
+
+@pytest.mark.parametrize("patterns, value, expected", [
+    ([], "test", None),  # no patterns
+    (["TEST"], "test", None),  # case sensitive
+    (["test"], "test", "test"),  # trivial match
+    (["test1", "test2", "test3"], "test2", "test2"),  # multiple patterns
+    (["test*", "other*"], "testbla", "test*"),  # glob match
+    (["t*", "test*"], "test", "t*"),  # first match
+    (["test*", "t*"], "test", "test*"),  # first match
+])
+def test_match_globs(patterns, value, expected):
+    assert utils.match_globs(patterns, value) == expected

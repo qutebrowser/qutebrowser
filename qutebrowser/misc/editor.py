@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,7 +20,7 @@
 import os
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QObject, QProcess,
                           QFileSystemWatcher)
 
 from qutebrowser.config import config
@@ -105,7 +103,7 @@ class ExternalEditor(QObject):
             return
 
         log.procs.debug("Editor closed")
-        if exitstatus != QProcess.NormalExit:
+        if exitstatus != QProcess.ExitStatus.NormalExit:
             # No error/cleanup here, since we already handle this in
             # on_proc_error.
             return
@@ -207,8 +205,7 @@ class ExternalEditor(QObject):
             if not ok:
                 log.procs.error("Failed to watch path: {}"
                                 .format(self._filename))
-            self._watcher.fileChanged.connect(  # type: ignore[attr-defined]
-                self._on_file_changed)
+            self._watcher.fileChanged.connect(self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))

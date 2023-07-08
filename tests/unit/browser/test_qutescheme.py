@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Imran Sobir
 #
@@ -23,12 +21,12 @@ import os
 import time
 import logging
 
-import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QUrl, QUrlQuery
+import py.path
+from qutebrowser.qt.core import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
-from qutebrowser.utils import resources
+from qutebrowser.utils import resources, urlmatch
 from qutebrowser.misc import guiprocess
 
 
@@ -223,7 +221,7 @@ class TestPDFJSHandler:
     @pytest.fixture
     def download_tmpdir(self):
         tdir = downloads.temp_download_manager.get_tmpdir()
-        yield py.path.local(tdir.name)  # pylint: disable=no-member
+        yield py.path.local(tdir.name)
         tdir.cleanup()
 
     def test_existing_resource(self):
@@ -291,3 +289,37 @@ class TestPDFJSHandler:
         url.setQuery(query)
         with pytest.raises(qutescheme.RequestDeniedError):
             qutescheme.data_for_url(url)
+
+
+class TestQuteConfigdiff:
+
+    """Test the qute://configdiff handler."""
+
+    @pytest.fixture(autouse=True)
+    def prepare_config(self, config_stub):
+        config_stub.set_obj(
+            "content.javascript.enabled",
+            True,
+            pattern=urlmatch.UrlPattern("chrome-devtools://*"),
+            hide_userconfig=True,
+        )
+
+    @pytest.mark.parametrize("url, expected", [
+        (
+            "qute://configdiff/",
+            b"<Default configuration>",
+        ),
+        (
+            "qute://configdiff/?include_hidden=true",
+            b'chrome-devtools://*: content.javascript.enabled = true',
+        )
+    ])
+    def test_default_config(self, config_stub, url, expected):
+        _mimetype, data = qutescheme.data_for_url(QUrl(url))
+        assert data == expected
+
+    def test_changes(self, config_stub):
+        config_stub.set_obj("content.images", False)
+        url = QUrl('qute://configdiff/')
+        _mimetype, data = qutescheme.data_for_url(url)
+        assert data == b'content.images = false'

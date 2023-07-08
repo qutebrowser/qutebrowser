@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,8 +21,8 @@ import logging
 
 import pytest
 import yaml
-from PyQt5.QtCore import QUrl, QPoint, QByteArray, QObject
-QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
+from qutebrowser.qt.core import QUrl, QPoint, QByteArray, QObject
+QWebView = pytest.importorskip('qutebrowser.qt.webkitwidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item
@@ -286,7 +284,7 @@ class FakeWebView:
     def load_history(self, data):
         self.loaded_history = data
         if self.raise_error is not None:
-            raise self.raise_error  # pylint: disable=raising-bad-type
+            raise self.raise_error
 
 
 @pytest.fixture

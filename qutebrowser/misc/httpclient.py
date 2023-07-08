@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,8 +21,8 @@ import functools
 import urllib.parse
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
+from qutebrowser.qt.core import pyqtSignal, QObject, QTimer
+from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
 
 from qutebrowser.utils import log
@@ -35,8 +33,8 @@ class HTTPRequest(QNetworkRequest):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAttribute(QNetworkRequest.RedirectPolicyAttribute,
-                          QNetworkRequest.NoLessSafeRedirectPolicy)
+        self.setAttribute(QNetworkRequest.Attribute.RedirectPolicyAttribute,
+                          QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
 
 
 class HTTPClient(QObject):
@@ -78,9 +76,11 @@ class HTTPClient(QObject):
             data = {}
         encoded_data = urllib.parse.urlencode(data).encode('utf-8')
         request = HTTPRequest(url)
-        request.setHeader(QNetworkRequest.ContentTypeHeader,
+        request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader,
                           'application/x-www-form-urlencoded;charset=utf-8')
-        reply = self._nam.post(request, encoded_data)
+        # FIXME:mypy PyQt6-stubs issue
+        reply = self._nam.post(  # type: ignore[call-overload,unused-ignore]
+            request, encoded_data)
         self._handle_reply(reply)
 
     def get(self, url):
@@ -118,7 +118,7 @@ class HTTPClient(QObject):
         if timer is not None:
             timer.stop()
             timer.deleteLater()
-        if reply.error() != QNetworkReply.NoError:
+        if reply.error() != QNetworkReply.NetworkError.NoError:
             self.error.emit(reply.errorString())
             return
         try:

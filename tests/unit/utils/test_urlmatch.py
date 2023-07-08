@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -33,11 +31,17 @@ import string
 import pytest
 import hypothesis
 import hypothesis.strategies as hst
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import urlmatch
 
-# pylint: disable=line-too-long
+# FIXME:v4 (lint): disable=line-too-long
+
+
+_INVALID_IP_MESSAGE = (
+    r'Invalid IPv6 address; source was ".*"; host = ""|'
+    r"'.*' does not appear to be an IPv4 or IPv6 address"  # Python 3.11.4+
+)
 
 
 @pytest.mark.parametrize('pattern, error', [
@@ -60,7 +64,11 @@ from qutebrowser.utils import urlmatch
     pytest.param("http://:1234/", "Pattern without host", id='host-port'),
     pytest.param("http://*./", "Pattern without host", id='host-pattern'),
     ## TEST(ExtensionURLPatternTest, IPv6Patterns)
-    pytest.param("http://[]:8888/*", "Pattern without host", id='host-ipv6'),
+    pytest.param(
+        "http://[]:8888/*",
+        "Pattern without host|'' does not appear to be an IPv4 or IPv6 address",
+        id='host-ipv6',
+    ),
 
     ### Chromium: kEmptyPath
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
@@ -87,19 +95,22 @@ from qutebrowser.utils import urlmatch
     # Two open brackets (`[[`).
     pytest.param(
         "http://[[2607:f8b0:4005:805::200e]/*",
-        r"""Expected '\]' to match '\[' in hostname; source was "\[2607:f8b0:4005:805::200e"; host = """"",
+        (
+            r'''Expected '\]' to match '\[' in hostname; source was "\[2607:f8b0:4005:805::200e"; host = ""|'''
+            r"'\[2607:f8b0:4005:805::200e' does not appear to be an IPv4 or IPv6 address"
+        ),
         id='host-ipv6-two-open',
     ),
     # Too few colons in the last chunk.
     pytest.param(
         "http://[2607:f8b0:4005:805:200e]/*",
-        'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='host-ipv6-colons',
     ),
     # Non-hex piece.
     pytest.param(
         "http://[2607:f8b0:4005:805:200e:12:bogus]/*",
-        'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e:12:bogus"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='host-ipv6-non-hex',
     ),
 
@@ -153,33 +164,33 @@ from qutebrowser.utils import urlmatch
     pytest.param("http://[", "Invalid IPv6 URL", id='ipv6-single-open'),
     pytest.param(
         "http://[fc2e::bb88::edac]",
-        'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='ipv6-double-double',
     ),
     pytest.param(
         "http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]",
-        'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='ipv6-long-double',
     ),
     pytest.param(
         "http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]",
-        'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='ipv6-long',
     ),
     pytest.param(
         "http://[127.0.0.1:fc2e::bb88:edac]",
-        r'Invalid IPv6 address; source was "127\.0\.0\.1:fc2e::bb88:edac',
+        _INVALID_IP_MESSAGE,
         id='ipv6-ipv4',
     ),
     pytest.param("http://[fc2e::bb88", "Invalid IPv6 URL", id='ipv6-trailing'),
     pytest.param(
         "http://[fc2e:bb88:edac]",
-        'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='ipv6-short',
     ),
     pytest.param(
         "http://[fc2e:bb88:edac::z]",
-        'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""',
+        _INVALID_IP_MESSAGE,
         id='ipv6-z',
     ),
     pytest.param(
@@ -190,7 +201,7 @@ from qutebrowser.utils import urlmatch
     pytest.param("://", "Missing scheme", id='scheme-naked'),
 ])
 def test_invalid_patterns(pattern, error):
-    with pytest.raises(urlmatch.ParseError, match=error):
+    with pytest.raises(urlmatch.ParseError, match=f"^{error}$"):
         urlmatch.UrlPattern(pattern)
 
 # pylint: enable=line-too-long

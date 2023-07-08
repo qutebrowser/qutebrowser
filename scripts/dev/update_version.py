@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Andy Mender <andymenderunix@gmail.com>
 # Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
@@ -81,8 +79,7 @@ if __name__ == "__main__":
           "tox -e build-release -- --upload"
           .format(v=version))
     print("* Windows: git fetch; git checkout v{v}; "
-          "py -3.9 -m tox -e build-release -- --asciidoc "
-          "$env:userprofile\\bin\\asciidoc-9.1.0\\asciidoc.py --upload"
+          "py -3.9 -m tox -e build-release -- --upload"
           .format(v=version))
     print("* macOS: git fetch && git checkout v{v} && "
           "tox -e build-release -- --upload"

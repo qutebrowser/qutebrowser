@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -18,10 +16,9 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl
-pytest.importorskip('PyQt5.QtWebEngineCore')
-from PyQt5.QtWebEngineCore import QWebEngineCookieStore
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+from qutebrowser.qt.core import QUrl
+pytest.importorskip('qutebrowser.qt.webenginecore')
+from qutebrowser.qt.webenginecore import QWebEngineCookieStore, QWebEngineProfile
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch

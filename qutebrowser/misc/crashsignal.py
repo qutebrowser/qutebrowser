@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -32,9 +30,9 @@ import faulthandler
 import dataclasses
 from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
-from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
+from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
@@ -135,7 +133,7 @@ class CrashHandler(QObject):
             for tab in tabbed_browser.widgets():
                 try:
                     urlstr = tab.url().toString(
-                        QUrl.RemovePassword | QUrl.FullyEncoded)
+                        QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
                     if urlstr:
                         win_pages.append(urlstr)
                 except Exception:
@@ -359,10 +357,9 @@ class SignalHandler(QObject):
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
             self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
-                                             QSocketNotifier.Read,
+                                             QSocketNotifier.Type.Read,
                                              self)
-            self._notifier.activated.connect(  # type: ignore[attr-defined]
-                self.handle_signal_wakeup)
+            self._notifier.activated.connect(self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression
         else:

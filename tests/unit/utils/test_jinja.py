@@ -1,6 +1,4 @@
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +22,7 @@ import logging
 
 import jinja2.exceptions
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import jinja
 from qutebrowser.config import configexc

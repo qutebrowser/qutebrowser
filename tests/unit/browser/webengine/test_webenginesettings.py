@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,16 +19,22 @@ import logging
 
 import pytest
 
-QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+QtWebEngineCore = pytest.importorskip('qutebrowser.qt.webenginecore')
+QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
+from qutebrowser.config import configdata
 
 
 @pytest.fixture
-def global_settings(monkeypatch, default_profile):
+def settings(default_profile):
     wrapper = webenginesettings._SettingsWrapper()
-    settings = webenginesettings.WebEngineSettings(wrapper)
+    return webenginesettings.WebEngineSettings(wrapper)
+
+
+@pytest.fixture
+def global_settings(monkeypatch, settings):
     settings.init_settings()
     monkeypatch.setattr(webenginesettings, '_global_settings', settings)
 
@@ -41,7 +45,7 @@ def default_profile(monkeypatch):
 
     Note we use a "private" profile here to avoid actually storing data during tests.
     """
-    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile = QtWebEngineCore.QWebEngineProfile()
     profile.setter = webenginesettings.ProfileSetter(profile)
     monkeypatch.setattr(profile, 'isOffTheRecord', lambda: False)
     monkeypatch.setattr(webenginesettings, 'default_profile', profile)
@@ -51,10 +55,66 @@ def default_profile(monkeypatch):
 @pytest.fixture
 def private_profile(monkeypatch):
     """A profile to use which is set as private_profile."""
-    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile = QtWebEngineCore.QWebEngineProfile()
     profile.setter = webenginesettings.ProfileSetter(profile)
     monkeypatch.setattr(webenginesettings, 'private_profile', profile)
     return profile
+
+
+@pytest.mark.parametrize("setting, value, getter, expected", [
+    # attribute
+    (
+        "content.images", False,
+        lambda settings:
+            settings.testAttribute(QWebEngineSettings.WebAttribute.AutoLoadImages),
+        False,
+    ),
+    # font size
+    (
+        "fonts.web.size.default", 23,
+        lambda settings:
+            settings.fontSize(QWebEngineSettings.FontSize.DefaultFontSize),
+        23,
+    ),
+    # font family
+    (
+        "fonts.web.family.standard", "Comic Sans MS",
+        lambda settings:
+            settings.fontFamily(QWebEngineSettings.FontFamily.StandardFont),
+        "Comic Sans MS",
+    ),
+    # encoding
+    (
+        "content.default_encoding", "utf-16",
+        lambda settings: settings.defaultTextEncoding(),
+        "utf-16",
+    ),
+    # unknown URL scheme policy
+    (
+        "content.unknown_url_scheme_policy", "allow-all",
+        lambda settings: settings.unknownUrlSchemePolicy(),
+        QWebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes,
+    ),
+    # JS clipboard
+    (
+        "content.javascript.clipboard", "access",
+        lambda settings: settings.testAttribute(
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard),
+        True,
+    ),
+])
+def test_initial_settings(settings, config_stub, default_profile,
+                          setting, value, getter, expected):
+    """Make sure initial setting values are applied correctly."""
+    qt_settings = default_profile.settings()
+    initial = getter(qt_settings)
+    assert initial != expected  # no point in testing for the Qt default
+
+    config_stub.set_obj(setting, value)
+    settings.init_settings()
+
+    actual = getter(qt_settings)
+    assert actual == expected
 
 
 def test_big_cache_size(config_stub, default_profile):
@@ -103,3 +163,8 @@ def test_parsed_user_agent(qapp):
     parsed = webenginesettings.parsed_user_agent
     assert parsed.upstream_browser_key == 'Chrome'
     assert parsed.qt_key == 'QtWebEngine'
+
+
+def test_profile_setter_settings(private_profile, configdata_init):
+    for setting in private_profile.setter._name_to_method:
+        assert setting in set(configdata.DATA)

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -56,9 +54,9 @@ def change_release_description(release, filename, description):
     """Change a release description to the given new one."""
     assets = [asset for asset in release.assets() if asset.name == filename]
     if not assets:
-        raise Error("No assets found for {filename}")
+        raise Error(f"No assets found for {filename}")
     if len(assets) > 1:
-        raise Error("Multiple assets found for {filename}: {assets}")
+        raise Error(f"Multiple assets found for {filename}: {assets}")
 
     asset = assets[0]
     asset.edit(filename, description)

@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Downloading things from a website.
 
     Background:
@@ -61,7 +59,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue889.html
         And I hint with args "links download" and follow a
         And I run :tab-close
-        And I wait for "* Handling redirect" in the log
+        And I wait for "redirected: *" in the log
         Then no crash should happen
 
     Scenario: Downloading with error in closed tab (issue 889)
@@ -136,24 +134,16 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip @qt>=5.13
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.13 and newer)
+    @qtwebkit_skip
+    Scenario: Downloading a file with evil content-disposition header
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
-    @qtwebkit_skip @qt<5.13
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.12)
-        # Content-Disposition: download; filename=..%2Ffoo
-        When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
-        And I wait until the download is finished
-        Then the downloaded file ../foo should not exist
-        And the downloaded file ..%2Ffoo should exist
-
-    @qtwebkit_skip @qt>=5.13
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.13 or newer)
+    @qtwebkit_skip
+    Scenario: Downloading a file with evil content-disposition header 2
         # Content-Disposition: download; filename=..%252Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%25252Ffoo without waiting
         And I wait until the download is finished
@@ -338,7 +328,7 @@ Feature: Downloading things from a website.
     Scenario: Cancelling an MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
         And I run :download --mhtml
-        And I wait for "fetch: PyQt5.QtCore.QUrl('http://localhost:*/drip?numbytes=128&duration=2') -> drip" in the log
+        And I wait for "fetch: Py*.QtCore.QUrl('http://localhost:*/drip?numbytes=128&duration=2') -> drip" in the log
         And I run :download-cancel
         Then no crash should happen
 
@@ -584,16 +574,15 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading with infinite redirect
         When I set downloads.location.prompt to false
-        And I run :download http://localhost:(port)/redirect/12 --dest redirection
-        Then the error "Download error: Maximum redirection count reached!" should be shown
-        And "Deleted *redirection" should be logged
+        And I run :download http://localhost:(port)/redirect/21 --dest redirection
+        Then the error "Download error: Too many redirects" should be shown
         And the downloaded file redirection should not exist
 
     Scenario: Downloading with redirect to itself
         When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/redirect-self
-        And I wait until the download is finished
-        Then the downloaded file redirect-self should exist
+        Then the error "Download error: Too many redirects" should be shown
+        And the downloaded file redirect-self should not exist
 
     Scenario: Downloading with absolute redirect
         When I set downloads.location.prompt to false
@@ -606,6 +595,15 @@ Feature: Downloading things from a website.
         And I run :download http://localhost:(port)/relative-redirect
         And I wait until the download is finished
         Then the downloaded file relative-redirect should exist
+
+    Scenario: Downloading with insecure redirect
+        When I set downloads.location.prompt to false
+        And I set content.tls.certificate_errors to load-insecurely
+        And I download an SSL redirect page
+        # First error is due to the load-insecurely value above
+        Then the error "Certificate error: *The certificate is self-signed, and untrusted" should be shown
+        And the error "Download error: Insecure redirect" should be shown
+        And the downloaded file download.bin should not exist
 
     ## Other
 
@@ -646,8 +644,9 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to false
         And I set content.pdfjs to true
         And I open data/misc/test.pdf without waiting
-        And I wait for the javascript message "PDF * [*] (PDF.js: *)"
+        And I wait until PDF.js is ready
         And I run :click-element id download
+        And I clear the log
         And I wait until the download is finished
         # We get viewer.html as name on QtWebKit...
         # Then the downloaded file test.pdf should exist
@@ -684,3 +683,32 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to false
         And I open 500-inline
         Then the error "Download error: *INTERNAL SERVER ERROR" should be shown
+
+    ## External download path fileselector
+
+    Scenario: Select download path
+        When I set downloads.location.prompt to true
+        And I setup a fake folder fileselector selecting "(tmpdir)(dirsep)downloads(dirsep)subdir" and writes to a temporary file
+        And I open data/downloads/downloads.html
+        And I run :click-element id download
+        And I wait for the download prompt for "*"
+        And I run :prompt-fileselect-external
+        And I wait until the download is finished
+        Then the downloaded file subdir/download.bin should exist
+
+    Scenario: No download folder chosen
+        When I set downloads.location.prompt to true
+        And I set fileselect.folder.command to ['echo', '{}']
+        And I open data/downloads/downloads.html
+        And I run :click-element id download
+        And I wait for the download prompt for "*"
+        And I run :prompt-fileselect-external
+        Then the message "No folder chosen." should be shown
+        And "No prompts left, hiding prompt container." should not be logged
+
+    Scenario: Using :prompt-fileselect-external with other prompt
+        When I open data/prompt/jsprompt.html
+        And I run :click-element id button
+        And I wait for "Asking question *" in the log
+        And I run :prompt-fileselect-external
+        Then the error "Can only launch external fileselect for FilenamePrompt, not LineEditPrompt" should be shown

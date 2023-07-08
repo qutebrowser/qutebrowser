@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,8 +21,9 @@ import functools
 import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
+from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
 from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
@@ -37,6 +36,7 @@ from qutebrowser.misc import objects
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 
+# FIXME:mypy TypedDict?
 ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
@@ -50,17 +50,19 @@ class KeyEvent:
     press/release.
 
     Attributes:
-        key: A Qt.Key member (QKeyEvent::key).
+        key: Usually a Qt.Key member, but could be other ints (QKeyEvent::key).
         text: A string (QKeyEvent::text).
     """
 
-    key: Qt.Key
+    # int instead of Qt.Key:
+    # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    key: int
     text: str
 
     @classmethod
     def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
         """Initialize a KeyEvent from a QKeyEvent."""
-        return cls(Qt.Key(event.key()), event.text())
+        return cls(event.key(), event.text())
 
 
 class NotInModeError(Exception):
@@ -288,15 +290,23 @@ class ModeManager(QObject):
                             "{}".format(curmode, utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
-        has_modifier = event.modifiers() not in [
-            Qt.NoModifier,
-            Qt.ShiftModifier,
-        ]  # type: ignore[comparison-overlap]
+        if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
+            ignored_modifiers = [
+                cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.NoModifier),
+                cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.ShiftModifier),
+            ]
+        else:
+            ignored_modifiers = [
+                Qt.KeyboardModifier.NoModifier,
+                Qt.KeyboardModifier.ShiftModifier,
+            ]
+        has_modifier = event.modifiers() not in ignored_modifiers
+
         is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
-        if match:
+        if match != QKeySequence.SequenceMatch.NoMatch:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):
@@ -459,12 +469,16 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handlers: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]] = {
-            QEvent.KeyPress: self._handle_keypress,
-            QEvent.KeyRelease: self._handle_keyrelease,
-            QEvent.ShortcutOverride:
+            QEvent.Type.KeyPress: self._handle_keypress,
+            QEvent.Type.KeyRelease: self._handle_keyrelease,
+            QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
-        handler = handlers[event.type()]
+        ev_type = event.type()
+        if machinery.IS_QT6:
+            ev_type = cast(QEvent.Type, ev_type)
+
+        handler = handlers[ev_type]
         return handler(cast(QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')

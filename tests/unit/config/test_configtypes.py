@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -29,9 +28,9 @@ import dataclasses
 import pytest
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtNetwork import QNetworkProxy
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QColor, QFont
+from qutebrowser.qt.network import QNetworkProxy
 
 from qutebrowser.misc import objects
 from qutebrowser.config import configtypes, configexc
@@ -46,22 +45,16 @@ class Font(QFont):
     """A QFont with a nicer repr()."""
 
     def __repr__(self):
-        weight = debug.qenum_key(QFont, self.weight(), add_base=True,
-                                 klass=QFont.Weight)
-        kwargs = {
-            'family': self.family(),
-            'pt': self.pointSize(),
-            'px': self.pixelSize(),
-            'weight': weight,
-            'style': self.style(),
-        }
-        try:
-            kwargs['families'] = self.families()
-        except AttributeError:
-            # Added in Qt 5.13
-            pass
-
-        return utils.get_repr(self, **kwargs)
+        weight = debug.qenum_key(QFont, self.weight(), klass=QFont.Weight)
+        return utils.get_repr(
+            self,
+            family=self.family(),
+            pt=self.pointSize(),
+            px=self.pixelSize(),
+            weight=weight,
+            style=self.style(),
+            families=self.families(),
+        )
 
 
 class RegexEq:
@@ -223,6 +216,7 @@ class TestAll:
         """Patch aliases so Command works."""
         config_stub.val.aliases = {}
 
+    # pylint: disable-next=too-many-function-args
     @pytest.fixture(params=list(gen_classes()))
     def klass(self, request):
         return request.param
@@ -254,11 +248,14 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        elif (isinstance(klass, functools.partial) and klass.func in [
-                configtypes.ListOrValue, configtypes.List, configtypes.Dict]):
-            # ListOrValue: "- /" -> "/"
-            # List: "- /" -> ["/"]
-            # Dict: '{":": "A"}' -> ':: A'
+
+        # Dict and List deserialize to yaml but serialize to json, so we can't
+        # do a naive round trip test with them. For example:
+        #   ListOrValue: "- /" -> "/"
+        #   List: "- /" -> ["/"]
+        #   Dict: ':: A' -> '{":": "A"}'
+        compound_types = (configtypes.ListOrValue, configtypes.List, configtypes.Dict)
+        if isinstance(typ, compound_types):
             return
 
         assert converted == s
@@ -1375,46 +1372,46 @@ class TestFont:
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
         '"Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
         'inconsolatazi4':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, -1, -1,
                      'inconsolatazi4'),
         'Terminus (TTF)':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, -1, -1,
                      'Terminus (TTF)'),
         '10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, 10, None, 'Foobar Neue'),
         '10px "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, None, 10, 'Foobar Neue'),
         '10PX "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Normal, None, 10, 'Foobar Neue'),
         'bold "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
         'italic "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
         'oblique "Foobar Neue"':
-            FontDesc(QFont.StyleOblique, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleOblique, QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
         'normal bold "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
         'bold italic "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
         'bold 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, 10, None, 'Foobar Neue'),
         'italic 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Normal, 10, None, 'Foobar Neue'),
         'oblique 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleOblique, QFont.Normal, 10, None,
+            FontDesc(QFont.Style.StyleOblique, QFont.Weight.Normal, 10, None,
                      'Foobar Neue'),
         'normal bold 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, QFont.Weight.Bold, 10, None, 'Foobar Neue'),
         'bold italic 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleItalic, QFont.Weight.Bold, 10, None, 'Foobar Neue'),
         'normal 300 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 37, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, 37, 10, None, 'Foobar Neue'),
         'normal 800 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 99, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.Style.StyleNormal, 99, 10, None, 'Foobar Neue'),
     }
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
@@ -1891,11 +1888,11 @@ class TestProxy:
 
     @pytest.mark.parametrize('val, expected', [
         ('system', configtypes.SYSTEM_PROXY),
-        ('none', QNetworkProxy(QNetworkProxy.NoProxy)),
+        ('none', QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
         ('socks://example.com/',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://foo:bar@example.com:2323',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
                        'foo', 'bar')),
         ('pac+http://example.com/proxy.pac',
          pac.PACFetcher(QUrl('pac+http://example.com/proxy.pac'))),

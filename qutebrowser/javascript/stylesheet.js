@@ -92,6 +92,7 @@ window._qutebrowser.stylesheet = (function() {
             create_style();
             return;
         }
+
         const iter = document.createNodeIterator(document,
             NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_ELEMENT);
         let node;
@@ -101,6 +102,7 @@ window._qutebrowser.stylesheet = (function() {
                 return;
             }
         }
+
         const style_observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 const nodes = mutation.addedNodes;
@@ -130,11 +132,19 @@ window._qutebrowser.stylesheet = (function() {
             css_content = css;
         }
         // Propagate the new CSS to all child frames.
-        // FIXME:qtwebengine This does not work for cross-origin frames.
         for (let i = 0; i < window.frames.length; ++i) {
             const frame = window.frames[i];
-            if (frame._qutebrowser && frame._qutebrowser.stylesheet) {
-                frame._qutebrowser.stylesheet.set_css(css);
+            try {
+                if (frame._qutebrowser && frame._qutebrowser.stylesheet) {
+                    frame._qutebrowser.stylesheet.set_css(css);
+                }
+            } catch (exc) {
+                if (exc instanceof DOMException && exc.name === "SecurityError") {
+                    // FIXME:qtwebengine This does not work for cross-origin frames.
+                    console.log(`Failed to style frame: ${exc.message}`);
+                } else {
+                    throw exc;
+                }
             }
         }
     };

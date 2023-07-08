@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -25,7 +24,7 @@ import textwrap
 import logging
 
 import pytest
-from PyQt5.QtCore import QSettings
+from qutebrowser.qt.core import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
@@ -77,54 +76,74 @@ def autoconfig(config_tmpdir):
 
 
 @pytest.mark.parametrize('old_data, insert, new_data', [
-    (None,
-     False,
-     '[general]\n'
-     'qt_version = 5.6.7\n'
-     'qtwe_version = 7.8.9\n'
-     'version = 1.2.3\n'
-     '\n'
-     '[geometry]\n'
-     '\n'
-     '[inspector]\n'
-     '\n'),
-    ('[general]\n'
-     'fooled = true',
-     False,
-     '[general]\n'
-     'qt_version = 5.6.7\n'
-     'qtwe_version = 7.8.9\n'
-     'version = 1.2.3\n'
-     '\n'
-     '[geometry]\n'
-     '\n'
-     '[inspector]\n'
-     '\n'),
-    ('[general]\n'
-     'foobar = 42',
-     False,
-     '[general]\n'
-     'foobar = 42\n'
-     'qt_version = 5.6.7\n'
-     'qtwe_version = 7.8.9\n'
-     'version = 1.2.3\n'
-     '\n'
-     '[geometry]\n'
-     '\n'
-     '[inspector]\n'
-     '\n'),
-    (None,
-     True,
-     '[general]\n'
-     'qt_version = 5.6.7\n'
-     'qtwe_version = 7.8.9\n'
-     'version = 1.2.3\n'
-     'newval = 23\n'
-     '\n'
-     '[geometry]\n'
-     '\n'
-     '[inspector]\n'
-     '\n'),
+    (
+        None,
+
+        False,
+
+        '[general]\n'
+        'qt_version = 5.6.7\n'
+        'qtwe_version = 7.8.9\n'
+        'chromium_version = 123\n'
+        'version = 1.2.3\n'
+        '\n'
+        '[geometry]\n'
+        '\n'
+        '[inspector]\n'
+        '\n',
+    ),
+    (
+        '[general]\n'
+        'fooled = true',
+
+        False,
+
+        '[general]\n'
+        'qt_version = 5.6.7\n'
+        'qtwe_version = 7.8.9\n'
+        'chromium_version = 123\n'
+        'version = 1.2.3\n'
+        '\n'
+        '[geometry]\n'
+        '\n'
+        '[inspector]\n'
+        '\n'
+    ),
+    (
+        '[general]\n'
+        'foobar = 42',
+
+        False,
+
+        '[general]\n'
+        'foobar = 42\n'
+        'qt_version = 5.6.7\n'
+        'qtwe_version = 7.8.9\n'
+        'chromium_version = 123\n'
+        'version = 1.2.3\n'
+        '\n'
+        '[geometry]\n'
+        '\n'
+        '[inspector]\n'
+        '\n'
+    ),
+    (
+        None,
+
+        True,
+
+        '[general]\n'
+        'qt_version = 5.6.7\n'
+        'qtwe_version = 7.8.9\n'
+        'chromium_version = 123\n'
+        'version = 1.2.3\n'
+        'newval = 23\n'
+        '\n'
+        '[geometry]\n'
+        '\n'
+        '[inspector]\n'
+        '\n'
+    ),
 ])
 def test_state_config(
     fake_save_manager, data_tmpdir, monkeypatch, qtwe_version_patcher,
@@ -132,7 +151,7 @@ def test_state_config(
 ):
     monkeypatch.setattr(configfiles.qutebrowser, '__version__', '1.2.3')
     monkeypatch.setattr(configfiles, 'qVersion', lambda: '5.6.7')
-    qtwe_version_patcher('7.8.9')
+    qtwe_version_patcher('7.8.9', chromium_version='123.4.5.6')
 
     statefile = data_tmpdir / 'state'
     if old_data is not None:
@@ -167,18 +186,18 @@ def state_writer(data_tmpdir):
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
     try:
-        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginecore  # pylint: disable=unused-import
     except ImportError:
         pytest.skip("QtWebEngine not available")
 
-    def patch(ver):
+    def patch(ver, chromium_version=None):
         monkeypatch.setattr(
             configfiles.version,
             'qtwebengine_versions',
             lambda avoid_init=False:
                 version.WebEngineVersions(
                     webengine=utils.VersionNumber.parse(ver),
-                    chromium=None,
+                    chromium=chromium_version,
                     source='test',
                 )
         )
@@ -222,13 +241,21 @@ def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
     assert state.qtwe_version_changed == changed
 
 
-def test_qtwe_version_changed_webkit(stubs, monkeypatch, state_writer):
-    fake = stubs.ImportFake({'PyQt5.QtWebEngineWidgets': False}, monkeypatch)
+@pytest.mark.parametrize("key, attribute, expected", [
+    ("qtwe_version", "qtwe_version_changed", False),
+    ("chromium_version", "chromium_version_changed", configfiles.VersionChange.unknown),
+])
+@pytest.mark.parametrize("value", ["no", None])
+def test_version_changed_webkit(stubs, monkeypatch, state_writer,
+                                key, value, attribute, expected):
+    fake = stubs.ImportFake({'qutebrowser.qt.webenginewidgets': False}, monkeypatch)
     fake.patch()
 
-    state_writer('qtwe_version', 'no')
+    if value is not None:
+        state_writer(key, value)
+
     state = configfiles.StateConfig()
-    assert not state.qtwe_version_changed
+    assert getattr(state, attribute) == expected
 
 
 @pytest.mark.parametrize('old_version, new_version, expected', [
@@ -260,14 +287,77 @@ def test_qutebrowser_version_changed(
     assert state.qutebrowser_version_changed == expected
 
 
-def test_qutebrowser_version_unparsable(state_writer, monkeypatch, caplog):
-    state_writer('version', 'blabla')
+@pytest.mark.parametrize('old_version, new_version, expected', [
+    (None, '90', configfiles.VersionChange.unknown),
+    ('90', '90', configfiles.VersionChange.equal),
+
+    ('90', '94', configfiles.VersionChange.minor),
+    ('83', '87', configfiles.VersionChange.minor),
+
+    ('83', '90', configfiles.VersionChange.major),
+    ('87', '90', configfiles.VersionChange.major),
+    ('83', '94', configfiles.VersionChange.major),
+    ('87', '94', configfiles.VersionChange.major),
+
+    ('94', '90', configfiles.VersionChange.downgrade),
+    ('94', '87', configfiles.VersionChange.downgrade),
+    ('90', '83', configfiles.VersionChange.downgrade),
+])
+def test_chromium_version_changed(
+        state_writer, qtwe_version_patcher,
+        old_version, new_version, expected):
+    qtwe_version_patcher('6.2', chromium_version=new_version)
+
+    if old_version is not None:
+        state_writer('chromium_version', old_version)
+
+    state = configfiles.StateConfig()
+    assert state.chromium_version_changed == expected
+
+
+@pytest.mark.parametrize('old_qtwe_version, new_chromium_version, expected', [
+    (None, '90', configfiles.VersionChange.unknown),
+    ('6.2.0', '90', configfiles.VersionChange.equal),
+    ('6.2.1', '94', configfiles.VersionChange.minor),
+    ('5.15.2', '90', configfiles.VersionChange.major),
+    ('6.3.0', '90', configfiles.VersionChange.downgrade),
+
+])
+def test_chromium_version_changed_inferring(
+        state_writer, qtwe_version_patcher,
+        old_qtwe_version, new_chromium_version, expected):
+    qtwe_version_patcher('6.2', chromium_version=new_chromium_version)
+
+    if old_qtwe_version is not None:
+        state_writer('qtwe_version', old_qtwe_version)
+
+    state = configfiles.StateConfig()
+    assert state.chromium_version_changed == expected
+
+
+@pytest.mark.parametrize("key, msg, attribute", [
+    ("version", "old version", "qutebrowser_version_changed"),
+    pytest.param(
+        "qtwe_version",
+        "old QtWebEngine version",
+        "chromium_version_changed",
+        marks=pytest.mark.qtwebkit_skip,
+    ),
+    pytest.param(
+        "chromium_version",
+        "old Chromium version",
+        "chromium_version_changed",
+        marks=pytest.mark.qtwebkit_skip,
+    ),
+])
+def test_version_unparsable(state_writer, caplog, key, msg, attribute):
+    state_writer(key, 'blabla')
 
     with caplog.at_level(logging.WARNING):
         state = configfiles.StateConfig()
 
-    assert caplog.messages == ['Unable to parse old version blabla']
-    assert state.qutebrowser_version_changed == configfiles.VersionChange.unknown
+    assert caplog.messages == [f'Unable to parse {msg} blabla']
+    assert getattr(state, attribute) == configfiles.VersionChange.unknown
 
 
 @pytest.mark.parametrize('value, filterstr, matches', [
@@ -505,7 +595,7 @@ class TestYaml:
     def unreadable_autoconfig(self, autoconfig):
         autoconfig.fobj.ensure()
         autoconfig.fobj.chmod(0)
-        if os.access(str(autoconfig.fobj), os.R_OK):
+        if os.access(autoconfig.fobj, os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
 
@@ -851,9 +941,8 @@ def confpy(tmp_path, config_tmpdir, data_tmpdir, config_stub, key_config_stub):
     return ConfPy(tmp_path)
 
 
+@pytest.mark.usefixtures('config_stub', 'key_config_stub')
 class TestConfigPyModules:
-
-    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     @pytest.fixture
     def qbmodulepy(self, tmp_path):
@@ -911,11 +1000,10 @@ class TestConfigPyModules:
         assert sys.path.count(tmp_path) == 1
 
 
+@pytest.mark.usefixtures('config_stub', 'key_config_stub')
 class TestConfigPy:
 
     """Tests for ConfigAPI and read_config_py()."""
-
-    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     def test_assertions(self, confpy):
         """Make sure assertions in config.py work for these tests."""
@@ -1060,6 +1148,15 @@ class TestConfigPy:
         assert config.instance.get_obj('aliases')['foo'] == 'message-info foo'
         assert config.instance.get_obj('aliases')['bar'] == 'message-info bar'
 
+    def test_mutating_invalid_value(self, confpy):
+        confpy.write('c.url.searchengines["maps"] = "https://www.google.com/maps?q=%s"')
+        error = confpy.read(error=True)
+
+        assert error.text == "While updating mutated values"
+        assert isinstance(error.exception, configexc.ValidationError)
+
+        assert 'maps' not in config.instance.get_obj("url.searchengines")
+
     @pytest.mark.parametrize('option, value', [
         ('content.user_stylesheets', 'style.css'),
         ('url.start_pages', 'https://www.python.org/'),
@@ -1091,11 +1188,18 @@ class TestConfigPy:
 
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
-        assert isinstance(error.exception, ValueError)
-        assert error.text == "Error while compiling"
+
+        if sys.version_info >= (3, 11, 4):
+            assert isinstance(error.exception, SyntaxError)
+            assert error.text == "Unhandled exception"
+            assert error.traceback is not None  # tested in more detail by test below
+        else:
+            assert isinstance(error.exception, ValueError)
+            assert error.text == "Error while compiling"
+            assert error.traceback is None
+
         exception_text = 'source code string cannot contain null bytes'
         assert str(error.exception) == exception_text
-        assert error.traceback is None
 
     def test_syntax_error(self, confpy):
         confpy.write('+')

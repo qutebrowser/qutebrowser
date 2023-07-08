@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -23,8 +22,8 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QColor
 
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
@@ -613,6 +612,19 @@ class TestConfig:
         expected = {'X-Foo': 'fooval', 'X-Bar': 'barval'}
         assert conf.get_obj(option) == expected
 
+    def test_get_mutable_invalid_value(self, conf):
+        """Make sure invalid values aren't stored in mutables."""
+        option = 'keyhint.blacklist'
+        obj = conf.get_mutable_obj(option)
+        assert obj == []
+        obj.append(42)
+
+        with pytest.raises(configexc.ValidationError):
+            conf.update_mutables()
+
+        obj = conf.get_mutable_obj(option)
+        assert obj == []
+
     def test_get_obj_unknown_mutable(self, conf):
         """Make sure we don't have unknown mutable types."""
         with pytest.raises(AssertionError):
@@ -715,12 +727,20 @@ class TestConfig:
             with qtbot.assert_not_emitted(conf.changed):
                 meth('colors.statusbar.normal.bg', '#abcdef', pattern=pattern)
 
-    def test_dump_userconfig(self, conf):
+    @pytest.mark.parametrize("include_hidden", [True, False])
+    def test_dump_userconfig(self, conf, include_hidden):
         conf.set_obj('content.plugins', True)
         conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})
-        lines = ['content.headers.custom = {"X-Foo": "bar"}',
-                 'content.plugins = true']
-        assert conf.dump_userconfig().splitlines() == lines
+        conf.set_obj('content.webgl', False, hide_userconfig=True)
+
+        lines = [
+            'content.headers.custom = {"X-Foo": "bar"}',
+            'content.plugins = true',
+        ]
+        if include_hidden:
+            lines.append("content.webgl = false")
+
+        assert conf.dump_userconfig(include_hidden=include_hidden).splitlines() == lines
 
     def test_dump_userconfig_default(self, conf):
         assert conf.dump_userconfig() == '<Default configuration>'
@@ -758,7 +778,7 @@ class TestContainer:
 
     @pytest.mark.parametrize('configapi, expected', [
         (object(), 'rgb'),
-        (None, QColor.Rgb),
+        (None, QColor.Spec.Rgb),
     ])
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi
@@ -782,7 +802,7 @@ class TestContainer:
         assert len(configapi.errors) == 1
         error = configapi.errors[0]
         assert error.text == "While getting 'tabs.foobar'"
-        assert str(error.exception) == "No option 'tabs.foobar'"
+        assert str(error.exception).startswith("No option 'tabs.foobar'")
 
     def test_confapi_missing_prefix(self, container):
         configapi = types.SimpleNamespace(errors=[])
@@ -793,7 +813,7 @@ class TestContainer:
 
         error1 = configapi.errors[0]
         assert error1.text == "While getting 'content.host_blocking'"
-        assert str(error1.exception) == "No option 'content.host_blocking'"
+        assert str(error1.exception).startswith("No option 'content.host_blocking'")
 
         error2 = configapi.errors[1]
         assert error2.text == "While setting 'content.host_blocking.lists'"

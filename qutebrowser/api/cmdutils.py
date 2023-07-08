@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -233,7 +231,7 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
                                                              self._argname))
         if not hasattr(func, 'qute_args'):
             func.qute_args = {}  # type: ignore[attr-defined]
-        elif func.qute_args is None:  # type: ignore[attr-defined]
+        elif func.qute_args is None:
             raise ValueError("@cmdutils.argument got called above (after) "
                              "@cmdutils.register for {}!".format(funcname))
 

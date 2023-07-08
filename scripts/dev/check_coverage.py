@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -139,6 +137,8 @@ PERFECT_FILES = [
 
     (None,
      'qutebrowser/mainwindow/statusbar/keystring.py'),
+    (None,
+     'qutebrowser/mainwindow/statusbar/searchmatch.py'),
     ('tests/unit/mainwindow/statusbar/test_percentage.py',
      'qutebrowser/mainwindow/statusbar/percentage.py'),
     ('tests/unit/mainwindow/statusbar/test_progress.py',

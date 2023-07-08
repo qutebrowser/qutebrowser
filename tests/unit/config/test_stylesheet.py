@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 # Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -18,7 +17,7 @@
 
 import pytest
 
-from PyQt5.QtCore import QObject
+from qutebrowser.qt.core import QObject
 
 from qutebrowser.config import stylesheet
 

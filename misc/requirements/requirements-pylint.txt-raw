@@ -1,4 +1,5 @@
 pylint
+astroid
 ./scripts/dev/pylint_checkers
 requests
 github3.py

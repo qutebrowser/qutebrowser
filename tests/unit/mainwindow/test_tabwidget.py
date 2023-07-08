@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Daniel Schadt
 #
@@ -23,8 +21,9 @@
 import functools
 
 import pytest
-from PyQt5.QtGui import QIcon, QPixmap
+from unittest.mock import Mock
 
+from qutebrowser.qt.gui import QIcon, QPixmap
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.utils import usertypes
 
@@ -70,6 +69,38 @@ class TestTabWidget:
         for i in range(num_tabs):
             assert first_size == widget.tabBar().tabSizeHint(i)
             assert first_size_min == widget.tabBar().minimumTabSizeHint(i)
+
+    @pytest.fixture
+    def paint_spy(self, monkeypatch):
+        spy = Mock()
+        monkeypatch.setattr(tabwidget, "QStylePainter", spy)
+        return spy
+
+    def test_tab_text_edlided_for_narrow_tabs(self, paint_spy, widget, fake_web_tab):
+        """Make sure text gets elided for narrow tabs."""
+        widget.setMaximumWidth(100)
+        widget.addTab(fake_web_tab(), "one two three four")
+
+        fake_paint_event = Mock()
+        fake_paint_event.region.return_value.intersects.return_value = True
+        widget.tabBar().paintEvent(fake_paint_event)
+
+        style_opt = paint_spy.return_value.drawControl.call_args_list[0][0][1]
+        assert len(style_opt.text) < len(widget.tabBar().tabText(0))
+        assert style_opt.text.endswith("…")
+        assert len(style_opt.text) > len("…")
+
+    def test_tab_text_not_edlided_for_wide_tabs(self, paint_spy, widget, fake_web_tab):
+        """Make sure text doesn't get elided for wide tabs."""
+        widget.setMaximumWidth(200)
+        widget.addTab(fake_web_tab(), "one two three four")
+
+        fake_paint_event = Mock()
+        fake_paint_event.region.return_value.intersects.return_value = True
+        widget.tabBar().paintEvent(fake_paint_event)
+
+        style_opt = paint_spy.return_value.drawControl.call_args_list[0][0][1]
+        assert style_opt.text.endswith(widget.tabBar().tabText(0))
 
     @pytest.mark.parametrize("shrink_pinned", [True, False])
     @pytest.mark.parametrize("vertical", [True, False])

@@ -1,4 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 #!/usr/bin/env python3
 
 # Copyright 2020-2021 Árni Dagur <arni@dagur.eu>
@@ -21,7 +20,7 @@
 import io
 from typing import IO
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 import pytest
 

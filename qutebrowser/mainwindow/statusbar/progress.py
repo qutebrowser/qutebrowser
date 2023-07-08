@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,8 +17,8 @@
 
 """The progress bar in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, QSize
-from PyQt5.QtWidgets import QProgressBar, QSizePolicy
+from qutebrowser.qt.core import pyqtSlot, QSize
+from qutebrowser.qt.widgets import QProgressBar, QSizePolicy
 
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
@@ -47,7 +45,7 @@ class Progress(QProgressBar):
         super().__init__(parent)
         stylesheet.set_register(self)
         self.enabled = False
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.setTextVisible(False)
         self.hide()
 

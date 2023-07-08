@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -21,20 +19,29 @@
 """Generate Dockerfiles for qutebrowser's CI."""
 
 import sys
+import argparse
 
 import jinja2
 
 
+CONFIGS = {
+    'archlinux-webkit': {'webengine': False, 'unstable': False, 'qt6': False},
+    'archlinux-webengine': {'webengine': True, 'unstable': False, 'qt6': False},
+    'archlinux-webengine-qt6': {'webengine': True, 'unstable': False, 'qt6': True},
+    'archlinux-webengine-unstable': {'webengine': True, 'unstable': True, 'qt6': False},
+    'archlinux-webengine-unstable-qt6': {'webengine': True, 'unstable': True, 'qt6': True},
+}
+
+
 def main():
     with open('Dockerfile.j2') as f:
-        template = jinja2.Template(f.read())
+        template = jinja2.Template(f.read(), trim_blocks=True, lstrip_blocks=True)
 
-    image = sys.argv[1]
-    config = {
-        'archlinux-webkit': {'webengine': False, 'unstable': False},
-        'archlinux-webengine': {'webengine': True, 'unstable': False},
-        'archlinux-webengine-unstable': {'webengine': True, 'unstable': True},
-    }[image]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config", choices=CONFIGS)
+    args = parser.parse_args()
+
+    config = CONFIGS[args.config]
 
     with open('Dockerfile', 'w') as f:
         f.write(template.render(**config))

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,7 +17,7 @@
 
 """QWebHistory serializer for QtWebEngine."""
 
-from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
+from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
 
 from qutebrowser.utils import qtutils
 
@@ -124,7 +122,7 @@ def serialize(items):
         segfault!
     """
     data = QByteArray()
-    stream = QDataStream(data, QIODevice.ReadWrite)
+    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
     cur_user_data = None
 
     current_idx = None

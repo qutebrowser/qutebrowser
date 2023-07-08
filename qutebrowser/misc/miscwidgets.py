@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,51 +19,16 @@
 
 from typing import Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication,
-                             QSplitter)
-from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
+from qutebrowser.qt.widgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
+                             QStyleOption, QStyle, QLayout, QSplitter)
+from qutebrowser.qt.gui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import utils, log, usertypes
+from qutebrowser.utils import utils, log, usertypes, debug
 from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
 from qutebrowser.keyinput import keyutils, modeman
-
-
-class MinimalLineEditMixin:
-
-    """A mixin to give a QLineEdit a minimal look and nicer repr()."""
-
-    def __init__(self):
-        self.setStyleSheet(  # type: ignore[attr-defined]
-            """
-            QLineEdit {
-                border: 0px;
-                padding-left: 1px;
-                background-color: transparent;
-            }
-            """
-        )
-        self.setAttribute(  # type: ignore[attr-defined]
-            Qt.WA_MacShowFocusRect, False)
-
-    def keyPressEvent(self, e):
-        """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
-            try:
-                text = utils.get_clipboard(selection=True, fallback=True)
-            except utils.ClipboardError:
-                e.ignore()
-            else:
-                e.accept()
-                self.insert(text)  # type: ignore[attr-defined]
-            return
-        super().keyPressEvent(e)  # type: ignore[misc]
-
-    def __repr__(self):
-        return utils.get_repr(self)
 
 
 class CommandLineEdit(QLineEdit):
@@ -78,7 +41,7 @@ class CommandLineEdit(QLineEdit):
         _promptlen: The length of the current prompt.
     """
 
-    def __init__(self, *, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)
@@ -137,9 +100,9 @@ class _CommandValidator(QValidator):
             A tuple (status, string, pos) as a QValidator should.
         """
         if self.prompt is None or string.startswith(self.prompt):
-            return (QValidator.Acceptable, string, pos)
+            return (QValidator.State.Acceptable, string, pos)
         else:
-            return (QValidator.Invalid, string, pos)
+            return (QValidator.State.Invalid, string, pos)
 
 
 class DetailFold(QWidget):
@@ -181,7 +144,7 @@ class DetailFold(QWidget):
         Args:
             e: The QMouseEvent.
         """
-        if e.button() == Qt.LeftButton:
+        if e.button() == Qt.MouseButton.LeftButton:
             e.accept()
             self.toggle()
         else:
@@ -219,9 +182,9 @@ class _FoldArrow(QWidget):
         opt.initFrom(self)
         painter = QPainter(self)
         if self._folded:
-            elem = QStyle.PE_IndicatorArrowRight
+            elem = QStyle.PrimitiveElement.PE_IndicatorArrowRight
         else:
-            elem = QStyle.PE_IndicatorArrowDown
+            elem = QStyle.PrimitiveElement.PE_IndicatorArrowDown
         self.style().drawPrimitive(elem, opt, painter, self)
 
     def minimumSizeHint(self):
@@ -309,7 +272,7 @@ class FullscreenNotification(QLabel):
         if config.val.content.fullscreen.window:
             geom = self.parentWidget().geometry()
         else:
-            geom = QApplication.desktop().screenGeometry(self)
+            geom = self.window().windowHandle().screen().geometry()
         self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
@@ -387,10 +350,10 @@ class InspectorSplitter(QSplitter):
             self._inspector_idx = 0
             self._main_idx = 1
 
-        self.setOrientation(Qt.Horizontal
+        self.setOrientation(Qt.Orientation.Horizontal
                             if position in [inspector.Position.left,
                                             inspector.Position.right]
-                            else Qt.Vertical)
+                            else Qt.Orientation.Vertical)
         self.insertWidget(self._inspector_idx, inspector_widget)
         self._position = position
         self._load_preferred_size()
@@ -405,7 +368,7 @@ class InspectorSplitter(QSplitter):
     def _load_preferred_size(self) -> None:
         """Load the preferred size of the inspector widget."""
         assert self._position is not None
-        full = (self.width() if self.orientation() == Qt.Horizontal
+        full = (self.width() if self.orientation() == Qt.Orientation.Horizontal
                 else self.height())
 
         # If we first open the inspector with a window size of < 300px
@@ -489,7 +452,7 @@ class KeyTesterWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._layout = QHBoxLayout(self)
         self._label = QLabel(text="Waiting for keypress...")
         self._layout.addWidget(self._label)
@@ -499,8 +462,8 @@ class KeyTesterWidget(QWidget):
         lines = [
             str(keyutils.KeyInfo.from_event(e)),
             '',
-            'key: 0x{:x}'.format(int(e.key())),
-            'modifiers: 0x{:x}'.format(int(e.modifiers())),
+            f"key: {debug.qenum_key(Qt, e.key(), klass=Qt.Key)}",
+            f"modifiers: {debug.qflags_key(Qt, e.modifiers())}",
             'text: {!r}'.format(e.text()),
         ]
         self._label.setText('\n'.join(lines))

@@ -59,9 +59,6 @@ const HEADER = `
             width: 100%;
             margin: 0 0;
         }
-        a.reader-title {
-            color: #FFFFFF !important;
-        }
         img {
             max-width:100%;
             height:auto;

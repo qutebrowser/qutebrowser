@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Various utility commands.
 
     ## :set-cmd-text
@@ -143,6 +141,18 @@ Feature: Various utility commands.
         Then the error "[Errno 2] *: '/nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
+    @qtwebkit_skip
+    Scenario: CSP errors in qutebrowser stylesheet script
+        When I open restrictive-csp
+        Then the javascript message "Refused to apply inline style because it violates the following Content Security Policy directive: *" should be logged
+
+    @qtwebkit_skip
+    Scenario: Third-party iframes in qutebrowser stylesheet script
+        When I load a third-party iframe
+        # rerun set_css in stylesheet.js
+        And I set content.user_stylesheets to []
+        Then the javascript message "Failed to style frame: Blocked a frame with origin * from accessing *" should be logged
+
     # :debug-webaction
 
     Scenario: :debug-webaction with valid value
@@ -174,7 +184,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -183,7 +193,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -293,13 +303,17 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
-    # FIXME:qtwebengine use a finer skipping here
-    @qtwebengine_skip: printing to pdf is not implemented with older Qt versions
     Scenario: print --pdf
         When I open data/hello.txt
         And I run :print --pdf (tmpdir)/hello.pdf
-        And I wait for "Print to file: *" in the log or skip the test
+        And I wait for "Printed to *" in the log
         Then the PDF hello.pdf should exist in the tmpdir
+
+    Scenario: print --pdf with subdirectory
+        When I open data/hello.txt
+        And I run :print --pdf (tmpdir)/subdir/subdir2/hello.pdf
+        And I wait for "Print to file: *" in the log or skip the test
+        Then no crash should happen
 
     ## https://github.com/qutebrowser/qutebrowser/issues/504
 
@@ -352,7 +366,7 @@ Feature: Various utility commands.
 
     # This still doesn't set window.navigator.language
     # See https://bugreports.qt.io/browse/QTBUG-61949
-    @qtwebkit_skip @js_headers
+    @qtwebkit_skip
     Scenario: Accept-Language header (JS)
         When I set content.headers.accept_language to it,fr
         And I run :jseval console.log(window.navigator.languages)
@@ -364,7 +378,6 @@ Feature: Various utility commands.
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
 
-    @js_headers
     Scenario: User-agent header (JS)
         When I set content.headers.user_agent to toaster
         And I open about:blank
@@ -389,7 +402,7 @@ Feature: Various utility commands.
 
     Scenario: Partial commandline matching with startup command
         When I run :message-i "Hello World" (invalid command)
-        Then the error "message-i: no such command" should be shown
+        Then the error "message-i: no such command (did you mean :message-info?)" should be shown
 
      Scenario: Multiple leading : in command
         When I run :::::set-cmd-text ::::message-i "Hello World"
@@ -436,7 +449,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element with unknown ID
         When I open data/click_element.html
         And I run :click-element id blah
-        Then the error "No element found with id blah!" should be shown
+        Then the error "No element found with ID "blah"!" should be shown
 
     Scenario: Clicking an element by ID
         When I open data/click_element.html
@@ -456,6 +469,49 @@ Feature: Various utility commands.
         And the following tabs should be open:
             - data/click_element.html
             - data/hello.txt (active)
+
+    Scenario: Clicking an element by CSS selector
+        When I open data/click_element.html
+        And I run :click-element css .clickable
+        Then the javascript message "click_element CSS selector" should be logged
+
+    Scenario: Clicking an element with non-unique filter
+        When I open data/click_element.html
+        And I run :click-element css span
+        Then the error "Multiple elements found matching CSS selector "span"!" should be shown
+
+    Scenario: Clicking first element matching a selector
+        When I open data/click_element.html
+        And I run :click-element --select-first css span
+        Then the javascript message "click_element clicked" should be logged
+
+    Scenario: Clicking an element by position
+        When I open data/click_element.html
+        And I run :click-element position 20,42
+        Then the javascript message "click_element position" should be logged
+
+    Scenario: Clicking an element with invalid position
+        When I open data/click_element.html
+        And I run :click-element position 20.42
+        Then the error "String 20.42 does not match X,Y" should be shown
+
+    Scenario: Clicking an element with non-integer position
+        When I open data/click_element.html
+        And I run :click-element position 20,42.001
+        Then the error "String 20,42.001 does not match X,Y" should be shown
+
+    Scenario: Clicking on focused element when there is none
+        When I open data/click_element.html
+        # Need to loose focus on input element
+        And I run :click-element position 20,42
+        And I wait for the javascript message "click_element position"
+        And I run :click-element focused
+        Then the error "No element found with focus!" should be shown
+
+    Scenario: Clicking on focused element
+        When I open data/click_element.html
+        And I run :click-element focused
+        Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
 
     ## :command-history-{prev,next}
 

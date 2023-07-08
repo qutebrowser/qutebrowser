@@ -21,7 +21,7 @@
 # Change your tor identity.
 #
 # Set a hotkey to launch this script, then:
-#   :bind ti spawn --userscript tor_identity PASSWORD
+#   :bind ti spawn --userscript tor_identity -p PASSWORD
 #
 # Use the hotkey to change your tor identity, press 'ti' to change it.
 # https://stem.torproject.org/faq.html#how-do-i-request-a-new-identity-from-tor

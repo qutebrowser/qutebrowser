@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
@@ -31,9 +29,9 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies as hst
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime, QProcess
+from qutebrowser.qt.core import QUrl, QDateTime, QProcess
 try:
-    from PyQt5.QtWebEngineWidgets import (
+    from qutebrowser.qt.webenginecore import (
         QWebEngineHistory, QWebEngineHistoryItem
     )
 except ImportError:
@@ -1348,7 +1346,7 @@ def test_url_completion_benchmark(benchmark, info,
 @pytest.fixture
 def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    pytest.importorskip('qutebrowser.qt.webenginewidgets')
     tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
     current_idx = 2
     monkeypatch.setattr(
@@ -1490,7 +1488,7 @@ def test_process_completion(monkeypatch, stubs, info):
     p1.cmd = 'cmd1'
     p1.args = []
     p1.outcome.running = False
-    p1.outcome.status = QProcess.NormalExit
+    p1.outcome.status = QProcess.ExitStatus.NormalExit
     p1.outcome.code = 0
 
     p2.pid = 1002
@@ -1502,7 +1500,7 @@ def test_process_completion(monkeypatch, stubs, info):
     p3.cmd = 'cmd3'
     p3.args = []
     p3.outcome.running = False
-    p3.outcome.status = QProcess.NormalExit
+    p3.outcome.status = QProcess.ExitStatus.NormalExit
     p3.outcome.code = 1
 
     monkeypatch.setattr(guiprocess, 'all_processes', {

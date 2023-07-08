@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -144,11 +142,11 @@ def run_pip(venv_dir, *args, quiet=False, **kwargs):
     return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
-def init_venv(host_python, venv_dir, requirements, pre=False, pip_args=None):
+def init_venv(venv_dir, requirements, pre=False, pip_args=None):
     """Initialize a new virtualenv and install the given packages."""
     with utils.gha_group('Creating virtualenv'):
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
-        subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
+        subprocess.run([sys.executable, '-m', 'venv', venv_dir], check=True)
 
         run_pip(venv_dir, 'install', '-U', 'pip', quiet=not utils.ON_CI)
         run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel', quiet=not utils.ON_CI)
@@ -347,17 +345,6 @@ def print_changed_files():
         print('::set-output name=diff::' + diff_table)
 
 
-def get_host_python(name):
-    """Get the Python to use for a given requirement name.
-
-    pylint installs typed_ast on < 3.8 only
-    """
-    if name == 'pylint':
-        return 'python3.7'
-    else:
-        return sys.executable
-
-
 def get_venv_python(venv_dir):
     """Get the path to Python inside a virtualenv."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
@@ -375,14 +362,12 @@ def build_requirements(name):
     """Build a requirements file."""
     utils.print_subtitle("Building")
     filename = os.path.join(REQ_DIR, 'requirements-{}.txt-raw'.format(name))
-    host_python = get_host_python(name)
 
     with open(filename, 'r', encoding='utf-8') as f:
         comments = read_comments(f)
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        init_venv(host_python=host_python,
-                  venv_dir=tmpdir,
+        init_venv(venv_dir=tmpdir,
                   requirements=filename,
                   pre=comments['pre'],
                   pip_args=comments['pip_args'])
@@ -411,14 +396,13 @@ def build_requirements(name):
 
 def test_tox():
     """Test requirements via tox."""
-    host_python = get_host_python('tox')
     req_path = os.path.join(REQ_DIR, 'requirements-tox.txt')
 
     with tempfile.TemporaryDirectory() as tmpdir:
         venv_dir = os.path.join(tmpdir, 'venv')
         tox_workdir = os.path.join(tmpdir, 'tox-workdir')
         venv_python = get_venv_python(venv_dir)
-        init_venv(host_python, venv_dir, req_path)
+        init_venv(venv_dir, req_path)
         list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
                                    check=True,
                                    stdout=subprocess.PIPE,
@@ -448,9 +432,8 @@ def test_requirements(name, outfile, *, force=False):
     with open(in_file, 'r', encoding='utf-8') as f:
         comments = read_comments(f)
 
-    host_python = get_host_python(name)
     with tempfile.TemporaryDirectory() as tmpdir:
-        init_venv(host_python, tmpdir, outfile, pip_args=comments['pip_args'])
+        init_venv(tmpdir, outfile, pip_args=comments['pip_args'])
 
 
 def cleanup_pylint_build():

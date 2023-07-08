@@ -7,6 +7,7 @@ on:
   pull_request:
 env:
   FORCE_COLOR: "1"
+  PY_COLORS: "1"
   MYPY_FORCE_TERMINAL_WIDTH: "180"
 
 jobs:
@@ -20,7 +21,8 @@ jobs:
         include:
           - testenv: pylint
           - testenv: flake8
-          - testenv: mypy
+          - testenv: mypy-pyqt6
+          - testenv: mypy-pyqt5
           - testenv: docs
           - testenv: vulture
           - testenv: misc
@@ -30,23 +32,24 @@ jobs:
           - testenv: shellcheck
             args: "-f gcc"  # For problem matchers
           - testenv: yamllint
+          - testenv: actionlint
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             .mypy_cache
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('scripts/dev/pylint_checkers/qute_pylint/*.py') }}"
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v3
         with:
-          node-version: '12.x'
+          node-version: '16.x'
         if: "matrix.testenv == 'eslint'"
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
@@ -61,26 +64,45 @@ jobs:
                 wget -qO- "https://github.com/koalaman/shellcheck/releases/download/$scversion/shellcheck-$scversion.linux.x86_64.tar.xz" | tar -xJv --strip-components 1 -C "$bindir" shellcheck-$scversion/shellcheck
                 echo "$bindir" >> "$GITHUB_PATH"
             fi
+            if [[ ${{ matrix.testenv }} == actionlint ]]; then
+                bindir="$HOME/.local/bin"
+                mkdir -p "$bindir"
+                wget -q https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash
+                bash download-actionlint.bash latest "$bindir"
+                echo "$bindir" >> "$GITHUB_PATH"
+            fi
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+        run: |
+            if [[ -z "${{ matrix.args }}" ]]; then
+                dbus-run-session -- tox -e ${{ matrix.testenv }}
+            else
+                dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}
+            fi
 
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - archlinux-webkit
-          - archlinux-webengine
-          # - archlinux-webengine-unstable
+        include:
+          - testenv: py
+            image: archlinux-webkit
+          - testenv: py
+            image: archlinux-webengine
+          - testenv: py-qt6
+            image: archlinux-webengine-qt6
+          - testenv: py
+            image: archlinux-webengine-unstable
+            args: ""
+            # - testenv: py
+            #   image: archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
-        QUTE_BDD_WEBENGINE: "${{ matrix.image != 'archlinux-webkit' }}"
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
@@ -89,66 +111,79 @@ jobs:
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e py
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    continue-on-error: "${{ matrix.experimental == true }}"
+    # continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.12 (Python 3.7)
-          - testenv: py37-pyqt512
-            os: ubuntu-18.04
-            python: 3.7
-          ### PyQt 5.13 (Python 3.7)
-          - testenv: py37-pyqt513
+          ### PyQt 5.15.2 (Python 3.8)
+          - testenv: py37-pyqt5152
             os: ubuntu-20.04
-            python: 3.7
-          ### PyQt 5.14 (Python 3.8)
-          - testenv: py38-pyqt514
+            python: "3.8"
+          ### PyQt 5.15 (Python 3.10, with coverage)
+          # FIXME:qt6
+          # - testenv: py310-pyqt515-cov
+          #   os: ubuntu-22.04
+          #   python: "3.10"
+          ### PyQt 5.15 (Python 3.11)
+          - testenv: py311-pyqt515
             os: ubuntu-20.04
-            python: 3.8
-          ### PyQt 5.15.0 (Python 3.9)
-          - testenv: py39-pyqt5150
+            python: "3.11"
+          ### PyQt 6.2 (Python 3.8)
+          - testenv: py37-pyqt62
             os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.9, with coverage)
-          - testenv: py39-pyqt515-cov
+            python: "3.8"
+          ### PyQt 6.3 (Python 3.8)
+          - testenv: py38-pyqt63
             os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.10)
-          - testenv: py310-pyqt515
+            python: "3.8"
+          ## PyQt 6.4 (Python 3.9)
+          - testenv: py39-pyqt64
             os: ubuntu-20.04
-            python: 3.10-dev
-          ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
+            python: "3.9"
+          ### PyQt 6.5 (Python 3.10)
+          - testenv: py310-pyqt65
+            os: ubuntu-22.04
+            python: "3.10"
+          ### PyQt 6.5 (Python 3.11)
+          - testenv: py311-pyqt65
+            os: ubuntu-22.04
+            python: "3.11"
+          ### PyQt 6.5 (Python 3.12)
+          # - testenv: py312-pyqt65
+          #   os: ubuntu-22.04
+          #   python: "3.12-dev"
+          ### macOS Big Sur: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
-            os: macos-10.15
-            python: 3.7
+            os: macos-11
+            python: "3.9"
             args: "tests/unit"  # Only run unit tests on macOS
-          ### macOS Big Sur
-          # - testenv: py39-pyqt515
-          #   os: macos-11.0
-          #   python: 3.9
-          #   args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Monterey
+          - testenv: py39-pyqt515
+            os: macos-12
+            python: "3.9"
+            args: "tests/unit"  # Only run unit tests on macOS
           ### Windows: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: windows-2019
-            python: 3.9
+            python: "3.9"
     runs-on: "${{ matrix.os }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             .mypy_cache
@@ -156,7 +191,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.python }}"
       - name: Set up problem matchers
@@ -164,7 +199,7 @@ jobs:
       - name: Install apt dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
@@ -181,7 +216,7 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           name: "${{ matrix.testenv }}"
 
@@ -189,20 +224,20 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     permissions:
       security-events: write
-    timeout-minutes: 30
+    timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
+        uses: github/codeql-action/init@v2
         with:
           languages: javascript, python
           queries: +security-extended
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
+        uses: github/codeql-action/analyze@v2
 
   irc:
     timeout-minutes: 2
@@ -212,7 +247,7 @@ jobs:
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
         with:
           server: irc.libera.chat
@@ -220,7 +255,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send failure IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
         with:
           server: irc.libera.chat
@@ -229,7 +264,7 @@ jobs:
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
       - name: Send skipped IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
         with:
           server: irc.libera.chat
@@ -237,7 +272,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send cancelled IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
         with:
           server: irc.libera.chat

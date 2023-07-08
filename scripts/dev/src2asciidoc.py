@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
@@ -176,13 +174,15 @@ def _get_setting_quickref():
 
 def _get_configtypes():
     """Get configtypes classes to document."""
-    predicate = lambda e: (
-        inspect.isclass(e) and
-        # pylint: disable=protected-access
-        e not in [configtypes.BaseType, configtypes.MappingType,
-                  configtypes._Numeric, configtypes.FontBase] and
-        # pylint: enable=protected-access
-        issubclass(e, configtypes.BaseType))
+    def predicate(e):
+        return (
+            inspect.isclass(e) and
+            # pylint: disable=protected-access
+            e not in [configtypes.BaseType, configtypes.MappingType,
+                      configtypes._Numeric, configtypes.FontBase] and
+            # pylint: enable=protected-access
+            issubclass(e, configtypes.BaseType)
+        )
     yield from inspect.getmembers(configtypes, predicate)
 
 
@@ -497,6 +497,7 @@ def _format_block(filename, what, data):
         what: What to change (authors, options, etc.)
         data; A list of strings which is the new data.
     """
+    # pylint: disable=broad-exception-raised
     what = what.upper()
     oshandle, tmpname = tempfile.mkstemp()
     try:
@@ -523,9 +524,8 @@ def _format_block(filename, what, data):
     except:
         os.remove(tmpname)
         raise
-    else:
-        os.remove(filename)
-        shutil.move(tmpname, filename)
+    os.remove(filename)
+    shutil.move(tmpname, filename)
 
 
 def regenerate_manpage(filename):

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,7 +20,7 @@ import logging
 import csv
 from typing import Iterable, Tuple
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 import pytest
 
@@ -327,7 +325,7 @@ def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
         assert not blockutils.is_whitelisted_url(url)
         config_stub.val.content.blocking.whitelist = []
         assert not blockutils.is_whitelisted_url(url)
-        whitelist_url = url.toString(QUrl.RemovePath) + "/*"
+        whitelist_url = url.toString(QUrl.UrlFormattingOption.RemovePath) + "/*"
         config_stub.val.content.blocking.whitelist = [whitelist_url]
         assert blockutils.is_whitelisted_url(url)
 
@@ -430,3 +428,8 @@ def test_corrupt_cache_handling(ad_blocker, message_mock, caplog):
     assert msg.text == (
         "Reading adblock filter data failed (corrupted data?). "
         "Please run :adblock-update.")
+
+
+def test_resource_type_strings_complete():
+    defined = set(braveadblock._RESOURCE_TYPE_STRINGS) - {None}
+    assert defined == set(ResourceType)

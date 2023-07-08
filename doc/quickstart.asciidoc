@@ -9,6 +9,7 @@ Basic keybindings to get you started
 ------------------------------------
 
 * Use the arrow keys or `hjkl` to move around a webpage (vim-like syntax is used in quite a few places)
+* To zoom in or out of a webpage, use the `+` or `-` keys respectively
 * To go to a new webpage, press `o`, then type a url, then press Enter (Use `O` to open the url in a new tab, `go` to edit the current URL)
 * If what you've typed isn't a url, then a search engine will be used instead (DuckDuckGo, by default)
 * To switch between tabs, use `J` (next tab) and `K` (previous tab), or press `<Alt-num>`, where `num` is the position of the tab to switch to
@@ -61,9 +62,11 @@ qutebrowser's primary maintainer, The-Compiler, is currently working part-time o
 qutebrowser, funded by donations.
 
 To sustain this for a long time, your help is needed! Check the
-https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more information.
-Depending on your sign-up date and how long you keep a certain level, you can get
-qutebrowser t-shirts, stickers and more!
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] or
+https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[alternative
+donation methods] for more information.  Depending on your sign-up date and how
+long you keep a certain level, you can get qutebrowser t-shirts, stickers and
+more!
 
 Alternatively, there are also various options available for one-time donations, see the
 https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[donation section]

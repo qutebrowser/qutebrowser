@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -35,8 +33,9 @@ import pytest
 import pytest_bdd as bdd
 
 import qutebrowser
-from qutebrowser.utils import log, utils, docutils
+from qutebrowser.utils import log, utils, docutils, version
 from qutebrowser.browser import pdfjs
+from end2end.fixtures import testprocess
 from helpers import testutils
 
 
@@ -194,6 +193,7 @@ def pdfjs_available(data_tmpdir):
 
 
 @bdd.given('I clear the log')
+@bdd.when('I clear the log')
 def clear_log_lines(quteproc):
     quteproc.clear_data()
 
@@ -303,7 +303,7 @@ def run_command(quteproc, server, tmpdir, command):
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
-def reload(qtbot, server, quteproc, command):
+def reload(qtbot, server, quteproc):
     """Reload and wait until a new request is received."""
     with qtbot.wait_signal(server.new_request):
         quteproc.send_cmd(':reload')
@@ -447,6 +447,20 @@ def update_documentation():
     subprocess.run([sys.executable, update_script], check=True)
 
 
+@bdd.when("I wait until PDF.js is ready")
+def wait_pdfjs(quteproc):
+    quteproc.wait_for(message="load status for <qutebrowser.browser.* "
+        "tab_id=* url='qute://pdfjs/web/viewer.html?*'>: LoadStatus.success")
+    try:
+        quteproc.wait_for(message="JS: [qute://pdfjs/web/viewer.html?*] Uncaught TypeError: Cannot read property 'set' of undefined", timeout=100)
+    except testprocess.WaitForTimeout:
+        pass
+    else:
+        pytest.skip(f"Non-legacy PDF.js installation: {version._pdfjs_version()}")
+
+    quteproc.wait_for(message="[qute://pdfjs/*] PDF * (PDF.js: *)")
+
+
 ## Then
 
 
@@ -544,13 +558,20 @@ def javascript_message_not_logged(quteproc, message):
 
 
 @bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
-def compare_session(request, quteproc, expected):
+def compare_session(quteproc, expected):
     """Compare the current sessions against the given template.
 
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
     quteproc.compare_session(expected)
+
+
+@bdd.then(
+    bdd.parsers.parse("The session saved with {flags} should look like:\n{expected}"))
+def compare_session_flags(quteproc, flags, expected):
+    """Compare the current session saved with custom flags."""
+    quteproc.compare_session(expected, flags=flags)
 
 
 @bdd.then("no crash should happen")
@@ -723,3 +744,35 @@ def check_option_per_domain(quteproc, option, value, pattern, server):
     pattern = pattern.replace('(port)', str(server.port))
     actual_value = quteproc.get_setting(option, pattern=pattern)
     assert actual_value == value
+
+
+@bdd.when(bdd.parsers.parse('I setup a fake {kind} fileselector '
+                            'selecting "{files}" and writes to {output_type}'))
+def set_up_fileselector(quteproc, py_proc, tmpdir, kind, files, output_type):
+    """Set up fileselect.xxx.command to select the file(s)."""
+    cmd, args = py_proc(r"""
+        import os
+        import sys
+        tmp_file = None
+        for i, arg in enumerate(sys.argv):
+            if arg.startswith('--file='):
+                tmp_file = arg[len('--file='):]
+                sys.argv.pop(i)
+                break
+        selected_files = sys.argv[1:]
+        if tmp_file is None:
+            for selected_file in selected_files:
+                print(os.path.abspath(selected_file))
+        else:
+            with open(tmp_file, 'w') as f:
+                for selected_file in selected_files:
+                    f.write(os.path.abspath(selected_file) + '\n')
+    """)
+    files = files.replace('(tmpdir)', str(tmpdir))
+    files = files.replace('(dirsep)', os.sep)
+    args += files.split(' ')
+    if output_type == "a temporary file":
+        args += ['--file={}']
+    fileselect_cmd = json.dumps([cmd, *args])
+    quteproc.set_setting('fileselect.handler', 'external')
+    quteproc.set_setting(f'fileselect.{kind}.command', fileselect_cmd)

@@ -1,0 +1,11 @@
+{
+  "defineConstant": {
+    "USE_PYQT6": true,
+    "USE_PYQT5": false,
+    "USE_PYSIDE6": false,
+    "IS_QT5": false,
+    "IS_QT6": true,
+    "IS_PYQT": true,
+    "IS_PYSIDE": false
+  }
+}

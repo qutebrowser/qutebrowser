@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,7 +21,7 @@ import os.path
 import collections
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from qutebrowser.qt.core import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils

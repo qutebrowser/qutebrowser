@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -27,15 +25,15 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional
+from typing import Optional, Sequence, Callable
 
 try:
     import hunter
 except ImportError:
     hunter = None
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.printsupport import QPrintPreviewDialog
 
 from qutebrowser.api import cmdutils, apitypes, message, config
 
@@ -81,25 +79,28 @@ def _print_preview(tab: apitypes.Tab) -> None:
 
     tab.printing.check_preview_support()
     diag = QPrintPreviewDialog(tab)
-    diag.setAttribute(Qt.WA_DeleteOnClose)
+    diag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
     diag.setWindowFlags(
-        diag.windowFlags() |  # type: ignore[operator, arg-type]
-        Qt.WindowMaximizeButtonHint |
-        Qt.WindowMinimizeButtonHint)
+        diag.windowFlags() |
+        Qt.WindowType.WindowMaximizeButtonHint |
+        Qt.WindowType.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
     diag.exec()
 
 
-def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
+def _print_pdf(tab: apitypes.Tab, path: pathlib.Path) -> None:
     """Print to the given PDF file."""
     tab.printing.check_pdf_support()
-    filename = os.path.expanduser(filename)
-    directory = os.path.dirname(filename)
-    if directory and not os.path.exists(directory):
-        os.mkdir(directory)
-    tab.printing.to_pdf(filename)
-    _LOGGER.debug("Print to file: {}".format(filename))
+    path = path.expanduser()
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise cmdutils.CommandError(e)
+
+    tab.printing.to_pdf(path)
+    _LOGGER.debug(f"Print to file: {path}")
 
 
 @cmdutils.register(name='print')
@@ -107,7 +108,7 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
 @cmdutils.argument('pdf', flag='f', metavar='file')
 def printpage(tab: Optional[apitypes.Tab],
               preview: bool = False, *,
-              pdf: str = None) -> None:
+              pdf: Optional[pathlib.Path] = None) -> None:
     """Print the current/[count]th tab.
 
     Args:
@@ -223,13 +224,33 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
     tab.elements.find_focused(_insert_text_cb)
 
 
+def _wrap_find_at_pos(value: str, tab: apitypes.Tab,
+                      callback: Callable[[Optional[apitypes.WebElement]], None]
+                      ) -> None:
+    try:
+        point = utils.parse_point(value)
+    except ValueError as e:
+        message.error(str(e))
+        return
+    tab.elements.find_at_pos(point, callback)
+
+
+_FILTER_ERRORS = {
+    'id': lambda x: f'with ID "{x}"',
+    'css': lambda x: f'matching CSS selector "{x}"',
+    'focused': lambda _: 'with focus',
+    'position': lambda x: 'at position {x}',
+}
+
+
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-@cmdutils.argument('filter_', choices=['id'])
-def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
+@cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
+def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,  # noqa: C901
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
-                  force_event: bool = False) -> None:
+                  force_event: bool = False,
+                  select_first: bool = False) -> None:
     """Click the element matching the given filter.
 
     The given filter needs to result in exactly one element, otherwise, an
@@ -237,27 +258,63 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
 
     Args:
         filter_: How to filter the elements.
-                 id: Get an element based on its ID.
-        value: The value to filter for.
+
+            - id: Get an element based on its ID.
+            - css: Filter by a CSS selector.
+            - position: Click the element at specified position.
+               Specify `value` as 'x,y'.
+            - focused: Click the currently focused element.
+        value: The value to filter for. Optional for 'focused' filter.
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
+        select_first: Select first matching element if there are multiple.
     """
-    def single_cb(elem: Optional[apitypes.WebElement]) -> None:
-        """Click a single element."""
-        if elem is None:
-            message.error("No element found with id {}!".format(value))
-            return
+    def do_click(elem: apitypes.WebElement) -> None:
         try:
             elem.click(target, force_event=force_event)
         except apitypes.WebElemError as e:
             message.error(str(e))
+
+    def single_cb(elem: Optional[apitypes.WebElement]) -> None:
+        """Click a single element."""
+        if elem is None:
+            message.error(f"No element found {_FILTER_ERRORS[filter_](value)}!")
             return
 
-    handlers = {
-        'id': (tab.elements.find_id, single_cb),
-    }
-    handler, callback = handlers[filter_]
-    handler(value, callback)
+        do_click(elem)
+
+    def multiple_cb(elems: Sequence[apitypes.WebElement]) -> None:
+        if not elems:
+            message.error(f"No element found {_FILTER_ERRORS[filter_](value)}!")
+            return
+
+        if not select_first and len(elems) > 1:
+            message.error(f"Multiple elements found {_FILTER_ERRORS[filter_](value)}!")
+            return
+
+        do_click(elems[0])
+
+    if value is None and filter_ != 'focused':
+        raise cmdutils.CommandError("Argument 'value' is only "
+                                    "optional with filter 'focused'!")
+
+    if filter_ == "id":
+        assert value is not None
+        tab.elements.find_id(elem_id=value, callback=single_cb)
+    elif filter_ == "css":
+        assert value is not None
+        tab.elements.find_css(
+            value,
+            callback=multiple_cb,
+            error_cb=lambda exc: message.error(str(exc)),
+        )
+    elif filter_ == "position":
+        assert value is not None
+        _wrap_find_at_pos(value, tab=tab, callback=single_cb)
+    elif filter_ == "focused":
+        tab.elements.find_focused(callback=single_cb)
+    else:
+        raise utils.Unreachable(filter_)
 
 
 @cmdutils.register(debug=True)
@@ -268,7 +325,7 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
     Available actions:
     https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
-    https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+    https://doc.qt.io/qt-6/qwebenginepage.html#WebAction-enum (WebEngine)
 
     Args:
         action: The action to execute, e.g. MoveToNextChar.
@@ -303,36 +360,42 @@ def nop() -> None:
 
 
 @cmdutils.register()
-def message_error(text: str) -> None:
+def message_error(text: str, rich: bool = False) -> None:
     """Show an error message in the statusbar.
 
     Args:
         text: The text to show.
+        rich: Render the given text as
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
-    message.error(text)
+    message.error(text, rich=rich)
 
 
 @cmdutils.register()
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def message_info(text: str, count: int = 1) -> None:
+def message_info(text: str, count: int = 1, rich: bool = False) -> None:
     """Show an info message in the statusbar.
 
     Args:
         text: The text to show.
-        count: How many times to show the message
+        count: How many times to show the message.
+        rich: Render the given text as
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     for _ in range(count):
-        message.info(text)
+        message.info(text, rich=rich)
 
 
 @cmdutils.register()
-def message_warning(text: str) -> None:
+def message_warning(text: str, rich: bool = False) -> None:
     """Show a warning message in the statusbar.
 
     Args:
         text: The text to show.
+        rich: Render the given text as
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
-    message.warning(text)
+    message.warning(text, rich=rich)
 
 
 @cmdutils.register(debug=True)
@@ -343,6 +406,7 @@ def debug_crash(typ: str = 'exception') -> None:
     Args:
         typ: either 'exception' or 'segfault'.
     """
+    # pylint: disable=broad-exception-raised
     if typ == 'segfault':
         os.kill(os.getpid(), signal.SIGSEGV)
         raise Exception("Segfault failed (wat.)")

@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,9 +19,9 @@ import dataclasses
 import itertools
 from typing import Dict, List
 
-from PyQt5.QtCore import QObject, QByteArray, QUrl, pyqtSlot
-from PyQt5.QtGui import QImage
-from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
+from qutebrowser.qt.core import QObject, QByteArray, QUrl, pyqtSlot
+from qutebrowser.qt.gui import QImage
+from qutebrowser.qt.dbus import QDBusConnection, QDBusMessage
 import pytest
 
 from qutebrowser.browser.webengine import notification
@@ -82,7 +80,7 @@ class TestNotificationServer(QObject):
             notification.DBusNotificationAdapter.PATH,
             notification.DBusNotificationAdapter.INTERFACE,
             self,
-            QDBusConnection.ExportAllSlots,
+            QDBusConnection.RegisterOption.ExportAllSlots,
         )
         return True
 
@@ -151,7 +149,7 @@ class TestNotificationServer(QObject):
         assert channel_count == (4 if has_alpha else 3)
         assert bytes_per_line >= width * channel_count
 
-        qimage_format = QImage.Format_RGBA8888 if has_alpha else QImage.Format_RGB888
+        qimage_format = QImage.Format.Format_RGBA8888 if has_alpha else QImage.Format.Format_RGB888
         img = QImage(data, width, height, bytes_per_line, qimage_format)
         assert not img.isNull()
         assert img.width() == width
@@ -194,9 +192,9 @@ class TestNotificationServer(QObject):
     # pylint: disable=invalid-name
 
     @pyqtSlot(QDBusMessage, result="uint")
-    def Notify(self, dbus_message: QDBusMessage) -> QDBusArgument:
+    def Notify(self, dbus_message: QDBusMessage) -> int:
         assert dbus_message.signature() == 'susssasa{sv}i'
-        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+        assert dbus_message.type() == QDBusMessage.MessageType.MethodCallMessage
 
         message = self._parse_notify_args(*dbus_message.arguments())
 
@@ -213,7 +211,7 @@ class TestNotificationServer(QObject):
     def GetCapabilities(self, message: QDBusMessage) -> List[str]:
         assert not message.signature()
         assert not message.arguments()
-        assert message.type() == QDBusMessage.MethodCallMessage
+        assert message.type() == QDBusMessage.MessageType.MethodCallMessage
 
         capabilities = ["actions", "x-kde-origin-name"]
         if self.supports_body_markup:
@@ -222,23 +220,33 @@ class TestNotificationServer(QObject):
         return capabilities
 
     @pyqtSlot(QDBusMessage)
+    def GetServerInformation(self, message: QDBusMessage) -> None:
+        name = "test notification server"
+        vendor = "qutebrowser"
+        version = "v0.0.1"
+        spec_version = "1.2"
+        self._bus.send(message.createReply([name, vendor, version, spec_version]))
+
+    @pyqtSlot(QDBusMessage)
     def CloseNotification(self, dbus_message: QDBusMessage) -> None:
         assert dbus_message.signature() == 'u'
-        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+        assert dbus_message.type() == QDBusMessage.MessageType.MethodCallMessage
 
         message_id = dbus_message.arguments()[0]
         self.messages[message_id].closed_via_web = True
 
 
 @pytest.fixture(scope='module')
-def notification_server(qapp):
+def notification_server(qapp, quteproc_process):
     if utils.is_windows:
         # The QDBusConnection destructor seems to cause error messages (and potentially
         # segfaults) on Windows, so we bail out early in that case. We still try to get
         # a connection on macOS, since it's theoretically possible to run DBus there.
         pytest.skip("Skipping DBus on Windows")
 
-    server = TestNotificationServer(notification.DBusNotificationAdapter.TEST_SERVICE)
+    qb_pid = quteproc_process.proc.processId()
+    server = TestNotificationServer(
+        f"{notification.DBusNotificationAdapter.TEST_SERVICE}{qb_pid}")
     registered = server.register()
     if not registered:
         assert not (utils.is_linux and testutils.ON_CI), "Expected DBus on Linux CI"

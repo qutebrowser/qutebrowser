@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,11 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+# FIXME:qt6 (lint)
+# pylint: disable=no-name-in-module
+
 """QtWebKit specific part of history."""
 
 import functools
 
-from PyQt5.QtWebKit import QWebHistoryInterface
+from qutebrowser.qt.webkit import QWebHistoryInterface
 
 from qutebrowser.utils import debug
 from qutebrowser.misc import debugcachestats

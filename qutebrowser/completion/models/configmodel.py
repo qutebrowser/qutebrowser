@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -44,16 +42,22 @@ def customized_option(*, info):
 
 def list_option(*, info):
     """A CompletionModel filled with settings whose values are lists."""
-    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
-                                        list) and not opt.no_autoconfig)
-    return _option(info, "List options", predicate)
+    return _option(
+        info,
+        "List options",
+        lambda opt: (isinstance(info.config.get_obj(opt.name), list) and
+            not opt.no_autoconfig)
+    )
 
 
 def dict_option(*, info):
     """A CompletionModel filled with settings whose values are dicts."""
-    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
-                                        dict) and not opt.no_autoconfig)
-    return _option(info, "Dict options", predicate)
+    return _option(
+        info,
+        "Dict options",
+        lambda opt: (isinstance(info.config.get_obj(opt.name), dict) and
+            not opt.no_autoconfig)
+    )
 
 
 def _option(info, title, predicate):

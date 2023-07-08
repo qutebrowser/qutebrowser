@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,14 +21,14 @@ import enum
 import dataclasses
 from typing import Callable, List, Optional
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 
 class ResourceType(enum.Enum):
     """Possible request types that can be received.
 
     Currently corresponds to the QWebEngineUrlRequestInfo Enum:
-    https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
+    https://doc.qt.io/qt-6/qwebengineurlrequestinfo.html#ResourceType-enum
     """
 
     main_frame = 0
@@ -54,6 +52,7 @@ class ResourceType(enum.Enum):
     # 18 is "preload", deprecated in Chromium
     preload_main_frame = 19
     preload_sub_frame = 20
+    websocket = 254
     unknown = 255
 
 

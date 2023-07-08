@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,8 +17,9 @@
 
 """Exceptions related to config parsing."""
 
+import difflib
 import dataclasses
-from typing import Any, Mapping, Optional, Sequence, Union
+from typing import Any, Mapping, Optional, Sequence, Union, List
 
 from qutebrowser.utils import usertypes, log
 
@@ -91,6 +90,7 @@ class NoOptionError(Error):
     """Raised when an option was not found."""
 
     def __init__(self, option: str, *,
+                 all_names: List[str] = None,
                  deleted: bool = False,
                  renamed: str = None) -> None:
         if deleted:
@@ -98,6 +98,12 @@ class NoOptionError(Error):
             suffix = ' (this option was removed from qutebrowser)'
         elif renamed is not None:
             suffix = ' (this option was renamed to {!r})'.format(renamed)
+        elif all_names:
+            matches = difflib.get_close_matches(option, all_names, n=1)
+            if matches:
+                suffix = f' (did you mean {matches[0]!r}?)'
+            else:
+                suffix = ''
         else:
             suffix = ''
 

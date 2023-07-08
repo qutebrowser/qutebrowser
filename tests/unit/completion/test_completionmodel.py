@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
@@ -24,7 +22,7 @@ import hypothesis
 from hypothesis import strategies
 
 import pytest
-from PyQt5.QtCore import QModelIndex
+from qutebrowser.qt.core import QModelIndex
 
 from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.utils import qtutils

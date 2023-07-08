@@ -15,7 +15,7 @@ For command arguments, there are also some variables you can use:
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
 - `{url:host}`, `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
-  `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}` and `{url:query}`
+  `{url:password}`, `{url:port}`, `{url:path}` and `{url:query}`
   expand to the respective parts of the current URL
 - `{title}` expands to the current page's title
 - `{clipboard}` expands to the clipboard contents
@@ -152,7 +152,7 @@ Update block lists for both the host- and the Brave ad blocker.
 
 [[back]]
 === back
-Syntax: +:back [*--tab*] [*--bg*] [*--window*] ['index']+
+Syntax: +:back [*--tab*] [*--bg*] [*--window*] [*--quiet*] ['index']+
 
 Go back in the history of the current tab.
 
@@ -163,6 +163,7 @@ Go back in the history of the current tab.
 * +*-t*+, +*--tab*+: Go back in a new tab.
 * +*-b*+, +*--bg*+: Go back in a background tab.
 * +*-w*+, +*--window*+: Go back in a new window.
+* +*-q*+, +*--quiet*+: Don't show an error if already at the beginning of history.
 
 ==== count
 How many pages to go back.
@@ -260,20 +261,27 @@ Clear all message notifications.
 
 [[click-element]]
 === click-element
-Syntax: +:click-element [*--target* 'target'] [*--force-event*] 'filter' 'value'+
+Syntax: +:click-element [*--target* 'target'] [*--force-event*] [*--select-first*] 'filter' ['value']+
 
 Click the element matching the given filter.
 
 The given filter needs to result in exactly one element, otherwise, an error is shown.
 
 ==== positional arguments
-* +'filter'+: How to filter the elements. id: Get an element based on its ID.
+* +'filter'+: How to filter the elements. 
 
-* +'value'+: The value to filter for.
+ - id: Get an element based on its ID.
+ - css: Filter by a CSS selector.
+ - position: Click the element at specified position.
+ Specify `value` as 'x,y'.
+ - focused: Click the currently focused element.
+
+* +'value'+: The value to filter for. Optional for 'focused' filter.
 
 ==== optional arguments
 * +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
 * +*-f*+, +*--force-event*+: Force generating a fake click event.
+* +*-s*+, +*--select-first*+: Select first matching element if there are multiple.
 
 [[close]]
 === close
@@ -335,7 +343,12 @@ Remove a key from a dict.
 
 [[config-diff]]
 === config-diff
+Syntax: +:config-diff [*--include-hidden*]+
+
 Show all customized options.
+
+==== optional arguments
+* +*-i*+, +*--include-hidden*+: Also include internal qutebrowser settings.
 
 [[config-edit]]
 === config-edit
@@ -555,7 +568,7 @@ Send a fake keypress or key string to the website or qutebrowser.
 
 [[forward]]
 === forward
-Syntax: +:forward [*--tab*] [*--bg*] [*--window*] ['index']+
+Syntax: +:forward [*--tab*] [*--bg*] [*--window*] [*--quiet*] ['index']+
 
 Go forward in the history of the current tab.
 
@@ -566,6 +579,7 @@ Go forward in the history of the current tab.
 * +*-t*+, +*--tab*+: Go forward in a new tab.
 * +*-b*+, +*--bg*+: Go forward in a background tab.
 * +*-w*+, +*--window*+: Go forward in a new window.
+* +*-q*+, +*--quiet*+: Don't show an error if already at the end of history.
 
 ==== count
 How many pages to go forward.
@@ -810,33 +824,45 @@ How many times to run the macro.
 
 [[message-error]]
 === message-error
-Syntax: +:message-error 'text'+
+Syntax: +:message-error [*--rich*] 'text'+
 
 Show an error message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
 
+==== optional arguments
+* +*-r*+, +*--rich*+: Render the given text as https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
+
+
 [[message-info]]
 === message-info
-Syntax: +:message-info 'text'+
+Syntax: +:message-info [*--rich*] 'text'+
 
 Show an info message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
 
+==== optional arguments
+* +*-r*+, +*--rich*+: Render the given text as https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
+
+
 ==== count
-How many times to show the message
+How many times to show the message.
 
 [[message-warning]]
 === message-warning
-Syntax: +:message-warning 'text'+
+Syntax: +:message-warning [*--rich*] 'text'+
 
 Show a warning message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
+
+==== optional arguments
+* +*-r*+, +*--rich*+: Render the given text as https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
+
 
 [[messages]]
 === messages
@@ -1263,7 +1289,7 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] [*--no-history*] ['name']+
 
 Save a session.
 
@@ -1277,6 +1303,7 @@ Save a session.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 * +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
 * +*-p*+, +*--with-private*+: Include private windows.
+* +*-n*+, +*--no-history*+: Don't store tab history.
 
 [[set]]
 === set
@@ -1748,6 +1775,7 @@ How many steps to zoom out.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
+|<<prompt-fileselect-external,prompt-fileselect-external>>|Choose a location using a configured external picker.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
@@ -1935,6 +1963,12 @@ Accept the current prompt.
 
 ==== optional arguments
 * +*-s*+, +*--save*+: Save the value to the config.
+
+[[prompt-fileselect-external]]
+=== prompt-fileselect-external
+Choose a location using a configured external picker.
+
+This spawns the external fileselector configured via `fileselect.folder.command`.
 
 [[prompt-item-focus]]
 === prompt-item-focus
@@ -2224,7 +2258,7 @@ Syntax: +:debug-webaction 'action'+
 
 Execute a webaction.
 
-Available actions: https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit) https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+Available actions: https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit) https://doc.qt.io/qt-6/qwebenginepage.html#WebAction-enum (WebEngine)
 
 ==== positional arguments
 * +'action'+: The action to execute, e.g. MoveToNextChar.

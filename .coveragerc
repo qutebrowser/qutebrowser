@@ -23,6 +23,3 @@ exclude_lines =
 
 [xml]
 output=coverage.xml
-
-[html]
-show_contexts = True

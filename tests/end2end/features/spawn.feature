@@ -1,10 +1,8 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: :spawn
 
     Scenario: Running :spawn
         When I run :spawn -v (echo-exe) "Hello"
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Running :spawn with command that does not exist
         When I run :spawn command_does_not_exist127623

@@ -29,7 +29,7 @@ rules:
     init-declarations: "off"
     no-plusplus: "off"
     no-extra-parens: "off"
-    id-length: ["error", {"exceptions": ["i", "k", "v", "x", "y"]}]
+    id-length: ["error", {"exceptions": ["i", "n", "k", "v", "x", "y"]}]
     object-shorthand: "off"
     max-statements: ["error", {"max": 40}]
     quotes: ["error", "double", {"avoidEscape": true}]
@@ -61,3 +61,4 @@ rules:
     prefer-named-capture-group: "off"
     function-call-argument-newline: "off"
     no-negated-condition: "off"
+    no-console: "off"
