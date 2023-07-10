@@ -11,7 +11,7 @@ import typing
 from PyQt6.QtCore import QObject, pyqtSignal
 
 if typing.TYPE_CHECKING:
-    QObjectT = typing.TypeVar("QObjectT", bound="QObject")
+    QObjectT = typing.TypeVar("QObjectT", bound=QObject)
 
     TPropertyTypeVal = typing.TypeVar("TPropertyTypeVal")
 

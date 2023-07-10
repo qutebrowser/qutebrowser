@@ -19,7 +19,6 @@
 
 from typing import cast
 
-from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
 from qutebrowser.qt.gui import QKeyEvent, QWindow
 
