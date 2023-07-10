@@ -1597,8 +1597,7 @@ class CommandDispatcher:
     def _search_navigation_cb(self, result):
         """Callback called from :search-prev/next."""
         if result == browsertab.SearchNavigationResult.not_found:
-            # FIXME check if this actually can happen...
-            message.warning("Search result vanished...")
+            self._search_cb(found=False, text=self._tabbed_browser.search_text)
             return
         elif result == browsertab.SearchNavigationResult.found:
             return
