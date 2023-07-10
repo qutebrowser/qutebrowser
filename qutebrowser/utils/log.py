@@ -31,10 +31,9 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union, TextIO, Literal, cast, Callable)
+                    Optional, Set, Tuple, Union, TextIO, Literal, cast)
 
 from qutebrowser.qt import core as qtcore
-from qutebrowser.qt import machinery
 # Optional imports
 try:
     import colorama
@@ -224,29 +223,6 @@ def _init_py_warnings() -> None:
                             message=r"Using or importing the ABCs from "
                             r"'collections' instead of from 'collections.abc' "
                             r"is deprecated.*")
-
-
-@contextlib.contextmanager
-def disable_qt_msghandler() -> Iterator[None]:
-    """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = qtcore.qInstallMessageHandler(None)
-    if machinery.IS_QT6:
-        # cast str to Optional[str] to be compatible with PyQt6 type hints for
-        # qInstallMessageHandler
-        old_handler = cast(
-            Optional[
-                Callable[
-                    [qtcore.QtMsgType, qtcore.QMessageLogContext, Optional[str]],
-                    None
-                ]
-            ],
-            old_handler,
-        )
-
-    try:
-        yield
-    finally:
-        qtcore.qInstallMessageHandler(old_handler)
 
 
 @contextlib.contextmanager

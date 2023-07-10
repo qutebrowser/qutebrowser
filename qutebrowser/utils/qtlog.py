@@ -17,10 +17,35 @@
 
 """Loggers and utilities related to Qt logging."""
 
+import contextlib
+from typing import Iterator, Optional, Callable, cast
 
-from qutebrowser.qt import core as qtcore
+from qutebrowser.qt import core as qtcore, machinery
 
 
 @qtcore.pyqtSlot()
 def shutdown_log() -> None:
     qtcore.qInstallMessageHandler(None)
+
+
+@contextlib.contextmanager
+def disable_qt_msghandler() -> Iterator[None]:
+    """Contextmanager which temporarily disables the Qt message handler."""
+    old_handler = qtcore.qInstallMessageHandler(None)
+    if machinery.IS_QT6:
+        # cast str to Optional[str] to be compatible with PyQt6 type hints for
+        # qInstallMessageHandler
+        old_handler = cast(
+            Optional[
+                Callable[
+                    [qtcore.QtMsgType, qtcore.QMessageLogContext, Optional[str]],
+                    None
+                ]
+            ],
+            old_handler,
+        )
+
+    try:
+        yield
+    finally:
+        qtcore.qInstallMessageHandler(old_handler)

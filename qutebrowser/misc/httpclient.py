@@ -25,7 +25,7 @@ from qutebrowser.qt.core import pyqtSignal, QObject, QTimer
 from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
 
-from qutebrowser.utils import log
+from qutebrowser.utils import qtlog
 
 
 class HTTPRequest(QNetworkRequest):
@@ -59,7 +59,7 @@ class HTTPClient(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        with log.disable_qt_msghandler():
+        with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
             self._nam = QNetworkAccessManager(self)

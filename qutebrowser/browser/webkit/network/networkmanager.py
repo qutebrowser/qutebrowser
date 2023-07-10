@@ -28,7 +28,7 @@ from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkReply, QSslCo
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
-                               urlutils, debug)
+                               urlutils, debug, qtlog)
 from qutebrowser.browser import shared
 from qutebrowser.browser.network import proxy as proxymod
 from qutebrowser.extensions import interceptors
@@ -156,7 +156,7 @@ class NetworkManager(QNetworkAccessManager):
 
     def __init__(self, *, win_id, tab_id, private, parent=None):
         log.init.debug("Initializing NetworkManager")
-        with log.disable_qt_msghandler():
+        with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
             # https://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
             #
