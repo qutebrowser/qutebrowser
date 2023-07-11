@@ -26,7 +26,7 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from qutebrowser.qt.widgets import (QTabWidget, QTabBar, QSizePolicy, QProxyStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QCommonStyle)
+                             QCommonStyle, QWidget)
 from qutebrowser.qt.gui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -91,8 +91,9 @@ class TabWidget(QTabWidget):
         assert isinstance(bar, TabBar), bar
         return bar
 
-    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
+    def _tab_by_idx(self, idx: int) -> Optional[QWidget]:
         """Get the tab at the given index."""
+
         tab = self.widget(idx)
         if tab is not None:
             assert isinstance(tab, browsertab.AbstractTab), tab
@@ -349,7 +350,7 @@ class TabWidget(QTabWidget):
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: browsertab.AbstractTab) -> None:
+    def update_tab_favicon(self, tab: QWidget) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
