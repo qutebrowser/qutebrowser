@@ -250,9 +250,7 @@ def test_uid(node):
 
     n11_uid = n11.uid
     assert n1.get_descendent_by_uid(n11_uid) is n11
-
-    with pytest.raises(TreeError) as _:
-        assert node.get_descendent_by_uid(n11_uid) is n11
+    assert node.get_descendent_by_uid(n11_uid) is None
 
 
 def test_collapsed(node):
