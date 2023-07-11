@@ -23,8 +23,8 @@ import collections
 import dataclasses
 import datetime
 from typing import List, Dict
-from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSlot, QUrl
+from qutebrowser.qt.widgets import QSizePolicy
+from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
