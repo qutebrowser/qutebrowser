@@ -631,8 +631,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        # FIXME:mypy PyQt6-stubs issue
-        btn.clicked.connect(self.close)  # type: ignore[arg-type,unused-ignore]
+        btn.clicked.connect(self.close)
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 
