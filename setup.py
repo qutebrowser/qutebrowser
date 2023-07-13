@@ -64,8 +64,7 @@ def _get_constant(name):
 try:
     common.write_git_file()
     setuptools.setup(
-        packages=setuptools.find_namespace_packages(where='qutebrowser'),
-        package_dir={'qutebrowser': 'qutebrowser'},
+        packages=setuptools.find_namespace_packages(include=['qutebrowser']),
         include_package_data=True,
         entry_points={'gui_scripts':
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
