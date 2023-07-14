@@ -61,9 +61,7 @@ class ListCategory(QSortFilterProxyModel):
             log.completion.warning(f"Trimming {len(val)}-char pattern to 5000")
             val = val[:5000]
         self._pattern = val
-        val = re.sub(r' +', r' ', val)  # See #1919
-        val = re.escape(val)
-        val = val.replace(r'\ ', '.*')
+        val = '(?=.*' + ')(?=.*'.join(map(re.escape, val.split())) + ')'
         rx = QRegularExpression(val, QRegularExpression.PatternOption.CaseInsensitiveOption)
         qtutils.ensure_valid(rx)
         self.setFilterRegularExpression(rx)
