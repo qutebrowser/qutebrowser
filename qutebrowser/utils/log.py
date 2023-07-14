@@ -128,6 +128,7 @@ hints = logging.getLogger('hints')
 keyboard = logging.getLogger('keyboard')
 downloads = logging.getLogger('downloads')
 js = logging.getLogger('js')  # Javascript console messages
+qt = logging.getLogger('qt')  # Warnings produced by Qt
 ipc = logging.getLogger('ipc')
 shlexer = logging.getLogger('shlexer')
 save = logging.getLogger('save')

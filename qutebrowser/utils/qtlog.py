@@ -26,10 +26,8 @@ import traceback
 from typing import Iterator, Optional, Callable, cast
 
 from qutebrowser.qt import core as qtcore, machinery
+from qutebrowser.utils import log
 
-# FIXME(pylbrecht): move this back to qutebrowser.utils.log once `qtlog.init()` is
-# extracted from `qutebrowser.utils.log.init_log()`
-qt = logging.getLogger('qt')  # Warnings produced by Qt
 _args = None
 
 
@@ -207,10 +205,10 @@ def qt_message_handler(msg_type: qtcore.QtMsgType,
     else:
         stack = None
 
-    record = qt.makeRecord(name=name, level=level, fn=context.file, lno=lineno,
+    record = log.qt.makeRecord(name=name, level=level, fn=context.file, lno=lineno,
                            msg=msg, args=(), exc_info=None, func=func,
                            sinfo=stack)
-    qt.handle(record)
+    log.qt.handle(record)
 
 
 class QtWarningFilter(logging.Filter):
