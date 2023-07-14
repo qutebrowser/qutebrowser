@@ -1808,6 +1808,74 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/2.txt
                 - url: http://localhost:*/data/numbers/3.txt
                   active: true
+
+    Scenario: Tab unload with count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-unload with count 1
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+                  active: true
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+                active: true
+
+    Scenario: Tab unload with history
+        When I open data/numbers/1.txt
+        And I open data/numbers/12.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-unload with count 1
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+                - url: http://localhost:*/data/numbers/12.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Tab unload and tab focus with history
+        When I open data/numbers/1.txt
+        And I open data/numbers/12.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tab-unload with count 1
+        And I run :tab-focus 1
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                # Passes without the following two lines
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+                - url: http://localhost:*/data/numbers/12.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Tab unload and tab move
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-unload with count 3
+        And I run :tab-focus 2
+        And I run :tab-move 1
+        Then "Changing title for idx 1 to 'http://localhost:*/data/numbers/3.txt'" should not be logged
+
     Scenario: Passthrough mode override
         When I run :set -u localhost:*/data/numbers/1.txt input.mode_override 'passthrough'
         And I open data/numbers/1.txt
