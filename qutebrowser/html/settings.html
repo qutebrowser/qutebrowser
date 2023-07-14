@@ -10,9 +10,106 @@ var cset = function(option, value) {
   xhr.open("GET", url);
   xhr.send();
 }
+
+const search = debounce(() => searchOption())
+
+// Create a delay while the user types
+const debounce = (func, timeout=200) => {
+  let timer;
+  return () => {
+    clearTimeout(timer)
+    timer = setTimeout(() => { func.apply(this) }, timeout)
+  }
+}
+
+/* First sort the options' names back into alphabetical order. Make them invisible.
+Filter first by name, then by short description and finally by long description.
+Display them in this order.*/
+const searchOption = () => {
+  const searchQuery = document.getElementById("searchbox").value.toLowerCase()
+  const table = document.getElementById("options-table")
+  const filtered = new Set()
+
+  const optionsArray = Array.from(document.querySelectorAll(".options"))
+
+  // Sort options' names into alphabetical order
+  sortOptions(optionsArray)
+  // Make each option invisible
+  optionsArray.forEach(option => option.classList.add("is-hidden"))
+
+  const filterByName = (option) => {
+    const setting = option.childNodes[3]
+    const name = setting.childNodes[1].textContent.toLowerCase()
+
+    return name.includes(searchQuery)
+  }
+
+  const filterByShortDesc = (option) => {
+    const id = option.id
+    const shortDesc = `short-desc-${id}`
+    const shortDescElement = document.getElementById(shortDesc).textContent.toLowerCase()
+
+    const isIncluded = shortDescElement.includes(searchQuery) && !filtered.has(option)
+
+    return isIncluded
+  }
+
+  const filterByLongDesc = (option) => {
+    const id = option.id
+    const londDesc = `long-desc-${id}`
+    const longDescElement = document.getElementById(londDesc)?.textContent.toLowerCase()
+    const isIncluded = longDescElement?.includes(searchQuery) &&
+			            !filtered.has(option)
+
+    return isIncluded
+  }
+
+  // Filter options by name, short description and long description
+  // and add them to the filtered set
+  const filteredByName = optionsArray.filter(filterByName)
+  filteredByName.forEach(item => filtered.add(item))
+  const filteredByShortDesc = optionsArray.filter(filterByShortDesc)
+  filteredByShortDesc.forEach(item => filtered.add(item))
+  const filteredByLongDesc = optionsArray.filter(filterByLongDesc)
+  filteredByLongDesc.forEach(item => filtered.add(item))
+
+  const filteredFragment = new DocumentFragment()
+
+  // Move the filtered options into a fragment and append them at the end of the table,
+  // while the other options are hidden
+  filtered.forEach(option => addToFragment(option, filteredFragment))
+  table.append(filteredFragment)
+}
+
+// Sort options into alphabetical order
+const sortOptions = (options) => {
+  options.sort((a, b) => {
+    const settingA = a.childNodes[3]
+    const nameA = settingA.childNodes[1].textContent.toLowerCase()
+    const settingB = b.childNodes[3]
+    const nameB = settingB.childNodes[1].textContent.toLowerCase()
+
+    if (nameA < nameB) {
+      return -1;
+    }
+    if (nameA > nameB) {
+      return 1;
+    }
+    return 0;
+  })
+}
+
+// Make option visible again and append it to the fragment
+const addToFragment = (option, fragment) => {
+  option.classList.remove("is-hidden")
+  fragment.append(option)
+}
 {% endblock %}
 
 {% block style %}
+body {
+    margin: 0 8px 8px;
+}
 table {
     border-spacing: 10px;
 }
@@ -88,6 +185,20 @@ input[type="radio"]:checked + label {
     margin: 3px 1px;
 }
 
+.search {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-top: 8px;
+    background-color: white;
+}
+
+input[type="search"] {
+    margin-left: 10px;
+    width: 99%;
+    font-size: 1rem;
+}
+
 .setting {
     width: 60%;
 }
@@ -148,33 +259,42 @@ summary .short-description {
 summary::selection {
     background-color: inherit;
 }
+
+.is-hidden {
+    visibility: collapse;
+}
 {% endblock %}
 
 {% block content %}
 <noscript><h1 class="noscript">View Only</h1><p class="noscript-text">Changing settings requires javascript to be enabled!</p></noscript>
+<div class="search">
+  <input type="search" id="searchbox" autofocus autocomplete="off" placeholder="Search setting" onkeyup="search()">
+</div>
 <table>
+  <tbody id="options-table">
     <tr>
         <th>Setting</th>
         <th>Value</th>
     </tr>
   {% for option in configdata.DATA.values()|sort(attribute='name') if not option.no_autoconfig %}
-    <tr>
+    <tr class="options" id="{{ option.name }}">
       {% set loopIndex = loop.index0 %}
       <!-- FIXME: convert to string properly -->
-      <td class="setting">{{ option.name }}
+      <td class="setting">
+	<span id="name-{{ option.name}}">{{ option.name }}</span>
         {% if option.description %}
           {% set description = option.description.split('\n', 1) %}
           <div class="option-description">
             {% if description|length > 1 %}
               <details>
                 <summary>
-                  <p class="short-description">{{ description[0]|e }}</p>
+		  <p id="short-desc-{{ option.name }}" class="short-description">{{ description[0]|e }}</p>
                   <span class="details">Details</span>
                 </summary>
-                <p class="long-description">{{ description[1]|e }}</p>
+		<p id="long-desc-{{ option.name }}" class="long-description">{{ description[1]|e }}</p>
               </details>
             {% else %}
-              <p>{{ description[0]|e }}</p>
+              <p id="short-desc-{{ option.name }}" class="short-description">{{ description[0]|e }}</p>
             {% endif %}
           </div>
         {% endif %}
@@ -207,6 +327,7 @@ summary::selection {
       {% endif %}
     </tr>
   {% endfor %}
+  </tbody>
 </table>
 
 {% endblock %}
