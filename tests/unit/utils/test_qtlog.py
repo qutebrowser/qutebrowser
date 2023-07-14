@@ -24,7 +24,7 @@ import logging
 import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.utils import log, qtlog
+from qutebrowser.utils import qtlog
 
 from qutebrowser.qt import core as qtcore
 
@@ -45,7 +45,7 @@ class TestQtMessageHandler:
     def init_args(self):
         parser = qutebrowser.get_argparser()
         args = parser.parse_args([])
-        log.init_log(args)
+        qtlog.init(args)
 
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""

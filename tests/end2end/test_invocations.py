@@ -25,6 +25,7 @@ import importlib
 import re
 import json
 import platform
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 from qutebrowser.qt.core import QProcess, QPoint
@@ -916,3 +917,15 @@ def test_sandboxing(
 
     status = dict(line.split("\t") for line in lines)
     assert status == expected_status
+
+
+@pytest.mark.not_frozen
+def test_logfilter_arg_does_not_crash(request, quteproc_new):
+    args = ['--temp-basedir', '--debug', '--logfilter', 'commands, init, ipc, webview']
+
+    with does_not_raise():
+        quteproc_new.start(args=args + _base_args(request.config))
+
+    # Waiting for quit to make sure no other warning is emitted
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()

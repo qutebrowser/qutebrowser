@@ -295,8 +295,9 @@ def init_log(args):
     Args:
         args: The argparse namespace.
     """
-    from qutebrowser.utils import log
+    from qutebrowser.utils import log, qtlog
     log.init_log(args)
+    qtlog.init(args)
     log.init.debug("Log initialized.")
     log.init.debug(str(machinery.INFO))
 

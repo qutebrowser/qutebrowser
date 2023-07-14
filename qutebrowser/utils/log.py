@@ -31,7 +31,6 @@ import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
                     Optional, Set, Tuple, Union, TextIO, Literal, cast)
 
-from qutebrowser.utils import qtlog
 # Optional imports
 try:
     import colorama
@@ -205,7 +204,6 @@ def init_log(args: argparse.Namespace) -> None:
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
-    qtlog.init(args)
     _log_inited = True
 
 
