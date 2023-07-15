@@ -1772,6 +1772,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt
         And I run :tab-unload
+        And I run :tab-focus 2
         And I run :back -b
         Then the session should look like:
             windows:
@@ -1794,6 +1795,7 @@ Feature: Tab management
         And I open data/numbers/3.txt
         And I run :back
         And I run :tab-unload
+        And I run :tab-focus 2
         And I run :forward -b
         Then the session should look like:
             windows:
