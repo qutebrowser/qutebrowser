@@ -1927,11 +1927,12 @@ class CommandDispatcher:
             return
 
         conf_selection = config.val.tabs.select_on_remove
-        if conf_selection == QTabBar.SelectionBehavior.SelectLeftTab:
-            self.tab_prev()
-        elif conf_selection == QTabBar.SelectionBehavior.SelectRightTab:
-            self.tab_next()
-        elif conf_selection == QTabBar.SelectionBehavior.SelectPreviousTab:
-            self._tab_focus_stack("last")
+        if tab is self._tabbed_browser.widget.currentWidget():
+            if conf_selection == QTabBar.SelectionBehavior.SelectLeftTab:
+                self.tab_prev()
+            elif conf_selection == QTabBar.SelectionBehavior.SelectRightTab:
+                self.tab_next()
+            elif conf_selection == QTabBar.SelectionBehavior.SelectPreviousTab:
+                self._tab_focus_stack("last")
 
         tab.unload()
