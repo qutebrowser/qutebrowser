@@ -1,1 +1,1 @@
-PyInstaller
+git+https://github.com/pyinstaller/pyinstaller.git@develop
