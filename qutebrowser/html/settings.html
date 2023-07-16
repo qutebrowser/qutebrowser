@@ -11,8 +11,6 @@ var cset = function(option, value) {
   xhr.send();
 }
 
-const search = debounce(() => searchOption())
-
 // Create a delay while the user types
 const debounce = (func, timeout=200) => {
   let timer;
@@ -21,6 +19,8 @@ const debounce = (func, timeout=200) => {
     timer = setTimeout(() => { func.apply(this) }, timeout)
   }
 }
+
+const search = debounce(() => searchOption())
 
 /* First sort the options' names back into alphabetical order. Make them invisible.
 Filter first by name, then by short description and finally by long description.
