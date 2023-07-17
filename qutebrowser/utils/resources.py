@@ -36,11 +36,6 @@ def _path(filename: str) -> _ResourceType:
     assert not posixpath.isabs(filename), filename
     assert os.path.pardir not in filename.split(posixpath.sep), filename
 
-    if hasattr(sys, 'frozen'):
-        # For PyInstaller, where we can't store resource files in a qutebrowser/ folder
-        # because the executable is already named "qutebrowser" (at least on macOS).
-        return pathlib.Path(sys.executable).parent / filename
-
     return importlib_resources.files(qutebrowser) / filename
 
 @contextlib.contextmanager
