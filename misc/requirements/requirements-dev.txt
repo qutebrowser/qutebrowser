@@ -6,7 +6,7 @@ bump2version==1.0.1
 certifi==2023.5.7
 cffi==1.15.1
 charset-normalizer==3.2.0
-cryptography==41.0.1
+cryptography==41.0.2
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
@@ -44,4 +44,4 @@ typing_extensions==4.7.1
 uritemplate==4.1.1
 # urllib3==2.0.3
 webencodings==0.5.1
-zipp==3.16.0
+zipp==3.16.2
