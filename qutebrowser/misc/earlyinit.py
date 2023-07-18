@@ -299,7 +299,6 @@ def init_log(args):
     log.init_log(args)
     qtlog.init(args)
     log.init.debug("Log initialized.")
-    log.init.debug(str(machinery.INFO))
 
 
 def check_optimize_flag():

@@ -18,6 +18,8 @@ import importlib
 import dataclasses
 from typing import Optional, Dict
 
+from qutebrowser.utils import log
+
 # Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
 # sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
 #
@@ -280,6 +282,7 @@ def init(args: argparse.Namespace) -> SelectionInfo:
     info = _select_wrapper(args)
     if info.wrapper is not None:
         _set_globals(info)
+        log.init.debug(str(info))
 
     # If info is None here (no Qt wrapper available), we'll show an error later
     # in earlyinit.py.
