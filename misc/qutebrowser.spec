@@ -64,17 +64,17 @@ INFO_PLIST_UPDATES = {
 
 def get_data_files():
     data_files = [
-        ('../qutebrowser/html', 'html'),
-        ('../qutebrowser/img', 'img'),
-        ('../qutebrowser/icons', 'icons'),
-        ('../qutebrowser/javascript', 'javascript'),
-        ('../qutebrowser/html/doc', 'html/doc'),
-        ('../qutebrowser/git-commit-id', '.'),
-        ('../qutebrowser/config/configdata.yml', 'config'),
+        ('../qutebrowser/html', 'qutebrowser/html'),
+        ('../qutebrowser/img', 'qutebrowser/img'),
+        ('../qutebrowser/icons', 'qutebrowser/icons'),
+        ('../qutebrowser/javascript', 'qutebrowser/javascript'),
+        ('../qutebrowser/html/doc', 'qutebrowser/html/doc'),
+        ('../qutebrowser/git-commit-id', 'qutebrowser/git-commit-id'),
+        ('../qutebrowser/config/configdata.yml', 'qutebrowser/config'),
     ]
 
     if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
-        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+        data_files.append(('../qutebrowser/3rdparty/pdfjs', 'qutebrowser/3rdparty/pdfjs'))
     else:
         print("Warning: excluding pdfjs as it's not present!")
 
