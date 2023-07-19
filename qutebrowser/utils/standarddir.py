@@ -65,7 +65,7 @@ def _unset_organization() -> Iterator[None]:
     qapp = QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
-        qapp.setOrganizationName(qtutils.allow_none(None))
+        qapp.setOrganizationName(qtutils.QT_NONE)
     try:
         yield
     finally:

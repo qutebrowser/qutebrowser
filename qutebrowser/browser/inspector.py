@@ -163,7 +163,7 @@ class AbstractWebInspector(QWidget):
             self.shutdown()
             return
         elif position == Position.window:
-            self.setParent(qtutils.allow_none(None))
+            self.setParent(qtutils.QT_NONE)
             self._load_state_geometry()
         else:
             self._splitter.set_inspector(self, position)

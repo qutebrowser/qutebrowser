@@ -259,10 +259,9 @@ class IPCServer(QObject):
                           "still handling another one (0x{:x}).".format(
                               id(self._socket)))
             return
-        socket = self._server.nextPendingConnection()
-        if not qtutils.is_not_none(socket):
-            log.ipc.debug(
-                "No new connection to handle.")
+        socket = qtutils.add_optional(self._server.nextPendingConnection())
+        if socket is None:
+            log.ipc.debug("No new connection to handle.")
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
         self._socket = socket

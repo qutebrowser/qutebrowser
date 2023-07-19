@@ -51,7 +51,7 @@ def _warn_for_pac():
 @pyqtSlot()
 def shutdown():
     QNetworkProxyFactory.setApplicationProxyFactory(
-        qtutils.allow_none(None))
+        qtutils.QT_NONE)
 
 
 class ProxyFactory(QNetworkProxyFactory):

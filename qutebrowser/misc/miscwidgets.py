@@ -244,10 +244,10 @@ class WrapperLayout(QLayout):
         if self._widget is None:
             return
         assert self._container is not None
-        self._widget.setParent(qtutils.allow_none(None))
+        self._widget.setParent(qtutils.QT_NONE)
         self._widget.deleteLater()
         self._widget = None
-        self._container.setFocusProxy(qtutils.allow_none(None))
+        self._container.setFocusProxy(qtutils.QT_NONE)
 
 
 class FullscreenNotification(QLabel):

@@ -651,20 +651,29 @@ def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
         return int(val)  # type: ignore[call-overload]
     return val
 
-T = TypeVar("T")
-
-def is_not_none(obj: Optional[T]) -> "TypeGuard[T]":
-    """Check if a Qt object is None.
-
-    PyQt6 marks things as Optional[...], but PyQt5 doesn't.
-    By using this function, we can use the same type hints for both.
-    """
-    return obj is not None
+_T = TypeVar("_T")
 
 
 if machinery.IS_QT5:
-    def allow_none(obj: Optional[T]) -> T:
-        return cast(T, obj)
+    # On Qt 5, add/remove Optional where type annotations don't have it.
+    # Also we have a special QT_NONE, which (being Any) we can pass to functions
+    # where PyQt type hints claim that it's not allowed.
+
+    def remove_optional(obj: Optional[_T]) -> _T:
+        return cast(_T, obj)
+
+    def add_optional(obj: _T) -> Optional[_T]:
+        return cast(Optional[_T], obj)
+
+    QT_NONE: Any = None
 else:
-    def allow_none(obj: Optional[T]) -> Optional[T]:
+    # On Qt 6, all those things are handled correctly by type annotations, so we
+    # have a no-op below.
+
+    def remove_optional(obj: Optional[_T]) -> Optional[_T]:
         return obj
+
+    def add_optional(obj: Optional[_T]) -> Optional[_T]:
+        return obj
+
+    QT_NONE = None

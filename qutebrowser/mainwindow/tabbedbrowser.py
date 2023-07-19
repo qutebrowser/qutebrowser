@@ -301,11 +301,11 @@ class TabbedBrowser(QWidget):
         """
         widgets = []
         for i in range(self.widget.count()):
-            widget = self.widget.widget(i)
-            if qtutils.is_not_none(widget):
-                widgets.append(widget)
-            else:
+            widget = qtutils.add_optional(self.widget.widget(i))
+            if widget is None:
                 log.webview.debug("Got None-widget in tabbedbrowser!")
+            else:
+                widgets.append(widget)
         return widgets
 
     def _update_window_title(self, field=None):
@@ -872,8 +872,8 @@ class TabbedBrowser(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
-        widget = self.widget.currentWidget()
-        if not qtutils.is_not_none(widget):
+        widget = qtutils.add_optional(self.widget.currentWidget())
+        if widget is None:
             return
 
         if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:

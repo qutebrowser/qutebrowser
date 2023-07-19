@@ -394,7 +394,7 @@ class GUIProcess(QObject):
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
         self._proc.start(
-            qtutils.allow_none(self.resolved_cmd),
+            qtutils.remove_optional(self.resolved_cmd),
             args,
         )
         self._post_start()

@@ -77,12 +77,12 @@ class DownloadView(QListView):
         self.clicked.connect(self.on_clicked)
 
     def __repr__(self):
-        model = self.model()
+        model = qtutils.add_optional(self.model())
         count: Union[int, str]
-        if qtutils.is_not_none(model):
-            count = model.rowCount()
-        else:
+        if model is None:
             count = 'None'
+        else:
+            count = model.rowCount()
         return utils.get_repr(self, count=count)
 
     def _model(self) -> downloads.DownloadModel:

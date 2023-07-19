@@ -255,7 +255,7 @@ def disable_qt_msghandler() -> Iterator[None]:
 
 
 @contextlib.contextmanager
-def py_warning_filter(
+def py_warning_filter( 
     action:
         Literal['default', 'error', 'ignore', 'always', 'module', 'once'] = 'ignore',
     **kwargs: Any,
