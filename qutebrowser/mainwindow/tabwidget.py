@@ -355,7 +355,9 @@ class TabWidget(QTabWidget):
         self.setTabIcon(idx, icon)
 
         if config.val.tabs.tabs_are_windows:
-            self.window().setWindowIcon(tab.icon())
+            window = self.window()
+            assert window is not None
+            window.setWindowIcon(tab.icon())
 
     def setTabIcon(self, idx: int, icon: QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
@@ -365,7 +367,9 @@ class TabWidget(QTabWidget):
                 config.cache['tabs.pinned.shrink'] and
                 not self.tab_bar().vertical and
                 tab is not None and tab.data.pinned):
-            icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
+            style = self.style()
+            assert style is not None
+            icon = style.standardIcon(QStyle.StandardPixmap.SP_FileIcon)
         super().setTabIcon(idx, icon)
 
 
@@ -809,6 +813,12 @@ class TabBarStyle(QProxyStyle):
 
     ICON_PADDING = 4
 
+    def _base_style(self) -> QStyle:
+        """Get the base style."""
+        style = self.baseStyle()
+        assert style is not None
+        return style
+
     def _draw_indicator(self, layouts, opt, p):
         """Draw the tab indicator.
 
@@ -836,7 +846,7 @@ class TabBarStyle(QProxyStyle):
         icon_state = (QIcon.State.On if opt.state & QStyle.StateFlag.State_Selected
                       else QIcon.State.Off)
         icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-        self.baseStyle().drawItemPixmap(p, layouts.icon, Qt.AlignmentFlag.AlignCenter, icon)
+        self._base_style().drawItemPixmap(p, layouts.icon, Qt.AlignmentFlag.AlignCenter, icon)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
@@ -853,7 +863,7 @@ class TabBarStyle(QProxyStyle):
         if element not in [QStyle.ControlElement.CE_TabBarTab, QStyle.ControlElement.CE_TabBarTabShape,
                            QStyle.ControlElement.CE_TabBarTabLabel]:
             # Let the real style draw it.
-            self.baseStyle().drawControl(element, opt, p, widget)
+            self._base_style().drawControl(element, opt, p, widget)
             return
 
         layouts = self._tab_layout(opt)
@@ -876,7 +886,7 @@ class TabBarStyle(QProxyStyle):
                 self._draw_icon(layouts, opt, p)
             alignment = (config.cache['tabs.title.alignment'] |
                          Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextHideMnemonic)
-            self.baseStyle().drawItemText(
+            self._base_style().drawItemText(
                 p,
                 layouts.text,
                 int(alignment),
@@ -906,7 +916,7 @@ class TabBarStyle(QProxyStyle):
                       QStyle.PixelMetric.PM_TabBarScrollButtonWidth]:
             return 0
         else:
-            return self.baseStyle().pixelMetric(metric, option, widget)
+            return self._base_style().pixelMetric(metric, option, widget)
 
     def subElementRect(self, sr, opt, widget=None):
         """Override subElementRect to use our own _tab_layout implementation.
@@ -936,7 +946,7 @@ class TabBarStyle(QProxyStyle):
             # style differences...
             return QCommonStyle.subElementRect(self, sr, opt, widget)
         else:
-            return self.baseStyle().subElementRect(sr, opt, widget)
+            return self._base_style().subElementRect(sr, opt, widget)
 
     def _tab_layout(self, opt):
         """Compute the text/icon rect from the opt rect.
@@ -983,7 +993,7 @@ class TabBarStyle(QProxyStyle):
             text_rect.adjust(
                 icon_rect.width() + TabBarStyle.ICON_PADDING, 0, 0, 0)
 
-        text_rect = self.baseStyle().visualRect(opt.direction, opt.rect, text_rect)
+        text_rect = self._base_style().visualRect(opt.direction, opt.rect, text_rect)
         return Layouts(text=text_rect, icon=icon_rect,
                        indicator=indicator_rect)
 
@@ -1018,5 +1028,5 @@ class TabBarStyle(QProxyStyle):
 
         icon_top = text_rect.center().y() + 1 - tab_icon_size.height() // 2
         icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
-        icon_rect = self.baseStyle().visualRect(opt.direction, opt.rect, icon_rect)
+        icon_rect = self._base_style().visualRect(opt.direction, opt.rect, icon_rect)
         return icon_rect

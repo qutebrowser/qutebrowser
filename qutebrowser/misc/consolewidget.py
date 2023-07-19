@@ -125,6 +125,7 @@ class ConsoleTextEdit(QTextEdit):
         self.moveCursor(QTextCursor.MoveOperation.End)
         self.insertPlainText(text)
         scrollbar = self.verticalScrollBar()
+        assert scrollbar is not None
         scrollbar.setValue(scrollbar.maximum())
 
 

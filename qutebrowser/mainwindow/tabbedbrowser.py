@@ -249,7 +249,7 @@ class TabbedBrowser(QWidget):
         self.search_options: Mapping[str, Any] = {}
         self._local_marks: MutableMapping[QUrl, MutableMapping[str, QPoint]] = {}
         self._global_marks: MutableMapping[str, Tuple[QPoint, QUrl]] = {}
-        self.default_window_icon = self.widget.window().windowIcon()
+        self.default_window_icon = self._window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
@@ -302,11 +302,10 @@ class TabbedBrowser(QWidget):
         widgets = []
         for i in range(self.widget.count()):
             widget = self.widget.widget(i)
-            if widget is None:
-                log.webview.debug(  # type: ignore[unreachable]
-                    "Got None-widget in tabbedbrowser!")
-            else:
+            if qtutils.is_not_none(widget):
                 widgets.append(widget)
+            else:
+                log.webview.debug("Got None-widget in tabbedbrowser!")
         return widgets
 
     def _update_window_title(self, field=None):
@@ -330,7 +329,8 @@ class TabbedBrowser(QWidget):
         fields['id'] = self._win_id
 
         title = title_format.format(**fields)
-        self.widget.window().setWindowTitle(title)
+
+        self._window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -395,6 +395,15 @@ class TabbedBrowser(QWidget):
         tab = self.widget.currentWidget()
         assert isinstance(tab, browsertab.AbstractTab), tab
         return tab
+
+    def _window(self) -> QWidget:
+        """Get the current window widget.
+
+        Note: This asserts if there is no window.
+        """
+        window = self.widget.window()
+        assert window is not None
+        return window
 
     def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
         """Get a browser tab by index.
@@ -662,11 +671,12 @@ class TabbedBrowser(QWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            tab.resize(self.widget.currentWidget().size())
+            current_widget = self._current_tab()
+            tab.resize(current_widget.size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
             # Refocus webview in case we lost it by spawning a bg tab
-            self.widget.currentWidget().setFocus()
+            current_widget.setFocus()
         else:
             self.widget.setCurrentWidget(tab)
 
@@ -739,7 +749,7 @@ class TabbedBrowser(QWidget):
             tab.data.keep_icon = False
         elif (config.cache['tabs.tabs_are_windows'] and
               tab.data.should_show_icon()):
-            self.widget.window().setWindowIcon(self.default_window_icon)
+            self._window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def _on_load_status_changed(self, tab):
@@ -863,8 +873,9 @@ class TabbedBrowser(QWidget):
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
         widget = self.widget.currentWidget()
-        if widget is None:
-            return  # type: ignore[unreachable]
+        if not qtutils.is_not_none(widget):
+            return
+
         if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:
             log.modes.debug("Left status-input mode, focusing {!r}".format(
                 widget))

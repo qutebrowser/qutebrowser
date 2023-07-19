@@ -1108,7 +1108,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         if padding and self._quirks.no_padded_images:
             return None
 
-        bits = qimage.constBits().asstring(size)
+        bits_ptr = qimage.constBits()
+        assert bits_ptr is not None
+        bits = bits_ptr.asstring(size)
         image_data.add(QByteArray(bits))
 
         image_data.endStructure()

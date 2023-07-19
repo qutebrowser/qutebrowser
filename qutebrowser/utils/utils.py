@@ -519,6 +519,13 @@ def sanitize_filename(name: str,
     return name
 
 
+def _clipboard() -> QClipboard:
+    """Get the QClipboard and make sure it's not None."""
+    clipboard = QApplication.clipboard()
+    assert clipboard is not None
+    return clipboard
+
+
 def set_clipboard(data: str, selection: bool = False) -> None:
     """Set the clipboard to some given data."""
     global fake_clipboard
@@ -530,7 +537,7 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         fake_clipboard = data
     else:
         mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
-        QApplication.clipboard().setText(data, mode=mode)
+        _clipboard().setText(data, mode=mode)
 
 
 def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
@@ -556,7 +563,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
         fake_clipboard = None
     else:
         mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
-        data = QApplication.clipboard().text(mode=mode)
+        data = _clipboard().text(mode=mode)
 
     target = "Primary selection" if selection else "Clipboard"
     if not data.strip():
@@ -568,7 +575,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
 
 def supports_selection() -> bool:
     """Check if the OS supports primary selection."""
-    return QApplication.clipboard().supportsSelection()
+    return _clipboard().supportsSelection()
 
 
 def open_file(filename: str, cmdline: str = None) -> None:

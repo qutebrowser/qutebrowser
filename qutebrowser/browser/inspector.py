@@ -28,7 +28,7 @@ from qutebrowser.qt.gui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles, config
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
 
@@ -70,8 +70,9 @@ class _EventFilter(QObject):
 
     clicked = pyqtSignal()
 
-    def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, _obj: Optional[QObject], event: Optional[QEvent]) -> bool:
         """Translate mouse presses to a clicked signal."""
+        assert event is not None
         if event.type() == QEvent.Type.MouseButtonPress:
             self.clicked.emit()
         return False
@@ -162,7 +163,7 @@ class AbstractWebInspector(QWidget):
             self.shutdown()
             return
         elif position == Position.window:
-            self.setParent(None)  # type: ignore[call-overload]
+            self.setParent(qtutils.allow_none(None))
             self._load_state_geometry()
         else:
             self._splitter.set_inspector(self, position)
@@ -195,7 +196,7 @@ class AbstractWebInspector(QWidget):
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
-    def closeEvent(self, _e: QCloseEvent) -> None:
+    def closeEvent(self, _e: Optional[QCloseEvent]) -> None:
         """Save the geometry when closed."""
         data = self._widget.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')

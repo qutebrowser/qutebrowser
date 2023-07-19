@@ -116,7 +116,9 @@ class UrlText(textbase.TextBase):
         if old_urltype != self._urltype:
             # We can avoid doing an unpolish here because the new style will
             # always override the old one.
-            self.style().polish(self)
+            style = self.style()
+            assert style is not None
+            style.polish(self)
 
     @pyqtSlot(usertypes.LoadStatus)
     def on_load_status_changed(self, status):

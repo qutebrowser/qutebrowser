@@ -286,10 +286,16 @@ class AbstractPrinting(QObject):
         """
         raise NotImplementedError
 
+    def _do_print(self) -> None:
+        assert self._dialog is not None
+        printer = self._dialog.printer()
+        assert printer is not None
+        self.to_printer(printer)
+
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
         self._dialog = dialog = QPrintDialog(self._tab)
-        self._dialog.open(lambda: self.to_printer(dialog.printer()))
+        self._dialog.open(self._do_print)
         # Gets cleaned up in on_printing_finished
 
 

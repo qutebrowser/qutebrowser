@@ -17,7 +17,7 @@
 
 """Global Qt event filter which dispatches key events."""
 
-from typing import cast
+from typing import cast, Optional
 
 from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
 from qutebrowser.qt.gui import QKeyEvent, QWindow
@@ -75,7 +75,7 @@ class EventFilter(QObject):
             # No window available yet, or not a MainWindow
             return False
 
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, obj: Optional[QObject], event: Optional[QEvent]) -> bool:
         """Handle an event.
 
         Args:
@@ -85,6 +85,7 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
+        assert event is not None
         ev_type = event.type()
 
         if self._log_qt_events:

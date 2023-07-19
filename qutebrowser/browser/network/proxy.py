@@ -21,7 +21,7 @@ from qutebrowser.qt.core import QUrl, pyqtSlot
 from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
-from qutebrowser.utils import message, usertypes, urlutils, utils
+from qutebrowser.utils import message, usertypes, urlutils, utils, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
@@ -51,7 +51,7 @@ def _warn_for_pac():
 @pyqtSlot()
 def shutdown():
     QNetworkProxyFactory.setApplicationProxyFactory(
-        None)  # type: ignore[arg-type]
+        qtutils.allow_none(None))
 
 
 class ProxyFactory(QNetworkProxyFactory):

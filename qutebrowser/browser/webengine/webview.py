@@ -54,7 +54,9 @@ class WebEngineView(QWebEngineView):
         self._win_id = win_id
         self._tabdata = tabdata
 
-        theme_color = self.style().standardPalette().color(QPalette.ColorRole.Base)
+        style = self.style()
+        assert style is not None
+        theme_color = style.standardPalette().color(QPalette.ColorRole.Base)
         if private:
             assert webenginesettings.private_profile is not None
             profile = webenginesettings.private_profile

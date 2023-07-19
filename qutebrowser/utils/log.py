@@ -31,9 +31,10 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union, TextIO, Literal, cast)
+                    Optional, Set, Tuple, Union, TextIO, Literal, cast, Callable)
 
 from qutebrowser.qt import core as qtcore
+from qutebrowser.qt import machinery
 # Optional imports
 try:
     import colorama
@@ -234,6 +235,19 @@ def _init_py_warnings() -> None:
 def disable_qt_msghandler() -> Iterator[None]:
     """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = qtcore.qInstallMessageHandler(None)
+    if machinery.IS_QT6:
+        # cast str to Optional[str] to be compatible with PyQt6 type hints for
+        # qInstallMessageHandler
+        old_handler = cast(
+            Optional[
+                Callable[
+                    [qtcore.QtMsgType, qtcore.QMessageLogContext, Optional[str]],
+                    None
+                ]
+            ],
+            old_handler,
+        )
+
     try:
         yield
     finally:
@@ -379,7 +393,7 @@ def change_console_formatter(level: int) -> None:
 
 def qt_message_handler(msg_type: qtcore.QtMsgType,
                        context: qtcore.QMessageLogContext,
-                       msg: str) -> None:
+                       msg: Optional[str]) -> None:
     """Qt message handler to redirect qWarning etc. to the logging system.
 
     Args:

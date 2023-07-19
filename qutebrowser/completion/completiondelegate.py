@@ -291,6 +291,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._opt = QStyleOptionViewItem(option)
         self.initStyleOption(self._opt, index)
         self._style = self._opt.widget.style()
+        assert self._style is not None
 
         self._get_textdoc(index)
         assert self._doc is not None

@@ -264,13 +264,14 @@ class Command(misc.CommandLineEdit):
             text = cast(str, text)
         super().setText(text)
 
-    def keyPressEvent(self, e: QKeyEvent) -> None:
+    def keyPressEvent(self, e: Optional[QKeyEvent]) -> None:
         """Override keyPressEvent to ignore Return key presses, and add Shift-Ins.
 
         If this widget is focused, we are in passthrough key mode, and
         Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
         without command_accept to be called.
         """
+        assert e is not None
         if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
             shift = cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.ShiftModifier)
         else:

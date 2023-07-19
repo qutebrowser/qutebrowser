@@ -179,9 +179,9 @@ def _get_search_url(txt: str) -> QUrl:
         url = QUrl.fromUserInput(evaluated)
     else:
         url = QUrl.fromUserInput(config.val.url.searchengines[engine])
-        url.setPath(None)  # type: ignore[arg-type]
-        url.setFragment(None)  # type: ignore[arg-type]
-        url.setQuery(None)  # type: ignore[call-overload]
+        url.setPath(qtutils.allow_none(None))
+        url.setFragment(qtutils.allow_none(None))
+        url.setQuery(qtutils.allow_none(None))
     qtutils.ensure_valid(url)
     return url
 

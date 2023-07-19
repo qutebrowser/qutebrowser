@@ -68,6 +68,7 @@ def log_signals(obj: QObject) -> QObject:
     def connect_log_slot(obj: QObject) -> None:
         """Helper function to connect all signals to a logging slot."""
         metaobj = obj.metaObject()
+        assert metaobj is not None
         for i in range(metaobj.methodCount()):
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)

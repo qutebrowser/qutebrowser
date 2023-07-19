@@ -303,6 +303,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
+            assert widget is not None
             log.prompt.debug("Deleting old prompt {}".format(widget))
             widget.hide()
             widget.deleteLater()
@@ -366,6 +367,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
+            assert widget is not None
             log.prompt.debug("Deleting prompt {}".format(widget))
             widget.hide()
             widget.deleteLater()
@@ -780,6 +782,7 @@ class FilenamePrompt(_BasePrompt):
         # This duplicates some completion code, but I don't see a nicer way...
         assert which in ['prev', 'next'], which
         selmodel = self._file_view.selectionModel()
+        assert selmodel is not None
 
         parent = self._file_view.rootIndex()
         first_index = self._file_model.index(0, 0, parent)

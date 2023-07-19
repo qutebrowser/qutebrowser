@@ -78,10 +78,11 @@ class DownloadView(QListView):
 
     def __repr__(self):
         model = self.model()
-        if model is None:
-            count = 'None'  # type: ignore[unreachable]
-        else:
+        count: Union[int, str]
+        if qtutils.is_not_none(model):
             count = model.rowCount()
+        else:
+            count = 'None'
         return utils.get_repr(self, count=count)
 
     def _model(self) -> downloads.DownloadModel:
@@ -173,9 +174,12 @@ class DownloadView(QListView):
                 assert name is not None
                 assert handler is not None
                 action = self._menu.addAction(name)
+                assert action is not None
                 action.triggered.connect(handler)
         if actions:
-            self._menu.popup(self.viewport().mapToGlobal(point))
+            viewport = self.viewport()
+            assert viewport is not None
+            self._menu.popup(viewport.mapToGlobal(point))
 
     def minimumSizeHint(self):
         """Override minimumSizeHint so the size is correct in a layout."""

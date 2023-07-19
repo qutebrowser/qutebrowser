@@ -28,7 +28,7 @@ from typing import Iterator, Optional
 from qutebrowser.qt.core import QStandardPaths
 from qutebrowser.qt.widgets import QApplication
 
-from qutebrowser.utils import log, debug, utils, version
+from qutebrowser.utils import log, debug, utils, version, qtutils
 
 # The cached locations
 _locations = {}
@@ -65,7 +65,7 @@ def _unset_organization() -> Iterator[None]:
     qapp = QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
-        qapp.setOrganizationName(None)  # type: ignore[arg-type]
+        qapp.setOrganizationName(qtutils.allow_none(None))
     try:
         yield
     finally:

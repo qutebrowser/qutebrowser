@@ -886,7 +886,10 @@ def version_info() -> str:
 
     if objects.qapp:
         style = objects.qapp.style()
-        lines.append('Style: {}'.format(style.metaObject().className()))
+        assert style is not None
+        metaobj = style.metaObject()
+        assert metaobj is not None
+        lines.append('Style: {}'.format(metaobj.className()))
         lines.append('Platform plugin: {}'.format(objects.qapp.platformName()))
         lines.append('OpenGL: {}'.format(opengl_info()))
 
@@ -1005,7 +1008,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
-    old_context = cast(Optional[QOpenGLContext], QOpenGLContext.currentContext())
+    old_context: Optional[QOpenGLContext] = QOpenGLContext.currentContext()
     old_surface = None if old_context is None else old_context.surface()
 
     surface = QOffscreenSurface()

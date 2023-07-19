@@ -108,7 +108,9 @@ class StateConfig(configparser.ConfigParser):
         for sect, key in deleted_keys:
             self[sect].pop(key, None)
 
-        self['general']['qt_version'] = qVersion()
+        qt_version = qVersion()
+        assert qt_version is not None
+        self['general']['qt_version'] = qt_version
         self['general']['qtwe_version'] = self._qtwe_version_str()
         self['general']['chromium_version'] = self._chromium_version_str()
         self['general']['version'] = qutebrowser.__version__

@@ -32,7 +32,7 @@ import pathlib
 import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
-                    Optional, Union, Tuple, Protocol, cast)
+                    Optional, Union, Tuple, Protocol, cast, TypeVar)
 
 from qutebrowser.qt import machinery, sip
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
@@ -46,6 +46,7 @@ except ImportError:  # pragma: no cover
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory
     from qutebrowser.qt.webenginecore import QWebEngineHistory
+    from typing_extensions import TypeGuard  # added in Python 3.10
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
@@ -102,7 +103,11 @@ def version_check(version: str,
 
     parsed = utils.VersionNumber.parse(version)
     op = operator.eq if exact else operator.ge
-    result = op(utils.VersionNumber.parse(qVersion()), parsed)
+
+    qversion = qVersion()
+    assert qversion is not None
+    result = op(utils.VersionNumber.parse(qversion), parsed)
+
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
         result = op(utils.VersionNumber.parse(QT_VERSION_STR), parsed)
@@ -535,24 +540,58 @@ def interpolate_color(
 
     if colorspace is None:
         if percent == 100:
-            return QColor(*end.getRgb())
+            r, g, b, a = end.getRgb()
+            assert r is not None
+            assert g is not None
+            assert b is not None
+            assert a is not None
+            return QColor(r, g, b, a)
         else:
-            return QColor(*start.getRgb())
+            r, g, b, a = start.getRgb()
+            assert r is not None
+            assert g is not None
+            assert b is not None
+            assert a is not None
+            return QColor(r, g, b, a)
 
     out = QColor()
     if colorspace == QColor.Spec.Rgb:
         r1, g1, b1, a1 = start.getRgb()
         r2, g2, b2, a2 = end.getRgb()
+        assert r1 is not None
+        assert g1 is not None
+        assert b1 is not None
+        assert a1 is not None
+        assert r2 is not None
+        assert g2 is not None
+        assert b2 is not None
+        assert a2 is not None
         components = _get_color_percentage(r1, g1, b1, a1, r2, g2, b2, a2, percent)
         out.setRgb(*components)
     elif colorspace == QColor.Spec.Hsv:
         h1, s1, v1, a1 = start.getHsv()
         h2, s2, v2, a2 = end.getHsv()
+        assert h1 is not None
+        assert s1 is not None
+        assert v1 is not None
+        assert a1 is not None
+        assert h2 is not None
+        assert s2 is not None
+        assert v2 is not None
+        assert a2 is not None
         components = _get_color_percentage(h1, s1, v1, a1, h2, s2, v2, a2, percent)
         out.setHsv(*components)
     elif colorspace == QColor.Spec.Hsl:
         h1, s1, l1, a1 = start.getHsl()
         h2, s2, l2, a2 = end.getHsl()
+        assert h1 is not None
+        assert s1 is not None
+        assert l1 is not None
+        assert a1 is not None
+        assert h2 is not None
+        assert s2 is not None
+        assert l2 is not None
+        assert a2 is not None
         components = _get_color_percentage(h1, s1, l1, a1, h2, s2, l2, a2, percent)
         out.setHsl(*components)
     else:
@@ -611,3 +650,21 @@ def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
     elif isinstance(val, sip.simplewrapper):
         return int(val)  # type: ignore[call-overload]
     return val
+
+T = TypeVar("T")
+
+def is_not_none(obj: Optional[T]) -> "TypeGuard[T]":
+    """Check if a Qt object is None.
+
+    PyQt6 marks things as Optional[...], but PyQt5 doesn't.
+    By using this function, we can use the same type hints for both.
+    """
+    return obj is not None
+
+
+if machinery.IS_QT5:
+    def allow_none(obj: Optional[T]) -> T:
+        return cast(T, obj)
+else:
+    def allow_none(obj: Optional[T]) -> Optional[T]:
+        return obj

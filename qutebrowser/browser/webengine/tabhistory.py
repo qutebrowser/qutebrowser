@@ -153,6 +153,8 @@ def serialize(items):
     for item in items:
         _serialize_item(item, stream)
 
-    stream.device().reset()
+    dev = stream.device()
+    assert dev is not None
+    dev.reset()
     qtutils.check_qdatastream(stream)
     return stream, data, cur_user_data
