@@ -105,6 +105,8 @@ def parse_args():
                         help='GPG key to encrypt KeepassXC auth key with')
     parser.add_argument('--insecure', action='store_true',
                         help="Do not encrypt auth key")
+    parser.add_argument('--dmenu', '-d', default='rofi',
+                        help='dmenu software to use')
     return parser.parse_args()
 
 
@@ -295,20 +297,35 @@ def connect_to_keepassxc(args):
     return kp
 
 
-def select_account(creds):
+def select_account(creds, dmenu):
     try:
         if len(creds) == 1:
             return creds[0]
-        idx = subprocess.check_output(
-                ['rofi', '-dmenu', '-format', 'i', '-matching', 'fuzzy',
-                '-p', 'Search',
-                '-mesg', '<b>qute-keepassxc</b>: select an account, please!'],
-                input=b"\n".join(c['login'].encode('utf-8') for c in creds)
-        )
-        idx = int(idx)
-        if idx < 0:
-            return None
-        return creds[idx]
+        if dmenu=="rofi":
+            idx = subprocess.check_output(
+                    ['rofi', '-dmenu', '-format', 'i', '-matching', 'fuzzy',
+                    '-p', 'Search',
+                    '-mesg', '<b>qute-keepassxc</b>: select an account, please!'],
+                    input=b"\n".join(c['login'].encode('utf-8') for c in creds)
+            )
+            idx = int(idx)
+            if idx < 0:
+                return None
+            return creds[idx]
+        elif dmenu=="fuzzel":
+            idx = subprocess.check_output(
+                    ['fuzzel', '--dmenu',
+                     '--index',
+                     '--lines='+str(len(creds)),
+                     '--prompt', 'Select an account:'],
+                    input=b"\n".join(c['login'].encode('utf-8') for c in creds)
+            )
+            idx = int(idx)
+            if idx < 0:
+                return None
+            return creds[idx]
+        else:
+            raise Exception(f"Not supported dmenu software {dmenu}")
     except subprocess.CalledProcessError:
         return None
     except FileNotFoundError:
@@ -411,7 +428,7 @@ def main():
         if not creds:
             error('No credentials found')
             return
-        cred = select_account(creds)
+        cred = select_account(creds, args.dmenu)
         if not cred:
             error('No credentials selected')
             return
