@@ -4,7 +4,7 @@ astroid==2.15.6
 certifi==2023.5.7
 cffi==1.15.1
 charset-normalizer==3.2.0
-cryptography==41.0.1
+cryptography==41.0.2
 dill==0.3.6
 github3.py==4.0.1
 idna==3.4
@@ -12,9 +12,9 @@ isort==5.12.0
 lazy-object-proxy==1.9.0
 mccabe==0.7.0
 pefile==2023.2.7
-platformdirs==3.8.1
+platformdirs==3.9.1
 pycparser==2.21
-PyJWT==2.7.0
+PyJWT==2.8.0
 pylint==2.17.4
 python-dateutil==2.8.2
 ./scripts/dev/pylint_checkers
@@ -24,5 +24,5 @@ tomli==2.0.1
 tomlkit==0.11.8
 typing_extensions==4.7.1
 uritemplate==4.1.1
-# urllib3==2.0.3
+# urllib3==2.0.4
 wrapt==1.15.0
