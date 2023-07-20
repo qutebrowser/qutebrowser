@@ -32,7 +32,7 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast, Any,
+from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, Any,
                     TYPE_CHECKING)
 
 from qutebrowser.qt import machinery

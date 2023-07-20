@@ -651,6 +651,7 @@ def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
         return int(val)  # type: ignore[call-overload]
     return val
 
+
 _T = TypeVar("_T")
 
 

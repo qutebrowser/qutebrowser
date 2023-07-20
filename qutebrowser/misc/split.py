@@ -201,10 +201,10 @@ def simple_split(s, keep=False, maxsplit=None):
 
     if keep:
         pattern = '([' + whitespace + '])'
-        parts = re.split(pattern, s, maxsplit)
+        parts = re.split(pattern, s, maxsplit=maxsplit)
         return _combine_ws(parts, whitespace)
     else:
         pattern = '[' + whitespace + ']'
-        parts = re.split(pattern, s, maxsplit)
+        parts = re.split(pattern, s, maxsplit=maxsplit)
         parts[-1] = parts[-1].rstrip()
         return [p for p in parts if p]
