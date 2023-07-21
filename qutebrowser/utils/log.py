@@ -31,6 +31,9 @@ import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
                     Optional, Set, Tuple, Union, TextIO, Literal, cast)
 
+# NOTE: This is a Qt-free zone! All imports related to Qt logging should be done in
+# qutebrowser.utils.qtlog (see https://github.com/qutebrowser/qutebrowser/issues/7769).
+
 # Optional imports
 try:
     import colorama
