@@ -28,7 +28,7 @@ from qutebrowser.qt.network import (QNetworkProxy, QNetworkRequest, QHostInfo,
                              QHostAddress)
 from qutebrowser.qt.qml import QJSEngine, QJSValue
 
-from qutebrowser.utils import log, utils, qtutils, resources, urlutils
+from qutebrowser.utils import log, qtlog, utils, qtutils, resources, urlutils
 
 
 class ParseProxyError(Exception):
@@ -258,7 +258,7 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        with log.disable_qt_msghandler():
+        with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
             self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()

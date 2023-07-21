@@ -29,7 +29,7 @@ from qutebrowser.qt.widgets import QApplication
 from qutebrowser.qt.network import QNetworkRequest, QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
+from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg, qtlog
 from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
@@ -121,7 +121,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._reply.errorOccurred.disconnect()
         self._reply.readyRead.disconnect()
 
-        with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
+        with qtlog.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
                                  'problem, this method must only be called '
                                  'once.'):
             # See https://codereview.qt-project.org/#/c/107863/

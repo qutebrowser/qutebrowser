@@ -298,7 +298,17 @@ def init_log(args):
     from qutebrowser.utils import log
     log.init_log(args)
     log.init.debug("Log initialized.")
-    log.init.debug(str(machinery.INFO))
+
+
+def init_qtlog(args):
+    """Initialize Qt logging.
+
+    Args:
+        args: The argparse namespace.
+    """
+    from qutebrowser.utils import log, qtlog
+    qtlog.init(args)
+    log.init.debug("Qt log initialized.")
 
 
 def check_optimize_flag():
@@ -333,16 +343,18 @@ def early_init(args):
     Args:
         args: The argparse namespace.
     """
+    # Init logging as early as possible
+    init_log(args)
     # First we initialize the faulthandler as early as possible, so we
     # theoretically could catch segfaults occurring later during earlyinit.
     init_faulthandler()
     # Then we configure the selected Qt wrapper
     info = machinery.init(args)
+    # Init Qt logging after machinery is initialized
+    init_qtlog(args)
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
     check_qt_available(info)
-    # Init logging as early as possible
-    init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_libraries()
