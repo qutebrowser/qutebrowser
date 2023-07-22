@@ -188,7 +188,8 @@ Fixed
 - Multiple rare crashes when quitting qutebrowser.
 - The `asciidoc2html.py` script now correctly uses the virtualenv-installed
   asciidoc rather than requiring a system-wide installation.
-- Crash when shutting down before fully initialized
+- "Package would be ignored" deprecation warnings when running `setup.py`.
+- Crash when shutting down before fully initialized.
 - Crash with some notification servers when the server is quitting.
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.
