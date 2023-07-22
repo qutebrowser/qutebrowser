@@ -159,7 +159,7 @@ Changed
   the correct PID (rather than always showing the latest process, which might not
   be the failing one)
 - When a process got killed with `SIGTERM`, no error message is now displayed
-  anymore (unless started with `:spawn --verbose`). 
+  anymore (unless started with `:spawn --verbose`).
 - When a process got killed by a signal, the signal name is now displayed in
   the message.
 - The qute-pass will now try looking up candidate pass entries based on the
@@ -188,6 +188,7 @@ Fixed
 - Multiple rare crashes when quitting qutebrowser.
 - The `asciidoc2html.py` script now correctly uses the virtualenv-installed
   asciidoc rather than requiring a system-wide installation.
+- Crash when shutting down before fully initialized
 - Crash with some notification servers when the server is quitting.
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.

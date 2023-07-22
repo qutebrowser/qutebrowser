@@ -219,7 +219,8 @@ class Quitter(QObject):
             status, session))
 
         sessions.shutdown(session, last_window=last_window)
-        prompt.prompt_queue.shutdown()
+        if prompt.prompt_queue is not None:
+            prompt.prompt_queue.shutdown()
 
         # If shutdown was called while we were asking a question, we're in
         # a still sub-eventloop (which gets quit now) and not in the main
