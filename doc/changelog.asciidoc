@@ -81,14 +81,17 @@ Removed
 - The `--enable-webengine-inspector` flag is now dropped. It used to be ignored
   but still accepted, to allow doing a `:restart` from versions older than v2.0.0.
   Thus, switching from v1.x.x directly to v3.0.0 via `:restart` will not be possible.
-- It's planned to drop support for various legacy platforms and libraries which
-  are unsupported upstream, such as:
-  * The QtWebKit backend
-  * macOS 10.14 (via Homebrew)
-  * 32-bit Windows (via Qt)
-  * Windows 8 (via Qt)
-  * Windows 10 before 1809 (via Qt)
-  * Possibly other more minor dependency changes
+- Support for macOS 10.14 and 10.15 is now dropped, raising the minimum
+  required macOS version to macOS 11 Big Sur.
+  * Qt 6.4 was the latest version to support macOS 10.14 and 10.15.
+  * It should be possible to build a custom .dmg with Qt 6.4, but this is
+    unsupported and not recommended.
+- Support for Windows 8 and for Windows 10 before 1809 is now dropped.
+  * Support for older Windows 10 versions might still be present in Qt 6.0/6.1/6.2
+  * Support for Windows 8.1 is still present in Qt 5.15
+  * It should be possible to build a custom .exe with those versions, but this
+    is unsupported and not recommended.
+- Support for 32-bit Windows is now dropped.
 
 Changed
 ~~~~~~~
