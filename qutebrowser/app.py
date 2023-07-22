@@ -42,7 +42,7 @@ import tempfile
 import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional
+from typing import Iterable, Optional, List, Tuple
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.widgets import QApplication, QWidget
@@ -340,7 +340,7 @@ def _open_special_pages(args):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
-    pages = [
+    pages: List[Tuple[str, bool, str]] = [
         # state, condition, URL
         ('quickstart-done',
          True,
@@ -372,7 +372,7 @@ def _open_special_pages(args):
          (
              machinery.IS_QT5 and
              machinery.INFO.reason == machinery.SelectionReason.auto and
-             objects.backend != usertypes.Backend.QtWebKit,
+             objects.backend != usertypes.Backend.QtWebKit
          ),
          'qute://warning/qt5'),
     ]
