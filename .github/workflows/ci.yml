@@ -56,7 +56,8 @@ jobs:
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1-mesa
+            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1-mesa
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
@@ -89,17 +90,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - testenv: py
+          - testenv: py-qt5
             image: archlinux-webkit
-          - testenv: py
+          - testenv: py-qt5
             image: archlinux-webengine
-          - testenv: py-qt6
+          - testenv: py-qt5
+            image: archlinux-webengine-unstable
+          - testenv: py
             image: archlinux-webengine-qt6
           - testenv: py
-            image: archlinux-webengine-unstable
-            args: ""
-            # - testenv: py
-            #   image: archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
+            image: archlinux-webengine-unstable-qt6
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
@@ -115,9 +115,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up problem matchers
-        run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
+        run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"

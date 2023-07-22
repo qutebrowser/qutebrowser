@@ -15,16 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
-
 """QtWebKit specific part of the web element API."""
 
 from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
 
 from qutebrowser.qt.core import QRect, Qt
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkit import QWebElement, QWebSettings
 from qutebrowser.qt.webkitwidgets import QWebFrame
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes

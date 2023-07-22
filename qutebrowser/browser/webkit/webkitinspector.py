@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
 
 """Customized QWebInspector for QtWebKit."""
 
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkit import QWebSettings
 from qutebrowser.qt.webkitwidgets import QWebInspector, QWebPage
+# pylint: enable=no-name-in-module
 from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector

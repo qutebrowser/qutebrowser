@@ -24,6 +24,7 @@ import dataclasses
 from typing import Optional
 
 from qutebrowser.qt.core import Qt
+from qutebrowser.keyinput import keyutils
 
 
 @dataclasses.dataclass(order=True)
@@ -606,7 +607,7 @@ KEYS = [
 
     Key('unknown', 'Unknown', qtest=False),
     # 0x0 is used by Qt for unknown keys...
-    Key(attribute='', name='nil', member=0x0, qtest=False),
+    Key(attribute='', name='nil', member=keyutils._NIL_KEY, qtest=False),
 ]
 
 

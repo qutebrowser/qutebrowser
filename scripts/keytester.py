@@ -21,8 +21,7 @@
 Use python3 -m scripts.keytester to launch it.
 """
 
-from PyQt5.QtWidgets import QApplication
-
+from qutebrowser.qt.widgets import QApplication
 from qutebrowser.misc import miscwidgets
 
 app = QApplication([])

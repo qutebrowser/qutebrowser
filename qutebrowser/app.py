@@ -367,6 +367,14 @@ def _open_special_pages(args):
              os.environ.get("QTWEBENGINE_DISABLE_SANDBOX") == "1"
          ),
          'qute://warning/sandboxing'),
+
+        ('qt5-warning-shown',
+         (
+             machinery.IS_QT5 and
+             machinery.INFO.reason == machinery.SelectionReason.auto and
+             objects.backend != usertypes.Backend.QtWebKit,
+         ),
+         'qute://warning/qt5'),
     ]
 
     if 'quickstart-done' not in general_sect:

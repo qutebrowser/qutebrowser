@@ -400,7 +400,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
         # https://bugreports.qt.io/browse/QTBUG-53134
         # Even on Qt 5.10 selectedText() seems to work poorly, see
         # https://github.com/qutebrowser/qutebrowser/issues/3523
-        # FIXME:qt6 Reevaluate?
+        # With Qt 6.2-6.5, there still seem to be issues (especially with
+        # multi-line text)
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
 

@@ -27,7 +27,7 @@ import subprocess
 import tokenize
 import traceback
 import pathlib
-from typing import List, Iterator, Optional
+from typing import List, Iterator, Optional, Tuple
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -152,6 +152,24 @@ def _check_spelling_file(path, fobj, patterns):
     return ok
 
 
+def _check_spelling_all(
+    args: argparse.Namespace,
+    ignored: List[pathlib.Path],
+    patterns: List[Tuple[re.Pattern, str]],
+) -> Optional[bool]:
+    try:
+        ok = True
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(str(path)) as f:
+                if not _check_spelling_file(path, f, patterns):
+                    ok = False
+        print()
+        return ok
+    except Exception:
+        traceback.print_exc()
+        return None
+
+
 def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
@@ -273,25 +291,13 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]
-
-    try:
-        ok = True
-        for path in _get_files(verbose=args.verbose, ignored=ignored):
-            with tokenize.open(path) as f:
-                if not _check_spelling_file(path, f, patterns):
-                    ok = False
-        print()
-        return ok
-    except Exception:
-        traceback.print_exc()
-        return None
+    return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
 def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
     """Check for direct PyQt imports."""
     ignored = [
         pathlib.Path("qutebrowser", "qt"),
-        # FIXME:qt6 fix those too?
         pathlib.Path("misc", "userscripts"),
         pathlib.Path("scripts"),
     ]
@@ -305,18 +311,7 @@ def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
             "Use 'import qutebrowser.qt.MODULE' instead",
         )
     ]
-    # FIXME:qt6 unify this with check_spelling somehow?
-    try:
-        ok = True
-        for path in _get_files(verbose=args.verbose, ignored=ignored):
-            with tokenize.open(str(path)) as f:
-                if not _check_spelling_file(path, f, patterns):
-                    ok = False
-        print()
-        return ok
-    except Exception:
-        traceback.print_exc()
-        return None
+    return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
 def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:

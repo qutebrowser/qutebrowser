@@ -82,7 +82,7 @@ def get_data_files():
 
 
 def get_hidden_imports():
-    imports = [] if "PYINSTALLER_QT6" in os.environ else ['PyQt5.QtOpenGL']
+    imports = ["PyQt5.QtOpenGL"] if "PYINSTALLER_QT5" in os.environ else []
     for info in loader.walk_components():
         imports.append(info.name)
     return imports

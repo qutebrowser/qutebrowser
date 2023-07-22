@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
-
 """Bridge from QWebSettings to our own settings.
 
 Module attributes:
@@ -30,8 +27,10 @@ import os.path
 
 from qutebrowser.qt.core import QUrl
 from qutebrowser.qt.gui import QFont
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkit import QWebSettings
 from qutebrowser.qt.webkitwidgets import QWebPage
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr

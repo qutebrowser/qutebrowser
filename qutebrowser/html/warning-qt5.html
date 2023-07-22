@@ -1,0 +1,28 @@
+{% extends "styled.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<span class="note">Note this warning will only appear once. Use <span class="mono">:open
+qute://warning/qt5</span> to show it again at a later time.</span>
+
+<p>
+    qutebrowser <b>now supports Qt 6</b>.
+</p>
+<p>
+    However, in your environment, <b>Qt 6 is not installed</b>. Thus, qutebrowser is still using Qt 5 instead.
+
+    Qt 5.15 based on a very old Chromium version (83 or 87, from mid/late 2020).
+</p>
+{% if is_venv %}
+<p>
+    You are using a virtualenv. If you want to use Qt 6, you need to create a new
+    virtualenv with PyQt6 installed.
+
+    If using <span class="mono">mkvenv.py</span>, <b>rerun the script</b> to create a
+    new virtualenv with Qt 6.
+</p>
+{% endif %}
+<p>
+    <span class="note">Python installation prefix: <span class="mono">{{ prefix }}</span></span>
+</p>
+{% endblock %}

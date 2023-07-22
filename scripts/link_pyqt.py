@@ -125,7 +125,7 @@ def get_lib_path(executable, name, required=True):
         raise ValueError("Unexpected output: {!r}".format(output))
 
 
-def link_pyqt(executable, venv_path, *, version='5'):
+def link_pyqt(executable, venv_path, *, version):
     """Symlink the systemwide PyQt/sip into the venv.
 
     Args:
