@@ -277,7 +277,7 @@ def install_pyqt_link(venv_dir: pathlib.Path, version: str) -> None:
     utils.print_title("Linking system-wide PyQt")
     lib_path = link_pyqt.get_venv_lib_path(str(venv_dir))
     major_version: str = "6" if _is_qt6_version(version) else "5"
-    link_pyqt.link_pyqt(sys.executable, lib_path, major_version)
+    link_pyqt.link_pyqt(sys.executable, lib_path, version=major_version)
 
 
 def install_pyqt_wheels(venv_dir: pathlib.Path,
