@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Antoni Boucher (antoyo) <bouanto@zoho.com>
+# SPDX-FileCopyrightText: Antoni Boucher (antoyo) <bouanto@zoho.com>
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2021 Árni Dagur <arni@dagur.eu>
+# SPDX-FileCopyrightText: Árni Dagur <arni@dagur.eu>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 

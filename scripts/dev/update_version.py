@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2021 Andy Mender <andymenderunix@gmail.com>
+# SPDX-FileCopyrightText: Andy Mender <andymenderunix@gmail.com>
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later

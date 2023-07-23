@@ -1,4 +1,4 @@
-# Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>:
+# SPDX-FileCopyrightText: Jay Kamat <jaygkamat@gmail.com>:
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 

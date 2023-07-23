@@ -1,5 +1,5 @@
-# Copyright 2016-2018 Anna Kobak (avk) <awerk@onet.eu>:
-# Copyright 2016-2021 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# SPDX-FileCopyrightText: Anna Kobak (avk) <awerk@onet.eu>:
+# SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <me@the-compiler.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 

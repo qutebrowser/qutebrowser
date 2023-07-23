@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2017-2018 Josefson Souza <josefson.br@gmail.com>
+# SPDX-FileCopyrightText: Josefson Souza <josefson.br@gmail.com>
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later

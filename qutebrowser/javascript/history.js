@@ -1,5 +1,5 @@
 // Copyright 2017 Imran Sobir
-// Copyright 2017-2021 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+// SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <me@the-compiler.org>
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 

@@ -1,4 +1,4 @@
-# Copyright 2016-2021 Clayton Craft (craftyguy) <craftyguy@gmail.com>
+# SPDX-FileCopyrightText: Clayton Craft (craftyguy) <craftyguy@gmail.com>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
