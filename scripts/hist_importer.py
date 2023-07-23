@@ -6,7 +6,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 """Tool to import browser history from other browsers."""
 
 

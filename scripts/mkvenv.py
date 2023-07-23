@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 """Create a local virtualenv with a PyQt install."""
 
 import argparse

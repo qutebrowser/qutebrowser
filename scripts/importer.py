@@ -6,7 +6,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 """Tool to import data from other browsers.
 
 Currently importing bookmarks from Netscape HTML Bookmark files, Chrome

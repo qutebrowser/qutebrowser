@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 """Data used by setup.py and the PyInstaller qutebrowser.spec."""
 
 import sys
