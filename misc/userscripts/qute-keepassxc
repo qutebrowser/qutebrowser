@@ -301,12 +301,14 @@ def select_account(creds, dmenu):
     try:
         if len(creds) == 1:
             return creds[0]
+        dispstr = ["["+c["group"]+"] "+c["name"]+"("+c["login"]+")" for c in creds]
+        dispstr = "\n".join(dispstr).encode("utf-8")
         if dmenu=="rofi":
             idx = subprocess.check_output(
                     ['rofi', '-dmenu', '-format', 'i', '-matching', 'fuzzy',
                     '-p', 'Search',
                     '-mesg', '<b>qute-keepassxc</b>: select an account, please!'],
-                    input=b"\n".join(c['login'].encode('utf-8') for c in creds)
+                    input=dispstr
             )
             idx = int(idx)
             if idx < 0:
@@ -318,7 +320,7 @@ def select_account(creds, dmenu):
                      '--index',
                      '--lines='+str(len(creds)),
                      '--prompt', 'Select an account:'],
-                    input=b"\n".join(c['login'].encode('utf-8') for c in creds)
+                    input=dispstr
             )
             idx = int(idx)
             if idx < 0:
