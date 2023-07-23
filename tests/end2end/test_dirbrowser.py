@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Daniel Schadt
+# SPDX-FileCopyrightText: Daniel Schadt
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later

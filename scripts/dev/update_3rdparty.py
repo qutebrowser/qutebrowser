@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2015 Daniel Schadt
+# SPDX-FileCopyrightText: Daniel Schadt
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later

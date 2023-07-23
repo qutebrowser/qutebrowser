@@ -1,4 +1,4 @@
-# Copyright 2015 Daniel Schadt
+# SPDX-FileCopyrightText: Daniel Schadt
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
