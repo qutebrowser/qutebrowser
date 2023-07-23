@@ -1,7 +1,9 @@
-# Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Based on the Eric5 helpviewer,
+# Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
 
 """Special network replies.."""
 
