@@ -1,20 +1,8 @@
 #!/usr/bin/env python3
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Various small code checkers."""
 
@@ -278,6 +266,14 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'pathlib\.Path\(tmpdir\)'),
             "use tmp_path instead",
         ),
+        (
+            re.compile(r' Copyright 2'),
+            "use 'SPDX-FileCopyrightText: ...' without year instead",
+        ),
+        (
+            re.compile(r'qutebrowser is free software: you can redistribute'),
+            "use 'SPDX-License-Identifier: GPL-3.0-or-later' instead",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
@@ -288,6 +284,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
         pathlib.Path('qutebrowser', 'qt', '_core_pyqtproperty.py'),
+        pathlib.Path('qutebrowser', 'javascript', 'caret.js'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]
