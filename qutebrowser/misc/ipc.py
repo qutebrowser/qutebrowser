@@ -10,6 +10,7 @@ import json
 import getpass
 import binascii
 import hashlib
+from typing import Optional
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt
 from qutebrowser.qt.network import QLocalSocket, QLocalServer, QAbstractSocket
@@ -175,7 +176,7 @@ class IPCServer(QObject):
             self._atime_timer.timeout.connect(self.update_atime)
             self._atime_timer.setTimerType(Qt.TimerType.VeryCoarseTimer)
 
-        self._server = QLocalServer(self)
+        self._server: Optional[QLocalServer] = QLocalServer(self)
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
@@ -202,6 +203,7 @@ class IPCServer(QObject):
 
     def listen(self):
         """Start listening on self._socketname."""
+        assert self._server is not None
         log.ipc.debug("Listening as {}".format(self._socketname))
         if self._atime_timer is not None:  # pragma: no branch
             self._atime_timer.start()
@@ -239,7 +241,7 @@ class IPCServer(QObject):
     @pyqtSlot()
     def handle_connection(self):
         """Handle a new connection to the server."""
-        if self.ignored:
+        if self.ignored or self._server is None:
             return
         if self._socket is not None:
             log.ipc.debug("Got new connection but ignoring it because we're "
@@ -409,6 +411,7 @@ class IPCServer(QObject):
         access time timestamp modified at least once every 6 hours of monotonic
         time or the 'sticky' bit should be set on the file.
         """
+        assert self._server is not None
         path = self._server.fullServerName()
         if not path:
             log.ipc.error("In update_atime with no server path!")
