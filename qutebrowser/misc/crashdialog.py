@@ -510,7 +510,7 @@ class FatalCrashDialog(_CrashDialog):
                 "<br/>Note: Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
                 "follow the steps in <a href='https://github.com/qutebrowser/"
-                "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
+                "qutebrowser/blob/main/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
 

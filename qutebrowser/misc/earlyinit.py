@@ -62,7 +62,7 @@ def _missing_str(name, *, webengine=False):
               "<b>The error encountered was:</b><br />%ERROR%"]
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or see '
-             'https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc'
+             'https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc'
              .format(name)]
     blocks.append('<br />'.join(lines))
     if not webengine:

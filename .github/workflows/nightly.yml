@@ -15,33 +15,33 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            branch: master
+            branch: main
             toxenv: build-release-qt5
             name: qt5-macos
           - os: windows-2019
             args: --64bit
-            branch: master
+            branch: main
             toxenv: build-release-qt5
             name: qt5-windows-64bit
           - os: windows-2019
             args: --32bit
-            branch: master
+            branch: main
             toxenv: build-release-qt5
             name: qt5-windows-32bit
 
           - os: macos-11
             args: --debug
-            branch: master
+            branch: main
             toxenv: build-release-qt5
             name: qt5-macos-debug
           - os: windows-2019
             args: --64bit --debug
-            branch: master
+            branch: main
             toxenv: build-release-qt5
             name: qt5-windows-64bit-debug
           - os: windows-2019
             args: --32bit --debug
-            branch: master
+            branch: main
             toxenv: build-release-qt5
             name: qt5-windows-32bit-debug
 

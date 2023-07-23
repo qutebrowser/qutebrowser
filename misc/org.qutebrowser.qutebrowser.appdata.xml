@@ -23,16 +23,16 @@
 	<launchable type="desktop-id">org.qutebrowser.qutebrowser.desktop</launchable>
 	<screenshots>
 		<screenshot type="default">
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/main.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/main.png</image>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/downloads.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/downloads.png</image>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/completion.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/completion.png</image>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/hints.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/hints.png</image>
 		</screenshot>
 	</screenshots>
 	<url type="homepage">https://www.qutebrowser.org</url>

@@ -84,9 +84,9 @@ class AsciiDoc:
 
         replacements = [
             # patch image links to use local copy
-            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-big.png",
              "qute://help/img/cheatsheet-big.png"),
-            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-small.png",
              "qute://help/img/cheatsheet-small.png"),
 
             # patch relative links to work with qute://help flat structure

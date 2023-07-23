@@ -255,7 +255,7 @@ Why does it take longer to open a URL in qutebrowser than in chromium?::
     loaded until it is detected that there is an instance running
     to which the URL is then passed. This takes some time.
     One workaround is to use this
-    https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
+    https://github.com/qutebrowser/qutebrowser/blob/main/scripts/open_url_in_instance.sh[script]
     and place it in your $PATH with the name "qutebrowser". This
     script passes the URL via a unix socket to qutebrowser (if its
     running already) using socat which is much faster and starts a new

@@ -1,7 +1,7 @@
 // If you are reading this in plaintext or on PyPi:
 //
 // A rendered version is available at:
-// https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc
+// https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc
 
 qutebrowser
 ===========
@@ -10,9 +10,9 @@ qutebrowser
 image:qutebrowser/icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on Python and Qt.*
 
 image:https://github.com/qutebrowser/qutebrowser/workflows/CI/badge.svg["Build Status", link="https://github.com/qutebrowser/qutebrowser/actions?query=workflow%3ACI"]
-image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
+image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=main["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=main"]
 
-link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc[installing]
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/main/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc[installing]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
@@ -25,7 +25,7 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 part-time on qutebrowser, funded by donations.** To sustain this for a long
 time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] or
-https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[alternative donation methods]
+https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#donating[alternative donation methods]
 for more information. Depending on your sign-up date and how
 long you keep a certain level, you can get qutebrowser t-shirts, stickers and
 more!

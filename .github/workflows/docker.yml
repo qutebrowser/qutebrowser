@@ -36,7 +36,7 @@ jobs:
           file: scripts/dev/ci/docker/Dockerfile
           context: .
           tags: "qutebrowser/ci:${{ matrix.image }}"
-          push: ${{ github.ref == 'refs/heads/master' }}
+          push: ${{ github.ref == 'refs/heads/main' }}
 
   irc:
     timeout-minutes: 2

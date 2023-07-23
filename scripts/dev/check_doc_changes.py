@@ -31,7 +31,7 @@ from scripts import utils
 code = subprocess.run(['git', '--no-pager', 'diff', '--exit-code', '--stat',
                        '--', 'doc'], check=False).returncode
 
-if os.environ.get('GITHUB_REF', 'refs/heads/master') != 'refs/heads/master':
+if os.environ.get('GITHUB_REF', 'refs/heads/main') != 'refs/heads/main':
     if code != 0:
         print("Docs changed but ignoring change as we're building a PR")
     sys.exit(0)

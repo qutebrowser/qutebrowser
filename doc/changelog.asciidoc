@@ -1168,7 +1168,7 @@ Changed
   It also has compatibility issues with various websites (GitHub, Twitch, Android
   Developer documentation, YouTube, ...). Since no newer Debian Stable is released
   at the time of writing, it's recommended to
-  https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
+  https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
   with a newer version of Qt/PyQt.
 - New optional dependency on the Python `adblock` library (see above for details).
 - The (formerly optional) `cssutils` dependency is now removed. It was only
@@ -3319,7 +3319,7 @@ Major changes
   completion is too slow on your machine, try setting it to a few 1000 items.
 - Up/Down now navigates through the command history instead of selecting
   completion items. Either use Tab to cycle through the completion, or
-  https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
+  https://github.com/qutebrowser/qutebrowser/blob/main/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
 
 Added
 ~~~~~

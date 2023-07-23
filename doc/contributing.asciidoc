@@ -84,9 +84,9 @@ If you prefer to send a patch to the mailinglist, you can generate a patch
 based on your changes like this:
 
 ----
-git format-patch origin/master <1>
+git format-patch origin/main <1>
 ----
-<1> Replace `master` by the branch your work was based on, e.g.,
+<1> Replace `main` by the branch your work was based on, e.g.,
 `origin/develop`.
 
 Running qutebrowser
@@ -759,13 +759,13 @@ qutebrowser release
 * Make sure there are no unstaged changes and the tests are green.
 * Make sure all issues with the related milestone are closed.
 * Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
-* Minor release: Consider updating some files from master:
+* Minor release: Consider updating some files from main:
   - `misc/requirements/` and `requirements.txt`
   - `scripts/`
 * Make sure Python is up-to-date on build machines.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
-* Update changelog in master branch
-* If necessary: Update changelog in release branch from master.
+* Update changelog in main branch
+* If necessary: Update changelog in release branch from main.
 * Run `./.venv/bin/python3 scripts/dev/update_version.py {major,minor,patch}`.
 * Run the printed instructions accordingly.
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.

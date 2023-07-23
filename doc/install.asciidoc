@@ -396,7 +396,7 @@ Packagers
 ---------
 
 qutebrowser ships with a
-https://github.com/qutebrowser/qutebrowser/blob/master/misc/Makefile[Makefile]
+https://github.com/qutebrowser/qutebrowser/blob/main/misc/Makefile[Makefile]
 intended for packagers. This installs system-wide files in a proper locations,
 so it should be preferred to the usual `setup.py install` or `pip install`
 invocation.
