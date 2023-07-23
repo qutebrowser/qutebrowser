@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2015 Corentin Julé <corentinjule@gmail.com>
+# SPDX-FileCopyrightText: Corentin Julé <corentinjule@gmail.com>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 

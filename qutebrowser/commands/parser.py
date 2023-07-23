@@ -1,4 +1,4 @@
-# Copyright 2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
