@@ -4,6 +4,8 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import os
+import signal
 import configparser
 import subprocess
 import sys
@@ -916,3 +918,25 @@ def test_logfilter_arg_does_not_crash(request, quteproc_new):
     # Waiting for quit to make sure no other warning is emitted
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_restart(request, quteproc_new):
+    args = _base_args(request.config) + ['--temp-basedir']
+    quteproc_new.start(args)
+    quteproc_new.send_cmd(':restart')
+
+    prefix = "New process PID: "
+    line = quteproc_new.wait_for(message=f"{prefix}*")
+    quteproc_new.wait_for_quit()
+
+    assert line.message.startswith(prefix)
+    pid = int(line.message[len(prefix):])
+    os.kill(pid, signal.SIGTERM)
+
+    try:
+        # If the new process hangs, this will hang too.
+        # Still better than just ignoring it, so we can fix it if something is broken.
+        os.waitpid(pid, 0)  # pid, options... positional-only :(
+    except ChildProcessError:
+        # Already gone
+        pass

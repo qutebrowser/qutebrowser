@@ -196,6 +196,7 @@ Fixed
 - The `asciidoc2html.py` script now correctly uses the virtualenv-installed
   asciidoc rather than requiring a system-wide installation.
 - "Package would be ignored" deprecation warnings when running `setup.py`.
+- ResourceWarning when using `:restart`.
 - Crash when shutting down before fully initialized.
 - Crash with some notification servers when the server is quitting.
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.

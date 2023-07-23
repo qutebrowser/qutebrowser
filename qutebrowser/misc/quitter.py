@@ -13,6 +13,7 @@ import shutil
 import argparse
 import tokenize
 import functools
+import warnings
 import subprocess
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
 
@@ -179,11 +180,18 @@ class Quitter(QObject):
         # Open a new process and immediately shutdown the existing one
         try:
             args = self._get_restart_args(pages, session, override_args)
-            subprocess.Popen(args)  # pylint: disable=consider-using-with
+            proc = subprocess.Popen(args)  # pylint: disable=consider-using-with
         except OSError:
             log.destroy.exception("Failed to restart")
             return False
         else:
+            log.destroy.debug(f"New process PID: {proc.pid}")
+            # Avoid ResourceWarning about still running subprocess when quitting.
+            warnings.filterwarnings(
+                "ignore",
+                category=ResourceWarning,
+                message=f"subprocess {proc.pid} is still running",
+            )
             return True
 
     def shutdown(self, status: int = 0,
