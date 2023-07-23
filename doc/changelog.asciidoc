@@ -173,6 +173,10 @@ Changed
   polyfilled on QtWebEngine < 5.15.3, hopefully improving website
   compaitibility.
 - Hints are now displayed for elements setting an `aria-haspopup` attribute.
+- qutebrowser now uses SPDX license identifiers in its files. Full support for
+  the https://reuse.software/[REUSE specification] (license provided in a
+  machine-readable way for every single file) is not done yet, but planned for
+  a future release.
 
 Fixed
 ~~~~~
