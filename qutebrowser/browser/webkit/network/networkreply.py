@@ -1,26 +1,7 @@
+# Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# Based on the Eric5 helpviewer,
-# Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
-#
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-#
-# For some reason, a segfault will be triggered if the unnecessary lambdas in
-# this file aren't there.
-# pylint: disable=unnecessary-lambda
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Special network replies.."""
 

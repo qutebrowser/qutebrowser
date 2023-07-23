@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+
 # Copyright 2017-2018 Josefson Souza <josefson.br@gmail.com>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # This file is part of qutebrowser.
 #
