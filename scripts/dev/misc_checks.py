@@ -266,6 +266,14 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'pathlib\.Path\(tmpdir\)'),
             "use tmp_path instead",
         ),
+        (
+            re.compile(r' Copyright 2'),
+            "use 'SPDX-FileCopyrightText: ...' without year instead",
+        ),
+        (
+            re.compile(r'qutebrowser is free software: you can redistribute'),
+            "use 'SPDX-License-Identifier: GPL-3.0-or-later' instead",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
@@ -276,6 +284,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
         pathlib.Path('qutebrowser', 'qt', '_core_pyqtproperty.py'),
+        pathlib.Path('qutebrowser', 'javascript', 'caret.js'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]

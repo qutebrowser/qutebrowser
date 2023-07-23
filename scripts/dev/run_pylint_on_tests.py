@@ -63,7 +63,7 @@ def main():
     args = [
         '--disable={}'.format(','.join(disabled)),
         '--ignored-modules=helpers,pytest,PyQt5',
-        r'--ignore-long-lines=(<?https?://|^# Copyright 201\d)|^ *def [a-z]',
+        r'--ignore-long-lines=(<?https?://)|^ *def [a-z]',
         r'--method-rgx=[a-z_][A-Za-z0-9_]{1,100}$',
     ] + sys.argv[2:] + files
     env = os.environ.copy()

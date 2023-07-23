@@ -76,7 +76,7 @@ class-const-naming-style = snake_case
 [FORMAT]
 # FIXME:v4 (lint) down to 88 again once we use black
 max-line-length=190
-ignore-long-lines=(<?https?://|file://|^# Copyright 201\d|link:)
+ignore-long-lines=(<?https?://|file://|link:)
 expected-line-ending-format=LF
 
 [VARIABLES]
