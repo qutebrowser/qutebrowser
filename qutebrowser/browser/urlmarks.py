@@ -1,4 +1,4 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later

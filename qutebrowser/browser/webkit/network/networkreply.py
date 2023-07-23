@@ -1,5 +1,5 @@
 # Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
