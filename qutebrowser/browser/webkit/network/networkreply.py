@@ -98,6 +98,7 @@ class ErrorNetworkReply(QNetworkReply):
         self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
         QTimer.singleShot(0, lambda: self.errorOccurred.emit(error))
+        # pylint: disable-next=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
@@ -125,6 +126,7 @@ class RedirectNetworkReply(QNetworkReply):
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
         self.setAttribute(QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url)
+        # pylint: disable-next=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):

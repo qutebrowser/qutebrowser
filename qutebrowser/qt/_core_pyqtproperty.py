@@ -5,7 +5,7 @@ https://github.com/python-qt-tools/PyQt5-stubs/blob/5.15.6.0/PyQt5-stubs/QtCore.
 """
 
 # flake8: noqa
-# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument,no-name-in-module
+# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument
 
 import typing
 from PyQt6.QtCore import QObject, pyqtSignal
