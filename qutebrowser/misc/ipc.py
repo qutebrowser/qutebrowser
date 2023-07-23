@@ -427,11 +427,19 @@ class IPCServer(QObject):
     @pyqtSlot()
     def shutdown(self):
         """Shut down the IPC server cleanly."""
+        if self._server is None:
+            # We can get called twice when using :restart -- there, IPC is shut down
+            # early to avoid processing new connections while shutting down, and then
+            # we get called again when the application is about to quit.
+            return
+
         log.ipc.debug("Shutting down IPC (socket 0x{:x})".format(
             id(self._socket)))
+
         if self._socket is not None:
             self._socket.deleteLater()
             self._socket = None
+
         self._timer.stop()
         if self._atime_timer is not None:  # pragma: no branch
             self._atime_timer.stop()
@@ -439,9 +447,11 @@ class IPCServer(QObject):
                 self._atime_timer.timeout.disconnect(self.update_atime)
             except TypeError:
                 pass
+
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
+        self._server = None
 
 
 def send_to_running_instance(socketname, command, target_arg, *, socket=None):
