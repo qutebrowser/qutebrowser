@@ -12,10 +12,10 @@ pluggy==1.2.0
 Pygments==2.15.1
 PyQt5-stubs==5.15.6.0
 tomli==2.0.1
-types-colorama==0.4.15.11
+types-colorama==0.4.15.12
 types-docutils==0.20.0.1
-types-Pygments==2.15.0.1
-types-PyYAML==6.0.12.10
-types-setuptools==68.0.0.2
+types-Pygments==2.15.0.2
+types-PyYAML==6.0.12.11
+types-setuptools==68.0.0.3
 typing_extensions==4.7.1
 zipp==3.16.2
