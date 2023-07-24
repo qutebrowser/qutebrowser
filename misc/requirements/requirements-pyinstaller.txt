@@ -2,4 +2,4 @@
 
 altgraph==0.17.3
 pyinstaller==5.13.0
-pyinstaller-hooks-contrib==2023.5
+pyinstaller-hooks-contrib==2023.6
