@@ -493,9 +493,6 @@ def install_pyqt(venv_dir, args):
         install_pyqt_binary(venv_dir, args.pyqt_version)
         if args.pyqt_snapshot:
             install_pyqt_shapshot(venv_dir, args.pyqt_snapshot.split(','))
-        # Workaround until pyqt 6.5.2 is released on pypi
-        elif args.pyqt_version in ("6.5", "6", "auto"):
-            install_pyqt_shapshot(venv_dir, ["PyQt6-Qt6", "PyQt6-WebEngine-Qt6"])
     elif args.pyqt_type == 'source':
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
