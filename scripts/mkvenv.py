@@ -276,7 +276,7 @@ def install_pyqt_wheels(venv_dir: pathlib.Path,
     pip_install(venv_dir, *wheels)
 
 
-def install_pyqt_shapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
+def install_pyqt_snapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
     """Install PyQt packages from the snapshot server."""
     utils.print_title("Installing PyQt snapshots")
     pip_install(venv_dir, '-U', *packages, '--no-deps', '--pre',
@@ -492,7 +492,7 @@ def install_pyqt(venv_dir, args):
     if args.pyqt_type == 'binary':
         install_pyqt_binary(venv_dir, args.pyqt_version)
         if args.pyqt_snapshot:
-            install_pyqt_shapshot(venv_dir, args.pyqt_snapshot.split(','))
+            install_pyqt_snapshot(venv_dir, args.pyqt_snapshot.split(','))
     elif args.pyqt_type == 'source':
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
