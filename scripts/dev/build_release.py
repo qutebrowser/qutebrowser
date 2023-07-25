@@ -483,7 +483,7 @@ def build_windows(
             debug=debug,
             qt5=qt5,
         )
-    if not only_64bit and not qt5:
+    if not only_64bit and qt5:
         artifacts += _build_windows_single(
             x64=False,
             skip_packaging=skip_packaging,
