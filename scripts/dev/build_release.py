@@ -245,52 +245,6 @@ def verify_windows_exe(exe_path: pathlib.Path) -> None:
     assert pe.verify_checksum()
 
 
-def patch_mac_app(qt5: bool) -> None:
-    """Patch .app to save some space and make it signable."""
-    dist_path = pathlib.Path('dist')
-    ver = '5' if qt5 else '6'
-    app_path = dist_path / 'qutebrowser.app'
-
-    contents_path = app_path / 'Contents'
-    macos_path = contents_path / 'MacOS'
-    resources_path = contents_path / 'Resources'
-    pyqt_path = macos_path / f'PyQt{ver}'
-
-    # Replace some duplicate files by symlinks
-    framework_path = pyqt_path / f'Qt{ver}' / 'lib' / 'QtWebEngineCore.framework'
-
-    framework_resource_path = framework_path / 'Resources'
-    for file_path in framework_resource_path.iterdir():
-        target = pathlib.Path(*[os.pardir] * 5, file_path.name)
-        if file_path.is_dir():
-            shutil.rmtree(file_path)
-        else:
-            file_path.unlink()
-        file_path.symlink_to(target)
-
-    if not qt5:
-        # Symlinking QtWebEngineCore.framework does not seem to work with Qt 6.
-        # Also, the symlinking/moving before signing doesn't seem to be required.
-        return
-
-    core_lib = framework_path / 'Versions' / '5' / 'QtWebEngineCore'
-    core_lib.unlink()
-    core_target = pathlib.Path(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
-    core_lib.symlink_to(core_target)
-
-    # Move stuff around to make things signable on macOS
-    # See https://github.com/pyinstaller/pyinstaller/issues/6612
-    pyqt_path_dest = resources_path / pyqt_path.name
-    shutil.move(pyqt_path, pyqt_path_dest)
-    pyqt_path_target = pathlib.Path("..") / pyqt_path_dest.relative_to(contents_path)
-    pyqt_path.symlink_to(pyqt_path_target)
-
-    for path in macos_path.glob("Qt*"):
-        link_path = resources_path / path.name
-        target_path = pathlib.Path("..") / path.relative_to(contents_path)
-        link_path.symlink_to(target_path)
-
-
 def sign_mac_app() -> None:
     """Re-sign and verify the Mac .app."""
     app_path = pathlib.Path('dist') / 'qutebrowser.app'
@@ -341,8 +295,6 @@ def build_mac(
 
     utils.print_title("Building .app via pyinstaller")
     call_tox(f'pyinstaller-64bit{"-qt5" if qt5 else ""}', '-r', debug=debug)
-    utils.print_title("Patching .app")
-    patch_mac_app(qt5=qt5)
     utils.print_title("Re-signing .app")
     sign_mac_app()
 
