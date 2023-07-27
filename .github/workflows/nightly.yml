@@ -19,47 +19,34 @@ jobs:
             toxenv: build-release-qt5
             name: qt5-macos
           - os: windows-2019
-            args: --64bit
             branch: main
             toxenv: build-release-qt5
-            name: qt5-windows-64bit
-          - os: windows-2019
-            args: --32bit
-            branch: main
-            toxenv: build-release-qt5
-            name: qt5-windows-32bit
-
+            name: qt5-windows
           - os: macos-11
             args: --debug
             branch: main
             toxenv: build-release-qt5
             name: qt5-macos-debug
           - os: windows-2019
-            args: --64bit --debug
+            args: --debug
             branch: main
             toxenv: build-release-qt5
-            name: qt5-windows-64bit-debug
-          - os: windows-2019
-            args: --32bit --debug
-            branch: main
-            toxenv: build-release-qt5
-            name: qt5-windows-32bit-debug
+            name: qt5-windows-debug
 
           - os: macos-11
             toxenv: build-release
             name: macos
           - os: windows-2019
-            args: --64bit
             toxenv: build-release
-            name: windows-64bit
+            name: windows
           - os: macos-11
             args: --debug
             toxenv: build-release
             name: macos-debug
           - os: windows-2019
-            args: --64bit --debug
+            args: --debug
             toxenv: build-release
-            name: windows-64bit-debug
+            name: windows-debug
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 45
     steps:
