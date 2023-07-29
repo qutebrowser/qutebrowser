@@ -644,8 +644,8 @@ class TestModuleVersions:
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
-        ('colorama', 1, 'colorama: no'),
-        ('adblock', 5, 'adblock: no'),
+        ('colorama', 0, 'colorama: no'),
+        ('adblock', 4, 'adblock: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -693,7 +693,7 @@ class TestModuleVersions:
         assert not mod_info.is_usable()
 
         expected = f"adblock: {fake_version} (< {mod_info.min_version}, outdated)"
-        assert version._module_versions()[5] == expected
+        assert version._module_versions()[4] == expected
 
     @pytest.mark.parametrize('attribute, expected_modules', [
         ('VERSION', ['colorama']),
@@ -720,7 +720,7 @@ class TestModuleVersions:
         expected = []
         for name in import_fake.modules:
             mod_info = version.MODULE_INFO[name]
-            if name in expected_modules:
+            if name in expected_modules or ("sip" in expected_modules and name == "PyQt6.sip"):
                 assert mod_info.get_version() == "1.2.3"
                 expected.append('{}: 1.2.3'.format(name))
             else:
