@@ -204,6 +204,9 @@ Fixed
 - Crash when the "herbe" notification presenter doesn't start correctly.
 - Crash when using `:print --pdf` with a directory where its parent directory
   did not exist.
+- The `PyQt{5,6}.sip` version is now shown correctly in the :version|--version
+  output. Previously that showed the version from the standalone `sip` module
+  which was only set for PyQt5. (#7805)
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)
