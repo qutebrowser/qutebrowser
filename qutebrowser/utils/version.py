@@ -391,10 +391,10 @@ def _create_module_info() -> Dict[str, ModuleInfo]:
 
     if machinery.IS_QT5:
         packages += [
-            ('sip', ['SIP_VERSION_STR']),
             ('PyQt5.QtWebEngineWidgets', []),
             ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
             ('PyQt5.QtWebKitWidgets', []),
+            ('PyQt5.sip', ['SIP_VERSION_STR']),
         ]
     elif machinery.IS_QT6:
         packages += [

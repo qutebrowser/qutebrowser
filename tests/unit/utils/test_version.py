@@ -697,7 +697,7 @@ class TestModuleVersions:
 
     @pytest.mark.parametrize('attribute, expected_modules', [
         ('VERSION', ['colorama']),
-        ('SIP_VERSION_STR', ['sip']),
+        ('SIP_VERSION_STR', ['PyQt5.sip', 'PyQt6.sip']),
         (None, []),
     ])
     def test_version_attribute(self, attribute, expected_modules, import_fake):
@@ -720,7 +720,7 @@ class TestModuleVersions:
         expected = []
         for name in import_fake.modules:
             mod_info = version.MODULE_INFO[name]
-            if name in expected_modules or ("sip" in expected_modules and name == "PyQt6.sip"):
+            if name in expected_modules:
                 assert mod_info.get_version() == "1.2.3"
                 expected.append('{}: 1.2.3'.format(name))
             else:
