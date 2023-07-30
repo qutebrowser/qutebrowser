@@ -1,1 +1,1 @@
-git+https://github.com/pyinstaller/pyinstaller.git@develop
+pyinstaller @ git+https://github.com/pyinstaller/pyinstaller.git@79f62ef29822169ae00cd4271390d0e3175476ad
