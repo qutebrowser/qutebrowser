@@ -245,18 +245,9 @@ def verify_windows_exe(exe_path: pathlib.Path) -> None:
     assert pe.verify_checksum()
 
 
-def sign_mac_app() -> None:
+def verify_mac_app() -> None:
     """Re-sign and verify the Mac .app."""
     app_path = pathlib.Path('dist') / 'qutebrowser.app'
-    subprocess.run([
-        'codesign',
-        '-s', '-',
-        '--force',
-        '--timestamp',
-        '--deep',
-        '--verbose',
-        app_path,
-    ], check=True)
     subprocess.run([
         'codesign',
         '--verify',
@@ -295,8 +286,8 @@ def build_mac(
 
     utils.print_title("Building .app via pyinstaller")
     call_tox(f'pyinstaller-64bit{"-qt5" if qt5 else ""}', '-r', debug=debug)
-    utils.print_title("Re-signing .app")
-    sign_mac_app()
+    utils.print_title("Verifying .app")
+    verify_mac_app()
 
     dist_path = pathlib.Path("dist")
 
