@@ -19,7 +19,7 @@ keyring==24.2.0
 manhole==1.8.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
-more-itertools==9.1.0
+more-itertools==10.0.0
 packaging==23.1
 pkginfo==1.9.6
 ply==3.11
@@ -34,7 +34,7 @@ readme-renderer==40.0
 requests==2.31.0
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.4.2
+rich==13.5.0
 SecretStorage==3.3.3
 sip==6.7.10
 six==1.16.0

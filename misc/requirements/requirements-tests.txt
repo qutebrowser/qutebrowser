@@ -23,7 +23,7 @@ jaraco.functools==3.8.0
 Mako==1.2.4
 manhole==1.8.0
 # MarkupSafe==2.1.3
-more-itertools==9.1.0
+more-itertools==10.0.0
 packaging==23.1
 parse==1.19.1
 parse-type==0.6.2
