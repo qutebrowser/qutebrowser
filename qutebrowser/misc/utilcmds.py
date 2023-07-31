@@ -57,10 +57,11 @@ def later(duration: str, command: str, win_id: int) -> None:
         raise
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='repeat')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
+def cmd_repeat(times: int, command: str, win_id: int, count: int = None) -> None:
     """Repeat a given command.
 
     Args:

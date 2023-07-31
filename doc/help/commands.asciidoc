@@ -40,6 +40,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
+|<<cmd-repeat,cmd-repeat>>|Repeat a given command.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
@@ -94,7 +95,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
 |<<reload,reload>>|Reload the current/[count]th tab.
-|<<repeat,repeat>>|Repeat a given command.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
@@ -280,6 +280,24 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 [[close]]
 === close
 Close the current window.
+
+[[cmd-repeat]]
+=== cmd-repeat
+Syntax: +:cmd-repeat 'times' 'command'+
+
+Repeat a given command.
+
+==== positional arguments
+* +'times'+: How many times to repeat.
+* +'command'+: The command to run, with optional args.
+
+==== count
+Multiplies with 'times' when given.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
 
 [[config-clear]]
 === config-clear
@@ -1055,24 +1073,6 @@ Reload the current/[count]th tab.
 
 ==== count
 The tab index to reload.
-
-[[repeat]]
-=== repeat
-Syntax: +:repeat 'times' 'command'+
-
-Repeat a given command.
-
-==== positional arguments
-* +'times'+: How many times to repeat.
-* +'command'+: The command to run, with optional args.
-
-==== count
-Multiplies with 'times' when given.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
-* This command does not replace variables like +\{url\}+.
 
 [[repeat-command]]
 === repeat-command
