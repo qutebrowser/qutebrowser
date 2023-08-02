@@ -150,7 +150,7 @@ def partial_compare(val1, val2, *, indent=0):
     if val2 is Ellipsis:
         print_i("Ignoring ellipsis comparison", indent, error=True)
         return PartialCompareOutcome()
-    elif type(val1) != type(val2):  # pylint: disable=unidiomatic-typecheck
+    elif type(val1) is not type(val2):
         outcome = PartialCompareOutcome(
             "Different types ({}, {}) -> False".format(type(val1).__name__,
                                                        type(val2).__name__))
