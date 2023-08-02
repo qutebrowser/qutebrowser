@@ -42,6 +42,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<close,close>>|Close the current window.
 |<<cmd-later,cmd-later>>|Execute a command after some time.
 |<<cmd-repeat,cmd-repeat>>|Repeat a given command.
+|<<cmd-set-text,cmd-set-text>>|Preset the statusbar to some text.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
@@ -114,7 +115,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<session-load,session-load>>|Load a session.
 |<<session-save,session-save>>|Save a session.
 |<<set,set>>|Set an option.
-|<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<spawn,spawn>>|Spawn an external command.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
@@ -313,6 +313,27 @@ Multiplies with 'times' when given.
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 * This command does not replace variables like +\{url\}+.
+
+[[cmd-set-text]]
+=== cmd-set-text
+Syntax: +:cmd-set-text [*--space*] [*--append*] [*--run-on-count*] 'text'+
+
+Preset the statusbar to some text.
+
+==== positional arguments
+* +'text'+: The commandline to set.
+
+==== optional arguments
+* +*-s*+, +*--space*+: If given, a space is added to the end.
+* +*-a*+, +*--append*+: If given, the text is appended to the current text.
+* +*-r*+, +*--run-on-count*+: If given with a count, the command is run with the given count rather than setting the command text.
+
+
+==== count
+The count if given.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[config-clear]]
 === config-clear
@@ -1313,27 +1334,6 @@ If the option name ends with '?' or no value is provided, the value of the optio
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 * +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
-
-[[set-cmd-text]]
-=== set-cmd-text
-Syntax: +:set-cmd-text [*--space*] [*--append*] [*--run-on-count*] 'text'+
-
-Preset the statusbar to some text.
-
-==== positional arguments
-* +'text'+: The commandline to set.
-
-==== optional arguments
-* +*-s*+, +*--space*+: If given, a space is added to the end.
-* +*-a*+, +*--append*+: If given, the text is appended to the current text.
-* +*-r*+, +*--run-on-count*+: If given with a count, the command is run with the given count rather than setting the command text.
-
-
-==== count
-The count if given.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
 
 [[set-mark]]
 === set-mark

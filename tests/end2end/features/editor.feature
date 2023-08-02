@@ -170,7 +170,7 @@ Feature: Opening external editors
     ## :edit-command
 
     Scenario: Edit a command and run it
-        When I run :set-cmd-text :message-info foo
+        When I run :cmd-set-text :message-info foo
         And I setup a fake editor replacing "foo" by "bar"
         And I run :edit-command --run
         Then the message "bar" should be shown
@@ -183,7 +183,7 @@ Feature: Opening external editors
         And "Leaving mode KeyMode.command *" should not be logged
 
     Scenario: Edit a command to be empty
-        When I run :set-cmd-text :
+        When I run :cmd-set-text :
         When I setup a fake editor returning empty text
         And I run :edit-command
         Then the error "command must start with one of :/?" should be shown
