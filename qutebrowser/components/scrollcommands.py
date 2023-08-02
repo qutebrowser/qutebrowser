@@ -32,7 +32,7 @@ def scroll_px(tab: apitypes.Tab, dx: int, dy: int, count: int = 1) -> None:
 def scroll(tab: apitypes.Tab, direction: str, count: int = 1) -> None:
     """Scroll the current tab in the given direction.
 
-    Note you can use `:run-with-count` to have a keybinding with a bigger
+    Note you can use `:cmd-run-with-count` to have a keybinding with a bigger
     scroll increment.
 
     Args:

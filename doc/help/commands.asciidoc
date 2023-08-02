@@ -42,6 +42,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<close,close>>|Close the current window.
 |<<cmd-later,cmd-later>>|Execute a command after some time.
 |<<cmd-repeat,cmd-repeat>>|Repeat a given command.
+|<<cmd-run-with-count,cmd-run-with-count>>|Run a command with the given count.
 |<<cmd-set-text,cmd-set-text>>|Preset the statusbar to some text.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
@@ -99,7 +100,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
-|<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<save,save>>|Save configs and state.
 |<<screenshot,screenshot>>|Take a screenshot of the currently shown part of the page.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
@@ -308,6 +308,26 @@ Repeat a given command.
 
 ==== count
 Multiplies with 'times' when given.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
+
+[[cmd-run-with-count]]
+=== cmd-run-with-count
+Syntax: +:cmd-run-with-count 'count-arg' 'command'+
+
+Run a command with the given count.
+
+If cmd_run_with_count itself is run with a count, it multiplies count_arg.
+
+==== positional arguments
+* +'count-arg'+: The count to pass to the command.
+* +'command'+: The command to run, with optional args.
+
+==== count
+The count that run_with_count itself received.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -1117,26 +1137,6 @@ Report a bug in qutebrowser.
 === restart
 Restart qutebrowser while keeping existing tabs open.
 
-[[run-with-count]]
-=== run-with-count
-Syntax: +:run-with-count 'count-arg' 'command'+
-
-Run a command with the given count.
-
-If run_with_count itself is run with a count, it multiplies count_arg.
-
-==== positional arguments
-* +'count-arg'+: The count to pass to the command.
-* +'command'+: The command to run, with optional args.
-
-==== count
-The count that run_with_count itself received.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
-* This command does not replace variables like +\{url\}+.
-
 [[save]]
 === save
 Syntax: +:save ['what' ...]+
@@ -1168,7 +1168,7 @@ Syntax: +:scroll 'direction'+
 
 Scroll the current tab in the given direction.
 
-Note you can use `:run-with-count` to have a keybinding with a bigger scroll increment.
+Note you can use `:cmd-run-with-count` to have a keybinding with a bigger scroll increment.
 
 ==== positional arguments
 * +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).

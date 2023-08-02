@@ -80,14 +80,15 @@ def cmd_repeat(times: int, command: str, win_id: int, count: int = None) -> None
         commandrunner.run_safely(command)
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='run-with-count')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def run_with_count(count_arg: int, command: str, win_id: int,
+def cmd_run_with_count(count_arg: int, command: str, win_id: int,
                    count: int = 1) -> None:
     """Run a command with the given count.
 
-    If run_with_count itself is run with a count, it multiplies count_arg.
+    If cmd_run_with_count itself is run with a count, it multiplies count_arg.
 
     Args:
         count_arg: The count to pass to the command.
