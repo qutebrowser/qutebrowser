@@ -137,5 +137,4 @@ app = BUNDLE(coll,
              name='qutebrowser.app',
              icon=icon,
              info_plist=INFO_PLIST_UPDATES,
-             # https://github.com/pyinstaller/pyinstaller/blob/b78bfe530cdc2904f65ce098bdf2de08c9037abb/PyInstaller/hooks/hook-PyQt5.QtWebEngineWidgets.py#L24
-             bundle_identifier='org.qt-project.Qt.QtWebEngineCore')
+             bundle_identifier='org.qutebrowser.qutebrowser')
