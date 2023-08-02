@@ -119,7 +119,7 @@ def _smoke_test_run(
         '--temp-basedir',
         *args,
         'about:blank',
-        ':later 500 quit',
+        ':cmd-later 500 quit',
     ]
     return subprocess.run(argv, check=True, capture_output=True)
 

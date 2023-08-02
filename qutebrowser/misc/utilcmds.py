@@ -26,9 +26,10 @@ from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='later')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-def later(duration: str, command: str, win_id: int) -> None:
+def cmd_later(duration: str, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:

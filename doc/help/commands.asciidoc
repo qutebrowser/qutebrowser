@@ -40,6 +40,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
+|<<cmd-later,cmd-later>>|Execute a command after some time.
 |<<cmd-repeat,cmd-repeat>>|Repeat a given command.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
@@ -76,7 +77,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<insert-text,insert-text>>|Insert text at cursor position.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
-|<<later,later>>|Execute a command after some time.
 |<<macro-record,macro-record>>|Start or stop recording a macro.
 |<<macro-run,macro-run>>|Run a recorded macro.
 |<<message-error,message-error>>|Show an error message in the statusbar.
@@ -280,6 +280,21 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 [[close]]
 === close
 Close the current window.
+
+[[cmd-later]]
+=== cmd-later
+Syntax: +:cmd-later 'duration' 'command'+
+
+Execute a command after some time.
+
+==== positional arguments
+* +'duration'+: Duration to wait in format XhYmZs or a number for milliseconds.
+* +'command'+: The command to run, with optional args.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
 
 [[cmd-repeat]]
 === cmd-repeat
@@ -797,21 +812,6 @@ Jump to the mark named by `key`.
 
 ==== positional arguments
 * +'key'+: mark identifier; capital indicates a global mark
-
-[[later]]
-=== later
-Syntax: +:later 'duration' 'command'+
-
-Execute a command after some time.
-
-==== positional arguments
-* +'duration'+: Duration to wait in format XhYmZs or a number for milliseconds.
-* +'command'+: The command to run, with optional args.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
-* This command does not replace variables like +\{url\}+.
 
 [[macro-record]]
 === macro-record
