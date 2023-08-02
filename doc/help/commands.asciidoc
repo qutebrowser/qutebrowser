@@ -40,6 +40,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
+|<<cmd-edit,cmd-edit>>|Open an editor to modify the current command.
 |<<cmd-later,cmd-later>>|Execute a command after some time.
 |<<cmd-repeat,cmd-repeat>>|Repeat a given command.
 |<<cmd-repeat-last,cmd-repeat-last>>|Repeat the last executed command.
@@ -65,7 +66,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
-|<<edit-command,edit-command>>|Open an editor to modify the current command.
 |<<edit-text,edit-text>>|Open an external editor with the currently selected form field.
 |<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
@@ -280,6 +280,15 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 [[close]]
 === close
 Close the current window.
+
+[[cmd-edit]]
+=== cmd-edit
+Syntax: +:cmd-edit [*--run*]+
+
+Open an editor to modify the current command.
+
+==== optional arguments
+* +*-r*+, +*--run*+: Run the command if the editor exits successfully.
 
 [[cmd-later]]
 === cmd-later
@@ -592,15 +601,6 @@ Retry the first failed/[count]th download.
 
 ==== count
 The index of the download to retry.
-
-[[edit-command]]
-=== edit-command
-Syntax: +:edit-command [*--run*]+
-
-Open an editor to modify the current command.
-
-==== optional arguments
-* +*-r*+, +*--run*+: Run the command if the editor exits successfully.
 
 [[edit-text]]
 === edit-text

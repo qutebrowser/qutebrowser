@@ -197,8 +197,9 @@ class Command(misc.CommandLineEdit):
         if not was_search:
             self.got_cmd[str].emit(text[1:])
 
-    @cmdutils.register(instance='status-command', scope='window')
-    def edit_command(self, run: bool = False) -> None:
+    @cmdutils.register(instance='status-command', scope='window',
+                       deprecated_name='edit-command')
+    def cmd_edit(self, run: bool = False) -> None:
         """Open an editor to modify the current command.
 
         Args:
