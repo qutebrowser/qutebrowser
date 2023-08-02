@@ -187,10 +187,10 @@ def debug_set_fake_clipboard(s: str = None) -> None:
         utils.fake_clipboard = s
 
 
-@cmdutils.register()
+@cmdutils.register(deprecated_name='repeat-command')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat_command(win_id: int, count: int = None) -> None:
+def cmd_repeat_last(win_id: int, count: int = None) -> None:
     """Repeat the last executed command.
 
     Args:
