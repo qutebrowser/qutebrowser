@@ -202,6 +202,7 @@ Fixed
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.
 - Crash when the "herbe" notification presenter doesn't start correctly.
+- Warning with recent versions of the "deadd" (aka "linux notification center") notification server.
 - Crash when using `:print --pdf` with a directory where its parent directory
   did not exist.
 - The `PyQt{5,6}.sip` version is now shown correctly in the :version|--version
