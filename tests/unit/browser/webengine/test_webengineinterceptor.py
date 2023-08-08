@@ -59,7 +59,6 @@ def test_block(we_request: interceptor.WebEngineRequest):
 
 
 class TestRedirect:
-
     REDIRECT_URL = QUrl("https://redirect.example.com/")
 
     def test_redirect(self, we_request: interceptor.WebEngineRequest):
@@ -67,7 +66,6 @@ class TestRedirect:
         we_request.redirect(self.REDIRECT_URL)
         assert we_request._redirected
         we_request._webengine_info.redirect.assert_called_once_with(self.REDIRECT_URL)
-
 
     def test_twice(self, we_request: interceptor.WebEngineRequest):
         we_request.redirect(self.REDIRECT_URL)
@@ -77,7 +75,6 @@ class TestRedirect:
         ):
             we_request.redirect(self.REDIRECT_URL)
         we_request._webengine_info.redirect.assert_called_once_with(self.REDIRECT_URL)
-
 
     def test_invalid_method(self, we_request: interceptor.WebEngineRequest):
         we_request._webengine_info.requestMethod.return_value = QByteArray(b"POST")
@@ -91,8 +88,11 @@ class TestRedirect:
             we_request.redirect(self.REDIRECT_URL)
         assert not we_request._webengine_info.redirect.called
 
-
-    def test_invalid_method_ignore_unsupported(self, we_request: interceptor.WebEngineRequest, caplog: pytest.LogCaptureFixture):
+    def test_invalid_method_ignore_unsupported(
+        self,
+        we_request: interceptor.WebEngineRequest,
+        caplog: pytest.LogCaptureFixture,
+    ):
         we_request._webengine_info.requestMethod.return_value = QByteArray(b"POST")
         we_request.redirect(self.REDIRECT_URL, ignore_unsupported=True)
         assert caplog.messages == [
@@ -100,7 +100,6 @@ class TestRedirect:
             "redirection."
         ]
         assert not we_request._webengine_info.redirect.called
-
 
     def test_improperly_initialized(self, we_request: interceptor.WebEngineRequest):
         we_request._webengine_info = None
@@ -115,6 +114,6 @@ class TestRedirect:
         assert not url.isValid()
         with pytest.raises(
             interceptors.RedirectException,
-            match=r"Redirect to invalid URL: PyQt6\.QtCore\.QUrl\(''\) is not valid",
+            match=r"Redirect to invalid URL: PyQt\d\.QtCore\.QUrl\(''\) is not valid",
         ):
             we_request.redirect(url)
