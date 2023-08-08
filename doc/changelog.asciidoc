@@ -202,12 +202,16 @@ Fixed
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.
 - Crash when the "herbe" notification presenter doesn't start correctly.
+- Crash when no notification server is installed/available.
 - Warning with recent versions of the "deadd" (aka "linux notification center") notification server.
 - Crash when using `:print --pdf` with a directory where its parent directory
   did not exist.
 - The `PyQt{5,6}.sip` version is now shown correctly in the :version|--version
   output. Previously that showed the version from the standalone `sip` module
   which was only set for PyQt5. (#7805)
+- When a `config.py` calls `.redirect()` via a request interceptor (which is
+  unsupported) and supplies an invalid redirect target URL, an exception is now
+  raised for the `.redirect()` call instead of later inside qutebrowser.
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)

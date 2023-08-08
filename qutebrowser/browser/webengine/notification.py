@@ -113,6 +113,9 @@ class DBusError(Error):
         # https://crashes.qutebrowser.org/view/de62220a
         # after "Notification daemon did quit!"
         "org.freedesktop.DBus.Error.UnknownObject",
+
+        # notmuch-sha1-ef7b6e9e79e5f2f6cba90224122288895c1fe0d8
+        "org.freedesktop.DBus.Error.ServiceUnknown",
     }
 
     def __init__(self, msg: QDBusMessage) -> None:
