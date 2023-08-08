@@ -10,7 +10,7 @@ from qutebrowser.qt.webenginecore import (QWebEngineUrlRequestInterceptor,
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
-from qutebrowser.utils import debug, log
+from qutebrowser.utils import debug, log, qtutils
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
 
@@ -34,6 +34,11 @@ class WebEngineRequest(interceptors.Request):
             raise interceptors.RedirectException("Request already redirected.")
         if self._webengine_info is None:
             raise interceptors.RedirectException("Request improperly initialized.")
+
+        try:
+            qtutils.ensure_valid(url)
+        except qtutils.QtValueError as e:
+            raise interceptors.RedirectException(f"Redirect to invalid URL: {e}")
 
         # Redirecting a request that contains payload data is not allowed.
         # To be safe, abort on any request not in a whitelist.
