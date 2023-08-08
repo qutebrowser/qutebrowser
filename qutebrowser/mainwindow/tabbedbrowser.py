@@ -316,6 +316,8 @@ class TabbedBrowser(QWidget):
         fields['id'] = self._win_id
 
         title = title_format.format(**fields)
+        # prevent hanging WMs and similar issues with giant URLs
+        title = utils.elide(title, 1024)
 
         self._window().setWindowTitle(title)
 
