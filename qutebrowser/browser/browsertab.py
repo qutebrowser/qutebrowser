@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message, jinja)
+                               urlutils, message, jinja, version)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
@@ -1168,6 +1168,23 @@ class AbstractTab(QWidget):
                                   navigation.url.toDisplayString(),
                                   navigation.url.errorString()))
             navigation.accepted = False
+
+        # WORKAROUND for QtWebEngine >= 6.3 not allowing form requests from
+        # qute:// to outside domains.
+        if (
+            self.url() == QUrl("qute://start/") and
+            navigation.navigation_type == navigation.Type.form_submitted and
+            navigation.url.matches(
+                QUrl(config.val.url.searchengines['DEFAULT']),
+                QUrl.UrlFormattingOption.RemoveQuery) and
+            objects.backend == usertypes.Backend.QtWebEngine and
+            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 3)
+        ):
+            log.webview.debug(
+                "Working around qute://start loading issue for "
+                f"{navigation.url.toDisplayString()}")
+            navigation.accepted = False
+            self.load_url(navigation.url)
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
