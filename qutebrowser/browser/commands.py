@@ -1250,6 +1250,7 @@ class CommandDispatcher:
             if name is not None:
                 raise cmdutils.CommandError("Cannot specify name and --all")
             quickmark_manager.clear()
+            message.info("Quickmarks cleared.")
             return
 
         if name is None:
@@ -1342,6 +1343,7 @@ class CommandDispatcher:
             if url is not None:
                 raise cmdutils.CommandError("Cannot specify url and --all")
             bookmark_manager.clear()
+            message.info("Bookmarks cleared.")
             return
 
         if url is None:

@@ -300,3 +300,14 @@ Feature: Special qute:// pages
     Scenario: Open qute://gpl
         When I open qute://gpl
         Then the page should contain the plaintext "GNU GENERAL PUBLIC LICENSE"
+
+    # qute://start
+
+    Scenario: Seaching on qute://start
+        When I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/title.html?q={}"}
+        And I open qute://start
+        And I run :click-element id search-field
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I press the keys "test"
+        And I press the key "<Enter>"
+        Then data/title.html?q=test should be loaded

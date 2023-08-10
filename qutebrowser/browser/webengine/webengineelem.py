@@ -214,7 +214,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         if baseurl.scheme() == url.scheme():  # e.g. a qute:// link
             return False
 
-        # Qt 6.3+ needs an user interaction to allow navigations from qute:// to
+        # Qt 6.3+ needs a user interaction to allow navigations from qute:// to
         # outside qute:// (like e.g. on qute://bookmarks).
         versions = version.qtwebengine_versions()
         if (

@@ -92,7 +92,8 @@ Feature: quickmarks and bookmarks
         And I open data/numbers/2.txt
         And I run :bookmark-add
         And I run :bookmark-del --all
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/1.txt"
+        Then the message "Bookmarks cleared." should be shown
+        And the bookmark file should not contain "http://localhost:*/data/numbers/1.txt"
         And the bookmark file should not contain "http://localhost:*/data/numbers/2.txt"
 
     Scenario: Deleting all bookmarks with url
@@ -230,7 +231,8 @@ Feature: quickmarks and bookmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/1.txt one
         When I run :quickmark-add http://localhost:(port)/data/numbers/2.txt two
         And I run :quickmark-del --all
-        Then the quickmark file should not contain "one http://localhost:*/data/numbers/1.txt"
+        Then the message "Quickmarks cleared." should be shown
+        And the quickmark file should not contain "one http://localhost:*/data/numbers/1.txt"
         And the quickmark file should not contain "two http://localhost:*/data/numbers/2.txt"
 
     Scenario: Deleting all quickmarks with name

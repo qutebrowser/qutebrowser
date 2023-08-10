@@ -1176,7 +1176,7 @@ class AbstractTab(QWidget):
             navigation.navigation_type == navigation.Type.form_submitted and
             navigation.url.matches(
                 QUrl(config.val.url.searchengines['DEFAULT']),
-                QUrl.UrlFormattingOption.RemoveQuery) and
+                urlutils.FormatOption.REMOVE_QUERY) and
             objects.backend == usertypes.Backend.QtWebEngine and
             version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 3)
         ):
