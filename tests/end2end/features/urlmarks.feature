@@ -262,3 +262,10 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-add
         And I open qute://bookmarks
         Then the page should contain the plaintext "Test title"
+
+    Scenario: Following a bookmark
+        When I open data/numbers/1.txt in a new tab
+        And I run :bookmark-add
+        And I open qute://bookmarks
+        And I hint with args "links current" and follow a
+        Then data/numbers/1.txt should be loaded
