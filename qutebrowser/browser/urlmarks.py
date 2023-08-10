@@ -98,6 +98,11 @@ class UrlMarkManager(QObject):
         del self.marks[key]
         self.changed.emit()
 
+    def clear(self):
+        """Delete all marks."""
+        self.marks.clear()
+        self.changed.emit()
+
 
 class QuickmarkManager(UrlMarkManager):
 
