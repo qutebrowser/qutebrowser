@@ -11,6 +11,7 @@ import re
 import html
 import enum
 import dataclasses
+from itertools import product
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
@@ -104,7 +105,7 @@ class HintLabel(QLabel):
             unmatched: The part of the text which was not typed yet.
         """
         if (config.cache['hints.uppercase'] and
-                self._context.hint_mode in ['letter', 'word']):
+                self._context.hint_mode in ['letter', 'word', 'context']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
         else:
@@ -393,6 +394,7 @@ class HintManager(QObject):
         self._win_id = win_id
         self._context: Optional[HintContext] = None
         self._word_hinter = WordHinter()
+        self._context_hinter = ContextHinter()
 
         self._actions = HintActions(win_id)
 
@@ -437,6 +439,12 @@ class HintManager(QObject):
         if hint_mode == 'word':
             try:
                 return self._word_hinter.hint(elems)
+            except HintingError as e:
+                message.error(str(e))
+                # falls back on letter hints
+        if hint_mode == 'context':
+            try:
+                return self._context_hinter.hint(elems, self._context)
             except HintingError as e:
                 message.error(str(e))
                 # falls back on letter hints
@@ -1155,4 +1163,233 @@ class WordHinter:
                 raise HintingError("Not enough words in the dictionary.")
             used_hints.add(hint)
             hints.append(hint)
+        return hints
+
+class ContextHinter(WordHinter):
+    def extract_tag_words(self, elem: webelem.AbstractWebElement) -> Iterator[str]:
+        """Extract tag words form the given element."""
+        _extractor_type = Callable[[webelem.AbstractWebElement], str]
+        attr_extractors: Mapping[str, _extractor_type] = {
+            "alt": lambda elem: elem["alt"],
+            "name": lambda elem: elem["name"],
+            "title": lambda elem: elem["title"],
+            "value": lambda elem: elem["value"],
+            "id": lambda elem: elem["id"],
+            "placeholder": lambda elem: elem["placeholder"],
+            "src": lambda elem: elem["src"].split("/")[-1],
+            "href": lambda elem: elem["href"].split("/")[-1],
+            "text": str,
+        }
+
+        extractable_attrs = collections.defaultdict(
+            list,
+            {
+                "img": ["alt", "title", "src"],
+                "a": ["title", "text", "href"],
+                "input": ["id", "value", "name", "placeholder"],
+                "textarea": ["name", "placeholder"],
+                "button": ["text"],
+            },
+        )
+
+        return (
+            attr_extractors[attr](elem)
+            for attr in extractable_attrs[elem.tag_name()]
+            if attr in elem or attr == "text"
+        )
+
+    def tag_words_to_hints(self, words: Iterable[str]) -> Iterator[str]:
+        """Take words and transform them to proper hints if possible."""
+        for candidate in words:
+            log.hints.debug("candidate: " + candidate)
+            if not candidate:
+                continue
+            candidate = candidate.lower()
+            candidate = re.sub("[^a-z ]", " ", candidate)
+            candidate = re.sub(" +", " ", candidate)
+            candidate = candidate.strip()
+            if len(candidate) >= 3:
+                yield candidate
+            else:
+                continue
+
+        yield ""
+
+    def _is_valid_hint(self, hint, existing_hints, hint_length):
+        if (
+            hint is None
+            or hint in existing_hints
+            or len(hint) != hint_length
+            or not hint
+        ):
+            return False
+        else:
+            return True
+
+    def create_hint_from_words(self, text, existing_words, hint_length):
+        max_iterations = 50
+        hint = ""
+        words = text.split()
+
+        for word in words[:hint_length]:
+            if self._is_valid_hint(word[:hint_length], existing_words, hint_length):
+                return word[:hint_length]
+
+        num_chars_of_other_word = 0
+        first_try_three_words = True
+        third_letter_pos = 2
+        second_letter_pos = 1
+        first_letter_pos = 0
+        iterations = 0
+
+        while (
+            not self._is_valid_hint(hint, existing_words, hint_length)
+            and iterations < max_iterations
+        ):
+            iterations += 1
+            if len(words) == 1:
+                hint = (
+                    words[0][first_letter_pos]
+                    + words[0][second_letter_pos]
+                    + words[0][third_letter_pos]
+                )
+                if third_letter_pos + 1 < len(words[0]):
+                    third_letter_pos += 1
+                elif second_letter_pos + 2 < len(words[0]):
+                    second_letter_pos += 1
+                    third_letter_pos = second_letter_pos + 1
+                elif first_letter_pos + 3 < len(words[0]):
+                    first_letter_pos += 1
+                    second_letter_pos = first_letter_pos + 1
+                    third_letter_pos = second_letter_pos + 1
+                else:
+                    hint = ""
+
+            elif len(words) == 2:
+                hint = (
+                    words[0][: hint_length - num_chars_of_other_word]
+                    + words[1][:num_chars_of_other_word]
+                )
+                num_chars_of_other_word += 1
+            elif len(words) > 2:
+                if first_try_three_words:
+                    hint = words[0][0] + words[1][0] + words[2][0]
+                    first_try_three_words = False
+                else:
+                    hint = (
+                        words[0][: hint_length - num_chars_of_other_word]
+                        + words[1][:num_chars_of_other_word]
+                    )
+                num_chars_of_other_word += 1
+
+        return hint
+
+    def create_hint(self, text, existing_words=[], hint_length=3):
+        log.hints.debug("text = " + text)
+
+        hint = ""
+
+        if len(re.sub(" ", "", text)) >= hint_length:
+            hint = self.create_hint_from_words(text, existing_words, hint_length)
+            log.hints.debug("created hint: " + str(hint))
+
+        if not self._is_valid_hint(hint, existing_words, hint_length):
+            if hint is None:
+                hint = ""
+
+            # chars = config.val.hints.chars
+            # min_chars = config.val.hints.min_chars
+            possible_hints = product("abcdefghijklmnopqrstxvwxyz", repeat=hint_length)
+
+            for possibility in possible_hints:
+                tmp_hint = ''.join(reversed(possibility))
+                log.hints.debug("product tmp_hint = " + tmp_hint)
+                if self._is_valid_hint(tmp_hint, existing_words, hint_length):
+                    log.hints.debug("resulting hint = " + tmp_hint)
+                    return tmp_hint
+
+        log.hints.debug("resulting hint = " + str(hint))
+        return hint
+
+    def filter_doubles(
+        self, hints: Iterable[str], existing: Iterable[str]
+    ) -> Iterator[str]:
+        for h in hints:
+            log.hints.debug("filtering: " + h)
+            hint = self.create_hint(h, existing)
+            yield hint
+        yield "no hint found"
+
+    def new_hint_for(
+        self, elem: webelem.AbstractWebElement, existing: {}, context
+    ) -> Optional[str]:
+        """Return a hint for elem, not conflicting with the existing."""
+        url = elem.resolve_url(context.baseurl)
+
+        if url is not None:
+            url = url.toString()
+            # if url in existing.keys():
+            # print("found url: " + url)
+            # return existing[url], url
+        else:
+            url = ""
+
+        existing_hints = list(existing.values())
+        new = self.tag_words_to_hints(self.extract_tag_words(elem))
+        newer = self.filter_doubles(new, existing_hints)
+
+        t = next(newer, None)
+        if t is not None:
+            if not t:
+                log.hints.debug("Empty string as hint :" + str(elem))
+                return "empty string"
+        else:
+            log.hints.debug("Hint was None: " + str(elem))
+            return "Hint was None"
+
+        log.hints.debug("elem: " + str(elem.tag_name()) + " hint: " + t)
+        return t
+
+    def hint(self, elems: _ElemsType, context) -> _HintStringsType:
+        """Produce hint labels based on the html tags.
+
+        Produce hint words based on the link text and random words
+        from the words arg as fallback.
+
+        Args:
+            elems: The elements to get hint strings for.
+
+        Return:
+            A list of hint strings, in the same order as the elements.
+        """
+        hints = [""] * len(elems)
+        used_hints = {}  # dict of url, hint
+        elem_order = ["textarea", "button", "a", "input", "img"]
+        # log.hints.debug(elems)
+        for elem in elems:
+            if elem.tag_name() not in elem_order:
+                elem_order.append(elem.tag_name())
+
+        for tag in elem_order:
+            for index in range(len(elems)):
+                if elems[index].tag_name() == tag:
+                    hint = self.new_hint_for(elems[index], used_hints, context)
+                    if not hint:
+                        raise HintingError("No hint found. Weird")
+                    used_hints[index] = hint
+                    hints[index] = hint
+
+        t = set()
+        for elem in elems:
+            t.add(elem.tag_name())
+
+        log.hints.debug("all tags: " + " ".join(t))
+        log.hints.debug("tag order: " + " ".join(elem_order))
+        log.hints.debug("Resulting hints: " + " ".join(hints))
+        log.hints.debug("Used hints: " + " ".join(used_hints.values()))
+        # log.hints.debug(elems)
+        if None in hints:
+            log.hints.debug("None exists")
+        log.hints.debug(len(elems))
+        log.hints.debug(len(hints))
         return hints
