@@ -4,11 +4,20 @@
 
 import os.path
 
+import pytest
 import pytest_bdd as bdd
 
 from helpers import testutils
 
 bdd.scenarios('urlmarks.feature')
+
+
+@pytest.fixture(autouse=True)
+def clear_marks(quteproc):
+    """Clear all existing marks between tests."""
+    yield
+    quteproc.send_cmd(':quickmark-del --all')
+    quteproc.send_cmd(':bookmark-del --all')
 
 
 def _check_marks(quteproc, quickmarks, expected, contains):

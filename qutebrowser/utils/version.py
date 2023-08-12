@@ -381,7 +381,6 @@ class ModuleInfo:
 
 def _create_module_info() -> Dict[str, ModuleInfo]:
     packages = [
-        ('sip', ['SIP_VERSION_STR']),
         ('colorama', ['VERSION', '__version__']),
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
@@ -395,9 +394,13 @@ def _create_module_info() -> Dict[str, ModuleInfo]:
             ('PyQt5.QtWebEngineWidgets', []),
             ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
             ('PyQt5.QtWebKitWidgets', []),
+            ('PyQt5.sip', ['SIP_VERSION_STR']),
         ]
     elif machinery.IS_QT6:
-        packages.append(('PyQt6.QtWebEngineCore', ['PYQT_WEBENGINE_VERSION_STR']))
+        packages += [
+            ('PyQt6.QtWebEngineCore', ['PYQT_WEBENGINE_VERSION_STR']),
+            ('PyQt6.sip', ['SIP_VERSION_STR']),
+        ]
     else:
         raise utils.Unreachable()
 

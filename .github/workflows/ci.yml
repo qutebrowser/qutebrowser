@@ -33,6 +33,7 @@ jobs:
             args: "-f gcc"  # For problem matchers
           - testenv: yamllint
           - testenv: actionlint
+          - testenv: package
     steps:
       - uses: actions/checkout@v3
         with:

@@ -937,6 +937,7 @@ def test_restart(request, quteproc_new):
         # If the new process hangs, this will hang too.
         # Still better than just ignoring it, so we can fix it if something is broken.
         os.waitpid(pid, 0)  # pid, options... positional-only :(
-    except ChildProcessError:
-        # Already gone
+    except (ChildProcessError, PermissionError):
+        # Already gone. Even if not documented, Windows seems to raise PermissionError
+        # here...
         pass

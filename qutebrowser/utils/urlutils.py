@@ -39,6 +39,7 @@ if machinery.IS_QT6:
 
         REMOVE_SCHEME = QUrl.UrlFormattingOption.RemoveScheme
         REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
+        REMOVE_QUERY = QUrl.UrlFormattingOption.RemoveQuery
 else:
     UrlFlagsType = Union[
         QUrl.FormattingOptions,
@@ -74,6 +75,8 @@ else:
             _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveScheme)
         REMOVE_PASSWORD = cast(
             _QtFormattingOptions, QUrl.UrlFormattingOption.RemovePassword)
+        REMOVE_QUERY = cast(
+            _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveQuery)
 
 
 # URL schemes supported by QtWebEngine

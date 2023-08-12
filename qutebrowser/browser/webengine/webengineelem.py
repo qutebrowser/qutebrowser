@@ -11,7 +11,7 @@ from qutebrowser.qt.core import QRect, QEventLoop
 from qutebrowser.qt.widgets import QApplication
 from qutebrowser.qt.webenginecore import QWebEngineSettings
 
-from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
+from qutebrowser.utils import log, javascript, urlutils, usertypes, utils, version
 from qutebrowser.browser import webelem
 
 if TYPE_CHECKING:
@@ -213,6 +213,17 @@ class WebEngineElement(webelem.AbstractWebElement):
             return True
         if baseurl.scheme() == url.scheme():  # e.g. a qute:// link
             return False
+
+        # Qt 6.3+ needs a user interaction to allow navigations from qute:// to
+        # outside qute:// (like e.g. on qute://bookmarks).
+        versions = version.qtwebengine_versions()
+        if (
+            baseurl.scheme() == "qute" and
+            url.scheme() != "qute" and
+            versions.webengine >= utils.VersionNumber(6, 3)
+        ):
+            return True
+
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:

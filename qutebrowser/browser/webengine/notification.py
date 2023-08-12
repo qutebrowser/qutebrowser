@@ -113,6 +113,9 @@ class DBusError(Error):
         # https://crashes.qutebrowser.org/view/de62220a
         # after "Notification daemon did quit!"
         "org.freedesktop.DBus.Error.UnknownObject",
+
+        # notmuch-sha1-ef7b6e9e79e5f2f6cba90224122288895c1fe0d8
+        "org.freedesktop.DBus.Error.ServiceUnknown",
     }
 
     def __init__(self, msg: QDBusMessage) -> None:
@@ -856,12 +859,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
 
-        expected_spec_version = self._quirks.spec_version or self.SPEC_VERSION
-        if spec_version != expected_spec_version:
+        expected_spec_versions = [self.SPEC_VERSION]
+        if self._quirks.spec_version is not None:
+            expected_spec_versions.append(self._quirks.spec_version)
+
+        if spec_version not in expected_spec_versions:
             log.misc.warning(
                 f"Notification server ({name} {ver} by {vendor}) implements "
-                f"spec {spec_version}, but {expected_spec_version} was expected. "
-                f"If {name} is up to date, please report a qutebrowser bug.")
+                f"spec {spec_version}, but {'/'.join(expected_spec_versions)} was "
+                f"expected. If {name} is up to date, please report a qutebrowser bug.")
 
         # https://specifications.freedesktop.org/notification-spec/latest/ar01s08.html
         icon_key_overrides = {

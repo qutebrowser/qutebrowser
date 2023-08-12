@@ -1235,21 +1235,31 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('name', completion=miscmodels.quickmark)
-    def quickmark_del(self, name=None):
+    def quickmark_del(self, name=None, all_=False):
         """Delete a quickmark.
 
         Args:
             name: The name of the quickmark to delete. If not given, delete the
                   quickmark for the current page (choosing one arbitrarily
                   if there are more than one).
+            all_: Delete all quickmarks.
         """
         quickmark_manager = objreg.get('quickmark-manager')
+
+        if all_:
+            if name is not None:
+                raise cmdutils.CommandError("Cannot specify name and --all")
+            quickmark_manager.clear()
+            message.info("Quickmarks cleared.")
+            return
+
         if name is None:
             url = self._current_url()
             try:
                 name = quickmark_manager.get_by_qurl(url)
             except urlmarks.DoesNotExistError as e:
                 raise cmdutils.CommandError(str(e))
+
         try:
             quickmark_manager.delete(name)
         except KeyError:
@@ -1320,18 +1330,28 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('url', completion=miscmodels.bookmark)
-    def bookmark_del(self, url=None):
+    def bookmark_del(self, url=None, all_=False):
         """Delete a bookmark.
 
         Args:
             url: The url of the bookmark to delete. If not given, use the
                  current page's url.
+            all_: If given, delete all bookmarks.
         """
+        bookmark_manager = objreg.get('bookmark-manager')
+        if all_:
+            if url is not None:
+                raise cmdutils.CommandError("Cannot specify url and --all")
+            bookmark_manager.clear()
+            message.info("Bookmarks cleared.")
+            return
+
         if url is None:
             url = self._current_url().toString(QUrl.UrlFormattingOption.RemovePassword |
                                                QUrl.ComponentFormattingOption.FullyEncoded)
+
         try:
-            objreg.get('bookmark-manager').delete(url)
+            bookmark_manager.delete(url)
         except KeyError:
             raise cmdutils.CommandError("Bookmark '{}' not found!".format(url))
         message.info("Removed bookmark {}".format(url))

@@ -6,7 +6,7 @@ charset-normalizer==3.2.0
 docutils==0.20.1
 idna==3.4
 packaging==23.1
-Pygments==2.15.1
+Pygments==2.16.1
 pyproject_hooks==1.0.0
 pyroma==4.2
 requests==2.31.0

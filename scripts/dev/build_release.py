@@ -282,7 +282,7 @@ def build_mac(
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
-    call_tox(f'pyinstaller-64bit{"-qt5" if qt5 else ""}', '-r', debug=debug)
+    call_tox(f'pyinstaller{"-qt5" if qt5 else ""}', '-r', debug=debug)
     utils.print_title("Verifying .app")
     verify_mac_app()
 
@@ -328,18 +328,14 @@ def build_mac(
     ]
 
 
-def _get_windows_python_path(x64: bool) -> pathlib.Path:
+def _get_windows_python_path() -> pathlib.Path:
     """Get the path to Python.exe on Windows."""
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dot_ver = '.'.join(parts)
 
-    if x64:
-        path = rf'SOFTWARE\Python\PythonCore\{dot_ver}\InstallPath'
-        fallback = pathlib.Path('C:', f'Python{ver}', 'python.exe')
-    else:
-        path = rf'SOFTWARE\WOW6432Node\Python\PythonCore\{dot_ver}-32\InstallPath'
-        fallback = pathlib.Path('C:', f'Python{ver}-32', 'python.exe')
+    path = rf'SOFTWARE\Python\PythonCore\{dot_ver}\InstallPath'
+    fallback = pathlib.Path('C:', f'Python{ver}', 'python.exe')
 
     try:
         key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, path)
@@ -349,47 +345,39 @@ def _get_windows_python_path(x64: bool) -> pathlib.Path:
 
 
 def _build_windows_single(
-    *, x64: bool,
+    *,
     qt5: bool,
     skip_packaging: bool,
     debug: bool,
 ) -> List[Artifact]:
-    """Build on Windows for a single architecture."""
-    human_arch = '64-bit' if x64 else '32-bit'
-    utils.print_title(f"Running pyinstaller {human_arch}")
+    """Build on Windows for a single build type."""
+    utils.print_title("Running pyinstaller")
     dist_path = pathlib.Path("dist")
 
-    arch = "x64" if x64 else "x86"
-    out_path = dist_path / f'qutebrowser-{qutebrowser.__version__}-{arch}'
+    out_path = dist_path / f'qutebrowser-{qutebrowser.__version__}'
     _maybe_remove(out_path)
 
-    python = _get_windows_python_path(x64=x64)
-    suffix = "64bit" if x64 else "32bit"
-    if qt5:
-        # FIXME:qt6 does this regress 391623d5ec983ecfc4512c7305c4b7a293ac3872?
-        suffix += "-qt5"
-    call_tox(f'pyinstaller-{suffix}', '-r', python=python, debug=debug)
+    python = _get_windows_python_path()
+    # FIXME:qt6 does this regress 391623d5ec983ecfc4512c7305c4b7a293ac3872?
+    suffix = "-qt5" if qt5 else ""
+    call_tox(f'pyinstaller{suffix}', '-r', python=python, debug=debug)
 
     out_pyinstaller = dist_path / "qutebrowser"
     shutil.move(out_pyinstaller, out_path)
     exe_path = out_path / 'qutebrowser.exe'
 
-    utils.print_title(f"Verifying {human_arch} exe")
+    utils.print_title("Verifying exe")
     verify_windows_exe(exe_path)
 
-    utils.print_title(f"Running {human_arch} smoke test")
+    utils.print_title("Running smoke test")
     smoke_test(exe_path, debug=debug, qt5=qt5)
 
     if skip_packaging:
         return []
 
-    utils.print_title(f"Packaging {human_arch}")
+    utils.print_title("Packaging")
     return _package_windows_single(
-        nsis_flags=[] if x64 else ['/DX86'],
         out_path=out_path,
-        filename_arch='amd64' if x64 else 'win32',
-        desc_arch=human_arch,
-        desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
         debug=debug,
         qt5=qt5,
     )
@@ -398,8 +386,6 @@ def _build_windows_single(
 def build_windows(
     *, gh_token: str,
     skip_packaging: bool,
-    only_32bit: bool,
-    only_64bit: bool,
     qt5: bool,
     debug: bool,
 ) -> List[Artifact]:
@@ -410,37 +396,23 @@ def build_windows(
 
     utils.print_title("Building Windows binaries")
 
-    artifacts = []
-
     from scripts.dev import gen_versioninfo
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    if not only_32bit:
-        artifacts += _build_windows_single(
-            x64=True,
+    artifacts = [
+        _build_windows_single(
             skip_packaging=skip_packaging,
             debug=debug,
             qt5=qt5,
-        )
-    if not only_64bit and qt5:
-        artifacts += _build_windows_single(
-            x64=False,
-            skip_packaging=skip_packaging,
-            debug=debug,
-            qt5=qt5,
-        )
-
+        ),
+    ]
     return artifacts
 
 
 def _package_windows_single(
     *,
-    nsis_flags: List[str],
     out_path: pathlib.Path,
-    desc_arch: str,
-    desc_suffix: str,
-    filename_arch: str,
     debug: bool,
     qt5: bool,
 ) -> List[Artifact]:
@@ -448,15 +420,14 @@ def _package_windows_single(
     artifacts = []
 
     dist_path = pathlib.Path("dist")
-    utils.print_subtitle(f"Building {desc_arch} installer...")
+    utils.print_subtitle("Building installer...")
     subprocess.run(['makensis.exe',
-                    f'/DVERSION={qutebrowser.__version__}', *nsis_flags,
+                    f'/DVERSION={qutebrowser.__version__}',
                     'misc/nsis/qutebrowser.nsi'], check=True)
 
     name_parts = [
         'qutebrowser',
         str(qutebrowser.__version__),
-        filename_arch,
     ]
     if debug:
         name_parts.append('debug')
@@ -467,16 +438,15 @@ def _package_windows_single(
     artifacts.append(Artifact(
         path=dist_path / name,
         mimetype='application/vnd.microsoft.portable-executable',
-        description=f'Windows {desc_arch} installer{desc_suffix}',
+        description='Windows installer',
     ))
 
-    utils.print_subtitle(f"Zipping {desc_arch} standalone...")
+    utils.print_subtitle("Zipping standalone...")
     zip_name_parts = [
         'qutebrowser',
         str(qutebrowser.__version__),
         'windows',
         'standalone',
-        filename_arch,
     ]
     if debug:
         zip_name_parts.append('debug')
@@ -489,7 +459,7 @@ def _package_windows_single(
     artifacts.append(Artifact(
         path=zip_path,
         mimetype='application/zip',
-        description=f'Windows {desc_arch} standalone{desc_suffix}',
+        description='Windows standalone',
     ))
 
     return artifacts
@@ -660,10 +630,6 @@ def main() -> None:
                         help="Skip confirmation before uploading.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
                         help="Skip Windows installer/zip generation or macOS DMG.")
-    parser.add_argument('--32bit', action='store_true', required=False,
-                        help="Skip Windows 64 bit build.", dest='only_32bit')
-    parser.add_argument('--64bit', action='store_true', required=False,
-                        help="Skip Windows 32 bit build.", dest='only_64bit')
     parser.add_argument('--debug', action='store_true', required=False,
                         help="Build a debug build.")
     parser.add_argument('--qt5', action='store_true', required=False,
@@ -694,8 +660,6 @@ def main() -> None:
         artifacts = build_windows(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
-            only_32bit=args.only_32bit,
-            only_64bit=args.only_64bit,
             qt5=args.qt5,
             debug=args.debug,
         )

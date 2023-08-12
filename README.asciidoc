@@ -220,6 +220,7 @@ Active
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebEngine or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution in 2019] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
+* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium]
 * Firefox addons (based on WebExtensions):
@@ -227,9 +228,8 @@ Active
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF]
 * Addons for Firefox and Chrome:
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
-* Addons for Safari:
-  https://televator.net/vimari/[Vimari]
+  https://lydell.github.io/LinkHints/[Link Hints] (hinting only),
+  https://github.com/ueokande/vimmatic[Vimmatic]
 
 Inactive
 ~~~~~~~~
@@ -246,7 +246,6 @@ main inspiration for qutebrowser)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
 * https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
-* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
@@ -263,6 +262,8 @@ main inspiration for qutebrowser)
   https://github.com/1995eaton/chromium-vim[cVim],
   https://github.com/dcchambers/vb4c[vb4c] (fork of cVim, https://github.com/dcchambers/vb4c/issues/23#issuecomment-810694017[unmaintained]),
   https://glee.github.io/[GleeBox]
+* Addons for Safari:
+  https://televator.net/vimari/[Vimari]
 
 License
 -------
