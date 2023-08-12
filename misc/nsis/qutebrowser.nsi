@@ -124,11 +124,11 @@ ShowUninstDetails hide
 
 ; If not defined, get VERSION from PROGEXE. Set DIST_DIR accordingly.
 !ifndef VERSION
-  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${ARCH}"
+  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}"
   !getdllversion "${DIST_DIR}\${PROGEXE}" expv_
   !define VERSION "${expv_1}.${expv_2}.${expv_3}"
 !else
-  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}-${ARCH}"
+  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}"
 !endif
 
 ; If not defined, assume Qt6 (requires a more recent windows version)
