@@ -101,7 +101,7 @@ class _CmdHandlerType(Protocol):
     Below, we cast the decorated function to _CmdHandlerType to make mypy aware of this.
     """
 
-    qute_args: Optional[Dict[str, command.ArgInfo]]
+    qute_args: Optional[Dict[str, 'command.ArgInfo']]
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         ...
