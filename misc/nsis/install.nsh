@@ -442,14 +442,14 @@ Function .onInit
     GetWinVer $R1 Build
     ${If} $R1 >= 22000 ; Windows 11 21H2
       Goto _os_check_pass
-    ${ElseIf} $R1 >= 17763 ; Windows 10 1809
+    ${ElseIf} $R1 >= 14393 ; Windows 10 1607
     ${AndIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
       Goto _os_check_pass
     ${EndIf}
   ${EndIf}
   _os_check_fail:
   MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
-    version of Windows 10 1809 or later."
+    version of Windows 10 1607 or later."
   Abort
   _os_check_pass:
 

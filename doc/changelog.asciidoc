@@ -88,7 +88,7 @@ Removed
   * Qt 6.4 was the latest version to support macOS 10.14 and 10.15.
   * It should be possible to build a custom .dmg with Qt 6.4, but this is
     unsupported and not recommended.
-- Support for Windows 8 and for Windows 10 before 1809 is now dropped.
+- Support for Windows 8 and for Windows 10 before 1607 is now dropped.
   * Support for older Windows 10 versions might still be present in Qt 6.0/6.1/6.2
   * Support for Windows 8.1 is still present in Qt 5.15
   * It should be possible to build a custom .exe with those versions, but this
