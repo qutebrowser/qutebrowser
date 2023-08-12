@@ -430,8 +430,29 @@ SectionEnd
 ; Callbacks
 Function .onInit
   StrCpy $KeepReg 1
-  !insertmacro CheckPlatform ${PLATFORM}
-  !insertmacro CheckMinWinVer ${MIN_WIN_VER}
+
+; OS version check
+  ${If} ${QT5} == "True"
+    !insertmacro CheckPlatform ${PLATFORM}
+    !insertmacro CheckMinWinVer ${MIN_WIN_VER}
+    Goto _os_check_pass
+  ${ElseIf} ${RunningX64}
+    GetWinVer $R0 Major
+    IntCmpU $R0 10 0 _os_check_fail _os_check_pass
+    GetWinVer $R1 Build
+    ${If} $R1 >= 22000 ; Windows 11 21H2
+      Goto _os_check_pass
+    ${ElseIf} $R1 >= 17763 ; Windows 10 1809
+    ${AndIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
+      Goto _os_check_pass
+    ${EndIf}
+  ${EndIf}
+  _os_check_fail:
+  MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
+    version of Windows 10 1809 or later."
+  Abort
+  _os_check_pass:
+
   ${ifnot} ${UAC_IsInnerInstance}
     !insertmacro CheckSingleInstance "Setup" "Global" "${SETUP_MUTEX}"
     !insertmacro CheckSingleInstance "Application" "Local" "${APP_MUTEX}"

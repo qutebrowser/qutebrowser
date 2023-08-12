@@ -131,6 +131,9 @@ ShowUninstDetails hide
   !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}-${ARCH}"
 !endif
 
+; If not defined, assume Qt6 (requires a more recent windows version)
+!define /ifndef QT5 "False"
+
 ; Pack the exe header with upx if UPX is defined.
 !ifdef UPX
   !packhdr "$%TEMP%\exehead.tmp" '"upx" "--ultra-brute" "$%TEMP%\exehead.tmp"'

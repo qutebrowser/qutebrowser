@@ -423,6 +423,7 @@ def _package_windows_single(
     utils.print_subtitle("Building installer...")
     subprocess.run(['makensis.exe',
                     f'/DVERSION={qutebrowser.__version__}',
+                    f'/DQT5={qt5}',
                     'misc/nsis/qutebrowser.nsi'], check=True)
 
     name_parts = [
