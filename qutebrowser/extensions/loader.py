@@ -6,12 +6,11 @@
 
 import pkgutil
 import types
-import sys
 import pathlib
 import importlib
 import argparse
 import dataclasses
-from typing import Callable, Iterator, List, Optional, Set, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple
 
 from qutebrowser.qt.core import pyqtSlot
 
@@ -80,14 +79,6 @@ def load_components(*, skip_hooks: bool = False) -> None:
 
 def walk_components() -> Iterator[ExtensionInfo]:
     """Yield ExtensionInfo objects for all modules."""
-    if hasattr(sys, 'frozen'):
-        yield from _walk_pyinstaller()
-    else:
-        yield from _walk_normal()
-
-
-def _walk_normal() -> Iterator[ExtensionInfo]:
-    """Walk extensions when not using PyInstaller."""
     for _finder, name, ispkg in pkgutil.walk_packages(
             path=components.__path__,
             prefix=components.__name__ + '.',
@@ -100,23 +91,6 @@ def _walk_normal() -> Iterator[ExtensionInfo]:
             log.extensions.debug("Ignoring stale 'adblock' component")
             continue
         yield ExtensionInfo(name=name)
-
-
-def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
-    """Walk extensions when using PyInstaller.
-
-    See https://github.com/pyinstaller/pyinstaller/issues/1905
-
-    Inspired by:
-    https://github.com/webcomics/dosage/blob/master/dosagelib/loader.py
-    """
-    toc: Set[str] = set()
-    for importer in pkgutil.iter_importers('qutebrowser'):
-        if hasattr(importer, 'toc'):
-            toc |= importer.toc
-    for name in toc:
-        if name.startswith(components.__name__ + '.'):
-            yield ExtensionInfo(name=name)
 
 
 def _get_init_context() -> InitContext:
