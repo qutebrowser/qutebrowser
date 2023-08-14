@@ -1169,7 +1169,7 @@ class AbstractTab(QWidget):
                                   navigation.url.errorString()))
             navigation.accepted = False
 
-        # WORKAROUND for QtWebEngine >= 6.3 not allowing form requests from
+        # WORKAROUND for QtWebEngine >= 6.2 not allowing form requests from
         # qute:// to outside domains.
         if (
             self.url() == QUrl("qute://start/") and
@@ -1178,7 +1178,7 @@ class AbstractTab(QWidget):
                 QUrl(config.val.url.searchengines['DEFAULT']),
                 urlutils.FormatOption.REMOVE_QUERY) and
             objects.backend == usertypes.Backend.QtWebEngine and
-            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 3)
+            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
         ):
             log.webview.debug(
                 "Working around qute://start loading issue for "
