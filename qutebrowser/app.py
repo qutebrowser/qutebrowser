@@ -346,15 +346,6 @@ def _open_special_pages(args):
          True,
          'qute://warning/sessions'),
 
-        ('sandboxing-warning-shown',
-         (
-             hasattr(sys, "frozen") and
-             utils.is_mac and
-             machinery.IS_QT6 and
-             os.environ.get("QTWEBENGINE_DISABLE_SANDBOX") == "1"
-         ),
-         'qute://warning/sandboxing'),
-
         ('qt5-warning-shown',
          (
              machinery.IS_QT5 and

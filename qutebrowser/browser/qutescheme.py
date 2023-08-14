@@ -568,9 +568,6 @@ def qute_warning(url: QUrl) -> _HandlerRet:
                            title='Qt 5.15 sessions warning',
                            datadir=standarddir.data(),
                            sep=os.sep)
-    elif path == '/sandboxing':
-        src = jinja.render('warning-sandboxing.html',
-                           title='Qt 6 macOS sandboxing warning')
     elif path == '/qt5':
         is_venv = hasattr(sys, 'real_prefix') or sys.base_prefix != sys.prefix
         src = jinja.render('warning-qt5.html',

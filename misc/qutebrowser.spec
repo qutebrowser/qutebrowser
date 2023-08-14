@@ -64,17 +64,17 @@ INFO_PLIST_UPDATES = {
 
 def get_data_files():
     data_files = [
-        ('../qutebrowser/html', 'html'),
-        ('../qutebrowser/img', 'img'),
-        ('../qutebrowser/icons', 'icons'),
-        ('../qutebrowser/javascript', 'javascript'),
-        ('../qutebrowser/html/doc', 'html/doc'),
-        ('../qutebrowser/git-commit-id', '.'),
-        ('../qutebrowser/config/configdata.yml', 'config'),
+        ('../qutebrowser/html', 'qutebrowser/html'),
+        ('../qutebrowser/img', 'qutebrowser/img'),
+        ('../qutebrowser/icons', 'qutebrowser/icons'),
+        ('../qutebrowser/javascript', 'qutebrowser/javascript'),
+        ('../qutebrowser/html/doc', 'qutebrowser/html/doc'),
+        ('../qutebrowser/git-commit-id', 'qutebrowser/git-commit-id'),
+        ('../qutebrowser/config/configdata.yml', 'qutebrowser/config'),
     ]
 
     if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
-        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+        data_files.append(('../qutebrowser/3rdparty/pdfjs', 'qutebrowser/3rdparty/pdfjs'))
     else:
         print("Warning: excluding pdfjs as it's not present!")
 
@@ -137,5 +137,4 @@ app = BUNDLE(coll,
              name='qutebrowser.app',
              icon=icon,
              info_plist=INFO_PLIST_UPDATES,
-             # https://github.com/pyinstaller/pyinstaller/blob/b78bfe530cdc2904f65ce098bdf2de08c9037abb/PyInstaller/hooks/hook-PyQt5.QtWebEngineWidgets.py#L24
-             bundle_identifier='org.qt-project.Qt.QtWebEngineCore')
+             bundle_identifier='org.qutebrowser.qutebrowser')
