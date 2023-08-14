@@ -57,7 +57,7 @@ def is_ignored_lowlevel_message(message):
         # 'style-src' was not explicitly set, so 'default-src' is used as a
         # fallback.
         # INVALID: ", source: userscript:_qute_stylesheet (65)
-        '", source: userscript:_qute_stylesheet (65)',
+        '", source: userscript:_qute_stylesheet (*)',
 
         # Randomly started showing up on Qt 5.15.2
         'QPaintDevice: Cannot destroy paint device that is being painted',
