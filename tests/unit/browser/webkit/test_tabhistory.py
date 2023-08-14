@@ -18,6 +18,8 @@ from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
+tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
+
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 

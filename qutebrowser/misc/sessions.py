@@ -12,18 +12,19 @@ import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
-from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
+from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime, pyqtSlot
 import yaml
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils, usertypes)
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.qt import sip
 from qutebrowser.misc import objects, throttle
-
+from qutebrowser.qt import sip
+from qutebrowser.utils import log, message, objreg, qtutils, standarddir, usertypes, utils, version
 
 _JsonType = MutableMapping[str, Any]
 
@@ -90,37 +91,6 @@ class SessionNotFoundError(SessionError):
     """Exception raised when a session to be loaded was not found."""
 
 
-class TabHistoryItem:
-
-    """A single item in the tab history.
-
-    Attributes:
-        url: The QUrl of this item.
-        original_url: The QUrl of this item which was originally requested.
-        title: The title as string of this item.
-        active: Whether this item is the item currently navigated to.
-        user_data: The user data for this item.
-    """
-
-    def __init__(self, url, title, *, original_url=None, active=False,
-                 user_data=None, last_visited=None):
-        self.url = url
-        if original_url is None:
-            self.original_url = url
-        else:
-            self.original_url = original_url
-        self.title = title
-        self.active = active
-        self.user_data = user_data
-        self.last_visited = last_visited
-
-    def __repr__(self):
-        return utils.get_repr(self, constructor=True, url=self.url,
-                              original_url=self.original_url, title=self.title,
-                              active=self.active, user_data=self.user_data,
-                              last_visited=self.last_visited)
-
-
 class SessionManager(QObject):
 
     """Manager for sessions.
@@ -175,37 +145,33 @@ class SessionManager(QObject):
         Args:
             tab: The tab to save.
             idx: The index of the current history item.
-            item: The history item.
+            item: The AbstractHistoryItem.
 
         Return:
             A dict with the saved data for this item.
         """
         data: _JsonType = {
-            'url': bytes(item.url().toEncoded()).decode('ascii'),
+            'url': bytes(item.url.toEncoded()).decode('ascii'),
         }
 
-        if item.title():
-            data['title'] = item.title()
+        if item.title:
+            data['title'] = item.title
         elif tab.history.current_idx() == idx:
             # https://github.com/qutebrowser/qutebrowser/issues/879
             data['title'] = tab.title()
         else:
             data['title'] = data['url']
 
-        if item.originalUrl() != item.url():
-            encoded = item.originalUrl().toEncoded()
+        if item.original_url != item.url:
+            encoded = item.original_url.toEncoded()
             data['original-url'] = bytes(encoded).decode('ascii')
 
         if tab.history.current_idx() == idx:
             data['active'] = True
 
-        try:
-            user_data = item.userData()
-        except AttributeError:
-            # QtWebEngine
-            user_data = None
+        user_data = item.user_data
 
-        data['last_visited'] = item.lastVisited().toString(Qt.DateFormat.ISODate)
+        data['last_visited'] = item.last_visited.toString(Qt.DateFormat.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -237,15 +203,9 @@ class SessionManager(QObject):
         history = tab.history if with_history else [tab.history.current_item()]
 
         for idx, item in enumerate(history):
-            qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
-            if item.url().scheme() == 'qute' and item.url().host() == 'back':
-                # don't add qute://back to the session file
-                if item_data.get('active', False) and data['history']:
-                    # mark entry before qute://back as active
-                    data['history'][-1]['active'] = True
-            else:
-                data['history'].append(item_data)
+            data['history'].append(item_data)
+
         return data
 
     def _save_all(self, *, only_window=None, with_private=False, with_history=True):
@@ -277,6 +237,7 @@ class SessionManager(QObject):
             win_data['tabs'] = []
             if tabbed_browser.is_private:
                 win_data['private'] = True
+
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active,
@@ -369,18 +330,7 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
-        lazy_load: MutableSequence[_JsonType] = []
-        # use len(data['history'])
-        # -> dropwhile empty if not session.lazy_session
-        lazy_index = len(data['history'])
-        gen = itertools.chain(
-            itertools.takewhile(lambda _: not lazy_load,
-                                enumerate(data['history'])),
-            enumerate(lazy_load),
-            itertools.dropwhile(lambda i: i[0] < lazy_index,
-                                enumerate(data['history'])))
-
-        for i, histentry in gen:
+        for histentry in data['history']:
             user_data = {}
 
             if 'zoom' in data:
@@ -404,20 +354,6 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
-            if (config.val.session.lazy_restore and
-                    histentry.get('active', False) and
-                    not histentry['url'].startswith('qute://back')):
-                # remove "active" mark and insert back page marked as active
-                lazy_index = i + 1
-                lazy_load.append({
-                    'title': histentry['title'],
-                    'url':
-                        'qute://back#' +
-                        urllib.parse.quote(histentry['title']),
-                    'active': True
-                })
-                histentry['active'] = False
-
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
 
@@ -435,16 +371,23 @@ class SessionManager(QObject):
             else:
                 last_visited = None
 
-            entry = TabHistoryItem(url=url, original_url=orig_url,
-                                   title=histentry['title'], active=active,
-                                   user_data=user_data,
-                                   last_visited=last_visited)
+            entry = new_tab.new_history_item(
+                url=url,
+                original_url=orig_url,
+                title=histentry['title'],
+                active=active,
+                user_data=user_data,
+                last_visited=last_visited,
+            )
+
             entries.append(entry)
+
             if active:
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.history.private_api.load_items(entries)
+            new_tab.history.load_items(entries,
+                                       lazy=not data.get('active', False))
         except ValueError as e:
             raise SessionError(e)
 
@@ -455,13 +398,22 @@ class SessionManager(QObject):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
+        new_tabs = []
         for i, tab in enumerate(win['tabs']):
             new_tab = tabbed_browser.tabopen(background=False)
+            new_tabs.append(new_tab)
             self._load_tab(new_tab, tab)
             if tab.get('active', False):
                 tab_to_focus = i
             if new_tab.data.pinned:
-                new_tab.set_pinned(True)
+                tabbed_browser.widget.set_tab_pinned(new_tab,
+                                                     new_tab.data.pinned)
+
+        for tab in new_tabs:
+            tab.load_on_focus = True
+            if not config.val.session.lazy_restore:
+                tab.history.load()
+
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
 
@@ -495,8 +447,7 @@ class SessionManager(QObject):
         for win in data['windows']:
             self._load_window(win)
 
-        if data['windows']:
-            self.did_load = True
+        self.did_load = bool(data['windows'])
         if not name.startswith('_') and not temp:
             self.current = name
 

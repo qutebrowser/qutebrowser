@@ -204,6 +204,11 @@ class FakeWebTabScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
 
+class FakeWebTabHistoryPrivate(browsertab.AbstractHistoryPrivate):
+    def load_items(self, items):
+        pass
+
+
 class FakeWebTabHistory(browsertab.AbstractHistory):
 
     """Fake for Web{Kit,Engine}History."""
@@ -212,6 +217,7 @@ class FakeWebTabHistory(browsertab.AbstractHistory):
         super().__init__(tab)
         self._can_go_back = can_go_back
         self._can_go_forward = can_go_forward
+        self.private_api = FakeWebTabHistoryPrivate()
 
     def can_go_back(self):
         assert self._can_go_back is not None

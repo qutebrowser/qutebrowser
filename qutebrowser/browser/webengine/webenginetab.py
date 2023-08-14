@@ -9,6 +9,7 @@ import functools
 import dataclasses
 import re
 import html as html_utils
+import urllib.parse
 from typing import cast, Union, Optional
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
@@ -22,7 +23,8 @@ from qutebrowser.browser import browsertab, eventfilter, shared, webelem, grease
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror,
                                            webengineinspector)
-
+from qutebrowser.browser.webengine.webview import WebEngineView
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version, urlutils)
 from qutebrowser.qt import sip, machinery
@@ -604,6 +606,27 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._at_bottom
 
 
+class WebEngineHistoryItem(browsertab.AbstractHistoryItem):
+    """History item data derived from QWebEngineHistoryItem."""
+
+    @classmethod
+    def from_qt(cls, qt_item, active=False):
+        """Construct a WebEngineHistoryItem from a Qt history item.
+
+        Args:
+            qt_item: a QWebEngineHistoryItem
+        """
+        qtutils.ensure_valid(qt_item)
+
+        return cls(
+            qt_item.url(),
+            qt_item.title(),
+            original_url=qt_item.originalUrl(),
+            last_visited=qt_item.lastVisited(),
+            active=active,
+            user_data=None)
+
+
 class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
@@ -673,30 +696,34 @@ class WebEngineHistory(browsertab.AbstractHistory):
         super().__init__(tab)
         self.private_api = WebEngineHistoryPrivate(tab)
 
-    def __len__(self):
-        return len(self._history)
+    def load(self) -> None:
+        """Load the tab history."""
+        super().load()
 
-    def __iter__(self):
-        return iter(self._history.items())
+        if not qtutils.version_check("5.14"):
+            return
 
-    def current_idx(self):
-        return self._history.currentItemIndex()
+        if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
+
+    def unload(self) -> None:
+        super().unload()
+
+        if not qtutils.version_check("5.14"):
+            return
+
+        if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
 
     def current_item(self):
         return self._history.currentItem()
 
     def can_go_back(self):
         return self._history.canGoBack()
-
-    def can_go_forward(self):
-        return self._history.canGoForward()
-
-    def _item_at(self, i):
-        return self._history.itemAt(i)
-
-    def _go_to_item(self, item):
-        self._tab.before_load_started.emit(item.url())
-        self._history.goToItem(item)
 
     def back_items(self):
         return self._history.backItems(self._history.count())
@@ -1286,6 +1313,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
+        self._check_lifecycle_state_timer = None
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -1337,6 +1365,10 @@ class WebEngineTab(browsertab.AbstractTab):
         self._widget.load(url)
 
     def url(self, *, requested=False):
+        if not self.history.loaded and self.history.to_load:
+            idx = self.history.current_idx()
+            return self.history.to_load[idx].url
+
         page = self._widget.page()
         if requested:
             return page.requestedUrl()
@@ -1368,6 +1400,10 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().runJavaScript(code, world_id, callback)
 
     def reload(self, *, force=False):
+        if not self.history.loaded:
+            self.history.load()
+            return
+
         if force:
             action = QWebEnginePage.WebAction.ReloadAndBypassCache
         else:
@@ -1387,6 +1423,56 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def recommended_lifecycle_state(self):
+        # type: QWebEnginePage.LifecycleState
+        """Returns the recommended lifecycle state."""
+        return self._widget.page().recommendedState()
+
+    def lifecycle_state(self):
+        # type: QWebEnginePage.LifecycleState
+        """Return the lifecycle state of the current tab."""
+        return self._widget.page().lifecycleState()
+
+    def set_lifecycle_state(
+            self,
+            new_state  # type: QWebEnginePage.LifecycleState
+    ) -> None:
+        """Set the lifecycle state of the current tab."""
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Ignoring page lifecycle update for deleted widget")
+            return
+        if self._widget.page().isVisible():
+            log.misc.debug("Skipped lifecycle update. Page is visible")
+            return
+        current_state = self.lifecycle_state()
+
+        is_legal_transition = (
+            (
+                current_state == QWebEnginePage.LifecycleState.Active and
+                new_state in (
+                    QWebEnginePage.LifecycleState.Frozen,
+                    QWebEnginePage.LifecycleState.Discarded,
+                )
+
+            ) or
+            (
+                current_state == QWebEnginePage.LifecycleState.Frozen and
+                new_state in (
+                    QWebEnginePage.LifecycleState.Active,
+                    QWebEnginePage.LifecycleState.Discarded,
+                )
+            ) or
+            (
+                current_state == QWebEnginePage.LifecycleState.Discarded and
+                new_state == QWebEnginePage.LifecycleState.Active
+            )
+        )
+
+        if not is_legal_transition:
+            return
+
+        self._widget.page().setLifecycleState(new_state)
+
     def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:
@@ -1404,6 +1490,20 @@ class WebEngineTab(browsertab.AbstractTab):
             title="Error loading page: {}".format(url_string),
             url=url_string, error=error)
         self.set_html(error_page)
+
+    def history_item_from_qt(self, item: browsertab.TypeHistoryItem,
+                             active: bool = False) -> WebEngineHistoryItem:
+        return WebEngineHistoryItem.from_qt(item, active)
+
+    def new_history_item(self, url, original_url, title, active, user_data, last_visited):
+        return WebEngineHistoryItem(
+            url=url,
+            original_url=original_url,
+            title=title,
+            active=active,
+            user_data=user_data,
+            last_visited=last_visited,
+        )
 
     @pyqtSlot()
     def _on_history_trigger(self):
@@ -1554,6 +1654,45 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
 
+
+        parsed_url = urllib.parse.urlparse(self.url().toString())
+        trigger_lifecycle_transitions = (
+            not config.val.tabs.lifecycle_exclude_domains or
+            parsed_url.netloc not in config.val.tabs.lifecycle_exclude_domains
+        )
+        if qtutils.version_check("5.14") and trigger_lifecycle_transitions:
+            self._check_lifecycle_state_timer = QTimer()
+            self._check_lifecycle_state_timer.timeout.connect(
+                self._check_recommended_lifecycle_state
+            )
+            self._check_lifecycle_state_timer.start(1000)
+
+    def _check_recommended_lifecycle_state(self) -> None:
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Ignoring page lifecycle check for deleted widget")
+            return
+
+        recommended_state = self.recommended_lifecycle_state()
+        current_state = self.lifecycle_state()
+
+        if recommended_state == current_state:
+            return
+
+        delay = 0
+        if recommended_state == QWebEnginePage.LifecycleState.Active:
+            return
+        elif recommended_state == QWebEnginePage.LifecycleState.Frozen:
+            delay = config.val.tabs.lifecycle_freeze_delay
+        elif recommended_state == QWebEnginePage.LifecycleState.Discarded:
+            delay = config.val.tabs.lifecycle_discard_delay
+
+        if delay == 0:
+            return
+
+        QTimer.singleShot(delay, functools.partial(
+            self.set_lifecycle_state, recommended_state
+        ))
+
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
         url = error.url()
@@ -1688,3 +1827,11 @@ class WebEngineTab(browsertab.AbstractTab):
         self.printing.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
+
+    def unload(self) -> None:
+        """Unload the tab."""
+        if qtutils.version_check("5.14"):
+            self.history.unload()
+            return
+
+        super().unload()

@@ -1905,3 +1905,40 @@ class CommandDispatcher:
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tab_load(self, count=None):
+        """Load the current tab.
+
+        Args:
+            count: The tab index to load, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
+        tab.history.load()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tab_unload(self, count=None):
+        """Unload the current tab.
+
+        Args:
+            count: The tab index to load, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
+        conf_selection = config.val.tabs.select_on_remove
+        if tab is self._tabbed_browser.widget.currentWidget():
+            if conf_selection == QTabBar.SelectionBehavior.SelectLeftTab:
+                self.tab_prev()
+            elif conf_selection == QTabBar.SelectionBehavior.SelectRightTab:
+                self.tab_next()
+            elif conf_selection == QTabBar.SelectionBehavior.SelectPreviousTab:
+                self._tab_focus_stack("last")
+
+        tab.unload()
