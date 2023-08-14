@@ -17,7 +17,9 @@ def clear_marks(quteproc):
     """Clear all existing marks between tests."""
     yield
     quteproc.send_cmd(':quickmark-del --all')
+    quteproc.wait_for(message="Quickmarks cleared.")
     quteproc.send_cmd(':bookmark-del --all')
+    quteproc.wait_for(message="Bookmarks cleared.")
 
 
 def _check_marks(quteproc, quickmarks, expected, contains):
