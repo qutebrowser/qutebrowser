@@ -84,7 +84,7 @@ Feature: quickmarks and bookmarks
         When I open data/numbers/5.txt
         And I run :bookmark-add
         And I run :bookmark-del http://localhost:(port)/data/numbers/5.txt
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt "
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt *"
 
     Scenario: Deleting all bookmarks
         When I open data/numbers/1.txt
@@ -93,15 +93,15 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-add
         And I run :bookmark-del --all
         Then the message "Bookmarks cleared." should be shown
-        And the bookmark file should not contain "http://localhost:*/data/numbers/1.txt "
-        And the bookmark file should not contain "http://localhost:*/data/numbers/2.txt "
+        And the bookmark file should not contain "http://localhost:*/data/numbers/1.txt *"
+        And the bookmark file should not contain "http://localhost:*/data/numbers/2.txt *"
 
     Scenario: Deleting all bookmarks with url
         When I open data/numbers/1.txt
         And I run :bookmark-add
         And I run :bookmark-del --all https://example.org
         Then the error "Cannot specify url and --all" should be shown
-        And the bookmark file should contain "http://localhost:*/data/numbers/1.txt "
+        And the bookmark file should contain "http://localhost:*/data/numbers/1.txt *"
 
     Scenario: Deleting the current page's bookmark if it doesn't exist
         When I open data/hello.txt
@@ -112,18 +112,18 @@ Feature: quickmarks and bookmarks
         When I open data/numbers/6.txt
         And I run :bookmark-add
         And I run :bookmark-del
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt "
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt *"
 
     Scenario: Toggling a bookmark
         When I open data/numbers/7.txt
         And I run :bookmark-add
         And I run :bookmark-add --toggle
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/7.txt "
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/7.txt *"
 
     Scenario: Loading a bookmark with --delete
         When I run :bookmark-add http://localhost:(port)/data/numbers/8.txt "eight"
         And I run :bookmark-load -d http://localhost:(port)/data/numbers/8.txt
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/8.txt "
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/8.txt *"
 
     ## quickmarks
 
