@@ -23,6 +23,12 @@ jobs:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - testenv: bleeding
+          - testenv: bleeding-qt5
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,7 +36,7 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e bleeding
+        run: dbus-run-session tox -e ${{ matrix.testenv }} -s
   irc:
     timeout-minutes: 2
     continue-on-error: true
