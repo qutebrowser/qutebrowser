@@ -36,7 +36,7 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e ${{ matrix.testenv }} -s
+        run: dbus-run-session tox -e ${{ matrix.testenv }}
   irc:
     timeout-minutes: 2
     continue-on-error: true
