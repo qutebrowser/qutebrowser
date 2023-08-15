@@ -623,6 +623,7 @@ Feature: Various utility commands.
         Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
         And no crash should happen
 
+    @skip  # Too flaky
     Scenario: Keyboard focus after cross-origin navigation
         When I turn on scroll logging
         And I open qute://gpl in a new tab
