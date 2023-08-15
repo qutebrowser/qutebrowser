@@ -117,7 +117,7 @@ def redirect_to():
     # header to the exact string supplied.
     response = app.make_response('')
     response.status_code = HTTPStatus.FOUND
-    response.headers['Location'] = flask.request.args['url'].encode('utf-8')
+    response.headers['Location'] = flask.request.args['url']
     return response
 
 
