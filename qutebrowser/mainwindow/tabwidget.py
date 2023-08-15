@@ -396,6 +396,7 @@ class TabBar(QTabBar):
         self._win_id = win_id
         self._our_style = TabBarStyle()
         self.setStyle(self._our_style)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.vertical = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)

@@ -639,6 +639,38 @@ def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
     return val
 
 
+def qobj_repr(obj: Optional[QObject]) -> str:
+    """Show nicer debug information for a QObject."""
+    py_repr = repr(obj)
+    if obj is None:
+        return py_repr
+
+    try:
+        object_name = obj.objectName()
+        meta_object = obj.metaObject()
+    except AttributeError:
+        # Technically not possible if obj is a QObject, but crashing when trying to get
+        # some debug info isn't helpful.
+        return py_repr
+
+    class_name = "" if meta_object is None else meta_object.className()
+
+    if py_repr.startswith("<") and py_repr.endswith(">"):
+        # With a repr such as <QObject object at 0x...>, we want to end up with:
+        # <QObject object at 0x..., objectName='...'>
+        # But if we have RichRepr() as existing repr, we want:
+        # <RichRepr(), objectName='...'>
+        py_repr = py_repr[1:-1]
+
+    parts = [py_repr]
+    if object_name:
+        parts.append(f"objectName={object_name!r}")
+    if class_name and f".{class_name} object at 0x" not in py_repr:
+        parts.append(f"className={class_name!r}")
+
+    return f"<{', '.join(parts)}>"
+
+
 _T = TypeVar("_T")
 
 
