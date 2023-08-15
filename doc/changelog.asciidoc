@@ -29,6 +29,15 @@ Major changes
   * Via the `QUTE_QT_WRAPPER` environment variable, set to `PyQt6` or `PyQt5`.
   * For packagers wanting to provide packages specific to a Qt version,
     patch `qutebrowser/qt/machinery.py` and set `_WRAPPER_OVERRIDE`.
+- Various commands were renamed to better group related commands:
+  * `set-cmd-text` -> `cmd-set-text`
+  * `repeat` -> `cmd-repeat`
+  * `repeat-command` -> `cmd-repeat-last`
+  * `later` -> `cmd-later`
+  * `edit-command` -> `cmd-edit`
+  * `run-with-count` -> `cmd-run-with-count`
+  The old names continue to work for the time being, but are deprecated and
+  show a warning.
 
 Added
 ~~~~~
