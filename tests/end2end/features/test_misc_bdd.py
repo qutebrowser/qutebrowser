@@ -16,6 +16,11 @@ def load_iframe(quteproc, server, ssl_server):
     msg.expected = True
 
 
+@bdd.when("I turn on scroll logging")
+def turn_on_scroll_logging(quteproc):
+    quteproc.turn_on_scroll_logging(no_scroll_filtering=True)
+
+
 @bdd.then(bdd.parsers.parse('the PDF {filename} should exist in the tmpdir'))
 def pdf_exists(quteproc, tmpdir, filename):
     path = tmpdir / filename

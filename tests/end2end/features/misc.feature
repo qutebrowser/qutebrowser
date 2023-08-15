@@ -623,11 +623,10 @@ Feature: Various utility commands.
         Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
         And no crash should happen
 
-    @flaky @qtwebkit_skip
     Scenario: Keyboard focus after cross-origin navigation
-        When I open qute://gpl
-        And I open data/insert_mode_settings/html/autofocus.html
-        And I run :mode-enter insert
-        And I wait for the javascript message "focused"
-        And I run :fake-key -g "testing"
-        Then the javascript message "contents: testing" should be logged
+        When I turn on scroll logging
+        And I open qute://gpl in a new tab
+        And I run :tab-only
+        And I open data/scroll/simple.html
+        And I run :fake-key "<Space>"
+        Then the page should be scrolled vertically
