@@ -303,7 +303,9 @@ Feature: Special qute:// pages
 
     # qute://start
 
-    Scenario: Seaching on qute://start
+    # QtWebKit doesn't support formaction
+    @qtwebkit_skip
+    Scenario: Searching on qute://start
         When I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/title.html?q={}"}
         And I open qute://start
         And I run :click-element id search-field
