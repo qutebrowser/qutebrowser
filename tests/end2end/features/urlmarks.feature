@@ -93,15 +93,15 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-add
         And I run :bookmark-del --all
         Then the message "Bookmarks cleared." should be shown
-        And the bookmark file should not contain "http://localhost:*/data/numbers/1.txt"
-        And the bookmark file should not contain "http://localhost:*/data/numbers/2.txt"
+        And the bookmark file should not contain "http://localhost:*/data/numbers/1.txt "
+        And the bookmark file should not contain "http://localhost:*/data/numbers/2.txt "
 
     Scenario: Deleting all bookmarks with url
         When I open data/numbers/1.txt
         And I run :bookmark-add
         And I run :bookmark-del --all https://example.org
         Then the error "Cannot specify url and --all" should be shown
-        And the bookmark file should contain "http://localhost:*/data/numbers/1.txt"
+        And the bookmark file should contain "http://localhost:*/data/numbers/1.txt "
 
     Scenario: Deleting the current page's bookmark if it doesn't exist
         When I open data/hello.txt
