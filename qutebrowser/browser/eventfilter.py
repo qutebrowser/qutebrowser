@@ -6,6 +6,7 @@
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, message, usertypes, qtutils, version, utils
@@ -44,17 +45,25 @@ class ChildEventFilter(QObject):
             if self._widget is not None:
                 assert obj is self._widget
 
-            # Carry on keyboard focus to the new child
-            # WORKAROUND for unknown Qt bug losing focus on child change
-            old_focus_widget = objects.qapp.focusWidget()
-            if old_focus_widget is not None:
-                metaobj = old_focus_widget.metaObject()
+                # WORKAROUND for unknown Qt bug losing focus on child change
+                # Carry on keyboard focus to the new child if:
+                # - This is a child event filter on a tab (self._widget is not None)
+                # - We find an old existing child which is a QQuickWidget and is
+                #   currently focused.
+                # - We're using QtWebEngine >= 6.4 (older versions are not affected)
+                children = [
+                    c for c in self._widget.findChildren(
+                        QWidget, "", Qt.FindChildOption.FindDirectChildrenOnly)
+                    if c is not child and
+                    c.hasFocus() and
+                    c.metaObject() is not None and
+                    c.metaObject().className() == "QQuickWidget"
+                ]
                 if (
-                    metaobj is not None and
-                    metaobj.className() == "QQuickWidget" and
-                    old_focus_widget.parent() is obj and
+                    children and
                     objects.backend == usertypes.Backend.QtWebEngine and
-                    version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
+                    version.qtwebengine_versions().webengine >=
+                        utils.VersionNumber(6, 4)
                 ):
                     log.misc.debug("Focusing new child")
                     child.setFocus()
