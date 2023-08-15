@@ -55,22 +55,22 @@ class TestCommandParser:
             p.parse_all(command)
 
     @pytest.mark.parametrize('command, name, args', [
-        ("set-cmd-text -s :open", "set-cmd-text", ["-s", ":open"]),
-        ("set-cmd-text :open {url:pretty}", "set-cmd-text",
+        ("cmd-set-text -s :open", "cmd-set-text", ["-s", ":open"]),
+        ("cmd-set-text :open {url:pretty}", "cmd-set-text",
          [":open {url:pretty}"]),
-        ("set-cmd-text -s :open -t", "set-cmd-text", ["-s", ":open -t"]),
-        ("set-cmd-text :open -t -r {url:pretty}", "set-cmd-text",
+        ("cmd-set-text -s :open -t", "cmd-set-text", ["-s", ":open -t"]),
+        ("cmd-set-text :open -t -r {url:pretty}", "cmd-set-text",
          [":open -t -r {url:pretty}"]),
-        ("set-cmd-text -s :open -b", "set-cmd-text", ["-s", ":open -b"]),
-        ("set-cmd-text :open -b -r {url:pretty}", "set-cmd-text",
+        ("cmd-set-text -s :open -b", "cmd-set-text", ["-s", ":open -b"]),
+        ("cmd-set-text :open -b -r {url:pretty}", "cmd-set-text",
          [":open -b -r {url:pretty}"]),
-        ("set-cmd-text -s :open -w", "set-cmd-text",
+        ("cmd-set-text -s :open -w", "cmd-set-text",
          ["-s", ":open -w"]),
-        ("set-cmd-text :open -w {url:pretty}", "set-cmd-text",
+        ("cmd-set-text :open -w {url:pretty}", "cmd-set-text",
          [":open -w {url:pretty}"]),
-        ("set-cmd-text /", "set-cmd-text", ["/"]),
-        ("set-cmd-text ?", "set-cmd-text", ["?"]),
-        ("set-cmd-text :", "set-cmd-text", [":"]),
+        ("cmd-set-text /", "cmd-set-text", ["/"]),
+        ("cmd-set-text ?", "cmd-set-text", ["?"]),
+        ("cmd-set-text :", "cmd-set-text", [":"]),
     ])
     def test_parse_result(self, config_stub, command, name, args):
         p = parser.CommandParser()

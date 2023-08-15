@@ -565,9 +565,9 @@ Default:
 * +pass:[&#x27;]+: +pass:[mode-enter jump_mark]+
 * +pass:[+]+: +pass:[zoom-in]+
 * +pass:[-]+: +pass:[zoom-out]+
-* +pass:[.]+: +pass:[repeat-command]+
-* +pass:[/]+: +pass:[set-cmd-text /]+
-* +pass:[:]+: +pass:[set-cmd-text :]+
+* +pass:[.]+: +pass:[cmd-repeat-last]+
+* +pass:[/]+: +pass:[cmd-set-text /]+
+* +pass:[:]+: +pass:[cmd-set-text :]+
 * +pass:[;I]+: +pass:[hint images tab]+
 * +pass:[;O]+: +pass:[hint links fill :open -t -r {hint-url}]+
 * +pass:[;R]+: +pass:[hint --rapid links window]+
@@ -623,9 +623,9 @@ Default:
 * +pass:[&lt;back&gt;]+: +pass:[back]+
 * +pass:[&lt;forward&gt;]+: +pass:[forward]+
 * +pass:[=]+: +pass:[zoom]+
-* +pass:[?]+: +pass:[set-cmd-text ?]+
+* +pass:[?]+: +pass:[cmd-set-text ?]+
 * +pass:[@]+: +pass:[macro-run]+
-* +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
+* +pass:[B]+: +pass:[cmd-set-text -s :quickmark-load -t]+
 * +pass:[D]+: +pass:[tab-close -o]+
 * +pass:[F]+: +pass:[hint all tab]+
 * +pass:[G]+: +pass:[scroll-to-perc]+
@@ -635,7 +635,7 @@ Default:
 * +pass:[L]+: +pass:[forward]+
 * +pass:[M]+: +pass:[bookmark-add]+
 * +pass:[N]+: +pass:[search-prev]+
-* +pass:[O]+: +pass:[set-cmd-text -s :open -t]+
+* +pass:[O]+: +pass:[cmd-set-text -s :open -t]+
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
@@ -643,7 +643,7 @@ Default:
 * +pass:[Sh]+: +pass:[history]+
 * +pass:[Sq]+: +pass:[bookmark-list]+
 * +pass:[Ss]+: +pass:[set]+
-* +pass:[T]+: +pass:[set-cmd-text -sr :tab-focus]+
+* +pass:[T]+: +pass:[cmd-set-text -sr :tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
@@ -652,30 +652,30 @@ Default:
 * +pass:[\]\]]+: +pass:[navigate next]+
 * +pass:[`]+: +pass:[mode-enter set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
-* +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
+* +pass:[b]+: +pass:[cmd-set-text -s :quickmark-load]+
 * +pass:[cd]+: +pass:[download-clear]+
 * +pass:[co]+: +pass:[tab-only]+
 * +pass:[d]+: +pass:[tab-close]+
 * +pass:[f]+: +pass:[hint]+
 * +pass:[g$]+: +pass:[tab-focus -1]+
 * +pass:[g0]+: +pass:[tab-focus 1]+
-* +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
+* +pass:[gB]+: +pass:[cmd-set-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
 * +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gJ]+: +pass:[tab-move +]+
 * +pass:[gK]+: +pass:[tab-move -]+
-* +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
+* +pass:[gO]+: +pass:[cmd-set-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
 * +pass:[ga]+: +pass:[open -t]+
-* +pass:[gb]+: +pass:[set-cmd-text -s :bookmark-load]+
+* +pass:[gb]+: +pass:[cmd-set-text -s :bookmark-load]+
 * +pass:[gd]+: +pass:[download]+
 * +pass:[gf]+: +pass:[view-source]+
 * +pass:[gg]+: +pass:[scroll-to-perc 0]+
 * +pass:[gi]+: +pass:[hint inputs --first]+
 * +pass:[gm]+: +pass:[tab-move]+
-* +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
-* +pass:[gt]+: +pass:[set-cmd-text -s :tab-select]+
+* +pass:[go]+: +pass:[cmd-set-text :open {url:pretty}]+
+* +pass:[gt]+: +pass:[cmd-set-text -s :tab-select]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
 * +pass:[i]+: +pass:[mode-enter insert]+
@@ -684,15 +684,15 @@ Default:
 * +pass:[l]+: +pass:[scroll right]+
 * +pass:[m]+: +pass:[quickmark-save]+
 * +pass:[n]+: +pass:[search-next]+
-* +pass:[o]+: +pass:[set-cmd-text -s :open]+
+* +pass:[o]+: +pass:[cmd-set-text -s :open]+
 * +pass:[pP]+: +pass:[open -- {primary}]+
 * +pass:[pp]+: +pass:[open -- {clipboard}]+
 * +pass:[q]+: +pass:[macro-record]+
 * +pass:[r]+: +pass:[reload]+
 * +pass:[sf]+: +pass:[save]+
-* +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
-* +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
-* +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[sk]+: +pass:[cmd-set-text -s :bind]+
+* +pass:[sl]+: +pass:[cmd-set-text -s :set -t]+
+* +pass:[ss]+: +pass:[cmd-set-text -s :set]+
 * +pass:[tCH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tCh]+: +pass:[config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tCu]+: +pass:[config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
@@ -721,24 +721,24 @@ Default:
 * +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[mode-enter caret]+
-* +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wB]+: +pass:[cmd-set-text -s :bookmark-load -w]+
 * +pass:[wIf]+: +pass:[devtools-focus]+
 * +pass:[wIh]+: +pass:[devtools left]+
 * +pass:[wIj]+: +pass:[devtools bottom]+
 * +pass:[wIk]+: +pass:[devtools top]+
 * +pass:[wIl]+: +pass:[devtools right]+
 * +pass:[wIw]+: +pass:[devtools window]+
-* +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
+* +pass:[wO]+: +pass:[cmd-set-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
-* +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
+* +pass:[wb]+: +pass:[cmd-set-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
 * +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
-* +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
+* +pass:[wo]+: +pass:[cmd-set-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
-* +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
-* +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
+* +pass:[xO]+: +pass:[cmd-set-text :open -b -r {url:pretty}]+
+* +pass:[xo]+: +pass:[cmd-set-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
 * +pass:[yM]+: +pass:[yank inline [{title}\]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+

@@ -234,10 +234,10 @@ def run(args):
         # into insert-mode, so the form can be directly submitted by hitting
         # enter afterwards. It doesn't matter when we go into insert mode, but
         # the other commands need to be be executed sequentially, so we add
-        # delays with later.
+        # delays with cmd-later.
         qute_command('insert-text {} ;;'
-                     'later {} fake-key <Tab> ;;'
-                     'later {} insert-text {}{}'
+                     'cmd-later {} fake-key <Tab> ;;'
+                     'cmd-later {} insert-text {}{}'
                      .format(username, CMD_DELAY,
                              CMD_DELAY * 2, password, insert_mode))
 

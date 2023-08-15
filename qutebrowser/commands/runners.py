@@ -172,10 +172,10 @@ class CommandRunner(AbstractCommandRunner):
 
                 result.cmd.run(self._win_id, args, count=count)
 
-            if result.cmdline[0] == 'repeat-command':
+            if result.cmdline[0] in ['repeat-command', 'cmd-repeat-last']:
                 record_last_command = False
 
-            if result.cmdline[0] in ['macro-record', 'macro-run', 'set-cmd-text']:
+            if result.cmdline[0] in ['macro-record', 'macro-run', 'set-cmd-text', 'cmd-set-text']:
                 record_macro = False
 
         if record_last_command:

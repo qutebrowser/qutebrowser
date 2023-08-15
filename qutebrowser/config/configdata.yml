@@ -3633,17 +3633,17 @@ bindings.default:
   default:
     normal:
       <Escape>: clear-keychain ;; search ;; fullscreen --leave
-      o: set-cmd-text -s :open
-      go: set-cmd-text :open {url:pretty}
-      O: set-cmd-text -s :open -t
-      gO: set-cmd-text :open -t -r {url:pretty}
-      xo: set-cmd-text -s :open -b
-      xO: set-cmd-text :open -b -r {url:pretty}
-      wo: set-cmd-text -s :open -w
-      wO: set-cmd-text :open -w {url:pretty}
-      /: set-cmd-text /
-      ?: set-cmd-text ?
-      ":": "set-cmd-text :"
+      o: cmd-set-text -s :open
+      go: cmd-set-text :open {url:pretty}
+      O: cmd-set-text -s :open -t
+      gO: cmd-set-text :open -t -r {url:pretty}
+      xo: cmd-set-text -s :open -b
+      xO: cmd-set-text :open -b -r {url:pretty}
+      wo: cmd-set-text -s :open -w
+      wO: cmd-set-text :open -w {url:pretty}
+      /: cmd-set-text /
+      ?: cmd-set-text ?
+      ":": "cmd-set-text :"
       ga: open -t
       <Ctrl-T>: open -t
       <Ctrl-N>: open -w
@@ -3653,7 +3653,7 @@ bindings.default:
       <Ctrl-Shift-W>: close
       D: tab-close -o
       co: tab-only
-      T: set-cmd-text -sr :tab-focus
+      T: cmd-set-text -sr :tab-focus
       gm: tab-move
       gK: tab-move -
       gJ: tab-move +
@@ -3725,17 +3725,17 @@ bindings.default:
       wp: open -w -- {clipboard}
       wP: open -w -- {primary}
       m: quickmark-save
-      b: set-cmd-text -s :quickmark-load
-      B: set-cmd-text -s :quickmark-load -t
-      wb: set-cmd-text -s :quickmark-load -w
+      b: cmd-set-text -s :quickmark-load
+      B: cmd-set-text -s :quickmark-load -t
+      wb: cmd-set-text -s :quickmark-load -w
       M: bookmark-add
-      gb: set-cmd-text -s :bookmark-load
-      gB: set-cmd-text -s :bookmark-load -t
-      wB: set-cmd-text -s :bookmark-load -w
+      gb: cmd-set-text -s :bookmark-load
+      gB: cmd-set-text -s :bookmark-load -t
+      wB: cmd-set-text -s :bookmark-load -w
       sf: save
-      ss: set-cmd-text -s :set
-      sl: set-cmd-text -s :set -t
-      sk: set-cmd-text -s :bind
+      ss: cmd-set-text -s :set
+      sl: cmd-set-text -s :set -t
+      sk: cmd-set-text -s :bind
       -: zoom-out
       +: zoom-in
       =: zoom
@@ -3758,7 +3758,7 @@ bindings.default:
       ad: download-cancel
       cd: download-clear
       gf: view-source
-      gt: set-cmd-text -s :tab-select
+      gt: cmd-set-text -s :tab-select
       <Ctrl-Tab>: tab-focus last
       <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
@@ -3791,7 +3791,7 @@ bindings.default:
       Sh: history
       <Return>: selection-follow
       <Ctrl-Return>: selection-follow -t
-      .: repeat-command
+      .: cmd-repeat-last
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
       gD: tab-give

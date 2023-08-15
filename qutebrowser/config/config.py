@@ -154,14 +154,14 @@ class KeyConfig:
         return bindings
 
     def _implied_cmd(self, cmdline: str) -> Optional[str]:
-        """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
+        """Return cmdline, or the implied cmd if cmdline is a cmd-set-text."""
         try:
             results = parser.CommandParser().parse_all(cmdline)
         except cmdexc.NoSuchCommandError:
             return None
 
         result = results[0]
-        if result.cmd.name != "set-cmd-text":
+        if result.cmd.name not in ["set-cmd-text", "cmd-set-text"]:
             return cmdline
         if not result.args:
             return None  # doesn't look like this sets a command
