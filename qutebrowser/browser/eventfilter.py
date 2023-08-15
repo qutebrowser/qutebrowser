@@ -8,7 +8,7 @@ from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, message, usertypes
+from qutebrowser.utils import log, message, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 
 
@@ -35,8 +35,9 @@ class ChildEventFilter(QObject):
         """Act on ChildAdded events."""
         if event.type() == QEvent.Type.ChildAdded:
             child = event.child()
-            log.misc.debug("{} got new child {}, installing filter"
-                           .format(obj, child))
+            log.misc.debug(
+                f"{qtutils.qobj_repr(obj)} got new child {qtutils.qobj_repr(child)}, "
+                "installing filter")
 
             # Additional sanity check, but optional
             if self._widget is not None:
@@ -45,7 +46,8 @@ class ChildEventFilter(QObject):
             child.installEventFilter(self._filter)
         elif event.type() == QEvent.Type.ChildRemoved:
             child = event.child()
-            log.misc.debug("{}: removed child {}".format(obj, child))
+            log.misc.debug(
+                f"{qtutils.qobj_repr(obj)}: removed child {qtutils.qobj_repr(child)}")
 
         return False
 
