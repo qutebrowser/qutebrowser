@@ -275,7 +275,7 @@ class HintActions:
             raise HintingError("Invalid command text '{}'.".format(text))
 
         cmd = objreg.get('status-command', scope='window', window=self._win_id)
-        cmd.set_cmd_text(text)
+        cmd.cmd_set_text(text)
 
     def download(self, elem: webelem.AbstractWebElement,
                  context: HintContext) -> None:

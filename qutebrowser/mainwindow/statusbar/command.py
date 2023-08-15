@@ -98,7 +98,7 @@ class Command(misc.CommandLineEdit):
         else:
             return ''
 
-    def set_cmd_text(self, text: str) -> None:
+    def cmd_set_text(self, text: str) -> None:
         """Preset the statusbar to some text.
 
         Args:
@@ -110,10 +110,10 @@ class Command(misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='status-command', name='set-cmd-text',
-                       scope='window', maxsplit=0)
+    @cmdutils.register(instance='status-command', name='cmd-set-text',
+                       scope='window', maxsplit=0, deprecated_name='set-cmd-text')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def set_cmd_text_command(self, text: str,
+    def cmd_set_text_command(self, text: str,
                              count: int = None,
                              space: bool = False,
                              append: bool = False,
@@ -122,7 +122,7 @@ class Command(misc.CommandLineEdit):
 
         //
 
-        Wrapper for set_cmd_text to check the arguments and allow multiple
+        Wrapper for cmd_set_text to check the arguments and allow multiple
         strings which will get joined.
 
         Args:
@@ -146,7 +146,7 @@ class Command(misc.CommandLineEdit):
         if run_on_count and count is not None:
             self.got_cmd[str, int].emit(text, count)
         else:
-            self.set_cmd_text(text)
+            self.cmd_set_text(text)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -161,7 +161,7 @@ class Command(misc.CommandLineEdit):
                 cmdhistory.HistoryEndReachedError):
             return
         if item:
-            self.set_cmd_text(item)
+            self.cmd_set_text(item)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -174,7 +174,7 @@ class Command(misc.CommandLineEdit):
         except cmdhistory.HistoryEndReachedError:
             return
         if item:
-            self.set_cmd_text(item)
+            self.cmd_set_text(item)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -197,8 +197,9 @@ class Command(misc.CommandLineEdit):
         if not was_search:
             self.got_cmd[str].emit(text[1:])
 
-    @cmdutils.register(instance='status-command', scope='window')
-    def edit_command(self, run: bool = False) -> None:
+    @cmdutils.register(instance='status-command', scope='window',
+                       deprecated_name='edit-command')
+    def cmd_edit(self, run: bool = False) -> None:
         """Open an editor to modify the current command.
 
         Args:
@@ -212,7 +213,7 @@ class Command(misc.CommandLineEdit):
                 message.error('command must start with one of {}'
                               .format(modeparsers.STARTCHARS))
                 return
-            self.set_cmd_text(text)
+            self.cmd_set_text(text)
             if run:
                 self.command_accept()
 

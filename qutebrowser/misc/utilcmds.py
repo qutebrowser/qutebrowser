@@ -26,9 +26,10 @@ from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='later')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-def later(duration: str, command: str, win_id: int) -> None:
+def cmd_later(duration: str, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:
@@ -57,10 +58,11 @@ def later(duration: str, command: str, win_id: int) -> None:
         raise
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='repeat')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
+def cmd_repeat(times: int, command: str, win_id: int, count: int = None) -> None:
     """Repeat a given command.
 
     Args:
@@ -78,14 +80,15 @@ def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
         commandrunner.run_safely(command)
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='run-with-count')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def run_with_count(count_arg: int, command: str, win_id: int,
+def cmd_run_with_count(count_arg: int, command: str, win_id: int,
                    count: int = 1) -> None:
     """Run a command with the given count.
 
-    If run_with_count itself is run with a count, it multiplies count_arg.
+    If cmd_run_with_count itself is run with a count, it multiplies count_arg.
 
     Args:
         count_arg: The count to pass to the command.
@@ -184,10 +187,10 @@ def debug_set_fake_clipboard(s: str = None) -> None:
         utils.fake_clipboard = s
 
 
-@cmdutils.register()
+@cmdutils.register(deprecated_name='repeat-command')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat_command(win_id: int, count: int = None) -> None:
+def cmd_repeat_last(win_id: int, count: int = None) -> None:
     """Repeat the last executed command.
 
     Args:
