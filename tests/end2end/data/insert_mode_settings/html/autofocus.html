@@ -7,6 +7,9 @@
           function setup_event_listener() {
               var elem = document.getElementById('qute-input-autofocus');
               console.log(elem);
+              elem.addEventListener('focus', function() {
+                  console.log("focused");
+              });
               elem.addEventListener('input', function() {
                   console.log("contents: " + elem.value);
               });

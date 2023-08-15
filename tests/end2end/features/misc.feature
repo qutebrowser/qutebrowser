@@ -622,3 +622,12 @@ Feature: Various utility commands.
         When I open data/invalid_resource.html in a new tab
         Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
         And no crash should happen
+
+    @flaky @qtwebkit_skip
+    Scenario: Keyboard focus after cross-origin navigation
+        When I open qute://gpl
+        And I open data/insert_mode_settings/html/autofocus.html
+        And I run :mode-enter insert
+        And I wait for the javascript message "focused"
+        And I run :fake-key -g "testing"
+        Then the javascript message "contents: testing" should be logged
