@@ -8,8 +8,9 @@ from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, message, usertypes, qtutils
+from qutebrowser.utils import log, message, usertypes, qtutils, version, utils
 from qutebrowser.keyinput import modeman
+from qutebrowser.misc import objects
 
 
 class ChildEventFilter(QObject):
@@ -42,6 +43,21 @@ class ChildEventFilter(QObject):
             # Additional sanity check, but optional
             if self._widget is not None:
                 assert obj is self._widget
+
+            # Carry on keyboard focus to the new child
+            # WORKAROUND for unknown Qt bug losing focus on child change
+            old_focus_widget = objects.qapp.focusWidget()
+            if old_focus_widget is not None:
+                metaobj = old_focus_widget.metaObject()
+                if (
+                    metaobj is not None and
+                    metaobj.className() == "QQuickWidget" and
+                    old_focus_widget.parent() is obj and
+                    objects.backend == usertypes.Backend.QtWebEngine and
+                    version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
+                ):
+                    log.misc.debug("Focusing new child")
+                    child.setFocus()
 
             child.installEventFilter(self._filter)
         elif event.type() == QEvent.Type.ChildRemoved:
