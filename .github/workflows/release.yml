@@ -29,6 +29,8 @@ jobs:
     timeout-minutes: 5
     outputs:
       version: ${{ steps.bump.outputs.version }}
+    permissions:
+      contents: write  # To push release commit/tag
     steps:
       - name: Find release branch
         uses: actions/github-script@v6
@@ -78,23 +80,25 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ steps.find-branch.outputs.result }}
-      # FIXME set up GPG for signed tag
+      - name: Import GPG Key
+        run: |
+          gpg --import <<< "${{ secrets.QUTEBROWSER_BOT_GPGKEY }}"
       - name: Bump version
         id: bump
         run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
       - name: Push release commit/tag
         run: |
-            git push origin main
+            git push origin ${{ steps.find-branch.outputs.result }}
             git push origin v${{ steps.bump.outputs.version }}
       - name: Cherry-pick release commit
-        if: "${{ github.event.inputs.release_type }} == 'patch'"
+        if: ${{ github.event.inputs.release_type == 'patch' }}
         run: |
             git checkout main
             git cherry-pick v${{ steps.bump.outputs.version }}
             git push origin main
             git checkout v${{ steps.bump.outputs.version_x }}
       - name: Create release branch
-        if: "${{ github.event.inputs.release_type }} != 'patch'"
+        if: ${{ github.event.inputs.release_type != 'patch' }}
         run: |
             git checkout -b v${{ steps.bump.outputs.version_x }}
             git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
@@ -114,13 +118,32 @@ jobs:
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 45
     needs: [prepare]
+    permissions:
+      contents: write  # To upload release artifacts
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: v${{ needs.prepare.outputs.version }}
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ github.event.inputs.python_version }}
-      # FIXME set up GPG for signed releases (at least on Ubuntu)
+      - name: Import GPG Key
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        run: |
+          gpg --import <<< "${{ secrets.QUTEBROWSER_BOT_GPGKEY }}"
+      # Needed because of the following import chain:
+      # - scripts/dev/build_release.py
+      # - scripts/dev/update_3rdparty.py
+      # - scripts/dictcli.py
+      # - qutebrowser/browser/webengine/spell.py
+      # - utils.message -> utils.usertypes -> utils.qtutils -> qt.gui
+      # - PyQt6.QtGui
+      - name: Install apt dependencies
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        run: |
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends libegl1-mesa
       - name: Install dependencies
         run: |
             python -m pip install -U pip
@@ -131,6 +154,8 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 5
     needs: [prepare, release]
+    permissions:
+      contents: write  # To change release
     steps:
       - name: Publish final release
         uses: softprops/action-gh-release@v1
