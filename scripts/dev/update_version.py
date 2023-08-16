@@ -89,7 +89,7 @@ if __name__ == "__main__":
         print("Run the following commands to create a new release:")
         print("* git push origin; git push origin v{v}".format(v=version))
         if args.bump == 'patch':
-            print("* git checkout main && git cherry-pick v{v} && "
+            print("* git checkout main && git cherry-pick -x v{v} && "
                 "git push origin".format(v=version))
         else:
             print("* git branch v{x} v{v} && git push --set-upstream origin v{x}"

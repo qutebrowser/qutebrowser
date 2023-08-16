@@ -95,7 +95,7 @@ jobs:
         if: ${{ github.event.inputs.release_type == 'patch' }}
         run: |
             git checkout main
-            git cherry-pick v${{ steps.bump.outputs.version }}
+            git cherry-pick -x v${{ steps.bump.outputs.version }}
             git push origin main
             git checkout v${{ steps.bump.outputs.version_x }}
       - name: Create release branch
