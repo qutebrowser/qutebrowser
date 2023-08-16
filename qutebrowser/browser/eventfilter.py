@@ -37,6 +37,10 @@ class ChildEventFilter(QObject):
         """Act on ChildAdded events."""
         if event.type() == QEvent.Type.ChildAdded:
             child = event.child()
+            if child.metaObject().className() != "QQuickWidget":
+                log.misc.debug(f"Ignoring new child {qtutils.qobj_repr(child)}")
+                return False
+
             log.misc.debug(
                 f"{qtutils.qobj_repr(obj)} got new child {qtutils.qobj_repr(child)}, "
                 "installing filter")
