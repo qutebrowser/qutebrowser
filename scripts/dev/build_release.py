@@ -539,6 +539,9 @@ def read_github_token(
     if arg_token is not None:
         return arg_token
 
+    if "GITHUB_TOKEN" in os.environ:
+        return os.environ["GITHUB_TOKEN"]
+
     token_path = pathlib.Path.home() / '.gh_token'
     if not token_path.exists():
         if optional:

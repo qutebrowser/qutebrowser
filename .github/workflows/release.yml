@@ -149,8 +149,14 @@ jobs:
         run: |
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
+      # FIXME consider switching to trusted publishers:
+      # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
       - name: Build and upload release
-        run: "tox -e build-release -- --upload --no-confirm --experimental --gh-token ${{ secrets.GITHUB_TOKEN }}"
+        run: "tox -e build-release -- --upload --no-confirm --experimental"
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.QUTEBROWSER_BOT_TEST_PYPI_TOKEN }}  # FIXME use real token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   finalize:
     runs-on: ubuntu-20.04
     timeout-minutes: 5
