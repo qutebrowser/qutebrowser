@@ -8,6 +8,7 @@
 
 """Update version numbers using bump2version."""
 
+import re
 import sys
 import argparse
 import os.path
@@ -17,6 +18,24 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 from scripts import utils
+
+
+class Error(Exception):
+    """Base class for exceptions in this module."""
+
+
+def verify_branch(version_leap):
+    """Check that we're on the correct git branch."""
+    proc = subprocess.run(
+        ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+        check=True, capture_output=True, text=True)
+    branch = proc.stdout.strip()
+
+    if (
+        version_leap == 'patch' and not re.fullmatch(r'v\d+\.\d+\.\*', branch) or
+        version_leap != 'patch' and branch != 'main'
+    ):
+        raise Error(f"Invalid branch for {version_leap} release: {branch}")
 
 
 def bump_version(version_leap="patch"):
@@ -46,6 +65,7 @@ if __name__ == "__main__":
     utils.change_cwd()
 
     if not args.commands:
+        verify_branch(args.bump)
         bump_version(args.bump)
         show_commit()
 
@@ -54,22 +74,30 @@ if __name__ == "__main__":
     x_version = '.'.join([str(p) for p in qutebrowser.__version_info__[:-1]] +
                          ['x'])
 
-    print("Run the following commands to create a new release:")
-    print("* git push origin; git push origin v{v}".format(v=version))
-    if args.bump == 'patch':
-        print("* git checkout main && git cherry-pick v{v} && "
-              "git push origin".format(v=version))
+    if utils.ON_CI:
+        output_file = os.environ["GITHUB_OUTPUT"]
+        with open(output_file, "w", encoding="ascii") as f:
+            f.write(f"version={version}\n")
+            f.write(f"x_version={x_version}\n")
+
+        print(f"Outputs for {version} written to GitHub Actions output file")
     else:
-        print("* git branch v{x} v{v} && git push --set-upstream origin v{x}"
-              .format(v=version, x=x_version))
-    print("* Create new release via GitHub (required to upload release "
-          "artifacts)")
-    print("* Linux: git fetch && git checkout v{v} && "
-          "tox -e build-release -- --upload"
-          .format(v=version))
-    print("* Windows: git fetch; git checkout v{v}; "
-          "py -3.9 -m tox -e build-release -- --upload"
-          .format(v=version))
-    print("* macOS: git fetch && git checkout v{v} && "
-          "tox -e build-release -- --upload"
-          .format(v=version))
+        print("Run the following commands to create a new release:")
+        print("* git push origin; git push origin v{v}".format(v=version))
+        if args.bump == 'patch':
+            print("* git checkout main && git cherry-pick v{v} && "
+                "git push origin".format(v=version))
+        else:
+            print("* git branch v{x} v{v} && git push --set-upstream origin v{x}"
+                .format(v=version, x=x_version))
+        print("* Create new release via GitHub (required to upload release "
+            "artifacts)")
+        print("* Linux: git fetch && git checkout v{v} && "
+            "tox -e build-release -- --upload"
+            .format(v=version))
+        print("* Windows: git fetch; git checkout v{v}; "
+            "py -3.9 -m tox -e build-release -- --upload"
+            .format(v=version))
+        print("* macOS: git fetch && git checkout v{v} && "
+            "tox -e build-release -- --upload"
+            .format(v=version))

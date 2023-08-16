@@ -544,13 +544,19 @@ def read_github_token(
     return token
 
 
-def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
+def github_upload(
+    artifacts: List[Artifact],
+    tag: str,
+    gh_token: str,
+    experimental: bool,
+) -> None:
     """Upload the given artifacts to GitHub.
 
     Args:
         artifacts: A list of Artifacts to upload.
         tag: The name of the release tag
         gh_token: The GitHub token to use
+        experimental: Upload to the experiments repo
     """
     # pylint: disable=broad-exception-raised
     import github3
@@ -558,7 +564,11 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
     utils.print_title("Uploading to github...")
 
     gh = github3.login(token=gh_token)
-    repo = gh.repository('qutebrowser', 'qutebrowser')
+
+    if experimental:
+        repo = gh.repository('qutebrowser', 'experiments')
+    else:
+        repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
     for release in repo.releases():
@@ -602,10 +612,13 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
                 break
 
 
-def pypi_upload(artifacts: List[Artifact]) -> None:
+def pypi_upload(artifacts: List[Artifact], experimental: bool) -> None:
     """Upload the given artifacts to PyPI using twine."""
     utils.print_title("Uploading to PyPI...")
-    run_twine('upload', artifacts)
+    if experimental:
+        run_twine('upload', artifacts, "-r", "testpypi")
+    else:
+        run_twine('upload', artifacts)
 
 
 def twine_check(artifacts: List[Artifact]) -> None:
@@ -635,6 +648,8 @@ def main() -> None:
                         help="Build a debug build.")
     parser.add_argument('--qt5', action='store_true', required=False,
                         help="Build against PyQt5")
+    parser.add_argument('--experimental', action='store_true', required=False,
+                        help="Upload to experiments repo and test PyPI")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -647,6 +662,7 @@ def main() -> None:
         gh_token = read_github_token(args.gh_token)
     else:
         gh_token = read_github_token(args.gh_token, optional=True)
+        assert not args.experimental  # makes no sense without upload
 
     if not misc_checks.check_git():
         utils.print_error("Refusing to do a release with a dirty git tree")
@@ -685,9 +701,10 @@ def main() -> None:
             input()
 
         assert gh_token is not None
-        github_upload(artifacts, version_tag, gh_token=gh_token)
+        github_upload(
+            artifacts, version_tag, gh_token=gh_token, experimental=args.experimental)
         if upload_to_pypi:
-            pypi_upload(artifacts)
+            pypi_upload(artifacts, experimental=args.experimental)
     else:
         print()
         utils.print_title("Artifacts")

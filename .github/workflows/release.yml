@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+          # FIXME do we want a possibility to do prereleases here?
+      python_version:
+        description: 'Python version'
+        required: true
+        default: '3.11'
+        type: choice
+        options:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+jobs:
+  prepare:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          # Doesn't really matter what we prepare the release with, but let's
+          # use the same version for consistency.
+          python-version: ${{ github.event.inputs.python_version }}
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Configure git
+        run: |
+            git config --global user.name "qutebrowser bot"
+            git config --global user.email "bot@qutebrowser.org"
+      - name: Switch to release branch
+        if: "${{ github.event.inputs.release_type }} == 'patch'"
+        run: |
+          git checkout "$(git branch --format='%(refname:short)' --list 'v*.*.x' | sort -V | tail -n1)"
+      # FIXME set up GPG for signed tag
+      - name: Bump version
+        id: bump
+        run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
+      - name: Push release commit/tag
+        run: |
+            git push origin main
+            git push origin v${{ steps.bump.outputs.version }}
+      - name: Cherry-pick release commit
+        if: "${{ github.event.inputs.release_type }} == 'patch'"
+        run: |
+            git checkout main
+            git cherry-pick v${{ steps.bump.outputs.version }}
+            git push origin main
+            git checkout v${{ steps.bump.outputs.version_x }}
+      - name: Create release branch
+        if: "${{ github.event.inputs.release_type }} != 'patch'"
+        run: |
+            git checkout -b v${{ steps.bump.outputs.version_x }}
+            git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
+      - name: Create GitHub draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          draft: true
+          body: "*Release artifacts for this release are currently being uploaded...*"
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: macos-11
+          - os: windows-2019
+          - os: ubuntu-20.04
+    runs-on: "${{ matrix.os }}"
+    timeout-minutes: 45
+    needs: [prepare]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ github.event.inputs.python_version }}
+      # FIXME set up GPG for signed releases (at least on Ubuntu)
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Build and upload release
+        run: "tox -e build-release -- --upload --no-confirm --experimental --gh-token ${{ secrets.GITHUB_TOKEN }}"
+  finalize:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    needs: [prepare, release]
+    steps:
+      - name: Publish final release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          draft: false
+          # FIXME automatically cut relevant changes from changelog and add them here?
+          body: |
+            Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/master/doc/changelog.asciidoc) for changes in this release.
+  irc:
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    needs: [prepare, release, finalize]
+    if: "${{ always() }}"
+    steps:
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "${{ needs.finalize.result == 'success' }}"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "${{ needs.finalize.result != 'success' }}"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            prepare: ${{ needs.prepare.result }}, release: ${{ needs.release.result}}, finalize: ${{ needs.finalize.result }}"
