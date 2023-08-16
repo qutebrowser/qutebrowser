@@ -29,6 +29,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       version: ${{ steps.bump.outputs.version }}
+      release_id: ${{ steps.create-release.outputs.id }}
     permissions:
       contents: write  # To push release commit/tag
     steps:
@@ -103,6 +104,7 @@ jobs:
             git checkout -b v${{ steps.bump.outputs.version_x }}
             git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
       - name: Create GitHub draft release
+        id: create-release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.bump.outputs.version }}
@@ -168,16 +170,10 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const tag = "v${{ needs.prepare.outputs.version }}";
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: tag,
-            })
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: release.data.id,
+              release_id: "${{ needs.prepare.outputs.release_id }}",
               draft: false,
               body: "Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/master/doc/changelog.asciidoc) for changes in this release."
             })
