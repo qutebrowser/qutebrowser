@@ -400,13 +400,11 @@ def build_windows(
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    artifacts = [
-        _build_windows_single(
-            skip_packaging=skip_packaging,
-            debug=debug,
-            qt5=qt5,
-        ),
-    ]
+    artifacts = _build_windows_single(
+        skip_packaging=skip_packaging,
+        debug=debug,
+        qt5=qt5,
+    )
     return artifacts
 
 
