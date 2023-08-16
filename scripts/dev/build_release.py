@@ -432,6 +432,8 @@ def _package_windows_single(
         name_parts.append('debug')
     if qt5:
         name_parts.append('qt5')
+
+    name_parts.append('amd64')  # FIXME:qt6 temporary until new installer
     name = '-'.join(name_parts) + '.exe'
 
     artifacts.append(Artifact(
