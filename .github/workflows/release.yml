@@ -30,6 +30,35 @@ jobs:
     outputs:
       version: ${{ steps.bump.outputs.version }}
     steps:
+      - name: Find release branch
+        uses: actions/github-script@v6
+        id: find-branch
+        with:
+          script: |
+            if (context.payload.inputs.release_type != 'patch') {
+              return 'main';
+            }
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const branch_names = branches.map(branch => branch.name);
+            console.log(`branches: ${branch_names}`);
+            const release_branches = branch_names.filter(branch => branch.match(/^v\d+\.\d+\.x$/));
+            if (release_branches.length === 0) {
+              core.setFailed('No release branch found!');
+              return '';
+            }
+            console.log(`release_branches: ${release_branches}`);
+            // Get newest release branch (biggest version number)
+            const sorted = release_branches.sort(
+              function (a, b) {
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+              }
+            );
+            console.log(`sorted: ${sorted}`);
+            return sorted.at(-1);
+          result-encoding: string
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -46,9 +75,9 @@ jobs:
             git config --global user.name "qutebrowser bot"
             git config --global user.email "bot@qutebrowser.org"
       - name: Switch to release branch
-        if: "${{ github.event.inputs.release_type }} == 'patch'"
-        run: |
-          git checkout "$(git branch --format='%(refname:short)' --list 'v*.*.x' | sort -V | tail -n1)"
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.find-branch.outputs.result }}
       # FIXME set up GPG for signed tag
       - name: Bump version
         id: bump
