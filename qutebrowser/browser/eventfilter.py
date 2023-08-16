@@ -9,9 +9,8 @@ from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
 from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, message, usertypes, qtutils, version, utils
+from qutebrowser.utils import log, message, usertypes, qtutils
 from qutebrowser.keyinput import modeman
-from qutebrowser.misc import objects
 
 
 class ChildEventFilter(QObject):
@@ -37,7 +36,8 @@ class ChildEventFilter(QObject):
         """Act on ChildAdded events."""
         if event.type() == QEvent.Type.ChildAdded:
             child = event.child()
-            if child.metaObject().className() != "QQuickWidget":
+            if not isinstance(child, QWidget):
+                # Can e.g. happen when dragging text
                 log.misc.debug(f"Ignoring new child {qtutils.qobj_repr(child)}")
                 return False
 
@@ -63,12 +63,7 @@ class ChildEventFilter(QObject):
                     c.metaObject() is not None and
                     c.metaObject().className() == "QQuickWidget"
                 ]
-                if (
-                    children and
-                    objects.backend == usertypes.Backend.QtWebEngine and
-                    version.qtwebengine_versions().webengine >=
-                        utils.VersionNumber(6, 4)
-                ):
+                if children:
                     log.misc.debug("Focusing new child")
                     child.setFocus()
 
