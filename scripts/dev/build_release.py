@@ -518,9 +518,17 @@ def build_sdist() -> List[Artifact]:
 def test_makefile() -> None:
     """Make sure the Makefile works correctly."""
     utils.print_title("Testing makefile")
+    a2x_path = pathlib.Path(sys.executable).parent / 'a2x'
+    assert a2x_path.exists(), a2x_path
     with tempfile.TemporaryDirectory() as tmpdir:
-        subprocess.run(['make', '-f', 'misc/Makefile',
-                        f'DESTDIR={tmpdir}', 'install'], check=True)
+        subprocess.run(
+            [
+                'make', '-f', 'misc/Makefile',
+                f'DESTDIR={tmpdir}', f'A2X={a2x_path}',
+                'install'
+            ],
+            check=True,
+        )
 
 
 def read_github_token(

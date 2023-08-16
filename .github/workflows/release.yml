@@ -139,11 +139,12 @@ jobs:
       # - qutebrowser/browser/webengine/spell.py
       # - utils.message -> utils.usertypes -> utils.qtutils -> qt.gui
       # - PyQt6.QtGui
+      # Some additional packages are needed for a2x to build manpage
       - name: Install apt dependencies
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libegl1-mesa
+            sudo apt-get install --no-install-recommends libegl1-mesa libxml2-utils docbook-xml xsltproc docbook-xsl
       - name: Install dependencies
         run: |
             python -m pip install -U pip
