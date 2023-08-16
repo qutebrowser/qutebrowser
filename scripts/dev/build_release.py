@@ -634,6 +634,9 @@ def github_upload(
 
 def pypi_upload(artifacts: List[Artifact], experimental: bool) -> None:
     """Upload the given artifacts to PyPI using twine."""
+    # https://blog.pypi.org/posts/2023-05-23-removing-pgp/
+    artifacts = [a for a in artifacts if a.mimetype != 'application/pgp-signature']
+
     utils.print_title("Uploading to PyPI...")
     if experimental:
         run_twine('upload', artifacts, "-r", "testpypi")
