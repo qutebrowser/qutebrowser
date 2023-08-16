@@ -598,6 +598,10 @@ def github_upload(
                       if asset.name == artifact.path.name]
             if assets:
                 print(f"Assets already exist: {assets}")
+
+                if utils.ON_CI:
+                    sys.exit(1)
+
                 print("Press enter to continue anyways or Ctrl-C to abort.")
                 input()
 
@@ -611,8 +615,13 @@ def github_upload(
                     )
             except github3.exceptions.ConnectionError as e:
                 utils.print_error(f'Failed to upload: {e}')
-                print("Press Enter to retry...", file=sys.stderr)
-                input()
+                if utils.ON_CI:
+                    print("Retrying in 30s...")
+                    time.sleep(30)
+                else:
+                    print("Press Enter to retry...", file=sys.stderr)
+                    input()
+
                 print("Retrying!")
 
                 assets = [asset for asset in release.assets()
@@ -709,7 +718,7 @@ def main() -> None:
     if args.upload:
         version_tag = f"v{qutebrowser.__version__}"
 
-        if not args.no_confirm:
+        if not args.no_confirm and not utils.ON_CI:
             utils.print_title(f"Press enter to release {version_tag}...")
             input()
 
