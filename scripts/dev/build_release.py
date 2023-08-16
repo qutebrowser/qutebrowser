@@ -583,7 +583,9 @@ def github_upload(
         if release.tag_name == tag:
             break
     else:
-        raise Exception(f"No release found for {tag!r}!")
+        releases = ", ".join(r.tag_name for r in repo.releases())
+        raise Exception(
+            f"No release found for {tag!r} in {repo.full_name}, found: {releases}")
 
     for artifact in artifacts:
         while True:
