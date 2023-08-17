@@ -38,6 +38,13 @@ Major changes
   * `run-with-count` -> `cmd-run-with-count`
   The old names continue to work for the time being, but are deprecated and
   show a warning.
+- Releases are now automated on CI, and GPG signed by
+  `qutebrowser bot <bot@qutebrowser.org>`, fingerprint
+  `27F3 BB4F C217 EECB 8585  78AE EF7E E4D0 3969 0B7B`.
+  The key is available as follows:
+  * On https://qutebrowser.org/pubkey.gpg
+  * Via keys.openpgp.org
+  * Via WKD for bot@qutebrowser.org
 
 Added
 ~~~~~

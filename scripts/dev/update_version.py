@@ -100,7 +100,7 @@ if __name__ == "__main__":
             "tox -e build-release -- --upload"
             .format(v=version))
         print("* Windows: git fetch; git checkout v{v}; "
-            "py -3.9 -m tox -e build-release -- --upload"
+            "py -3.X -m tox -e build-release -- --upload"
             .format(v=version))
         print("* macOS: git fetch && git checkout v{v} && "
             "tox -e build-release -- --upload"
