@@ -87,6 +87,21 @@ jobs:
       - name: Bump version
         id: bump
         run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
+      - name: Check milestone
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const milestones = await github.paginate(github.rest.issues.listMilestones, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const names = milestones.map(milestone => milestone.title);
+            console.log(`milestones: ${names}`);
+
+            const milestone = milestones.find(milestone => milestone.title === "v${{ steps.bump.outputs.version }}");
+            if (milestone !== undefined) {
+              core.setFailed(`Found open milestone ${milestone.title} with ${milestone.open_issues} open and ${milestone.closed_issues} closed issues!`);
+            }
       - name: Push release commit/tag
         run: |
             git push origin ${{ steps.find-branch.outputs.result }}
