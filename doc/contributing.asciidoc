@@ -758,18 +758,30 @@ qutebrowser release
 
 * Make sure there are no unstaged changes and the tests are green.
 * Make sure all issues with the related milestone are closed.
+* Mark the https://github.com/qutebrowser/qutebrowser/milestones[milestone] as closed.
 * Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
 * Minor release: Consider updating some files from main:
   - `misc/requirements/` and `requirements.txt`
   - `scripts/`
-* Make sure Python is up-to-date on build machines.
-* Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
-* Update changelog in main branch
+* Update changelog in main branch and ensure the correct version number has `(unreleased)`
 * If necessary: Update changelog in release branch from main.
+
+**Automatic release via GitHub Actions (starting with v3.0.0):**
+
+* Double check Python version in `.github/workflows/release.yml`
+* Run the `release` workflow on the `main` branch, e.g. via `gh workflow run release -f release_type=major` (`release_type` can be `major`, `minor` or `patch`; you can also override `python_version`)
+
+**Manual release:**
+
+* Make sure Python is up-to-date on build machines.
 * Run `./.venv/bin/python3 scripts/dev/update_version.py {major,minor,patch}`.
 * Run the printed instructions accordingly.
+
+**Post release:**
+
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
 * Add unreleased future versions to changelog
 * Update IRC topic
 * Announce to qutebrowser and qutebrowser-announce mailinglist.
 * Post announcement mail to subreddit
+* Post on the website formerly known as Twitter

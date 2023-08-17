@@ -400,13 +400,11 @@ def build_windows(
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    artifacts = [
-        _build_windows_single(
-            skip_packaging=skip_packaging,
-            debug=debug,
-            qt5=qt5,
-        ),
-    ]
+    artifacts = _build_windows_single(
+        skip_packaging=skip_packaging,
+        debug=debug,
+        qt5=qt5,
+    )
     return artifacts
 
 
@@ -434,6 +432,8 @@ def _package_windows_single(
         name_parts.append('debug')
     if qt5:
         name_parts.append('qt5')
+
+    name_parts.append('amd64')  # FIXME:qt6 temporary until new installer
     name = '-'.join(name_parts) + '.exe'
 
     artifacts.append(Artifact(
@@ -518,9 +518,17 @@ def build_sdist() -> List[Artifact]:
 def test_makefile() -> None:
     """Make sure the Makefile works correctly."""
     utils.print_title("Testing makefile")
+    a2x_path = pathlib.Path(sys.executable).parent / 'a2x'
+    assert a2x_path.exists(), a2x_path
     with tempfile.TemporaryDirectory() as tmpdir:
-        subprocess.run(['make', '-f', 'misc/Makefile',
-                        f'DESTDIR={tmpdir}', 'install'], check=True)
+        subprocess.run(
+            [
+                'make', '-f', 'misc/Makefile',
+                f'DESTDIR={tmpdir}', f'A2X={a2x_path}',
+                'install'
+            ],
+            check=True,
+        )
 
 
 def read_github_token(
@@ -530,6 +538,9 @@ def read_github_token(
     """Read the GitHub API token from disk."""
     if arg_token is not None:
         return arg_token
+
+    if "GITHUB_TOKEN" in os.environ:
+        return os.environ["GITHUB_TOKEN"]
 
     token_path = pathlib.Path.home() / '.gh_token'
     if not token_path.exists():
@@ -544,13 +555,19 @@ def read_github_token(
     return token
 
 
-def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
+def github_upload(
+    artifacts: List[Artifact],
+    tag: str,
+    gh_token: str,
+    experimental: bool,
+) -> None:
     """Upload the given artifacts to GitHub.
 
     Args:
         artifacts: A list of Artifacts to upload.
         tag: The name of the release tag
         gh_token: The GitHub token to use
+        experimental: Upload to the experiments repo
     """
     # pylint: disable=broad-exception-raised
     import github3
@@ -558,14 +575,20 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
     utils.print_title("Uploading to github...")
 
     gh = github3.login(token=gh_token)
-    repo = gh.repository('qutebrowser', 'qutebrowser')
+
+    if experimental:
+        repo = gh.repository('qutebrowser', 'experiments')
+    else:
+        repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
     for release in repo.releases():
         if release.tag_name == tag:
             break
     else:
-        raise Exception(f"No release found for {tag!r}!")
+        releases = ", ".join(r.tag_name for r in repo.releases())
+        raise Exception(
+            f"No release found for {tag!r} in {repo.full_name}, found: {releases}")
 
     for artifact in artifacts:
         while True:
@@ -575,6 +598,10 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
                       if asset.name == artifact.path.name]
             if assets:
                 print(f"Assets already exist: {assets}")
+
+                if utils.ON_CI:
+                    sys.exit(1)
+
                 print("Press enter to continue anyways or Ctrl-C to abort.")
                 input()
 
@@ -588,8 +615,13 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
                     )
             except github3.exceptions.ConnectionError as e:
                 utils.print_error(f'Failed to upload: {e}')
-                print("Press Enter to retry...", file=sys.stderr)
-                input()
+                if utils.ON_CI:
+                    print("Retrying in 30s...")
+                    time.sleep(30)
+                else:
+                    print("Press Enter to retry...", file=sys.stderr)
+                    input()
+
                 print("Retrying!")
 
                 assets = [asset for asset in release.assets()
@@ -602,10 +634,16 @@ def github_upload(artifacts: List[Artifact], tag: str, gh_token: str) -> None:
                 break
 
 
-def pypi_upload(artifacts: List[Artifact]) -> None:
+def pypi_upload(artifacts: List[Artifact], experimental: bool) -> None:
     """Upload the given artifacts to PyPI using twine."""
+    # https://blog.pypi.org/posts/2023-05-23-removing-pgp/
+    artifacts = [a for a in artifacts if a.mimetype != 'application/pgp-signature']
+
     utils.print_title("Uploading to PyPI...")
-    run_twine('upload', artifacts)
+    if experimental:
+        run_twine('upload', artifacts, "-r", "testpypi")
+    else:
+        run_twine('upload', artifacts)
 
 
 def twine_check(artifacts: List[Artifact]) -> None:
@@ -635,6 +673,8 @@ def main() -> None:
                         help="Build a debug build.")
     parser.add_argument('--qt5', action='store_true', required=False,
                         help="Build against PyQt5")
+    parser.add_argument('--experimental', action='store_true', required=False,
+                        help="Upload to experiments repo and test PyPI")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -647,6 +687,7 @@ def main() -> None:
         gh_token = read_github_token(args.gh_token)
     else:
         gh_token = read_github_token(args.gh_token, optional=True)
+        assert not args.experimental  # makes no sense without upload
 
     if not misc_checks.check_git():
         utils.print_error("Refusing to do a release with a dirty git tree")
@@ -680,14 +721,15 @@ def main() -> None:
     if args.upload:
         version_tag = f"v{qutebrowser.__version__}"
 
-        if not args.no_confirm:
+        if not args.no_confirm and not utils.ON_CI:
             utils.print_title(f"Press enter to release {version_tag}...")
             input()
 
         assert gh_token is not None
-        github_upload(artifacts, version_tag, gh_token=gh_token)
+        github_upload(
+            artifacts, version_tag, gh_token=gh_token, experimental=args.experimental)
         if upload_to_pypi:
-            pypi_upload(artifacts)
+            pypi_upload(artifacts, experimental=args.experimental)
     else:
         print()
         utils.print_title("Artifacts")
