@@ -234,6 +234,13 @@ class _BackendProblemChecker:
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 
+        # Doing this here because it's not relevant with QtWebKit where fatal=True
+        if machinery.IS_QT6:
+            text = ("\nHint: If installed via mkvenv.py on a system without "
+                    "OpenSSL 3.x (e.g. Ubuntu 20.04), you can use --pyqt-version 6.4 "
+                    "to get an older Qt still compatible with OpenSSL 1.1 (at the "
+                    "expense of running an older QtWebEngine/Chromium)")
+
         assert not fatal
         log.init.warning(text)
 
