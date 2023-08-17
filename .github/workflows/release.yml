@@ -54,11 +54,7 @@ jobs:
             }
             console.log(`release_branches: ${release_branches}`);
             // Get newest release branch (biggest version number)
-            const sorted = release_branches.sort(
-              function (a, b) {
-                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-              }
-            );
+            const sorted = release_branches.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
             console.log(`sorted: ${sorted}`);
             return sorted.at(-1);
           result-encoding: string
@@ -190,7 +186,7 @@ jobs:
               repo: context.repo.repo,
               release_id: "${{ needs.prepare.outputs.release_id }}",
               draft: false,
-              body: "Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/master/doc/changelog.asciidoc) for changes in this release."
+              body: "Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/master/doc/changelog.asciidoc) for changes in this release.",
             })
   irc:
     timeout-minutes: 2
