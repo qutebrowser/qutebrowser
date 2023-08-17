@@ -6,7 +6,7 @@
 
 from typing import cast, Optional
 
-from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
+from qutebrowser.qt.core import pyqtSlot, QObject, QEvent, qVersion
 from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
@@ -83,6 +83,19 @@ class EventFilter(QObject):
 
             ev_type_str = debug.qenum_key(QEvent, ev_type)
             log.misc.debug(f"{source} got event: {ev_type_str}")
+
+        if (
+            ev_type == QEvent.Type.DragEnter and
+            objects.qapp.platformName() == "wayland" and
+            qVersion() == "6.5.2"
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-115757
+            # Fixed in Qt 6.5.3
+            # Can't do this via self._handlers since handling it for QWindow
+            # seems to be too late.
+            log.mouse.warning("Ignoring drag event to prevent Qt crash")
+            event.ignore()
+            return True
 
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
