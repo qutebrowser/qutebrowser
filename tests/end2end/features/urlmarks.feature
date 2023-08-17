@@ -271,3 +271,14 @@ Feature: quickmarks and bookmarks
         And I open qute://bookmarks
         And I hint with args "links current" and follow a
         Then data/numbers/1.txt should be loaded
+
+    Scenario: Following a bookmark and going back/forward
+        When I open data/numbers/1.txt in a new tab
+        And I run :bookmark-add
+        And I open qute://bookmarks
+        And I hint with args "links current" and follow a
+        And I wait until data/numbers/1.txt is loaded
+        And I run :back
+        And I wait until qute://bookmarks is loaded
+        And I run :forward
+        Then data/numbers/1.txt should be loaded

@@ -1148,10 +1148,11 @@ class AbstractTab(QWidget):
     ) -> None:
         """Handle common acceptNavigationRequest code."""
         url = utils.elide(navigation.url.toDisplayString(), 100)
-        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
-                          "{}".format(url,
-                                      navigation.navigation_type,
-                                      navigation.is_main_frame))
+        log.webview.debug(
+            f"navigation request: url {url} (current {self.url().toDisplayString()}), "
+            f"type {navigation.navigation_type.name}, "
+            f"is_main_frame {navigation.is_main_frame}"
+        )
 
         if navigation.is_main_frame:
             self.data.last_navigation = navigation
@@ -1171,17 +1172,31 @@ class AbstractTab(QWidget):
 
         # WORKAROUND for QtWebEngine >= 6.2 not allowing form requests from
         # qute:// to outside domains.
+        needs_load_workarounds = (
+            objects.backend == usertypes.Backend.QtWebEngine and
+            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
+        )
         if (
+            needs_load_workarounds and
             self.url() == QUrl("qute://start/") and
             navigation.navigation_type == navigation.Type.form_submitted and
             navigation.url.matches(
                 QUrl(config.val.url.searchengines['DEFAULT']),
-                urlutils.FormatOption.REMOVE_QUERY) and
-            objects.backend == usertypes.Backend.QtWebEngine and
-            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
+                urlutils.FormatOption.REMOVE_QUERY)
         ):
             log.webview.debug(
                 "Working around qute://start loading issue for "
+                f"{navigation.url.toDisplayString()}")
+            navigation.accepted = False
+            self.load_url(navigation.url)
+
+        if (
+            needs_load_workarounds and
+            self.url() == QUrl("qute://bookmarks/") and
+            navigation.navigation_type == navigation.Type.back_forward
+        ):
+            log.webview.debug(
+                "Working around qute://bookmarks loading issue for "
                 f"{navigation.url.toDisplayString()}")
             navigation.accepted = False
             self.load_url(navigation.url)
