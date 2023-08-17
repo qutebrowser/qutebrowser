@@ -239,6 +239,13 @@ class SessionManager(QObject):
         for idx, item in enumerate(history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
+
+            if not item.url().isValid():
+                # WORKAROUND Qt 6.5 regression
+                # https://github.com/qutebrowser/qutebrowser/issues/7696
+                log.sessions.debug(f"Skipping invalid history item: {item}")
+                continue
+
             if item.url().scheme() == 'qute' and item.url().host() == 'back':
                 # don't add qute://back to the session file
                 if item_data.get('active', False) and data['history']:
