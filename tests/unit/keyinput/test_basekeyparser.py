@@ -4,6 +4,9 @@
 
 """Tests for BaseKeyParser."""
 
+import logging
+import re
+import sys
 from unittest import mock
 
 from qutebrowser.qt.core import Qt
@@ -340,5 +343,22 @@ def test_respect_config_when_matching_counts(keyparser, config_stub):
     info = keyutils.KeyInfo(Qt.Key.Key_1, Qt.KeyboardModifier.NoModifier)
     keyparser.handle(info.to_event())
 
+    assert not keyparser._sequence
+    assert not keyparser._count
+
+
+def test_count_limit_exceeded(handle_text, keyparser, caplog):
+    try:
+        max_digits = sys.get_int_max_str_digits()
+    except AttributeError:
+        pytest.skip('sys.get_int_max_str_digits() not available')
+
+    keys = (max_digits + 1) * [Qt.Key.Key_1]
+
+    with caplog.at_level(logging.ERROR):
+        handle_text(keyparser, *keys, Qt.Key.Key_B, Qt.Key.Key_A)
+
+    pattern = re.compile(r"^Failed to parse count: Exceeds the limit .* for integer string conversion: .*")
+    assert any(pattern.fullmatch(msg) for msg in caplog.messages)
     assert not keyparser._sequence
     assert not keyparser._count
