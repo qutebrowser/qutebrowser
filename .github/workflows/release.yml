@@ -186,7 +186,7 @@ jobs:
               repo: context.repo.repo,
               release_id: "${{ needs.prepare.outputs.release_id }}",
               draft: false,
-              body: "Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/master/doc/changelog.asciidoc) for changes in this release.",
+              body: "Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/main/doc/changelog.asciidoc) for changes in this release.",
             })
   irc:
     timeout-minutes: 2
