@@ -45,6 +45,9 @@ Major changes
   * On https://qutebrowser.org/pubkey.gpg
   * Via keys.openpgp.org
   * Via WKD for bot@qutebrowser.org
+- Support for old Qt versions (< 5.15), old Python versions (< 3.8) and old
+  macOS (< 11)/Windows (< 10) versions were dropped. See the "Removed" section
+  below for details.
 
 Added
 ~~~~~
@@ -54,7 +57,6 @@ Added
 - New `:prompt-fileselect-external` command which can be used to spawn an
   external file selector (`fileselect.folder.command`) from download filename
   prompts (bound to `<Alt+e>` by default).
-- New `clock` value for `statusbar.widgets`, displaying the current time.
 - New `qute://start` built-in start page (not set as the default start page yet).
 - New `content.javascript.log_message.levels` setting, allowing to surface JS log
   messages as qutebrowser messages (rather than only logging them). By default,
@@ -77,6 +79,9 @@ Added
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
       selection via rofi, and inserting TOTP-codes (experimental).
+    * `qute-pass` will now try looking up candidate pass entries based on the
+      calling tab's verbatim netloc (hostname including port and username) if it
+      can't find a match with an earlier candidate (FQDN, IPv4 etc).
 - New `qt.chromium.experimental_web_platform_features` setting, which is enabled
   on Qt 5 by default, to maximize compatibility with websites despite an aging
   Chromium backend.
@@ -91,7 +96,8 @@ Removed
 
 - Python 3.8.0 or newer is now required.
   - Support for Python 3.6 and 3.7 is dropped, as they both reached
-    their [end of life] in December 2021 and June 2023, respectively.
+    their https://endoflife.date/python[end of life] in December 2021 and June
+    2023, respectively.
 - Support for Qt/PyQt before 5.15.0 and QtWebEngine before 5.15.2 are now
   dropped, as older Qt versions are
   https://endoflife.date/qt[end-of-life upstream] since mid/late 2020
@@ -148,11 +154,10 @@ Changed
   the ones produced by `:download --mhtml`.
 - The "... called unimplemented GM_..." messages are now logged as info JS
   messages instead of errors.
-- JS errors in internal qutebrowser scripts are now shown as errors in the UI.
 - For QtNetwork downloads (e.g. `:adblock-update`), various changes were done
   for how redirects work:
   - Insecure redirects (HTTPS -> HTTP) now fail the download.
-  - 20 redirects are now allowed before the download fails rather than only 10
+  - 20 redirects are now allowed before the download fails rather than only 10.
   - A redirect to the same URL will now fail the download with too many
     redirects instead of being ignored.
 - When a download fails in a way it'd leave an empty file around, the empty
@@ -163,7 +168,7 @@ Changed
   should make certain operations happen when the page has started loading rather
   when it fully finished.
 - `mkvenv.py` has a new `--pyqt-snapshot` flag, allowing to install certain packages
-  from the https://www.riverbankcomputing.com/pypi/[Riverbank development snapshots server]
+  from the https://www.riverbankcomputing.com/pypi/[Riverbank development snapshots server].
 - When `QUTE_QTWEBENGINE_VERSION_OVERRIDE` is set, it now always wins, no matter how
   the version would otherwise have been determined. Note setting this value can break
   things (if set to a wrong value), and usually isn't needed.
@@ -171,8 +176,8 @@ Changed
   launch, it now prints an error before starting (which causes the underlying
   Chromium to remove all browsing data such as cookies).
 - The keys "<To Do List>" and "<Contrast adjust>" are now named "<To-do list>"
-  and "<Adjust contrast>", respeectively.
-- The `tox.ini` now requires at least tox 3.20 (was tox 3.15 previously)
+  and "<Adjust contrast>", respectively.
+- The `tox.ini` now requires at least tox 3.20 (was tox 3.15 previously).
 - `:config-diff` now has an `--include-hidden` flag, which also shows
   internally-set settings.
 - Improved error messages when `:spawn` can't find an executable.
@@ -183,9 +188,6 @@ Changed
   anymore (unless started with `:spawn --verbose`).
 - When a process got killed by a signal, the signal name is now displayed in
   the message.
-- The qute-pass will now try looking up candidate pass entries based on the
-  calling tab's verbatim netloc (hostname including port and username) if it
-  can't find a match with an earlier candidate (FQDN, IPv4 etc).
 - The `js-string-replaceall` quirk is now removed from the default
   `content.site_specific_quirks.skip`, so that `String.replaceAll` is now
   polyfilled on QtWebEngine < 5.15.3, hopefully improving website
@@ -224,12 +226,13 @@ Fixed
 - Warning with recent versions of the "deadd" (aka "linux notification center") notification server.
 - Crash when using `:print --pdf` with a directory where its parent directory
   did not exist.
-- The `PyQt{5,6}.sip` version is now shown correctly in the :version|--version
+- The `PyQt{5,6}.sip` version is now shown correctly in the `:version`/`--version`
   output. Previously that showed the version from the standalone `sip` module
   which was only set for PyQt5. (#7805)
 - When a `config.py` calls `.redirect()` via a request interceptor (which is
   unsupported) and supplies an invalid redirect target URL, an exception is now
   raised for the `.redirect()` call instead of later inside qutebrowser.
+- Crash when loading invalid history items from a session file.
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)
