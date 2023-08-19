@@ -604,10 +604,12 @@ class WebEngineVersions:
         #         6.4.3: Security fixes up to 110.0.5481.78 (2023-02-07)
         utils.VersionNumber(6, 4): '102.0.5005.177',
 
-        # Qt 6.5: Chromium 105
+        # Qt 6.5: Chromium 108
         #         108.0.5359.220 (~2022-12-23)
         #         (.220 claimed by code, .181 claimed by CHROMIUM_VERSION)
         #         6.5.0: Security fixes up to 110.0.5481.104 (2023-02-16)
+        #         6.5.1: Security fixes up to 112.0.5615.138 (2023-04-18)
+        #         6.5.2: Security fixes up to 114.0.5735.133 (2023-06-13)
         utils.VersionNumber(6, 5): '108.0.5359.220',
     }
 
