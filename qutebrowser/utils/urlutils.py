@@ -226,7 +226,7 @@ def _is_url_dns(urlstr: str) -> bool:
         return False
     log.url.debug("Doing DNS request for {}".format(host))
     info = QHostInfo.fromName(host)
-    return not info.error()
+    return info.error() == QHostInfo.HostInfoError.NoError
 
 
 def fuzzy_url(urlstr: str,
