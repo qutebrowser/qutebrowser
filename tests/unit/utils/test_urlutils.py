@@ -10,7 +10,7 @@ import dataclasses
 import urllib.parse
 
 from qutebrowser.qt.core import QUrl
-from qutebrowser.qt.network import QNetworkProxy
+from qutebrowser.qt.network import QNetworkProxy, QHostInfo
 import pytest
 import hypothesis
 import hypothesis.strategies
@@ -38,7 +38,7 @@ class FakeDNS:
     @dataclasses.dataclass
     class FakeDNSAnswer:
 
-        error: bool
+        error: QHostInfo.HostInfoError
 
     def __init__(self):
         self.used = False
@@ -53,7 +53,9 @@ class FakeDNS:
         self.answer = None
 
     def _get_error(self):
-        return not self.answer
+        if self.answer:
+            return QHostInfo.HostInfoError.NoError
+        return QHostInfo.HostInfoError.HostNotFound
 
     def fromname_mock(self, _host):
         """Simple mock for QHostInfo::fromName returning a FakeDNSAnswer."""
