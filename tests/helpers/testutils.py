@@ -192,8 +192,8 @@ def pattern_match(*, pattern, value):
 
 def abs_datapath():
     """Get the absolute path to the end2end data directory."""
-    file_abs = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(file_abs, '..', 'end2end', 'data')
+    path = pathlib.Path(__file__).parent / '..' / 'end2end' / 'data'
+    return path.resolve()
 
 
 @contextlib.contextmanager
