@@ -199,6 +199,7 @@ def open_path(quteproc, server, path):
     - With "... as a URL", it's opened according to new_instance_open_target.
     """
     path = path.replace('(port)', str(server.port))
+    path = path.replace('(testdata)', testutils.abs_datapath())
 
     new_tab = False
     new_bg_tab = False
