@@ -215,14 +215,16 @@ class WebEngineElement(webelem.AbstractWebElement):
             return False
 
         # Qt 6.3+ needs a user interaction to allow navigations from qute:// to
-        # outside qute:// (like e.g. on qute://bookmarks).
+        # outside qute:// (like e.g. on qute://bookmarks), as well as from file:// to
+        # outside of file:// (e.g. users having a local bookmarks.html).
         versions = version.qtwebengine_versions()
-        if (
-            baseurl.scheme() == "qute" and
-            url.scheme() != "qute" and
-            versions.webengine >= utils.VersionNumber(6, 3)
-        ):
-            return True
+        for scheme in ["qute", "file"]:
+            if (
+                baseurl.scheme() == scheme and
+                url.scheme() != scheme and
+                versions.webengine >= utils.VersionNumber(6, 3)
+            ):
+                return True
 
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
