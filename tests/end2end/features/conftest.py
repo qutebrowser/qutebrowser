@@ -198,7 +198,7 @@ def open_path(quteproc, server, path):
     - With "... as a URL", it's opened according to new_instance_open_target.
     """
     path = path.replace('(port)', str(server.port))
-    path = path.replace('(testdata)', os.fspath(testutils.abs_datapath()))
+    path = testutils.substitute_testdata(path)
 
     new_tab = False
     new_bg_tab = False
@@ -270,7 +270,7 @@ def run_command(quteproc, server, tmpdir, command):
         invalid = False
 
     command = command.replace('(port)', str(server.port))
-    command = command.replace('(testdata)', str(testutils.abs_datapath()))
+    command = testutils.substitute_testdata(command)
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
     command = command.replace('(echo-exe)', _get_echo_exe_path())
@@ -364,7 +364,7 @@ def hint(quteproc, args):
 
 @bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
 def hint_and_follow(quteproc, args, letter):
-    args = args.replace('(testdata)', str(testutils.abs_datapath()))
+    args = testutils.substitute_testdata(args)
     args = args.replace('(python-executable)', sys.executable)
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')
