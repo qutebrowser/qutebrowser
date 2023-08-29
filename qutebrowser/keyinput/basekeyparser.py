@@ -7,13 +7,14 @@
 import string
 import types
 import dataclasses
+import traceback
 from typing import Mapping, MutableMapping, Optional, Sequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, utils
+from qutebrowser.utils import log, usertypes, utils, message
 from qutebrowser.keyinput import keyutils
 
 
@@ -189,7 +190,7 @@ class BaseKeyParser(QObject):
                               passthrough=self.passthrough,
                               supports_count=self._supports_count)
 
-    def _debug_log(self, message: str) -> None:
+    def _debug_log(self, msg: str) -> None:
         """Log a message to the debug log if logging is active.
 
         Args:
@@ -198,7 +199,7 @@ class BaseKeyParser(QObject):
         if self._do_log:
             prefix = '{} for mode {}: '.format(self.__class__.__name__,
                                                self._mode.name)
-            log.keyboard.debug(prefix + message)
+            log.keyboard.debug(prefix + msg)
 
     def _match_key(self, sequence: keyutils.KeySequence) -> MatchResult:
         """Try to match a given keystring with any bound keychain.
@@ -315,7 +316,15 @@ class BaseKeyParser(QObject):
             assert result.command is not None
             self._debug_log("Definitive match for '{}'.".format(
                 result.sequence))
-            count = int(self._count) if self._count else None
+
+            try:
+                count = int(self._count) if self._count else None
+            except ValueError as err:
+                message.error(f"Failed to parse count: {err}",
+                              stack=traceback.format_exc())
+                self.clear_keystring()
+                return
+
             self.clear_keystring()
             self.execute(result.command, count)
         elif result.match_type == QKeySequence.SequenceMatch.PartialMatch:
