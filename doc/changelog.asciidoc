@@ -25,6 +25,8 @@ Fixed
 - The "restore video" functionality of the `view_in_mpv` script works again on
   webengine.
 - Setting `url.auto_search` to `dns` works correctly now with Qt 6.
+- Counts passed via keypresses now have a digit limit (4300) to avoid
+  segfaults due to cats sleeping on numpads. (#7834)
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
