@@ -370,7 +370,7 @@ class BaseKeyParser(QObject):
                 # Update state variables
                 self._sequence = result.sequence
                 self._pure_sequence = pure_sequence
-            if result.match_type:
+            if result.match_type != QKeySequence.SequenceMatch.NoMatch:
                 break
             assert pure_sequence
             if not had_empty_queue:
