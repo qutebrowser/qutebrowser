@@ -10,6 +10,7 @@ Module attributes:
 
 import traceback
 import enum
+import functools
 from typing import TYPE_CHECKING, List
 from collections.abc import Sequence
 
@@ -154,8 +155,8 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
             self.clear_partial_match_events)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
-        self._partial_timer.timeout.connect(
-            self.forward_all_partial_match_events)
+        self._partial_timer.timeout.connect(functools.partial(
+            self.forward_all_partial_match_events, is_timeout=True))
 
     def _handle_filter_key(self, e: QKeyEvent) -> QKeySequence.SequenceMatch:
         """Handle keys for string filtering."""
@@ -206,11 +207,14 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         if not had_empty_queue:
             # Immediately record the event so that parser.handle may forward if
             # appropriate from its logic.
+            self._debug_log("Enqueuing key event due to non-empty queue: "
+                            "{}".format(e))
             self._partial_match_events.append(
                 keyutils.QueuedKeyEventPair.from_event_press(e))
 
         result = self._command_parser.handle(e)
         if result == QKeySequence.SequenceMatch.ExactMatch:
+            self._debug_log("Stopping partial timer.")
             self._stop_partial_timer()
             self.clear_partial_match_events()
             log.keyboard.debug("Handling key via command parser")
@@ -220,11 +224,15 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
             log.keyboard.debug("Handling key via command parser")
             if had_empty_queue:
                 # Begin recording partial match events
+                self._debug_log("Enqueuing key event as first entry in an "
+                                "empty queue: {}".format(e))
                 self._partial_match_events.append(
                     keyutils.QueuedKeyEventPair.from_event_press(e))
+            self._debug_log("Staring partial timer.")
             self._start_partial_timer()
             return result
         elif not had_empty_queue:
+            self._debug_log("Stopping partial timer.")
             self._stop_partial_timer()
             # It's unclear exactly what the return here should be. The safest
             # bet seems to be PartialMatch as it won't clear the unused
@@ -275,14 +283,18 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
     @pyqtSlot()
     def forward_all_partial_match_events(self, *,
-                                         stop_timer: bool = False) -> None:
+                                         stop_timer: bool = False,
+                                         is_timeout: bool = False) -> None:
         """Forward all partial match events.
 
         Args:
-            stop_timer: If true, stop the partial timer as well. Default is False.
+            stop_timer: If true, stop the partial timer as well. Default is
+                        False.
+            is_timeout: True if this invocation is the result of a timeout.
         """
-        self._debug_log("Forwarding all partial matches.")
+        self._debug_log(f"Forwarding all partial matches ({is_timeout=}).")
         if stop_timer:
+            self._debug_log("Stopping partial timer.")
             self._stop_partial_timer()
         if self._partial_match_events:
             while self._partial_match_events:

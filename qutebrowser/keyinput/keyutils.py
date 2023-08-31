@@ -565,10 +565,10 @@ class QueuedKeyEventPair:
     def to_events(self) -> Sequence[QKeyEvent]:
         """Get a QKeyEvent from this QueuedEvent."""
         if self.key_info_release is None:
-            return (self.key_info_press.to_event(QEvent.KeyPress),)
+            return (self.key_info_press.to_event(QEvent.Type.KeyPress),)
         else:
-            return (self.key_info_press.to_event(QEvent.KeyPress),
-                    self.key_info_release.to_event(QEvent.KeyRelease))
+            return (self.key_info_press.to_event(QEvent.Type.KeyPress),
+                    self.key_info_release.to_event(QEvent.Type.KeyRelease))
 
 
 class KeySequence:
