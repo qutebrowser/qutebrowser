@@ -230,6 +230,9 @@ class BaseKeyParser(QObject):
                                                self._mode.name)
             log.keyboard.debug(prefix + msg)
 
+    def get_do_log(self) -> bool:
+        return self._do_log
+
     def _match_key(self, sequence: keyutils.KeySequence) -> MatchResult:
         """Try to match a given keystring with any bound keychain.
 
@@ -311,7 +314,7 @@ class BaseKeyParser(QObject):
         self._debug_log(f"Got key: {info!r} (dry_run {dry_run})")
 
         # Modifier keys should be previously handled by modeman
-        if keyutils.is_modifier_key(key):
+        if info.is_modifier_key():
             self._debug_log("Ignoring, only modifier")
             return QKeySequence.SequenceMatch.NoMatch
 
@@ -432,6 +435,8 @@ class BaseKeyParser(QObject):
         else:
             raise utils.Unreachable("Invalid match value {!r}".format(
                 result.match_type))
+
+        return result.match_type
 
     @config.change_filter('bindings')
     def _on_config_changed(self) -> None:
