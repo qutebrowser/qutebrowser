@@ -698,28 +698,6 @@ class CommandDispatcher:
                 "Numeric argument is too large for internal int "
                 "representation.")
 
-    def _yank_url(self, what):
-        """Helper method for yank() to get the URL to copy."""
-        assert what in ['url', 'pretty-url'], what
-
-        if what == 'pretty-url':
-            flags = urlutils.FormatOption.DECODE_RESERVED
-        else:
-            flags = urlutils.FormatOption.ENCODED
-        flags |= urlutils.FormatOption.REMOVE_PASSWORD
-
-        url = QUrl(self._current_url())
-        url_query = QUrlQuery()
-        url_query_str = url.query()
-        if '&' not in url_query_str and ';' in url_query_str:
-            url_query.setQueryDelimiters('=', ';')
-        url_query.setQuery(url_query_str)
-        for key in dict(url_query.queryItems()):
-            if key in config.val.url.yank_ignored_parameters:
-                url_query.removeQueryItem(key)
-        url.setQuery(url_query)
-        return url.toString(flags)
-
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
                                         'title', 'domain', 'inline'])
@@ -754,7 +732,8 @@ class CommandDispatcher:
                                    self._current_url().host(),
                                    ':' + str(port) if port > -1 else '')
         elif what in ['url', 'pretty-url']:
-            s = self._yank_url(what)
+            url = self._current_url()
+            s = urlutils.get_url_yank_text(url, what == 'pretty-url')
             what = 'URL'  # For printing
         elif what == 'selection':
             def _selection_callback(s):
