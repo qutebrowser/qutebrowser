@@ -419,10 +419,10 @@ class TestHandle:
         }
 
         result = keyparser.handle(
-            keyutils.KeyInfo(Qt.Key_X, Qt.KeyboardModifier.NoModifier).to_event())
+            keyutils.KeyInfo(Qt.Key.Key_X, Qt.KeyboardModifier.NoModifier).to_event())
         assert result == QKeySequence.SequenceMatch.PartialMatch
         result = keyparser.handle(
-            keyutils.KeyInfo(Qt.Key_2, Qt.KeyboardModifier.NoModifier).to_event())
+            keyutils.KeyInfo(Qt.Key.Key_2, Qt.KeyboardModifier.NoModifier).to_event())
         # Check that count is not evaluated when an expansive mapping occurs.
         # This behavior may change in the future.
         assert result == QKeySequence.SequenceMatch.NoMatch
@@ -452,7 +452,7 @@ class TestCount:
         assert not prompt_keyparser._sequence
 
     def test_count_42_invalid(self, handle_text, prompt_keyparser):
-        # Invalid call with ccx gets ignored
+        # Invalid call with cce gets ignored
         handle_text(prompt_keyparser,
                     Qt.Key.Key_4, Qt.Key.Key_2, Qt.Key.Key_C, Qt.Key.Key_C, Qt.Key.Key_E)
         assert not prompt_keyparser.execute.called

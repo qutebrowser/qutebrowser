@@ -28,6 +28,9 @@ class FakeKeyparser(QObject):
         self.allow_forward = True
         self.forward_widget_name = None
 
+    def get_do_log(self):
+        return True
+
     def handle(
         self,
         evt: QKeyEvent,
@@ -78,11 +81,14 @@ class FakeKeyparserWithTimeout(QObject):
         self.forward_widget_name = None
         self.fake_clear_keystring_called = False
 
+    def get_do_log(self):
+        return True
+
     def handle(self, evt, *, dry_run=False):
         txt = str(keyutils.KeyInfo.from_event(evt))
-        if 'a' == txt:
+        if txt == 'a':
             return QKeySequence.SequenceMatch.ExactMatch
-        elif 'b' == txt:
+        elif txt == 'b':
             return QKeySequence.SequenceMatch.PartialMatch
         else:
             return QKeySequence.SequenceMatch.NoMatch
@@ -147,9 +153,11 @@ def test_partial_keychain_timeout(modeman_with_timeout, config_stub, qtbot, data
         else:
             pytest.fail('Unreachable')
     if behavior in ['timer_active', 'timer_reset']:
-        # Now simulate a timeout and check the keystring has been cleared.
-        with qtbot.wait_signal(modeman_with_timeout.keystring_updated) as blocker:
-            timer.timeout.emit()
+        # Wait for the timer to timeout and check the keystring has been cleared.
+        # Only wait for up to 2*timeout, then raise an error.
+        with qtbot.wait_signal(modeman_with_timeout.keystring_updated,
+                               timeout=2*timeout) as blocker:
+            pass
         assert parser.fake_clear_keystring_called
         parser.fake_clear_keystring_called = False
         assert blocker.args == [mode, '']

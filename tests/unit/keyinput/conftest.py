@@ -22,8 +22,7 @@ BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
                         '<Ctrl+X>': 'message-info ctrlx'},
             'normal': {'a': 'message-info a',
                        'ba': 'message-info ba',
-                       'ccc': 'message-info ccc'}
-}
+                       'ccc': 'message-info ccc'}}
 MAPPINGS = {
     'x': 'a',
     'b': 'a',

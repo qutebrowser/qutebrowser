@@ -259,7 +259,7 @@ class TestHintKeyParser:
                 assert hintmanager.keystr == hint_seq[:len(seq)]
         else:
             assert hintmanager.keystr == ''.join(
-                    str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)) for key in seq)
+                str(keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)) for key in seq)
 
     @pytest.mark.parametrize('data_sequence', [
         ((Qt.Key.Key_A, 'timer_inactive'),),
@@ -320,8 +320,10 @@ class TestHintKeyParser:
             else:
                 pytest.fail('Unreachable')
         if behavior in ['timer_active', 'timer_reset']:
-            # Now simulate a timeout and check the keystring has been forwarded.
-            with qtbot.wait_signal(command_parser.keystring_updated) as blocker:
-                timer.timeout.emit()
+            # Wait for the timer to timeout and check the keystring has been forwarded.
+            # Only wait for up to 2*timeout, then raise an error.
+            with qtbot.wait_signal(command_parser.keystring_updated,
+                                   timeout=2*timeout) as blocker:
+                pass
             assert blocker.args == ['']
             assert hintmanager.keystr == ('b' * len(data_sequence))

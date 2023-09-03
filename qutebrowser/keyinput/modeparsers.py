@@ -228,7 +228,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
                                 "empty queue: {}".format(e))
                 self._partial_match_events.append(
                     keyutils.QueuedKeyEventPair.from_event_press(e))
-            self._debug_log("Staring partial timer.")
+            self._debug_log("Starting partial timer.")
             self._start_partial_timer()
             return result
         elif not had_empty_queue:
@@ -278,7 +278,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
             self._debug_log("Text mismatch (this is likely benign): '{}' != "
                             "'{}'".format(text_actual, text))
         e = match_event.to_events()
-        assert 1 == len(e)
+        assert len(e) == 1
         self._handle_hint(e[0])
 
     @pyqtSlot()
