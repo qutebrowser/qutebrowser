@@ -817,7 +817,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
         self._silence_timer.timeout.connect(functools.partial(
-                self.recently_audible_changed.emit, False))
+            self.recently_audible_changed.emit, False))
 
     # WORKAROUND for recentlyAudibleChanged being emitted without delay from the moment
     # that audio is dropped.
