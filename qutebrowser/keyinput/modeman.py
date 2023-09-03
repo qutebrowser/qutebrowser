@@ -265,7 +265,7 @@ class ModeManager(QObject):
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)
 
-    def _handle_keypress(self, event: QKeyEvent, *,
+    def _handle_keypress(self, event: QKeyEvent, *,  # noqa: C901
                          dry_run: bool = False) -> bool:
         """Handle filtering of KeyPress events.
 
@@ -384,7 +384,7 @@ class ModeManager(QObject):
         # handle like matching KeyPress
         keyevent = keyutils.KeyEvent.from_event(event)
         do_log = (self.mode in self.parsers) and \
-                self.parsers[self.mode].get_do_log()
+            self.parsers[self.mode].get_do_log()
         if keyevent in self._releaseevents_to_pass:
             if do_log:
                 log.modes.debug("Passing release event: {}".format(keyevent))
@@ -422,7 +422,7 @@ class ModeManager(QObject):
             (forward_unbound_keys == 'auto' and is_non_alnum))
 
     @pyqtSlot(usertypes.KeyMode, str)
-    def forward_partial_match_event(self, mode: usertypes.KeyMode,
+    def forward_partial_match_event(self, mode: usertypes.KeyMode,  # noqa: C901
                                     text: str = None) -> None:
         """Forward the oldest partial match event for a given mode.
 
