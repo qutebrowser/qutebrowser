@@ -58,7 +58,7 @@ jobs:
             console.log(`sorted: ${sorted}`);
             return sorted.at(-1);
           result-encoding: string
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -74,7 +74,7 @@ jobs:
             git config --global user.name "qutebrowser bot"
             git config --global user.email "bot@qutebrowser.org"
       - name: Switch to release branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ steps.find-branch.outputs.result }}
       - name: Import GPG Key
@@ -134,7 +134,7 @@ jobs:
     permissions:
       contents: write  # To upload release artifacts
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: v${{ needs.prepare.outputs.version }}
       - name: Set up Python
