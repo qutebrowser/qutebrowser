@@ -16,6 +16,6 @@ types-colorama==0.4.15.12
 types-docutils==0.20.0.3
 types-Pygments==2.16.0.0
 types-PyYAML==6.0.12.11
-types-setuptools==68.1.0.0
+types-setuptools==68.1.0.1
 typing_extensions==4.7.1
 zipp==3.16.2
