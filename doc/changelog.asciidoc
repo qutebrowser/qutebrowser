@@ -27,6 +27,7 @@ Fixed
 - Setting `url.auto_search` to `dns` works correctly now with Qt 6.
 - Counts passed via keypresses now have a digit limit (4300) to avoid
   exceptions due to cats sleeping on numpads. (#7834)
+- Navigating via hints to a remote URL from a file:// one works again. (#7847)
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
