@@ -393,7 +393,7 @@ class QuteProc(testprocess.Process):
         verbatim.
         """
         special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:',
-                           'data:', 'http:', 'https:']
+                           'data:', 'http:', 'https:', 'file:']
         server = self.request.getfixturevalue('server')
         server_port = server.port if port is None else port
 
