@@ -192,8 +192,26 @@ def pattern_match(*, pattern, value):
 
 def abs_datapath():
     """Get the absolute path to the end2end data directory."""
-    file_abs = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(file_abs, '..', 'end2end', 'data')
+    path = pathlib.Path(__file__).parent / '..' / 'end2end' / 'data'
+    return path.resolve()
+
+
+def substitute_testdata(path):
+    r"""Replace the (testdata) placeholder in path with `abs_datapath()`.
+
+    If path is starting with file://, return path as an URI with file:// removed. This
+    is useful if path is going to be inserted into an URI:
+
+    >>> path = substitute_testdata("C:\Users\qute")
+    >>> f"file://{path}/slug  # results in valid URI
+    'file:///C:/Users/qute/slug'
+    """
+    if path.startswith('file://'):
+        testdata_path = abs_datapath().as_uri().replace('file://', '')
+    else:
+        testdata_path = str(abs_datapath())
+
+    return path.replace('(testdata)', testdata_path)
 
 
 @contextlib.contextmanager
