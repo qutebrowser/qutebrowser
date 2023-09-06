@@ -121,6 +121,7 @@ def _parse_resource(
         ".mp4": "video/mp4",
         ".png": "image/png",
         ".txt": "text/plain",
+        ".css": "text/css",
         ".xml": "application/octet-stream",
         "": "application/octet-stream",
     }
@@ -130,7 +131,12 @@ def _parse_resource(
     if ext not in ext_map:
         raise ValueError(f"Don't know this extension: {ext}")
 
-    if ext_map[ext] in ("application/javascript", "text/html", "text/plain"):
+    if ext_map[ext] in (
+        "application/javascript",
+        "text/html",
+        "text/plain",
+        "text/css",
+    ):
         with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
             content = text_io.read().replace("\r", "").encode()
     else:
@@ -151,7 +157,6 @@ _NON_EMPTY_LINE_RE = r"\S"
 def _parse_scriptlets(
     fileobj: IO[bytes],
 ) -> List[Resource]:
-
     with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
         lines = re.sub(_TOP_COMMENT_RE, "", text_io.read()).split("\n")
 
@@ -208,9 +213,9 @@ def _on_resource_download(
         else:
             resources.append(_parse_resource(aliases_map, url, fileobj))
     except UnicodeDecodeError:
-        message.info("braveadblock: Resource is not valid utf-8")
+        message.info(f"braveadblock: Resource from {url} is not valid utf-8")
     except ValueError:
-        message.info("braveadblock: Could not parse resource")
+        message.info(f"braveadblock: Could not parse resource from {url}")
 
 
 def _on_all_resources_downloaded(
@@ -274,6 +279,9 @@ def _on_redirect_engine_download(  # noqa: C901
                     comment_idx = map_lines[-1].find("//")
                     if comment_idx >= 0:
                         map_lines[-1] = map_lines[-1][:comment_idx]
+
+        # Get rid of trailing block comments
+        map_lines = [re.sub(r"/\*[^'\"]*\*/\s*$", "", line) for line in map_lines]
 
         # Get rid of all whitespace
         map_str = re.sub(r"\s+", "", "".join(map_lines))
