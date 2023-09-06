@@ -61,6 +61,12 @@ def is_ignored_lowlevel_message(message):
 
         # Randomly started showing up on Qt 5.15.2
         'QPaintDevice: Cannot destroy paint device that is being painted',
+
+        # Qt 6.6 on GitHub Actions
+        (
+            'libva error: vaGetDriverNameByIndex() failed with unknown libva error, '
+            'driver_name = (null)'
+        )
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -194,6 +200,11 @@ def is_ignored_chromium_message(line):
         # [5464:5464:0318/024215.821650:ERROR:interface_endpoint_client.cc(687)] Message 6 rejected by interface blink.mojom.WidgetHost
         # [5718:5718:0318/031330.803863:ERROR:interface_endpoint_client.cc(687)] Message 3 rejected by interface blink.mojom.Widget
         "Message * rejected by interface blink.mojom.Widget*",
+
+        # GitHub Actions, Qt 6.6
+        # [9895:9983:0904/043039.500565:ERROR:gpu_memory_buffer_support_x11.cc(49)]
+        # dri3 extension not supported.
+        "dri3 extension not supported.",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
