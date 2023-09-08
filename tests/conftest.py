@@ -47,9 +47,10 @@ hypothesis.settings.register_profile(
 hypothesis.settings.register_profile(
     'ci', hypothesis.settings(
         deadline=None,
-        suppress_health_check=
+        suppress_health_check=(
             suppressed_health_checks +
             [hypothesis.HealthCheck.too_slow],
+        )
     )
 )
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
