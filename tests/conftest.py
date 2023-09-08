@@ -49,7 +49,7 @@ hypothesis.settings.register_profile(
         deadline=None,
         suppress_health_check=(
             suppressed_health_checks +
-            [hypothesis.HealthCheck.too_slow],
+            [hypothesis.HealthCheck.too_slow]
         )
     )
 )
