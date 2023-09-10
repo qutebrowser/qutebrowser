@@ -816,6 +816,8 @@ class WebEngineAudio(browsertab.AbstractAudio):
         page.recentlyAudibleChanged.connect(self._delayed_recently_audible_changed)
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
+        self._silence_timer.timeout.connect(functools.partial(
+            self.recently_audible_changed.emit, False))
 
     # WORKAROUND for recentlyAudibleChanged being emitted without delay from the moment
     # that audio is dropped.
@@ -831,8 +833,6 @@ class WebEngineAudio(browsertab.AbstractAudio):
             # Ignore all subsequent calls while the tab is muted with an active timer
             if timer.isActive():
                 return
-            timer.timeout.connect(
-                functools.partial(self.recently_audible_changed.emit, recently_audible))
             timer.start()
 
     def set_muted(self, muted: bool, override: bool = False) -> None:

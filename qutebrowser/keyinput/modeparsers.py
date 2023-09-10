@@ -84,6 +84,7 @@ class NormalKeyParser(CommandKeyParser):
         self._inhibited = False
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
+        self._inhibited_timer.timeout.connect(self._clear_inhibited)
 
     def __repr__(self) -> str:
         return utils.get_repr(self)
@@ -113,7 +114,6 @@ class NormalKeyParser(CommandKeyParser):
                 timeout))
             self._inhibited = True
             self._inhibited_timer.setInterval(timeout)
-            self._inhibited_timer.timeout.connect(self._clear_inhibited)
             self._inhibited_timer.start()
 
     @pyqtSlot()
