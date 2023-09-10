@@ -28,6 +28,8 @@ Fixed
 - Counts passed via keypresses now have a digit limit (4300) to avoid
   exceptions due to cats sleeping on numpads. (#7834)
 - Navigating via hints to a remote URL from a file:// one works again. (#7847)
+- The timers related to the tab audible indicator and the auto follow timeout
+  no longer accumulate connections over time. (#7888)
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
