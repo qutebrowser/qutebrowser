@@ -138,6 +138,7 @@ ReserveFile /plugin 'StdUtils.dll'
 !insertmacro MUI_UNPAGE_COMPONENTS
 
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW un.PageInstFilesShow
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE un.PageInstFilesLeave
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ### Languages (all Pages must be set)
@@ -199,7 +200,7 @@ InstType 'Full'
 InstType 'Typical'
 InstType 'Minimal'
 
-Section '-Installer Uninstall'
+Section '-Prepare'
     ${Reserve} $R0 ExitCode 0
     ${Reserve} $R1 UninstallDir ''
     ${Reserve} $R2 UninstallDirState ''
@@ -221,33 +222,42 @@ Section '-Installer Uninstall'
             ${Set} UninstallString $PerUserUninstallString
         ${EndIf}
 
-        ${WriteLog} $(M_EXEC)${UninstallString}
+        ${If} ${UninstallDir} != $INSTDIR
+            ${ClearInstDir}
+        ${EndIf}
+
         ${CloseLogFile}
         ClearErrors
         ExecWait ${UninstallString} ${ExitCode}
         BringToFront
+
         ${If} ${Errors}
+            ${Error} ERROR_BAD_COMMAND
             ${If} ${UninstallDir} != $INSTDIR
                 Push ${UninstallDir}
                 Exch $INSTDIR
                 ${ClearInstDir}
                 Pop $INSTDIR
-                !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+            ${Else}
+                ${ClearInstDir}
             ${EndIf}
-        ${ElseIf} ${ExitCode} = 0
-            ${If} ${UninstallDir} != $INSTDIR
-                ${DeleteAnyFile} '${UninstallDir}\${UNINSTALL_FILENAME}'
-                ${DirState} ${UninstallDir} ${UninstallDirState}
-                ${If} ${UninstallDirState} = 0
-                    ${RemoveDir} ${UninstallDir}
-                ${EndIf}
-            ${EndIf}
+            ${RemoveUninstaller}
         ${Else}
-            ${Quit} ExitCode ''
+           ${WriteDebug} ExitCode
+           ${If} ${ExitCode} = 0
+                ${If} ${UninstallDir} != $INSTDIR
+                    Push ${UninstallDir}
+                    Exch $INSTDIR
+                    ${RemoveUninstaller}
+                    Pop $INSTDIR
+                ${Else}
+                    ${ClearInstDir}
+                ${EndIf}
+            ${Else}
+                ${Quit} ExitCode ''
+            ${Endif}
         ${Endif}
-    ${EndIf}
-
-    ${If} ${FileExists} '$INSTDIR\*'
+    ${Else}
         ${ClearInstDir}
     ${EndIf}
 
@@ -263,7 +273,7 @@ SectionEnd
 
 Section $(S_FILES) SectionProgramFiles
     SectionIn 1 2 3 RO
-    ${Reserve} $R0 AppDir ''
+    ${Reserve} $R0 AppDir $INSTDIR
     ${Reserve} $R1 AppFile ''
     ${Reserve} $R2 FileHash ''
     ${Reserve} $R3 CalcHash ''
@@ -271,7 +281,7 @@ Section $(S_FILES) SectionProgramFiles
     Goto _start
 
     !macro MKDIR APP_DIR
-        ${Set} AppDir '${APP_DIR}'
+        ${Set} AppDir '$INSTDIR\${APP_DIR}'
         ${Call} :create_dir
     !macroend
     create_dir:
@@ -291,13 +301,13 @@ Section $(S_FILES) SectionProgramFiles
     !macro EXTRACT FILE SHA
         ${Set} AppFile '$INSTDIR\${FILE}'
         ${Set} FileHash '${SHA}'
-        !define Start 'EXTRACT_@${__LINE__}'
-        _${Start}:
+        !define start_extract 'EXTRACT_@${__LINE__}'
+        _${start_extract}:
         ClearErrors
         File '/oname=${FILE}' '${DIST_DIR}\${FILE}'
         ${Call} :check_extract
-        IfErrors _${Start}
-        !undef Start
+        IfErrors _${start_extract}
+        !undef start_extract
     !macroend
     check_extract:
     ${Set} LangVar ${AppFile}
@@ -329,7 +339,7 @@ Section $(S_FILES) SectionProgramFiles
     ${Fail} $(M_USER_CANCEL)
 
     _start:
-    !insertmacro MKDIR $INSTDIR
+    ${Call} :create_dir
     SetOutPath $INSTDIR
     ${Set} $SetupState ${INSTALLER_ACTIVE}
     EnableWindow $mui.Button.Cancel ${SW_NORMAL}
@@ -599,7 +609,7 @@ Section '-Write Install Info'
     ${CloseLogFile}
     ${RefreshShellIcons}
 
-    ${ClearDataDirsCheck}
+    ${PromptOnDirtyDirs}
 
     StrCmpS $OpenDefaultApps 0 _end
     ClearErrors
@@ -632,11 +642,12 @@ SectionEnd
 Section un.$(S_FILES) un.SectionProgramFiles
     SectionIn RO
     ${If} $SetupState = ${UNINSTALLER_STANDALONE}
-    ${AndIf} ${FileExists} $LogFile
-        ${WriteLog} ''
+        ${If} ${FileExists} $LogFile
+            ${WriteLog} ''
+        ${EndIf}
+        ${WriteLog} '$(^UninstallCaption): ${MULTIUSER_INSTALLMODE_DISPLAYNAME}'
     ${EndIf}
-    ${WriteLog} '$(^UninstallCaption): ${MULTIUSER_INSTALLMODE_DISPLAYNAME}'
-    ${DeleteFile} '${PROGEXE}'
+    ${ClearInstDir}
 SectionEnd
 
 Section un.$(S_REGISTRY) un.SectionRegistry
@@ -649,12 +660,10 @@ SectionEnd
 SectionGroup /e un.$(S_ICONS) un.SectionGroupShortcuts
     Section un.$(S_ICON_DESKTOP) un.SectionDesktopIcon
         SectionIn RO
-        ${RemoveDesktopIcon}
     SectionEnd
 
     Section un.$(S_ICON_STARTMENU) un.SectionStartMenuIcon
         SectionIn RO
-        ${RemoveStartMenuIcon}
     SectionEnd
 SectionGroupEnd
 
@@ -667,42 +676,14 @@ Section /o un.$(S_CLEAR_CONFIG) un.SectionClearConfig
 SectionEnd
 
 Section '-Uninstall'
-    ${Reserve} $R0 InstDirState 0
-
-    ${PassFiles} '${DeleteFile}'
-    ${PassDirsReverse} '${RemoveDir}'
-    !insertmacro MULTIUSER_RegistryRemoveInstallInfo
-    ${If} $EXEPATH != '$INSTDIR\${UNINSTALL_FILENAME}'
-        ${DeleteFile} '${UNINSTALL_FILENAME}'
-        ${DirState} $INSTDIR ${InstDirState}
-        ${If} ${InstDirState} = 0
-            ${RemoveDir} $INSTDIR
-        ${EndIf}
-    ${EndIf}
-
+    ${RemoveUninstaller}
     ${If} $SetupState = ${UNINSTALLER_STANDALONE}
         ${WriteLog} $(M_COMPLETED)
         ${WriteLog} ''
     ${EndIf}
     ${CloseLogFile}
     ${RefreshShellIcons}
-
-    ${If} $SetupState = ${UNINSTALLER_STANDALONE}
-    ${AndIf} ${InstDirState} = 1
-        ClearErrors
-        ${CheckCleanInstDir}
-        ${If} ${Errors}
-            MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_INSTDIR) /SD IDNO IDNO _@
-            ClearErrors
-            ExecShell 'open' $INSTDIR
-            IfErrors 0 _@
-            MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DIR_FAIL)$INSTDIR /SD IDOK
-            _@:
-        ${EndIf}
-    ${EndIf}
-    ${ClearDataDirsCheck}
-
-    ${Release} InstDirState ''
+    ${PromptOnDirtyDirs}
 SectionEnd
 
 ; Uninstaller Section Descriptions

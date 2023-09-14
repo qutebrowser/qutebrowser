@@ -974,9 +974,13 @@ FunctionEnd
     FunctionEnd
 
     Function .onInstFailed
-        StrCmpS $SetupState ${INSTALLER_ABORT} +2
-        MessageBox MB_ICONSTOP $(MB_FAIL_INSTALL) /SD IDOK IDOK +2
-        MessageBox MB_ICONSTOP $(MB_USER_ABORT) /SD IDOK
+        ${If} $SetupState = ${INSTALLER_ABORT}
+            ${Error} ERROR_INSTALL_CANCEL
+            MessageBox MB_ICONSTOP $(MB_USER_ABORT) /SD IDOK
+        ${Else}
+            ${Error} ERROR_INSTALL_FAILED
+            MessageBox MB_ICONSTOP $(MB_FAIL_INSTALL) /SD IDOK
+        ${EndIf}
     FunctionEnd
 
     ; Confirm user abort. Called by .onUserAbort which is used by MUI.
@@ -1096,11 +1100,13 @@ FunctionEnd
         !undef SHARED_MODE FILE_FLAGS
     FunctionEnd
 
-    ; Reset progress bar for aborted installations.
+    ; Change Cancel button text on abort.
     Function PageInstFilesLeave
-        IfAbort 0 +3
+        IfAbort 0 _end
         SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETPOS} 0 0
         StrCpy $CancelButtonText $(B_CLOSE)
+        ${PromptOnDirtyDirs}
+        _end:
     FunctionEnd
 
     ; Dark mode for Finish page.
@@ -1129,7 +1135,13 @@ FunctionEnd
     !define /redef F 'un'
     !include '${__FILEDIR__}\${__FILE__}'
 !else ; uninstaller only
+    Function un.PageInstFilesLeave
+        IfAbort 0 +2
+        StrCpy $CancelButtonText $(B_CLOSE)
+    FunctionEnd
+
     Function un.onUninstFailed
+        ${Error} ERROR_REMOVE_FAILED
         StrCmpS $SetupState ${UNINSTALLER_UNDER_INSTALLER} +2
         MessageBox MB_ICONSTOP $(MB_FAIL_UNINSTALL) /SD IDOK IDOK +2
         MessageBox MB_ICONSTOP $(MB_FAIL_INSTALL) /SD IDOK

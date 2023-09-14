@@ -272,38 +272,6 @@
         ${EndIf}
     !macroend
 
-    ; ${DeleteAnyFile} FULL_PATH
-    ; ${DeleteFile} INSTDIR_RELATIVE_PATH
-    ; ${RemoveDesktopIcon}
-    ; ${RemoveStartMenuIcon}
-    ;
-    ; File deletion commands.
-    !define DeleteFile '!insertmacro CALL_DeleteFile $INSTDIR'
-    !define DeleteAnyFile '!insertmacro CALL_DeleteFile ""'
-    !define RemoveDesktopIcon '!insertmacro CALL_DeleteFile "" $DesktopIconPath'
-    !define RemoveStartMenuIcon '!insertmacro CALL_DeleteFile "" $StartMenuIconPath'
-    !macro CALL_DeleteFile DIR FILE
-        !if '${DIR}' == ''
-            ${Reserve} $0 DeleteFile.File '${FILE}'
-        !else
-            ${Reserve} $0 DeleteFile.File '${DIR}\${FILE}'
-        !endif
-        ${WriteDebug} DeleteFile.File
-        ${Call} DeleteFile
-        ${Release} DeleteFile.File ''
-    !macroend
-
-    ; ${RemoveDir} FULL_PATH
-    ;
-    ; Remove application directory.
-    !define RemoveDir '!insertmacro CALL_RemoveDir'
-    !macro CALL_RemoveDir IN_DIR
-        ${Reserve} $0 RemoveDir.Dir '${IN_DIR}'
-        ${WriteDebug} RemoveDir.Dir
-        ${Call} RemoveDir
-        ${Release} RemoveDir.Dir ''
-    !macroend
-
     ; ${PushFileExts} OUT_EXT_COUNT
     !define PushFileExts '!insertmacro CALL_PushFileExts'
     !macro CALL_PushFileExts OUT_EXT_COUNT
@@ -315,8 +283,10 @@
     !define CheckInactiveApp '${Call} CheckInactiveApp'
     !define ClearCache '${Call} ClearCache'
     !define ClearConfig '${Call} ClearConfig'
-    !define ClearDataDirsCheck '${Call} ClearDataDirsCheck'
+    !define ClearInstDir '${Call} ClearInstDir'
     !define ClearRegistry '${Call} ClearRegistry'
+    !define PromptOnDirtyDirs '${Call} PromptOnDirtyDirs'
+    !define RemoveUninstaller '${Call} RemoveUninstaller'
 
     !define ExecShellAsUser '!insertmacro EXEC_SHELL_AS_USER'
     !macro EXEC_SHELL_AS_USER ACTION COMMAND PARAMETERS SHOW
@@ -350,7 +320,7 @@
         ${WriteDebug} ''
         ${WriteLog} '${MESSAGE}'
         !ifndef __UNINSTALL__
-            SetOutPath $EXEDIR
+            ${Set} $SetupState ${INSTALLER_ABORT}
             ${If} $RegisterBrowser = 1
                 ${ClearRegistry}
             ${EndIf}
@@ -402,25 +372,6 @@
         ${Release} InstDirPart ''
         ${Release} WinDirLength ''
         ${Release} InstDirLength ''
-    FunctionEnd
-
-    ; ${ClearInstDir}
-    ;
-    ; Remove installation files and shortcuts.
-    !define ClearInstDir '${Call} ClearInstDir'
-    Function ClearInstDir
-        ${Reserve} $R0 InstDirState 0
-        ${DeleteFile} '${PROGEXE}'
-        ${RemoveDesktopIcon}
-        ${RemoveStartMenuIcon}
-        ${PassFiles} '${DeleteFile}'
-        ${PassDirsReverse} '${RemoveDir}'
-        ${DeleteFile} '${UNINSTALL_FILENAME}'
-        ${DirState} $INSTDIR ${InstDirState}
-        ${If} ${InstDirState} = 0
-            ${RemoveDir} $INSTDIR
-        ${EndIf}
-        ${Release} InstDirState ''
     FunctionEnd
 
     ; ${CreateDesktopIcon}
@@ -608,7 +559,7 @@ FunctionEnd
 
 ; Remove browser configuration files.
 Function ${F}ClearConfig
-    goto _start
+    Goto _start
 
     remove_config_dir:
     ClearErrors
@@ -628,45 +579,208 @@ Function ${F}ClearConfig
     ${EndIf}
 FunctionEnd
 
-Function ${F}ClearDataDirsCheck
-    ${Reserve} $R0 DirStatePath ''
-    ${Reserve} $R1 DirStateResult ''
-    ${Reserve} $R2 MsgBoxText ''
+; Remove installation files and folders.
+Function ${F}ClearInstDir
+    ${Reserve} $0 TargetPath ''
+    ${Reserve} $R0 FileHandle ''
+    ${Reserve} $R1 FileCount 0
+    ${Reserve} $R2 ErrorMessage ''
+    ${Reserve} $R3 State ''
+    !if '${F}' == ''
+        ${Reserve} $R4 IsDistDir 0
+    !endif
+    Goto _start
 
-    goto _start
+    ; Sub-function: lock_and_stack
+    ; Open file for exclusive access, requsting DELETE rights, and push its path
+    ; and handle onto the stack.
 
-    check_dir:
-    ${CallAsUser} :get_dir_state
-    StrCmpS ${DirStateResult} 1 0 _ret
-    MessageBox MB_YESNO|MB_ICONEXCLAMATION ${MsgBoxText} /SD IDNO IDNO _ret
-    ClearErrors
-    ${ExecShellAsUser} open ${DirStatePath} '' SW_SHOWNORMAL
-    IfErrors 0 _ret
-    MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DIR_FAIL)${DirStatePath} /SD IDOK
+    !macro CALL_LOCK_AND_STACK BASEDIR FILE
+        !if '${BASEDIR}' == ''
+            ${Set} TargetPath '${FILE}'
+        !else
+            ${Set} TargetPath '${BASEDIR}\${FILE}'
+        !endif
+        ${Call} :lock_and_stack
+        StrCmpS ${ErrorMessage} '' +2
+        Goto _unstack
+    !macroend
+    lock_and_stack:
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_PREPARE} 0 _check_file
+        ; First check if a folder with the same name exists.
+        StrCmpS ${IsDistDir} 0 +2
+        IfFileExists '${TargetPath}\*' _ret _check_file
+        IfFileExists '${TargetPath}\*' 0 _check_file
+        DetailPrint $(M_INCOMPATIBLE_FOLDER)${TargetPath}
+        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION $(MB_DELETE_INCOMPATIBLE_FOLDER) /SD IDOK IDOK _rmdir
+        ${Set} ErrorMessage $(M_USER_CANCEL)
+        ${Return}
+        _check_file:
+    !else
+        IfFileExists '${TargetPath}\*' _ret
+    !endif
+    IfFileExists ${TargetPath} _lock
+    ${Error} ERROR_FILE_NOT_FOUND
     _ret:
     ${Return}
 
-    get_dir_state:
-    ${DirState} ${DirStatePath} ${DirStateResult}
-    ${WriteDebug} DirStateResult
+    _lock:
+    DetailPrint $(M_LOCK_FILE)${TargetPath}
+    System::Call 'kernel32::CreateFileW(w${r.TargetPath}, i${DELETE}, i0, n, i${OPEN_EXISTING}, i${FILE_ATTRIBUTE_NORMAL}, n) p.${r.FileHandle}'
+    StrCmpS ${FileHandle} ${INVALID_HANDLE_VALUE} 0 _stack
+    ${Error} ERROR_LOCK_FAILED
+    DetailPrint $(M_CANT_LOCK_FILE)${TargetPath}
+    StrCmpS $SetupState ${INSTALLER_ABORT} _ret_lock_fail
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_LOCK_FILE) /SD IDCANCEL IDRETRY lock_and_stack
+    ${Set} ErrorMessage $(M_CANT_LOCK_FILE)${TargetPath}
+    _ret_lock_fail:
+    ${WriteLog} $(M_CANT_LOCK_FILE)${TargetPath}
     ${Return}
 
+    _stack:
+    Push ${TargetPath}
+    Push ${FileHandle}
+    IntOp ${FileCount} ${FileCount} + 1
+    ${Return}
+
+    ; Sub-function: remove_dir
+
+    !macro CALL_REMOVE_DIR DIR
+        !if '${DIR}' == ''
+            ${Set} TargetPath $INSTDIR
+        !else
+            ${Set} TargetPath '$INSTDIR\${DIR}'
+        !endif
+        ${Call} :remove_dir
+    !macroend
+    remove_dir:
+    ${DirState} ${TargetPath} ${State}
+    ${WriteDebug} State
+    IntCmp ${State} 0 _rmdir _ret 0
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ABORT} _skip_dir
+    !else
+        SendMessage $mui.InstFilesPage.ProgressBar ${PBM_STEPIT} 0 0
+    !endif
+    StrCmp ${TargetPath} $INSTDIR _skip_dir
+    MessageBox MB_YESNOCANCEL|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_SUBDIR) /SD IDNO IDYES _rmdir IDNO _skip_dir
+    ${Error} ERROR_CANCELLED
+    DetailPrint $(M_USER_CANCEL)
+    ${WriteLog} $(M_ABORTED)$(M_USER_CANCEL)
+    Abort $(M_ABORTED)$(M_USER_CANCEL)
+
+    _rmdir:
+    ClearErrors
+    RMDir /r ${TargetPath}
+    IfErrors _rmdir_error
+    ${WriteLog} $(M_DELETE_FOLDER)${TargetPath}
+    ${Return}
+
+    _rmdir_error:
+    ${Error} ERROR_ACCESS_DENIED
+    DetailPrint $(M_CANT_DELETE_FOLDER)${TargetPath}
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ABORT} _skip_fail
+        StrCmpS ${IsDistDir} 1 _@
+        MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_DELETE_FOLDER_NO_IGNORE) /SD IDCANCEL IDRETRY _rmdir
+        ${Set} ErrorMessage $(M_CANT_DELETE_FOLDER)${TargetPath}
+        ${WriteLog} $(M_CANT_DELETE_FOLDER)${TargetPath}
+        ${Return}
+        _@:
+    !endif
+    MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_CANT_DELETE_FOLDER) /SD IDIGNORE IDRETRY _rmdir IDIGNORE _skip_fail
+    ${Error} ERROR_CANCELLED
+    ${WriteLog} $(M_CANT_DELETE_FOLDER)${TargetPath}
+    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetPath}
+    Abort $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetPath}
+
+    _skip_fail:
+    ${WriteLog} $(M_CANT_DELETE_FOLDER)${TargetPath}
+    _skip_dir:
+    DetailPrint $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetPath}
+    ${WriteLog} $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetPath}
+    ${Return}
+
+    ; Entry point
+
     _start:
-    ${If} $ClearConfig = 1
-        ${Set} DirStatePath $ConfigDir
-        StrCpy ${MsgBoxText} $(MB_OPEN_CONFIG_DIR)
-        ${Call} :check_dir
-    ${EndIf}
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ABORT} 0 +2
+        SetOutPath $EXEDIR
+    !else
+        SendMessage $mui.InstFilesPage.ProgressBar ${PBM_SETPOS} 0 0
+    !endif
 
-    ${If} $ClearCache = 1
-        ${Set} DirStatePath $CacheDir
-        StrCpy ${MsgBoxText} $(MB_OPEN_CACHE_DIR)
-        ${Call} :check_dir
-    ${EndIf}
+    ${DirState} $INSTDIR ${State}
+    IntCmp ${State} 0 _rm_instdir _end
 
-    ${Release} MsgBoxText ''
-    ${Release} DirStateResult ''
-    ${Release} DirStatePath ''
+    ${PassFiles} '!insertmacro CALL_LOCK_AND_STACK $INSTDIR'
+    !insertmacro CALL_LOCK_AND_STACK '' $DesktopIconPath
+    !insertmacro CALL_LOCK_AND_STACK '' $StartMenuIconPath
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_PREPARE} 0 _unstack
+        !insertmacro CALL_LOCK_AND_STACK $INSTDIR '${UNINSTALL_FILENAME}'
+        ${Set} IsDistDir 1
+        ${PassDirs} '!insertmacro CALL_LOCK_AND_STACK $INSTDIR'
+    !endif
+
+    _unstack:
+    IntCmp ${FileCount} 0 _unstack_done _unstack_done
+    Pop ${FileHandle}
+    ${WriteDebug} FileHandle
+    Pop ${TargetPath}
+    ${WriteDebug} TargetPath
+    IntOp ${FileCount} ${FileCount} - 1
+    System::Call 'kernel32::CloseHandle(p${r.FileHandle})'
+    StrCmpS ${ErrorMessage} '' _delete
+    DetailPrint $(M_UNLOCK_FILE)${TargetPath}
+    Goto _unstack
+
+    _delete:
+    IfFileExists ${TargetPath} 0 _unstack
+    ClearErrors
+    Delete ${TargetPath}
+    IfErrors _delete_error
+    !if '${F}' != ''
+        SendMessage $mui.InstFilesPage.ProgressBar ${PBM_STEPIT} 0 0
+    !endif
+    ${WriteLog} $(M_DELETE_FILE)${TargetPath}
+    Goto _unstack
+
+    _delete_error:
+    ${Error} ERROR_UNABLE_TO_REMOVE_REPLACED
+    DetailPrint $(M_CANT_DELETE_FILE)${TargetPath}
+    StrCmpS $SetupState ${INSTALLER_ABORT} _@@
+    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_DELETE_FILE) /SD IDCANCEL IDRETRY _delete
+    ${Set} ErrorMessage $(M_CANT_DELETE_FILE)${TargetPath}
+    _@@:
+    ${WriteLog} $(M_CANT_DELETE_FILE)${TargetPath}
+    Goto _unstack
+
+    _unstack_done:
+    StrCmpS ${ErrorMessage} '' _rm_subdirs
+    ${WriteLog} $(M_ABORTED)${ErrorMessage}
+    Abort $(M_ABORTED)${ErrorMessage}
+
+    _rm_subdirs:
+    ${PassDirsReverse} '!insertmacro CALL_REMOVE_DIR'
+
+    _rm_instdir:
+    StrCmpS $SetupState ${INSTALLER_ABORT} 0 _end
+    !insertmacro CALL_REMOVE_DIR ''
+
+    _end:
+    !if '${F}' == ''
+        ${Release} IsDistDir ''
+    !endif
+    ${Release} State ''
+    ${Release} ErrorMessage ''
+    ${Release} FileCount ''
+    ${Release} FileHandle ''
+    ${Release} TargetPath ''
+    !macroundef CALL_LOCK_AND_STACK
+    !macroundef CALL_REMOVE_DIR
 FunctionEnd
 
 ; Remove registry values and keys.
@@ -708,7 +822,7 @@ Function ${F}ClearRegistry
     ${Return}
     _remove_key_error:
     !if '${F}' == ''
-        StrCmpS $SetupState ${INSTALLER_ACTIVE} _skip_key
+        StrCmpS $SetupState ${INSTALLER_ABORT} _skip_key
     !endif
     DetailPrint $(M_CANT_DELETE_REG_KEY)${LangVar}
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_CANT_DELETE_REG_KEY) /SD IDIGNORE IDRETRY remove_key IDIGNORE _skip_key
@@ -740,7 +854,7 @@ Function ${F}ClearRegistry
     ${Return}
     _remove_item_error:
     !if '${F}' == ''
-        StrCmpS $SetupState ${INSTALLER_ACTIVE} _skip_item
+        StrCmpS $SetupState ${INSTALLER_ABORT} _skip_item
     !endif
     DetailPrint $(M_CANT_DELETE_REG_KEY)${LangVar}
     MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONSTOP $(MB_CANT_DELETE_REG_ITEM) /SD IDIGNORE IDRETRY remove_item IDIGNORE _skip_item
@@ -804,30 +918,63 @@ Function ${F}ClearRegistry
     !undef RemoveKey
 FunctionEnd
 
-Function ${F}DeleteFile
-    ${Reserve} $R0 TargetFile $0
-    IfFileExists ${TargetFile} _delete
-    ${Error} ERROR_FILE_NOT_FOUND
-    Goto _end
-    _delete:
+Function ${F}PromptOnDirtyDirs
+    ${Reserve} $R0 DirStatePath ''
+    ${Reserve} $R1 DirStateResult ''
+    ${Reserve} $R2 MsgBoxText ''
+    Goto _start
+
+    check_dir:
+    ${CallAsUser} :get_dir_state
+    StrCmpS ${DirStateResult} 1 0 _ret
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION ${MsgBoxText} /SD IDNO IDNO _ret
     ClearErrors
-    Delete ${TargetFile}
-    IfErrors 0 _ok
-    ${Error} ERROR_ACCESS_DENIED
-    DetailPrint $(M_CANT_DELETE_FILE)${TargetFile}
+    ${ExecShellAsUser} open ${DirStatePath} '' SW_SHOWNORMAL
+    IfErrors 0 _ret
+    MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DIR_FAIL)${DirStatePath} /SD IDOK
+    _ret:
+    ${Return}
+
+    get_dir_state:
+    ${DirState} ${DirStatePath} ${DirStateResult}
+    ${WriteDebug} DirStateResult
+    ${Return}
+
+    _start:
     !if '${F}' == ''
-        StrCmpS $SetupState ${INSTALLER_PREPARE} _@
-        ${WriteLog} $(M_CANT_DELETE_FILE)${TargetFile}
-        Goto _end
-        _@:
+        StrCmpS $SetupState ${INSTALLER_ABORT} 0 _@
+    !else
+        StrCmpS $SetupState ${UNINSTALLER_STANDALONE} 0 _end
     !endif
-    MessageBox MB_RETRYCANCEL|MB_ICONSTOP $(MB_CANT_DELETE_FILE) /SD IDCANCEL IDRETRY _delete
-    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FILE)${TargetFile}
-    Abort $(M_ABORTED)$(M_CANT_DELETE_FILE)${TargetFile}
-    _ok:
-    ${WriteLog} $(M_DELETE_FILE)${TargetFile}
+    ClearErrors
+    ${CheckCleanInstDir}
+    IfErrors 0 _@
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION $(MB_OPEN_INSTDIR) /SD IDNO IDNO _@
+    ClearErrors
+    ExecShell 'open' $INSTDIR
+    IfErrors 0 _@
+    MessageBox MB_OK|MB_ICONSTOP $(MB_OPEN_DIR_FAIL)$INSTDIR /SD IDOK
+    _@:
+    !if '${F}' == ''
+        StrCmpS $SetupState ${INSTALLER_ABORT} _end
+    !endif
+
+    ${If} $ClearConfig = 1
+        ${Set} DirStatePath $ConfigDir
+        StrCpy ${MsgBoxText} $(MB_OPEN_CONFIG_DIR)
+        ${Call} :check_dir
+    ${EndIf}
+
+    ${If} $ClearCache = 1
+        ${Set} DirStatePath $CacheDir
+        StrCpy ${MsgBoxText} $(MB_OPEN_CACHE_DIR)
+        ${Call} :check_dir
+    ${EndIf}
+
     _end:
-    ${Release} TargetFile ''
+    ${Release} MsgBoxText ''
+    ${Release} DirStateResult ''
+    ${Release} DirStatePath ''
 FunctionEnd
 
 Function ${F}PushFileExts
@@ -841,55 +988,37 @@ Function ${F}PushFileExts
     Push '.htm'
 FunctionEnd
 
-Function ${F}RemoveDir
-    ${Reserve} $R0 TargetDir $0
-    ${Reserve} $R1 State 0
-
-    !if '${F}' == ''
-        IfFileExists '${TargetDir}\*' _@
-        IfFileExists ${TargetDir} 0 _@
-        ${DeleteAnyFile} ${TargetDir}
-        _@:
+Function ${F}RemoveUninstaller
+    ${Reserve} $R0 UninstallerPath '$INSTDIR\${UNINSTALL_FILENAME}'
+    ${Reserve} $R1 InstDirState ''
+    !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+    !if '${F}' != ''
+        StrCmpS $SetupState ${UNINSTALLER_UNDER_INSTALLER} _end
     !endif
-
-    ${DirState} ${TargetDir} ${State}
-    ${WriteDebug} State
-    IntCmp ${State} 0 _remove_dir _end
-    !if '${F}' == ''
-        StrCmpS $SetupState ${INSTALLER_ACTIVE} _skip
-    !endif
-    MessageBox MB_YESNOCANCEL|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_NON_EMPTY_SUBDIR) /SD IDNO IDYES _remove_dir IDNO _skip
-    ${Error} ERROR_CANCELLED
-    DetailPrint $(M_USER_CANCEL)
-    ${WriteLog} $(M_ABORTED)$(M_USER_CANCEL)
-    Abort $(M_ABORTED)$(M_USER_CANCEL)
-
-    _remove_dir:
+    IfFileExists ${UninstallerPath} 0 _rmdir
     ClearErrors
-    RMDir /r ${TargetDir}
-    IfErrors 0 _ok
-    ${Error} ERROR_ACCESS_DENIED
-    !if '${F}' == ''
-        StrCmps $SetupState ${INSTALLER_ACTIVE} _skip_fail
-    !endif
-    MessageBox MB_ABORTRETRYIGNORE|MB_DEFBUTTON2|MB_ICONEXCLAMATION $(MB_CANT_DELETE_FOLDER) /SD IDIGNORE IDRETRY _remove_dir IDIGNORE _skip_fail
-    ${Error} ERROR_CANCELLED
-    DetailPrint $(M_CANT_DELETE_FOLDER)${TargetDir}
-    ${WriteLog} $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetDir}
-    Abort $(M_ABORTED)$(M_CANT_DELETE_FOLDER)${TargetDir}
-
-    _skip_fail:
-    ${WriteLog} $(M_CANT_DELETE_FOLDER)${TargetDir}
-    _skip:
-    DetailPrint $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetDir}
-    ${WriteLog} $(M_SKIPPED)$(M_DELETE_FOLDER)${TargetDir}
+    Delete ${UninstallerPath}
+    IfErrors _delete_error
+    ${WriteLog} $(M_DELETE_FILE)${UninstallerPath}
+    _rmdir:
+    ${DirState} $INSTDIR ${InstDirState}
+    IntCmp ${InstDirState} 0 0 _end _skip_dir
+    ClearErrors
+    RMDir $INSTDIR
+    IfErrors _rmdir_error
+    ${WriteLog} $(M_DELETE_FOLDER)$INSTDIR
     Goto _end
-
-    _ok:
-    ${WriteLog} $(M_DELETE_FOLDER)${TargetDir}
+    _delete_error:
+    ${WriteLog} $(M_CANT_DELETE_FILE)${UninstallerPath}
+    Goto _skip_dir
+    _rmdir_error:
+    ${WriteLog} $(M_CANT_DELETE_FOLDER)$INSTDIR
+    _skip_dir:
+    DetailPrint $(M_SKIPPED)$(M_DELETE_FOLDER)$INSTDIR
+    ${WriteLog} $(M_SKIPPED)$(M_DELETE_FOLDER)$INSTDIR
     _end:
-    ${Release} State ''
-    ${Release} TargetDir ''
+    ${Release} InstDirState ''
+    ${Release} UninstallerPath ''
 FunctionEnd
 
 Function ${F}WriteLog

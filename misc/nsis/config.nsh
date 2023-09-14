@@ -620,7 +620,7 @@ $dirs = @(Get-ChildItem -Path $dist -Directory -Recurse -Force);\
 $nsh += '!macro PASS_DIRS DIR_CMD';\
 Write-Debug $nsh[$i++];\
 foreach ($dir in ($dirs | Sort-Object -Property 'FullName')) {\
-    $nsh += '${DIR_CMD} "$' + $dir.FullName.Replace("$dist", 'INSTDIR').Replace('$', '$$') + '"';\
+    $nsh += '${DIR_CMD} "' + $dir.FullName.Remove(0, $DistLength).Replace('$', '$$') + '"';\
     Write-Debug $nsh[$i++];\
 };\
 $nsh += "!macroend${NL}";\
@@ -628,7 +628,7 @@ Write-Debug $nsh[$i++];\
 $nsh += '!macro PASS_DIRS_REVERSE DIR_CMD';\
 Write-Debug $nsh[$i++];\
 foreach ($dir in ($dirs | Sort-Object -Property 'FullName' -Descending)) {\
-    $nsh += '${DIR_CMD} "$' + $dir.FullName.Replace("$dist", 'INSTDIR').Replace('$', '$$') + '"';\
+    $nsh += '${DIR_CMD} "' + $dir.FullName.Remove(0, $DistLength).Replace('$', '$$') + '"';\
     Write-Debug $nsh[$i++];\
 };\
 $nsh += '!macroend';\

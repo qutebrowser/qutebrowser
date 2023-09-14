@@ -64,6 +64,7 @@ LangString M_CANT_DELETE_FILE ${LANG_ENGLISH} `Can't delete file: `
 LangString M_CANT_DELETE_FOLDER ${LANG_ENGLISH} `Can't remove folder: `
 LangString M_CANT_DELETE_REG_ITEM ${LANG_ENGLISH} `Can't delete registry item: `
 LangString M_CANT_DELETE_REG_KEY ${LANG_ENGLISH} `Can't remove registry key: `
+LangString M_CANT_LOCK_FILE ${LANG_ENGLISH} `Can't lock file: `
 LangString M_CANT_WRITE ${LANG_ENGLISH} $(^CantWrite)
 LangString M_CANT_WRITE_REG ${LANG_ENGLISH} `Can't write registry: `
 LangString M_CHECKSUM_ERROR ${LANG_ENGLISH} `File checksum error: `
@@ -80,7 +81,10 @@ LangString M_EXTRACT ${LANG_ENGLISH} $(^Extract)
 LangString M_EXTRACT_ERROR ${LANG_ENGLISH} $(^ErrorWriting)
 LangString M_ERROR_CREATING ${LANG_ENGLISH} $(^ErrorCreating)
 LangString M_ERROR_CREATING_SHORTCUT ${LANG_ENGLISH} $(^ErrorCreatingShortcut)
+LangString M_INCOMPATIBLE_FOLDER ${LANG_ENGLISH} `Incompatible existing folder: `
+LangString M_LOCK_FILE ${LANG_ENGLISH} `Lock file: `
 LangString M_SKIPPED ${LANG_ENGLISH} $(^Skipped)
+LangString M_UNLOCK_FILE ${LANG_ENGLISH} `Unlock file: `
 LangString M_UPDATE_REG ${LANG_ENGLISH} `Update registry: `
 LangString M_USER_CANCEL ${LANG_ENGLISH} `Canceled by user`
 
@@ -139,8 +143,10 @@ LangString MB_CANT_CREATE_FOLDER ${LANG_ENGLISH} $(M_CANT_CREATE_FOLDER)$(2)$0$(
 LangString MB_CANT_CREATE_INSTDIR ${LANG_ENGLISH} `Could not create the directory:$(A_CHECK_INSTDIR_PERMISSIONS)`
 LangString MB_CANT_DELETE_FILE ${LANG_ENGLISH} $(M_CANT_DELETE_FILE)$(2)$0$(A_RETRY_CANCEL)
 LangString MB_CANT_DELETE_FOLDER ${LANG_ENGLISH} `$(M_CANT_DELETE_FOLDER)$(2)$0$(A_ABORT_RETRY_IGNORE)this folder.`
+LangString MB_CANT_DELETE_FOLDER_NO_IGNORE ${LANG_ENGLISH} `$(M_CANT_DELETE_FOLDER)$(2)$0$(A_RETRY_CANCEL)`
 LangString MB_CANT_DELETE_REG_ITEM ${LANG_ENGLISH} `$(M_CANT_DELETE_REG_ITEM)$(2)$0$(A_ABORT_RETRY_IGNORE)this registry item.`
 LangString MB_CANT_DELETE_REG_KEY ${LANG_ENGLISH} `$(M_CANT_DELETE_REG_KEY)$(2)$0$(A_ABORT_RETRY_IGNORE)this registry key.`
+LangString MB_CANT_LOCK_FILE ${LANG_ENGLISH} $(M_CANT_LOCK_FILE)$(2)$0$(A_RETRY_CANCEL)
 LangString MB_CANT_WRITE_INSTDIR ${LANG_ENGLISH} `Could not make changes in the directory:$(A_CHECK_INSTDIR_PERMISSIONS)`
 LangString MB_CANT_WRITE_REG ${LANG_ENGLISH} `$(M_CANT_WRITE_REG)$(2)$0$(A_ABORT_RETRY_IGNORE)$(S_SYS_INT).`
 LangString MB_CHECKSUM_ERROR ${LANG_ENGLISH} $(M_CHECKSUM_ERROR)$(2)$0$(A_RETRY_CANCEL)
@@ -153,11 +159,16 @@ are set to be erased!$(2)\
 Continue?\
 `
 LangString MB_CONFIRM_QUIT ${LANG_ENGLISH} `Are you sure you want to quit $(^Name) Setup?`
+LangString MB_DELETE_INCOMPATIBLE_FOLDER ${LANG_ENGLISH} `\
+A folder with the same name as a file of the installation exists:$(2)$0$(2)\
+Click OK to remove the directory and continue, or$(1)\
+Cancel quit.\
+`
 LangString MB_FAIL_INSTALL ${LANG_ENGLISH} `\
 ${PRODUCT_NAME} v${VERSION} installation failed.$(A_RESTART_WINDOWS)\
 `
 LangString MB_FAIL_UNINSTALL ${LANG_ENGLISH} `\
-${PRODUCT_NAME} ${VERSION} could not be fully uninstalled.$(1)\
+${PRODUCT_NAME} ${VERSION} could not be uninstalled.$(1)\
 Please restart Windows and run the uninstaller again.\
 `
 LangString MB_FILE_ERROR ${LANG_ENGLISH} $(^FileError)
@@ -203,7 +214,7 @@ Continue anyway?\
 `
 LangString MB_NON_EMPTY_SUBDIR ${LANG_ENGLISH} `\
 The directory:$(2)$0$(2)\
-Contains files that don't belong to the installation.$(2)\
+contains files that don't belong to the installation.$(2)\
 Remove extra files?\
 `
 LangString MB_OPEN_CACHE_DIR ${LANG_ENGLISH} `\
