@@ -44,7 +44,7 @@ hypothesis.settings.register_profile(
         deadline=None,
         suppress_health_check=[
             hypothesis.HealthCheck.function_scoped_fixture,
-            hypothesis.HealthCheck.too_slow,
+            hypothesis.HealthCheck.too_slow
         ]
     )
 )
