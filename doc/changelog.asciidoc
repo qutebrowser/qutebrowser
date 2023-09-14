@@ -27,6 +27,10 @@ Fixed
 - Setting `url.auto_search` to `dns` works correctly now with Qt 6.
 - Counts passed via keypresses now have a digit limit (4300) to avoid
   exceptions due to cats sleeping on numpads. (#7834)
+- Ignored URL query parameters (via `url.yank_ignored_parameters`) are now
+  respected when yanking any URL (for example, through hints with `hint links
+  yank`). The `{yank_url}` subsitution has also been added as a version of
+  `{url}` that respects ignored URL query parameters. (#7879)
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
