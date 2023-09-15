@@ -795,7 +795,6 @@ class TestParseJavascriptUrl:
     (QUrl('https://example.com?ref=test'), False, 'https://example.com'),
     (QUrl('https://example.com?ref=test&example=yes'), False,
      'https://example.com?example=yes'),
-    (QUrl('https://example.com?ref=test'), False, 'https://example.com'),
     (QUrl('https://example.com?ref'), False, 'https://example.com'),
     (QUrl('https://example.com?example'), False, 'https://example.com?example'),
     (QUrl('mailto:email@example.com'), False, 'email@example.com'),
