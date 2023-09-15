@@ -36,11 +36,7 @@
 !define URL_HELP_LINK 'https://qutebrowser.org/doc/help/'
 
 ; CPU Arch
-!ifdef X86
-    !error '32-bit installer is no longer supported.'
-!endif
 !define ARCH 'x64'
-!define SUFFIX 'amd64'
 
 ; Dark colors
 !define /ifndef DARK_BGCOLOR_0 0x191919
@@ -415,7 +411,7 @@
 !define LICENSE_FILE '${PRJ_ROOT}\LICENSE'
 
 ; Installer name
-!define INSTALLER_NAME '${PRODUCT_NAME}-${VERSION}-${SUFFIX}'
+!define INSTALLER_NAME '${PRODUCT_NAME}-${VERSION}'
 
 ; Uninstaller file name
 !define UNINSTALL_FILENAME 'uninstall.exe'
