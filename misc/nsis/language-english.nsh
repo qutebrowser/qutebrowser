@@ -250,7 +250,7 @@ is not being blocked by your antivirus.\
 `
 LangString MB_UNSUPPORTED_OS ${LANG_ENGLISH} `\
 This version of ${PRODUCT_NAME} requires a 64-bit$(1)\
-version of Windows 10 21H2 or later.\
+version of Windows 10 1607 or later.\
 `
 LangString MB_USER_ABORT ${LANG_ENGLISH} `\
 The installation of ${PRODUCT_NAME} was aborted.$(1)\

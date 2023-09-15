@@ -184,9 +184,10 @@ Function ${F}.onInit
         check_win_ver:
         GetWinVer ${Result} Major
         IntCmpU ${Result} 10 0 _unsupported_os _os_ok
-        ${If} ${IsNativeAMD64}
-            GetWinVer ${Result} Build
-            IntCmpU ${Result} 19044 _os_ok 0 _os_ok
+        GetWinVer ${Result} Build
+        IntCmpU ${Result} 22000 _os_ok 0 _os_ok ; Pass Windows 11 21H2+
+        ${If} ${IsNativeAMD64} ; Windows 10 has no amd64 emulation on arm64
+            IntCmpU ${Result} 14393 _os_ok _unsupported_os _os_ok ; Pass Windows 10 x64 1607+
         ${EndIf}
         _unsupported_os:
         ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_UNSUPPORTED_OS)
