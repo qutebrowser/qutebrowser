@@ -30,6 +30,19 @@ Fixed
 - Navigating via hints to a remote URL from a file:// one works again. (#7847)
 - The timers related to the tab audible indicator and the auto follow timeout
   no longer accumulate connections over time. (#7888)
+- Upgraded the bundled Qt version to 6.5.3. Note this is only relevant for the
+  macOS/Windows releases, on Linux those will be upgraded via your distribution
+  packages. This Qt patch release comes with
+  https://code.qt.io/cgit/qt/qtreleasenotes.git/tree/qt/6.5.3/release-note.md[various important fixes],
+  among them:
+    * Fix for crashes on Google Meet / GMail with dark mode enabled
+    * Fix for right-click in devtools not working properly
+    * Fix for drag & drop not working on Wayland
+    * Fix for some XKB key remappings not working
+    * Security fixes up to Chromium 116.0.5845.187, including
+      https://chromereleases.googleblog.com/2023/09/stable-channel-update-for-desktop_11.html[CVE-2023-4863],
+      a critical heap buffer overflow in WebP, for which "Google is aware that an
+      exploit [...] exists in the wild."
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
