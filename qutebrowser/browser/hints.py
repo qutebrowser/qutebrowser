@@ -1321,20 +1321,16 @@ class ContextHinter(WordHinter):
         yield "no hint found"
 
     def new_hint_for(
-        self, elem: webelem.AbstractWebElement, existing: {}, context
+        self, elem: webelem.AbstractWebElement, existing_hints: [], context
     ) -> Optional[str]:
         """Return a hint for elem, not conflicting with the existing."""
         url = elem.resolve_url(context.baseurl)
 
         if url is not None:
             url = url.toString()
-            # if url in existing.keys():
-            # print("found url: " + url)
-            # return existing[url], url
         else:
             url = ""
 
-        existing_hints = list(existing.values())
         new = self.tag_words_to_hints(self.extract_tag_words(elem))
         newer = self.filter_doubles(new, existing_hints)
 
@@ -1363,9 +1359,8 @@ class ContextHinter(WordHinter):
             A list of hint strings, in the same order as the elements.
         """
         hints = [""] * len(elems)
-        used_hints = {}  # dict of url, hint
+        used_hints = [""] * len(elems)
         elem_order = ["textarea", "button", "a", "input", "img"]
-        # log.hints.debug(elems)
         for elem in elems:
             if elem.tag_name() not in elem_order:
                 elem_order.append(elem.tag_name())
@@ -1386,8 +1381,7 @@ class ContextHinter(WordHinter):
         log.hints.debug("all tags: " + " ".join(t))
         log.hints.debug("tag order: " + " ".join(elem_order))
         log.hints.debug("Resulting hints: " + " ".join(hints))
-        log.hints.debug("Used hints: " + " ".join(used_hints.values()))
-        # log.hints.debug(elems)
+        log.hints.debug("Used hints: " + " ".join(used_hints))
         if None in hints:
             log.hints.debug("None exists")
         log.hints.debug(len(elems))
