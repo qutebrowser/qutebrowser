@@ -3716,8 +3716,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
-      ym: yank inline [{title}]({yank_url})
-      yM: yank inline [{title}]({yank_url}) -s
+      ym: yank inline [{title}]({url:yank})
+      yM: yank inline [{title}]({url:yank}) -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}

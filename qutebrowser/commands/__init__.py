@@ -14,7 +14,7 @@ For command arguments, there are also some variables you can use:
 - `{url:host}`, `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
   `{url:password}`, `{url:port}`, `{url:path}` and `{url:query}`
   expand to the respective parts of the current URL
-- `{yank_url}` expands to the URL of the current page but strips all the query
+- `{url:yank}` expands to the URL of the current page but strips all the query
   parameters in the `url.yank_ignored_parameters` setting.
 - `{title}` expands to the current page's title
 - `{clipboard}` expands to the clipboard contents

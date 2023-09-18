@@ -41,7 +41,7 @@ Feature: Yanking and pasting.
 
     Scenario: Yanking inline to clipboard
         When I open data/title.html
-        And I run :yank inline '[[{yank_url}][qutebrowser</3org]]'
+        And I run :yank inline '[[{url:yank}][qutebrowser</3org]]'
         Then the message "Yanked inline block to clipboard: [[http://localhost:(port)/data/title.html][qutebrowser</3org]]" should be shown
         And the clipboard should contain "[[http://localhost:(port)/data/title.html][qutebrowser</3org]]"
 
