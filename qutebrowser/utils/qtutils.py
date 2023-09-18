@@ -123,6 +123,11 @@ def is_single_process() -> bool:
     return '--single-process' in args
 
 
+def is_wayland() -> bool:
+    """Check if we are running on Wayland."""
+    return objects.qapp.platformName() in ["wayland", "wayland-egl"]
+
+
 def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
     """Check if the given argument is in bounds for the given type.
 

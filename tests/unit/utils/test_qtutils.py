@@ -110,6 +110,17 @@ def test_is_single_process(monkeypatch, stubs, backend, arguments, single_proces
     assert qtutils.is_single_process() == single_process
 
 
+@pytest.mark.parametrize('platform, is_wayland', [
+    ("wayland", True),
+    ("wayland-egl", True),
+    ("xcb", False),
+])
+def test_is_wayland(monkeypatch, stubs, platform, is_wayland):
+    qapp = stubs.FakeQApplication(platform_name=platform)
+    monkeypatch.setattr(qtutils.objects, 'qapp', qapp)
+    assert qtutils.is_wayland() == is_wayland
+
+
 class TestCheckOverflow:
 
     """Test check_overflow."""

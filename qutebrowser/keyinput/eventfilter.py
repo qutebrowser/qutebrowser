@@ -11,7 +11,7 @@ from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
-from qutebrowser.utils import objreg, debug, log
+from qutebrowser.utils import objreg, debug, log, qtutils
 
 
 class EventFilter(QObject):
@@ -86,7 +86,7 @@ class EventFilter(QObject):
 
         if (
             ev_type == QEvent.Type.DragEnter and
-            objects.qapp.platformName() == "wayland" and
+            qtutils.is_wayland() and
             qVersion() == "6.5.2"
         ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-115757
