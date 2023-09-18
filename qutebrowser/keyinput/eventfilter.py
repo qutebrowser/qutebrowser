@@ -86,7 +86,7 @@ class EventFilter(QObject):
 
         if (
             ev_type == QEvent.Type.DragEnter and
-            objects.qapp.platformName() == "wayland" and
+            objects.qapp.platformName() in ["wayland", "wayland-egl"] and
             qVersion() == "6.5.2"
         ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-115757
