@@ -22,7 +22,7 @@ requests==2.31.0
 six==1.16.0
 tomli==2.0.1
 tomlkit==0.12.1
-typing_extensions==4.7.1
+typing_extensions==4.8.0
 uritemplate==4.1.1
 # urllib3==2.0.4
 wrapt==1.15.0

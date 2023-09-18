@@ -34,13 +34,13 @@ readme-renderer==42.0
 requests==2.31.0
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.5.2
+rich==13.5.3
 SecretStorage==3.3.3
 sip==6.7.11
 six==1.16.0
 tomli==2.0.1
 twine==4.0.2
-typing_extensions==4.7.1
+typing_extensions==4.8.0
 uritemplate==4.1.1
 # urllib3==2.0.4
 zipp==3.16.2
