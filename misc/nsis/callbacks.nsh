@@ -182,17 +182,21 @@ Function ${F}.onInit
 
     !if '${F}' == ''
         check_win_ver:
-        GetWinVer ${Result} Major
-        IntCmpU ${Result} 10 0 _unsupported_os _os_ok
-        GetWinVer ${Result} Build
-        IntCmpU ${Result} 22000 _os_ok 0 _os_ok ; Pass Windows 11 21H2+
-        ${If} ${IsNativeAMD64} ; Windows 10 has no amd64 emulation on arm64
-            IntCmpU ${Result} 14393 _os_ok _unsupported_os _os_ok ; Pass Windows 10 x64 1607+
-        ${EndIf}
-        _unsupported_os:
-        ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_UNSUPPORTED_OS)
-        _os_ok:
-        ${Return}
+        ${If} ${AtLeastWin11}
+            ${Return}
+        ${ElseIf} ${IsNativeAMD64}
+        !if '${QT5}' == 'True'
+            ${AndIf} ${AtLeastWin8}
+                ${Return}
+            ${EndIf}
+            ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_UNSUPPORTED_OS_QT5)
+        !else
+            ${AndIf} ${AtLeastWin10}
+            ${AndIf} ${AtLeastBuild} 14393
+                ${Return}
+            ${EndIf}
+            ${Quit} ERROR_INSTALL_PLATFORM_UNSUPPORTED $(MB_UNSUPPORTED_OS)
+        !endif
 
         detect_nsis_v2:
         !macro DETECT_NSIS_V2 HKEY CONTEXT MODE

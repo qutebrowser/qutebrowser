@@ -252,6 +252,10 @@ LangString MB_UNSUPPORTED_OS ${LANG_ENGLISH} `\
 This version of ${PRODUCT_NAME} requires a 64-bit$(1)\
 version of Windows 10 1607 or later.\
 `
+LangString MB_UNSUPPORTED_OS_QT5 ${LANG_ENGLISH} `\
+This version of ${PRODUCT_NAME} requires a 64-bit$(1)\
+version of Windows 8 or later.\
+`
 LangString MB_USER_ABORT ${LANG_ENGLISH} `\
 The installation of ${PRODUCT_NAME} was aborted.$(1)\
 Click OK to exit Setup.\
