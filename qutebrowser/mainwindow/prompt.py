@@ -16,7 +16,7 @@ from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelI
 from qutebrowser.qt.widgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QTreeView, QSizePolicy,
                              QSpacerItem)
-from qutebrowser.qt.gui import QFileSystemModel
+from qutebrowser.qt.gui import (QFileSystemModel, QAbstractFileIconProvider, QIcon)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
@@ -624,6 +624,19 @@ class LineEditPrompt(_BasePrompt):
         return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
+class NullIconProvider(QAbstractFileIconProvider):
+
+    def __init__(self):
+        super().__init__()
+        self.null_icon = QIcon()
+
+    def icon(self, type):
+        return self.null_icon
+
+    def type(self, info):
+        return ""
+
+
 class FilenamePrompt(_BasePrompt):
 
     """A prompt for a filename."""
@@ -725,6 +738,8 @@ class FilenamePrompt(_BasePrompt):
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
+
+        self._file_model.setIconProvider(NullIconProvider())
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
