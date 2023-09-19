@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // If you are reading this in plaintext or on PyPi:
 //
 // A rendered version is available at:
-// https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc
+// https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc
 
 qutebrowser
 ===========
@@ -10,9 +12,9 @@ qutebrowser
 image:qutebrowser/icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on Python and Qt.*
 
 image:https://github.com/qutebrowser/qutebrowser/workflows/CI/badge.svg["Build Status", link="https://github.com/qutebrowser/qutebrowser/actions?query=workflow%3ACI"]
-image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
+image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=main["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=main"]
 
-link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc[installing]
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/main/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc[installing]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
@@ -24,9 +26,11 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 **qutebrowser's primary maintainer, The-Compiler, is currently working
 part-time on qutebrowser, funded by donations.** To sustain this for a long
 time, your help is needed! See the
-https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
-information. Depending on your sign-up date and how long you keep a certain
-level, you can get qutebrowser t-shirts, stickers and more!
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] or
+https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#donating[alternative donation methods]
+for more information. Depending on your sign-up date and how
+long you keep a certain level, you can get qutebrowser t-shirts, stickers and
+more!
 // QUTE_WEB_HIDE_END
 
 Screenshots
@@ -66,24 +70,29 @@ ways:
 https://listi.jpberlin.de/mailman/listinfo/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
-For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
-https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
+Please report security bugs to security@qutebrowser.org
+(or if GPG encryption is desired, contact me@the-compiler.org with GPG ID
+https://www.the-compiler.org/pubkey.asc[0x916EB0C8FD55A072]).
+
+Alternatively,
+https://github.com/qutebrowser/qutebrowser/security/advisories/new[report a vulnerability]
+via GitHub's
+https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability[private reporting feature].
 
 Requirements
 ------------
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.7 or newer
-* https://www.qt.io/[Qt] 5.12.0 or newer (5.12 LTS or 5.15 recommended, Qt 6 is
-  not supported yet) with the following modules:
+* https://www.python.org/[Python] 3.8 or newer
+* https://www.qt.io/[Qt], either 6.2.0 or newer, or 5.15.0 or newer, with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase or qtdeclarative in some distributions)
   - QtSQL (part of qtbase in some distributions)
   - QtDBus (part of qtbase in some distributions; note that a connection to DBus at
     runtime is optional)
   - QtOpenGL
-  - QtWebEngine, or
+  - QtWebEngine (if using Qt 5, 5.15.2 or newer), or
   - alternatively QtWebKit (5.212) - **This is not recommended** due to known security
     issues in QtWebKit, you most likely want to use qutebrowser with the
     default QtWebEngine backend (based on Chromium) instead. Quoting the
@@ -91,12 +100,12 @@ The following software and libraries are required to run qutebrowser:
     _[The latest QtWebKit] release is based on [an] old WebKit revision with known
 unpatched vulnerabilities. Please use it carefully and avoid visiting untrusted
 websites and using it for transmission of sensitive data._
-* https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.12.0 or newer
-  for Python 3
+* https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 6.2.2 or newer
+  (Qt 6) or 5.15.0 or newer (Qt 5)
 * https://palletsprojects.com/p/jinja/[jinja2]
 * https://github.com/yaml/pyyaml[PyYAML]
 
-On older Python versions (3.7/3.8), the following backports are also required:
+On Python 3.8, the following backport is also required:
 
 * https://importlib-resources.readthedocs.io/[importlib_resources]
 
@@ -112,10 +121,6 @@ The following libraries are optional:
   QtWebEngine backend.
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
-* https://importlib-metadata.readthedocs.io/[importlib_metadata] on Python 3.7,
-  to improve QtWebEngine version detection when PyQtWebEngine is
-  installed via pip (thus, this dependency usually isn't relevant for
-  packagers).
 * https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 
@@ -142,6 +147,9 @@ Alternatively, the following donation methods are available -- note that
 eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
 for those, please mailto:mail@qutebrowser.org[get in touch] for details.
 
+* https://liberapay.com/The-Compiler[Liberapay], which can handle payments
+  via Credit Card, SEPA bank transfers, or Paypal. Payment fees are paid by me,
+  but they are https://liberapay.com/about/faq#fees[relatively low].
 * SEPA bank transfer inside Europe (**no fees**):
   - Account holder: Florian Bruhin
   - Country: Switzerland
@@ -149,13 +157,16 @@ for those, please mailto:mail@qutebrowser.org[get in touch] for details.
   - IBAN (other): CH80 0900 0000 8711 8587 3
   - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
   - If you need any other information: Contact me at mail@qutebrowser.org.
+  - If possible, **please consider yearly or semi-yearly donations**, because
+    of the additional overhead from many individual transactions for
+    bookkeeping/tax purposes.
 * PayPal:
   https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF],
   https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR],
   https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD].
   **Note: Fees can be very high (around 5-40%, depending on the donated amounts)** - consider
-  using GitHub Sponsors (accepts credit cards or PayPal!) or SEPA bank transfers
-  instead.
+  using GitHub Sponsors (credit card), Liberapay (credit cards, PayPal, or bank
+  transfer) or SEPA bank transfers instead.
 * Cryptocurrencies:
   - Bitcoin: link:bitcoin:bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00[bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00]
   - Bitcoin Cash: link:bitcoincash:1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N[1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N]
@@ -209,6 +220,7 @@ Active
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebEngine or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution in 2019] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
+* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium]
 * Firefox addons (based on WebExtensions):
@@ -216,9 +228,8 @@ Active
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF]
 * Addons for Firefox and Chrome:
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
-* Addons for Safari:
-  https://televator.net/vimari/[Vimari]
+  https://lydell.github.io/LinkHints/[Link Hints] (hinting only),
+  https://github.com/ueokande/vimmatic[Vimmatic]
 
 Inactive
 ~~~~~~~~
@@ -235,7 +246,6 @@ main inspiration for qutebrowser)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
 * https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
-* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
@@ -252,6 +262,8 @@ main inspiration for qutebrowser)
   https://github.com/1995eaton/chromium-vim[cVim],
   https://github.com/dcchambers/vb4c[vb4c] (fork of cVim, https://github.com/dcchambers/vb4c/issues/23#issuecomment-810694017[unmaintained]),
   https://glee.github.io/[GleeBox]
+* Addons for Safari:
+  https://televator.net/vimari/[Vimari]
 
 License
 -------

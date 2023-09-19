@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # pylint: disable=invalid-name
 
@@ -36,10 +21,10 @@ import os.path
 import dataclasses
 
 import pytest
-import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtNetwork import QNetworkCookieJar
+import py.path
+from qutebrowser.qt.core import QSize, Qt
+from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QVBoxLayout
+from qutebrowser.qt.network import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import qutebrowser
@@ -126,7 +111,7 @@ class FakeStatusBar(QWidget):
         self.hbox = QHBoxLayout(self)
         self.hbox.addStretch()
         self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet('background-color: red;')
 
     def minimumSizeHint(self):
@@ -177,7 +162,7 @@ def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
-        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        from qutebrowser.qt.webenginecore import QWebEngineProfile
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
@@ -432,27 +417,30 @@ def unicode_encode_err():
 @pytest.fixture(scope='session')
 def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
-    from PyQt5.QtNetwork import QNetworkAccessManager
+    from qutebrowser.qt.network import QNetworkAccessManager
     nam = QNetworkAccessManager()
-    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    try:
+        nam.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+    except AttributeError:
+        # Qt 5 only, deprecated seemingly without replacement.
+        pass
     return nam
 
 
 @pytest.fixture
 def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
-    QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    QtWebEngineWidgets = pytest.importorskip('qutebrowser.qt.webenginewidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
-    yield view
-    view.setPage(None)  # Avoid warning if using QWebEngineProfile
+    return view
 
 
 @pytest.fixture
 def webpage(qnam, monkeypatch):
     """Get a new QWebPage object."""
-    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     class WebPageStub(QtWebKitWidgets.QWebPage):
@@ -477,7 +465,7 @@ def webpage(qnam, monkeypatch):
 @pytest.fixture
 def webview(qtbot, webpage):
     """Get a new QWebView object."""
-    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
@@ -636,7 +624,7 @@ def redirect_webengine_data(data_tmpdir, monkeypatch):
 def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:
-        yield py.path.local(tdir)  # pylint: disable=no-member
+        yield py.path.local(tdir)
 
 
 class ModelValidator:
@@ -717,7 +705,7 @@ def state_config(data_tmpdir, monkeypatch):
 @pytest.fixture
 def unwritable_tmp_path(tmp_path):
     tmp_path.chmod(0)
-    if os.access(str(tmp_path), os.W_OK):
+    if os.access(tmp_path, os.W_OK):
         # Docker container or similar
         pytest.skip("Directory was still writable")
 
@@ -734,7 +722,7 @@ def webengine_versions(testdata_scheme):
     Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
     testdata_scheme here, to make sure that happens before.
     """
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    pytest.importorskip('qutebrowser.qt.webenginewidgets')
     return version.qtwebengine_versions()
 
 

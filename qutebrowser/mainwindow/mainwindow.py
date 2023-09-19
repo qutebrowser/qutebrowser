@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main window of qutebrowser."""
 
@@ -25,10 +10,11 @@ import itertools
 import functools
 from typing import List, MutableSequence, Optional, Tuple, cast
 
-from PyQt5.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop, QByteArray)
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
-from PyQt5.QtGui import QPalette
+from qutebrowser.qt.widgets import QWidget, QVBoxLayout, QSizePolicy
+from qutebrowser.qt.gui import QPalette
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -48,7 +34,7 @@ win_id_gen = itertools.count(0)
 
 def get_window(*, via_ipc: bool,
                target: str,
-               no_raise: bool = False) -> int:
+               no_raise: bool = False) -> "MainWindow":
     """Helper function for app.py to get a window id.
 
     Args:
@@ -58,47 +44,43 @@ def get_window(*, via_ipc: bool,
         no_raise: suppress target window raising
 
     Return:
-        ID of a window that was used to open URL
+        The MainWindow that was used to open URL
     """
     if not via_ipc:
         # Initial main window
-        return 0
+        return objreg.get("main-window", scope="window", window=0)
 
     window = None
-    should_raise = False
 
     # Try to find the existing tab target if opening in a tab
     if target not in {'window', 'private-window'}:
         window = get_target_window()
-        should_raise = target not in {'tab-silent', 'tab-bg-silent'}
+        window.should_raise = target not in {'tab-silent', 'tab-bg-silent'} and not no_raise
 
     is_private = target == 'private-window'
 
     # Otherwise, or if no window was found, create a new one
     if window is None:
         window = MainWindow(private=is_private)
-        window.show()
-        should_raise = True
+        window.should_raise = not no_raise
 
-    if should_raise and not no_raise:
-        raise_window(window)
-
-    return window.win_id
+    return window
 
 
 def raise_window(window, alert=True):
     """Raise the given MainWindow object."""
-    window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
-    window.setWindowState(window.windowState() | Qt.WindowActive)
+    window.setWindowState(window.windowState() & ~Qt.WindowState.WindowMinimized)
+    window.setWindowState(window.windowState() | Qt.WindowState.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
     QCoreApplication.processEvents(
-        QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
+        QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents | QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
 
-    if not sip.isdeleted(window):
+    if sip.isdeleted(window):
         # Could be deleted by the events run above
-        window.activateWindow()
+        return
 
+    window.activateWindow()
     if alert:
         objects.qapp.alert(window)
 
@@ -132,6 +114,8 @@ class MainWindow(QWidget):
         status: The StatusBar widget.
         tabbed_browser: The TabbedBrowser widget.
         state_before_fullscreen: window state before activation of fullscreen.
+        should_raise: Whether the window should be raised/activated when maybe_raise()
+                      gets called.
         _downloadview: The DownloadView widget.
         _download_model: The DownloadModel instance.
         _vbox: The main QVBoxLayout.
@@ -152,6 +136,18 @@ class MainWindow(QWidget):
             padding-left: {{ conf.hints.padding['left'] }}px;
             padding-right: {{ conf.hints.padding['right'] }}px;
             padding-bottom: {{ conf.hints.padding['bottom'] }}px;
+        }
+
+        QToolTip {
+            {% if conf.fonts.tooltip %}
+                font: {{ conf.fonts.tooltip }};
+            {% endif %}
+            {% if conf.colors.tooltip.bg %}
+                background-color: {{ conf.colors.tooltip.bg }};
+            {% endif %}
+            {% if conf.colors.tooltip.fg %}
+                color: {{ conf.colors.tooltip.fg }};
+            {% endif %}
         }
 
         QMenu {
@@ -202,10 +198,10 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow import tabbedbrowser
         from qutebrowser.mainwindow.statusbar import bar
 
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         if config.val.window.transparent:
-            self.setAttribute(Qt.WA_TranslucentBackground)
-            self.palette().setColor(QPalette.Window, Qt.transparent)
+            self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+            self.palette().setColor(QPalette.ColorRole.Window, Qt.GlobalColor.transparent)
 
         self._overlays: MutableSequence[_OverlayInfoType] = []
         self.win_id = next(win_id_gen)
@@ -279,6 +275,8 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
+        self.should_raise: bool = False
+
         stylesheet.set_register(self)
 
     def _init_geometry(self, geometry):
@@ -305,7 +303,7 @@ class MainWindow(QWidget):
         if not widget.isVisible():
             return
 
-        if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
+        if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Policy.Expanding:
             width = self.width() - 2 * padding
             if widget.hasHeightForWidth():
                 height = widget.heightForWidth(width)
@@ -412,7 +410,7 @@ class MainWindow(QWidget):
             self._set_decoration(config.val.window.hide_decoration)
 
     def _add_widgets(self):
-        """Add or readd all widgets to the VBox."""
+        """Add or re-add all widgets to the VBox."""
         self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
@@ -564,13 +562,19 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags = cast(Qt.WindowFlags, Qt.Window)
+        if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
+            window_flags = cast(Qt.WindowFlags, Qt.WindowType.Window)
+        else:
+            window_flags = Qt.WindowType.Window
+
         refresh_window = self.isVisible()
         if hidden:
-            window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
+            modifiers = Qt.WindowType.CustomizeWindowHint | Qt.WindowType.NoDropShadowWindowHint
+            window_flags |= modifiers
         self.setWindowFlags(window_flags)
 
-        if utils.is_mac and hidden:
+        if utils.is_mac and hidden and not qtutils.version_check('6.3', compiled=False):
+            # WORKAROUND for https://codereview.qt-project.org/c/qt/qtbase/+/371279
             from ctypes import c_void_p
             # pylint: disable=import-error
             from objc import objc_object
@@ -586,7 +590,7 @@ class MainWindow(QWidget):
         if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(Qt.WindowFullScreen | self.state_before_fullscreen)
+                self.setWindowState(Qt.WindowState.WindowFullScreen | self.state_before_fullscreen)
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
@@ -662,6 +666,12 @@ class MainWindow(QWidget):
                 return False
 
         return True
+
+    def maybe_raise(self) -> None:
+        """Raise the window if self.should_raise is set."""
+        if self.should_raise:
+            raise_window(self)
+            self.should_raise = False
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""

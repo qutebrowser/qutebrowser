@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Searching on a page
     Searching text on the page (like /foo) with different options.
 
@@ -34,25 +32,25 @@ Feature: Searching on a page
 
     @xfail_norun
     Scenario: Searching with / and spaces at the end (issue 874)
-        When I run :set-cmd-text -s /space
+        When I run :cmd-set-text -s /space
         And I run :command-accept
         And I wait for "search found space " in the log
         Then "space " should be found
 
     Scenario: Searching with / and slash in search term (issue 507)
-        When I run :set-cmd-text //slash
+        When I run :cmd-set-text //slash
         And I run :command-accept
         And I wait for "search found /slash" in the log
         Then "/slash" should be found
 
     Scenario: Searching with arguments at start of search term
-        When I run :set-cmd-text /-r reversed
+        When I run :cmd-set-text /-r reversed
         And I run :command-accept
         And I wait for "search found -r reversed" in the log
         Then "-r reversed" should be found
 
     Scenario: Searching with semicolons in search term
-        When I run :set-cmd-text /;
+        When I run :cmd-set-text /;
         And I run :fake-key -g ;
         And I run :fake-key -g <space>
         And I run :fake-key -g semi
@@ -149,6 +147,14 @@ Feature: Searching on a page
         And I run :search-next
         Then the error "No search done yet." should be shown
 
+    # https://github.com/qutebrowser/qutebrowser/issues/7275
+    @qtwebkit_skip
+    Scenario: Jumping to next without matches
+        When I run :search doesnotmatch
+        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I run :search-next
+        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+
     Scenario: Repeating search in a second tab (issue #940)
         When I open data/search.html in a new tab
         And I run :search foo
@@ -224,6 +230,14 @@ Feature: Searching on a page
         And I run :search-prev
         Then the error "No search done yet." should be shown
 
+    # https://github.com/qutebrowser/qutebrowser/issues/7275
+    @qtwebkit_skip
+    Scenario: Jumping to previous without matches
+        When I run :search doesnotmatch
+        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I run :search-prev
+        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+
     ## wrapping
 
     Scenario: Wrapping around page
@@ -249,7 +263,6 @@ Feature: Searching on a page
 
     ## wrapping prevented
 
-    @qt>=5.14
     Scenario: Preventing wrapping at the top of the page
         When I set search.ignore_case to always
         And I set search.wrap to false
@@ -261,7 +274,6 @@ Feature: Searching on a page
         And I run :search-next
         Then the message "Search hit TOP" should be shown
 
-    @qt>=5.14
     Scenario: Preventing wrapping at the bottom of the page
         When I set search.ignore_case to always
         And I set search.wrap to false
@@ -274,7 +286,7 @@ Feature: Searching on a page
 
     ## search match counter
 
-    @qtwebkit_skip @qt>=5.14
+    @qtwebkit_skip
     Scenario: Setting search match counter on search
         When I set search.ignore_case to always
         And I set search.wrap to true
@@ -282,7 +294,7 @@ Feature: Searching on a page
         And I wait for "search found ba" in the log
         Then "Setting search match text to 1/5" should be logged
 
-    @qtwebkit_skip @qt>=5.14
+    @qtwebkit_skip
     Scenario: Updating search match counter on search-next
         When I set search.ignore_case to always
         And I set search.wrap to true
@@ -294,7 +306,7 @@ Feature: Searching on a page
         And I wait for "next_result found ba" in the log
         Then "Setting search match text to 3/5" should be logged
 
-    @qtwebkit_skip @qt>=5.14
+    @qtwebkit_skip
     Scenario: Updating search match counter on search-prev with wrapping
         When I set search.ignore_case to always
         And I set search.wrap to true
@@ -304,7 +316,7 @@ Feature: Searching on a page
         And I wait for the message "Search hit TOP, continuing at BOTTOM"
         Then "Setting search match text to 5/5" should be logged
 
-    @qtwebkit_skip @qt>=5.14
+    @qtwebkit_skip
     Scenario: Updating search match counter on search-prev without wrapping
         When I set search.ignore_case to always
         And I set search.wrap to false
@@ -365,20 +377,20 @@ Feature: Searching on a page
             - data/search.html
             - data/hello.txt (active)
 
-    # Too flaky
     @qtwebkit_skip: Not supported in qtwebkit @skip
     Scenario: Follow a searched link in an iframe
         When I open data/iframe_search.html
+        And I wait for "* search loaded" in the log
         And I run :tab-only
         And I run :search follow
         And I wait for "search found follow" in the log
         And I run :selection-follow
-        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current http://localhost:*/data/iframe_search.html), type link_clicked, is_main_frame False" should be logged
 
-    # Too flaky
     @qtwebkit_skip: Not supported in qtwebkit @skip
     Scenario: Follow a tabbed searched link in an iframe
         When I open data/iframe_search.html
+        And I wait for "* search loaded" in the log
         And I run :tab-only
         And I run :search follow
         And I wait for "search found follow" in the log

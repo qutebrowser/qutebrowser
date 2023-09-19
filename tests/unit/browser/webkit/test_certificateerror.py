@@ -1,24 +1,10 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytest
-from PyQt5.QtNetwork import QSslError
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QSslError
 
 from qutebrowser.browser.webkit import certificateerror
 
@@ -34,13 +20,13 @@ class FakeError:
 
 @pytest.mark.parametrize('errors, expected', [
     (
-        [QSslError(QSslError.UnableToGetIssuerCertificate)],
+        [QSslError(QSslError.SslError.UnableToGetIssuerCertificate)],
         ['<p>The issuer certificate could not be found</p>'],
     ),
     (
         [
-            QSslError(QSslError.UnableToGetIssuerCertificate),
-            QSslError(QSslError.UnableToDecryptCertificateSignature),
+            QSslError(QSslError.SslError.UnableToGetIssuerCertificate),
+            QSslError(QSslError.SslError.UnableToDecryptCertificateSignature),
         ],
         [
             '<ul>',
@@ -67,7 +53,8 @@ class FakeError:
         ],
     ),
 ])
-def test_html(errors, expected):
-    wrapper = certificateerror.CertificateErrorWrapper(errors)
+def test_html(stubs, errors, expected):
+    reply = stubs.FakeNetworkReply(url=QUrl("https://example.com"))
+    wrapper = certificateerror.CertificateErrorWrapper(reply=reply, errors=errors)
     lines = [line.strip() for line in wrapper.html().splitlines() if line.strip()]
     assert lines == expected

@@ -1,25 +1,11 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utilities used for debugging."""
 
 import re
+import enum
 import inspect
 import logging
 import functools
@@ -28,11 +14,11 @@ import types
 from typing import (
     Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
+from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects
-from qutebrowser.qt import sip
+from qutebrowser.qt import sip, machinery
 
 
 def log_events(klass: Type[QObject]) -> Type[QObject]:
@@ -42,8 +28,10 @@ def log_events(klass: Type[QObject]) -> Type[QObject]:
     @functools.wraps(old_event)
     def new_event(self: Any, e: QEvent) -> bool:
         """Wrapper for event() which logs events."""
-        log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
-                                                qenum_key(QEvent, e.type())))
+        # Passing klass as a WORKAROUND because with PyQt6, QEvent.type() returns int:
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044583.html
+        log.misc.debug("Event in {}: {}".format(
+            utils.qualname(klass), qenum_key(QEvent, e.type(), klass=QEvent.Type)))
         return old_event(self, e)
 
     klass.event = new_event  # type: ignore[assignment]
@@ -67,10 +55,11 @@ def log_signals(obj: QObject) -> QObject:
     def connect_log_slot(obj: QObject) -> None:
         """Helper function to connect all signals to a logging slot."""
         metaobj = obj.metaObject()
+        assert metaobj is not None
         for i in range(metaobj.methodCount()):
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)
-            if meta_method.methodType() == QMetaMethod.Signal:
+            if meta_method.methodType() == QMetaMethod.MethodType.Signal:
                 name = meta_method.name().data().decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
@@ -96,19 +85,68 @@ def log_signals(obj: QObject) -> QObject:
     return obj
 
 
-_EnumValueType = Union[sip.simplewrapper, int]
+if machinery.IS_QT6:
+    _EnumValueType = Union[enum.Enum, int]
+else:
+    _EnumValueType = Union[sip.simplewrapper, int]
 
 
-def qenum_key(base: Type[_EnumValueType],
-              value: _EnumValueType,
-              add_base: bool = False,
-              klass: Type[_EnumValueType] = None) -> str:
+def _qenum_key_python(
+    value: _EnumValueType,
+    klass: Type[_EnumValueType],
+) -> Optional[str]:
+    """New-style PyQt6: Try getting value from Python enum."""
+    if isinstance(value, enum.Enum) and value.name:
+        return value.name
+
+    # We got an int with klass passed: Try asking Python enum for member
+    if issubclass(klass, enum.Enum):
+        try:
+            assert isinstance(value, int)
+            name = klass(value).name
+            if name is not None and name != str(value):
+                return name
+        except ValueError:
+            pass
+
+    return None
+
+
+def _qenum_key_qt(
+    base: Type[sip.simplewrapper],
+    value: _EnumValueType,
+    klass: Type[_EnumValueType],
+) -> Optional[str]:
+    # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
+    # However, not every Qt enum value has a staticMetaObject
+    try:
+        meta_obj = base.staticMetaObject  # type: ignore[attr-defined]
+        idx = meta_obj.indexOfEnumerator(klass.__name__)
+        meta_enum = meta_obj.enumerator(idx)
+        key = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        if key is not None:
+            return key
+    except AttributeError:
+        pass
+
+    # PyQt5: Try finding value match in class
+    for name, obj in vars(base).items():
+        if isinstance(obj, klass) and obj == value:
+            return name
+
+    return None
+
+
+def qenum_key(
+    base: Type[sip.simplewrapper],
+    value: _EnumValueType,
+    klass: Type[_EnumValueType] = None,
+) -> str:
     """Convert a Qt Enum value to its key as a string.
 
     Args:
         base: The object the enum is in, e.g. QFrame.
         value: The value to get.
-        add_base: Whether the base should be added to the printed name.
         klass: The enum class the value belongs to.
                If None, the class will be auto-guessed.
 
@@ -120,44 +158,33 @@ def qenum_key(base: Type[_EnumValueType],
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+    assert klass is not None
 
-    try:
-        meta_obj = base.staticMetaObject  # type: ignore[union-attr]
-        idx = meta_obj.indexOfEnumerator(klass.__name__)
-        meta_enum = meta_obj.enumerator(idx)
-        ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
-    except AttributeError:
-        ret = None
+    name = _qenum_key_python(value=value, klass=klass)
+    if name is not None:
+        return name
 
-    if ret is None:
-        for name, obj in vars(base).items():
-            if isinstance(obj, klass) and obj == value:
-                ret = name
-                break
-        else:
-            ret = '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
+    name = _qenum_key_qt(base=base, value=value, klass=klass)
+    if name is not None:
+        return name
 
-    if add_base and hasattr(base, '__name__'):
-        return '.'.join([base.__name__, ret])
-    else:
-        return ret
+    # Last resort fallback: Hex value
+    return '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
 
 
-def qflags_key(base: Type[_EnumValueType],
+def qflags_key(base: Type[sip.simplewrapper],
                value: _EnumValueType,
-               add_base: bool = False,
                klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
-    Note: Passing a combined value (such as Qt.AlignCenter) will get the names
-    for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
+    Note: Passing a combined value (such as Qt.AlignmentFlag.AlignCenter) will get the names
+    for the individual bits (e.g. Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter). FIXME
 
     https://github.com/qutebrowser/qutebrowser/issues/42
 
     Args:
         base: The object the flags are in, e.g. QtCore.Qt
         value: The value to get.
-        add_base: Whether the base should be added to the printed names.
         klass: The flags class the value belongs to.
                If None, the class will be auto-guessed.
 
@@ -173,21 +200,21 @@ def qflags_key(base: Type[_EnumValueType],
             raise TypeError("Can't guess enum class of an int!")
 
     if not value:
-        return qenum_key(base, value, add_base, klass)
+        return qenum_key(base, value, klass)
 
     bits = []
     names = []
     mask = 0x01
-    value = int(value)  # type: ignore[arg-type]
-    while mask <= value:
-        if value & mask:
+    intval = qtutils.extract_enum_val(value)
+    while mask <= intval:
+        if intval & mask:
             bits.append(mask)
         mask <<= 1
     for bit in bits:
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
-        enum_value = klass(bit)  # type: ignore[call-arg]
-        names.append(qenum_key(base, enum_value, add_base))
+        enum_value = klass(bit)  # type: ignore[call-arg,unused-ignore]
+        names.append(qenum_key(base, enum_value, klass))
     return '|'.join(names)
 
 
@@ -327,7 +354,7 @@ def _get_pyqt_objects(lines: MutableSequence[str],
                       obj: QObject,
                       depth: int = 0) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(QObject, '', Qt.FindDirectChildrenOnly):
+    for kid in obj.findChildren(QObject, '', Qt.FindChildOption.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 

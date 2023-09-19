@@ -1,30 +1,16 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for mode parsers."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.gui import QKeySequence
 
 import pytest
 
 from qutebrowser.keyinput import modeparsers, keyutils
+from qutebrowser.config import configexc
 
 
 @pytest.fixture
@@ -65,7 +51,7 @@ class TestsNormalKeyParser:
 
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
-        keyparser.handle(keyutils.KeyInfo(Qt.Key_B, Qt.NoModifier).to_event())
+        keyparser.handle(keyutils.KeyInfo(Qt.Key.Key_B, Qt.KeyboardModifier.NoModifier).to_event())
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()
@@ -122,33 +108,36 @@ class TestHintKeyParser:
         ),
     ])
     def test_match(self, keyparser, hintmanager,
-                   bindings, keychain, prefix, hint):
-        keyparser.update_bindings(bindings)
+                   bindings, keychain, prefix, hint, pyqt_enum_workaround):
+        with pyqt_enum_workaround(keyutils.KeyParseError):
+            keyparser.update_bindings(bindings)
 
         seq = keyutils.KeySequence.parse(keychain)
         assert len(seq) == 2
 
         match = keyparser.handle(seq[0].to_event())
-        assert match == QKeySequence.PartialMatch
+        assert match == QKeySequence.SequenceMatch.PartialMatch
         assert hintmanager.keystr == prefix
 
         match = keyparser.handle(seq[1].to_event())
-        assert match == QKeySequence.ExactMatch
+        assert match == QKeySequence.SequenceMatch.ExactMatch
         assert hintmanager.keystr == hint
 
-    def test_match_key_mappings(self, config_stub, keyparser, hintmanager):
-        config_stub.val.bindings.key_mappings = {'α': 'a', 'σ': 's'}
+    def test_match_key_mappings(self, config_stub, keyparser, hintmanager,
+                                pyqt_enum_workaround):
+        with pyqt_enum_workaround(configexc.ValidationError):
+            config_stub.val.bindings.key_mappings = {'α': 'a', 'σ': 's'}
         keyparser.update_bindings(['aa', 'as'])
 
         seq = keyutils.KeySequence.parse('ασ')
         assert len(seq) == 2
 
         match = keyparser.handle(seq[0].to_event())
-        assert match == QKeySequence.PartialMatch
+        assert match == QKeySequence.SequenceMatch.PartialMatch
         assert hintmanager.keystr == 'a'
 
         match = keyparser.handle(seq[1].to_event())
-        assert match == QKeySequence.ExactMatch
+        assert match == QKeySequence.SequenceMatch.ExactMatch
         assert hintmanager.keystr == 'as'
 
     def test_command(self, keyparser, config_stub, hintmanager, commandrunner):
@@ -159,17 +148,17 @@ class TestHintKeyParser:
         keyparser.update_bindings(['xabcy'])
 
         steps = [
-            (Qt.Key_X, QKeySequence.PartialMatch, 'x'),
-            (Qt.Key_A, QKeySequence.PartialMatch, ''),
-            (Qt.Key_B, QKeySequence.PartialMatch, ''),
-            (Qt.Key_C, QKeySequence.ExactMatch, ''),
+            (Qt.Key.Key_X, QKeySequence.SequenceMatch.PartialMatch, 'x'),
+            (Qt.Key.Key_A, QKeySequence.SequenceMatch.PartialMatch, ''),
+            (Qt.Key.Key_B, QKeySequence.SequenceMatch.PartialMatch, ''),
+            (Qt.Key.Key_C, QKeySequence.SequenceMatch.ExactMatch, ''),
         ]
         for key, expected_match, keystr in steps:
-            info = keyutils.KeyInfo(key, Qt.NoModifier)
+            info = keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)
             match = keyparser.handle(info.to_event())
             assert match == expected_match
             assert hintmanager.keystr == keystr
-            if key != Qt.Key_C:
+            if key != Qt.Key.Key_C:
                 assert not commandrunner.commands
 
         assert commandrunner.commands == [('message-info abc', None)]

@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Helpers related to quitting qutebrowser cleanly."""
 
@@ -28,10 +13,11 @@ import shutil
 import argparse
 import tokenize
 import functools
+import warnings
 import subprocess
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
 
-from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+from qutebrowser.qt.core import QObject, pyqtSignal, QTimer
 try:
     import hunter
 except ImportError:
@@ -39,7 +25,7 @@ except ImportError:
 
 import qutebrowser
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtlog
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
@@ -194,11 +180,18 @@ class Quitter(QObject):
         # Open a new process and immediately shutdown the existing one
         try:
             args = self._get_restart_args(pages, session, override_args)
-            subprocess.Popen(args)  # pylint: disable=consider-using-with
+            proc = subprocess.Popen(args)  # pylint: disable=consider-using-with
         except OSError:
             log.destroy.exception("Failed to restart")
             return False
         else:
+            log.destroy.debug(f"New process PID: {proc.pid}")
+            # Avoid ResourceWarning about still running subprocess when quitting.
+            warnings.filterwarnings(
+                "ignore",
+                category=ResourceWarning,
+                message=f"subprocess {proc.pid} is still running",
+            )
             return True
 
     def shutdown(self, status: int = 0,
@@ -221,21 +214,19 @@ class Quitter(QObject):
             status, session))
 
         sessions.shutdown(session, last_window=last_window)
+        if prompt.prompt_queue is not None:
+            prompt.prompt_queue.shutdown()
 
-        if prompt.prompt_queue.shutdown():
-            # If shutdown was called while we were asking a question, we're in
-            # a still sub-eventloop (which gets quit now) and not in the main
-            # one.
-            # This means we need to defer the real shutdown to when we're back
-            # in the real main event loop, or we'll get a segfault.
-            log.destroy.debug("Deferring real shutdown because question was "
-                              "active.")
-            QTimer.singleShot(0, functools.partial(self._shutdown_2, status,
-                                                   is_restart=is_restart))
-        else:
-            # If we have no questions to shut down, we are already in the real
-            # event loop, so we can shut down immediately.
-            self._shutdown_2(status, is_restart=is_restart)
+        # If shutdown was called while we were asking a question, we're in
+        # a still sub-eventloop (which gets quit now) and not in the main
+        # one.
+        # But there's also other situations where it's problematic to shut down
+        # immediately (e.g. when we're just starting up).
+        # This means we need to defer the real shutdown to when we're back
+        # in the real main event loop, or we'll get a segfault.
+        log.destroy.debug("Deferring shutdown stage 2")
+        QTimer.singleShot(
+            0, functools.partial(self._shutdown_2, status, is_restart=is_restart))
 
     def _shutdown_2(self, status: int, is_restart: bool) -> None:
         """Second stage of shutdown."""
@@ -282,12 +273,10 @@ def quit_(save: bool = False,
     """
     if session is not None and not save:
         raise cmdutils.CommandError("Session name given without --save!")
-    if save:
-        if session is None:
-            session = sessions.default
-        instance.shutdown(session=session)
-    else:
-        instance.shutdown()
+    if save and session is None:
+        session = sessions.default
+
+    instance.shutdown(session=session)
 
 
 @cmdutils.register()
@@ -311,5 +300,5 @@ def init(args: argparse.Namespace) -> None:
     """Initialize the global Quitter instance."""
     global instance
     instance = Quitter(args=args, parent=objects.qapp)
-    instance.shutting_down.connect(log.shutdown_log)
+    instance.shutting_down.connect(qtlog.shutdown_log)
     objects.qapp.lastWindowClosed.connect(instance.on_last_window_closed)

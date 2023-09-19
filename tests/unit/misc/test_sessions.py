@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.misc.sessions."""
 
@@ -23,8 +8,8 @@ import logging
 
 import pytest
 import yaml
-from PyQt5.QtCore import QUrl, QPoint, QByteArray, QObject
-QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
+from qutebrowser.qt.core import QUrl, QPoint, QByteArray, QObject
+QWebView = pytest.importorskip('qutebrowser.qt.webkitwidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item
@@ -286,7 +271,7 @@ class FakeWebView:
     def load_history(self, data):
         self.loaded_history = data
         if self.raise_error is not None:
-            raise self.raise_error  # pylint: disable=raising-bad-type
+            raise self.raise_error
 
 
 @pytest.fixture

@@ -1,23 +1,9 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015 Daniel Schadt
+# SPDX-FileCopyrightText: Daniel Schadt
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Update all third-party-modules."""
 
@@ -66,6 +52,7 @@ def download_nsis_plugins():
 
 def find_pdfjs_asset(assets, legacy):
     """Find the PDF.js asset to use."""
+    # pylint: disable=broad-exception-raised
     for asset in assets:
         name = asset["name"]
         if (
@@ -82,6 +69,7 @@ def get_latest_pdfjs_url(gh_token, legacy):
 
     Returns a (version, url)-tuple.
     """
+    # pylint: disable=broad-exception-raised
     github_api = 'https://api.github.com'
     endpoint = 'repos/mozilla/pdf.js/releases/latest'
     request = urllib.request.Request(f'{github_api}/{endpoint}')

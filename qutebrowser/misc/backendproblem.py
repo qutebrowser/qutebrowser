@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Dialogs shown when there was a problem with a backend choice."""
 
@@ -25,14 +10,16 @@ import functools
 import html
 import enum
 import shutil
+import os.path
 import argparse
 import dataclasses
-from typing import Any, List, Sequence, Tuple, Optional
+from typing import Any, Optional, Sequence, Tuple
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.widgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
                              QMessageBox, QWidget)
-from PyQt5.QtNetwork import QSslSocket
+from qutebrowser.qt.network import QSslSocket
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
@@ -44,10 +31,10 @@ class _Result(enum.IntEnum):
 
     """The result code returned by the backend problem dialog."""
 
-    quit = QDialog.Accepted + 1
-    restart = QDialog.Accepted + 2
-    restart_webkit = QDialog.Accepted + 3
-    restart_webengine = QDialog.Accepted + 4
+    quit = QDialog.DialogCode.Accepted + 1
+    restart = QDialog.DialogCode.Accepted + 2
+    restart_webkit = QDialog.DialogCode.Accepted + 3
+    restart_webengine = QDialog.DialogCode.Accepted + 4
 
 
 @dataclasses.dataclass
@@ -71,27 +58,35 @@ def _other_backend(backend: usertypes.Backend) -> Tuple[usertypes.Backend, str]:
     return (other_backend, other_setting)
 
 
-def _error_text(because: str, text: str, backend: usertypes.Backend) -> str:
+def _error_text(
+    because: str,
+    text: str,
+    backend: usertypes.Backend,
+    suggest_other_backend: bool = False,
+) -> str:
     """Get an error text for the given information."""
-    other_backend, other_setting = _other_backend(backend)
-    if other_backend == usertypes.Backend.QtWebKit:
-        warning = ("<i>Note that QtWebKit hasn't been updated since "
-                   "July 2017 (including security updates).</i>")
-        suffix = " (not recommended)"
-    else:
-        warning = ""
-        suffix = ""
-    return ("<b>Failed to start with the {backend} backend!</b>"
-            "<p>qutebrowser tried to start with the {backend} backend but "
-            "failed because {because}.</p>{text}"
-            "<p><b>Forcing the {other_backend.name} backend{suffix}</b></p>"
-            "<p>This forces usage of the {other_backend.name} backend by "
-            "setting the <i>backend = '{other_setting}'</i> option "
-            "(if you have a <i>config.py</i> file, you'll need to set "
-            "this manually). {warning}</p>".format(
-                backend=backend.name, because=because, text=text,
-                other_backend=other_backend, other_setting=other_setting,
-                warning=warning, suffix=suffix))
+    text = (f"<b>Failed to start with the {backend.name} backend!</b>"
+            f"<p>qutebrowser tried to start with the {backend.name} backend but "
+            f"failed because {because}.</p>{text}")
+
+    if suggest_other_backend:
+        other_backend, other_setting = _other_backend(backend)
+        if other_backend == usertypes.Backend.QtWebKit:
+            warning = ("<i>Note that QtWebKit hasn't been updated since "
+                    "July 2017 (including security updates).</i>")
+            suffix = " (not recommended)"
+        else:
+            warning = ""
+            suffix = ""
+
+        text += (f"<p><b>Forcing the {other_backend.name} backend{suffix}</b></p>"
+                 f"<p>This forces usage of the {other_backend.name} backend by "
+                 f"setting the <i>backend = '{other_setting}'</i> option "
+                 f"(if you have a <i>config.py</i> file, you'll need to set "
+                 f"this manually). {warning}</p>")
+
+    text += f"<p>{machinery.INFO.to_html()}</p>"
+    return text
 
 
 class _Dialog(QDialog):
@@ -101,17 +96,18 @@ class _Dialog(QDialog):
     def __init__(self, *, because: str,
                  text: str,
                  backend: usertypes.Backend,
+                 suggest_other_backend: bool = True,
                  buttons: Sequence[_Button] = None,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
 
-        other_backend, other_setting = _other_backend(backend)
-        text = _error_text(because, text, backend)
+        text = _error_text(because, text, backend,
+                           suggest_other_backend=suggest_other_backend)
 
         label = QLabel(text)
         label.setWordWrap(True)
-        label.setTextFormat(Qt.RichText)
+        label.setTextFormat(Qt.TextFormat.RichText)
         vbox.addWidget(label)
 
         hbox = QHBoxLayout()
@@ -121,13 +117,15 @@ class _Dialog(QDialog):
         quit_button.clicked.connect(lambda: self.done(_Result.quit))
         hbox.addWidget(quit_button)
 
-        backend_text = "Force {} backend".format(other_backend.name)
-        if other_backend == usertypes.Backend.QtWebKit:
-            backend_text += ' (not recommended)'
-        backend_button = QPushButton(backend_text)
-        backend_button.clicked.connect(functools.partial(
-            self._change_setting, 'backend', other_setting))
-        hbox.addWidget(backend_button)
+        if suggest_other_backend:
+            other_backend, other_setting = _other_backend(backend)
+            backend_text = "Force {} backend".format(other_backend.name)
+            if other_backend == usertypes.Backend.QtWebKit:
+                backend_text += ' (not recommended)'
+            backend_button = QPushButton(backend_text)
+            backend_button.clicked.connect(functools.partial(
+                self._change_setting, 'backend', other_setting))
+            hbox.addWidget(backend_button)
 
         for button in buttons:
             btn = QPushButton(button.text)
@@ -181,7 +179,7 @@ class _BackendProblemChecker:
         status = dialog.exec()
         self._save_manager.save_all(is_exit=True)
 
-        if status in [_Result.quit, QDialog.Rejected]:
+        if status in [_Result.quit, QDialog.DialogCode.Rejected]:
             pass
         elif status == _Result.restart_webkit:
             quitter.instance.restart(override_args={'backend': 'webkit'})
@@ -194,95 +192,25 @@ class _BackendProblemChecker:
 
         sys.exit(usertypes.Exit.err_init)
 
-    def _xwayland_options(self) -> Tuple[str, List[_Button]]:
-        """Get buttons/text for a possible XWayland solution."""
-        buttons = []
-        text = "<p>You can work around this in one of the following ways:</p>"
-
-        if 'DISPLAY' in os.environ:
-            # XWayland is available, but QT_QPA_PLATFORM=wayland is set
-            buttons.append(
-                _Button("Force XWayland", 'qt.force_platform', 'xcb'))
-            text += ("<p><b>Force Qt to use XWayland</b></p>"
-                     "<p>This allows you to use the newer QtWebEngine backend "
-                     "(based on Chromium). "
-                     "This sets the <i>qt.force_platform = 'xcb'</i> option "
-                     "(if you have a <i>config.py</i> file, you'll need to "
-                     "set this manually).</p>")
-        else:
-            text += ("<p><b>Set up XWayland</b></p>"
-                     "<p>This allows you to use the newer QtWebEngine backend "
-                     "(based on Chromium). ")
-
-        return text, buttons
-
-    def _handle_wayland_webgl(self) -> None:
-        """On older graphic hardware, WebGL on Wayland causes segfaults.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/5313
-        """
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_WAYLAND_WEBGL_CHECK'):
-            return
-
-        platform = objects.qapp.platformName()
-        if platform not in ['wayland', 'wayland-egl']:
-            return
-
-        # Only Qt 5.14 should be affected
-        if not qtutils.version_check('5.14', compiled=False):
-            return
-        if qtutils.version_check('5.15', compiled=False):
-            return
-
-        # Newer graphic hardware isn't affected
-        opengl_info = version.opengl_info()
-        if (opengl_info is None or
-                opengl_info.gles or
-                opengl_info.version is None or
-                opengl_info.version >= (4, 3)):
-            return
-
-        # If WebGL is turned off, we're fine
-        if not config.val.content.webgl:
-            return
-
-        text, buttons = self._xwayland_options()
-
-        buttons.append(_Button("Turn off WebGL (recommended)",
-                               'content.webgl',
-                               False))
-        text += ("<p><b>Disable WebGL (recommended)</b></p>"
-                 "This sets the <i>content.webgl = False</i> option "
-                 "(if you have a <i>config.py</i> file, you'll need to "
-                 "set this manually).</p>")
-
-        self._show_dialog(backend=usertypes.Backend.QtWebEngine,
-                          because=("of frequent crashes with Qt 5.14 on "
-                                   "Wayland with older graphics hardware"),
-                          text=text,
-                          buttons=buttons)
-
     def _try_import_backends(self) -> _BackendImports:
         """Check whether backends can be imported and return BackendImports."""
         # pylint: disable=unused-import
         results = _BackendImports()
 
         try:
-            from PyQt5 import QtWebKit
-            from PyQt5.QtWebKit import qWebKitVersion
-            from PyQt5 import QtWebKitWidgets
+            from qutebrowser.qt import webkit, webkitwidgets
         except (ImportError, ValueError) as e:
             results.webkit_error = str(e)
+            assert results.webkit_error
         else:
             if not qtutils.is_new_qtwebkit():
                 results.webkit_error = "Unsupported legacy QtWebKit found"
 
         try:
-            from PyQt5 import QtWebEngineWidgets
+            from qutebrowser.qt import webenginecore, webenginewidgets
         except (ImportError, ValueError) as e:
             results.webengine_error = str(e)
+            assert results.webengine_error
 
         return results
 
@@ -294,28 +222,24 @@ class _BackendProblemChecker:
         if QSslSocket.supportsSsl():
             return
 
-        if qtutils.version_check('5.12.4'):
-            version_text = ("If you use OpenSSL 1.0 with a PyQt package from "
-                            "PyPI (e.g. on Ubuntu 16.04), you will need to "
-                            "build OpenSSL 1.1 from sources and set "
-                            "LD_LIBRARY_PATH accordingly.")
-        else:
-            version_text = ("If you use OpenSSL 1.1 with a PyQt package from "
-                            "PyPI (e.g. on Archlinux or Debian Stretch), you "
-                            "need to set LD_LIBRARY_PATH to the path of "
-                            "OpenSSL 1.0 or use Qt >= 5.12.4.")
-
-        text = ("Could not initialize QtNetwork SSL support. {} This only "
-                "affects downloads and :adblock-update.".format(version_text))
+        text = ("Could not initialize QtNetwork SSL support. This only "
+                "affects downloads and :adblock-update.")
 
         if fatal:
             errbox = msgbox.msgbox(parent=None,
                                    title="SSL error",
                                    text="Could not initialize SSL support.",
-                                   icon=QMessageBox.Critical,
+                                   icon=QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
+
+        # Doing this here because it's not relevant with QtWebKit where fatal=True
+        if machinery.IS_QT6:
+            text += ("\nHint: If installed via mkvenv.py on a system without "
+                     "OpenSSL 3.x (e.g. Ubuntu 20.04), you can use --pyqt-version 6.4 "
+                     "to get an older Qt still compatible with OpenSSL 1.1 (at the "
+                     "expense of running an older QtWebEngine/Chromium)")
 
         assert not fatal
         log.init.warning(text)
@@ -332,13 +256,15 @@ class _BackendProblemChecker:
                     "<p>The errors encountered were:<ul>"
                     "<li><b>QtWebKit:</b> {webkit_error}"
                     "<li><b>QtWebEngine:</b> {webengine_error}"
-                    "</ul></p>".format(
+                    "</ul></p><p>{info}</p>".format(
                         webkit_error=html.escape(imports.webkit_error),
-                        webengine_error=html.escape(imports.webengine_error)))
+                        webengine_error=html.escape(imports.webengine_error),
+                        info=machinery.INFO.to_html(),
+                    ))
             errbox = msgbox.msgbox(parent=None,
                                    title="No backend library found!",
                                    text=text,
-                                   icon=QMessageBox.Critical,
+                                   icon=QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
@@ -363,26 +289,6 @@ class _BackendProblemChecker:
 
         raise utils.Unreachable
 
-    def _handle_cache_nuking(self) -> None:
-        """Nuke the QtWebEngine cache if the Qt version changed.
-
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-72532
-        """
-        if not configfiles.state.qt_version_changed:
-            return
-
-        # Only nuke the cache in cases where we know there are problems.
-        # It seems these issues started with Qt 5.12.
-        # They should be fixed with Qt 5.12.5:
-        # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265408
-        if qtutils.version_check('5.12.5', compiled=False):
-            return
-
-        log.init.info("Qt version changed, nuking QtWebEngine cache")
-        cache_dir = os.path.join(standarddir.cache(), 'webengine')
-        if os.path.exists(cache_dir):
-            shutil.rmtree(cache_dir)
-
     def _handle_serviceworker_nuking(self) -> None:
         """Nuke the service workers directory if the Qt version changed.
 
@@ -391,13 +297,7 @@ class _BackendProblemChecker:
         https://bugreports.qt.io/browse/QTBUG-82105
         https://bugreports.qt.io/browse/QTBUG-93744
         """
-        if ('serviceworker_workaround' not in configfiles.state['general'] and
-                qtutils.version_check('5.14', compiled=False)):
-            # Nuke the service worker directory once for every install with Qt
-            # 5.14, given that it seems to cause a variety of segfaults.
-            configfiles.state['general']['serviceworker_workaround'] = '514'
-            reason = 'Qt 5.14'
-        elif configfiles.state.qt_version_changed:
+        if configfiles.state.qt_version_changed:
             reason = 'Qt version changed'
         elif configfiles.state.qtwe_version_changed:
             reason = 'QtWebEngine version changed'
@@ -422,6 +322,105 @@ class _BackendProblemChecker:
 
         shutil.move(service_worker_dir, bak_dir)
 
+    def _confirm_chromium_version_changes(self) -> None:
+        """Ask if there are Chromium downgrades or a Qt 5 -> 6 upgrade."""
+        versions = version.qtwebengine_versions(avoid_init=True)
+        change = configfiles.state.chromium_version_changed
+        info = f"<br><br>{machinery.INFO.to_html()}"
+        if machinery.INFO.reason == machinery.SelectionReason.auto:
+            info += (
+                "<br><br>"
+                "You can use <tt>--qt-wrapper</tt> or set <tt>QUTE_QT_WRAPPER</tt> "
+                "in your environment to override this."
+            )
+        webengine_data_dir = os.path.join(standarddir.data(), "webengine")
+
+        if change == configfiles.VersionChange.major:
+            icon = QMessageBox.Icon.Information
+            text = (
+                "Chromium/QtWebEngine upgrade detected:<br>"
+                f"You are <b>upgrading to QtWebEngine {versions.webengine}</b> but "
+                "used Qt 5 for the last qutebrowser launch.<br><br>"
+                "Data managed by Chromium will be upgraded. This is a <b>one-way "
+                "operation:</b> If you open qutebrowser with Qt 5 again later, any "
+                "Chromium data will be <b>invalid and discarded</b>.<br><br>"
+                "This affects page data such as cookies, but not data managed by "
+                "qutebrowser, such as your configuration or <tt>:open</tt> history.<br>"
+                f"The affected data is in <tt>{webengine_data_dir}</tt>."
+            ) + info
+        elif change == configfiles.VersionChange.downgrade:
+            icon = QMessageBox.Icon.Warning
+            text = (
+                "Chromium/QtWebEngine downgrade detected:<br>"
+                f"You are <b>downgrading to QtWebEngine {versions.webengine}</b>."
+                "<br><br>"
+                "Data managed by Chromium <b>will be discarded</b> if you continue."
+                "<br><br>"
+                "This affects page data such as cookies, but not data managed by "
+                "qutebrowser, such as your configuration or <tt>:open</tt> history.<br>"
+                f"The affected data is in <tt>{webengine_data_dir}</tt>."
+            ) + info
+        else:
+            return
+
+        box = msgbox.msgbox(
+            parent=None,
+            title="QtWebEngine version change",
+            text=text,
+            icon=icon,
+            plain_text=False,
+            buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Abort,
+        )
+        response = box.exec()
+        if response != QMessageBox.StandardButton.Ok:
+            sys.exit(usertypes.Exit.err_init)
+
+    def _check_webengine_version(self) -> None:
+        versions = version.qtwebengine_versions(avoid_init=True)
+        if versions.webengine < utils.VersionNumber(5, 15, 2):
+            text = (
+                "QtWebEngine >= 5.15.2 is required for qutebrowser, but "
+                f"{versions.webengine} is installed.")
+            errbox = msgbox.msgbox(parent=None,
+                                   title="QtWebEngine too old",
+                                   text=text,
+                                   icon=QMessageBox.Icon.Critical,
+                                   plain_text=False)
+            errbox.exec()
+            sys.exit(usertypes.Exit.err_init)
+
+    def _check_software_rendering(self) -> None:
+        """Avoid crashing software rendering settings.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103372
+        Fixed with QtWebEngine 6.3.1.
+        """
+        self._assert_backend(usertypes.Backend.QtWebEngine)
+        versions = version.qtwebengine_versions(avoid_init=True)
+
+        if versions.webengine != utils.VersionNumber(6, 3):
+            return
+
+        if os.environ.get('QT_QUICK_BACKEND') != 'software':
+            return
+
+        text = ("You can instead force software rendering on the Chromium level (sets "
+                "<tt>qt.force_software_rendering</tt> to <tt>chromium</tt> instead of "
+                "<tt>qt-quick</tt>).")
+
+        button = _Button("Force Chromium software rendering",
+                         'qt.force_software_rendering',
+                         'chromium')
+        self._show_dialog(
+            backend=usertypes.Backend.QtWebEngine,
+            suggest_other_backend=False,
+            because="a Qt 6.3.0 bug causes instant crashes with Qt Quick software rendering",
+            text=text,
+            buttons=[button],
+        )
+
+        raise utils.Unreachable
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -429,10 +428,11 @@ class _BackendProblemChecker:
         """Run all checks."""
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:
+            self._check_webengine_version()
             self._handle_ssl_support()
-            self._handle_wayland_webgl()
-            self._handle_cache_nuking()
             self._handle_serviceworker_nuking()
+            self._check_software_rendering()
+            self._confirm_chromium_version_changes()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
             self._handle_ssl_support(fatal=True)

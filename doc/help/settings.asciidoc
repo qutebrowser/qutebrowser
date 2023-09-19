@@ -112,12 +112,15 @@
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
+|<<colors.tooltip.bg,colors.tooltip.bg>>|Background color of tooltips.
+|<<colors.tooltip.fg,colors.tooltip.fg>>|Foreground color of tooltips.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
 |<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
 |<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
 |<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
 |<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
 |<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
+|<<colors.webpage.darkmode.increase_text_contrast,colors.webpage.darkmode.increase_text_contrast>>|Increase text contrast by drawing an outline of the uninverted color.
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
@@ -217,7 +220,7 @@
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<editor.remove_file,editor.remove_file>>|Delete the temporary file upon closing the editor.
 |<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
-|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command`, `fileselect.multiple_files.command` and `fileselect.folder.command` are used to select one file, multiple files, and folders, respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
 |<<fileselect.single_file.command,fileselect.single_file.command>>|Command (and arguments) to use for selecting a single file in forms. The command should write the selected file path to the specified file or stdout.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
@@ -236,6 +239,7 @@
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
 |<<fonts.tabs.selected,fonts.tabs.selected>>|Font used for selected tabs.
 |<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used for unselected tabs.
+|<<fonts.tooltip,fonts.tooltip>>|Font used for tooltips.
 |<<fonts.web.family.cursive,fonts.web.family.cursive>>|Font family for cursive fonts.
 |<<fonts.web.family.fantasy,fonts.web.family.fantasy>>|Font family for fantasy fonts.
 |<<fonts.web.family.fixed,fonts.web.family.fixed>>|Font family for fixed fonts.
@@ -290,6 +294,7 @@
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.chromium.experimental_web_platform_features,qt.chromium.experimental_web_platform_features>>|Enables Web Platform features that are in development.
 |<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.chromium.process_model,qt.chromium.process_model>>|Which Chromium process model to use.
 |<<qt.chromium.sandboxing,qt.chromium.sandboxing>>|What sandboxing mechanisms in Chromium to use.
@@ -560,9 +565,9 @@ Default:
 * +pass:[&#x27;]+: +pass:[mode-enter jump_mark]+
 * +pass:[+]+: +pass:[zoom-in]+
 * +pass:[-]+: +pass:[zoom-out]+
-* +pass:[.]+: +pass:[repeat-command]+
-* +pass:[/]+: +pass:[set-cmd-text /]+
-* +pass:[:]+: +pass:[set-cmd-text :]+
+* +pass:[.]+: +pass:[cmd-repeat-last]+
+* +pass:[/]+: +pass:[cmd-set-text /]+
+* +pass:[:]+: +pass:[cmd-set-text :]+
 * +pass:[;I]+: +pass:[hint images tab]+
 * +pass:[;O]+: +pass:[hint links fill :open -t -r {hint-url}]+
 * +pass:[;R]+: +pass:[hint --rapid links window]+
@@ -618,9 +623,9 @@ Default:
 * +pass:[&lt;back&gt;]+: +pass:[back]+
 * +pass:[&lt;forward&gt;]+: +pass:[forward]+
 * +pass:[=]+: +pass:[zoom]+
-* +pass:[?]+: +pass:[set-cmd-text ?]+
+* +pass:[?]+: +pass:[cmd-set-text ?]+
 * +pass:[@]+: +pass:[macro-run]+
-* +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
+* +pass:[B]+: +pass:[cmd-set-text -s :quickmark-load -t]+
 * +pass:[D]+: +pass:[tab-close -o]+
 * +pass:[F]+: +pass:[hint all tab]+
 * +pass:[G]+: +pass:[scroll-to-perc]+
@@ -630,7 +635,7 @@ Default:
 * +pass:[L]+: +pass:[forward]+
 * +pass:[M]+: +pass:[bookmark-add]+
 * +pass:[N]+: +pass:[search-prev]+
-* +pass:[O]+: +pass:[set-cmd-text -s :open -t]+
+* +pass:[O]+: +pass:[cmd-set-text -s :open -t]+
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
@@ -638,7 +643,7 @@ Default:
 * +pass:[Sh]+: +pass:[history]+
 * +pass:[Sq]+: +pass:[bookmark-list]+
 * +pass:[Ss]+: +pass:[set]+
-* +pass:[T]+: +pass:[set-cmd-text -sr :tab-focus]+
+* +pass:[T]+: +pass:[cmd-set-text -sr :tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
@@ -647,30 +652,30 @@ Default:
 * +pass:[\]\]]+: +pass:[navigate next]+
 * +pass:[`]+: +pass:[mode-enter set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
-* +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
+* +pass:[b]+: +pass:[cmd-set-text -s :quickmark-load]+
 * +pass:[cd]+: +pass:[download-clear]+
 * +pass:[co]+: +pass:[tab-only]+
 * +pass:[d]+: +pass:[tab-close]+
 * +pass:[f]+: +pass:[hint]+
 * +pass:[g$]+: +pass:[tab-focus -1]+
 * +pass:[g0]+: +pass:[tab-focus 1]+
-* +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
+* +pass:[gB]+: +pass:[cmd-set-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
 * +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gJ]+: +pass:[tab-move +]+
 * +pass:[gK]+: +pass:[tab-move -]+
-* +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
+* +pass:[gO]+: +pass:[cmd-set-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
 * +pass:[ga]+: +pass:[open -t]+
-* +pass:[gb]+: +pass:[set-cmd-text -s :bookmark-load]+
+* +pass:[gb]+: +pass:[cmd-set-text -s :bookmark-load]+
 * +pass:[gd]+: +pass:[download]+
 * +pass:[gf]+: +pass:[view-source]+
 * +pass:[gg]+: +pass:[scroll-to-perc 0]+
 * +pass:[gi]+: +pass:[hint inputs --first]+
 * +pass:[gm]+: +pass:[tab-move]+
-* +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
-* +pass:[gt]+: +pass:[set-cmd-text -s :tab-select]+
+* +pass:[go]+: +pass:[cmd-set-text :open {url:pretty}]+
+* +pass:[gt]+: +pass:[cmd-set-text -s :tab-select]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
 * +pass:[i]+: +pass:[mode-enter insert]+
@@ -679,15 +684,15 @@ Default:
 * +pass:[l]+: +pass:[scroll right]+
 * +pass:[m]+: +pass:[quickmark-save]+
 * +pass:[n]+: +pass:[search-next]+
-* +pass:[o]+: +pass:[set-cmd-text -s :open]+
+* +pass:[o]+: +pass:[cmd-set-text -s :open]+
 * +pass:[pP]+: +pass:[open -- {primary}]+
 * +pass:[pp]+: +pass:[open -- {clipboard}]+
 * +pass:[q]+: +pass:[macro-record]+
 * +pass:[r]+: +pass:[reload]+
 * +pass:[sf]+: +pass:[save]+
-* +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
-* +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
-* +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[sk]+: +pass:[cmd-set-text -s :bind]+
+* +pass:[sl]+: +pass:[cmd-set-text -s :set -t]+
+* +pass:[ss]+: +pass:[cmd-set-text -s :set]+
 * +pass:[tCH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tCh]+: +pass:[config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tCu]+: +pass:[config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
@@ -716,24 +721,24 @@ Default:
 * +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[mode-enter caret]+
-* +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wB]+: +pass:[cmd-set-text -s :bookmark-load -w]+
 * +pass:[wIf]+: +pass:[devtools-focus]+
 * +pass:[wIh]+: +pass:[devtools left]+
 * +pass:[wIj]+: +pass:[devtools bottom]+
 * +pass:[wIk]+: +pass:[devtools top]+
 * +pass:[wIl]+: +pass:[devtools right]+
 * +pass:[wIw]+: +pass:[devtools window]+
-* +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
+* +pass:[wO]+: +pass:[cmd-set-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
-* +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
+* +pass:[wb]+: +pass:[cmd-set-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
 * +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
-* +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
+* +pass:[wo]+: +pass:[cmd-set-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
-* +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
-* +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
+* +pass:[xO]+: +pass:[cmd-set-text :open -b -r {url:pretty}]+
+* +pass:[xo]+: +pass:[cmd-set-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
 * +pass:[yM]+: +pass:[yank inline [{title}\]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
@@ -1613,6 +1618,24 @@ Type: <<types,QtColor>>
 
 Default: +pass:[white]+
 
+[[colors.tooltip.bg]]
+=== colors.tooltip.bg
+Background color of tooltips.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.tooltip.fg]]
+=== colors.tooltip.fg
+Foreground color of tooltips.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
 [[colors.webpage.bg]]
 === colors.webpage.bg
 Background color for webpages if unset (or empty to use the theme's color).
@@ -1671,6 +1694,9 @@ Example configurations from Chromium's `chrome://flags`:
 - "With selective inversion of everything": Combines the two variants
   above.
 
+- "With increased text contrast": Set
+  `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
+
 This setting requires a restart.
 
 This setting is only available with the QtWebEngine backend.
@@ -1699,13 +1725,25 @@ If set to 0, images are left as-is. If set to 1, images are completely grayscale
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Float>>
 
 Default: +pass:[0.0]+
+
+[[colors.webpage.darkmode.increase_text_contrast]]
+=== colors.webpage.darkmode.increase_text_contrast
+Increase text contrast by drawing an outline of the uninverted color.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 6.3 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
@@ -1733,9 +1771,7 @@ The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus thi
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -1754,9 +1790,7 @@ Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
@@ -1769,9 +1803,7 @@ Text colors with brightness below this threshold will be inverted, and above it 
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
@@ -1785,9 +1817,7 @@ The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -2274,7 +2304,7 @@ Type: <<types,String>>
 
 Valid values:
 
- * +always+: Always send the Referer.
+ * +always+: Always send the Referer. With QtWebEngine 6.2+, this value is unavailable and will act like `same-domain`.
  * +never+: Never send the Referer. This is not recommended, as some sites may break.
  * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
 
@@ -2415,13 +2445,13 @@ Default:
 
 - +pass:[userscript:_qute_stylesheet]+:
 
-* +pass:[Refused to apply inline style because it violates the following Content Security Policy directive: *]+
+* +pass:[*Refused to apply inline style because it violates the following Content Security Policy directive: *]+
 
 [[content.javascript.log_message.levels]]
 === content.javascript.log_message.levels
 Javascript message sources/levels to show in the qutebrowser UI.
 When a JavaScript message is logged from a location matching the glob pattern given in the key, and is from one of the levels listed as value, it's surfaced as a message in the qutebrowser UI.
-By default, errors happening in qutebrowser internally or in userscripts are shown to the user.
+By default, errors happening in qutebrowser internally are shown to the user.
 
 Type: <<types,Dict>>
 
@@ -2433,6 +2463,7 @@ Default:
 - +pass:[userscript:*]+:
 
 * +pass:[error]+
+- +pass:[userscript:GM-*]+: empty
 
 [[content.javascript.modal_dialog]]
 === content.javascript.modal_dialog
@@ -2578,8 +2609,6 @@ Allow websites to show notifications.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-On QtWebEngine, this setting requires Qt 5.13 or newer.
-
 Type: <<types,BoolAsk>>
 
 Valid values:
@@ -2594,8 +2623,6 @@ Default: +pass:[ask]+
 === content.notifications.presenter
 What notification presenter to use for web notifications.
 Note that not all implementations support all features of notifications:
-- With PyQt 5.14, any setting other than `qt` does not support  the `click` and
-  `close` events, as well as the `tag` option to replace existing notifications.
 - The `qt` and `systray` options only support showing one notification at the time
   and ignore the `tag` option to replace existing notifications.
 - The `herbe` option only supports showing one notification at the time and doesn't
@@ -2603,16 +2630,14 @@ Note that not all implementations support all features of notifications:
 - The `messages` option doesn't show icons and doesn't support the `click` and
   `close` events.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
 Valid values:
 
  * +auto+: Tries `libnotify`, `systray` and `messages`, uses the first one available without showing error messages.
- * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser. Recommended over `systray` on PyQt 5.14.
+ * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser.
  * +libnotify+: Shows messages via DBus in a libnotify-compatible way. If DBus isn't available, falls back to `systray` or `messages`, but shows an error message.
  * +systray+: Use a notification presenter based on a systray icon. Falls back to `libnotify` or `messages` if not systray is available. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
  * +messages+: Show notifications as qutebrowser messages. Most notification features aren't available.
@@ -2628,9 +2653,7 @@ Note that with the `qt` presenter, origins are never shown.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -2683,9 +2706,7 @@ On Windows, if this setting is set to False, the system-wide animation setting i
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -2767,7 +2788,6 @@ Default: +pass:[true]+
 [[content.site_specific_quirks.skip]]
 === content.site_specific_quirks.skip
 Disable a list of named quirks.
-The js-string-replaceall quirk is needed for Nextcloud Calendar < 2.2.0 with QtWebEngine < 5.15.3. However, the workaround is not fully compliant to the ECMAScript spec and might cause issues on other websites, so it's disabled by default.
 
 Type: <<types,FlagList>>
 
@@ -2780,14 +2800,11 @@ Valid values:
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+
- * +js-globalthis+
- * +js-object-fromentries+
+ * +js-array-at+
  * +misc-krunker+
  * +misc-mathml-darkmode+
 
-Default: 
-
-- +pass:[js-string-replaceall]+
+Default: empty
 
 [[content.tls.certificate_errors]]
 === content.tls.certificate_errors
@@ -3012,7 +3029,7 @@ Default:
 
 [[fileselect.handler]]
 === fileselect.handler
-Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command`, `fileselect.multiple_files.command` and `fileselect.folder.command` are used to select one file, multiple files, and folders, respectively.
 
 Type: <<types,String>>
 
@@ -3187,6 +3204,15 @@ Font used for unselected tabs.
 Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
+
+[[fonts.tooltip]]
+=== fonts.tooltip
+Font used for tooltips.
+If set to null, the Qt default is used.
+
+Type: <<types,Font>>
+
+Default: empty
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive
@@ -3484,6 +3510,7 @@ Default:
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+
 * +pass:[[role=&quot;treeitem&quot;\]]+
+* +pass:[[aria-haspopup\]]+
 * +pass:[[ng-click\]]+
 * +pass:[[ngClick\]]+
 * +pass:[[data-ng-click\]]+
@@ -3633,9 +3660,7 @@ On Linux, disabling this also disables Chromium's MPRIS integration.
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -3825,6 +3850,25 @@ Type: <<types,List of String>>
 
 Default: empty
 
+[[qt.chromium.experimental_web_platform_features]]
+=== qt.chromium.experimental_web_platform_features
+Enables Web Platform features that are in development.
+This passes the `--enable-experimental-web-platform-features` flag to Chromium. By default, this is enabled with Qt 5 to maximize compatibility despite an aging Chromium base.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Enable experimental web platform features.
+ * +auto+: Enable experimental web platform features when using Qt 5.
+ * +never+: Disable experimental web platform features.
+
+Default: +pass:[auto]+
+
 [[qt.chromium.low_end_device_mode]]
 === qt.chromium.low_end_device_mode
 When to use Chromium's low-end device mode.
@@ -3851,7 +3895,7 @@ Alternative process models use less resources, but decrease security and robustn
 See the following pages for more details:
 
   - https://www.chromium.org/developers/design-documents/process-models
-  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+  - https://doc.qt.io/qt-6/qtwebengine-features.html#process-models
 
 This setting requires a restart.
 
@@ -3948,7 +3992,7 @@ Default: +pass:[none]+
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
-This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
+This is equivalent to setting QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
 
 This setting requires a restart.
@@ -4030,8 +4074,6 @@ Default: +pass:[true]+
 [[search.wrap]]
 === search.wrap
 Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
-
-On QtWebEngine, this setting requires Qt 5.14 or newer.
 
 Type: <<types,Bool>>
 
@@ -4671,6 +4713,7 @@ Default:
 - +pass:[utm_campaign]+
 - +pass:[utm_term]+
 - +pass:[utm_content]+
+- +pass:[utm_name]+
 
 [[window.hide_decoration]]
 === window.hide_decoration
@@ -4807,7 +4850,7 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |Proxy|A proxy URL, or `system`/`none`.
 |QssColor|A color value supporting gradients.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-6/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)

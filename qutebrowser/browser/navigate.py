@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Implementation of :navigate."""
 
@@ -23,7 +8,7 @@ import re
 import posixpath
 from typing import Optional, Set
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
@@ -42,24 +27,24 @@ class Error(Exception):
 # of information. (host and path use FullyDecoded by default)
 _URL_SEGMENTS = [
     ('host',
-     lambda url: url.host(QUrl.FullyEncoded),
-     lambda url, host: url.setHost(host, QUrl.StrictMode)),
+     lambda url: url.host(QUrl.ComponentFormattingOption.FullyEncoded),
+     lambda url, host: url.setHost(host, QUrl.ParsingMode.StrictMode)),
 
     ('port',
      lambda url: str(url.port()) if url.port() > 0 else '',
      lambda url, x: url.setPort(int(x))),
 
     ('path',
-     lambda url: url.path(QUrl.FullyEncoded),
-     lambda url, path: url.setPath(path, QUrl.StrictMode)),
+     lambda url: url.path(QUrl.ComponentFormattingOption.FullyEncoded),
+     lambda url, path: url.setPath(path, QUrl.ParsingMode.StrictMode)),
 
     ('query',
-     lambda url: url.query(QUrl.FullyEncoded),
-     lambda url, query: url.setQuery(query, QUrl.StrictMode)),
+     lambda url: url.query(QUrl.ComponentFormattingOption.FullyEncoded),
+     lambda url, query: url.setQuery(query, QUrl.ParsingMode.StrictMode)),
 
     ('anchor',
-     lambda url: url.fragment(QUrl.FullyEncoded),
-     lambda url, fragment: url.setFragment(fragment, QUrl.StrictMode)),
+     lambda url: url.fragment(QUrl.ComponentFormattingOption.FullyEncoded),
+     lambda url, fragment: url.setFragment(fragment, QUrl.ParsingMode.StrictMode)),
 ]
 
 
@@ -130,14 +115,14 @@ def path_up(url, count):
         count: The number of levels to go up in the url.
     """
     urlutils.ensure_valid(url)
-    url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
-    path = url.path(QUrl.FullyEncoded)
+    url = url.adjusted(QUrl.UrlFormattingOption.RemoveFragment | QUrl.UrlFormattingOption.RemoveQuery)
+    path = url.path(QUrl.ComponentFormattingOption.FullyEncoded)
     if not path or path == '/':
         raise Error("Can't go up!")
     for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
     path = posixpath.normpath(path)
-    url.setPath(path, QUrl.StrictMode)
+    url.setPath(path, QUrl.ParsingMode.StrictMode)
     return url
 
 
@@ -146,7 +131,7 @@ def strip(url, count):
     if count != 1:
         raise Error("Count is not supported when stripping URL components")
     urlutils.ensure_valid(url)
-    return url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
+    return url.adjusted(QUrl.UrlFormattingOption.RemoveFragment | QUrl.UrlFormattingOption.RemoveQuery)
 
 
 def _find_prevnext(prev, elems):
@@ -219,10 +204,10 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         if window:
             new_window = mainwindow.MainWindow(
                 private=cur_tabbed_browser.is_private)
-            new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
             tabbed_browser.tabopen(url, background=False)
+            new_window.show()
         elif tab:
             cur_tabbed_browser.tabopen(url, background=background)
         else:

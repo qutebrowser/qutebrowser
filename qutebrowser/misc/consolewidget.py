@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Debugging console."""
 
@@ -23,9 +8,9 @@ import sys
 import code
 from typing import MutableSequence
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
-from PyQt5.QtGui import QTextCursor
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt
+from qutebrowser.qt.widgets import QTextEdit, QWidget, QVBoxLayout, QApplication
+from qutebrowser.qt.gui import QTextCursor
 
 from qutebrowser.config import stylesheet
 from qutebrowser.misc import cmdhistory, miscwidgets
@@ -92,13 +77,13 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to handle special keypresses."""
-        if e.key() == Qt.Key_Up:
+        if e.key() == Qt.Key.Key_Up:
             self.history_prev()
             e.accept()
-        elif e.key() == Qt.Key_Down:
+        elif e.key() == Qt.Key.Key_Down:
             self.history_next()
             e.accept()
-        elif e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
+        elif e.modifiers() & Qt.KeyboardModifier.ControlModifier and e.key() == Qt.Key.Key_C:
             self.setText('')
             e.accept()
         else:
@@ -113,7 +98,7 @@ class ConsoleTextEdit(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        self.setFocusPolicy(Qt.ClickFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -124,9 +109,10 @@ class ConsoleTextEdit(QTextEdit):
         We can't use Qt's way to append stuff because that inserts weird
         newlines.
         """
-        self.moveCursor(QTextCursor.End)
+        self.moveCursor(QTextCursor.MoveOperation.End)
         self.insertPlainText(text)
         scrollbar = self.verticalScrollBar()
+        assert scrollbar is not None
         scrollbar.setValue(scrollbar.maximum())
 
 

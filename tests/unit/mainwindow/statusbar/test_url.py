@@ -1,30 +1,14 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Clayton Craft (craftyguy) <craftyguy@gmail.com>
+# SPDX-FileCopyrightText: Clayton Craft (craftyguy) <craftyguy@gmail.com>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Test Statusbar url."""
 
 import pytest
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
-from qutebrowser.utils import usertypes, urlutils
+from qutebrowser.utils import usertypes, urlutils, qtutils
 from qutebrowser.mainwindow.statusbar import url
 
 
@@ -37,6 +21,18 @@ def url_widget(qtbot, monkeypatch, config_stub):
     return widget
 
 
+qurl_idna2003 = pytest.mark.skipif(
+    qtutils.version_check("6.3.0", compiled=False),
+    reason="Different result with Qt >= 6.3.0: "
+    "https://bugreports.qt.io/browse/QTBUG-85371"
+)
+qurl_uts46 = pytest.mark.xfail(
+    not qtutils.version_check("6.3.0", compiled=False),
+    reason="Different result with Qt < 6.3.0: "
+    "https://bugreports.qt.io/browse/QTBUG-85371"
+)
+
+
 @pytest.mark.parametrize('url_text, expected', [
     ('http://example.com/foo/bar.html', 'http://example.com/foo/bar.html'),
     ('http://test.gr/%CE%B1%CE%B2%CE%B3%CE%B4.txt', 'http://test.gr/αβγδ.txt'),
@@ -46,7 +42,16 @@ def url_widget(qtbot, monkeypatch, config_stub):
     ('http://username:secret%20password@test.com', 'http://username@test.com'),
     ('http://example.com%5b/', '(invalid URL!) http://example.com%5b/'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    ('http://www.xn--80ak6aa92e.com', 'http://www.xn--80ak6aa92e.com'),
+    pytest.param(
+        'http://www.xn--80ak6aa92e.com',
+        'http://www.xn--80ak6aa92e.com',
+        marks=qurl_idna2003
+    ),
+    pytest.param(
+        'http://www.xn--80ak6aa92e.com',
+        '(www.xn--80ak6aa92e.com) http://www.аррӏе.com',
+        marks=qurl_uts46,
+    ),
     # IDN URL
     ('http://www.ä.com', '(www.xn--4ca.com) http://www.ä.com'),
     (None, ''),

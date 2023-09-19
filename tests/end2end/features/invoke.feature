@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Invoking a new process
     Simulate what happens when running qutebrowser with an existing instance
 

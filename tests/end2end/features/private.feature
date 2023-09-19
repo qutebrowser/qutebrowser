@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Using private browsing
 
     Background:
@@ -27,15 +25,15 @@ Feature: Using private browsing
         Then the cookie qute-private-test should not be set
 
     Scenario: Using command history in a new private browsing window
-        When I run :set-cmd-text :message-info "Hello World"
+        When I run :cmd-set-text :message-info "Hello World"
         And I run :command-accept
         And I open about:blank in a private window
-        And I run :set-cmd-text :message-error "This should only be shown once"
+        And I run :cmd-set-text :message-error "This should only be shown once"
         And I run :command-accept
         And I wait for the error "This should only be shown once"
         And I run :close
         And I wait for "removed: main-window" in the log
-        And I run :set-cmd-text :
+        And I run :cmd-set-text :
         And I run :command-history-prev
         And I run :command-accept
         # Then the error should not be shown again

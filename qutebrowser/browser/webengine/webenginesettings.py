@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Bridge from QWebEngineSettings to our own settings.
 
@@ -26,11 +11,13 @@ Module attributes:
 
 import os
 import operator
+import pathlib
 from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
 
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
+from qutebrowser.qt import machinery
+from qutebrowser.qt.gui import QFont
+from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt.webenginecore import QWebEngineSettings, QWebEngineProfile
 
 from qutebrowser.browser import history
 from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
@@ -110,91 +97,91 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.xss_auditing':
-            Attr(QWebEngineSettings.XSSAuditingEnabled),
+            Attr(QWebEngineSettings.WebAttribute.XSSAuditingEnabled),
         'content.images':
-            Attr(QWebEngineSettings.AutoLoadImages),
+            Attr(QWebEngineSettings.WebAttribute.AutoLoadImages),
         'content.javascript.enabled':
-            Attr(QWebEngineSettings.JavascriptEnabled),
+            Attr(QWebEngineSettings.WebAttribute.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            Attr(QWebEngineSettings.JavascriptCanOpenWindows),
+            Attr(QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows),
         'content.plugins':
-            Attr(QWebEngineSettings.PluginsEnabled),
+            Attr(QWebEngineSettings.WebAttribute.PluginsEnabled),
         'content.hyperlink_auditing':
-            Attr(QWebEngineSettings.HyperlinkAuditingEnabled),
+            Attr(QWebEngineSettings.WebAttribute.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            Attr(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
+            Attr(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            Attr(QWebEngineSettings.LocalContentCanAccessFileUrls),
+            Attr(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls),
         'content.webgl':
-            Attr(QWebEngineSettings.WebGLEnabled),
+            Attr(QWebEngineSettings.WebAttribute.WebGLEnabled),
         'content.local_storage':
-            Attr(QWebEngineSettings.LocalStorageEnabled),
+            Attr(QWebEngineSettings.WebAttribute.LocalStorageEnabled),
         'content.desktop_capture':
-            Attr(QWebEngineSettings.ScreenCaptureEnabled,
+            Attr(QWebEngineSettings.WebAttribute.ScreenCaptureEnabled,
                  converter=lambda val: True if val == 'ask' else val),
         # 'ask' is handled via the permission system
 
         'input.spatial_navigation':
-            Attr(QWebEngineSettings.SpatialNavigationEnabled),
+            Attr(QWebEngineSettings.WebAttribute.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            Attr(QWebEngineSettings.LinksIncludedInFocusChain),
+            Attr(QWebEngineSettings.WebAttribute.LinksIncludedInFocusChain),
 
         'scrolling.smooth':
-            Attr(QWebEngineSettings.ScrollAnimatorEnabled),
+            Attr(QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled),
 
         'content.print_element_backgrounds':
-            Attr(QWebEngineSettings.PrintElementBackgrounds),
+            Attr(QWebEngineSettings.WebAttribute.PrintElementBackgrounds),
 
         'content.autoplay':
-            Attr(QWebEngineSettings.PlaybackRequiresUserGesture,
+            Attr(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture,
                  converter=operator.not_),
 
         'content.dns_prefetch':
-            Attr(QWebEngineSettings.DnsPrefetchEnabled),
+            Attr(QWebEngineSettings.WebAttribute.DnsPrefetchEnabled),
 
         'tabs.favicons.show':
-            Attr(QWebEngineSettings.AutoLoadIconsForPage,
+            Attr(QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
                  converter=lambda val: val != 'never'),
     }
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':
-            QWebEngineSettings.MinimumFontSize,
+            QWebEngineSettings.FontSize.MinimumFontSize,
         'fonts.web.size.minimum_logical':
-            QWebEngineSettings.MinimumLogicalFontSize,
+            QWebEngineSettings.FontSize.MinimumLogicalFontSize,
         'fonts.web.size.default':
-            QWebEngineSettings.DefaultFontSize,
+            QWebEngineSettings.FontSize.DefaultFontSize,
         'fonts.web.size.default_fixed':
-            QWebEngineSettings.DefaultFixedFontSize,
+            QWebEngineSettings.FontSize.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
-        'fonts.web.family.standard': QWebEngineSettings.StandardFont,
-        'fonts.web.family.fixed': QWebEngineSettings.FixedFont,
-        'fonts.web.family.serif': QWebEngineSettings.SerifFont,
-        'fonts.web.family.sans_serif': QWebEngineSettings.SansSerifFont,
-        'fonts.web.family.cursive': QWebEngineSettings.CursiveFont,
-        'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
+        'fonts.web.family.standard': QWebEngineSettings.FontFamily.StandardFont,
+        'fonts.web.family.fixed': QWebEngineSettings.FontFamily.FixedFont,
+        'fonts.web.family.serif': QWebEngineSettings.FontFamily.SerifFont,
+        'fonts.web.family.sans_serif': QWebEngineSettings.FontFamily.SansSerifFont,
+        'fonts.web.family.cursive': QWebEngineSettings.FontFamily.CursiveFont,
+        'fonts.web.family.fantasy': QWebEngineSettings.FontFamily.FantasyFont,
     }
 
     _UNKNOWN_URL_SCHEME_POLICY = {
         'disallow':
-            QWebEngineSettings.DisallowUnknownUrlSchemes,
+            QWebEngineSettings.UnknownUrlSchemePolicy.DisallowUnknownUrlSchemes,
         'allow-from-user-interaction':
-            QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
+            QWebEngineSettings.UnknownUrlSchemePolicy.AllowUnknownUrlSchemesFromUserInteraction,
         'allow-all':
-            QWebEngineSettings.AllowAllUnknownUrlSchemes,
+            QWebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes,
     }
 
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
     _FONT_TO_QFONT = {
-        QWebEngineSettings.StandardFont: QFont.Serif,
-        QWebEngineSettings.FixedFont: QFont.Monospace,
-        QWebEngineSettings.SerifFont: QFont.Serif,
-        QWebEngineSettings.SansSerifFont: QFont.SansSerif,
-        QWebEngineSettings.CursiveFont: QFont.Cursive,
-        QWebEngineSettings.FantasyFont: QFont.Fantasy,
+        QWebEngineSettings.FontFamily.StandardFont: QFont.StyleHint.Serif,
+        QWebEngineSettings.FontFamily.FixedFont: QFont.StyleHint.Monospace,
+        QWebEngineSettings.FontFamily.SerifFont: QFont.StyleHint.Serif,
+        QWebEngineSettings.FontFamily.SansSerifFont: QFont.StyleHint.SansSerif,
+        QWebEngineSettings.FontFamily.CursiveFont: QFont.StyleHint.Cursive,
+        QWebEngineSettings.FontFamily.FantasyFont: QFont.StyleHint.Fantasy,
     }
 
     _JS_CLIPBOARD_SETTINGS = {
@@ -256,14 +243,9 @@ class ProfileSetter:
             'content.cache.size': self.set_http_cache_size,
             'content.cookies.store': self.set_persistent_cookie_policy,
             'spellcheck.languages': self.set_dictionary_language,
+            'content.headers.user_agent': self.set_http_headers,
+            'content.headers.accept_language': self.set_http_headers,
         }
-
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-        # (note this isn't actually fixed properly before Qt 5.15)
-        header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-        if header_bug_fixed:
-            for name in ['user_agent', 'accept_language']:
-                self._name_to_method[f'content.headers.{name}'] = self.set_http_headers
 
     def update_setting(self, name):
         """Update a setting based on its name."""
@@ -286,15 +268,10 @@ class ProfileSetter:
         settings = self._profile.settings()
 
         settings.setAttribute(
-            QWebEngineSettings.FullScreenSupportEnabled, True)
+            QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
         settings.setAttribute(
-            QWebEngineSettings.FocusOnNavigationEnabled, False)
-
-        try:
-            settings.setAttribute(QWebEngineSettings.PdfViewerEnabled, False)
-        except AttributeError:
-            # Added in Qt 5.13
-            pass
+            QWebEngineSettings.WebAttribute.FocusOnNavigationEnabled, False)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.PdfViewerEnabled, False)
 
     def set_http_headers(self):
         """Set the user agent and accept-language for the given profile.
@@ -326,9 +303,9 @@ class ProfileSetter:
         if self._profile.isOffTheRecord():
             return
         if config.val.content.cookies.store:
-            value = QWebEngineProfile.AllowPersistentCookies
+            value = QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies
         else:
-            value = QWebEngineProfile.NoPersistentCookies
+            value = QWebEngineProfile.PersistentCookiesPolicy.NoPersistentCookies
         self._profile.setPersistentCookiesPolicy(value)
 
     def set_dictionary_language(self):
@@ -397,7 +374,11 @@ def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
 
-    default_profile = QWebEngineProfile.defaultProfile()
+    if machinery.IS_QT6:
+        default_profile = QWebEngineProfile("Default")
+    else:
+        default_profile = QWebEngineProfile.defaultProfile()
+    assert not default_profile.isOffTheRecord()
 
     assert parsed_user_agent is None  # avoid earlier profile initialization
     non_ua_version = version.qtwebengine_versions(avoid_init=True)
@@ -470,6 +451,7 @@ def _init_site_specific_quirks():
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
         # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
+        # FIXME:qt6 Still needed?
         # https://github.com/qutebrowser/qutebrowser/issues/4669
         ("ua-slack", 'https://*.slack.com/*', new_chrome_ua),
     ]
@@ -489,18 +471,35 @@ def _init_site_specific_quirks():
         )
 
 
-def _init_devtools_settings():
-    """Make sure the devtools always get images/JS permissions."""
-    settings: List[Tuple[str, Any]] = [
+def _init_default_settings():
+    """Set permissions required for internal functionality.
+
+    - Make sure the devtools always get images/JS permissions.
+    - On Qt 6, make sure files in the data path can load external resources.
+    """
+    devtools_settings: List[Tuple[str, Any]] = [
         ('content.javascript.enabled', True),
         ('content.images', True),
         ('content.cookies.accept', 'all'),
     ]
 
-    for setting, value in settings:
+    for setting, value in devtools_settings:
         for pattern in ['chrome-devtools://*', 'devtools://*']:
             config.instance.set_obj(setting, value,
                                     pattern=urlmatch.UrlPattern(pattern),
+                                    hide_userconfig=True)
+
+    if machinery.IS_QT6:
+        userscripts_settings: List[Tuple[str, Any]] = [
+            ("content.local_content_can_access_remote_urls", True),
+            ("content.local_content_can_access_file_urls", False),
+        ]
+        # https://codereview.qt-project.org/c/qt/qtwebengine/+/375672
+        url = pathlib.Path(standarddir.data(), "userscripts").as_uri()
+        for setting, value in userscripts_settings:
+            config.instance.set_obj(setting,
+                                    value,
+                                    pattern=urlmatch.UrlPattern(f"{url}/*"),
                                     hide_userconfig=True)
 
 
@@ -543,7 +542,7 @@ def init():
 
     log.init.debug("Misc initialization...")
     _init_site_specific_quirks()
-    _init_devtools_settings()
+    _init_default_settings()
 
 
 def shutdown():

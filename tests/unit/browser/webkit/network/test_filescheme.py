@@ -1,22 +1,7 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2018 Antoni Boucher (antoyo) <bouanto@zoho.com>
+# SPDX-FileCopyrightText: Antoni Boucher (antoyo) <bouanto@zoho.com>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
 import dataclasses
@@ -24,8 +9,8 @@ from typing import List
 
 import pytest
 import bs4
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkRequest
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QNetworkRequest
 
 from qutebrowser.browser.webkit.network import filescheme
 from qutebrowser.utils import urlutils, utils
@@ -48,7 +33,7 @@ def test_get_file_list(tmpdir, create_file, create_dir, filterfunc, expected):
     if create_file or create_dir:
         path.ensure(dir=create_dir)
 
-    all_files = os.listdir(str(tmpdir))
+    all_files = os.listdir(tmpdir)
 
     result = filescheme.get_file_list(str(tmpdir), all_files, filterfunc)
     item = {'name': 'foo', 'absname': str(path)}

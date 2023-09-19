@@ -1,34 +1,20 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Provides access to sqlite databases."""
 
+import enum
 import collections
 import contextlib
 import dataclasses
 import types
-from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
+from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type, Union
 
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
+from qutebrowser.qt.core import QObject, pyqtSignal
+from qutebrowser.qt.sql import QSqlDatabase, QSqlError, QSqlQuery
 
-from qutebrowser.qt import sip
+from qutebrowser.qt import sip, machinery
 from qutebrowser.utils import debug, log
 
 
@@ -69,24 +55,45 @@ class UserVersion:
         return f'{self.major}.{self.minor}'
 
 
-class SqliteErrorCode:
+class SqliteErrorCode(enum.Enum):
+    """Primary error codes as used by sqlite.
 
-    """Error codes as used by sqlite.
-
-    See https://sqlite.org/rescode.html - note we only define the codes we use
-    in qutebrowser here.
+    See https://sqlite.org/rescode.html
     """
 
-    ERROR = '1'  # generic error code
-    BUSY = '5'  # database is locked
-    READONLY = '8'  # attempt to write a readonly database
-    IOERR = '10'  # disk I/O error
-    CORRUPT = '11'  # database disk image is malformed
-    FULL = '13'  # database or disk is full
-    CANTOPEN = '14'  # unable to open database file
-    PROTOCOL = '15'  # locking protocol error
-    CONSTRAINT = '19'  # UNIQUE constraint failed
-    NOTADB = '26'  # file is not a database
+    # pylint: disable=invalid-name
+
+    OK = 0  # Successful result
+    ERROR = 1  # Generic error
+    INTERNAL = 2  # Internal logic error in SQLite
+    PERM = 3  # Access permission denied
+    ABORT = 4  # Callback routine requested an abort
+    BUSY = 5  # The database file is locked
+    LOCKED = 6  # A table in the database is locked
+    NOMEM = 7  # A malloc() failed
+    READONLY = 8  # Attempt to write a readonly database
+    INTERRUPT = 9  # Operation terminated by sqlite3_interrupt()*/
+    IOERR = 10  # Some kind of disk I/O error occurred
+    CORRUPT = 11  # The database disk image is malformed
+    NOTFOUND = 12  # Unknown opcode in sqlite3_file_control()
+    FULL = 13  # Insertion failed because database is full
+    CANTOPEN = 14  # Unable to open the database file
+    PROTOCOL = 15  # Database lock protocol error
+    EMPTY = 16  # Internal use only
+    SCHEMA = 17  # The database schema changed
+    TOOBIG = 18  # String or BLOB exceeds size limit
+    CONSTRAINT = 19  # Abort due to constraint violation
+    MISMATCH = 20  # Data type mismatch
+    MISUSE = 21  # Library used incorrectly
+    NOLFS = 22  # Uses OS features not supported on host
+    AUTH = 23  # Authorization denied
+    FORMAT = 24  # Not used
+    RANGE = 25  # 2nd parameter to sqlite3_bind out of range
+    NOTADB = 26  # File opened that is not a database file
+    NOTICE = 27  # Notifications from sqlite3_log()
+    WARNING = 28  # Warnings from sqlite3_log()
+    ROW = 100  # sqlite3_step() has another row ready
+    DONE = 101  # sqlite3_step() has finished executing
 
 
 class Error(Exception):
@@ -104,8 +111,7 @@ class Error(Exception):
         """
         if self.error is None:
             return str(self)
-        else:
-            return self.error.databaseText()
+        return self.error.databaseText()
 
 
 class KnownError(Error):
@@ -128,6 +134,14 @@ class BugError(Error):
 def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
+    primary_error_code: Union[SqliteErrorCode, str]
+    try:
+        # https://sqlite.org/rescode.html#pve
+        primary_error_code = SqliteErrorCode(int(error_code) & 0xff)
+    except ValueError:
+        # not an int, or unknown error code -> fall back to string
+        primary_error_code = error_code
+
     database_text = error.databaseText()
     driver_text = error.driverText()
 
@@ -135,7 +149,7 @@ def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     log.sql.debug(f"type: {debug.qenum_key(QSqlError, error.type())}")
     log.sql.debug(f"database text: {database_text}")
     log.sql.debug(f"driver text: {driver_text}")
-    log.sql.debug(f"error code: {error_code}")
+    log.sql.debug(f"error code: {error_code} -> {primary_error_code}")
 
     known_errors = [
         SqliteErrorCode.BUSY,
@@ -151,12 +165,12 @@ def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     # https://github.com/qutebrowser/qutebrowser/issues/4681
     # If the query we built was too long
     too_long_err = (
-        error_code == SqliteErrorCode.ERROR and
+        primary_error_code == SqliteErrorCode.ERROR and
         (database_text.startswith("Expression tree is too large") or
          database_text in ["too many SQL variables",
                            "LIKE or GLOB pattern too complex"]))
 
-    if error_code in known_errors or too_long_err:
+    if primary_error_code in known_errors or too_long_err:
         raise KnownError(msg, error)
 
     raise BugError(msg, error)
@@ -299,6 +313,7 @@ class Query:
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
+        self._placeholders: List[str] = []
 
     def __iter__(self) -> Iterator[Any]:
         if not self.query.isActive():
@@ -319,15 +334,26 @@ class Query:
             msg = f'Failed to {step} query "{query}": "{error.text()}"'
             raise_sqlite_error(msg, error)
 
+    def _validate_bound_values(self) -> None:
+        """Make sure all placeholders are bound."""
+        qt_bound_values = self.query.boundValues()
+        if machinery.IS_QT5:
+            # Qt 5: Returns a dict
+            values = list(qt_bound_values.values())
+        else:
+            # Qt 6: Returns a list
+            values = qt_bound_values
+
+        if None in values:
+            raise BugError("Missing bound values!")
+
     def _bind_values(self, values: Mapping[str, Any]) -> Dict[str, Any]:
+        self._placeholders = list(values)
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
 
-        bound_values = self.bound_values()
-        if None in bound_values.values():
-            raise BugError("Missing bound values!")
-
-        return bound_values
+        self._validate_bound_values()
+        return self.bound_values()
 
     def run(self, **values: Any) -> 'Query':
         """Execute the prepared query."""
@@ -378,7 +404,10 @@ class Query:
         return rows
 
     def bound_values(self) -> Dict[str, Any]:
-        return self.query.boundValues()
+        return {
+            f":{key}": self.query.boundValue(f":{key}")
+            for key in self._placeholders
+        }
 
 
 class SqlTable(QObject):

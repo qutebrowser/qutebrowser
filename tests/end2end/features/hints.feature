@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Using hints
 
     # https://bugreports.qt.io/browse/QTBUG-58381
@@ -46,6 +44,13 @@ Feature: Using hints
             - data/hints/link_blank.html
             - data/hello.txt
 
+    # https://github.com/qutebrowser/qutebrowser/issues/7842
+    @qtwebkit_skip
+    Scenario: Following a hint from a local file to a remote origin
+        When I open file://(testdata)/hints/link_inject.html?port=(port)
+        And I hint with args "links" and follow a
+        Then data/hello.txt should be loaded
+
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
         And I hint with args "links current" and follow a
@@ -62,23 +67,23 @@ Feature: Using hints
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "-- all spawn -v (python-executable) -c ''" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "all spawn -v (python-executable) -c ''" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Using :hint spawn with flags and --rapid (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "--rapid all spawn -v (python-executable) -c ''" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     @posix
     Scenario: Using :hint spawn with flags passed to the command (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "--rapid all spawn -v echo -e foo" and follow a
-        Then the message "Command exited successfully." should be shown
+        Then the message "Command exited successfully. See :process * for details." should be shown
 
     Scenario: Using :hint run
         When I open data/hints/html/simple.html
@@ -251,34 +256,37 @@ Feature: Using hints
     ### iframes
     Scenario: Using :hint-follow inside an iframe
         When I open data/hints/iframe.html
+        And I wait for "* wrapped loaded" in the log
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current http://localhost:*/data/hints/iframe.html), type link_clicked, *" should be logged
 
     Scenario: Using :hint-follow inside an iframe button
         When I open data/hints/iframe_button.html
+        And I wait for "* wrapped_button loaded" in the log
         And I hint with args "all normal" and follow s
-        Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current http://localhost:*/data/hints/iframe_button.html), *" should be logged
 
     Scenario: Hinting inputs in an iframe without type
         When I open data/hints/iframe_input.html
+        And I wait for "* input loaded" in the log
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
-    @flaky  # FIXME https://github.com/qutebrowser/qutebrowser/issues/1525
     Scenario: Using :hint-follow inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
+        And I wait for "* simple loaded" in the log
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello2.txt, type Type.link_clicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello2.txt (current http://localhost:*/data/hints/iframe_scroll.html), type link_clicked, *" should be logged
 
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current *), type link_clicked, *" should be logged
 
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
@@ -291,11 +299,13 @@ Feature: Using hints
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html
+        And I wait for "* wrapped loaded" in the log
         And I hint with args "all current" and follow a
         Then no crash should happen
 
     Scenario: No error when hinting ranged input in frames
         When I open data/hints/issue3711_frame.html
+        And I wait for "* issue3711 loaded" in the log
         And I hint with args "all current" and follow a
         Then no crash should happen
 
@@ -620,3 +630,14 @@ Feature: Using hints
         # Changing tabs will leave hint mode
         And I wait until qute://pyeval/ is loaded
         Then the page should contain the plaintext "'Follow hint...'"
+
+    Scenario: Hinting an input after undoing a tab close
+        When I open about:blank
+        And I open data/hints/link_input.html in a new tab
+        And I run :tab-close
+        And I run :undo
+        And I wait until data/hints/link_input.html is loaded
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :fake-key -g something
+        Then the javascript message "contents: existingsomething" should be logged

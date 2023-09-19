@@ -1,26 +1,9 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytest
 import pytest_bdd as bdd
-
-from qutebrowser.utils import qtutils
 
 
 bdd.scenarios('notifications.feature')
@@ -28,11 +11,7 @@ bdd.scenarios('notifications.feature')
 
 pytestmark = [
     pytest.mark.usefixtures('notification_server'),
-    pytest.mark.qtwebengine_notifications,
-    pytest.mark.skipif(
-        not qtutils.version_check('5.14'),
-        reason="Custom notification presenters segfault with Qt/PyQtWebEngine 5.13",
-    ),
+    pytest.mark.qtwebkit_skip,
 ]
 
 
@@ -88,9 +67,6 @@ def notification_image_dimensions(notification_server, width, height):
 
 @bdd.then('the notification should be closed via web')
 def notification_closed(notification_server):
-    if not qtutils.version_check('5.15'):
-        # Signal connection gets lost on Qt 5.14 as the notification gets destroyed
-        pytest.skip("Broken with Qt 5.14")
     msg = notification_server.last_msg()
     assert msg.closed_via_web
 

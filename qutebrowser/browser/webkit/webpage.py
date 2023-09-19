@@ -1,33 +1,20 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main browser widgets."""
 
 import html
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
+from qutebrowser.qt.gui import QDesktopServices
+from qutebrowser.qt.network import QNetworkReply, QNetworkRequest
+from qutebrowser.qt.widgets import QFileDialog
+from qutebrowser.qt.printsupport import QPrintDialog
+# pylint: disable=no-name-in-module
+from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
@@ -67,8 +54,8 @@ class BrowserPage(QWebPage):
         self._tabdata = tabdata
         self._is_shutting_down = False
         self._extension_handlers = {
-            QWebPage.ErrorPageExtension: self._handle_errorpage,
-            QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
+            QWebPage.Extension.ErrorPageExtension: self._handle_errorpage,
+            QWebPage.Extension.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
         self.error_occurred = False
@@ -134,16 +121,16 @@ class BrowserPage(QWebPage):
             False if no error page should be displayed, True otherwise.
         """
         ignored_errors = [
-            (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
+            (QWebPage.ErrorDomain.QtNetwork, QNetworkReply.NetworkError.OperationCanceledError),
             # "Loading is handled by the media engine"
-            (QWebPage.WebKit, 203),
+            (QWebPage.ErrorDomain.WebKit, 203),
             # "Frame load interrupted by policy change"
-            (QWebPage.WebKit, 102),
+            (QWebPage.ErrorDomain.WebKit, 102),
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
-        if (info.domain, info.error) == (QWebPage.QtNetwork,
-                                         QNetworkReply.ProtocolUnknownError):
+        if (info.domain, info.error) == (QWebPage.ErrorDomain.QtNetwork,
+                                         QNetworkReply.NetworkError.ProtocolUnknownError):
             # For some reason, we get a segfault when we use
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
@@ -154,7 +141,7 @@ class BrowserPage(QWebPage):
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
                 yes_action=functools.partial(QDesktopServices.openUrl, url),
-                url=info.url.toString(QUrl.RemovePassword | QUrl.FullyEncoded))
+                url=info.url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -251,7 +238,7 @@ class BrowserPage(QWebPage):
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
         printdiag = QPrintDialog()
-        printdiag.setAttribute(Qt.WA_DeleteOnClose)
+        printdiag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
     def on_download_requested(self, request):
@@ -357,24 +344,24 @@ class BrowserPage(QWebPage):
             return
 
         options = {
-            QWebPage.Notifications: 'content.notifications.enabled',
-            QWebPage.Geolocation: 'content.geolocation',
+            QWebPage.Feature.Notifications: 'content.notifications.enabled',
+            QWebPage.Feature.Geolocation: 'content.geolocation',
         }
         messages = {
-            QWebPage.Notifications: 'show notifications',
-            QWebPage.Geolocation: 'access your location',
+            QWebPage.Feature.Notifications: 'show notifications',
+            QWebPage.Feature.Geolocation: 'access your location',
         }
         yes_action = functools.partial(
             self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionGrantedByUser)
+            QWebPage.PermissionPolicy.PermissionGrantedByUser)
         no_action = functools.partial(
             self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionDeniedByUser)
+            QWebPage.PermissionPolicy.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(QUrl.RemoveUserInfo |  # type: ignore[operator]
-                                   QUrl.RemovePath |
-                                   QUrl.RemoveQuery |
-                                   QUrl.RemoveFragment)
+        url = frame.url().adjusted(QUrl.UrlFormattingOption.RemoveUserInfo |  # type: ignore[operator]
+                                   QUrl.UrlFormattingOption.RemovePath |
+                                   QUrl.UrlFormattingOption.RemoveQuery |
+                                   QUrl.UrlFormattingOption.RemoveFragment)
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -507,17 +494,17 @@ class BrowserPage(QWebPage):
         and then conditionally opens the URL here or in another tab/window.
         """
         type_map = {
-            QWebPage.NavigationTypeLinkClicked:
+            QWebPage.NavigationType.NavigationTypeLinkClicked:
                 usertypes.NavigationRequest.Type.link_clicked,
-            QWebPage.NavigationTypeFormSubmitted:
+            QWebPage.NavigationType.NavigationTypeFormSubmitted:
                 usertypes.NavigationRequest.Type.form_submitted,
-            QWebPage.NavigationTypeFormResubmitted:
+            QWebPage.NavigationType.NavigationTypeFormResubmitted:
                 usertypes.NavigationRequest.Type.form_resubmitted,
-            QWebPage.NavigationTypeBackOrForward:
+            QWebPage.NavigationType.NavigationTypeBackOrForward:
                 usertypes.NavigationRequest.Type.back_forward,
-            QWebPage.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
-            QWebPage.NavigationTypeOther:
+            QWebPage.NavigationType.NavigationTypeReload:
+                usertypes.NavigationRequest.Type.reload,
+            QWebPage.NavigationType.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
         is_main_frame = frame is self.mainFrame()
@@ -525,7 +512,7 @@ class BrowserPage(QWebPage):
                                                  navigation_type=type_map[typ],
                                                  is_main_frame=is_main_frame)
 
-        if navigation.navigation_type == navigation.Type.reloaded:
+        if navigation.navigation_type == navigation.Type.reload:
             self.reloading.emit(navigation.url)
 
         self.navigation_request.emit(navigation)

@@ -19,4 +19,11 @@ Some examples:
 #@ filter: mypkg != 1.0.0
 #@ ignore: mypkg, otherpkg
 #@ replace: foo bar
+
+## Use the marker line to restrict the unpinned Flask requirement to python
+## 3.7. For python 3.7 add a specific version into the output.
+Flask
+# Python 3.7
+#@ markers: Flask python_version>="3.7"
+#@ add: Flask==2.2.5 ; python_version=="3.7.*"
 ```

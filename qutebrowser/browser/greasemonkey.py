@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Load, parse and make available Greasemonkey scripts."""
 
@@ -29,7 +14,7 @@ import textwrap
 import dataclasses
 from typing import cast, List, Sequence, Tuple, Optional
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes, message)
@@ -145,7 +130,7 @@ class GreasemonkeyScript:
     def needs_document_end_workaround(self):
         """Check whether to force @run-at document-end.
 
-        This needs to be done on QtWebEngine (since Qt 5.12) for known-broken scripts.
+        This needs to be done on QtWebEngine for known-broken scripts.
 
         On Qt 5.12, accessing the DOM isn't possible with "@run-at
         document-start". It was documented to be impossible before, but seems
@@ -270,7 +255,7 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(QUrl.FullyEncoded)
+        self._url_string = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):

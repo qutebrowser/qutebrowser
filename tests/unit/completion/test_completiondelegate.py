@@ -1,29 +1,15 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright 2018-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
-#
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 from unittest import mock
 
 import hypothesis
 import hypothesis.strategies
 import pytest
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextDocument, QColor
-from PyQt5.QtWidgets import QTextEdit
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.gui import QTextDocument, QColor
+from qutebrowser.qt.widgets import QTextEdit
 
 from qutebrowser.completion import completiondelegate
 
@@ -51,7 +37,7 @@ from qutebrowser.completion import completiondelegate
 ])
 def test_highlight(pat, txt, segments):
     doc = QTextDocument(txt)
-    highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+    highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
     highlighter.setFormat = mock.Mock()
     highlighter.highlightBlock(txt)
     highlighter.setFormat.assert_has_calls([
@@ -65,7 +51,7 @@ def test_benchmark_highlight(benchmark):
     doc = QTextDocument(txt)
 
     def bench():
-        highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+        highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
         highlighter.highlightBlock(txt)
 
     benchmark(bench)
@@ -75,7 +61,7 @@ def test_benchmark_highlight(benchmark):
 def test_pattern_hypothesis(text):
     """Make sure we can't produce invalid patterns."""
     doc = QTextDocument()
-    completiondelegate._Highlighter(doc, text, Qt.red)
+    completiondelegate._Highlighter(doc, text, Qt.GlobalColor.red)
 
 
 def test_highlighted(qtbot):
@@ -87,7 +73,7 @@ def test_highlighted(qtbot):
     that is kind of hard, so we just test it in isolation here.
     """
     doc = QTextDocument()
-    completiondelegate._Highlighter(doc, 'Hello', Qt.red)
+    completiondelegate._Highlighter(doc, 'Hello', Qt.GlobalColor.red)
     doc.setPlainText('Hello World')
 
     # Needed so the highlighting actually works.

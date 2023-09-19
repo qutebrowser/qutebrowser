@@ -1,10 +1,8 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Using completion
 
     Scenario: No warnings when completing with one entry (#1600)
         Given I open about:blank
-        When I run :set-cmd-text -s :open
+        When I run :cmd-set-text -s :open
         And I run :completion-item-focus next
         Then no crash should happen
 
@@ -20,34 +18,34 @@ Feature: Using completion
         And I open data/numbers/8.txt
         And I open data/numbers/9.txt
         And I open data/numbers/10.txt
-        And I run :set-cmd-text :open a                             b
+        And I run :cmd-set-text :open a                             b
         # Make sure qutebrowser doesn't hang
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown
 
     Scenario: Crash when pasting emoji into the command line (#2007)
         Given I open about:blank
-        When I run :set-cmd-text -s :🌀
+        When I run :cmd-set-text -s :🌀
         Then no crash should happen
 
     Scenario: Using command completion
-        When I run :set-cmd-text :
+        When I run :cmd-set-text :
         Then the completion model should be command
 
     Scenario: Using help completion
-        When I run :set-cmd-text -s :help
+        When I run :cmd-set-text -s :help
         Then the completion model should be helptopic
 
     Scenario: Using quickmark completion
-        When I run :set-cmd-text -s :quickmark-load
+        When I run :cmd-set-text -s :quickmark-load
         Then the completion model should be quickmark
 
     Scenario: Using bookmark completion
-        When I run :set-cmd-text -s :bookmark-load
+        When I run :cmd-set-text -s :bookmark-load
         Then the completion model should be bookmark
 
     Scenario: Using bind completion
-        When I run :set-cmd-text -s :bind X
+        When I run :cmd-set-text -s :bind X
         Then the completion model should be bind
 
     # See #2956
@@ -55,7 +53,7 @@ Feature: Using completion
     Scenario: Using session completion
         Given I open data/hello.txt
         And I run :session-save hello
-        When I run :set-cmd-text -s :session-load
+        When I run :cmd-set-text -s :session-load
         And I run :completion-item-focus next
         And I run :completion-item-focus next
         And I run :session-delete hello
@@ -63,18 +61,18 @@ Feature: Using completion
         Then the error "Session hello not found!" should be shown
 
     Scenario: Using option completion
-        When I run :set-cmd-text -s :set
+        When I run :cmd-set-text -s :set
         Then the completion model should be option
 
     Scenario: Using value completion
-        When I run :set-cmd-text -s :set aliases
+        When I run :cmd-set-text -s :set aliases
         Then the completion model should be value
 
     Scenario: Deleting an open tab via the completion
         Given I have a fresh instance
         When I open data/hello.txt
         And I open data/hello2.txt in a new tab
-        And I run :set-cmd-text -s :tab-select
+        And I run :cmd-set-text -s :tab-select
         And I wait for "Setting completion pattern ''" in the log
         And I run :completion-item-focus next
         And I wait for "setting text = ':tab-select 0/1', *" in the log
@@ -89,7 +87,7 @@ Feature: Using completion
         When I open data/hello.txt
         And I open data/hello2.txt in a new tab
         # Tricking completer into not updating tabs
-        And I run :set-cmd-text -s :tab-select
+        And I run :cmd-set-text -s :tab-select
         And I run :tab-move 1
         And I run :tab-select hello2.txt
         Then the following tabs should be open:
@@ -97,7 +95,7 @@ Feature: Using completion
             - data/hello.txt
 
     Scenario: Space updates completion model after selecting full command
-        When I run :set-cmd-text :set
+        When I run :cmd-set-text :set
         And I run :completion-item-focus next
-        And I run :set-cmd-text -s :set
+        And I run :cmd-set-text -s :set
         Then the completion model should be option

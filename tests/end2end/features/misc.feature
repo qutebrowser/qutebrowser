@@ -1,65 +1,63 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Various utility commands.
 
-    ## :set-cmd-text
+    ## :cmd-set-text
 
-    Scenario: :set-cmd-text and :command-accept
-        When I run :set-cmd-text :message-info "Hello World"
+    Scenario: :cmd-set-text and :command-accept
+        When I run :cmd-set-text :message-info "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
 
-    Scenario: :set-cmd-text and :command-accept --rapid
-        When I run :set-cmd-text :message-info "Hello World"
+    Scenario: :cmd-set-text and :command-accept --rapid
+        When I run :cmd-set-text :message-info "Hello World"
         And I run :command-accept --rapid
         And I run :command-accept
         Then the message "Hello World" should be shown
         And the message "Hello World" should be shown
 
-    Scenario: :set-cmd-text with two commands
-        When I run :set-cmd-text :message-info test ;; message-error error
+    Scenario: :cmd-set-text with two commands
+        When I run :cmd-set-text :message-info test ;; message-error error
         And I run :command-accept
         Then the message "test" should be shown
         And the error "error" should be shown
 
-    Scenario: :set-cmd-text with URL replacement
+    Scenario: :cmd-set-text with URL replacement
         When I open data/hello.txt
-        And I run :set-cmd-text :message-info {url}
+        And I run :cmd-set-text :message-info {url}
         And I run :command-accept
         Then the message "http://localhost:*/hello.txt" should be shown
 
-    Scenario: :set-cmd-text with URL replacement with encoded spaces
+    Scenario: :cmd-set-text with URL replacement with encoded spaces
         When I open data/title with spaces.html
-        And I run :set-cmd-text :message-info {url}
+        And I run :cmd-set-text :message-info {url}
         And I run :command-accept
         Then the message "http://localhost:*/title%20with%20spaces.html" should be shown
 
-    Scenario: :set-cmd-text with URL replacement with decoded spaces
+    Scenario: :cmd-set-text with URL replacement with decoded spaces
         When I open data/title with spaces.html
-        And I run :set-cmd-text :message-info "> {url:pretty} <"
+        And I run :cmd-set-text :message-info "> {url:pretty} <"
         And I run :command-accept
         Then the message "> http://localhost:*/title with spaces.html <" should be shown
 
-    Scenario: :set-cmd-text with -s and -a
-        When I run :set-cmd-text -s :message-info "foo
-        And I run :set-cmd-text -a bar"
+    Scenario: :cmd-set-text with -s and -a
+        When I run :cmd-set-text -s :message-info "foo
+        And I run :cmd-set-text -a bar"
         And I run :command-accept
         Then the message "foo bar" should be shown
 
-    Scenario: :set-cmd-text with -a but without text
-        When I run :set-cmd-text -a foo
+    Scenario: :cmd-set-text with -a but without text
+        When I run :cmd-set-text -a foo
         Then the error "No current text!" should be shown
 
-    Scenario: :set-cmd-text with invalid command
-        When I run :set-cmd-text foo
+    Scenario: :cmd-set-text with invalid command
+        When I run :cmd-set-text foo
         Then the error "Invalid command text 'foo'." should be shown
 
-    Scenario: :set-cmd-text with run on count flag and no count
-        When I run :set-cmd-text --run-on-count :message-info "Hello World"
+    Scenario: :cmd-set-text with run on count flag and no count
+        When I run :cmd-set-text --run-on-count :message-info "Hello World"
         Then "message:info:86 Hello World" should not be logged
 
-    Scenario: :set-cmd-text with run on count flag and a count
-        When I run :set-cmd-text --run-on-count :message-info "Hello World" with count 1
+    Scenario: :cmd-set-text with run on count flag and a count
+        When I run :cmd-set-text --run-on-count :message-info "Hello World" with count 1
         Then the message "Hello World" should be shown
 
     ## :jseval
@@ -186,7 +184,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -195,7 +193,7 @@ Feature: Various utility commands.
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I run :devtools
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I wait for "Focus object changed: <Py*.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
@@ -305,13 +303,17 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
-    # FIXME:qtwebengine use a finer skipping here
-    @qtwebengine_skip: printing to pdf is not implemented with older Qt versions
     Scenario: print --pdf
         When I open data/hello.txt
         And I run :print --pdf (tmpdir)/hello.pdf
-        And I wait for "Print to file: *" in the log or skip the test
+        And I wait for "Printed to *" in the log
         Then the PDF hello.pdf should exist in the tmpdir
+
+    Scenario: print --pdf with subdirectory
+        When I open data/hello.txt
+        And I run :print --pdf (tmpdir)/subdir/subdir2/hello.pdf
+        And I wait for "Print to file: *" in the log or skip the test
+        Then no crash should happen
 
     ## https://github.com/qutebrowser/qutebrowser/issues/504
 
@@ -364,7 +366,7 @@ Feature: Various utility commands.
 
     # This still doesn't set window.navigator.language
     # See https://bugreports.qt.io/browse/QTBUG-61949
-    @qtwebkit_skip @js_headers
+    @qtwebkit_skip
     Scenario: Accept-Language header (JS)
         When I set content.headers.accept_language to it,fr
         And I run :jseval console.log(window.navigator.languages)
@@ -376,7 +378,6 @@ Feature: Various utility commands.
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
 
-    @js_headers
     Scenario: User-agent header (JS)
         When I set content.headers.user_agent to toaster
         And I open about:blank
@@ -394,7 +395,7 @@ Feature: Various utility commands.
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
-        When I run :set-cmd-text -s :--
+        When I run :cmd-set-text -s :--
         Then no crash should happen
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1386
@@ -404,12 +405,12 @@ Feature: Various utility commands.
         Then the error "message-i: no such command (did you mean :message-info?)" should be shown
 
      Scenario: Multiple leading : in command
-        When I run :::::set-cmd-text ::::message-i "Hello World"
+        When I run :::::cmd-set-text ::::message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
 
     Scenario: Whitespace in command
-        When I run :   :  set-cmd-text :  :  message-i "Hello World"
+        When I run :   :  cmd-set-text :  :  message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
 
@@ -420,10 +421,10 @@ Feature: Various utility commands.
         And the message "foo" should be shown
 
     # We can't run :message-i as startup command, so we use
-    # :set-cmd-text
+    # :cmd-set-text
 
     Scenario: Partial commandline matching
-        When I run :set-cmd-text :message-i "Hello World"
+        When I run :cmd-set-text :message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
 
@@ -515,42 +516,42 @@ Feature: Various utility commands.
     ## :command-history-{prev,next}
 
     Scenario: Calling previous command
-        When I run :set-cmd-text :message-info blah
+        When I run :cmd-set-text :message-info blah
         And I run :command-accept
         And I wait for "blah" in the log
-        And I run :set-cmd-text :
+        And I run :cmd-set-text :
         And I run :command-history-prev
         And I run :command-accept
         Then the message "blah" should be shown
 
     Scenario: Command starting with space and calling previous command
-        When I run :set-cmd-text :message-info first
+        When I run :cmd-set-text :message-info first
         And I run :command-accept
         And I wait for "first" in the log
-        When I run :set-cmd-text : message-info second
+        When I run :cmd-set-text : message-info second
         And I run :command-accept
         And I wait for "second" in the log
-        And I run :set-cmd-text :
+        And I run :cmd-set-text :
         And I run :command-history-prev
         And I run :command-accept
         Then the message "first" should be shown
 
     Scenario: Calling previous command with :completion-item-focus
-        When I run :set-cmd-text :message-info blah
+        When I run :cmd-set-text :message-info blah
         And I wait for "Entering mode KeyMode.command (reason: *)" in the log
         And I run :command-accept
         And I wait for "blah" in the log
-        And I run :set-cmd-text :
+        And I run :cmd-set-text :
         And I wait for "Entering mode KeyMode.command (reason: *)" in the log
         And I run :completion-item-focus prev --history
         And I run :command-accept
         Then the message "blah" should be shown
 
     Scenario: Browsing through commands
-        When I run :set-cmd-text :message-info blarg
+        When I run :cmd-set-text :message-info blarg
         And I run :command-accept
         And I wait for "blarg" in the log
-        And I run :set-cmd-text :
+        And I run :cmd-set-text :
         And I run :command-history-prev
         And I run :command-history-prev
         And I run :command-history-next
@@ -560,13 +561,13 @@ Feature: Various utility commands.
 
     Scenario: Calling previous command when history is empty
         Given I have a fresh instance
-        When I run :set-cmd-text :
+        When I run :cmd-set-text :
         And I run :command-history-prev
         And I run :command-accept
         Then the error "No command given" should be shown
 
     Scenario: Calling next command when there's no next command
-        When I run :set-cmd-text :
+        When I run :cmd-set-text :
         And I run :command-history-next
         And I run :command-accept
         Then the error "No command given" should be shown
@@ -621,3 +622,12 @@ Feature: Various utility commands.
         When I open data/invalid_resource.html in a new tab
         Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
         And no crash should happen
+
+    @skip  # Too flaky
+    Scenario: Keyboard focus after cross-origin navigation
+        When I turn on scroll logging
+        And I open qute://gpl in a new tab
+        And I run :tab-only
+        And I open data/scroll/simple.html
+        And I run :fake-key "<Space>"
+        Then the page should be scrolled vertically

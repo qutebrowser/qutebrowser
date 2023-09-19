@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for the webelement utils."""
 
@@ -27,8 +12,8 @@ import itertools
 import dataclasses
 
 import pytest
-from PyQt5.QtCore import QRect, QPoint, QUrl
-QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+from qutebrowser.qt.core import QRect, QPoint, QUrl
+QWebElement = pytest.importorskip('qutebrowser.qt.webkit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
@@ -124,7 +109,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
 
     def _style_property(name, strategy):
         """Helper function to act as styleProperty method."""
-        if strategy != QWebElement.ComputedStyle:
+        if strategy != QWebElement.StyleResolveStrategy.ComputedStyle:
             raise ValueError("styleProperty called with strategy != "
                              "ComputedStyle ({})!".format(strategy))
         return style_dict[name]
@@ -678,9 +663,8 @@ class TestIsVisibleIframe:
         assert not invalid_objects.elems[1]._is_visible(invalid_objects.frame)
 
 
+@pytest.mark.usefixtures('config_stub')
 class TestRectOnView:
-
-    pytestmark = pytest.mark.usefixtures('config_stub')
 
     @pytest.mark.parametrize('js_rect', [
         None,  # real geometry via getElementRects

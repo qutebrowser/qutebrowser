@@ -1,26 +1,11 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
@@ -79,7 +64,7 @@ class TestFileCompletion:
         # Deleting /f[oo/]
         with qtbot.wait_signal(prompt._file_model.directoryLoaded):
             for _ in range(3):
-                qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+                qtbot.keyPress(prompt._lineedit, Qt.Key.Key_Backspace)
 
         # For some reason, this isn't always called when using qtbot.keyPress.
         prompt._set_fileview_root(prompt._lineedit.text())
@@ -90,7 +75,7 @@ class TestFileCompletion:
 
         # Deleting /[foo]
         for _ in range(3):
-            qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+            qtbot.keyPress(prompt._lineedit, Qt.Key.Key_Backspace)
 
         # We should now show / again, so tabbing twice gives us bar -> foo
         prompt.item_focus('next')
@@ -99,8 +84,8 @@ class TestFileCompletion:
 
     @pytest.mark.parametrize("keys, expected", [
         ([], ['bar', 'bat', 'foo']),
-        ([Qt.Key_F], ['foo']),
-        ([Qt.Key_A], ['bar', 'bat']),
+        ([Qt.Key.Key_F], ['foo']),
+        ([Qt.Key.Key_A], ['bar', 'bat']),
     ])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'

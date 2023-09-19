@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Various utilities shared between webpage/webview subclasses."""
 
@@ -27,11 +12,11 @@ import netrc
 import tempfile
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
-from PyQt5.QtCore import QUrl, pyqtBoundSignal
+from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
-                               qtutils, version)
+                               qtutils, version, urlutils)
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import guiprocess, objects
 
@@ -72,7 +57,7 @@ def authentication_required(url, authenticator, abort_on):
     else:
         msg = '<b>{}</b> needs authentication'.format(
             html.escape(url.toDisplayString()))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
                          abort_on=abort_on, url=urlstr)
@@ -95,7 +80,7 @@ def javascript_confirm(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
                       abort_on=abort_on, url=urlstr)
@@ -112,7 +97,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
                          default=default,
@@ -135,7 +120,7 @@ def javascript_alert(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)
 
@@ -205,13 +190,13 @@ def javascript_log_message(
     logger(logstring)
 
 
-def ignore_certificate_error(
+def handle_certificate_error(
         *,
         request_url: QUrl,
         first_party_url: QUrl,
         error: usertypes.AbstractCertificateErrorWrapper,
         abort_on: Iterable[pyqtBoundSignal],
-) -> bool:
+) -> None:
     """Display a certificate error question.
 
     Args:
@@ -219,9 +204,6 @@ def ignore_certificate_error(
         first_party_url: The URL of the page we're visiting. Might be an invalid QUrl.
         error: A single error.
         abort_on: Signals aborting a question.
-
-    Return:
-        True if the error should be ignored, False otherwise.
     """
     conf = config.instance.get('content.tls.certificate_errors', url=request_url)
     log.network.debug(f"Certificate error {error!r}, config {conf}")
@@ -232,9 +214,7 @@ def ignore_certificate_error(
     # scheme might not match.
     is_resource = (
         first_party_url.isValid() and
-        not request_url.matches(
-            first_party_url,
-            QUrl.RemoveScheme))  # type: ignore[arg-type]
+        not request_url.matches(first_party_url, urlutils.FormatOption.REMOVE_SCHEME))
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -263,28 +243,46 @@ def ignore_certificate_error(
             is_resource=is_resource,
             error=error,
         )
-
         urlstr = request_url.toString(
-            QUrl.RemovePassword | QUrl.FullyEncoded)  # type: ignore[arg-type]
-        ignore = message.ask(title="Certificate error", text=msg,
-                             mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on, url=urlstr)
-        if ignore is None:
-            # prompt aborted
-            ignore = False
-        return ignore
+            urlutils.FormatOption.REMOVE_PASSWORD | urlutils.FormatOption.ENCODED)
+        title = "Certificate error"
+
+        try:
+            error.defer()
+        except usertypes.UndeferrableError:
+            # QtNetwork / QtWebKit and buggy PyQt versions
+            # Show blocking question prompt
+            ignore = message.ask(title=title, text=msg,
+                                 mode=usertypes.PromptMode.yesno, default=False,
+                                 abort_on=abort_on, url=urlstr)
+            if ignore:
+                error.accept_certificate()
+            else:  # includes None, i.e. prompt aborted
+                error.reject_certificate()
+        else:
+            # Show non-blocking question prompt
+            message.confirm_async(
+                title=title,
+                text=msg,
+                abort_on=abort_on,
+                url=urlstr,
+                yes_action=error.accept_certificate,
+                no_action=error.reject_certificate,
+                cancel_action=error.reject_certificate,
+            )
     elif conf == 'load-insecurely':
         message.error(f'Certificate error: {error}')
-        return True
+        error.accept_certificate()
     elif conf == 'block':
-        return False
+        error.reject_certificate()
     elif conf == 'ask-block-thirdparty' and is_resource:
         log.network.error(
             f"Certificate error in resource load: {error}\n"
             f"  request URL:     {request_url.toDisplayString()}\n"
             f"  first party URL: {first_party_url.toDisplayString()}")
-        return False
-    raise utils.Unreachable(conf, is_resource)
+        error.reject_certificate()
+    else:
+        raise utils.Unreachable(conf, is_resource)
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on,
@@ -307,7 +305,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
     config_val = config.instance.get(option, url=url)
     if config_val == 'ask':
         if url.isValid():
-            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+            urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
             text = "Allow the website at <b>{}</b> to {}?".format(
                 html.escape(url.toDisplayString()), msg)
         else:
@@ -345,23 +343,19 @@ def get_tab(win_id, target):
         win_id: The window ID to open new tabs in
         target: A usertypes.ClickTarget
     """
-    if target == usertypes.ClickTarget.tab:
-        bg_tab = False
-    elif target == usertypes.ClickTarget.tab_bg:
-        bg_tab = True
-    elif target == usertypes.ClickTarget.window:
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
+    tabbed_browser = objreg.get('tabbed-browser', scope='window', window=win_id)
+    if target == usertypes.ClickTarget.window:
         window = mainwindow.MainWindow(private=tabbed_browser.is_private)
+        tab = window.tabbed_browser.tabopen(url=None, background=False)
         window.show()
-        win_id = window.win_id
-        bg_tab = False
-    else:
-        raise ValueError("Invalid ClickTarget {}".format(target))
+        return tab
+    elif target in [usertypes.ClickTarget.tab, usertypes.ClickTarget.tab_bg]:
+        return tabbed_browser.tabopen(
+            url=None,
+            background=target == usertypes.ClickTarget.tab_bg,
+        )
 
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
-    return tabbed_browser.tabopen(url=None, background=bg_tab)
+    raise ValueError(f"Invalid ClickTarget {target}")
 
 
 def get_user_stylesheet(searching=False):
@@ -381,7 +375,7 @@ def get_user_stylesheet(searching=False):
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     if (objects.backend == usertypes.Backend.QtWebEngine and
-            version.qtwebengine_versions().chromium_major in [69, 73, 80, 87] and
+            version.qtwebengine_versions().chromium_major in [87, 90] and
             config.val.colors.webpage.darkmode.enabled and
             config.val.colors.webpage.darkmode.policy.images == 'smart' and
             config.val.content.site_specific_quirks.enabled and

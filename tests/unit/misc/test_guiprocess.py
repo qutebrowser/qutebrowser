@@ -1,29 +1,15 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.misc.guiprocess."""
 
 import sys
 import logging
+import signal
 
 import pytest
-from PyQt5.QtCore import QProcess, QUrl
+from qutebrowser.qt.core import QProcess, QUrl
 
 from qutebrowser.misc import guiprocess
 from qutebrowser.utils import usertypes, utils, version
@@ -32,11 +18,12 @@ from qutebrowser.qt import sip
 
 
 @pytest.fixture
-def proc(qtbot, caplog):
+def proc(qtbot, caplog, monkeypatch):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess('testprocess')
+    monkeypatch.setattr(p._proc, 'processId', lambda: 1234)
     yield p
-    if not sip.isdeleted(p._proc) and p._proc.state() != QProcess.NotRunning:
+    if not sip.isdeleted(p._proc) and p._proc.state() != QProcess.ProcessState.NotRunning:
         with caplog.at_level(logging.ERROR):
             with qtbot.wait_signal(p.finished, timeout=10000,
                                   raising=False) as blocker:
@@ -126,7 +113,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
     assert not message_mock.messages
 
     assert not proc.outcome.running
-    assert proc.outcome.status == QProcess.NormalExit
+    assert proc.outcome.status == QProcess.ExitStatus.NormalExit
     assert proc.outcome.code == 0
     assert str(proc.outcome) == 'Testprocess exited successfully.'
     assert proc.outcome.state_str() == 'successful'
@@ -146,7 +133,8 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
     assert msgs[0].level == usertypes.MessageLevel.info
     assert msgs[1].level == usertypes.MessageLevel.info
     assert msgs[0].text.startswith("Executing:")
-    assert msgs[1].text == "Testprocess exited successfully."
+    expected = "Testprocess exited successfully. See :process 1234 for details."
+    assert msgs[1].text == expected
 
 
 @pytest.mark.parametrize('stdout', [True, False])
@@ -403,16 +391,15 @@ def test_failing_to_start(qtbot, proc, caplog, message_mock, monkeypatch, is_fla
         with qtbot.wait_signal(proc.error, timeout=5000):
             proc.start('this_does_not_exist_either', [])
 
-    msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text.startswith(
-        "Testprocess 'this_does_not_exist_either' failed to start:")
+    expected_msg = (
+        "Testprocess 'this_does_not_exist_either' failed to start:"
+        " 'this_does_not_exist_either' doesn't exist or isn't executable"
+    )
+    if is_flatpak:
+        expected_msg += " inside the Flatpak container"
 
-    if not utils.is_windows:
-        expected_msg = (
-            "Hint: Make sure 'this_does_not_exist_either' exists and is executable")
-        if is_flatpak:
-            expected_msg += ' inside the Flatpak container'
-        assert msg.text.endswith(expected_msg)
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == expected_msg
 
     assert not proc.outcome.running
     assert proc.outcome.status is None
@@ -430,33 +417,61 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
             proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    expected = "Testprocess exited with status 1. See :process for details."
+    expected = "Testprocess exited with status 1. See :process 1234 for details."
     assert msg.text == expected
 
     assert not proc.outcome.running
-    assert proc.outcome.status == QProcess.NormalExit
+    assert proc.outcome.status == QProcess.ExitStatus.NormalExit
     assert proc.outcome.code == 1
     assert str(proc.outcome) == 'Testprocess exited with status 1.'
     assert proc.outcome.state_str() == 'unsuccessful'
     assert not proc.outcome.was_successful()
 
 
-@pytest.mark.posix  # Can't seem to simulate a crash on Windows
-def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
+@pytest.mark.posix  # Seems to be a normal exit on Windows
+@pytest.mark.parametrize("signal, message, state_str, verbose", [
+    (
+        signal.SIGSEGV,
+        "Testprocess crashed with status 11 (SIGSEGV).",
+        "crashed",
+        False,
+    ),
+    (
+        signal.SIGTERM,
+        "Testprocess terminated with status 15 (SIGTERM).",
+        "terminated",
+        True,
+    )
+])
+def test_exit_signal(
+    qtbot,
+    proc,
+    message_mock,
+    py_proc,
+    caplog,
+    signal,
+    message,
+    state_str,
+    verbose,
+):
+    proc.verbose = verbose
     with caplog.at_level(logging.ERROR):
         with qtbot.wait_signal(proc.finished, timeout=10000):
-            proc.start(*py_proc("""
+            proc.start(*py_proc(f"""
                 import os, signal
-                os.kill(os.getpid(), signal.SIGSEGV)
+                os.kill(os.getpid(), signal.{signal.name})
             """))
 
-    msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text == "Testprocess crashed. See :process for details."
+    if verbose:
+        msg = message_mock.messages[-1]
+    else:
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == f"{message} See :process 1234 for details."
 
     assert not proc.outcome.running
-    assert proc.outcome.status == QProcess.CrashExit
-    assert str(proc.outcome) == 'Testprocess crashed.'
-    assert proc.outcome.state_str() == 'crashed'
+    assert proc.outcome.status == QProcess.ExitStatus.CrashExit
+    assert str(proc.outcome) == message
+    assert proc.outcome.state_str() == state_str
     assert not proc.outcome.was_successful()
 
 
@@ -472,7 +487,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
             """))
     assert caplog.messages[-2] == 'Process {}:\ntest'.format(stream)
     assert caplog.messages[-1] == (
-        'Testprocess exited with status 1. See :process for details.')
+        'Testprocess exited with status 1. See :process 1234 for details.')
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])

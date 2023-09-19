@@ -1,31 +1,18 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
-from PyQt5.QtCore import QBuffer, QIODevice, QUrl
-from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
+from qutebrowser.qt.core import QBuffer, QIODevice, QUrl, QByteArray
+from qutebrowser.qt.webenginecore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob,
                                    QWebEngineUrlScheme)
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
+
+_QUTE = QByteArray(b'qute')
 
 
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
@@ -35,9 +22,9 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
         if QWebEngineUrlScheme is not None:
-            assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
+            assert QWebEngineUrlScheme.schemeByName(_QUTE) is not None
 
-        profile.installUrlSchemeHandler(b'qute', self)
+        profile.installUrlSchemeHandler(_QUTE, self)
 
     def _check_initiator(self, job):
         """Check whether the initiator of the job should be allowed.
@@ -67,7 +54,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             log.network.warning("Blocking malicious request from {} to {}"
                                 .format(initiator.toDisplayString(),
                                         request_url.toDisplayString()))
-            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            job.fail(QWebEngineUrlRequestJob.Error.RequestDenied)
             return False
 
         return True
@@ -87,7 +74,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             return
 
         if job.requestMethod() != b'GET':
-            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            job.fail(QWebEngineUrlRequestJob.Error.RequestDenied)
             return
 
         assert url.scheme() == 'qute'
@@ -98,15 +85,15 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         except qutescheme.Error as e:
             errors = {
                 qutescheme.NotFoundError:
-                    QWebEngineUrlRequestJob.UrlNotFound,
+                    QWebEngineUrlRequestJob.Error.UrlNotFound,
                 qutescheme.UrlInvalidError:
-                    QWebEngineUrlRequestJob.UrlInvalid,
+                    QWebEngineUrlRequestJob.Error.UrlInvalid,
                 qutescheme.RequestDeniedError:
-                    QWebEngineUrlRequestJob.RequestDenied,
+                    QWebEngineUrlRequestJob.Error.RequestDenied,
                 qutescheme.SchemeOSError:
-                    QWebEngineUrlRequestJob.UrlNotFound,
+                    QWebEngineUrlRequestJob.Error.UrlNotFound,
                 qutescheme.Error:
-                    QWebEngineUrlRequestJob.RequestFailed,
+                    QWebEngineUrlRequestJob.Error.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -121,7 +108,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             # because that somehow segfaults...
             # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
             buf = QBuffer(parent=self)
-            buf.open(QIODevice.WriteOnly)
+            buf.open(QIODevice.OpenModeFlag.WriteOnly)
             buf.write(data)
             buf.seek(0)
             buf.close()
@@ -135,9 +122,9 @@ def init():
     classes.
     """
     if QWebEngineUrlScheme is not None:
-        assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
-        scheme = QWebEngineUrlScheme(b'qute')
+        assert not QWebEngineUrlScheme.schemeByName(_QUTE).name()
+        scheme = QWebEngineUrlScheme(_QUTE)
         scheme.setFlags(
-            QWebEngineUrlScheme.LocalScheme |
-            QWebEngineUrlScheme.LocalAccessAllowed)
+            QWebEngineUrlScheme.Flag.LocalScheme |
+            QWebEngineUrlScheme.Flag.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Special qute:// pages
 
     Background:
@@ -176,7 +174,8 @@ Feature: Special qute:// pages
         Given pdfjs is available
         When I set content.pdfjs to true
         And I open data/misc/test.pdf without waiting
-        Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
+        And I wait until PDF.js is ready
+        # No "Then"
 
     @qtwebkit_pdf_imageformat_skip
     Scenario: pdfjs is not used when disabled
@@ -190,7 +189,7 @@ Feature: Special qute:// pages
         When I set content.pdfjs to true
         And I set downloads.location.prompt to true
         And I open data/misc/test.pdf without waiting
-        And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
+        And I wait until PDF.js is ready
         And I run :jseval document.getElementById("download").click()
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         And I run :mode-leave
@@ -301,3 +300,16 @@ Feature: Special qute:// pages
     Scenario: Open qute://gpl
         When I open qute://gpl
         Then the page should contain the plaintext "GNU GENERAL PUBLIC LICENSE"
+
+    # qute://start
+
+    # QtWebKit doesn't support formaction
+    @qtwebkit_skip
+    Scenario: Searching on qute://start
+        When I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/title.html?q={}"}
+        And I open qute://start
+        And I run :click-element id search-field
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I press the keys "test"
+        And I press the key "<Enter>"
+        Then data/title.html?q=test should be loaded

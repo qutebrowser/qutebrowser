@@ -1,28 +1,14 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# This file is part of qutebrowser.
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.error."""
 
 import logging
 
 import pytest
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QMessageBox
+from qutebrowser.qt.core import QTimer
+from qutebrowser.qt.widgets import QMessageBox
 
 from qutebrowser.utils import error, utils
 from qutebrowser.misc import ipc
@@ -82,8 +68,8 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected, caplog):
             qtbot.add_widget(w)
             if not utils.is_mac:
                 assert w.windowTitle() == 'title'
-            assert w.icon() == QMessageBox.Critical
-            assert w.standardButtons() == QMessageBox.Ok
+            assert w.icon() == QMessageBox.Icon.Critical
+            assert w.standardButtons() == QMessageBox.StandardButton.Ok
             assert w.text() == expected
         finally:
             w.close()

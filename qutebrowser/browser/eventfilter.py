@@ -1,29 +1,15 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Event handling for a browser tab."""
 
-from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.utils import log, message, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 
 
@@ -48,19 +34,44 @@ class ChildEventFilter(QObject):
 
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
-        if event.type() == QEvent.ChildAdded:
+        if event.type() == QEvent.Type.ChildAdded:
             child = event.child()
-            log.misc.debug("{} got new child {}, installing filter"
-                           .format(obj, child))
+            if not isinstance(child, QWidget):
+                # Can e.g. happen when dragging text
+                log.misc.debug(f"Ignoring new child {qtutils.qobj_repr(child)}")
+                return False
+
+            log.misc.debug(
+                f"{qtutils.qobj_repr(obj)} got new child {qtutils.qobj_repr(child)}, "
+                "installing filter")
 
             # Additional sanity check, but optional
             if self._widget is not None:
                 assert obj is self._widget
 
+                # WORKAROUND for unknown Qt bug losing focus on child change
+                # Carry on keyboard focus to the new child if:
+                # - This is a child event filter on a tab (self._widget is not None)
+                # - We find an old existing child which is a QQuickWidget and is
+                #   currently focused.
+                # - We're using QtWebEngine >= 6.4 (older versions are not affected)
+                children = [
+                    c for c in self._widget.findChildren(
+                        QWidget, "", Qt.FindChildOption.FindDirectChildrenOnly)
+                    if c is not child and
+                    c.hasFocus() and
+                    c.metaObject() is not None and
+                    c.metaObject().className() == "QQuickWidget"
+                ]
+                if children:
+                    log.misc.debug("Focusing new child")
+                    child.setFocus()
+
             child.installEventFilter(self._filter)
-        elif event.type() == QEvent.ChildRemoved:
+        elif event.type() == QEvent.Type.ChildRemoved:
             child = event.child()
-            log.misc.debug("{}: removed child {}".format(obj, child))
+            log.misc.debug(
+                f"{qtutils.qobj_repr(obj)}: removed child {qtutils.qobj_repr(child)}")
 
         return False
 
@@ -81,10 +92,9 @@ class TabEventFilter(QObject):
         super().__init__(parent)
         self._tab = tab
         self._handlers = {
-            QEvent.MouseButtonPress: self._handle_mouse_press,
-            QEvent.MouseButtonRelease: self._handle_mouse_release,
-            QEvent.Wheel: self._handle_wheel,
-            QEvent.KeyRelease: self._handle_key_release,
+            QEvent.Type.MouseButtonPress: self._handle_mouse_press,
+            QEvent.Type.MouseButtonRelease: self._handle_mouse_release,
+            QEvent.Type.Wheel: self._handle_wheel,
         }
         self._ignore_wheel_event = False
         self._check_insertmode_on_release = False
@@ -99,10 +109,13 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         is_rocker_gesture = (config.val.input.mouse.rocker_gestures and
-                             e.buttons() == Qt.LeftButton | Qt.RightButton)
+                             e.buttons() == Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton)
 
-        if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
-            self._mousepress_backforward(e)
+        if e.button() in [Qt.MouseButton.XButton1, Qt.MouseButton.XButton2] or is_rocker_gesture:
+            if not machinery.IS_QT6:
+                self._mousepress_backforward(e)
+            # FIXME:qt6 For some reason, this doesn't filter the action on
+            # Qt 6...
             return True
 
         self._ignore_wheel_event = True
@@ -112,7 +125,7 @@ class TabEventFilter(QObject):
             log.mouse.warning("Ignoring invalid click at {}".format(pos))
             return False
 
-        if e.button() != Qt.NoButton:
+        if e.button() != Qt.MouseButton.NoButton:
             self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
 
         return False
@@ -150,7 +163,7 @@ class TabEventFilter(QObject):
         if mode == usertypes.KeyMode.hint:
             return True
 
-        elif e.modifiers() & Qt.ControlModifier:
+        elif e.modifiers() & Qt.KeyboardModifier.ControlModifier:
             if mode == usertypes.KeyMode.passthrough:
                 return False
 
@@ -169,21 +182,6 @@ class TabEventFilter(QObject):
             return True
 
         return False
-
-    def _handle_key_release(self, e):
-        """Ignore repeated key release events going to the website.
-
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-77208
-
-        Args:
-            e: The QKeyEvent.
-
-        Return:
-            True if the event should be filtered, False otherwise.
-        """
-        return (e.isAutoRepeat() and
-                not qtutils.version_check('5.14', compiled=False) and
-                objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):
         """Check if the clicked element is editable."""
@@ -240,17 +238,17 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         if (not config.val.input.mouse.back_forward_buttons and
-                e.button() in [Qt.XButton1, Qt.XButton2]):
+                e.button() in [Qt.MouseButton.XButton1, Qt.MouseButton.XButton2]):
             # Back and forward on mice are disabled
             return
 
-        if e.button() in [Qt.XButton1, Qt.LeftButton]:
+        if e.button() in [Qt.MouseButton.XButton1, Qt.MouseButton.LeftButton]:
             # Back button on mice which have it, or rocker gesture
             if self._tab.history.can_go_back():
                 self._tab.history.back()
             else:
                 message.error("At beginning of history.")
-        elif e.button() in [Qt.XButton2, Qt.RightButton]:
+        elif e.button() in [Qt.MouseButton.XButton2, Qt.MouseButton.RightButton]:
             # Forward button on mice which have it, or rocker gesture
             if self._tab.history.can_go_forward():
                 self._tab.history.forward()

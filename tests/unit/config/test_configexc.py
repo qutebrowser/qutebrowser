@@ -1,20 +1,7 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.configexc."""
 
@@ -59,7 +46,7 @@ def test_no_option_error(deleted, renamed, all_names, expected):
 
 def test_no_option_error_clash():
     with pytest.raises(AssertionError):
-        configexc.NoOptionError('opt', deleted=True, renamed='foo')
+        _ = configexc.NoOptionError('opt', deleted=True, renamed='foo')
 
 
 def test_no_autoconfig_error():
@@ -70,7 +57,7 @@ def test_no_autoconfig_error():
 
 @pytest.mark.parametrize('raw_backends', [
     None,
-    {'QtWebEngine': 'Qt 5.11', 'QtWebKit': False}
+    {'QtWebEngine': 'Qt 5.15', 'QtWebKit': False}
 ])
 def test_backend_error(raw_backends):
     e = configexc.BackendError('foo', usertypes.Backend.QtWebKit, raw_backends)
@@ -80,8 +67,8 @@ def test_backend_error(raw_backends):
 
 def test_backend_error_condition():
     e = configexc.BackendError('foo', usertypes.Backend.QtWebEngine,
-                               {'QtWebEngine': 'Qt 5.11', 'QtWebKit': True})
-    expected = "The foo setting needs Qt 5.11 with the QtWebEngine backend!"
+                               {'QtWebEngine': 'Qt 6.11', 'QtWebKit': True})
+    expected = "The foo setting needs Qt 6.11 with the QtWebEngine backend!"
     assert str(e) == expected
 
 

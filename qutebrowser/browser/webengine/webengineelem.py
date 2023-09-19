@@ -1,32 +1,17 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """QtWebEngine specific part of the web element API."""
 
 from typing import (
     TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
 
-from PyQt5.QtCore import QRect, QEventLoop
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+from qutebrowser.qt.core import QRect, QEventLoop
+from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt.webenginecore import QWebEngineSettings
 
-from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
+from qutebrowser.utils import log, javascript, urlutils, usertypes, utils, version
 from qutebrowser.browser import webelem
 
 if TYPE_CHECKING:
@@ -228,10 +213,22 @@ class WebEngineElement(webelem.AbstractWebElement):
             return True
         if baseurl.scheme() == url.scheme():  # e.g. a qute:// link
             return False
+
+        # Qt 6.3+ needs a user interaction to allow navigations from qute:// to
+        # outside qute:// (like e.g. on qute://bookmarks), as well as from file:// to
+        # outside of file:// (e.g. users having a local bookmarks.html).
+        versions = version.qtwebengine_versions()
+        for scheme in ["qute", "file"]:
+            if (
+                baseurl.scheme() == scheme and
+                url.scheme() != scheme and
+                versions.webengine >= utils.VersionNumber(6, 3)
+            ):
+                return True
+
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
-        self._tab.setFocus()  # Needed as WORKAROUND on Qt 5.12
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')
         self._move_text_cursor()
@@ -242,7 +239,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         view = self._tab._widget
         assert view is not None
         # pylint: enable=protected-access
-        attribute = QWebEngineSettings.JavascriptCanOpenWindows
+        attribute = QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
         could_open_windows = view.settings().testAttribute(attribute)
         view.settings().setAttribute(attribute, True)
 
@@ -251,8 +248,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
         QApplication.processEvents(
-            QEventLoop.ExcludeSocketNotifiers |
-            QEventLoop.ExcludeUserInputEvents)
+            QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers |
+            QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
         def reset_setting(_arg: Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""

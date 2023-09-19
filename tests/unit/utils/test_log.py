@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.log."""
 
@@ -24,11 +9,9 @@ import argparse
 import itertools
 import sys
 import warnings
-import dataclasses
 
 import pytest
 import _pytest.logging  # pylint: disable=import-private-name
-from PyQt5 import QtCore
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import log
@@ -243,7 +226,7 @@ class TestInitLog:
 
     @pytest.fixture(autouse=True)
     def setup(self, mocker):
-        mocker.patch('qutebrowser.utils.log.QtCore.qInstallMessageHandler',
+        mocker.patch('qutebrowser.utils.qtlog.qtcore.qInstallMessageHandler',
                      autospec=True)
         yield
         # Make sure logging is in a sensible default state
@@ -344,35 +327,6 @@ class TestInitLog:
         assert log.console_filter.names == {'misc'}
 
 
-class TestHideQtWarning:
-
-    """Tests for hide_qt_warning/QtWarningFilter."""
-
-    @pytest.fixture
-    def qt_logger(self):
-        return logging.getLogger('qt-tests')
-
-    def test_unfiltered(self, qt_logger, caplog):
-        with log.hide_qt_warning("World", 'qt-tests'):
-            with caplog.at_level(logging.WARNING, 'qt-tests'):
-                qt_logger.warning("Hello World")
-        assert len(caplog.records) == 1
-        record = caplog.records[0]
-        assert record.levelname == 'WARNING'
-        assert record.message == "Hello World"
-
-    @pytest.mark.parametrize('line', [
-        "Hello",  # exact match
-        "Hello World",  # match at start of line
-        "  Hello World  ",  # match with spaces
-    ])
-    def test_filtered(self, qt_logger, caplog, line):
-        with log.hide_qt_warning("Hello", 'qt-tests'):
-            with caplog.at_level(logging.WARNING, 'qt-tests'):
-                qt_logger.warning(line)
-        assert not caplog.records
-
-
 @pytest.mark.parametrize('suffix, expected', [
     ('', 'STUB: test_stub'),
     ('foo', 'STUB: test_stub (foo)'),
@@ -407,27 +361,3 @@ def test_warning_still_errors():
     # Mainly a sanity check after the tests messing with warnings above.
     with pytest.raises(UserWarning):
         warnings.warn("error", UserWarning)
-
-
-class TestQtMessageHandler:
-
-    @dataclasses.dataclass
-    class Context:
-
-        """Fake QMessageLogContext."""
-
-        function: str = None
-        category: str = None
-        file: str = None
-        line: int = None
-
-    @pytest.fixture(autouse=True)
-    def init_args(self):
-        parser = qutebrowser.get_argparser()
-        args = parser.parse_args([])
-        log.init_log(args)
-
-    def test_empty_message(self, caplog):
-        """Make sure there's no crash with an empty message."""
-        log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
-        assert caplog.messages == ["Logged empty message!"]

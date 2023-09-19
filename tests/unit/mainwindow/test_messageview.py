@@ -1,26 +1,11 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import contextlib
 
 import pytest
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes, message
@@ -90,7 +75,11 @@ def test_word_wrap(view, qtbot):
 ])
 @pytest.mark.parametrize("replace", ["test", None])
 def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
-    """Rich text should be rendered appropriately."""
+    """Rich text should be rendered appropriately.
+
+    This makes sure the title has been rendered as plain text by comparing the
+    heights of the two widgets. To ensure consistent results, we disable word-wrapping.
+    """
     level = usertypes.MessageLevel.info
     text = 'with <h1>markup</h1>'
     text2 = 'with <h1>markup</h1> 2'
@@ -105,6 +94,7 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
     with ctx:
         view.show_message(info1)
         assert len(view._messages) == 1
+        view._messages[0].setWordWrap(False)
 
         height1 = view.sizeHint().height()
         assert height1 > 0
@@ -112,10 +102,14 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
         assert view._messages[0].textFormat() == Qt.TextFormat.PlainText  # default
 
     view.show_message(info2)
-    height2 = view.sizeHint().height()
     assert len(view._messages) == 1
+    view._messages[0].setWordWrap(False)
+
+    height2 = view.sizeHint().height()
+    assert height2 > 0
 
     assert view._messages[0].textFormat() == expected_format
+
     if higher:
         assert height2 > height1
     else:
@@ -239,10 +233,10 @@ def test_replacing_geometry(qtbot, view):
 
 
 @pytest.mark.parametrize('button, count', [
-    (Qt.LeftButton, 0),
-    (Qt.MiddleButton, 0),
-    (Qt.RightButton, 0),
-    (Qt.BackButton, 2),
+    (Qt.MouseButton.LeftButton, 0),
+    (Qt.MouseButton.MiddleButton, 0),
+    (Qt.MouseButton.RightButton, 0),
+    (Qt.MouseButton.BackButton, 2),
 ])
 def test_click_messages(qtbot, view, button, count):
     """Messages should disappear when we click on them."""

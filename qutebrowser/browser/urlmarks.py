@@ -1,22 +1,7 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Antoni Boucher <bouanto@zoho.com>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Managers for bookmarks and quickmarks.
 
@@ -32,7 +17,7 @@ import functools
 import collections
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from qutebrowser.qt.core import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)
@@ -113,6 +98,11 @@ class UrlMarkManager(QObject):
         del self.marks[key]
         self.changed.emit()
 
+    def clear(self):
+        """Delete all marks."""
+        self.marks.clear()
+        self.changed.emit()
+
 
 class QuickmarkManager(UrlMarkManager):
 
@@ -151,7 +141,7 @@ class QuickmarkManager(UrlMarkManager):
         if not url.isValid():
             urlutils.invalid_url_error(url, "save quickmark")
             return
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
         message.ask_async(
             "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, urlstr),
@@ -198,7 +188,7 @@ class QuickmarkManager(UrlMarkManager):
         Use a name instead where possible.
         """
         qtutils.ensure_valid(url)
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
 
         try:
             index = list(self.marks.values()).index(urlstr)
@@ -270,7 +260,7 @@ class BookmarkManager(UrlMarkManager):
             errstr = urlutils.get_errstring(url)
             raise InvalidUrlError(errstr)
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
 
         if urlstr in self.marks:
             if toggle:

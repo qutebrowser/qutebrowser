@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Tab management
     Tests for various :tab-* commands.
 
@@ -305,7 +303,7 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-focus 4
         And I run :tab-focus 3
-        And I run :repeat 2 tab-focus stack-prev
+        And I run :cmd-repeat 2 tab-focus stack-prev
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
@@ -324,8 +322,8 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-focus 4
         And I run :tab-focus 3
-        And I run :repeat 3 tab-focus stack-prev
-        And I run :repeat 2 tab-focus stack-next
+        And I run :cmd-repeat 3 tab-focus stack-prev
+        And I run :cmd-repeat 2 tab-focus stack-next
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -340,7 +338,7 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I open data/numbers/4.txt in a new tab
         And I open data/numbers/5.txt in a new tab
-        And I run :repeat 2 tab-focus stack-prev
+        And I run :cmd-repeat 2 tab-focus stack-prev
         And I run :tab-focus stack-next
         And I set tabs.focus_stack_size to 10
         And I run :tab-focus 1
@@ -348,7 +346,7 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-focus 4
         And I run :tab-focus 3
-        And I run :repeat 4 tab-focus stack-prev
+        And I run :cmd-repeat 4 tab-focus stack-prev
         Then the error "Could not find requested tab!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active)
@@ -368,8 +366,8 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-focus 4
         And I run :tab-focus 3
-        And I run :repeat 2 tab-focus stack-prev
-        And I run :repeat 3 tab-focus last
+        And I run :cmd-repeat 2 tab-focus stack-prev
+        And I run :cmd-repeat 3 tab-focus last
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -781,8 +779,9 @@ Feature: Tab management
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
     @qtwebkit_skip
+    @windows_skip
     Scenario: Cloning a tab with a special URL
-        When I open chrome://gpu
+        When I open chrome://sandbox/
         And I run :tab-clone
         Then no crash should happen
 
@@ -1720,7 +1719,7 @@ Feature: Tab management
     @skip  # Too flaky
     Scenario: Focused prompt after opening link in bg
         When I open data/hints/link_input.html
-        When I run :set-cmd-text -s :message-info
+        When I run :cmd-set-text -s :message-info
         And I open data/hello.txt in a new background tab
         And I run :fake-key -g hello-world<enter>
         Then the message "hello-world" should be shown
@@ -1728,7 +1727,7 @@ Feature: Tab management
     @skip  # Too flaky
     Scenario: Focused prompt after opening link in fg
         When I open data/hints/link_input.html
-        When I run :set-cmd-text -s :message-info
+        When I run :cmd-set-text -s :message-info
         And I open data/hello.txt in a new tab
         And I run :fake-key -g hello-world<enter>
         Then the message "hello-world" should be shown

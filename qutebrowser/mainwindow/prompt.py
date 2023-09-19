@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Showing prompts above the statusbar."""
 
@@ -26,11 +11,12 @@ import functools
 import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
+from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
+from qutebrowser.qt.widgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
+                             QLabel, QTreeView, QSizePolicy,
                              QSpacerItem)
+from qutebrowser.qt.gui import QFileSystemModel
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
@@ -130,20 +116,12 @@ class PromptQueue(QObject):
         """Cancel all blocking questions.
 
         Quits and removes all running event loops.
-
-        Return:
-            True if loops needed to be aborted,
-            False otherwise.
         """
-        log.prompt.debug("Shutting down with loops {}".format(self._loops))
+        log.prompt.debug(f"Shutting down with loops {self._loops}")
         self._shutting_down = True
-        if self._loops:
-            for loop in self._loops:
-                loop.quit()
-                loop.deleteLater()
-            return True
-        else:
-            return False
+        for loop in self._loops:
+            loop.quit()
+            loop.deleteLater()
 
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
@@ -195,8 +173,7 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec() for {}".format(question))
-            flags = cast(QEventLoop.ProcessEventsFlags,
-                         QEventLoop.ExcludeSocketNotifiers)
+            flags = QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
             loop.exec(flags)
             log.prompt.debug("Ending loop.exec() for {}".format(question))
 
@@ -293,7 +270,7 @@ class PromptContainer(QWidget):
         self._prompt: Optional[_BasePrompt] = None
 
         self.setObjectName('PromptContainer')
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         stylesheet.set_register(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
@@ -313,6 +290,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
+            assert widget is not None
             log.prompt.debug("Deleting old prompt {}".format(widget))
             widget.hide()
             widget.deleteLater()
@@ -376,6 +354,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
+            assert widget is not None
             log.prompt.debug("Deleting prompt {}".format(widget))
             widget.hide()
             widget.deleteLater()
@@ -504,11 +483,11 @@ class LineEdit(QLineEdit):
                 background-color: transparent;
             }
         """)
-        self.setAttribute(Qt.WA_MacShowFocusRect, False)
+        self.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+        if e.key() == Qt.Key.Key_Insert and e.modifiers() == Qt.KeyboardModifier.ShiftModifier:
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:  # pragma: no cover
@@ -549,7 +528,7 @@ class _BasePrompt(QWidget):
             # Not doing any HTML escaping here as the text can be formatted
             text_label = QLabel(question.text)
             text_label.setWordWrap(True)
-            text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             self._vbox.addWidget(text_label)
 
     def _init_key_label(self):
@@ -584,7 +563,7 @@ class _BasePrompt(QWidget):
             self._key_grid.addWidget(key_label, i, 0)
             self._key_grid.addWidget(text_label, i, 1)
 
-        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding)
+        spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding)
         self._key_grid.addItem(spacer, 0, 2)
 
         self._vbox.addLayout(self._key_grid)
@@ -666,7 +645,7 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(question.default)
 
         if config.val.prompt.filebrowser:
-            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         self._to_complete = ''
         self._root_index = QModelIndex()
@@ -760,9 +739,21 @@ class FilenamePrompt(_BasePrompt):
             self._file_view.setColumnHidden(col, True)
         # Nothing selected initially
         self._file_view.setCurrentIndex(QModelIndex())
-        # The model needs to be sorted so we get the correct first/last index
-        self._file_model.directoryLoaded.connect(
-            lambda: self._file_model.sort(0))
+
+        self._file_model.directoryLoaded.connect(self.on_directory_loaded)
+
+    @pyqtSlot()
+    def on_directory_loaded(self):
+        """Sort the model after a directory gets loaded.
+
+        The model needs to be sorted so we get the correct first/last index.
+
+        NOTE: This needs to be a proper @pystSlot() function, and not a lambda.
+        Otherwise, PyQt seems to fail to disconnect it immediately after the
+        object gets destroyed, and we get segfaults when deleting the directory
+        in unit tests.
+        """
+        self._file_model.sort(0)
 
     def accept(self, value=None, save=False):
         self._check_save_support(save)
@@ -778,6 +769,7 @@ class FilenamePrompt(_BasePrompt):
         # This duplicates some completion code, but I don't see a nicer way...
         assert which in ['prev', 'next'], which
         selmodel = self._file_view.selectionModel()
+        assert selmodel is not None
 
         parent = self._file_view.rootIndex()
         first_index = self._file_model.index(0, 0, parent)
@@ -809,8 +801,8 @@ class FilenamePrompt(_BasePrompt):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |
-            QItemSelectionModel.Rows)
+            QItemSelectionModel.SelectionFlag.ClearAndSelect |
+            QItemSelectionModel.SelectionFlag.Rows)
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
@@ -833,7 +825,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)
+            QDir.Filter.AllDirs | QDir.Filter.Drives | QDir.Filter.NoDotAndDotDot)
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -878,7 +870,7 @@ class AuthenticationPrompt(_BasePrompt):
 
         password_label = QLabel("Password:", self)
         self._password_lineedit = LineEdit(self)
-        self._password_lineedit.setEchoMode(QLineEdit.Password)
+        self._password_lineedit.setEchoMode(QLineEdit.EchoMode.Password)
 
         grid = QGridLayout()
         grid.addWidget(user_label, 1, 0)
@@ -1013,4 +1005,4 @@ def init():
     global prompt_queue
     prompt_queue = PromptQueue()
     message.global_bridge.ask_question.connect(  # type: ignore[call-arg]
-        prompt_queue.ask_question, Qt.DirectConnection)
+        prompt_queue.ask_question, Qt.ConnectionType.DirectConnection)

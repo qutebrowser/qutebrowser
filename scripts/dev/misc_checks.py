@@ -1,22 +1,8 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Various small code checkers."""
 
@@ -29,7 +15,7 @@ import subprocess
 import tokenize
 import traceback
 import pathlib
-from typing import List, Iterator, Optional
+from typing import List, Iterator, Optional, Tuple
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -38,7 +24,7 @@ from scripts import utils
 from scripts.dev import recompile_requirements
 
 BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
-               '.sqlite', '.woff2', '.whl'}
+               '.sqlite', '.woff2', '.whl', '.egg'}
 
 
 def _get_files(
@@ -64,7 +50,7 @@ def _get_files(
             continue
 
         try:
-            with tokenize.open(str(path)):
+            with tokenize.open(path):
                 pass
         except SyntaxError as e:
             # Could not find encoding
@@ -94,6 +80,9 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
                 req, _version = recompile_requirements.parse_versioned_line(line)
                 if req.startswith('./'):
                     continue
+                if " @ " in req:  # vcs URL
+                    req = req.split(" @ ")[0]
+
                 all_requirements.add(req)
                 if req not in recompile_requirements.CHANGELOG_URLS:
                     missing.add(req)
@@ -151,6 +140,24 @@ def _check_spelling_file(path, fobj, patterns):
     return ok
 
 
+def _check_spelling_all(
+    args: argparse.Namespace,
+    ignored: List[pathlib.Path],
+    patterns: List[Tuple[re.Pattern, str]],
+) -> Optional[bool]:
+    try:
+        ok = True
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(str(path)) as f:
+                if not _check_spelling_file(path, f, patterns):
+                    ok = False
+        print()
+        return ok
+    except Exception:
+        traceback.print_exc()
+        return None
+
+
 def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
@@ -165,7 +172,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
              'artefact', 'an unix', 'an utf', 'an unicode', 'unparseable',
              'dependancies', 'convertable', 'chosing', 'authentification'}
 
-    # Words which look better when splitted, but might need some fine tuning.
+    # Words which look better when split, but might need some fine tuning.
     words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',
               'eventloops', 'sizehint', 'statemachine', 'metaobject',
               'logrecord'}
@@ -259,6 +266,14 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'pathlib\.Path\(tmpdir\)'),
             "use tmp_path instead",
         ),
+        (
+            re.compile(r' Copyright 2'),
+            "use 'SPDX-FileCopyrightText: ...' without year instead",
+        ),
+        (
+            re.compile(r'qutebrowser is free software: you can redistribute'),
+            "use 'SPDX-License-Identifier: GPL-3.0-or-later' instead",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
@@ -266,22 +281,34 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     hint_data = pathlib.Path('tests', 'end2end', 'data', 'hints')
     ignored = [
         pathlib.Path('scripts', 'dev', 'misc_checks.py'),
+        pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
+        pathlib.Path('qutebrowser', 'qt', '_core_pyqtproperty.py'),
+        pathlib.Path('qutebrowser', 'javascript', 'caret.js'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]
+    return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
-    try:
-        ok = True
-        for path in _get_files(verbose=args.verbose, ignored=ignored):
-            with tokenize.open(str(path)) as f:
-                if not _check_spelling_file(path, f, patterns):
-                    ok = False
-        print()
-        return ok
-    except Exception:
-        traceback.print_exc()
-        return None
+
+def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
+    """Check for direct PyQt imports."""
+    ignored = [
+        pathlib.Path("qutebrowser", "qt"),
+        pathlib.Path("misc", "userscripts"),
+        pathlib.Path("scripts"),
+    ]
+    patterns = [
+        (
+            re.compile(r"from PyQt.* import"),
+            "Use 'from qutebrowser.qt.MODULE import ...' instead",
+        ),
+        (
+            re.compile(r"import PyQt.*"),
+            "Use 'import qutebrowser.qt.MODULE' instead",
+        )
+    ]
+    return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
 def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
@@ -292,7 +319,7 @@ def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
             if path.suffix in {'.rst', '.asciidoc'}:
                 # False positives
                 continue
-            with tokenize.open(str(path)) as f:
+            with tokenize.open(path) as f:
                 for line in f:
                     if any(line.startswith(c * 7) for c in '<>=|'):
                         print("Found conflict marker in {}".format(path))
@@ -366,14 +393,35 @@ def check_userscript_shebangs(_args: argparse.Namespace) -> bool:
     return ok
 
 
+def check_vim_modelines(args: argparse.Namespace) -> bool:
+    """Check that we're not using vim modelines."""
+    ok = True
+    try:
+        for path in _get_files(verbose=args.verbose):
+            with tokenize.open(str(path)) as f:
+                for num, line in enumerate(f, start=1):
+                    if not line.startswith("# vim:"):
+                        continue
+                    print(f"{path}:{num}: Remove vim modeline "
+                          "(deprecated in favor of .editorconfig)")
+                    ok = False
+    except Exception:
+        traceback.print_exc()
+        ok = False
+
+    return ok
+
+
 def main() -> int:
     checkers = {
         'git': check_git,
         'vcs': check_vcs_conflict,
         'spelling': check_spelling,
+        'pyqt-imports': check_pyqt_imports,
         'userscript-descriptions': check_userscripts_descriptions,
         'userscript-shebangs': check_userscript_shebangs,
         'changelog-urls': check_changelog_urls,
+        'vim-modelines': check_vim_modelines,
     }
 
     parser = argparse.ArgumentParser()

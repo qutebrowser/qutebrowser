@@ -1,5 +1,3 @@
-# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
-
 Feature: Caret mode
     In caret mode, the user can select and yank text using the keyboard.
 

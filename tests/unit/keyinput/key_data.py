@@ -1,23 +1,8 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-#
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-
-# pylint: disable=line-too-long
+# FIXME:v4 (lint): disable=line-too-long
 
 
 """Data used by test_keyutils.py to test all keys."""
@@ -25,7 +10,8 @@
 import dataclasses
 from typing import Optional
 
-from PyQt5.QtCore import Qt
+from qutebrowser.qt.core import Qt
+from qutebrowser.keyinput import keyutils
 
 
 @dataclasses.dataclass(order=True)
@@ -50,7 +36,7 @@ class Key:
 
     def __post_init__(self):
         if self.attribute:
-            self.member = getattr(Qt, 'Key_' + self.attribute, None)
+            self.member = getattr(Qt.Key, 'Key_' + self.attribute, None)
         if self.name is None:
             self.name = self.attribute
 
@@ -62,7 +48,7 @@ class Modifier:
 
     Attributes:
         attribute: The name of the Qt::KeyboardModifier attribute
-                   ('Shift' -> Qt.ShiftModifier)
+                   ('Shift' -> Qt.KeyboardModifier.ShiftModifier)
         name: The name returned by str(KeyInfo) with that modifier.
         member: The numeric value.
     """
@@ -72,7 +58,7 @@ class Modifier:
     member: Optional[int] = None
 
     def __post_init__(self):
-        self.member = getattr(Qt, self.attribute + 'Modifier')
+        self.member = getattr(Qt.KeyboardModifier, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute
 
@@ -450,6 +436,8 @@ KEYS = [
     Key('LaunchD', 'Launch (D)'),
     Key('LaunchE', 'Launch (E)'),
     Key('LaunchF', 'Launch (F)'),
+    Key('LaunchG', 'Launch (G)', qtest=False),
+    Key('LaunchH', 'Launch (H)', qtest=False),
     Key('MonBrightnessUp', 'Monitor Brightness Up', qtest=False),
     Key('MonBrightnessDown', 'Monitor Brightness Down', qtest=False),
     Key('KeyboardLightOnOff', 'Keyboard Light On/Off', qtest=False),
@@ -476,7 +464,7 @@ KEYS = [
     Key('Book', qtest=False),
     Key('CD', qtest=False),
     Key('Calculator', qtest=False),
-    Key('ToDoList', 'To Do List', qtest=False),
+    Key('ToDoList', 'To-do list', qtest=False),
     Key('ClearGrab', 'Clear Grab', qtest=False),
     Key('Close', qtest=False),
     Key('Copy', qtest=False),
@@ -541,10 +529,7 @@ KEYS = [
     Key('TopMenu', 'Top Menu', qtest=False),
     Key('PowerDown', 'Power Down', qtest=False),
     Key('Suspend', qtest=False),
-    Key('ContrastAdjust', 'Contrast Adjust', qtest=False),
-
-    Key('LaunchG', 'Launch (G)', qtest=False),
-    Key('LaunchH', 'Launch (H)', qtest=False),
+    Key('ContrastAdjust', 'Adjust contrast', qtest=False),
 
     Key('TouchpadToggle', 'Touchpad Toggle', qtest=False),
     Key('TouchpadOn', 'Touchpad On', qtest=False),
@@ -609,7 +594,7 @@ KEYS = [
 
     Key('unknown', 'Unknown', qtest=False),
     # 0x0 is used by Qt for unknown keys...
-    Key(attribute='', name='nil', member=0x0, qtest=False),
+    Key(attribute='', name='nil', member=keyutils._NIL_KEY, qtest=False),
 ]
 
 

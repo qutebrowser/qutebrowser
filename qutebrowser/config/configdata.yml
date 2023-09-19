@@ -65,9 +65,6 @@ search.incremental:
 search.wrap:
   type: Bool
   default: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: true
   desc: >-
     Wrap around at the top and bottom of the page when advancing through text
     matches using `:search-next` and `:search-prev`.
@@ -275,7 +272,7 @@ qt.chromium.process_model:
     See the following pages for more details:
 
       - https://www.chromium.org/developers/design-documents/process-models
-      - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+      - https://doc.qt.io/qt-6/qtwebengine-features.html#process-models
 
 qt.low_end_device_mode:
   renamed: qt.chromium.low_end_device_mode
@@ -330,6 +327,23 @@ qt.chromium.sandboxing:
     - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
   # yamllint enable rule:line-length
 
+qt.chromium.experimental_web_platform_features:
+  type:
+    name: String
+    valid_values:
+      - always: Enable experimental web platform features.
+      - auto: Enable experimental web platform features when using Qt 5.
+      - never: Disable experimental web platform features.
+  default: auto
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Enables Web Platform features that are in development.
+
+    This passes the `--enable-experimental-web-platform-features` flag to
+    Chromium. By default, this is enabled with Qt 5 to maximize compatibility
+    despite an aging Chromium base.
+
 qt.highdpi:
   type: Bool
   default: false
@@ -337,8 +351,8 @@ qt.highdpi:
   desc: >-
     Turn on Qt HighDPI scaling.
 
-    This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or
-    QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
+    This is equivalent to setting QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in
+    the environment.
 
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
@@ -577,9 +591,7 @@ content.frame_flattening:
 content.prefers_reduced_motion:
   default: false
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
   desc: >-
     Request websites to minimize non-essentials animations and motion.
@@ -611,19 +623,13 @@ content.site_specific_quirks.skip:
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall
-      - js-globalthis
-      - js-object-fromentries
+      - js-array-at
       - misc-krunker
       - misc-mathml-darkmode
     none_ok: true
-  default: ["js-string-replaceall"]
+  default: []
   desc: >-
     Disable a list of named quirks.
-
-    The js-string-replaceall quirk is needed for Nextcloud Calendar < 2.2.0 with
-    QtWebEngine < 5.15.3. However, the workaround is not fully compliant to the
-    ECMAScript spec and might cause issues on other websites, so it's disabled by
-    default.
 
 # emacs: '
 
@@ -684,7 +690,8 @@ content.headers.referer:
   type:
     name: String
     valid_values:
-      - always: "Always send the Referer."
+      - always: "Always send the Referer. With QtWebEngine 6.2+, this value is
+          unavailable and will act like `same-domain`."
       - never: "Never send the Referer. This is not recommended, as some sites
           may break."
       - same-domain: "Only send the Referer for the same domain. This will
@@ -725,15 +732,15 @@ content.headers.user_agent:
       # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/97.0.4692.99 Safari/537.36"
-        - Chrome 97 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
-        - Chrome 97 macOS
+          (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        - Chrome 114 macOS
+      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+          like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        - Chrome 114 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/97.0.4692.99 Safari/537.36"
-        - Chrome 97 Linux
+          Gecko) Chrome/114.0.0.0 Safari/537.36"
+        - Chrome 114 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -950,12 +957,14 @@ content.javascript.log_message.levels:
     keytype: String
     valtype:
       name: FlagList
+      none_ok: true
       valid_values:
         - info: Show JS info as messages.
         - warning: Show JS warnings as messages.
         - error: Show JS errors as messages.
   default:
     "qute:*": ["error"]
+    "userscript:GM-*": []
     "userscript:*": ["error"]
   desc: >-
     Javascript message sources/levels to show in the qutebrowser UI.
@@ -964,8 +973,8 @@ content.javascript.log_message.levels:
     pattern given in the key, and is from one of the levels listed as value,
     it's surfaced as a message in the qutebrowser UI.
 
-    By default, errors happening in qutebrowser internally or in userscripts are
-    shown to the user.
+    By default, errors happening in qutebrowser internally are shown to the
+    user.
 
 content.javascript.log_message.excludes:
   type:
@@ -977,7 +986,7 @@ content.javascript.log_message.excludes:
       valtype: String
   default:
     "userscript:_qute_stylesheet":
-      - "Refused to apply inline style because it violates the following Content
+      - "*Refused to apply inline style because it violates the following Content
         Security Policy directive: *"
   desc: >-
     Javascript messages to *not* show in the UI, despite a corresponding
@@ -1056,9 +1065,6 @@ content.notifications.enabled:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebEngine: Qt 5.13
-    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.notifications.presenter:
@@ -1070,7 +1076,6 @@ content.notifications.presenter:
             without showing error messages.
       - qt: Use Qt's native notification presenter, based on a system tray icon.
             Switching from or to this value requires a restart of qutebrowser.
-            Recommended over `systray` on PyQt 5.14.
       - libnotify: Shows messages via DBus in a libnotify-compatible way. If DBus isn't
             available, falls back to `systray` or `messages`, but shows an error
             message.
@@ -1082,16 +1087,12 @@ content.notifications.presenter:
             aren't available.
       - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe).
             Most notification features aren't available.
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   desc: >-
     What notification presenter to use for web notifications.
 
     Note that not all implementations support all features of notifications:
 
-    - With PyQt 5.14, any setting other than `qt` does not support  the `click` and
-      `close` events, as well as the `tag` option to replace existing notifications.
     - The `qt` and `systray` options only support showing one notification at the time
       and ignore the `tag` option to replace existing notifications.
     - The `herbe` option only supports showing one notification at the time and doesn't
@@ -1103,9 +1104,7 @@ content.notifications.show_origin:
   default: true
   type: Bool
   supports_pattern: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   desc: >-
     Whether to show the origin URL for notifications.
 
@@ -1519,11 +1518,10 @@ fileselect.handler:
       - default: "Use the default file selector."
       - external: "Use an external command."
   desc: >-
-      Handler for selecting file(s) in forms.
-      If `external`, then the commands specified by
-      `fileselect.single_file.command` and
-      `fileselect.multiple_files.command` are used to select one or
-      multiple files respectively.
+      Handler for selecting file(s) in forms. If `external`, then the commands
+      specified by `fileselect.single_file.command`,
+      `fileselect.multiple_files.command` and `fileselect.folder.command` are
+      used to select one file, multiple files, and folders, respectively.
 
 fileselect.single_file.command:
   type:
@@ -1743,6 +1741,7 @@ hints.selectors:
       - '[role="menuitemcheckbox"]'
       - '[role="menuitemradio"]'
       - '[role="treeitem"]'
+      - '[aria-haspopup]'
       - '[ng-click]'
       - '[ngClick]'
       - '[data-ng-click]'
@@ -1899,9 +1898,7 @@ input.spatial_navigation:
 input.media_keys:
   default: true
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
   desc: >-
     Whether the underlying Chromium should handle media keys.
@@ -2556,6 +2553,7 @@ url.yank_ignored_parameters:
     - utm_campaign
     - utm_term
     - utm_content
+    - utm_name
   desc: URL parameters to strip with `:yank url`.
 
 ## window
@@ -2740,6 +2738,26 @@ colors.contextmenu.bg:
 
 colors.contextmenu.fg:
   renamed: colors.contextmenu.menu.fg
+
+colors.tooltip.bg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Background color of tooltips.
+
+    If set to null, the Qt default is used.
+
+colors.tooltip.fg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Foreground color of tooltips.
+
+    If set to null, the Qt default is used.
 
 colors.contextmenu.menu.bg:
   type:
@@ -3195,9 +3213,7 @@ colors.webpage.preferred_color_scheme:
 
     The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
     fall back to "light" unconditionally.
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
 
 ## dark mode
@@ -3223,6 +3239,9 @@ colors.webpage.darkmode.enabled:
 
     - "With selective inversion of everything": Combines the two variants
       above.
+
+    - "With increased text contrast": Set
+      `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
   restart: true
   backend: QtWebEngine
 
@@ -3294,9 +3313,7 @@ colors.webpage.darkmode.policy.page:
     The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this
     setting is ignored there. Instead, every element is now classified individually.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.text:
   default: 256
@@ -3311,9 +3328,7 @@ colors.webpage.darkmode.threshold.text:
       above it will be left as in the original, non-dark-mode page. Set to 256
       to always invert text color or to 0 to never invert text color.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.background:
   default: 0
@@ -3331,9 +3346,7 @@ colors.webpage.darkmode.threshold.background:
       Note: This behavior is the opposite of
       `colors.webpage.darkmode.threshold.text`!
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.grayscale.all:
   default: false
@@ -3358,8 +3371,16 @@ colors.webpage.darkmode.grayscale.images:
     If set to 0, images are left as-is. If set to 1, images are completely
     grayscale. Values between 0 and 1 desaturate the colors accordingly.
   restart: true
+  backend: QtWebEngine
+
+colors.webpage.darkmode.increase_text_contrast:
+  default: false
+  type: Bool
+  desc: >-
+    Increase text contrast by drawing an outline of the uninverted color.
+  restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 6.3
     QtWebKit: false
 
 # emacs: '
@@ -3403,6 +3424,16 @@ fonts.completion.category:
   default: bold default_size default_family
   type: Font
   desc: Font used in the completion categories.
+
+fonts.tooltip:
+  type:
+    name: Font
+    none_ok: true
+  default: null
+  desc: >-
+    Font used for tooltips.
+
+    If set to null, the Qt default is used.
 
 fonts.contextmenu:
   type:
@@ -3602,17 +3633,17 @@ bindings.default:
   default:
     normal:
       <Escape>: clear-keychain ;; search ;; fullscreen --leave
-      o: set-cmd-text -s :open
-      go: set-cmd-text :open {url:pretty}
-      O: set-cmd-text -s :open -t
-      gO: set-cmd-text :open -t -r {url:pretty}
-      xo: set-cmd-text -s :open -b
-      xO: set-cmd-text :open -b -r {url:pretty}
-      wo: set-cmd-text -s :open -w
-      wO: set-cmd-text :open -w {url:pretty}
-      /: set-cmd-text /
-      ?: set-cmd-text ?
-      ":": "set-cmd-text :"
+      o: cmd-set-text -s :open
+      go: cmd-set-text :open {url:pretty}
+      O: cmd-set-text -s :open -t
+      gO: cmd-set-text :open -t -r {url:pretty}
+      xo: cmd-set-text -s :open -b
+      xO: cmd-set-text :open -b -r {url:pretty}
+      wo: cmd-set-text -s :open -w
+      wO: cmd-set-text :open -w {url:pretty}
+      /: cmd-set-text /
+      ?: cmd-set-text ?
+      ":": "cmd-set-text :"
       ga: open -t
       <Ctrl-T>: open -t
       <Ctrl-N>: open -w
@@ -3622,7 +3653,7 @@ bindings.default:
       <Ctrl-Shift-W>: close
       D: tab-close -o
       co: tab-only
-      T: set-cmd-text -sr :tab-focus
+      T: cmd-set-text -sr :tab-focus
       gm: tab-move
       gK: tab-move -
       gJ: tab-move +
@@ -3694,17 +3725,17 @@ bindings.default:
       wp: open -w -- {clipboard}
       wP: open -w -- {primary}
       m: quickmark-save
-      b: set-cmd-text -s :quickmark-load
-      B: set-cmd-text -s :quickmark-load -t
-      wb: set-cmd-text -s :quickmark-load -w
+      b: cmd-set-text -s :quickmark-load
+      B: cmd-set-text -s :quickmark-load -t
+      wb: cmd-set-text -s :quickmark-load -w
       M: bookmark-add
-      gb: set-cmd-text -s :bookmark-load
-      gB: set-cmd-text -s :bookmark-load -t
-      wB: set-cmd-text -s :bookmark-load -w
+      gb: cmd-set-text -s :bookmark-load
+      gB: cmd-set-text -s :bookmark-load -t
+      wB: cmd-set-text -s :bookmark-load -w
       sf: save
-      ss: set-cmd-text -s :set
-      sl: set-cmd-text -s :set -t
-      sk: set-cmd-text -s :bind
+      ss: cmd-set-text -s :set
+      sl: cmd-set-text -s :set -t
+      sk: cmd-set-text -s :bind
       -: zoom-out
       +: zoom-in
       =: zoom
@@ -3727,7 +3758,7 @@ bindings.default:
       ad: download-cancel
       cd: download-clear
       gf: view-source
-      gt: set-cmd-text -s :tab-select
+      gt: cmd-set-text -s :tab-select
       <Ctrl-Tab>: tab-focus last
       <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
@@ -3760,7 +3791,7 @@ bindings.default:
       Sh: history
       <Return>: selection-follow
       <Ctrl-Return>: selection-follow -t
-      .: repeat-command
+      .: cmd-repeat-last
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
       gD: tab-give

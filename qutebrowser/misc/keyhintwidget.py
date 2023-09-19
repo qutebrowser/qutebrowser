@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Small window that pops up to show hints for possible keystrings.
 
@@ -27,8 +12,9 @@ It is intended to help discoverability of keybindings.
 import html
 import re
 
-from PyQt5.QtWidgets import QLabel, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
+from qutebrowser.qt.widgets import QLabel, QSizePolicy
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt
+from qutebrowser.qt.gui import QKeySequence
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import utils, usertypes
@@ -64,9 +50,9 @@ class KeyHintView(QLabel):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(Qt.TextFormat.RichText)
         self._win_id = win_id
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
@@ -109,10 +95,13 @@ class KeyHintView(QLabel):
             return cmd and cmd.takes_count()
 
         bindings_dict = config.key_instance.get_bindings_for(mode.name)
-        bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
-                    if keyutils.KeySequence.parse(prefix).matches(k) and
-                    not blacklisted(str(k)) and
-                    (takes_count(v) or not countstr)]
+        bindings = [
+            (k, v)
+            for (k, v) in sorted(bindings_dict.items())
+            if keyutils.KeySequence.parse(prefix).matches(k) != QKeySequence.SequenceMatch.NoMatch
+            and not blacklisted(str(k))
+            and (takes_count(v) or not countstr)
+        ]
 
         if not bindings:
             self._show_timer.stop()

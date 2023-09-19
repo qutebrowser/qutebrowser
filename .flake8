@@ -4,6 +4,7 @@ exclude = .*,__pycache__,resources.py
 # B008: Do not perform calls in argument defaults. (fine with some Qt stuff)
 # B011: Do not call assert False since python -O removes these calls. Instead
 #       callers should raise AssertionError().
+# B028: Missing stacklevel= for warnings
 # B305: .next() (false-positives)
 # E128: continuation line under-indented for visual indent
 # E226: missing whitespace around arithmetic operator
@@ -57,11 +58,12 @@ ignore =
     PT004,
     PT011,
     PT012
-min-version = 3.7.0
+min-version = 3.8.0
 max-complexity = 12
 per-file-ignores =
     qutebrowser/api/hook.py : N801
-    tests/* : B011,D100,D101
+    qutebrowser/qt/*.py : F403
+    tests/* : B011,B028,D100,D101
     tests/unit/browser/test_history.py : D100,D101,N806
     tests/helpers/fixtures.py : D100,D101,N806
     tests/unit/browser/webkit/http/test_content_disposition.py : D100,D101,D400

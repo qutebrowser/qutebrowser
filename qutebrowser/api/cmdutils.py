@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """qutebrowser has the concept of functions, exposed to the user as commands.
 
@@ -50,7 +35,7 @@ Possible values:
 
 
 import inspect
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, Protocol, Optional, Dict, cast
 
 from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc
@@ -105,7 +90,21 @@ def check_exclusive(flags: Iterable[bool], names: Iterable[str]) -> None:
         raise CommandError("Only one of {} can be given!".format(argstr))
 
 
-_CmdHandlerType = Callable[..., Any]
+_CmdHandlerFunc = Callable[..., Any]
+
+
+class _CmdHandlerType(Protocol):
+
+    """A qutebrowser command function, which had qute_args patched on it.
+
+    Applying @cmdutils.argument to a function will patch it with a qute_args attribute.
+    Below, we cast the decorated function to _CmdHandlerType to make mypy aware of this.
+    """
+
+    qute_args: Optional[Dict[str, 'command.ArgInfo']]
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        ...
 
 
 class register:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -133,7 +132,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         # The arguments to pass to Command.
         self._kwargs = kwargs
 
-    def __call__(self, func: _CmdHandlerType) -> _CmdHandlerType:
+    def __call__(self, func: _CmdHandlerFunc) -> _CmdHandlerType:
         """Register the command before running the function.
 
         Gets called when a function should be decorated.
@@ -173,7 +172,8 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
         # This is checked by future @cmdutils.argument calls so they fail
         # (as they'd be silently ignored otherwise)
-        func.qute_args = None  # type: ignore[attr-defined]
+        func = cast(_CmdHandlerType, func)
+        func.qute_args = None
 
         return func
 
@@ -225,19 +225,21 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
         self._argname = argname   # The name of the argument to handle.
         self._kwargs = kwargs  # Valid ArgInfo members.
 
-    def __call__(self, func: _CmdHandlerType) -> _CmdHandlerType:
+    def __call__(self, func: _CmdHandlerFunc) -> _CmdHandlerType:
         funcname = func.__name__
 
         if self._argname not in inspect.signature(func).parameters:
             raise ValueError("{} has no argument {}!".format(funcname,
                                                              self._argname))
+
+        func = cast(_CmdHandlerType, func)
         if not hasattr(func, 'qute_args'):
-            func.qute_args = {}  # type: ignore[attr-defined]
-        elif func.qute_args is None:  # type: ignore[attr-defined]
+            func.qute_args = {}
+        elif func.qute_args is None:
             raise ValueError("@cmdutils.argument got called above (after) "
                              "@cmdutils.register for {}!".format(funcname))
 
         arginfo = command.ArgInfo(**self._kwargs)
-        func.qute_args[self._argname] = arginfo  # type: ignore[attr-defined]
+        func.qute_args[self._argname] = arginfo
 
         return func

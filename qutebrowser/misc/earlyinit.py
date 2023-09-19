@@ -1,25 +1,10 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-At this point we can be sure we have all python 3.7 features available.
+At this point we can be sure we have all python 3.8 features available.
 """
 
 try:
@@ -35,6 +20,7 @@ import traceback
 import signal
 import importlib
 import datetime
+from typing import NoReturn
 try:
     import tkinter
 except ImportError:
@@ -42,6 +28,10 @@ except ImportError:
 
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
+#
+# The machinery module is an exception, as it also is required to never import Qt
+# itself at import time.
+from qutebrowser.qt import machinery
 
 
 START_TIME = datetime.datetime.now()
@@ -59,7 +49,7 @@ def _missing_str(name, *, webengine=False):
               "<b>The error encountered was:</b><br />%ERROR%"]
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or see '
-             'https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc'
+             'https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc'
              .format(name)]
     blocks.append('<br />'.join(lines))
     if not webengine:
@@ -78,8 +68,8 @@ def _die(message, exception=None):
         message: The message to display.
         exception: The exception object if we're handling an exception.
     """
-    from PyQt5.QtWidgets import QApplication, QMessageBox
-    from PyQt5.QtCore import Qt
+    from qutebrowser.qt.widgets import QApplication, QMessageBox
+    from qutebrowser.qt.core import Qt
     if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
             exception is not None):
         print(file=sys.stderr)
@@ -91,9 +81,9 @@ def _die(message, exception=None):
     else:
         if exception is not None:
             message = message.replace('%ERROR%', str(exception))
-        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+        msgbox = QMessageBox(QMessageBox.Icon.Critical, "qutebrowser: Fatal error!",
                              message)
-        msgbox.setTextFormat(Qt.RichText)
+        msgbox.setTextFormat(Qt.TextFormat.RichText)
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec()
     app.quit()
@@ -136,9 +126,27 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # pylint: enable=no-member,useless-suppression
 
 
-def check_pyqt():
-    """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
-    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+def _fatal_qt_error(text: str) -> NoReturn:
+    """Show a fatal error about Qt being missing."""
+    if tkinter and '--no-err-windows' not in sys.argv:
+        root = tkinter.Tk()
+        root.withdraw()
+        tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
+    else:
+        print(text, file=sys.stderr)
+    if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
+        print(file=sys.stderr)
+        traceback.print_exc()
+    sys.exit(1)
+
+
+def check_qt_available(info: machinery.SelectionInfo) -> None:
+    """Check if Qt core modules (QtCore/QtWidgets) are installed."""
+    if info.wrapper is None:
+        _fatal_qt_error(f"No Qt wrapper was importable.\n\n{info}")
+
+    packages = [f'{info.wrapper}.QtCore', f'{info.wrapper}.QtWidgets']
+    for name in packages:
         try:
             importlib.import_module(name)
         except ImportError as e:
@@ -147,25 +155,17 @@ def check_pyqt():
             text = text.replace('</b>', '')
             text = text.replace('<br />', '\n')
             text = text.replace('%ERROR%', str(e))
-            if tkinter and '--no-err-windows' not in sys.argv:
-                root = tkinter.Tk()
-                root.withdraw()
-                tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
-            else:
-                print(text, file=sys.stderr)
-            if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
-                print(file=sys.stderr)
-                traceback.print_exc()
-            sys.exit(1)
+            text += '\n\n' + str(info)
+            _fatal_qt_error(text)
 
 
 def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
     if qversion is None:
-        from PyQt5.QtCore import qVersion
+        from qutebrowser.qt.core import qVersion
         qversion = qVersion()
     if qt_version_str is None:
-        from PyQt5.QtCore import QT_VERSION_STR
+        from qutebrowser.qt.core import QT_VERSION_STR
         qt_version_str = QT_VERSION_STR
 
     if qversion != qt_version_str:
@@ -174,33 +174,38 @@ def qt_version(qversion=None, qt_version_str=None):
         return qversion
 
 
+def get_qt_version():
+    """Get the Qt version, or None if too old for QLibaryInfo.version()."""
+    try:
+        from qutebrowser.qt.core import QLibraryInfo
+        return QLibraryInfo.version().normalized()
+    except (ImportError, AttributeError):
+        return None
+
+
 def check_qt_version():
     """Check if the Qt version is recent enough."""
-    from PyQt5.QtCore import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
-    try:
-        from PyQt5.QtCore import QVersionNumber, QLibraryInfo
-        qt_ver = QLibraryInfo.version().normalized()
-        recent_qt_runtime = qt_ver >= QVersionNumber(5, 12)  # type: ignore[operator]
-    except (ImportError, AttributeError):
-        # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
-        recent_qt_runtime = False
+    from qutebrowser.qt.core import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
+    from qutebrowser.qt.core import QVersionNumber
+    qt_ver = get_qt_version()
+    recent_qt_runtime = qt_ver is not None and qt_ver >= QVersionNumber(5, 15)
 
-    if QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or not recent_qt_runtime:
-        text = ("Fatal error: Qt >= 5.12.0 and PyQt >= 5.12.0 are required, "
+    if QT_VERSION < 0x050F00 or PYQT_VERSION < 0x050F00 or not recent_qt_runtime:
+        text = ("Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
         _die(text)
 
-    if qt_ver == QVersionNumber(5, 12, 0):
-        from qutebrowser.utils import log
-        log.init.warning("Running on Qt 5.12.0. Doing so is unsupported "
-                         "(newer 5.12.x versions are fine).")
+    if 0x060000 <= PYQT_VERSION < 0x060202:
+        text = ("Fatal error: With Qt 6, PyQt >= 6.2.2 is required, but "
+                "{} is installed.".format(PYQT_VERSION_STR))
+        _die(text)
 
 
 def check_ssl_support():
     """Check if SSL support is available."""
     try:
-        from PyQt5.QtNetwork import QSslSocket  # pylint: disable=unused-import
+        from qutebrowser.qt.network import QSslSocket  # pylint: disable=unused-import
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
@@ -235,18 +240,24 @@ def check_libraries():
     modules = {
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
-        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
-        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
-        'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
-        'PyQt5.QtDBus': _missing_str("PyQt5.QtDBus"),
     }
+
+    for subpkg in ['QtQml', 'QtOpenGL', 'QtDBus']:
+        package = f'{machinery.INFO.wrapper}.{subpkg}'
+        modules[package] = _missing_str(package)
+
     if sys.version_info < (3, 9):
         # Backport required
         modules['importlib_resources'] = _missing_str("importlib_resources")
+
     if sys.platform.startswith('darwin'):
-        # Used for resizable hide_decoration windows on macOS
-        modules['objc'] = _missing_str("pyobjc-core")
-        modules['AppKit'] = _missing_str("pyobjc-framework-Cocoa")
+        from qutebrowser.qt.core import QVersionNumber
+        qt_ver = get_qt_version()
+        if qt_ver is not None and qt_ver < QVersionNumber(6, 3):
+            # Used for resizable hide_decoration windows on macOS
+            modules['objc'] = _missing_str("pyobjc-core")
+            modules['AppKit'] = _missing_str("pyobjc-framework-Cocoa")
+
     _check_modules(modules)
 
 
@@ -256,16 +267,13 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5 import QtCore
-    QtCore.pyqtRemoveInputHook()
-    try:
-        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore[attr-defined]
-    except AttributeError:
-        # Added in PyQt 5.13 somewhere, going to be the default in 5.14
-        pass
+    from qutebrowser.qt.core import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
 
     from qutebrowser.qt import sip
-    sip.enableoverflowchecking(True)
+    if machinery.IS_QT5:
+        # default in PyQt6
+        sip.enableoverflowchecking(True)
 
 
 def init_log(args):
@@ -277,6 +285,17 @@ def init_log(args):
     from qutebrowser.utils import log
     log.init_log(args)
     log.init.debug("Log initialized.")
+
+
+def init_qtlog(args):
+    """Initialize Qt logging.
+
+    Args:
+        args: The argparse namespace.
+    """
+    from qutebrowser.utils import log, qtlog
+    qtlog.init(args)
+    log.init.debug("Qt log initialized.")
 
 
 def check_optimize_flag():
@@ -297,7 +316,7 @@ def webengine_early_import():
     error messages in backendproblem.py are accurate.
     """
     try:
-        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginewidgets  # pylint: disable=unused-import
     except ImportError:
         pass
 
@@ -311,14 +330,18 @@ def early_init(args):
     Args:
         args: The argparse namespace.
     """
+    # Init logging as early as possible
+    init_log(args)
     # First we initialize the faulthandler as early as possible, so we
     # theoretically could catch segfaults occurring later during earlyinit.
     init_faulthandler()
+    # Then we configure the selected Qt wrapper
+    info = machinery.init(args)
+    # Init Qt logging after machinery is initialized
+    init_qtlog(args)
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
-    check_pyqt()
-    # Init logging as early as possible
-    init_log(args)
+    check_qt_available(info)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_libraries()

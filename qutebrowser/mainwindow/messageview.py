@@ -1,28 +1,13 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Showing messages above the statusbar."""
 
 from typing import MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QTimer, Qt
+from qutebrowser.qt.widgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import usertypes, message
@@ -43,7 +28,7 @@ class Message(QLabel):
         super().__init__(text, parent)
         self.replace = replace
         self.level = level
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setWordWrap(True)
         self.setTextFormat(text_format)
         qss = """
@@ -114,7 +99,7 @@ class MessageView(QWidget):
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self._clear_timer = QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
@@ -173,5 +158,5 @@ class MessageView(QWidget):
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""
-        if e.button() in [Qt.LeftButton, Qt.MiddleButton, Qt.RightButton]:
+        if e.button() in [Qt.MouseButton.LeftButton, Qt.MouseButton.MiddleButton, Qt.MouseButton.RightButton]:
             self.clear_messages()

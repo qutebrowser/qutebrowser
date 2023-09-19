@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import types
 
@@ -35,8 +20,14 @@ def test_on_walk_error():
 
 
 def test_walk_normal():
-    names = [info.name for info in loader.walk_components()]
+    names = [info.name for info in loader._walk_normal()]
     assert 'qutebrowser.components.scrollcommands' in names
+
+
+def test_walk_pyinstaller():
+    # We can't test whether we get something back without being frozen by
+    # PyInstaller, but at least we can test that we don't crash.
+    list(loader._walk_pyinstaller())
 
 
 def test_load_component(monkeypatch):
@@ -91,7 +82,7 @@ class _Hook:
 
     def __call__(self, *args):
         if self.raising:
-            raise Exception("Should not be called!")
+            raise AssertionError("Should not be called!")
         self.called = True
 
 

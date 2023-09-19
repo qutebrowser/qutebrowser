@@ -1,22 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Test Progress widget."""
 
@@ -67,6 +51,14 @@ def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
     actual = progress_widget.value(), progress_widget.isVisible()
     expected = tab.progress(), expected_visible
     assert actual == expected
+
+
+def test_not_shown_when_disabled(progress_widget, fake_web_tab):
+    """The widget shouldn't get shown on an event when it's disabled."""
+    tab = fake_web_tab(progress=15, load_status=usertypes.LoadStatus.loading)
+    progress_widget.enabled = False
+    progress_widget.on_tab_changed(tab)
+    assert not progress_widget.isVisible()
 
 
 def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,

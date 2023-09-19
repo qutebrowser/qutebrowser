@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Misc. utility commands exposed to the user."""
 
@@ -27,8 +12,8 @@ import sys
 import traceback
 from typing import Optional
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
@@ -41,9 +26,10 @@ from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='later')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-def later(duration: str, command: str, win_id: int) -> None:
+def cmd_later(duration: str, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:
@@ -72,10 +58,11 @@ def later(duration: str, command: str, win_id: int) -> None:
         raise
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='repeat')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
+def cmd_repeat(times: int, command: str, win_id: int, count: int = None) -> None:
     """Repeat a given command.
 
     Args:
@@ -93,14 +80,15 @@ def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
         commandrunner.run_safely(command)
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True,
+                   deprecated_name='run-with-count')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def run_with_count(count_arg: int, command: str, win_id: int,
+def cmd_run_with_count(count_arg: int, command: str, win_id: int,
                    count: int = 1) -> None:
     """Run a command with the given count.
 
-    If run_with_count itself is run with a count, it multiplies count_arg.
+    If cmd_run_with_count itself is run with a count, it multiplies count_arg.
 
     Args:
         count_arg: The count to pass to the command.
@@ -199,10 +187,10 @@ def debug_set_fake_clipboard(s: str = None) -> None:
         utils.fake_clipboard = s
 
 
-@cmdutils.register()
+@cmdutils.register(deprecated_name='repeat-command')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat_command(win_id: int, count: int = None) -> None:
+def cmd_repeat_last(win_id: int, count: int = None) -> None:
     """Repeat the last executed command.
 
     Args:

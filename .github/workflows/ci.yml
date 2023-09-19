@@ -21,7 +21,8 @@ jobs:
         include:
           - testenv: pylint
           - testenv: flake8
-          - testenv: mypy
+          - testenv: mypy-pyqt6
+          - testenv: mypy-pyqt5
           - testenv: docs
           - testenv: vulture
           - testenv: misc
@@ -32,8 +33,9 @@ jobs:
             args: "-f gcc"  # For problem matchers
           - testenv: yamllint
           - testenv: actionlint
+          - testenv: package
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/cache@v3
@@ -55,7 +57,8 @@ jobs:
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1-mesa
+            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1-mesa
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
@@ -73,23 +76,34 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+        run: |
+            if [[ -z "${{ matrix.args }}" ]]; then
+                dbus-run-session -- tox -e ${{ matrix.testenv }}
+            else
+                dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}
+            fi
 
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - archlinux-webkit
-          - archlinux-webengine
-          # - archlinux-webengine-unstable
+        include:
+          - testenv: py-qt5
+            image: archlinux-webkit
+          - testenv: py-qt5
+            image: archlinux-webengine
+          - testenv: py-qt5
+            image: archlinux-webengine-unstable
+          - testenv: py
+            image: archlinux-webengine-qt6
+          - testenv: py
+            image: archlinux-webengine-unstable-qt6
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
-        QUTE_BDD_WEBENGINE: "${{ matrix.image != 'archlinux-webkit' }}"
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
@@ -98,13 +112,13 @@ jobs:
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Set up problem matchers
-        run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
+        run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e py
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -114,30 +128,43 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.12 (Python 3.7)
-          - testenv: py37-pyqt512
-            os: ubuntu-20.04
-            python: "3.7"
-          ### PyQt 5.13 (Python 3.7)
-          - testenv: py37-pyqt513
-            os: ubuntu-20.04
-            python: "3.7"
-          ### PyQt 5.14 (Python 3.8)
-          - testenv: py38-pyqt514
+          ### PyQt 5.15.2 (Python 3.8)
+          - testenv: py37-pyqt5152
             os: ubuntu-20.04
             python: "3.8"
-          ### PyQt 5.15.0 (Python 3.9)
-          - testenv: py39-pyqt5150
-            os: ubuntu-20.04
-            python: "3.9"
           ### PyQt 5.15 (Python 3.10, with coverage)
-          - testenv: py310-pyqt515-cov
-            os: ubuntu-22.04
-            python: "3.10"
+          # FIXME:qt6
+          # - testenv: py310-pyqt515-cov
+          #   os: ubuntu-22.04
+          #   python: "3.10"
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
             os: ubuntu-20.04
-            python: "3.11-dev"
+            python: "3.11"
+          ### PyQt 6.2 (Python 3.8)
+          - testenv: py37-pyqt62
+            os: ubuntu-20.04
+            python: "3.8"
+          ### PyQt 6.3 (Python 3.8)
+          - testenv: py38-pyqt63
+            os: ubuntu-20.04
+            python: "3.8"
+          ## PyQt 6.4 (Python 3.9)
+          - testenv: py39-pyqt64
+            os: ubuntu-20.04
+            python: "3.9"
+          ### PyQt 6.5 (Python 3.10)
+          - testenv: py310-pyqt65
+            os: ubuntu-22.04
+            python: "3.10"
+          ### PyQt 6.5 (Python 3.11)
+          - testenv: py311-pyqt65
+            os: ubuntu-22.04
+            python: "3.11"
+          ### PyQt 6.5 (Python 3.12)
+          - testenv: py312-pyqt65
+            os: ubuntu-22.04
+            python: "3.12-dev"
           ### macOS Big Sur: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-11
@@ -154,7 +181,7 @@ jobs:
             python: "3.9"
     runs-on: "${{ matrix.os }}"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/cache@v3
@@ -173,7 +200,7 @@ jobs:
       - name: Install apt dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
@@ -198,11 +225,11 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     permissions:
       security-events: write
-    timeout-minutes: 30
+    timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Initialize CodeQL

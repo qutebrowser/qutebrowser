@@ -158,7 +158,7 @@ It also works nicely with rapid hints:
 :bind ;M hint --rapid links spawn umpv {hint-url}
 ----
 
-How do I use qutebrowser with mutt?::
+How do I use qutebrowser with mutt/neomutt or other mail clients?::
     For security reasons, local files without `.html` extensions aren't
     rendered as HTML, see
     https://bugs.chromium.org/p/chromium/issues/detail?id=777737[this Chromium issue]
@@ -166,8 +166,29 @@ How do I use qutebrowser with mutt?::
     extension:
 +
 ----
-    text/html; qutebrowser %s; needsterminal; nametemplate=%s.html
+text/html; qutebrowser %s; needsterminal; nametemplate=%s.html
 ----
++
+Note that you might want to add additional options to qutebrowser, so that it
+runs as a separate instance configured to disable JavaScript and avoid network
+requests, in order to avoid privacy leaks when reading mails. The easiest way
+to do so is by specifying a non-existent proxy server, e.g.:
++
+----
+qutebrowser --temp-basedir -s content.proxy http://localhost:666 -s content.dns_prefetch false -s content.javascript.enabled false %s
+----
++
+With Qt 6, using something like:
++
+----
+qutebrowser --temp-basedir -s content.dns_prefetch false -s content.javascript.enabled false %s
+----
++
+should lead to a similar result, due to a more restrictive implementation of
+the `content.local_content_can_access_remote_urls` setting (`false` by default
+already). However, it's advised to use a page like
+https://www.emailprivacytester.com/[Email Privacy Tester] to verify your
+configuration.
 
 What is the difference between bookmarks and quickmarks?::
     Bookmarks will always use the title of the website as their name, but with quickmarks
@@ -234,7 +255,7 @@ Why does it take longer to open a URL in qutebrowser than in chromium?::
     loaded until it is detected that there is an instance running
     to which the URL is then passed. This takes some time.
     One workaround is to use this
-    https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
+    https://github.com/qutebrowser/qutebrowser/blob/main/scripts/open_url_in_instance.sh[script]
     and place it in your $PATH with the name "qutebrowser". This
     script passes the URL via a unix socket to qutebrowser (if its
     running already) using socat which is much faster and starts a new
@@ -355,7 +376,7 @@ There is a total of four possible approaches to get dark websites:
 
 How do I make copy to clipboard buttons work?::
 You can `:set content.javascript.clipboard access` to allow this globally (not
-recommended!), or `:set -u some.domain content.javascript.clipboad access` if
+recommended!), or `:set -u some.domain content.javascript.clipboard access` if
 you want to limit the setting to `some.domain`.
 
 

@@ -1,21 +1,7 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Early initialization and main entry point.
 
@@ -52,8 +38,9 @@ except ImportError:
         sys.exit(100)
 check_python_version()
 
-import argparse  # pylint: disable=wrong-import-order
+import argparse
 from qutebrowser.misc import earlyinit
+from qutebrowser.qt import machinery
 
 
 def get_argparser():
@@ -82,11 +69,16 @@ def get_argparser():
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
+    parser.add_argument('--qt-wrapper', choices=machinery.WRAPPERS,
+                        help="Which Qt wrapper to use. This can also be set "
+                        "via the QUTE_QT_WRAPPER environment variable. "
+                        "If both are set, the command line argument takes "
+                        "precedence.")
     parser.add_argument('--desktop-file-name',
                         default="org.qutebrowser.qutebrowser",
                         help="Set the base name of the desktop entry for this "
                         "application. Used to set the app_id under Wayland. See "
-                        "https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop")
+                        "https://doc.qt.io/qt-6/qguiapplication.html#desktopFileName-prop")
     parser.add_argument('--untrusted-args',
                         action='store_true',
                         help="Mark all following arguments as untrusted, which "
@@ -95,12 +87,6 @@ def get_argparser():
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted',
-                        help=argparse.SUPPRESS,
-                        action='store_true')
-
-    # WORKAROUND to be able to restart from older qutebrowser versions into this one.
-    # Should be removed at some point.
-    parser.add_argument('--enable-webengine-inspector',
                         help=argparse.SUPPRESS,
                         action='store_true')
 
@@ -190,7 +176,7 @@ def debug_flag_error(flag):
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
                    'log-scroll-pos', 'log-sensitive-keys', 'stack', 'chromium',
                    'wait-renderer-process', 'avoid-chromium-init', 'werror',
-                   'test-notification-service']
+                   'test-notification-service', 'log-qt-events']
 
     if flag in valid_flags:
         return flag

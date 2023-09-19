@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Types for options in qutebrowser's configuration.
 
@@ -55,10 +40,10 @@ from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
                     List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
 import yaml
-from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QTabWidget, QTabBar
-from PyQt5.QtNetwork import QNetworkProxy
+from qutebrowser.qt.core import QUrl, Qt
+from qutebrowser.qt.gui import QColor
+from qutebrowser.qt.widgets import QTabWidget, QTabBar
+from qutebrowser.qt.network import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils
@@ -1062,9 +1047,9 @@ class ColorSystem(MappingType):
     """The color system to use for color interpolation."""
 
     MAPPING = {
-        'rgb': (QColor.Rgb, "Interpolate in the RGB color system."),
-        'hsv': (QColor.Hsv, "Interpolate in the HSV color system."),
-        'hsl': (QColor.Hsl, "Interpolate in the HSL color system."),
+        'rgb': (QColor.Spec.Rgb, "Interpolate in the RGB color system."),
+        'hsv': (QColor.Spec.Hsv, "Interpolate in the HSV color system."),
+        'hsl': (QColor.Spec.Hsl, "Interpolate in the HSL color system."),
         'none': (None, "Don't show a gradient."),
     }
 
@@ -1106,7 +1091,7 @@ class QtColor(BaseType):
         mult = 359.0 if kind == 'h' else 255.0
         if val.endswith('%'):
             val = val[:-1]
-            mult = mult / 100
+            mult /= 100
 
         try:
             return int(float(val) * mult)
@@ -1167,7 +1152,7 @@ class QssColor(BaseType):
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     * A gradient as explained in
-      https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
+      https://doc.qt.io/qt-6/stylesheet-reference.html#list-of-property-types[the Qt documentation]
       under ``Gradient''
     """
 
@@ -1798,10 +1783,10 @@ class Position(MappingType):
     """The position of the tab bar."""
 
     MAPPING = {
-        'top': (QTabWidget.North, None),
-        'bottom': (QTabWidget.South, None),
-        'left': (QTabWidget.West, None),
-        'right': (QTabWidget.East, None),
+        'top': (QTabWidget.TabPosition.North, None),
+        'bottom': (QTabWidget.TabPosition.South, None),
+        'left': (QTabWidget.TabPosition.West, None),
+        'right': (QTabWidget.TabPosition.East, None),
     }
 
 
@@ -1810,9 +1795,9 @@ class TextAlignment(MappingType):
     """Alignment of text."""
 
     MAPPING = {
-        'left': (Qt.AlignLeft, None),
-        'right': (Qt.AlignRight, None),
-        'center': (Qt.AlignCenter, None),
+        'left': (Qt.AlignmentFlag.AlignLeft, None),
+        'right': (Qt.AlignmentFlag.AlignRight, None),
+        'center': (Qt.AlignmentFlag.AlignCenter, None),
     }
 
 
@@ -1821,10 +1806,10 @@ class ElidePosition(MappingType):
     """Position of ellipsis in truncated text."""
 
     MAPPING = {
-        'left': (Qt.ElideLeft, None),
-        'right': (Qt.ElideRight, None),
-        'middle': (Qt.ElideMiddle, None),
-        'none': (Qt.ElideNone, None),
+        'left': (Qt.TextElideMode.ElideLeft, None),
+        'right': (Qt.TextElideMode.ElideRight, None),
+        'middle': (Qt.TextElideMode.ElideMiddle, None),
+        'none': (Qt.TextElideMode.ElideNone, None),
     }
 
 
@@ -1880,17 +1865,17 @@ class SelectOnRemove(MappingType):
 
     MAPPING = {
         'prev': (
-            QTabBar.SelectLeftTab,
+            QTabBar.SelectionBehavior.SelectLeftTab,
             ("Select the tab which came before the closed one "
              "(left in horizontal, above in vertical)."),
         ),
         'next': (
-            QTabBar.SelectRightTab,
+            QTabBar.SelectionBehavior.SelectRightTab,
             ("Select the tab which came after the closed one "
              "(right in horizontal, below in vertical)."),
         ),
         'last-used': (
-            QTabBar.SelectPreviousTab,
+            QTabBar.SelectionBehavior.SelectPreviousTab,
             "Select the previously selected tab.",
         ),
     }

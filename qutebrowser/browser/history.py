@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Simple history which gets written to disk."""
 
@@ -25,8 +10,9 @@ import contextlib
 import pathlib
 from typing import cast, Mapping, MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog, QApplication
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, pyqtSignal
+from qutebrowser.qt.widgets import QProgressDialog, QApplication, QPushButton
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
@@ -56,7 +42,13 @@ class HistoryProgress:
         self._progress.setMaximum(0)  # unknown
         self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
-        self._progress.setCancelButton(None)
+
+        no_button = None
+        if machinery.IS_QT6:
+            # FIXME:mypy PyQt6 stubs issue
+            no_button = cast(QPushButton, None)
+
+        self._progress.setCancelButton(no_button)
         self._progress.setAutoClose(False)
         self._progress.show()
         QApplication.processEvents()
@@ -217,19 +209,19 @@ class WebHistory(sql.SqlTable):
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
-        self._between_query = self.database.query('SELECT * FROM History '
-                                                  'where not redirect '
-                                                  'and not url like "qute://%" '
-                                                  'and atime > :earliest '
-                                                  'and atime <= :latest '
-                                                  'ORDER BY atime desc')
+        self._between_query = self.database.query("SELECT * FROM History "
+                                                  "where not redirect "
+                                                  "and not url like 'qute://%' "
+                                                  "and atime > :earliest "
+                                                  "and atime <= :latest "
+                                                  "ORDER BY atime desc")
 
-        self._before_query = self.database.query('SELECT * FROM History '
-                                                 'where not redirect '
-                                                 'and not url like "qute://%" '
-                                                 'and atime <= :latest '
-                                                 'ORDER BY atime desc '
-                                                 'limit :limit offset :offset')
+        self._before_query = self.database.query("SELECT * FROM History "
+                                                 "where not redirect "
+                                                 "and not url like 'qute://%' "
+                                                 "and atime <= :latest "
+                                                 "ORDER BY atime desc "
+                                                 "limit :limit offset :offset")
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
@@ -435,10 +427,10 @@ class WebHistory(sql.SqlTable):
             }, replace=True)
 
     def _format_url(self, url):
-        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        return url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
 
     def _format_completion_url(self, url):
-        return url.toString(QUrl.RemovePassword)
+        return url.toString(QUrl.UrlFormattingOption.RemovePassword)
 
 
 @cmdutils.register()

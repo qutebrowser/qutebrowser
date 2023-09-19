@@ -1,33 +1,19 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Loader for qutebrowser extensions."""
 
 import pkgutil
 import types
+import sys
 import pathlib
 import importlib
 import argparse
 import dataclasses
-from typing import Callable, Iterator, List, Optional, Tuple
+from typing import Callable, Iterator, List, Optional, Set, Tuple
 
-from PyQt5.QtCore import pyqtSlot
+from qutebrowser.qt.core import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config
@@ -94,6 +80,14 @@ def load_components(*, skip_hooks: bool = False) -> None:
 
 def walk_components() -> Iterator[ExtensionInfo]:
     """Yield ExtensionInfo objects for all modules."""
+    if hasattr(sys, 'frozen'):
+        yield from _walk_pyinstaller()
+    else:
+        yield from _walk_normal()
+
+
+def _walk_normal() -> Iterator[ExtensionInfo]:
+    """Walk extensions when not using PyInstaller."""
     for _finder, name, ispkg in pkgutil.walk_packages(
             path=components.__path__,
             prefix=components.__name__ + '.',
@@ -106,6 +100,23 @@ def walk_components() -> Iterator[ExtensionInfo]:
             log.extensions.debug("Ignoring stale 'adblock' component")
             continue
         yield ExtensionInfo(name=name)
+
+
+def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
+    """Walk extensions when using PyInstaller.
+
+    See https://github.com/pyinstaller/pyinstaller/issues/1905
+
+    Inspired by:
+    https://github.com/webcomics/dosage/blob/master/dosagelib/loader.py
+    """
+    toc: Set[str] = set()
+    for importer in pkgutil.iter_importers('qutebrowser'):
+        if hasattr(importer, 'toc'):
+            toc |= importer.toc
+    for name in toc:
+        if name.startswith(components.__name__ + '.'):
+            yield ExtensionInfo(name=name)
 
 
 def _get_init_context() -> InitContext:

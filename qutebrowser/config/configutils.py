@@ -1,22 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utilities and data structures used by various config code."""
 
@@ -28,9 +12,9 @@ from typing import (
     TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
     MutableMapping)
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QFontDatabase
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.utils import utils, urlmatch, urlutils, usertypes, qtutils
 from qutebrowser.config import configexc
@@ -294,7 +278,7 @@ class FontFamilies:
     @classmethod
     def from_system_default(
             cls,
-            font_type: QFontDatabase.SystemFont = QFontDatabase.FixedFont,
+            font_type: QFontDatabase.SystemFont = QFontDatabase.SystemFont.FixedFont,
     ) -> 'FontFamilies':
         """Get a FontFamilies object for the default system font.
 
@@ -305,25 +289,25 @@ class FontFamilies:
         exist:
 
         1) f = QFont()
-           f.setStyleHint(QFont.Monospace)
+           f.setStyleHint(QFont.StyleHint.Monospace)
            print(f.defaultFamily())
 
         2) f = QFont()
-           f.setStyleHint(QFont.TypeWriter)
+           f.setStyleHint(QFont.StyleHint.TypeWriter)
            print(f.defaultFamily())
 
-        3) f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        3) f = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
            print(f.family())
 
         They yield different results depending on the OS:
 
-                   QFont.Monospace  | QFont.TypeWriter    | QFontDatabase
-                   ------------------------------------------------------
-        Windows:   Courier New      | Courier New         | Courier New
-        Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace
-        macOS:     Menlo            | American Typewriter | Monaco
+                QFont.StyleHint.Monospace  | QFont.StyleHint.TypeWriter | QFontDatabase
+                -----------------------------------------------------------------------
+        Win:    Courier New                | Courier New                | Courier New
+        Linux:  DejaVu Sans Mono           | DejaVu Sans Mono           | monospace
+        macOS:  Menlo                      | American Typewriter        | Monaco
 
-        Test script: https://p.cmpl.cc/d4dfe573
+        Test script: https://p.cmpl.cc/076835c4
 
         On Linux, it seems like both actually resolve to the same font.
 

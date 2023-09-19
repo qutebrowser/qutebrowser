@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Management of sessions - saved tabs/windows."""
 
@@ -27,11 +12,11 @@ import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
-from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
+from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils, usertypes, version)
+                               utils, usertypes)
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
@@ -64,12 +49,7 @@ def init(parent=None):
 
     # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
     backup_path = base_path / 'before-qt-515'
-
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        webengine_version = version.qtwebengine_versions().webengine
-        do_backup = webengine_version >= utils.VersionNumber(5, 15)
-    else:
-        do_backup = False
+    do_backup = objects.backend == usertypes.Backend.QtWebEngine
 
     if base_path.exists() and not backup_path.exists() and do_backup:
         backup_path.mkdir()
@@ -225,7 +205,7 @@ class SessionManager(QObject):
             # QtWebEngine
             user_data = None
 
-        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
+        data['last_visited'] = item.lastVisited().toString(Qt.DateFormat.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -259,6 +239,13 @@ class SessionManager(QObject):
         for idx, item in enumerate(history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
+
+            if not item.url().isValid():
+                # WORKAROUND Qt 6.5 regression
+                # https://github.com/qutebrowser/qutebrowser/issues/7696
+                log.sessions.debug(f"Skipping invalid history item: {item}")
+                continue
+
             if item.url().scheme() == 'qute' and item.url().host() == 'back':
                 # don't add qute://back to the session file
                 if item_data.get('active', False) and data['history']:
@@ -450,7 +437,7 @@ class SessionManager(QObject):
             if histentry.get("last_visited"):
                 last_visited: Optional[QDateTime] = QDateTime.fromString(
                     histentry.get("last_visited"),
-                    Qt.ISODate,
+                    Qt.DateFormat.ISODate,
                 )
             else:
                 last_visited = None
@@ -472,7 +459,6 @@ class SessionManager(QObject):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
                                        private=win.get('private', None))
-        window.show()
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
@@ -485,6 +471,8 @@ class SessionManager(QObject):
                 new_tab.set_pinned(True)
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+
+        window.show()
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
@@ -564,19 +552,17 @@ def session_load(name: str, *,
     except SessionError as e:
         raise cmdutils.CommandError("Error while loading session: {}"
                                     .format(e))
-    else:
-        if clear:
-            for win in old_windows:
-                win.close()
-        if delete:
-            try:
-                session_manager.delete(name)
-            except SessionError as e:
-                log.sessions.exception("Error while deleting session!")
-                raise cmdutils.CommandError("Error while deleting session: {}"
-                                            .format(e))
-            else:
-                log.sessions.debug("Loaded & deleted session {}.".format(name))
+    if clear:
+        for win in old_windows:
+            win.close()
+    if delete:
+        try:
+            session_manager.delete(name)
+        except SessionError as e:
+            log.sessions.exception("Error while deleting session!")
+            raise cmdutils.CommandError("Error while deleting session: {}"
+                                        .format(e))
+        log.sessions.debug("Loaded & deleted session {}.".format(name))
 
 
 @cmdutils.register()
@@ -622,11 +608,10 @@ def session_save(name: ArgType = default, *,
                                         with_history=not no_history)
     except SessionError as e:
         raise cmdutils.CommandError("Error while saving session: {}".format(e))
+    if quiet:
+        log.sessions.debug("Saved session {}.".format(name))
     else:
-        if quiet:
-            log.sessions.debug("Saved session {}.".format(name))
-        else:
-            message.info("Saved session {}.".format(name))
+        message.info("Saved session {}.".format(name))
 
 
 @cmdutils.register()
@@ -649,8 +634,7 @@ def session_delete(name: str, *, force: bool = False) -> None:
         log.sessions.exception("Error while deleting session!")
         raise cmdutils.CommandError("Error while deleting session: {}"
                                     .format(e))
-    else:
-        log.sessions.debug("Deleted session {}.".format(name))
+    log.sessions.debug("Deleted session {}.".format(name))
 
 
 def load_default(name):

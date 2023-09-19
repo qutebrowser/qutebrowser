@@ -1,25 +1,13 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """pytest fixtures for tests.keyinput."""
 
 import pytest
+
+import contextlib
+from qutebrowser.keyinput import keyutils
 
 
 BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
@@ -45,3 +33,20 @@ def keyinput_bindings(config_stub, key_config_stub):
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = dict(BINDINGS)
     config_stub.val.bindings.key_mappings = dict(MAPPINGS)
+
+
+@pytest.fixture
+def pyqt_enum_workaround():
+    """Get a context manager to ignore invalid key errors and skip the test.
+
+    WORKAROUND for
+    https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    """
+    @contextlib.contextmanager
+    def _pyqt_enum_workaround(exctype=keyutils.InvalidKeyError):
+        try:
+            yield
+        except exctype as e:
+            pytest.skip(f"PyQt enum workaround: {e}")
+
+    return _pyqt_enum_workaround

@@ -2,7 +2,7 @@
 
 set +e
 
-# JS field injection code from https://github.com/qutebrowser/qutebrowser/blob/master/misc/userscripts/password_fill
+# JS field injection code from https://github.com/qutebrowser/qutebrowser/blob/main/misc/userscripts/password_fill
 javascript_escape() {
     # print the first argument in an escaped way, such that it can safely
     # be used within javascripts double quotes

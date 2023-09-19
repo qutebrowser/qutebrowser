@@ -1,38 +1,23 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for position_caret.js."""
 
 import pytest
 
-QWebSettings = pytest.importorskip("PyQt5.QtWebKit").QWebSettings
-QWebPage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+QWebSettings = pytest.importorskip("qutebrowser.qt.webkit").QWebSettings
+QWebPage = pytest.importorskip("qutebrowser.qt.webkitwidgets").QWebPage
 
 
 @pytest.fixture(autouse=True)
 def enable_caret_browsing(qapp):
     """Fixture to enable caret browsing globally."""
     settings = QWebSettings.globalSettings()
-    old_value = settings.testAttribute(QWebSettings.CaretBrowsingEnabled)
-    settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+    old_value = settings.testAttribute(QWebSettings.WebAttribute.CaretBrowsingEnabled)
+    settings.setAttribute(QWebSettings.WebAttribute.CaretBrowsingEnabled, True)
     yield
-    settings.setAttribute(QWebSettings.CaretBrowsingEnabled, old_value)
+    settings.setAttribute(QWebSettings.WebAttribute.CaretBrowsingEnabled, old_value)
 
 
 class CaretTester:

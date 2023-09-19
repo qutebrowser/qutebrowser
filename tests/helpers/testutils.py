@@ -1,26 +1,12 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Various utilities used inside tests."""
 
 import io
 import re
+import enum
 import gzip
 import pprint
 import os.path
@@ -31,16 +17,11 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.gui import QColor
 
-from qutebrowser.utils import qtutils, log, utils, version
+from qutebrowser.utils import log, utils, version
 
 ON_CI = 'CI' in os.environ
-
-qt513 = pytest.mark.skipif(
-    not qtutils.version_check('5.13'), reason="Needs Qt 5.13 or newer")
-qt514 = pytest.mark.skipif(
-    not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 
 
 class Color(QColor):
@@ -169,7 +150,7 @@ def partial_compare(val1, val2, *, indent=0):
     if val2 is Ellipsis:
         print_i("Ignoring ellipsis comparison", indent, error=True)
         return PartialCompareOutcome()
-    elif type(val1) != type(val2):  # pylint: disable=unidiomatic-typecheck
+    elif type(val1) is not type(val2):
         outcome = PartialCompareOutcome(
             "Different types ({}, {}) -> False".format(type(val1).__name__,
                                                        type(val2).__name__))
@@ -211,8 +192,26 @@ def pattern_match(*, pattern, value):
 
 def abs_datapath():
     """Get the absolute path to the end2end data directory."""
-    file_abs = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(file_abs, '..', 'end2end', 'data')
+    path = pathlib.Path(__file__).parent / '..' / 'end2end' / 'data'
+    return path.resolve()
+
+
+def substitute_testdata(path):
+    r"""Replace the (testdata) placeholder in path with `abs_datapath()`.
+
+    If path is starting with file://, return path as an URI with file:// removed. This
+    is useful if path is going to be inserted into an URI:
+
+    >>> path = substitute_testdata("C:\Users\qute")
+    >>> f"file://{path}/slug  # results in valid URI
+    'file:///C:/Users/qute/slug'
+    """
+    if path.startswith('file://'):
+        testdata_path = abs_datapath().as_uri().replace('file://', '')
+    else:
+        testdata_path = str(abs_datapath())
+
+    return path.replace('(testdata)', testdata_path)
 
 
 @contextlib.contextmanager
@@ -224,11 +223,11 @@ def nop_contextmanager():
 def change_cwd(path):
     """Use a path as current working directory."""
     old_cwd = pathlib.Path.cwd()
-    os.chdir(str(path))
+    os.chdir(path)
     try:
         yield
     finally:
-        os.chdir(str(old_cwd))
+        os.chdir(old_cwd)
 
 
 @contextlib.contextmanager
@@ -273,27 +272,13 @@ def disable_seccomp_bpf_sandbox():
     newer kernels.
     """
     try:
-        from PyQt5 import QtWebEngine  # pylint: disable=unused-import
+        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
     except ImportError:
         # no QtWebEngine available
         return False
 
-    affected_versions = set()
-    for base, patch_range in [
-            # 5.12.0 to 5.12.10 (inclusive)
-            ('5.12', range(0, 11)),
-            # 5.13.0 to 5.13.2 (inclusive)
-            ('5.13', range(0, 3)),
-            # 5.14.0
-            ('5.14', [0]),
-            # 5.15.0 to 5.15.2 (inclusive)
-            ('5.15', range(0, 3)),
-    ]:
-        for patch in patch_range:
-            affected_versions.add(utils.VersionNumber.parse(f'{base}.{patch}'))
-
     versions = version.qtwebengine_versions(avoid_init=True)
-    return versions.webengine in affected_versions
+    return versions.webengine == utils.VersionNumber(5, 15, 2)
 
 
 def import_userscript(name):
@@ -311,3 +296,17 @@ def import_userscript(name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def enum_members(base, enumtype):
+    """Get all members of a Qt enum."""
+    if issubclass(enumtype, enum.Enum):
+        # PyQt 6
+        return {m.name: m for m in enumtype}
+    else:
+        # PyQt 5
+        return {
+            name: value
+            for name, value in vars(base).items()
+            if isinstance(value, enumtype)
+        }

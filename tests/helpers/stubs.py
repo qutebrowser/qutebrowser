@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # pylint: disable=abstract-method
 
@@ -30,11 +15,11 @@ import builtins
 import importlib
 import types
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
-from PyQt5.QtGui import QIcon
-from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
+from qutebrowser.qt.core import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
+from qutebrowser.qt.gui import QIcon
+from qutebrowser.qt.network import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
+from qutebrowser.qt.widgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
@@ -135,7 +120,7 @@ class FakeNetworkReply:
     """QNetworkReply stub which provides a Content-Disposition header."""
 
     KNOWN_HEADERS = {
-        QNetworkRequest.ContentTypeHeader: 'Content-Type',
+        QNetworkRequest.KnownHeaders.ContentTypeHeader: 'Content-Type',
     }
 
     def __init__(self, headers=None, url=None):
@@ -302,17 +287,10 @@ class FakeSignal:
 
     Attributes:
         signal: The name of the signal, like pyqtSignal.
-        _func: The function to be invoked when the signal gets called.
     """
 
-    def __init__(self, name='fake', func=None):
+    def __init__(self, name='fake'):
         self.signal = '2{}(int, int)'.format(name)
-        self._func = func
-
-    def __call__(self):
-        if self._func is None:
-            raise TypeError("'FakeSignal' object is not callable")
-        return self._func()
 
     def connect(self, slot):
         """Connect the signal to a slot.
@@ -630,6 +608,10 @@ class FakeDownloadManager:
         return False
 
 
+class FakeHistoryTick(Exception):
+    pass
+
+
 class FakeHistoryProgress:
 
     """Fake for a WebHistoryProgress object."""
@@ -648,7 +630,7 @@ class FakeHistoryProgress:
 
     def tick(self):
         if self._raise_on_tick:
-            raise Exception('tick-tock')
+            raise FakeHistoryTick('tick-tock')
         self._value += 1
 
     def finish(self):
@@ -698,7 +680,8 @@ class ImportFake:
 
     Attributes:
         modules: A dict mapping module names to bools. If True, the import will
-                 succeed. Otherwise, it'll fail with ImportError.
+                 succeed. If an exception is given, it will be raised.
+                 Otherwise, it'll fail with a fake ImportError.
         version_attribute: The name to use in the fake modules for the version
                            attribute.
         version: The version to use for the modules.
@@ -730,6 +713,8 @@ class ImportFake:
         if name not in self.modules:
             # Not one of the modules to test -> use real import
             return None
+        elif isinstance(self.modules[name], Exception):
+            raise self.modules[name]
         elif self.modules[name]:
             ns = types.SimpleNamespace()
             if self.version_attribute is not None:

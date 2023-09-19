@@ -1,29 +1,14 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main statusbar widget."""
 
 import enum
 import dataclasses
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
+from qutebrowser.qt.core import pyqtSignal, pyqtProperty, pyqtSlot, Qt, QSize, QTimer
+from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config, stylesheet
@@ -165,10 +150,10 @@ class StatusBar(QWidget):
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.setAttribute(Qt.WA_StyledBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
         stylesheet.set_register(self)
 
-        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
 
         self._win_id = win_id
         self._color_flags = ColorFlags()
@@ -287,6 +272,8 @@ class StatusBar(QWidget):
                        self.backforward, self.tabindex,
                        self.keystring, self.prog, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
+            if widget in [self.prog, self.backforward]:
+                widget.enabled = False  # type: ignore[attr-defined]
             widget.hide()
             self._hbox.removeWidget(widget)
         self._text_widgets.clear()

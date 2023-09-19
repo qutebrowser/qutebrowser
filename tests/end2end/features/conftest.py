@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Steps for bdd-like tests."""
 
@@ -35,8 +20,9 @@ import pytest
 import pytest_bdd as bdd
 
 import qutebrowser
-from qutebrowser.utils import log, utils, docutils
+from qutebrowser.utils import log, utils, docutils, version
 from qutebrowser.browser import pdfjs
+from end2end.fixtures import testprocess
 from helpers import testutils
 
 
@@ -47,8 +33,7 @@ def _get_echo_exe_path():
         Path to the "echo"-utility.
     """
     if utils.is_windows:
-        return os.path.join(testutils.abs_datapath(), 'userscripts',
-                            'echo.bat')
+        return str(testutils.abs_datapath() / 'userscripts' / 'echo.bat')
     else:
         return shutil.which("echo")
 
@@ -194,6 +179,7 @@ def pdfjs_available(data_tmpdir):
 
 
 @bdd.given('I clear the log')
+@bdd.when('I clear the log')
 def clear_log_lines(quteproc):
     quteproc.clear_data()
 
@@ -212,6 +198,7 @@ def open_path(quteproc, server, path):
     - With "... as a URL", it's opened according to new_instance_open_target.
     """
     path = path.replace('(port)', str(server.port))
+    path = testutils.substitute_testdata(path)
 
     new_tab = False
     new_bg_tab = False
@@ -283,7 +270,7 @@ def run_command(quteproc, server, tmpdir, command):
         invalid = False
 
     command = command.replace('(port)', str(server.port))
-    command = command.replace('(testdata)', testutils.abs_datapath())
+    command = testutils.substitute_testdata(command)
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
     command = command.replace('(echo-exe)', _get_echo_exe_path())
@@ -377,7 +364,7 @@ def hint(quteproc, args):
 
 @bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
 def hint_and_follow(quteproc, args, letter):
-    args = args.replace('(testdata)', testutils.abs_datapath())
+    args = testutils.substitute_testdata(args)
     args = args.replace('(python-executable)', sys.executable)
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')
@@ -434,6 +421,20 @@ def update_documentation():
 
     update_script = os.path.join(script_path, 'asciidoc2html.py')
     subprocess.run([sys.executable, update_script], check=True)
+
+
+@bdd.when("I wait until PDF.js is ready")
+def wait_pdfjs(quteproc):
+    quteproc.wait_for(message="load status for <qutebrowser.browser.* "
+        "tab_id=* url='qute://pdfjs/web/viewer.html?*'>: LoadStatus.success")
+    try:
+        quteproc.wait_for(message="JS: [qute://pdfjs/web/viewer.html?*] Uncaught TypeError: Cannot read property 'set' of undefined", timeout=100)
+    except testprocess.WaitForTimeout:
+        pass
+    else:
+        pytest.skip(f"Non-legacy PDF.js installation: {version._pdfjs_version()}")
+
+    quteproc.wait_for(message="[qute://pdfjs/*] PDF * (PDF.js: *)")
 
 
 ## Then

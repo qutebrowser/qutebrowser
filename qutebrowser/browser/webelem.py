@@ -1,29 +1,15 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Generic web element related code."""
 
-from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union, Dict
+from typing import Iterator, Optional, Set, TYPE_CHECKING, Union, Dict
 import collections.abc
 
-from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
-from PyQt5.QtGui import QMouseEvent
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPointF
+from qutebrowser.qt.gui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -34,6 +20,11 @@ if TYPE_CHECKING:
 
 
 JsValueType = Union[int, float, str, None]
+
+if machinery.IS_QT6:
+    KeybordModifierType = Qt.KeyboardModifier
+else:
+    KeybordModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
 
 
 class Error(Exception):
@@ -317,7 +308,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Return True if clicking this element needs user interaction."""
         raise NotImplementedError
 
-    def _mouse_pos(self) -> QPoint:
+    def _mouse_pos(self) -> QPointF:
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
@@ -331,38 +322,37 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         pos = rect.center()
         if pos.x() < 0 or pos.y() < 0:
             raise Error("Element position is out of view!")
-        return pos
+        return QPointF(pos)
 
     def _move_text_cursor(self) -> None:
         """Move cursor to end after clicking."""
         raise NotImplementedError
 
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: Qt.MouseButton = Qt.LeftButton) -> None:
+                          button: Qt.MouseButton = Qt.MouseButton.LeftButton) -> None:
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        target_modifiers: Dict[usertypes.ClickTarget, Qt.KeyboardModifiers] = {
-            usertypes.ClickTarget.normal: cast(Qt.KeyboardModifiers, Qt.NoModifier),
-            usertypes.ClickTarget.window: Qt.AltModifier | Qt.ShiftModifier,
-            usertypes.ClickTarget.tab: cast(Qt.KeyboardModifiers, Qt.ControlModifier),
-            usertypes.ClickTarget.tab_bg:
-                cast(Qt.KeyboardModifiers, Qt.ControlModifier),
+        target_modifiers: Dict[usertypes.ClickTarget, KeybordModifierType] = {
+            usertypes.ClickTarget.normal: Qt.KeyboardModifier.NoModifier,
+            usertypes.ClickTarget.window: Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.ShiftModifier,
+            usertypes.ClickTarget.tab: Qt.KeyboardModifier.ControlModifier,
+            usertypes.ClickTarget.tab_bg: Qt.KeyboardModifier.ControlModifier,
         }
         if config.val.tabs.background:
-            target_modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab] |= Qt.KeyboardModifier.ShiftModifier
         else:
-            target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.KeyboardModifier.ShiftModifier
 
         modifiers = target_modifiers[click_target]
 
         events = [
-            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, button, button, modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton, modifiers),
+            QMouseEvent(QEvent.Type.MouseMove, pos, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier),
+            QMouseEvent(QEvent.Type.MouseButtonPress, pos, button, button, modifiers),
+            QMouseEvent(QEvent.Type.MouseButtonRelease, pos, button, Qt.MouseButton.NoButton, modifiers),
         ]
 
         for evt in events:
@@ -400,8 +390,8 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         elif click_target == usertypes.ClickTarget.window:
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=tabbed_browser.is_private)
-            window.show()
             window.tabbed_browser.tabopen(url)
+            window.show()
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 
@@ -446,11 +436,11 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
     def hover(self) -> None:
         """Simulate a mouse hover over the element."""
         pos = self._mouse_pos()
-        event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                            Qt.NoModifier)
+        event = QMouseEvent(QEvent.Type.MouseMove, pos, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton,
+                            Qt.KeyboardModifier.NoModifier)
         self._tab.send_event(event)
 
     def right_click(self) -> None:
         """Simulate a right-click on the element."""
         self._click_fake_event(usertypes.ClickTarget.normal,
-                               button=Qt.RightButton)
+                               button=Qt.MouseButton.RightButton)

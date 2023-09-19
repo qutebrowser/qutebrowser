@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2021 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import io
 import struct
@@ -47,7 +32,7 @@ def test_format_sizes(fmt, expected):
 
 
 @pytest.mark.skipif(not utils.is_linux, reason="Needs Linux")
-def test_result(qapp, caplog):
+def test_result(webengine_versions, qapp, caplog):
     """Test the real result of ELF parsing.
 
     NOTE: If you're a distribution packager (or contributor) and see this test failing,
@@ -57,9 +42,13 @@ def test_result(qapp, caplog):
 
     If that happens, please report a bug about it!
     """
-    pytest.importorskip('PyQt5.QtWebEngineCore')
+    pytest.importorskip('qutebrowser.qt.webenginecore')
 
     versions = elf.parse_webenginecore()
+    if webengine_versions.webengine >= utils.VersionNumber(6, 5):
+        assert versions is None
+        pytest.xfail("ELF file structure not supported")
+
     assert versions is not None
 
     # No failing mmap
@@ -87,9 +76,50 @@ def test_result(qapp, caplog):
         b"QtWebEngine/5.15.9 Chrome/87.0.4280.144\x00",
         elf.Versions("5.15.9", "87.0.4280.144"),
     ),
+    # Piecing stuff together
+    (
+        (
+            b"\x00QtWebEngine/6.4.0 Chrome/98.0.47Navigation to external protocol "
+            b"blocked by sandb/webengine\x00"
+            b"lots-of-other-stuff\x00"
+            b"98.0.4758.90\x0099.0.4844.84\x00"
+        ),
+        elf.Versions("6.4.0", "98.0.4758.90"),
+    ),
 ])
 def test_find_versions(data, expected):
     assert elf._find_versions(data) == expected
+
+
+@pytest.mark.parametrize("data, message", [
+    # No match at all
+    (
+        b"blablabla",
+        "No match in .rodata"
+    ),
+    # Piecing stuff together: too short partial match
+    (
+        (
+            b"\x00QtWebEngine/6.4.0 Chrome/98bla\x00"
+            b"lots-of-other-stuff\x00"
+            b"98.0.4758.90\x0099.0.4844.84\x00"
+        ),
+        "Inconclusive partial Chromium bytes"
+    ),
+    # Piecing stuff together: no full match
+    (
+        (
+            b"\x00QtWebEngine/6.4.0 Chrome/98.0.47blabla"
+            b"lots-of-other-stuff\x00"
+            b"98.0.1234.56\x00"
+        ),
+        "No match in .rodata for full version"
+    ),
+])
+def test_find_versions_invalid(data, message):
+    with pytest.raises(elf.ParseError) as excinfo:
+        elf._find_versions(data)
+    assert str(excinfo.value) == message
 
 
 @hypothesis.given(data=hst.builds(

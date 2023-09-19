@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The dialog which gets shown when qutebrowser crashes."""
 
@@ -30,8 +15,8 @@ import datetime
 import enum
 from typing import List, Tuple
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize
-from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
+from qutebrowser.qt.core import pyqtSlot, Qt, QSize
+from qutebrowser.qt.widgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
                              QDialogButtonBox, QMessageBox)
 
@@ -47,8 +32,8 @@ class Result(enum.IntEnum):
 
     """The result code returned by the crash dialog."""
 
-    restore = QDialog.Accepted + 1
-    no_restore = QDialog.Accepted + 2
+    restore = QDialog.DialogCode.Accepted + 1
+    no_restore = QDialog.DialogCode.Accepted + 2
 
 
 def parse_fatal_stacktrace(text):
@@ -149,7 +134,7 @@ class _CrashDialog(QDialog):
         self._debug_log = QTextEdit()
         self._debug_log.setTabChangesFocus(True)
         self._debug_log.setAcceptRichText(False)
-        self._debug_log.setLineWrapMode(QTextEdit.NoWrap)
+        self._debug_log.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self._debug_log.hide()
         self._fold = miscwidgets.DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
@@ -165,7 +150,7 @@ class _CrashDialog(QDialog):
 
     def keyPressEvent(self, e):
         """Prevent closing :report dialogs when pressing <Escape>."""
-        if config.val.input.escape_quits_reporter or e.key() != Qt.Key_Escape:
+        if config.val.input.escape_quits_reporter or e.key() != Qt.Key.Key_Escape:
             super().keyPressEvent(e)
 
     def __repr__(self):
@@ -201,7 +186,7 @@ class _CrashDialog(QDialog):
         self._lbl = QLabel()
         self._lbl.setWordWrap(True)
         self._lbl.setOpenExternalLinks(True)
-        self._lbl.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
+        self._lbl.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
 
     def _init_checkboxes(self):
@@ -215,12 +200,12 @@ class _CrashDialog(QDialog):
         self._btn_report = QPushButton("Report")
         self._btn_report.setDefault(True)
         self._btn_report.clicked.connect(self.on_report_clicked)
-        self._btn_box.addButton(self._btn_report, QDialogButtonBox.AcceptRole)
+        self._btn_box.addButton(self._btn_report, QDialogButtonBox.ButtonRole.AcceptRole)
 
         self._btn_cancel = QPushButton("Don't report")
         self._btn_cancel.setAutoDefault(False)
         self._btn_cancel.clicked.connect(self.finish)
-        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.RejectRole)
+        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.ButtonRole.RejectRole)
 
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
@@ -492,7 +477,7 @@ class FatalCrashDialog(_CrashDialog):
     def __init__(self, debug, text, parent=None):
         super().__init__(debug, parent)
         self._log = text
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._set_crash_info()
         self._type, self._func = parse_fatal_stacktrace(self._log)
 
@@ -512,7 +497,7 @@ class FatalCrashDialog(_CrashDialog):
                 "<br/>Note: Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
                 "follow the steps in <a href='https://github.com/qutebrowser/"
-                "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
+                "qutebrowser/blob/main/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
 
@@ -557,7 +542,7 @@ class FatalCrashDialog(_CrashDialog):
                           "spend on developing qutebrowser instead.\n\nPlease "
                           "help making qutebrowser better by providing more "
                           "information, or don't report this.",
-                          icon=QMessageBox.Critical)
+                          icon=QMessageBox.Icon.Critical)
         else:
             super().on_report_clicked()
 
@@ -574,7 +559,7 @@ class ReportDialog(_CrashDialog):
 
     def __init__(self, pages, cmdhist, qobjects, parent=None):
         super().__init__(False, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._pages = pages
         self._cmdhist = cmdhist
         self._qobjects = qobjects

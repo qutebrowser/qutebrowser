@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Shared QtWebKit/QtWebEngine code for downloads."""
 
@@ -30,7 +15,7 @@ import tempfile
 import enum
 from typing import Any, Dict, IO, List, MutableSequence, Optional, Union
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
+from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
 
 from qutebrowser.browser import pdfjs
@@ -45,7 +30,7 @@ class ModelRole(enum.IntEnum):
 
     """Custom download model roles."""
 
-    item = Qt.UserRole
+    item = Qt.ItemDataRole.UserRole
 
 
 # Remember the last used directory
@@ -188,7 +173,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
         html.escape(url.toDisplayString()))
-    q.url = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+    q.url = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
     q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
@@ -1266,10 +1251,10 @@ class DownloadModel(QAbstractListModel):
         idx = self.index(self.rowCount() - 1)
         return idx
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         """Simple constant header."""
-        if (section == 0 and orientation == Qt.Horizontal and
-                role == Qt.DisplayRole):
+        if (section == 0 and orientation == Qt.Orientation.Horizontal and
+                role == Qt.ItemDataRole.DisplayRole):
             return "Downloads"
         else:
             return ""
@@ -1283,15 +1268,15 @@ class DownloadModel(QAbstractListModel):
             return None
 
         item = self[index.row()]
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             data: Any = str(item)
-        elif role == Qt.ForegroundRole:
+        elif role == Qt.ItemDataRole.ForegroundRole:
             data = item.get_status_color('fg')
-        elif role == Qt.BackgroundRole:
+        elif role == Qt.ItemDataRole.BackgroundRole:
             data = item.get_status_color('bg')
         elif role == ModelRole.item:
             data = item
-        elif role == Qt.ToolTipRole:
+        elif role == Qt.ItemDataRole.ToolTipRole:
             if item.error_msg is None:
                 data = None
             else:
@@ -1303,11 +1288,11 @@ class DownloadModel(QAbstractListModel):
     def flags(self, index):
         """Override flags so items aren't selectable.
 
-        The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable.
+        The default would be Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable.
         """
         if not index.isValid():
-            return Qt.ItemFlags()
-        return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
+            return Qt.ItemFlag.NoItemFlags
+        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):
         """Get count of active downloads."""

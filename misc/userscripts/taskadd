@@ -11,7 +11,7 @@
 #       :spawn --userscript taskadd due:eod pri:H
 #
 #   To enable passing along extra args, I suggest using a mapping like:
-#       :bind <somekey> set-cmd-text -s :spawn --userscript taskadd
+#       :bind <somekey> cmd-set-text -s :spawn --userscript taskadd
 #
 #   If run from hint mode, it uses the selected hint text as the description
 #   and the selected hint url as the annotation.

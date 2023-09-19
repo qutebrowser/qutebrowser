@@ -1,21 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright 2017 Chris Braun (cryzed) <cryzed@googlemail.com>
+# SPDX-FileCopyrightText: Chris Braun (cryzed) <cryzed@googlemail.com>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """
 Insert login information using pass and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...). A short
@@ -58,6 +45,7 @@ import re
 import shlex
 import subprocess
 import sys
+from urllib.parse import urlparse
 
 import tldextract
 
@@ -224,7 +212,7 @@ def main(arguments):
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
-    # (if a non-public suffix was used).
+    # (if a non-public suffix was used), and the URL netloc.
     candidates = set()
     attempted_targets = []
 
@@ -233,7 +221,9 @@ def main(arguments):
         private_domain = ('.'.join((extract_result.subdomain, extract_result.domain))
                           if extract_result.subdomain else extract_result.domain)
 
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
+    netloc = urlparse(arguments.url).netloc
+
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain, netloc]):
         attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         if not target_candidates:

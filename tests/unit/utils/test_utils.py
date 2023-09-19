@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.utils."""
 
@@ -30,11 +15,11 @@ import shlex
 import math
 import operator
 
-from PyQt5.QtCore import QUrl, QRect, QPoint
-from PyQt5.QtGui import QClipboard
+from qutebrowser.qt.core import QUrl, QRect, QPoint
+from qutebrowser.qt.gui import QClipboard
 import pytest
 import hypothesis
-from hypothesis import strategies
+from hypothesis import strategies, settings
 import yaml
 
 import qutebrowser
@@ -425,7 +410,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42)
     def func_raising(self):
-        raise Exception
+        raise RuntimeError("something went wrong")
 
     def test_raising(self, caplog):
         """Test with a raising function."""
@@ -434,6 +419,7 @@ class TestPreventExceptions:
         assert ret == 42
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
         assert caplog.messages == [expected]
+        assert caplog.records[0].exc_info[1].args[0] == "something went wrong"
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -448,7 +434,7 @@ class TestPreventExceptions:
 
     @utils.prevent_exceptions(42, True)
     def func_predicate_true(self):
-        raise Exception
+        raise RuntimeError("its-true")
 
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
@@ -456,15 +442,16 @@ class TestPreventExceptions:
             ret = self.func_predicate_true()
         assert ret == 42
         assert len(caplog.records) == 1
+        assert caplog.records[0].exc_info[1].args[0] == "its-true"
 
     @utils.prevent_exceptions(42, False)
     def func_predicate_false(self):
-        raise Exception
+        raise RuntimeError("its-false")
 
     def test_predicate_false(self, caplog):
         """Test with a False predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError, match="its-false"):
                 self.func_predicate_false()
         assert not caplog.records
 
@@ -546,13 +533,17 @@ class TestIsEnum:
         assert not utils.is_enum(23)
 
 
+class SentinalException(Exception):
+    pass
+
+
 class TestRaises:
 
     """Test raises."""
 
     def do_raise(self):
         """Helper function which raises an exception."""
-        raise Exception
+        raise SentinalException
 
     def do_nothing(self):
         """Helper function which does nothing."""
@@ -571,15 +562,15 @@ class TestRaises:
 
     def test_no_args_true(self):
         """Test with no args and an exception which gets raised."""
-        assert utils.raises(Exception, self.do_raise)
+        assert utils.raises(SentinalException, self.do_raise)
 
     def test_no_args_false(self):
         """Test with no args and an exception which does not get raised."""
-        assert not utils.raises(Exception, self.do_nothing)
+        assert not utils.raises(SentinalException, self.do_nothing)
 
     def test_unrelated_exception(self):
         """Test with an unrelated exception."""
-        with pytest.raises(Exception):
+        with pytest.raises(SentinalException):
             utils.raises(ValueError, self.do_raise)
 
 
@@ -657,6 +648,7 @@ class TestSanitizeFilename:
         assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
     @hypothesis.given(filename=strategies.text(min_size=100))
+    @settings(max_examples=10)
     def test_invariants(self, filename):
         sanitized = utils.sanitize_filename(filename, shorten=True)
         assert len(os.fsencode(sanitized)) <= 255 - len("(123).download")
@@ -676,7 +668,7 @@ class TestGetSetClipboard:
     def test_set(self, clipboard_mock, caplog):
         utils.set_clipboard('Hello World')
         clipboard_mock.setText.assert_called_with('Hello World',
-                                                  mode=QClipboard.Clipboard)
+                                                  mode=QClipboard.Mode.Clipboard)
         assert not caplog.records
 
     def test_set_unsupported_selection(self, clipboard_mock):
@@ -767,7 +759,7 @@ class TestOpenFile:
 
     @pytest.fixture
     def openurl_mock(self, mocker):
-        return mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+        return mocker.patch('qutebrowser.qt.gui.QDesktopServices.openUrl', spec={},
                             new_callable=mocker.Mock)
 
     def test_system_default_application(self, caplog, config_stub,
@@ -891,7 +883,7 @@ def test_ceil_log_hypothesis(number, base):
 @pytest.mark.parametrize('number, base', [(64, 0), (0, 64), (64, -1),
                                           (-1, 64), (1, 1)])
 def test_ceil_log_invalid(number, base):
-    with pytest.raises(Exception):  # ValueError/ZeroDivisionError
+    with pytest.raises((ValueError, ZeroDivisionError)):
         math.log(number, base)
     with pytest.raises(ValueError):
         utils.ceil_log(number, base)

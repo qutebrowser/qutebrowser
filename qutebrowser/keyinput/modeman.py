@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Mode manager (per window) which handles the current keyboard mode."""
 
@@ -23,14 +8,15 @@ import functools
 import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent
+from qutebrowser.qt import machinery
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
+from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
 from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, objreg, utils, qtutils
 from qutebrowser.browser import hints
 from qutebrowser.misc import objects
 
@@ -51,17 +37,19 @@ class KeyEvent:
     press/release.
 
     Attributes:
-        key: A Qt.Key member (QKeyEvent::key).
+        key: Usually a Qt.Key member, but could be other ints (QKeyEvent::key).
         text: A string (QKeyEvent::text).
     """
 
-    key: Qt.Key
+    # int instead of Qt.Key:
+    # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
+    key: int
     text: str
 
     @classmethod
     def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
         """Initialize a KeyEvent from a QKeyEvent."""
-        return cls(Qt.Key(event.key()), event.text())
+        return cls(event.key(), event.text())
 
 
 class NotInModeError(Exception):
@@ -289,15 +277,23 @@ class ModeManager(QObject):
                             "{}".format(curmode, utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
-        has_modifier = event.modifiers() not in [
-            Qt.NoModifier,
-            Qt.ShiftModifier,
-        ]  # type: ignore[comparison-overlap]
+        if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
+            ignored_modifiers = [
+                cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.NoModifier),
+                cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.ShiftModifier),
+            ]
+        else:
+            ignored_modifiers = [
+                Qt.KeyboardModifier.NoModifier,
+                Qt.KeyboardModifier.ShiftModifier,
+            ]
+        has_modifier = event.modifiers() not in ignored_modifiers
+
         is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
-        if match:
+        if match != QKeySequence.SequenceMatch.NoMatch:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):
@@ -312,10 +308,10 @@ class ModeManager(QObject):
             focus_widget = objects.qapp.focusWidget()
             log.modes.debug("match: {}, forward_unbound_keys: {}, "
                             "passthrough: {}, is_non_alnum: {}, dry_run: {} "
-                            "--> filter: {} (focused: {!r})".format(
+                            "--> filter: {} (focused: {})".format(
                                 match, forward_unbound_keys,
                                 parser.passthrough, is_non_alnum, dry_run,
-                                filter_this, focus_widget))
+                                filter_this, qtutils.qobj_repr(focus_widget)))
         return filter_this
 
     def _handle_keyrelease(self, event: QKeyEvent) -> bool:
@@ -460,9 +456,9 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handlers: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]] = {
-            QEvent.KeyPress: self._handle_keypress,
-            QEvent.KeyRelease: self._handle_keyrelease,
-            QEvent.ShortcutOverride:
+            QEvent.Type.KeyPress: self._handle_keypress,
+            QEvent.Type.KeyRelease: self._handle_keyrelease,
+            QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
         handler = handlers[event.type()]

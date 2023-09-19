@@ -1,29 +1,16 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Test the SQL API."""
 
+import sys
+import sqlite3
 import pytest
 
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
+from qutebrowser.qt.sql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.misc import sql
 
@@ -91,17 +78,26 @@ def test_sqlerror(klass):
 class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        (sql.SqliteErrorCode.BUSY, sql.KnownError),
-        (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
+        (sql.SqliteErrorCode.BUSY.value, sql.KnownError),
+        (sql.SqliteErrorCode.CONSTRAINT.value, sql.BugError),
+        # extended error codes
+        (
+            sql.SqliteErrorCode.IOERR.value | (1 << 8),  # SQLITE_IOERR_READ
+            sql.KnownError
+        ),
+        (
+            sql.SqliteErrorCode.CONSTRAINT.value | (1 << 8),  # SQLITE_CONSTRAINT_CHECK
+            sql.BugError
+        ),
     ])
     def test_known(self, error_code, exception):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
-                            error_code)
+        sql_err = QSqlError("driver text", "db text", QSqlError.ErrorType.UnknownError,
+                            str(error_code))
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
     def test_logging(self, caplog):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError, '23')
+        sql_err = QSqlError("driver text", "db text", QSqlError.ErrorType.UnknownError, '23')
         with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 
@@ -109,7 +105,7 @@ class TestSqlError:
                     'type: UnknownError',
                     'database text: db text',
                     'driver text: driver text',
-                    'error code: 23']
+                    'error code: 23 -> SqliteErrorCode.AUTH']
 
         assert caplog.messages == expected
 
@@ -118,6 +114,62 @@ class TestSqlError:
         sql_err = QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
         assert err.text() == "db text"
+
+    @pytest.mark.parametrize("code", list(sql.SqliteErrorCode))
+    @pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="sqlite error code constants added in Python 3.11",
+    )
+    def test_sqlite_error_codes(self, code):
+        """Cross check our error codes with the ones in Python 3.11+.
+
+        See https://github.com/python/cpython/commit/86d8b465231
+        """
+        pyvalue = getattr(sqlite3, f"SQLITE_{code.name}")
+        assert pyvalue == code.value
+
+    def test_sqlite_error_codes_reverse(self):
+        """Check if we have all error codes defined that Python has.
+
+        It would be nice if this was easier (and less guesswork).
+        However, the error codes are simply added as ints to the sqlite3 module
+        namespace (PyModule_AddIntConstant), and lots of other constants are there too.
+        """
+        # Start with all SQLITE_* names in the sqlite3 modules
+        consts = {n for n in dir(sqlite3) if n.startswith("SQLITE_")}
+        # All error codes we know about (tested above)
+        consts -= {f"SQLITE_{m.name}" for m in sql.SqliteErrorCode}
+        # Extended error codes or other constants. From the sqlite docs:
+        #
+        # Primary result code symbolic names are of the form "SQLITE_XXXXXX"
+        # where XXXXXX is a sequence of uppercase alphabetic characters.
+        # Extended result code names are of the form "SQLITE_XXXXXX_YYYYYYY"
+        # where the XXXXXX part is the corresponding primary result code and the
+        # YYYYYYY is an extension that further classifies the result code.
+        consts -= {c for c in consts if c.count("_") >= 2}
+        # All remaining sqlite constants which are *not* error codes.
+        consts -= {
+            "SQLITE_ANALYZE",
+            "SQLITE_ATTACH",
+            "SQLITE_DELETE",
+            "SQLITE_DENY",
+            "SQLITE_DETACH",
+            "SQLITE_FUNCTION",
+            "SQLITE_IGNORE",
+            "SQLITE_INSERT",
+            "SQLITE_PRAGMA",
+            "SQLITE_READ",
+            "SQLITE_RECURSIVE",
+            "SQLITE_REINDEX",
+            "SQLITE_SAVEPOINT",
+            "SQLITE_SELECT",
+            "SQLITE_TRANSACTION",
+            "SQLITE_UPDATE",
+        }
+        # If there is anything remaining here, either a new Python version added a new
+        # sqlite constant which is *not* an error, or there was a new error code added.
+        # Either add it to the set above, or to SqliteErrorCode.
+        assert not consts
 
 
 def test_init_table(database):
@@ -406,7 +458,9 @@ class TestTransaction:
             with database.transaction():
                 my_table.insert({'column': 1})
                 my_table.insert({'column': 2})
-                raise Exception('something went horribly wrong')
-        except Exception:
+                raise RuntimeError(
+                    'something went horribly wrong and the transaction will be aborted'
+                )
+        except RuntimeError:
             pass
         assert database.query('select count(*) from my_table').run().value() == 0

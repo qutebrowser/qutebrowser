@@ -1,27 +1,12 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """A model that proxies access to one or more completion categories."""
 
 from typing import MutableSequence
 
-from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
+from qutebrowser.qt.core import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
@@ -63,7 +48,7 @@ class CompletionModel(QAbstractItemModel):
         """Add a completion category to the model."""
         self._categories.append(cat)
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         """Return the item data for index.
 
         Override QAbstractItemModel::data.
@@ -74,7 +59,7 @@ class CompletionModel(QAbstractItemModel):
 
         Return: The item data, or None on an invalid index.
         """
-        if role != Qt.DisplayRole:
+        if role != Qt.ItemDataRole.DisplayRole:
             return None
         cat = self._cat_from_idx(index)
         if cat:
@@ -94,17 +79,17 @@ class CompletionModel(QAbstractItemModel):
 
         Override QAbstractItemModel::flags.
 
-        Return: The item flags, or Qt.NoItemFlags on error.
+        Return: The item flags, or Qt.ItemFlag.NoItemFlags on error.
         """
         if not index.isValid():
-            return Qt.NoItemFlags
+            return Qt.ItemFlag.NoItemFlags
         if index.parent().isValid():
             # item
-            return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
-                    Qt.ItemNeverHasChildren)
+            return (Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable |
+                    Qt.ItemFlag.ItemNeverHasChildren)
         else:
             # category
-            return Qt.NoItemFlags
+            return Qt.ItemFlag.NoItemFlags
 
     def index(self, row, col, parent=QModelIndex()):
         """Get an index into the model.

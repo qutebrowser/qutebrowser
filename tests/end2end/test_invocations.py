@@ -1,24 +1,11 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import os
+import signal
 import configparser
 import subprocess
 import sys
@@ -27,12 +14,13 @@ import importlib
 import re
 import json
 import platform
+from contextlib import nullcontext as does_not_raise
 
 import pytest
-from PyQt5.QtCore import QProcess, QPoint
+from qutebrowser.qt.core import QProcess, QPoint
 
 from helpers import testutils
-from qutebrowser.utils import qtutils, utils
+from qutebrowser.utils import qtutils, utils, version
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -204,9 +192,9 @@ def test_misconfigured_user_dirs(request, server, temp_basedir_env,
     home = tmp_path / 'home'
     home.mkdir()
     temp_basedir_env['HOME'] = str(home)
-    config_userdir_dir = (tmp_path / 'config')
+    config_userdir_dir = tmp_path / 'config'
     config_userdir_dir.mkdir(parents=True)
-    config_userdir_file = (tmp_path / 'config' / 'user-dirs.dirs')
+    config_userdir_file = tmp_path / 'config' / 'user-dirs.dirs'
     config_userdir_file.touch()
 
     assert temp_basedir_env['XDG_CONFIG_HOME'] == str(tmp_path / 'config')
@@ -262,7 +250,7 @@ def test_version(request):
     # can't use quteproc_new here because it's confused by
     # early process termination
     proc = QProcess()
-    proc.setProcessChannelMode(QProcess.SeparateChannels)
+    proc.setProcessChannelMode(QProcess.ProcessChannelMode.SeparateChannels)
 
     proc.start(sys.executable, args)
     ok = proc.waitForStarted(2000)
@@ -275,7 +263,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    assert proc.exitStatus() == QProcess.NormalExit
+    assert proc.exitStatus() == QProcess.ExitStatus.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
@@ -307,7 +295,7 @@ def test_webengine_download_suffix(request, quteproc_new, tmp_path):
     (tmp_path / 'user-dirs.dirs').write_text(
         'XDG_DOWNLOAD_DIR={}'.format(download_dir))
     env = {'XDG_CONFIG_HOME': str(tmp_path)}
-    args = (['--temp-basedir'] + _base_args(request.config))
+    args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env=env)
 
     quteproc_new.set_setting('downloads.location.prompt', 'false')
@@ -336,7 +324,7 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-@pytest.mark.parametrize('python', ['python2', 'python3.6'])
+@pytest.mark.parametrize('python', ['python2', 'python3.6', 'python3.7'])
 def test_launching_with_old_python(python):
     try:
         proc = subprocess.run(
@@ -346,7 +334,7 @@ def test_launching_with_old_python(python):
     except FileNotFoundError:
         pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.7 is required to run qutebrowser"
+    error = "At least Python 3.8 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
@@ -412,7 +400,18 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
 
 @pytest.mark.parametrize('value, expected', [
-    ('always', 'http://localhost:(port2)/headers-link/(port)'),
+    # https://chromium-review.googlesource.com/c/chromium/src/+/2545444
+    pytest.param(
+        'always',
+        'http://localhost:(port2)/headers-link/(port)',
+        marks=pytest.mark.qt5_only,
+    ),
+    pytest.param(
+        'always',
+        'http://localhost:(port2)/',
+        marks=pytest.mark.qt6_only,
+    ),
+
     ('never', None),
     ('same-domain', 'http://localhost:(port2)/'),  # None with QtWebKit
 ])
@@ -446,7 +445,7 @@ def test_referrer(quteproc_new, server, server2, request, value, expected):
 
 def test_preferred_colorscheme_unsupported(request, quteproc_new):
     """Test versions without preferred-color-scheme support."""
-    if request.config.webengine and qtutils.version_check('5.14'):
+    if request.config.webengine:
         pytest.skip("preferred-color-scheme is supported")
 
     args = _base_args(request.config) + ['--temp-basedir']
@@ -457,7 +456,6 @@ def test_preferred_colorscheme_unsupported(request, quteproc_new):
 
 
 @pytest.mark.qtwebkit_skip
-@testutils.qt514
 @pytest.mark.parametrize('value', ["dark", "light", "auto", None])
 def test_preferred_colorscheme(request, quteproc_new, value):
     """Make sure the the preferred colorscheme is set."""
@@ -481,11 +479,7 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         None: [dark_text, light_text],
     }
     xfail = False
-    if not qtutils.version_check('5.15.2', compiled=False):
-        # On older versions, "light" is not supported, so the result will depend on the
-        # environment.
-        expected_values["light"].append(dark_text)
-    elif qtutils.version_check('5.15.2', exact=True, compiled=False):
+    if qtutils.version_check('5.15.2', exact=True, compiled=False):
         # Test the WORKAROUND https://bugreports.qt.io/browse/QTBUG-89753
         # With that workaround, we should always get the light preference.
         for key in ["auto", None]:
@@ -501,10 +495,13 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         pytest.xfail("QTBUG-89753")
 
 
-@testutils.qt514
 def test_preferred_colorscheme_with_dark_mode(
         request, quteproc_new, webengine_versions):
-    """Test interaction between preferred-color-scheme and dark mode."""
+    """Test interaction between preferred-color-scheme and dark mode.
+
+    We would actually expect a color of 34, 34, 34 and 'Dark preference detected.'.
+    That was the behavior on Qt 5.14 and 5.15.0/.1.
+    """
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
 
@@ -519,25 +516,26 @@ def test_preferred_colorscheme_with_dark_mode(
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
 
-    qtwe_version = webengine_versions.webengine
-    xfail = None
-    if utils.VersionNumber(5, 15, 3) <= qtwe_version <= utils.VersionNumber(6):
-        # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
-        # No workaround known.
-        expected_text = 'Light preference detected.'
-        # light website color, inverted by darkmode
-        expected_color = (testutils.Color(123, 125, 123) if IS_ARM
-                          else testutils.Color(127, 127, 127))
-        xfail = "Chromium bug 1177973"
-    elif qtwe_version == utils.VersionNumber(5, 15, 2):
+    if webengine_versions.webengine == utils.VersionNumber(5, 15, 2):
         # Our workaround breaks when dark mode is enabled...
         # Also, for some reason, dark mode doesn't work on that page either!
         expected_text = 'No preference detected.'
         expected_color = testutils.Color(0, 170, 0)  # green
         xfail = "QTBUG-89753"
+    elif webengine_versions.webengine < utils.VersionNumber(6, 4):
+        # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
+        # No workaround known.
+        expected_text = 'Light preference detected.'
+        # light website color, inverted by darkmode
+        if webengine_versions.webengine >= utils.VersionNumber(6):
+            expected_color = (testutils.Color(148, 146, 148) if IS_ARM
+                              else testutils.Color(144, 144, 144))
+        else:
+            expected_color = (testutils.Color(123, 125, 123) if IS_ARM
+                              else testutils.Color(127, 127, 127))
+        xfail = "Chromium bug 1177973"
     else:
-        # Qt 5.14 and 5.15.0/.1 work correctly.
-        # Hopefully, so does Qt 6.x in the future?
+        # Correct behavior on QtWebEngine 6.4 (and 5.14/5.15.0/5.15.1 in the past)
         expected_text = 'Dark preference detected.'
         expected_color = (testutils.Color(33, 32, 33) if IS_ARM
                           else testutils.Color(34, 34, 34))  # dark website color
@@ -557,7 +555,6 @@ def test_preferred_colorscheme_with_dark_mode(
 @pytest.mark.qtwebkit_skip
 @pytest.mark.parametrize('reason', [
     'Explicitly enabled',
-    pytest.param('Qt 5.14', marks=testutils.qt514),
     'Qt version changed',
     None,
 ])
@@ -582,9 +579,7 @@ def test_service_worker_workaround(
 
     # Edit state file if needed
     state_file = short_tmpdir / 'data' / 'state'
-    if reason == 'Qt 5.14':
-        state_file.remove()
-    elif reason == 'Qt version changed':
+    if reason == 'Qt version changed':
         parser = configparser.ConfigParser()
         parser.read(state_file)
         del parser['general']['qt_version']
@@ -608,7 +603,6 @@ def test_service_worker_workaround(
         assert not service_worker_dir.exists()
 
 
-@testutils.qt513  # Qt 5.12 doesn't store cookies immediately
 @pytest.mark.parametrize('store', [True, False])
 def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     # Start test process
@@ -649,41 +643,57 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         'blank',
         'lightness-cielab',
         {
-            ('5.15', None): testutils.Color(18, 18, 18),
-            ('5.15', 'aarch64'): testutils.Color(16, 16, 16),
-            ('5.14', None): testutils.Color(27, 27, 27),
-            ('5.14', 'aarch64'): testutils.Color(24, 24, 24),
-            (None, None): testutils.Color(0, 0, 0),
+            (None, None): testutils.Color(18, 18, 18),
+            (None, 'aarch64'): testutils.Color(16, 16, 16),
         }
     ),
-    ('blank', 'lightness-hsl', {(None, None): testutils.Color(0, 0, 0)}),
-    ('blank', 'brightness-rgb', {(None, None): testutils.Color(0, 0, 0)}),
+    (
+        'blank',
+        'lightness-hsl',
+        {
+            ('5.15', None): testutils.Color(0, 0, 0),
+            ('6.2', None): testutils.Color(0, 0, 0),
+            # Qt 6.3+ (why #121212 rather than #000000?)
+            (None, None): testutils.Color(18, 18, 18),
+        }
+    ),
+    (
+        'blank',
+        'brightness-rgb',
+        {
+            ('5.15', None): testutils.Color(0, 0, 0),
+            ('6.2', None): testutils.Color(0, 0, 0),
+            # Qt 6.3+ (why #121212 rather than #000000?)
+            (None, None): testutils.Color(18, 18, 18),
+        }
+    ),
 
     (
         'yellow',
         'lightness-cielab',
         {
-            ('5.15', None): testutils.Color(35, 34, 0),
-            ('5.15', 'aarch64'): testutils.Color(33, 32, 0),
-            ('5.14', None): testutils.Color(35, 34, 0),
-            ('5.14', 'aarch64'): testutils.Color(33, 32, 0),
-            (None, None): testutils.Color(204, 204, 0),
+            (None, None): testutils.Color(35, 34, 0),
+            (None, 'aarch64'): testutils.Color(33, 32, 0),
         }
     ),
     (
         'yellow',
         'lightness-hsl',
         {
-            (None, None): testutils.Color(204, 204, 0),
-            (None, 'aarch64'): testutils.Color(206, 207, 0),
+            (None, None): testutils.Color(215, 215, 0),
+            (None, 'aarch64'): testutils.Color(214, 215, 0),
+            ('5.15', None): testutils.Color(204, 204, 0),
+            ('5.15', 'aarch64'): testutils.Color(206, 207, 0),
         },
     ),
     (
         'yellow',
         'brightness-rgb',
         {
-            (None, None): testutils.Color(0, 0, 204),
-            (None, 'aarch64'): testutils.Color(0, 0, 206),
+            (None, None): testutils.Color(0, 0, 215),
+            (None, 'aarch64'): testutils.Color(0, 0, 214),
+            ('5.15', None): testutils.Color(0, 0, 204),
+            ('5.15', 'aarch64'): testutils.Color(0, 0, 206),
         }
     ),
 ])
@@ -724,7 +734,7 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
 
 
 @pytest.mark.parametrize("suffix", ["inline", "display"])
-def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
+def test_dark_mode_mathml(webengine_versions, quteproc_new, request, qtbot, suffix):
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
 
@@ -739,7 +749,10 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
     quteproc_new.wait_for_js('Image loaded')
 
     # First make sure loading finished by looking outside of the image
-    expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
+    if webengine_versions.webengine >= utils.VersionNumber(6):
+        expected = testutils.Color(0, 0, 214) if IS_ARM else testutils.Color(0, 0, 215)
+    else:
+        expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
 
     quteproc_new.get_screenshot(
         probe_pos=QPoint(105, 0),
@@ -753,7 +766,6 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot, suffix):
     )
 
 
-@testutils.qt514
 @pytest.mark.parametrize('value, preference', [
     ('true', 'Reduced motion'),
     ('false', 'No'),
@@ -787,8 +799,8 @@ def test_unavailable_backend(request, quteproc_new):
     that the chosen backend is actually available - i.e., that the error message is
     properly printed, rather than an unhandled exception.
     """
-    qtwe_module = "PyQt5.QtWebEngineWidgets"
-    qtwk_module = "PyQt5.QtWebKitWidgets"
+    qtwe_module = "qutebrowser.qt.webenginewidgets"
+    qtwk_module = "qutebrowser.qt.webkitwidgets"
     # Note we want to try the *opposite* backend here.
     if request.config.webengine:
         pytest.importorskip(qtwe_module)
@@ -822,7 +834,7 @@ def test_unavailable_backend(request, quteproc_new):
 def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
     args = _base_args(request.config) + ['--temp-basedir', ':quit']
     args.remove('--debug')
-    args.remove('about:blank')  # interfers with :quit at the end
+    args.remove('about:blank')  # interferes with :quit at the end
 
     quteproc_new.exit_expected = True
     quteproc_new.start(args, env={'XDG_RUNTIME_DIR': str(runtime_tmpdir)})
@@ -845,6 +857,13 @@ def test_sandboxing(
         pytest.skip("Skipped with QtWebKit")
     elif sandboxing == "enable-all" and testutils.disable_seccomp_bpf_sandbox():
         pytest.skip("Full sandboxing not supported")
+    elif version.is_flatpak():
+        # https://github.com/flathub/io.qt.qtwebengine.BaseApp/pull/66
+        has_namespaces = False
+        expected_result = "You are NOT adequately sandboxed."
+        has_yama_non_broker = has_yama
+    else:
+        has_yama_non_broker = False
 
     args = _base_args(request.config) + [
         '--temp-basedir',
@@ -866,42 +885,59 @@ def test_sandboxing(
     bpf_text = "Seccomp-BPF sandbox"
     yama_text = "Ptrace Protection with Yama LSM"
 
-    if "\n\n\n" in text:
-        # Qt 5.12
-        header, rest = text.split("\n", maxsplit=1)
-        rest, result = rest.rsplit("\n\n", maxsplit=1)
-        lines = rest.replace("\t\n", "\t").split("\n\n\n")
+    header, *lines, empty, result = text.split("\n")
+    assert not empty
 
-        expected_status = {
-            "Namespace Sandbox": "Yes" if has_namespaces else "No",
-            "Network namespaces": "Yes" if has_namespaces else "No",
-            "PID namespaces": "Yes" if has_namespaces else "No",
-            "SUID Sandbox": "No",
+    expected_status = {
+        "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
 
-            bpf_text: "Yes" if has_seccomp else "No",
-            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
+        "PID namespaces": "Yes" if has_namespaces else "No",
+        "Network namespaces": "Yes" if has_namespaces else "No",
 
-            "Yama LSM Enforcing": "Yes" if has_yama else "No",
-        }
-    else:
-        header, *lines, empty, result = text.split("\n")
-        assert not empty
+        bpf_text: "Yes" if has_seccomp else "No",
+        f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
-        expected_status = {
-            "Layer 1 Sandbox": "Namespace" if has_namespaces else "None",
-
-            "PID namespaces": "Yes" if has_namespaces else "No",
-            "Network namespaces": "Yes" if has_namespaces else "No",
-
-            bpf_text: "Yes" if has_seccomp else "No",
-            f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
-
-            f"{yama_text} (Broker)": "Yes" if has_yama else "No",
-            f"{yama_text} (Non-broker)": "No",
-        }
+        f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+        f"{yama_text} (Non-broker)": "Yes" if has_yama_non_broker else "No",
+    }
 
     assert header == "Sandbox Status"
     assert result == expected_result
 
     status = dict(line.split("\t") for line in lines)
     assert status == expected_status
+
+
+@pytest.mark.not_frozen
+def test_logfilter_arg_does_not_crash(request, quteproc_new):
+    args = ['--temp-basedir', '--debug', '--logfilter', 'commands, init, ipc, webview']
+
+    with does_not_raise():
+        quteproc_new.start(args=args + _base_args(request.config))
+
+    # Waiting for quit to make sure no other warning is emitted
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+def test_restart(request, quteproc_new):
+    args = _base_args(request.config) + ['--temp-basedir']
+    quteproc_new.start(args)
+    quteproc_new.send_cmd(':restart')
+
+    prefix = "New process PID: "
+    line = quteproc_new.wait_for(message=f"{prefix}*")
+    quteproc_new.wait_for_quit()
+
+    assert line.message.startswith(prefix)
+    pid = int(line.message[len(prefix):])
+    os.kill(pid, signal.SIGTERM)
+
+    try:
+        # If the new process hangs, this will hang too.
+        # Still better than just ignoring it, so we can fix it if something is broken.
+        os.waitpid(pid, 0)  # pid, options... positional-only :(
+    except (ChildProcessError, PermissionError):
+        # Already gone. Even if not documented, Windows seems to raise PermissionError
+        # here...
+        pass

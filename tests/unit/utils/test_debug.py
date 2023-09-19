@@ -1,21 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.debug."""
 
@@ -25,10 +10,10 @@ import time
 import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
-from PyQt5.QtWidgets import QStyle, QFrame, QSpinBox
+from qutebrowser.qt.core import pyqtSignal, Qt, QEvent, QObject, QTimer
+from qutebrowser.qt.widgets import QStyle, QFrame, QSpinBox
 
-from qutebrowser.utils import debug
+from qutebrowser.utils import debug, qtutils
 from qutebrowser.misc import objects
 
 
@@ -40,7 +25,7 @@ class EventObject(QObject):
 
 def test_log_events(qapp, caplog):
     obj = EventObject()
-    qapp.sendEvent(obj, QEvent(QEvent.User))
+    qapp.sendEvent(obj, QEvent(QEvent.Type.User))
     qapp.processEvents()
     assert caplog.messages == ['Event in test_debug.EventObject: User']
 
@@ -133,19 +118,21 @@ class TestQEnumKey:
         assert hasattr(QFrame, 'staticMetaObject')
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (QStyle, QStyle.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
-        (QFrame, QFrame.Sunken, None, 'Sunken'),
+        (QStyle, QStyle.PrimitiveElement.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
+        (QFrame, QFrame.Shadow.Sunken, None, 'Sunken'),
         (QFrame, 0x0030, QFrame.Shadow, 'Sunken'),
         (QFrame, 0x1337, QFrame.Shadow, '0x1337'),
-        (Qt, Qt.AnchorLeft, None, 'AnchorLeft'),
+        (Qt, Qt.AnchorPoint.AnchorLeft, None, 'AnchorLeft'),
+
+        # No static meta object, passing in an int on Qt 6
+        (QEvent, qtutils.extract_enum_val(QEvent.Type.User), QEvent.Type, 'User'),
+
+        # Unknown value with IntFlags
+        (Qt, Qt.AlignmentFlag(1024), None, '0x0400'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
         assert key == expected
-
-    def test_add_base(self):
-        key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
-        assert key == 'QFrame.Sunken'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
@@ -160,18 +147,20 @@ class TestQFlagsKey:
     https://github.com/qutebrowser/qutebrowser/issues/42
     """
 
-    fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)
-
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (Qt, Qt.AlignTop, None, 'AlignTop'),
-        pytest.param(Qt, Qt.AlignLeft | Qt.AlignTop, None,
-                     'AlignLeft|AlignTop', marks=fixme),
-        (Qt, Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
-        pytest.param(Qt, 0x0021, Qt.Alignment, 'AlignLeft|AlignTop',
-                     marks=fixme),
-        (Qt, 0x1100, Qt.Alignment, '0x0100|0x1000'),
-        (Qt, Qt.DockWidgetAreas(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
-        (Qt, Qt.DockWidgetAreas(0), None, '0x0000'),
+        (Qt, Qt.AlignmentFlag.AlignTop, None, 'AlignTop'),
+        pytest.param(Qt, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, None,
+                     'AlignLeft|AlignTop', marks=pytest.mark.qt5_xfail(raises=AssertionError)),
+        (Qt, Qt.AlignmentFlag.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
+        pytest.param(Qt, 0x0021, Qt.AlignmentFlag, 'AlignLeft|AlignTop',
+                     marks=pytest.mark.qt5_xfail(raises=AssertionError)),
+        (Qt, 0x1100, Qt.AlignmentFlag, 'AlignBaseline|0x1000'),
+        (Qt, Qt.DockWidgetArea(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
+        (Qt, Qt.DockWidgetArea(0), None, 'NoDockWidgetArea'),
+        (Qt, Qt.KeyboardModifier.ShiftModifier, Qt.KeyboardModifier, 'ShiftModifier'),
+        (Qt, Qt.KeyboardModifier.ShiftModifier, None, 'ShiftModifier'),
+        (Qt, Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier, Qt.KeyboardModifier, 'ShiftModifier|ControlModifier'),
+        pytest.param(Qt, Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier, None, 'ShiftModifier|ControlModifier', marks=pytest.mark.qt5_xfail(raises=AssertionError)),
     ])
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)
@@ -186,7 +175,7 @@ class TestQFlagsKey:
 
         No idea what's happening here exactly...
         """
-        qwebpage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+        qwebpage = pytest.importorskip("qutebrowser.qt.webkitwidgets").QWebPage
 
         flags = qwebpage.FindWrapsAroundDocument
         flags |= qwebpage.FindBackward
@@ -196,11 +185,6 @@ class TestQFlagsKey:
         debug.qflags_key(qwebpage,
                          flags,
                          klass=qwebpage.FindFlag)
-
-    def test_add_base(self):
-        """Test with add_base=True."""
-        flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
-        assert flags == 'Qt.AlignTop'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
@@ -297,6 +281,6 @@ class TestGetAllObjects:
     def test_get_all_objects_qapp(self, qapp, monkeypatch):
         monkeypatch.setattr(objects, 'qapp', qapp)
         objs = debug.get_all_objects()
-        event_dispatcher = '<PyQt5.QtCore.QAbstractEventDispatcher object at'
-        session_manager = '<PyQt5.QtGui.QSessionManager object at'
+        event_dispatcher = 'QtCore.QAbstractEventDispatcher object at'
+        session_manager = 'QtGui.QSessionManager object at'
         assert event_dispatcher in objs or session_manager in objs

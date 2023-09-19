@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utilities related to jinja2."""
 
@@ -29,7 +14,7 @@ from typing import Any, Callable, FrozenSet, Iterator, List, Set, Tuple
 
 import jinja2
 import jinja2.nodes
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import utils, urlutils, log, qtutils, resources
 from qutebrowser.misc import debugcachestats
@@ -114,7 +99,7 @@ class Environment(jinja2.Environment):
         url = QUrl('qute://resource')
         url.setPath('/' + path)
         urlutils.ensure_valid(url)
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(urlutils.FormatOption.ENCODED)
         return urlstr
 
     def _data_url(self, path: str) -> str:
@@ -142,7 +127,7 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 
 
 @debugcachestats.register()
-@functools.lru_cache()
+@functools.lru_cache
 def template_config_variables(template: str) -> FrozenSet[str]:
     """Return the config variables used in the template."""
     unvisted_nodes: List[jinja2.nodes.Node] = [environment.parse(template)]

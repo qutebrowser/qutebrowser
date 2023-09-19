@@ -1,33 +1,14 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Based on the Eric5 helpviewer,
 # Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
-#
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-#
-# For some reason, a segfault will be triggered if the unnecessary lambdas in
-# this file aren't there.
-# pylint: disable=unnecessary-lambda
 
 """Special network replies.."""
 
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtCore import pyqtSlot, QIODevice, QByteArray, QTimer
+from qutebrowser.qt.network import QNetworkReply, QNetworkRequest
+from qutebrowser.qt.core import pyqtSlot, QIODevice, QByteArray, QTimer
 
 
 class FixedDataNetworkReply(QNetworkReply):
@@ -49,13 +30,13 @@ class FixedDataNetworkReply(QNetworkReply):
 
         self.setRequest(request)
         self.setUrl(request.url())
-        self.setOpenMode(QIODevice.ReadOnly)
+        self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
 
-        self.setHeader(QNetworkRequest.ContentTypeHeader, mimeType)
-        self.setHeader(QNetworkRequest.ContentLengthHeader,
+        self.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, mimeType)
+        self.setHeader(QNetworkRequest.KnownHeaders.ContentLengthHeader,
                        QByteArray.number(len(fileData)))
-        self.setAttribute(QNetworkRequest.HttpStatusCodeAttribute, 200)
-        self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, 'OK')
+        self.setAttribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute, 200)
+        self.setAttribute(QNetworkRequest.Attribute.HttpReasonPhraseAttribute, 'OK')
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.
         # pylint: disable=unnecessary-lambda
@@ -114,9 +95,10 @@ class ErrorNetworkReply(QNetworkReply):
         self.setUrl(req.url())
         # We don't actually want to read anything, but we still need to open
         # the device to avoid getting a warning.
-        self.setOpenMode(QIODevice.ReadOnly)
+        self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
-        QTimer.singleShot(0, lambda: self.error.emit(error))
+        QTimer.singleShot(0, lambda: self.errorOccurred.emit(error))
+        # pylint: disable-next=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
@@ -128,7 +110,7 @@ class ErrorNetworkReply(QNetworkReply):
 
     def readData(self, _maxlen):
         """No data available."""
-        return bytes()
+        return b''
 
     def isFinished(self):
         return True
@@ -143,11 +125,12 @@ class RedirectNetworkReply(QNetworkReply):
 
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
-        self.setAttribute(QNetworkRequest.RedirectionTargetAttribute, new_url)
+        self.setAttribute(QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url)
+        # pylint: disable-next=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""
 
     def readData(self, _maxlen):
-        return bytes()
+        return b''

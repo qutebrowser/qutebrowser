@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Bridge from QWebSettings to our own settings.
 
@@ -27,10 +12,12 @@ Module attributes:
 from typing import cast
 import os.path
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QFont
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebPage
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QFont
+# pylint: disable=no-name-in-module
+from qutebrowser.qt.webkit import QWebSettings
+from qutebrowser.qt.webkitwidgets import QWebPage
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
@@ -50,82 +37,82 @@ class WebKitSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.images':
-            Attr(QWebSettings.AutoLoadImages),
+            Attr(QWebSettings.WebAttribute.AutoLoadImages),
         'content.javascript.enabled':
-            Attr(QWebSettings.JavascriptEnabled),
+            Attr(QWebSettings.WebAttribute.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            Attr(QWebSettings.JavascriptCanOpenWindows),
+            Attr(QWebSettings.WebAttribute.JavascriptCanOpenWindows),
         'content.javascript.can_close_tabs':
-            Attr(QWebSettings.JavascriptCanCloseWindows),
+            Attr(QWebSettings.WebAttribute.JavascriptCanCloseWindows),
         'content.javascript.clipboard':
-            Attr(QWebSettings.JavascriptCanAccessClipboard,
+            Attr(QWebSettings.WebAttribute.JavascriptCanAccessClipboard,
                  converter=lambda val: val != "none"),
         'content.plugins':
-            Attr(QWebSettings.PluginsEnabled),
+            Attr(QWebSettings.WebAttribute.PluginsEnabled),
         'content.webgl':
-            Attr(QWebSettings.WebGLEnabled),
+            Attr(QWebSettings.WebAttribute.WebGLEnabled),
         'content.hyperlink_auditing':
-            Attr(QWebSettings.HyperlinkAuditingEnabled),
+            Attr(QWebSettings.WebAttribute.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            Attr(QWebSettings.LocalContentCanAccessRemoteUrls),
+            Attr(QWebSettings.WebAttribute.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            Attr(QWebSettings.LocalContentCanAccessFileUrls),
+            Attr(QWebSettings.WebAttribute.LocalContentCanAccessFileUrls),
         'content.dns_prefetch':
-            Attr(QWebSettings.DnsPrefetchEnabled),
+            Attr(QWebSettings.WebAttribute.DnsPrefetchEnabled),
         'content.frame_flattening':
-            Attr(QWebSettings.FrameFlatteningEnabled),
+            Attr(QWebSettings.WebAttribute.FrameFlatteningEnabled),
         'content.cache.appcache':
-            Attr(QWebSettings.OfflineWebApplicationCacheEnabled),
+            Attr(QWebSettings.WebAttribute.OfflineWebApplicationCacheEnabled),
         'content.local_storage':
-            Attr(QWebSettings.LocalStorageEnabled,
-                 QWebSettings.OfflineStorageDatabaseEnabled),
+            Attr(QWebSettings.WebAttribute.LocalStorageEnabled,
+                 QWebSettings.WebAttribute.OfflineStorageDatabaseEnabled),
         'content.print_element_backgrounds':
-            Attr(QWebSettings.PrintElementBackgrounds),
+            Attr(QWebSettings.WebAttribute.PrintElementBackgrounds),
         'content.xss_auditing':
-            Attr(QWebSettings.XSSAuditingEnabled),
+            Attr(QWebSettings.WebAttribute.XSSAuditingEnabled),
         'content.site_specific_quirks.enabled':
-            Attr(QWebSettings.SiteSpecificQuirksEnabled),
+            Attr(QWebSettings.WebAttribute.SiteSpecificQuirksEnabled),
 
         'input.spatial_navigation':
-            Attr(QWebSettings.SpatialNavigationEnabled),
+            Attr(QWebSettings.WebAttribute.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            Attr(QWebSettings.LinksIncludedInFocusChain),
+            Attr(QWebSettings.WebAttribute.LinksIncludedInFocusChain),
 
         'zoom.text_only':
-            Attr(QWebSettings.ZoomTextOnly),
+            Attr(QWebSettings.WebAttribute.ZoomTextOnly),
         'scrolling.smooth':
-            Attr(QWebSettings.ScrollAnimatorEnabled),
+            Attr(QWebSettings.WebAttribute.ScrollAnimatorEnabled),
     }
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':
-            QWebSettings.MinimumFontSize,
+            QWebSettings.FontSize.MinimumFontSize,
         'fonts.web.size.minimum_logical':
-            QWebSettings.MinimumLogicalFontSize,
+            QWebSettings.FontSize.MinimumLogicalFontSize,
         'fonts.web.size.default':
-            QWebSettings.DefaultFontSize,
+            QWebSettings.FontSize.DefaultFontSize,
         'fonts.web.size.default_fixed':
-            QWebSettings.DefaultFixedFontSize,
+            QWebSettings.FontSize.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
-        'fonts.web.family.standard': QWebSettings.StandardFont,
-        'fonts.web.family.fixed': QWebSettings.FixedFont,
-        'fonts.web.family.serif': QWebSettings.SerifFont,
-        'fonts.web.family.sans_serif': QWebSettings.SansSerifFont,
-        'fonts.web.family.cursive': QWebSettings.CursiveFont,
-        'fonts.web.family.fantasy': QWebSettings.FantasyFont,
+        'fonts.web.family.standard': QWebSettings.FontFamily.StandardFont,
+        'fonts.web.family.fixed': QWebSettings.FontFamily.FixedFont,
+        'fonts.web.family.serif': QWebSettings.FontFamily.SerifFont,
+        'fonts.web.family.sans_serif': QWebSettings.FontFamily.SansSerifFont,
+        'fonts.web.family.cursive': QWebSettings.FontFamily.CursiveFont,
+        'fonts.web.family.fantasy': QWebSettings.FontFamily.FantasyFont,
     }
 
     # Mapping from QWebSettings::QWebSettings() in
     # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
     _FONT_TO_QFONT = {
-        QWebSettings.StandardFont: QFont.Serif,
-        QWebSettings.FixedFont: QFont.Monospace,
-        QWebSettings.SerifFont: QFont.Serif,
-        QWebSettings.SansSerifFont: QFont.SansSerif,
-        QWebSettings.CursiveFont: QFont.Cursive,
-        QWebSettings.FantasyFont: QFont.Fantasy,
+        QWebSettings.FontFamily.StandardFont: QFont.StyleHint.Serif,
+        QWebSettings.FontFamily.FixedFont: QFont.StyleHint.Monospace,
+        QWebSettings.FontFamily.SerifFont: QFont.StyleHint.Serif,
+        QWebSettings.FontFamily.SansSerifFont: QFont.StyleHint.SansSerif,
+        QWebSettings.FontFamily.CursiveFont: QFont.StyleHint.Cursive,
+        QWebSettings.FontFamily.FantasyFont: QFont.StyleHint.Fantasy,
     }
 
 
@@ -139,10 +126,10 @@ def _set_user_stylesheet(settings):
 def _set_cookie_accept_policy(settings):
     """Update the content.cookies.accept setting."""
     mapping = {
-        'all': QWebSettings.AlwaysAllowThirdPartyCookies,
-        'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
-        'never': QWebSettings.AlwaysBlockThirdPartyCookies,
-        'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
+        'all': QWebSettings.ThirdPartyCookiePolicy.AlwaysAllowThirdPartyCookies,
+        'no-3rdparty': QWebSettings.ThirdPartyCookiePolicy.AlwaysBlockThirdPartyCookies,
+        'never': QWebSettings.ThirdPartyCookiePolicy.AlwaysBlockThirdPartyCookies,
+        'no-unknown-3rdparty': QWebSettings.ThirdPartyCookiePolicy.AllowThirdPartyWithExistingCookies,
     }
     value = config.val.content.cookies.accept
     settings.setThirdPartyCookiePolicy(mapping[value])

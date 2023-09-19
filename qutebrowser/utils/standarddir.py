@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utilities to get and initialize data/config paths."""
 
@@ -27,10 +12,10 @@ import enum
 import argparse
 from typing import Iterator, Optional
 
-from PyQt5.QtCore import QStandardPaths
-from PyQt5.QtWidgets import QApplication
+from qutebrowser.qt.core import QStandardPaths
+from qutebrowser.qt.widgets import QApplication
 
-from qutebrowser.utils import log, debug, utils, version
+from qutebrowser.utils import log, debug, utils, version, qtutils
 
 # The cached locations
 _locations = {}
@@ -67,7 +52,7 @@ def _unset_organization() -> Iterator[None]:
     qapp = QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
-        qapp.setOrganizationName(None)  # type: ignore[arg-type]
+        qapp.setOrganizationName(qtutils.QT_NONE)
     try:
         yield
     finally:
@@ -77,12 +62,12 @@ def _unset_organization() -> Iterator[None]:
 
 def _init_config(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for configs."""
-    typ = QStandardPaths.ConfigLocation
+    typ = QStandardPaths.StandardLocation.ConfigLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(
-                QStandardPaths.AppDataLocation)
+                QStandardPaths.StandardLocation.AppDataLocation)
             path = os.path.join(app_data_path, 'config')
         else:
             path = _writable_location(typ)
@@ -128,7 +113,7 @@ def config_py() -> str:
 
 def _init_data(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for data."""
-    typ = QStandardPaths.AppDataLocation
+    typ = QStandardPaths.StandardLocation.AppDataLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
@@ -136,7 +121,7 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
             path = os.path.join(app_data_path, 'data')
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
-            config_path = _writable_location(QStandardPaths.ConfigLocation)
+            config_path = _writable_location(QStandardPaths.StandardLocation.ConfigLocation)
             path = os.path.join(config_path, 'data')
         else:
             path = _writable_location(typ)
@@ -169,12 +154,12 @@ def data(system: bool = False) -> str:
 
 def _init_cache(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for the cache."""
-    typ = QStandardPaths.CacheLocation
+    typ = QStandardPaths.StandardLocation.CacheLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
             # Local, not Roaming!
-            data_path = _writable_location(QStandardPaths.AppLocalDataLocation)
+            data_path = _writable_location(QStandardPaths.StandardLocation.AppLocalDataLocation)
             path = os.path.join(data_path, 'cache')
         else:
             path = _writable_location(typ)
@@ -193,7 +178,7 @@ def _init_download(args: Optional[argparse.Namespace]) -> None:
     Note this is only the default directory as found by Qt.
     Therefore, we also don't create it.
     """
-    typ = QStandardPaths.DownloadLocation
+    typ = QStandardPaths.StandardLocation.DownloadLocation
     path = _from_args(typ, args)
     if path is None:
         path = _writable_location(typ)
@@ -208,9 +193,9 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
     """Initialize location for runtime data."""
     if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
-        typ = QStandardPaths.TempLocation
+        typ = QStandardPaths.StandardLocation.TempLocation
     else:
-        typ = QStandardPaths.RuntimeLocation
+        typ = QStandardPaths.StandardLocation.RuntimeLocation
 
     path = _from_args(typ, args)
     if path is None:
@@ -218,10 +203,10 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
             path = _writable_location(typ)
         except EmptyValueError:
             # Fall back to TempLocation when RuntimeLocation is misconfigured
-            if typ == QStandardPaths.TempLocation:
+            if typ == QStandardPaths.StandardLocation.TempLocation:
                 raise
             path = _writable_location(  # pragma: no cover
-                QStandardPaths.TempLocation)
+                QStandardPaths.StandardLocation.TempLocation)
 
         # This is generic, but per-user.
         # _writable_location makes sure we have a qutebrowser-specific subdir.
@@ -263,10 +248,10 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        QStandardPaths.ConfigLocation, QStandardPaths.AppLocalDataLocation,
-        QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
-        QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
-        QStandardPaths.AppDataLocation], typ_str
+        QStandardPaths.StandardLocation.ConfigLocation, QStandardPaths.StandardLocation.AppLocalDataLocation,
+        QStandardPaths.StandardLocation.CacheLocation, QStandardPaths.StandardLocation.DownloadLocation,
+        QStandardPaths.StandardLocation.RuntimeLocation, QStandardPaths.StandardLocation.TempLocation,
+        QStandardPaths.StandardLocation.AppDataLocation], typ_str
 
     with _unset_organization():
         path = QStandardPaths.writableLocation(typ)
@@ -281,7 +266,7 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     # Add the application name to the given path if needed.
     # This is in order for this to work without a QApplication (and thus
     # QStandardsPaths not knowing the application name).
-    if (typ != QStandardPaths.DownloadLocation and
+    if (typ != QStandardPaths.StandardLocation.DownloadLocation and
             path.split(os.sep)[-1] != APPNAME):
         path = os.path.join(path, APPNAME)
 
@@ -298,12 +283,12 @@ def _from_args(
         The overridden path, or None if there is no override.
     """
     basedir_suffix = {
-        QStandardPaths.ConfigLocation: 'config',
-        QStandardPaths.AppDataLocation: 'data',
-        QStandardPaths.AppLocalDataLocation: 'data',
-        QStandardPaths.CacheLocation: 'cache',
-        QStandardPaths.DownloadLocation: 'download',
-        QStandardPaths.RuntimeLocation: 'runtime',
+        QStandardPaths.StandardLocation.ConfigLocation: 'config',
+        QStandardPaths.StandardLocation.AppDataLocation: 'data',
+        QStandardPaths.StandardLocation.AppLocalDataLocation: 'data',
+        QStandardPaths.StandardLocation.CacheLocation: 'cache',
+        QStandardPaths.StandardLocation.DownloadLocation: 'download',
+        QStandardPaths.StandardLocation.RuntimeLocation: 'runtime',
     }
 
     if getattr(args, 'basedir', None) is None:
@@ -330,8 +315,10 @@ def _create(path: str) -> None:
         for k, v in os.environ.items():
             if k == 'HOME' or k.startswith('XDG_'):
                 log.init.debug(f"{k} = {v}")
-        raise Exception("Trying to create directory inside /home during "
-                        "tests, this should not happen.")
+        raise AssertionError(
+            "Trying to create directory inside /home during "
+            "tests, this should not happen."
+        )
     os.makedirs(path, 0o700, exist_ok=True)
 
 

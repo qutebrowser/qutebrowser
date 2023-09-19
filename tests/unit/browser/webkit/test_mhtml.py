@@ -1,22 +1,7 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2018 Daniel Schadt
+# SPDX-FileCopyrightText: Daniel Schadt
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import io
 import textwrap
@@ -94,8 +79,8 @@ def test_refuses_non_ascii_header_value(checker, header, value):
         'root_content': b'',
         'content_location': 'http://example.com',
         'content_type': 'text/plain',
+        header: value,
     }
-    defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
     with pytest.raises(UnicodeEncodeError, match="'ascii' codec can't encode"):
         writer.write_to(checker.fp)

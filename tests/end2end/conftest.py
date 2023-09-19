@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Things needed for end2end testing."""
 
@@ -27,7 +12,7 @@ import pstats
 import operator
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
+from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
@@ -69,7 +54,7 @@ def _check_version(op_str, running_version, version_str, as_hex=False):
         '<': operator.lt,
     }
     op = operators[op_str]
-    major, minor, patch = [int(e) for e in version_str.split('.')]
+    major, minor, patch = (int(e) for e in version_str.split('.'))
     if as_hex:
         version = (major << 16) | (minor << 8) | patch
     else:
@@ -119,8 +104,9 @@ def _get_version_tag(tag):
         )
     elif package == 'pyqtwebengine':
         try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+            from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
         except ImportError:
+            # QtWebKit
             running_version = PYQT_VERSION
         else:
             running_version = PYQT_WEBENGINE_VERSION
@@ -152,7 +138,6 @@ def _get_backend_tag(tag):
     pytest_marks = {
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
-        'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -179,10 +164,6 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers."""
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-    # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-
     lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
     qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
 
@@ -191,19 +172,12 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
-        ('qtwebengine_notifications',
-         'Skipped unless QtWebEngine >= 5.13',
-         pytest.mark.skipif,
-         not (config.webengine and qtutils.version_check('5.13'))),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
-        ('js_headers', 'Sets headers dynamically via JS',
-         pytest.mark.skipif,
-         config.webengine and not header_bug_fixed),
         ('qtwebkit_pdf_imageformat_skip',
          'Skipped with QtWebKit if PDF image plugin is available',
          pytest.mark.skipif,

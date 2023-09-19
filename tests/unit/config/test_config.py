@@ -1,20 +1,7 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.config."""
 
@@ -23,8 +10,8 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.gui import QColor
 
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
@@ -198,20 +185,20 @@ class TestKeyConfig:
         # Chained command
         ({'a': 'open foo ;; open bar'},
          {'open foo': ['a'], 'open bar': ['a']}),
-        # Command using set-cmd-text (#5942)
+        # Command using cmd-set-text (#5942)
         (
             {
-                "o": "set-cmd-text -s :open",
-                "O": "set-cmd-text -s :open -t",
-                "go": "set-cmd-text :open {url:pretty}",
+                "o": "cmd-set-text -s :open",
+                "O": "cmd-set-text -s :open -t",
+                "go": "cmd-set-text :open {url:pretty}",
                 # all of these should be ignored
-                "/": "set-cmd-text /",
-                "?": "set-cmd-text ?",
-                ":": "set-cmd-text :",
-                "a": "set-cmd-text no_leading_colon",
-                "b": "set-cmd-text -s -a :skip_cuz_append",
-                "c": "set-cmd-text --append :skip_cuz_append",
-                "x": "set-cmd-text",
+                "/": "cmd-set-text /",
+                "?": "cmd-set-text ?",
+                ":": "cmd-set-text :",
+                "a": "cmd-set-text no_leading_colon",
+                "b": "cmd-set-text -s -a :skip_cuz_append",
+                "c": "cmd-set-text --append :skip_cuz_append",
+                "x": "cmd-set-text",
             },
             {
                 "open": ["o"],
@@ -266,7 +253,7 @@ class TestKeyConfig:
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         key_config_stub.bind(keyseq('a'),
-                             'set-cmd-text :nop ;; rl-beginning-of-line',
+                             'cmd-set-text :nop ;; rl-beginning-of-line',
                              mode='normal')
 
     def test_bind_default(self, key_config_stub, config_stub):
@@ -728,12 +715,20 @@ class TestConfig:
             with qtbot.assert_not_emitted(conf.changed):
                 meth('colors.statusbar.normal.bg', '#abcdef', pattern=pattern)
 
-    def test_dump_userconfig(self, conf):
+    @pytest.mark.parametrize("include_hidden", [True, False])
+    def test_dump_userconfig(self, conf, include_hidden):
         conf.set_obj('content.plugins', True)
         conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})
-        lines = ['content.headers.custom = {"X-Foo": "bar"}',
-                 'content.plugins = true']
-        assert conf.dump_userconfig().splitlines() == lines
+        conf.set_obj('content.webgl', False, hide_userconfig=True)
+
+        lines = [
+            'content.headers.custom = {"X-Foo": "bar"}',
+            'content.plugins = true',
+        ]
+        if include_hidden:
+            lines.append("content.webgl = false")
+
+        assert conf.dump_userconfig(include_hidden=include_hidden).splitlines() == lines
 
     def test_dump_userconfig_default(self, conf):
         assert conf.dump_userconfig() == '<Default configuration>'
@@ -771,7 +766,7 @@ class TestContainer:
 
     @pytest.mark.parametrize('configapi, expected', [
         (object(), 'rgb'),
-        (None, QColor.Rgb),
+        (None, QColor.Spec.Rgb),
     ])
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi

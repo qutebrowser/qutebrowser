@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # To allow count being documented
 # pylint: disable=differing-param-doc
@@ -34,8 +19,8 @@ try:
 except ImportError:
     hunter = None
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
+from qutebrowser.qt.core import Qt
+from qutebrowser.qt.printsupport import QPrintPreviewDialog
 
 from qutebrowser.api import cmdutils, apitypes, message, config
 
@@ -81,25 +66,28 @@ def _print_preview(tab: apitypes.Tab) -> None:
 
     tab.printing.check_preview_support()
     diag = QPrintPreviewDialog(tab)
-    diag.setAttribute(Qt.WA_DeleteOnClose)
+    diag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
     diag.setWindowFlags(
         diag.windowFlags() |
-        Qt.WindowMaximizeButtonHint |
-        Qt.WindowMinimizeButtonHint)
+        Qt.WindowType.WindowMaximizeButtonHint |
+        Qt.WindowType.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
     diag.exec()
 
 
-def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
+def _print_pdf(tab: apitypes.Tab, path: pathlib.Path) -> None:
     """Print to the given PDF file."""
     tab.printing.check_pdf_support()
-    filename = os.path.expanduser(filename)
-    directory = os.path.dirname(filename)
-    if directory and not os.path.exists(directory):
-        os.mkdir(directory)
-    tab.printing.to_pdf(filename)
-    _LOGGER.debug("Print to file: {}".format(filename))
+    path = path.expanduser()
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise cmdutils.CommandError(e)
+
+    tab.printing.to_pdf(path)
+    _LOGGER.debug(f"Print to file: {path}")
 
 
 @cmdutils.register(name='print')
@@ -107,7 +95,7 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
 @cmdutils.argument('pdf', flag='f', metavar='file')
 def printpage(tab: Optional[apitypes.Tab],
               preview: bool = False, *,
-              pdf: str = None) -> None:
+              pdf: Optional[pathlib.Path] = None) -> None:
     """Print the current/[count]th tab.
 
     Args:
@@ -324,7 +312,7 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
     Available actions:
     https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
-    https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+    https://doc.qt.io/qt-6/qwebenginepage.html#WebAction-enum (WebEngine)
 
     Args:
         action: The action to execute, e.g. MoveToNextChar.
@@ -365,7 +353,7 @@ def message_error(text: str, rich: bool = False) -> None:
     Args:
         text: The text to show.
         rich: Render the given text as
-              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     message.error(text, rich=rich)
 
@@ -379,7 +367,7 @@ def message_info(text: str, count: int = 1, rich: bool = False) -> None:
         text: The text to show.
         count: How many times to show the message.
         rich: Render the given text as
-              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     for _ in range(count):
         message.info(text, rich=rich)
@@ -392,7 +380,7 @@ def message_warning(text: str, rich: bool = False) -> None:
     Args:
         text: The text to show.
         rich: Render the given text as
-              https://doc.qt.io/qt-5/richtext-html-subset.html[Qt Rich Text].
+              https://doc.qt.io/qt-6/richtext-html-subset.html[Qt Rich Text].
     """
     message.warning(text, rich=rich)
 
@@ -405,6 +393,7 @@ def debug_crash(typ: str = 'exception') -> None:
     Args:
         typ: either 'exception' or 'segfault'.
     """
+    # pylint: disable=broad-exception-raised
     if typ == 'segfault':
         os.kill(os.getpid(), signal.SIGSEGV)
         raise Exception("Segfault failed (wat.)")

@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2022 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Unit tests for notification support."""
 
@@ -25,24 +10,16 @@ import inspect
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
-from PyQt5.QtGui import QImage
-from PyQt5.QtDBus import QDBusMessage, QDBus, QDBusConnection
-pytest.importorskip("PyQt5.QtWebEngineCore")
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject
+from qutebrowser.qt.gui import QImage
+from qutebrowser.qt.dbus import QDBusMessage, QDBus, QDBusConnection
+pytest.importorskip("qutebrowser.qt.webenginecore")
 if TYPE_CHECKING:
-    from PyQt5.QtWebEngineCore import QWebEngineNotification
+    from qutebrowser.qt.webenginecore import QWebEngineNotification
 
 from qutebrowser.config import configdata
 from qutebrowser.misc import objects
 from qutebrowser.browser.webengine import notification
-
-
-pytestmark = [
-    pytest.mark.qtwebengine_notifications,
-    # 5.13 only supports the default presenter
-    pytest.mark.skipif(not notification._notifications_supported(),
-                       reason="Notifications not supported")
-]
 
 
 class FakeDBusMessage:

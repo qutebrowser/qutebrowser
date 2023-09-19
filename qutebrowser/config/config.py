@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Configuration storage and config-related utilities."""
 
@@ -25,7 +10,7 @@ import functools
 from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
                     MutableMapping, MutableSequence, Optional, Tuple, cast)
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
 from qutebrowser.commands import cmdexc, parser
 from qutebrowser.config import configdata, configexc, configutils
@@ -109,7 +94,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         and calls the wrapped function if we are.
 
         We assume the function passed doesn't take any parameters. However, it
-        could take a "self" argument, so we can't cleary express this in the
+        could take a "self" argument, so we can't clearly express this in the
         type above.
 
         Args:
@@ -169,14 +154,14 @@ class KeyConfig:
         return bindings
 
     def _implied_cmd(self, cmdline: str) -> Optional[str]:
-        """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
+        """Return cmdline, or the implied cmd if cmdline is a cmd-set-text."""
         try:
             results = parser.CommandParser().parse_all(cmdline)
         except cmdexc.NoSuchCommandError:
             return None
 
         result = results[0]
-        if result.cmd.name != "set-cmd-text":
+        if result.cmd.name not in ["set-cmd-text", "cmd-set-text"]:
             return cmdline
         if not result.args:
             return None  # doesn't look like this sets a command
@@ -188,7 +173,7 @@ class KeyConfig:
     def get_reverse_bindings_for(self, mode: str) -> '_ReverseBindings':
         """Get a dict of commands to a list of bindings for the mode.
 
-        This is intented for user-facing display of keybindings.
+        This is intended for user-facing display of keybindings.
         As such, bindings for 'set-cmd-text [flags] :<cmd> ...' are translated
         to '<cmd> ...', as from the user's perspective these keys behave like
         bindings for '<cmd>' (that allow for further input before running).
@@ -560,15 +545,18 @@ class Config(QObject):
                 log.config.debug("{} was mutated, updating".format(name))
                 self.set_obj(name, new_value, save_yaml=save_yaml)
 
-    def dump_userconfig(self) -> str:
+    def dump_userconfig(self, *, include_hidden: bool = False) -> str:
         """Get the part of the config which was changed by the user.
+
+        Args:
+            include_hidden: Include default scoped configs.
 
         Return:
             The changed config part as string.
         """
         lines: List[str] = []
         for values in sorted(self, key=lambda v: v.opt.name):
-            lines += values.dump()
+            lines += values.dump(include_hidden=include_hidden)
 
         if not lines:
             return '<Default configuration>'

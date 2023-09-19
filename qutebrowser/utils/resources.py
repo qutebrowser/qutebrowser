@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Resources related utilities."""
 
@@ -27,7 +12,7 @@ import pathlib
 from typing import Iterator, Iterable, Union
 
 
-# We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
+# We cannot use the stdlib version on 3.8 because we need the files() API.
 if sys.version_info >= (3, 11):  # pragma: no cover
     # https://github.com/python/cpython/issues/90276
     import importlib.resources as importlib_resources
@@ -50,11 +35,6 @@ def _path(filename: str) -> _ResourceType:
     """Get a pathlib.Path object for a resource."""
     assert not posixpath.isabs(filename), filename
     assert os.path.pardir not in filename.split(posixpath.sep), filename
-
-    if hasattr(sys, 'frozen'):
-        # For PyInstaller, where we can't store resource files in a qutebrowser/ folder
-        # because the executable is already named "qutebrowser" (at least on macOS).
-        return pathlib.Path(sys.executable).parent / filename
 
     return importlib_resources.files(qutebrowser) / filename
 

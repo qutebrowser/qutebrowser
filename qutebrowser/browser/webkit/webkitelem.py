@@ -1,29 +1,16 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """QtWebKit specific part of the web element API."""
 
 from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
 
-from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtWebKit import QWebElement, QWebSettings
-from PyQt5.QtWebKitWidgets import QWebFrame
+from qutebrowser.qt.core import QRect, Qt
+# pylint: disable=no-name-in-module
+from qutebrowser.qt.webkit import QWebElement, QWebSettings
+from qutebrowser.qt.webkitwidgets import QWebFrame
+# pylint: enable=no-name-in-module
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
@@ -276,7 +263,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def _is_hidden_css(self) -> bool:
         """Check if the given element is hidden via CSS."""
         attr_values = {
-            attr: self._elem.styleProperty(attr, QWebElement.ComputedStyle)
+            attr: self._elem.styleProperty(attr, QWebElement.StyleResolveStrategy.ComputedStyle)
             for attr in ['visibility', 'display', 'opacity']
         }
         invisible = attr_values['visibility'] == 'hidden'
@@ -362,7 +349,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
     def _click_js(self, click_target: usertypes.ClickTarget) -> None:
         settings = QWebSettings.globalSettings()
-        attribute = QWebSettings.JavascriptCanOpenWindows
+        attribute = QWebSettings.WebAttribute.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)
         ok = self._elem.evaluateJavaScript('this.click(); true;')
@@ -372,7 +359,7 @@ class WebKitElement(webelem.AbstractWebElement):
             self._click_fake_event(click_target)
 
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: Qt.MouseButton = Qt.LeftButton) -> None:
+                          button: Qt.MouseButton = Qt.MouseButton.LeftButton) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 

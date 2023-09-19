@@ -1,21 +1,6 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.urlutils."""
 
@@ -24,15 +9,15 @@ import logging
 import dataclasses
 import urllib.parse
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkProxy
+from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.network import QNetworkProxy, QHostInfo
 import pytest
 import hypothesis
 import hypothesis.strategies
 
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
-from qutebrowser.utils import utils, urlutils, usertypes
+from qutebrowser.utils import utils, urlutils, usertypes, qtutils
 
 
 class FakeDNS:
@@ -53,7 +38,7 @@ class FakeDNS:
     @dataclasses.dataclass
     class FakeDNSAnswer:
 
-        error: bool
+        error: QHostInfo.HostInfoError
 
     def __init__(self):
         self.used = False
@@ -68,7 +53,9 @@ class FakeDNS:
         self.answer = None
 
     def _get_error(self):
-        return not self.answer
+        if self.answer:
+            return QHostInfo.HostInfoError.NoError
+        return QHostInfo.HostInfoError.HostNotFound
 
     def fromname_mock(self, _host):
         """Simple mock for QHostInfo::fromName returning a FakeDNSAnswer."""
@@ -321,7 +308,7 @@ def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
     assert url.host() == host
-    assert url.path(options=QUrl.PrettyDecoded) == '/' + path
+    assert url.path(options=QUrl.ComponentFormattingOption.PrettyDecoded) == '/' + path
 
 
 @pytest.mark.parametrize('url, host', [
@@ -638,6 +625,7 @@ class TestInvalidUrlError:
     (False, 'http://example.org', 'https://example.org'),  # different scheme
     (False, 'http://example.org:80', 'http://example.org:8080'),  # different port
 ])
+@pytest.mark.qt5_only  # https://bugreports.qt.io/browse/QTBUG-80308
 def test_same_domain(are_same, url1, url2):
     """Test same_domain."""
     assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
@@ -674,6 +662,18 @@ def test_data_url():
     assert url == QUrl('data:text/plain;base64,Zm9v')
 
 
+qurl_idna2003 = pytest.mark.skipif(
+    qtutils.version_check("6.3.0", compiled=False),
+    reason="Different result with Qt >= 6.3.0: "
+    "https://bugreports.qt.io/browse/QTBUG-85371"
+)
+qurl_uts46 = pytest.mark.xfail(
+    not qtutils.version_check("6.3.0", compiled=False),
+    reason="Different result with Qt < 6.3.0: "
+    "https://bugreports.qt.io/browse/QTBUG-85371"
+)
+
+
 @pytest.mark.parametrize('url, expected', [
     # No IDN
     (QUrl('http://www.example.com'), 'http://www.example.com'),
@@ -687,8 +687,16 @@ def test_data_url():
     (QUrl('http://www.example.xn--p1ai'),
      '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    (QUrl('http://www.xn--80ak6aa92e.com'),
-     'http://www.xn--80ak6aa92e.com'),
+    pytest.param(
+        QUrl('http://www.xn--80ak6aa92e.com'),
+        'http://www.xn--80ak6aa92e.com',
+        marks=qurl_idna2003,
+    ),
+    pytest.param(
+        QUrl('http://www.xn--80ak6aa92e.com'),
+        '(www.xn--80ak6aa92e.com) http://www.аррӏе.com',
+        marks=qurl_uts46,
+    ),
 ])
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected
@@ -703,20 +711,20 @@ class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
         ('socks://example.com/',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://example.com',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://example.com:2342',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2342)),
         ('socks5://foo@example.com',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo')),
         ('socks5://foo:bar@example.com',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo',
                        'bar')),
         ('socks5://foo:bar@example.com:2323',
-         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
                        'foo', 'bar')),
-        ('direct://', QNetworkProxy(QNetworkProxy.NoProxy)),
+        ('direct://', QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
     ])
     def test_proxy_from_url_valid(self, url, expected):
         assert urlutils.proxy_from_url(QUrl(url)) == expected
