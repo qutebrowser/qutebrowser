@@ -545,7 +545,7 @@ while (node = walker.nextNode()) {
         assert "classes" in data
         assert "ids" in data
 
-        selectors = ad_blocker.hidden_class_id_selectors(  # type: ignore[union-attr]
+        selectors = ad_blocker.hidden_class_id_selectors(
             data["classes"], data["ids"], cosmetic_info.exceptions
         )
         if not selectors:
