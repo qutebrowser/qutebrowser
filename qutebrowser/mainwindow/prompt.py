@@ -626,16 +626,17 @@ class LineEditPrompt(_BasePrompt):
 
 class NullIconProvider(QAbstractFileIconProvider):
 
+    """Returns empty icon for everything."""
+
     def __init__(self):
         super().__init__()
         self.null_icon = QIcon()
 
-    def icon(self, type):
+    def icon(self, t):
         return self.null_icon
 
-    def type(self, info):
-        return ""
-
+    def type(self, _info):
+        return 'unknown'
 
 class FilenamePrompt(_BasePrompt):
 
