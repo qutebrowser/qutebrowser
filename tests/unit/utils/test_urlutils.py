@@ -787,7 +787,7 @@ class TestParseJavascriptUrl:
             assert parsed == source
 
 
-@pytest.mark.parametrize('url, is_pretty, expected', [
+@pytest.mark.parametrize('url, pretty, expected', [
     (QUrl('https://example.com'), False, 'https://example.com'),
     (QUrl('https://example.com/page'), False, 'https://example.com/page'),
     (QUrl('ftp://example.com'), False, 'ftp://example.com'),
@@ -803,8 +803,8 @@ class TestParseJavascriptUrl:
     (QUrl('https://example.com/?pipe=%7C'), False, 'https://example.com/?pipe=%7C'),
     (QUrl('https://example.com/?pipe=%7C'), True, 'https://example.com/?pipe=|'),
 ])
-def test_get_url_yank_text(url, is_pretty, expected):
-    assert urlutils.get_url_yank_text(url, is_pretty=is_pretty) == expected
+def test_get_url_yank_text(url, pretty, expected):
+    assert urlutils.get_url_yank_text(url, pretty=pretty) == expected
 
 
 class TestWiden:

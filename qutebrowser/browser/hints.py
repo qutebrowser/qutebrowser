@@ -237,7 +237,7 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        urlstr = urlutils.get_url_yank_text(url, is_pretty=False)
+        urlstr = urlutils.get_url_yank_text(url, pretty=False)
         new_content = urlstr
 
         # only second and consecutive yanks are to append to the clipboard

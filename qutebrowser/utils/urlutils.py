@@ -684,12 +684,12 @@ def widened_hostnames(hostname: str) -> Iterable[str]:
         hostname = hostname.partition(".")[-1]
 
 
-def get_url_yank_text(url: QUrl, *, is_pretty: bool) -> str:
+def get_url_yank_text(url: QUrl, *, pretty: bool) -> str:
     """Get the text that should be yanked for the given URL."""
     flags = FormatOption.REMOVE_PASSWORD
     if url.scheme() == 'mailto':
         flags |= FormatOption.REMOVE_SCHEME
-    if is_pretty:
+    if pretty:
         flags |= FormatOption.DECODE_RESERVED
     else:
         flags |= FormatOption.ENCODED

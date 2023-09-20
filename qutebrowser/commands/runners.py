@@ -58,7 +58,7 @@ def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
         'url:path': lambda tb: _url(tb).path(),
         'url:query': lambda tb: _url(tb).query(),
         'url:yank': lambda tb: urlutils.get_url_yank_text(_url(tb),
-                                                          is_pretty=False),
+                                                          pretty=False),
         'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
         'clipboard': lambda _: utils.get_clipboard(),
         'primary': lambda _: utils.get_clipboard(selection=True),
