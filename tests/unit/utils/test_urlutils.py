@@ -804,7 +804,7 @@ class TestParseJavascriptUrl:
     (QUrl('https://example.com/?pipe=%7C'), True, 'https://example.com/?pipe=|'),
 ])
 def test_get_url_yank_text(url, is_pretty, expected):
-    assert urlutils.get_url_yank_text(url, is_pretty) == expected
+    assert urlutils.get_url_yank_text(url, is_pretty=is_pretty) == expected
 
 
 class TestWiden:

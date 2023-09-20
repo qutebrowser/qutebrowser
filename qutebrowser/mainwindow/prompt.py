@@ -443,7 +443,8 @@ class PromptContainer(QWidget):
         else:
             sel = False
             target = 'clipboard'
-        url_str = urlutils.get_url_yank_text(QUrl(question.url), False)
+        url_str = urlutils.get_url_yank_text(QUrl(question.url),
+                                             is_pretty=False)
         utils.set_clipboard(url_str, sel)
         message.info("Yanked to {}: {}".format(target, url_str))
 

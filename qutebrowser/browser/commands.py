@@ -733,7 +733,8 @@ class CommandDispatcher:
                                    ':' + str(port) if port > -1 else '')
         elif what in ['url', 'pretty-url']:
             url = self._current_url()
-            s = urlutils.get_url_yank_text(url, what == 'pretty-url')
+            pretty = what == 'pretty-url'
+            s = urlutils.get_url_yank_text(url, is_pretty=pretty)
             what = 'URL'  # For printing
         elif what == 'selection':
             def _selection_callback(s):
