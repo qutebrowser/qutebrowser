@@ -15,8 +15,8 @@ from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelI
                           QItemSelectionModel, QObject, QEventLoop)
 from qutebrowser.qt.widgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QTreeView, QSizePolicy,
-                             QSpacerItem)
-from qutebrowser.qt.gui import (QFileSystemModel, QAbstractFileIconProvider, QIcon)
+                             QSpacerItem, QFileIconProvider)
+from qutebrowser.qt.gui import (QFileSystemModel, QIcon)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
@@ -624,7 +624,7 @@ class LineEditPrompt(_BasePrompt):
         return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
-class NullIconProvider(QAbstractFileIconProvider):
+class NullIconProvider(QFileIconProvider):
 
     """Returns empty icon for everything."""
 
@@ -632,11 +632,12 @@ class NullIconProvider(QAbstractFileIconProvider):
         super().__init__()
         self.null_icon = QIcon()
 
-    def icon(self, t):
+    def icon(self, _t):
         return self.null_icon
 
     def type(self, _info):
         return 'unknown'
+
 
 class FilenamePrompt(_BasePrompt):
 
@@ -740,7 +741,9 @@ class FilenamePrompt(_BasePrompt):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
 
+        # avoid icon and mime type lookups, they are slow in Qt6
         self._file_model.setIconProvider(NullIconProvider())
+
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
