@@ -32,6 +32,8 @@ Fixed
   no longer accumulate connections over time. (#7888)
 - The workaround for crashes when using drag & drop on Wayland with Qt 6.5.2 now also
   works correctly when using `wayland-egl` rather than `wayland` as Qt platform.
+- Worked around a weird `TypeError` with `QProxyStyle` / `TabBarStyle` on
+  certain platforms with Python 3.12.
 - Upgraded the bundled Qt version to 6.5.3. Note this is only relevant for the
   macOS/Windows releases, on Linux those will be upgraded via your distribution
   packages. This Qt patch release comes with

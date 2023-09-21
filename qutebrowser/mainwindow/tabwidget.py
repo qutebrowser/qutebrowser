@@ -801,6 +801,11 @@ class TabBarStyle(QProxyStyle):
 
     ICON_PADDING = 4
 
+    def __init__(self, style=None):
+        # "useless" override as WORKAROUND for
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2023-September/045510.html
+        super().__init__(style)
+
     def _base_style(self) -> QStyle:
         """Get the base style."""
         style = self.baseStyle()
