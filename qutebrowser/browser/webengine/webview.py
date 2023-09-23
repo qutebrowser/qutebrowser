@@ -302,7 +302,7 @@ class WebEnginePage(QWebEnginePage):
                 accepted_mimetypes,
                 extra_suffixes,
             )
-            accepted_mimetypes = accepted_mimetypes + list(extra_suffixes)
+            accepted_mimetypes = list(accepted_mimetypes) + list(extra_suffixes)
 
         handler = config.val.fileselect.handler
         if handler == "default":
