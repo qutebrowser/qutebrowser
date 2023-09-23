@@ -386,8 +386,13 @@ qt.workarounds.locale:
     follow up with a proper fix soon, so it is disabled by default.
 
 qt.workarounds.disable_accelerated_2d_canvas:
-  default: true
-  type: Bool
+  type:
+    name: String
+    valid_values:
+      - always: Disable accelerated 2d canvas
+      - auto: Disable on Qt6 < 6.6.0, enable otherwise
+      - never: Enable accelerated 2d canvas
+  default: auto
   backend: QtWebEngine
   restart: true
   desc: >-
