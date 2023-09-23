@@ -324,6 +324,10 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
         'auto':
             '--enable-experimental-web-platform-features' if machinery.IS_QT5 else None,
     },
+    'qt.workarounds.disable_accelerated_2d_canvas': {
+        True: '--disable-accelerated-2d-canvas',
+        False: None,
+    },
 }
 
 
