@@ -276,7 +276,16 @@ class WebEnginePage(QWebEnginePage):
         mimes = {entry for entry in upstream_mimetypes if "/" in entry}
         python_suffixes = set()
         for mime in mimes:
-            python_suffixes.update(mimetypes.guess_all_extensions(mime))
+            if mime.endswith("/*"):
+                python_suffixes.update(
+                    [
+                        suffix
+                        for suffix, mimetype in mimetypes.types_map.items()
+                        if mimetype.startswith(mime[:-1])
+                    ]
+                )
+            else:
+                python_suffixes.update(mimetypes.guess_all_extensions(mime))
         return python_suffixes - suffixes
 
     def chooseFiles(

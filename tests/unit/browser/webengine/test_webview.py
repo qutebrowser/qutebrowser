@@ -65,14 +65,22 @@ def test_enum_mappings(enum_type, naming, mapping):
 
 @pytest.fixture
 def suffix_mocks(monkeypatch):
+    types_map = {
+        ".jpg": "image/jpeg",
+        ".jpe": "image/jpeg",
+        ".png": "image/png",
+        ".m4v": "video/mp4",
+        ".mpg4": "video/mp4",
+    }
+    mimetypes_map = {}  # mimetype -> [suffixes] map
+    for suffix, mime in types_map.items():
+        mimetypes_map[mime] = mimetypes_map.get(mime, []) + [suffix]
+
     def guess(mime):
-        mimetypes_map = {
-            "image/jpeg": [".jpg", ".jpe"],
-            "video/mp4": [".m4v", ".mpg4"],
-        }
         return mimetypes_map.get(mime, [])
 
     monkeypatch.setattr(mimetypes, "guess_all_extensions", guess)
+    monkeypatch.setattr(mimetypes, "types_map", types_map)
 
     def version(string):
         if string == "6.2.3":
@@ -95,6 +103,8 @@ EXTRA_SUFFIXES_PARAMS = [
         set(),
     ),  # not sure why black reformats this one and not the others
     (["image/jpeg", "video/mp4"], {".jpg", ".jpe", ".m4v", ".mpg4"}),
+    (["image/*"], {".jpg", ".jpe", ".png"}),
+    (["image/*", ".jpg"], {".jpe", ".png"}),
 ]
 
 
