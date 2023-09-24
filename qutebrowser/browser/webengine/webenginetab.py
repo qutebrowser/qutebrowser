@@ -5,6 +5,7 @@
 """Wrapper over a QWebEngineView."""
 
 import math
+import struct
 import functools
 import dataclasses
 import re
@@ -12,7 +13,7 @@ import html as html_utils
 from typing import cast, Union, Optional
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
-                          QObject)
+                          QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginewidgets import QWebEngineView
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -612,13 +613,15 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab = tab
         self._history = cast(QWebEngineHistory, None)
 
+    def _serialize_data(self, version, count, current_index):
+        return struct.pack(">IIi", version, count, current_index)
+
     def serialize(self):
         data = qtutils.serialize(self._history)
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-117489
-        if data == b"\x00\x00\x00\x04\x00\x00\x00\x01\x00\x00\x00\x00":
-            return b"\x00\x00\x00\x04\x00\x00\x00\x00\xff\xff\xff\xff"
-        #            |               '-- count       '-- currentIndex
-        #            '-- kHistoryStreamVersion
+        if data == self._serialize_data(version=4, count=1, current_index=0):
+            fixed_data = self._serialize_data(version=4, count=0, current_index=-1)
+            return QByteArray(fixed_data)
         return data
 
     def deserialize(self, data):
