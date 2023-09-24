@@ -613,7 +613,13 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._history = cast(QWebEngineHistory, None)
 
     def serialize(self):
-        return qtutils.serialize(self._history)
+        data = qtutils.serialize(self._history)
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-117489
+        if data == b"\x00\x00\x00\x04\x00\x00\x00\x01\x00\x00\x00\x00":
+            return b"\x00\x00\x00\x04\x00\x00\x00\x00\xff\xff\xff\xff"
+        #            |               '-- count       '-- currentIndex
+        #            '-- kHistoryStreamVersion
+        return data
 
     def deserialize(self, data):
         qtutils.deserialize(data, self._history)
