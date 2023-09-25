@@ -110,7 +110,7 @@ EXTRA_SUFFIXES_PARAMS = [
 
 @pytest.mark.parametrize("before, extra", EXTRA_SUFFIXES_PARAMS)
 def test_suffixes_workaround_extras_returned(suffix_mocks, before, extra):
-    assert extra == webview.WebEnginePage.extra_suffixes_workaround(before)
+    assert extra == webview.extra_suffixes_workaround(before)
 
 
 @pytest.mark.parametrize("before, extra", EXTRA_SUFFIXES_PARAMS)
@@ -126,7 +126,7 @@ def test_suffixes_workaround_choosefiles_args(
     # method of it. That saves us having to initilize the class and mock all
     # the stuff required for __init__()
     webview.WebEnginePage.chooseFiles(
-        webview.WebEnginePage,
+        None,
         QWebEnginePage.FileSelectionMode.FileSelectOpen,
         [],
         before,
