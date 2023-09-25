@@ -35,6 +35,7 @@ class DownloadView(QListView):
         QListView {
             background-color: {{ conf.colors.downloads.bar.bg }};
             font: {{ conf.fonts.downloads }};
+            border: 0;
         }
 
         QListView::item {
