@@ -13,7 +13,7 @@ execnet==2.0.2
 filelock==3.12.4
 Flask==2.3.3
 hunter==3.6.1
-hypothesis==6.86.1
+hypothesis==6.87.0
 idna==3.4
 importlib-metadata==6.8.0
 iniconfig==2.0.0
@@ -47,11 +47,11 @@ requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.5
-tldextract==3.5.0
+tldextract==3.6.0
 toml==0.10.2
 tomli==2.0.1
 typing_extensions==4.8.0
-urllib3==2.0.4
+urllib3==2.0.5
 vulture==2.9.1
 Werkzeug==2.3.7
-zipp==3.16.2
+zipp==3.17.0
