@@ -34,6 +34,10 @@ Fixed
   works correctly when using `wayland-egl` rather than `wayland` as Qt platform.
 - Worked around a weird `TypeError` with `QProxyStyle` / `TabBarStyle` on
   certain platforms with Python 3.12.
+- Removed 1px border for the downloads view, mostly noticeable when it's
+  transparent.
+- Due to a Qt bug, cloning/undoing a tab which was not fully loaded caused
+  qutebrowser to crash. This is now fixed via a workaround.
 - Upgraded the bundled Qt version to 6.5.3. Note this is only relevant for the
   macOS/Windows releases, on Linux those will be upgraded via your distribution
   packages. This Qt patch release comes with
