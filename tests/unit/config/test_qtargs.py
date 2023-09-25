@@ -51,6 +51,7 @@ def reduce_args(config_stub, version_patcher, monkeypatch):
     config_stub.val.content.headers.referer = 'always'
     config_stub.val.scrolling.bar = 'never'
     config_stub.val.qt.chromium.experimental_web_platform_features = 'never'
+    config_stub.val.qt.workarounds.disable_accelerated_2d_canvas = 'never'
     monkeypatch.setattr(qtargs.utils, 'is_mac', False)
     # Avoid WebRTC pipewire feature
     monkeypatch.setattr(qtargs.utils, 'is_linux', False)
@@ -77,7 +78,7 @@ class TestQtArgs:
     def test_qt_args(self, monkeypatch, config_stub, args, expected, parser):
         """Test commandline with no Qt arguments given."""
         parsed = parser.parse_args(args)
-        assert qtargs.qt_args(parsed) >= expected
+        assert qtargs.qt_args(parsed) == expected
 
     def test_qt_both(self, config_stub, parser):
         """Test commandline with a Qt argument and flag."""
