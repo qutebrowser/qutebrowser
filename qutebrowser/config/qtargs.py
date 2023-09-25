@@ -273,7 +273,7 @@ def _qtwebengine_args(
     if disabled_features:
         yield _DISABLE_FEATURES + ','.join(disabled_features)
 
-    yield from _qtwebengine_settings_args(versions, namespace, special_flags)
+    yield from _qtwebengine_settings_args(versions)
 
 
 _SettingValueType = Union[
@@ -281,8 +281,6 @@ _SettingValueType = Union[
     Callable[
         [
             version.WebEngineVersions,
-            argparse.Namespace,
-            Sequence[str],
         ],
         str,
     ],
@@ -338,7 +336,7 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
     'qt.workarounds.disable_accelerated_2d_canvas': {
         'always': '--disable-accelerated-2d-canvas',
         'never': None,
-        'auto': lambda versions, namespace, special_flags: 'always'
+        'auto': lambda versions: 'always'
         if machinery.IS_QT6
         and versions.chromium_major
         and versions.chromium_major < 111
@@ -347,15 +345,11 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
 }
 
 
-def _qtwebengine_settings_args(
-    versions: version.WebEngineVersions,
-    namespace: argparse.Namespace,
-    special_flags: Sequence[str],
-) -> Iterator[str]:
+def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
     for setting, args in sorted(_WEBENGINE_SETTINGS.items()):
         arg = args[config.instance.get(setting)]
         if callable(arg):
-            new_value = arg(versions, namespace, special_flags)
+            new_value = arg(versions)
             assert (
                 new_value in args
             ), f"qt.settings feature detection returned an unrecognized value: {new_value} for {setting}"
