@@ -66,7 +66,8 @@ def is_ignored_lowlevel_message(message):
         (
             'libva error: vaGetDriverNameByIndex() failed with unknown libva error, '
             'driver_name = (null)'
-        )
+        ),
+        'libva error: vaGetDriverNames() failed with unknown libva error',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
