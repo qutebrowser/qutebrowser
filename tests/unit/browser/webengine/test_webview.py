@@ -7,7 +7,6 @@ import dataclasses
 import mimetypes
 
 import pytest
-from unittest import mock
 webview = pytest.importorskip('qutebrowser.browser.webengine.webview')
 
 from qutebrowser.qt.webenginecore import QWebEnginePage
@@ -114,17 +113,20 @@ def test_suffixes_workaround_extras_returned(suffix_mocks, before, extra):
 
 
 @pytest.mark.parametrize("before, extra", EXTRA_SUFFIXES_PARAMS)
-@mock.patch("qutebrowser.browser.webengine.webview.super")  # mock super() calls!
 def test_suffixes_workaround_choosefiles_args(
-    mocked_super,
+    mocker,
     suffix_mocks,
     config_stub,
     before,
     extra,
 ):
-    # We can pass the class as "self" because we are only calling a static
-    # method of it. That saves us having to initilize the class and mock all
-    # the stuff required for __init__()
+    # mock super() to avoid calling into the base class' chooseFiles()
+    # implementation.
+    mocked_super = mocker.patch("qutebrowser.browser.webengine.webview.super")
+
+    # We can pass None as "self" because we aren't actually using anything from
+    # "self" for this test. That saves us having to initialize the class and
+    # mock all the stuff required for __init__()
     webview.WebEnginePage.chooseFiles(
         None,
         QWebEnginePage.FileSelectionMode.FileSelectOpen,
