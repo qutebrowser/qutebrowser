@@ -989,6 +989,16 @@ class TestWebEngineVersions:
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
+        try:
+            from qutebrowser.qt.webenginecore import (
+                qWebEngineVersion,
+                qWebEngineChromiumVersion,
+            )
+        except ImportError:
+            pass
+        else:
+            pytest.skip("API available to get the real version")
+
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
             if '.dev' in PYQT_VERSION_STR:
