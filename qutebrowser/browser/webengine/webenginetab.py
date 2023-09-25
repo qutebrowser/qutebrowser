@@ -613,15 +613,15 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab = tab
         self._history = cast(QWebEngineHistory, None)
 
-    def _serialize_data(self, version, count, current_index):
-        return struct.pack(">IIi", version, count, current_index)
+    def _serialize_data(self, stream_version, count, current_index):
+        return struct.pack(">IIi", stream_version, count, current_index)
 
     def serialize(self):
         data = qtutils.serialize(self._history)
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-117489
-        if data == self._serialize_data(version=4, count=1, current_index=0):
-            fixed_data = self._serialize_data(version=4, count=0, current_index=-1)
-            return QByteArray(fixed_data)
+        if data == self._serialize_data(stream_version=4, count=1, current_index=0):
+            fixed = self._serialize_data(stream_version=4, count=0, current_index=-1)
+            return QByteArray(fixed)
         return data
 
     def deserialize(self, data):
