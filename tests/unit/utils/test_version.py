@@ -990,6 +990,7 @@ class TestWebEngineVersions:
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
         try:
+            # pylint: disable=unused-import
             from qutebrowser.qt.webenginecore import (
                 qWebEngineVersion,
                 qWebEngineChromiumVersion,
