@@ -298,9 +298,9 @@ class WebEnginePage(QWebEnginePage):
         extra_suffixes = extra_suffixes_workaround(accepted_mimetypes)
         if extra_suffixes:
             log.webview.debug(
-                "adding extra suffixes to filepicker: before=%s added=%s",
-                accepted_mimetypes,
-                extra_suffixes,
+                "adding extra suffixes to filepicker: "
+                f"before={accepted_mimetypes} "
+                f"added={extra_suffixes}",
             )
             accepted_mimetypes = list(accepted_mimetypes) + list(extra_suffixes)
 
