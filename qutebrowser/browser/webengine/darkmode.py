@@ -276,7 +276,7 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
         _Setting('grayscale.all', 'Grayscale', _BOOLS),
 
         _Setting('policy.page', 'PagePolicy', _PAGE_POLICIES),
-        _Setting('threshold.text', 'TextBrightnessThreshold'),
+        _Setting('threshold.foreground', 'TextBrightnessThreshold'),
         _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
         _Setting('grayscale.images', 'ImageGrayscale'),
 
@@ -293,7 +293,7 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
         _Setting('contrast', 'ContrastPercent'),
         _Setting('grayscale.all', 'IsGrayScale', _BOOLS),
 
-        _Setting('threshold.text', 'TextBrightnessThreshold'),
+        _Setting('threshold.foreground', 'TextBrightnessThreshold'),
         _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
         _Setting('grayscale.images', 'ImageGrayScalePercent'),
 
@@ -306,7 +306,7 @@ _DEFINITIONS[Variant.qt_63] = _DEFINITIONS[Variant.qt_515_3].copy_add_setting(
     _Setting('increase_text_contrast', 'IncreaseTextContrast', _INT_BOOLS),
 )
 _DEFINITIONS[Variant.qt_64] = _DEFINITIONS[Variant.qt_63].copy_replace_setting(
-    'threshold.text', 'ForegroundBrightnessThreshold',
+    'threshold.foreground', 'ForegroundBrightnessThreshold',
 )
 
 
