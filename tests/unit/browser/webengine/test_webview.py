@@ -81,7 +81,8 @@ def suffix_mocks(monkeypatch):
     monkeypatch.setattr(mimetypes, "guess_all_extensions", guess)
     monkeypatch.setattr(mimetypes, "types_map", types_map)
 
-    def version(string):
+    def version(string, compiled=True):
+        assert compiled is False
         if string == "6.2.3":
             return True
         if string == "6.7.0":

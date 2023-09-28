@@ -139,7 +139,10 @@ def extra_suffixes_workaround(upstream_mimetypes):
     WORKAROUND: for https://bugreports.qt.io/browse/QTBUG-116905
     Affected Qt versions > 6.2.2 (probably) < 6.7.0
     """
-    if not (qtutils.version_check("6.2.3") and not qtutils.version_check("6.7.0")):
+    if not (
+        qtutils.version_check("6.2.3", compiled=False)
+        and not qtutils.version_check("6.7.0", compiled=False)
+    ):
         return set()
 
     suffixes = {entry for entry in upstream_mimetypes if entry.startswith(".")}
