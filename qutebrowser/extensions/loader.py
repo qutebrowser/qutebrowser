@@ -64,6 +64,7 @@ class ExtensionInfo:
     """Information about a qutebrowser extension."""
 
     name: str
+    spec: Optional[importlib.machinery.ModuleSpec] = None
 
 
 def add_module_info(module: types.ModuleType) -> ModuleInfo:
@@ -137,19 +138,16 @@ def walk_extensions() -> Iterator[ExtensionInfo]:
             onerror=_on_walk_error):
         if name not in sys.modules:
             try:
-                # Import the module with the finder so that it is in
-                # sys.modules ready for _load_component.
                 spec = finder.find_spec(name, None)
                 if not spec or not spec.loader:
                     raise ImportError(f"pkgutil couldn't find loader for {name}")
-                spec.loader.load_module(name)
             except Exception:
                 log.extensions.exception(
                     "Exception while importing extension: {}"
                     .format(name[len(prefix):])
                 )
                 continue
-        yield ExtensionInfo(name=name)
+        yield ExtensionInfo(name=name, spec=spec)
 
 
 def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
@@ -186,7 +184,12 @@ def _load_component(
                     This is used to only run @cmdutils.register decorators.
     """
     log.extensions.debug("Importing {}".format(info.name))
-    mod = importlib.import_module(info.name)
+    if info.spec:
+        mod = importlib.util.module_from_spec(info.spec)
+        sys.modules[mod.__name__] = mod
+        info.spec.loader.exec_module(mod)
+    else:
+        mod = importlib.import_module(info.name)
 
     mod_info = add_module_info(mod)
     if skip_hooks:
