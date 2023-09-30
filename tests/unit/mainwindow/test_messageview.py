@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import contextlib
-
 from unittest import mock
 
 import pytest
@@ -64,13 +62,13 @@ def test_size_hint(view):
     assert height2 == height1 * 2
 
 
-def test_word_wrap(view, qtbot):
+def test_word_wrap(view):
     """A long message should be wrapped."""
-    with qtbot.wait_signal(view._clear_timer.timeout):
-        view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'short'))
-        assert len(view._messages) == 1
-        height1 = view.sizeHint().height()
-        assert height1 > 0
+    view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'short'))
+    assert len(view._messages) == 1
+    height1 = view.sizeHint().height()
+    assert height1 > 0
+    view.clear_messages()
 
     text = ("Athene, the bright-eyed goddess, answered him at once: Father of "
             "us all, Son of Cronos, Highest King, clearly that man deserved to be "
@@ -92,7 +90,7 @@ def test_word_wrap(view, qtbot):
     (None, False, Qt.TextFormat.PlainText),
 ])
 @pytest.mark.parametrize("replace", ["test", None])
-def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
+def test_rich_text(view, rich, higher, expected_format, replace):
     """Rich text should be rendered appropriately.
 
     This makes sure the title has been rendered as plain text by comparing the
@@ -105,19 +103,17 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
     info1 = message.MessageInfo(level, text, replace=replace)
     info2 = message.MessageInfo(level, text2, replace=replace, rich=rich)
 
-    ctx = (
-        qtbot.wait_signal(view._clear_timer.timeout) if replace is None
-        else contextlib.nullcontext()
-    )
-    with ctx:
-        view.show_message(info1)
-        assert len(view._messages) == 1
-        view._messages[0].setWordWrap(False)
+    view.show_message(info1)
+    assert len(view._messages) == 1
+    view._messages[0].setWordWrap(False)
 
-        height1 = view.sizeHint().height()
-        assert height1 > 0
+    height1 = view.sizeHint().height()
+    assert height1 > 0
 
-        assert view._messages[0].textFormat() == Qt.TextFormat.PlainText  # default
+    assert view._messages[0].textFormat() == Qt.TextFormat.PlainText  # default
+
+    if replace is None:
+        view.clear_messages()
 
     view.show_message(info2)
     assert len(view._messages) == 1
