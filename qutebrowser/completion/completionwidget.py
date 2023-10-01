@@ -364,15 +364,13 @@ class CompletionView(QTreeView):
         old_model = self.model()
         if old_model is not None and model is not old_model:
             old_model.deleteLater()
-            self._selection_model().deleteLater()
-
-        self.setModel(model)
 
         if model is None:
             self._active = False
             self.hide()
             return
 
+        self.setModel(model)
         model.setParent(self)
         self._active = True
         self.pattern = None
