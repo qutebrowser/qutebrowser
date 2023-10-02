@@ -59,7 +59,7 @@
   "pep8-naming": "https://github.com/PyCQA/pep8-naming/blob/main/CHANGELOG.rst",
   "pycodestyle": "https://github.com/PyCQA/pycodestyle/blob/main/CHANGES.txt",
   "pyflakes": "https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst",
-  "cffi": "https://foss.heptapod.net/pypy/cffi/-/blob/branch/default/doc/source/whatsnew.rst",
+  "cffi": "https://github.com/python-cffi/cffi/blob/main/doc/source/whatsnew.rst",
   "astroid": "https://github.com/PyCQA/astroid/blob/main/ChangeLog",
   "pytest-instafail": "https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst",
   "coverage": "https://github.com/nedbat/coveragepy/blob/master/CHANGES.rst",
