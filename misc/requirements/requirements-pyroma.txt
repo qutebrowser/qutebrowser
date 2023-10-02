@@ -2,11 +2,11 @@
 
 build==1.0.3
 certifi==2023.7.22
-charset-normalizer==3.2.0
+charset-normalizer==3.3.0
 docutils==0.20.1
 idna==3.4
 importlib-metadata==6.8.0
-packaging==23.1
+packaging==23.2
 Pygments==2.16.1
 pyproject_hooks==1.0.0
 pyroma==4.2
