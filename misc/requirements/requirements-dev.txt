@@ -3,8 +3,8 @@
 build==1.0.3
 bump2version==1.0.1
 certifi==2023.7.22
-cffi==1.15.1
-charset-normalizer==3.2.0
+cffi==1.16.0
+charset-normalizer==3.3.0
 cryptography==41.0.4
 docutils==0.20.1
 github3.py==4.0.1
@@ -20,7 +20,7 @@ markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.1.0
 nh3==0.2.14
-packaging==23.1
+packaging==23.2
 pkginfo==1.9.6
 ply==3.11
 pycparser==2.21
@@ -34,7 +34,7 @@ readme-renderer==42.0
 requests==2.31.0
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.5.3
+rich==13.6.0
 SecretStorage==3.3.3
 sip==6.7.11
 six==1.16.0
