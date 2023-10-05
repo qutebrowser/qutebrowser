@@ -25,6 +25,7 @@ class BooleanSettings(textbase.TextBase):
         self._win_id = win_id
         # A dict of setting_name -> indicator mappings.
         self._config = {}
+        self.enabled = False
         self._text_for = functools.lru_cache(maxsize=256)(
             self._text_for_uncached
         )
@@ -72,7 +73,8 @@ class BooleanSettings(textbase.TextBase):
     @pyqtSlot(QUrl)
     def on_url_changed(self, url):
         """Update the widget to reflect settings for url."""
-        if not self.isVisible():
+        self.setVisible(self.enabled)
+        if not self.enabled:
             return
         if not url.isValid():
             url = None
