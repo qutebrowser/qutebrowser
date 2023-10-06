@@ -496,7 +496,8 @@ class AbstractDownloadItem(QObject):
         """Append unique numeric suffix to filename.
 
         After finding a unique filename, restart the process of setting the
-        filename which will update the filename shown in the downloads list."""
+        filename which will update the filename shown in the downloads list.
+        """
         assert self._filename is not None
         path, file = os.path.split(self._filename)
         match = re.fullmatch(r'(.+?)((\.[a-z]+)?\.[^.]+)', file)
