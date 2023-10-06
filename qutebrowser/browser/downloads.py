@@ -498,17 +498,17 @@ class AbstractDownloadItem(QObject):
         After finding a unique filename, restart the process of setting the
         filename which will update the filename shown in the downloads list."""
         assert self._filename is not None
-        path = pathlib.Path(self._filename)
-        suffix = ''.join(path.suffixes)
-        if suffix:
-            base = path.name[:-len(suffix)]
+        path, file = os.path.split(self._filename)
+        match = re.fullmatch(r'(.+?)((\.[a-z]+)?\.[^.]+)', file)
+        if match:
+            base, suffix = match[1], match[2]
         else:
-            base = path.name
+            base = file
+            suffix = ''
 
         for i in range(2, 1000):
-            path_to_try = path.parent / f'{base}_{i}{suffix}'
-            self._filename = str(path_to_try)
-            if not (path_to_try.exists() or self._get_conflicting_download()):
+            self._filename = os.path.join(path, f'{base}_{i}{suffix}')
+            if not (os.path.exists(self._filename) or self._get_conflicting_download()):
                 self._set_filename(self._filename)
                 break
         else:

@@ -554,6 +554,28 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should be 1 bytes big
         And the downloaded file download_2.bin should be 2 bytes big
 
+    Scenario: Not overwriting an existing file with double extension
+        When I set downloads.location.prompt to false
+        And I run :download http://localhost:(port)/data/downloads/download_with_dots.tar.bz2
+        And I run :download http://localhost:(port)/data/downloads/download_with_dots.tar.bz2
+        And I wait for "Entering mode KeyMode.yesno *" in the log
+        And I run :prompt-accept no
+        And I wait until the download download_with_dots.tar.bz2 is finished
+        And I wait until the download download_with_dots_2.tar.bz2 is finished
+        Then the downloaded file download_with_dots.tar.bz2 should be 1 bytes big
+        Then the downloaded file download_with_dots_2.tar.bz2 should be 1 bytes big
+
+    Scenario: Not overwriting an existing file with dots
+        When I set downloads.location.prompt to false
+        And I run :download http://localhost:(port)/data/downloads/download_with_dots_11.22.33.bin
+        And I run :download http://localhost:(port)/data/downloads/download_with_dots_11.22.33.bin
+        And I wait for "Entering mode KeyMode.yesno *" in the log
+        And I run :prompt-accept no
+        And I wait until the download download_with_dots_11.22.33.bin is finished
+        And I wait until the download download_with_dots_11.22.33_2.bin is finished
+        Then the downloaded file download_with_dots_11.22.33.bin should be 1 bytes big
+        Then the downloaded file download_with_dots_11.22.33_2.bin should be 1 bytes big
+
     Scenario: Overwriting an existing file
         When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin
