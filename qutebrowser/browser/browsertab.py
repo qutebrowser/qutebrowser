@@ -982,6 +982,9 @@ class AbstractTabPrivate:
         raise NotImplementedError
 
 
+_PageFeatureType = Union['QWebPage.Feature', 'QWebEnginePage.Feature']
+
+
 class AbstractPermissions(QObject):
 
     """Handling a tab's access to web APIs.
@@ -993,8 +996,8 @@ class AbstractPermissions(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = cast(QWidget, None)
-        self.features: Dict[int, Feature] = {}
+        self._widget = cast(_WidgetType, None)
+        self.features: Dict[_PageFeatureType, Feature] = {}
         self._init_features()
 
     def _init_features(self) -> None:
