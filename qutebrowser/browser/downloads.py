@@ -772,7 +772,7 @@ class AbstractDownloadItem(QObject):
         elif os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            txt = "<b>{}</b> already exists. Overwrite?".format(
+            txt = "<b>{}</b> already exists. Overwrite? (\"No\" renames)".format(
                 html.escape(self._filename))
             self._ask_confirm_question("Overwrite existing file?", txt,
                 custom_no_action=self._find_next_filename)
