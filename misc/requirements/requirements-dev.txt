@@ -42,5 +42,5 @@ tomli==2.0.1
 twine==4.0.2
 typing_extensions==4.8.0
 uritemplate==4.1.1
-# urllib3==2.0.5
+# urllib3==2.0.6
 zipp==3.17.0
