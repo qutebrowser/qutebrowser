@@ -21,7 +21,6 @@ class ConfigChecker(checkers.BaseChecker):
 
     """Custom astroid checker for config calls."""
 
-    __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
         'E9998': ('%s is no valid config option.',  # flake8: disable=S001
@@ -31,7 +30,7 @@ class ConfigChecker(checkers.BaseChecker):
     priority = -1
     printed_warning = False
 
-    @utils.check_messages('bad-config-option')
+    @utils.only_required_for_messages('bad-config-option')
     def visit_attribute(self, node):
         """Visit a getattr node."""
         # We're only interested in the end of a config.val.foo.bar chain

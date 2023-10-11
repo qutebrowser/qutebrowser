@@ -3,7 +3,6 @@ ignore=resources.py
 extension-pkg-whitelist=PyQt5,PyQt6,sip
 load-plugins=qute_pylint.config,
              pylint.extensions.docstyle,
-             pylint.extensions.emptystring,
              pylint.extensions.overlapping_exceptions,
              pylint.extensions.code_style,
              pylint.extensions.comparison_placement,

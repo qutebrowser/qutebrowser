@@ -1,9 +1,8 @@
 {
-  "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/2/index.html",
+  "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/3/index.html",
   "tomlkit": "https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md",
   "dill": "https://github.com/uqfoundation/dill/commits/master",
   "isort": "https://github.com/PyCQA/isort/blob/main/CHANGELOG.md",
-  "lazy-object-proxy": "https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst",
   "mccabe": "https://github.com/PyCQA/mccabe#changes",
   "pytest-cov": "https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst",
   "pytest-xdist": "https://github.com/pytest-dev/pytest-xdist/blob/master/CHANGELOG.rst",
@@ -93,7 +92,6 @@
   "altgraph": "https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst",
   "urllib3": "https://github.com/urllib3/urllib3/blob/main/CHANGES.rst",
   "lxml": "https://github.com/lxml/lxml/blob/master/CHANGES.txt",
-  "wrapt": "https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst",
   "cryptography": "https://cryptography.io/en/latest/changelog.html",
   "toml": "https://github.com/uiri/toml/releases",
   "tomli": "https://github.com/hukkin/tomli/blob/master/CHANGELOG.md",
