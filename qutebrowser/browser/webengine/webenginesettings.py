@@ -430,11 +430,20 @@ def _init_site_specific_quirks():
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
                   "{upstream_browser_key}/{upstream_browser_version} "
                   "Safari/{webkit_version}")
-    new_chrome_ua = ("Mozilla/5.0 ({os_info}) "
-                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                     "Chrome/99 "
-                     "Safari/537.36")
     firefox_ua = "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"
+
+    def maybe_newer_chrome_ua(at_least_version):
+        """Return a new UA if our current chrome version isn't at least at_least_version."""
+        current_chome_version = version.qtwebengine_versions().chromium_major
+        if current_chome_version >= at_least_version:
+            return None
+
+        return (
+            "Mozilla/5.0 ({os_info}) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            f"Chrome/{at_least_version} "
+            "Safari/537.36"
+        )
 
     user_agents = [
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
@@ -453,10 +462,12 @@ def _init_site_specific_quirks():
         # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
         # FIXME:qt6 Still needed?
         # https://github.com/qutebrowser/qutebrowser/issues/4669
-        ("ua-slack", 'https://*.slack.com/*', new_chrome_ua),
+        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(99)),
     ]
 
     for name, pattern, ua in user_agents:
+        if not ua:
+            continue
         if name not in config.val.content.site_specific_quirks.skip:
             config.instance.set_obj('content.headers.user_agent', ua,
                                     pattern=urlmatch.UrlPattern(pattern),
