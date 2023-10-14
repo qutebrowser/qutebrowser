@@ -56,6 +56,8 @@ Fixed
   canvas feature which defaults to enabled on affected Qt versions. (#7489)
 - The download dialog should no longer freeze when browsing to directories
   with many files. (#7925)
+- The app.slack.com User-Agent quirk now targets chromium 112 on Qt versions
+  lower than 6.6.0 (previously it always targets chromium 99) (#7951)
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
