@@ -459,10 +459,9 @@ def _init_site_specific_quirks():
 
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
-        # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
-        # FIXME:qt6 Still needed?
-        # https://github.com/qutebrowser/qutebrowser/issues/4669
-        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(99)),
+        # October 2023: Slack claims they only support 112+. On #7951 at least
+        # one user claims it still works fine on 108 based Qt versions.
+        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(112)),
     ]
 
     for name, pattern, ua in user_agents:
