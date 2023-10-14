@@ -58,6 +58,8 @@ Fixed
   with many files. (#7925)
 - The app.slack.com User-Agent quirk now targets chromium 112 on Qt versions
   lower than 6.6.0 (previously it always targets chromium 99) (#7951)
+- Workaround a Qt issue causing jpeg files to not show up in the upload file
+  picker when it was filtering for image filetypes (#7866)
 
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
