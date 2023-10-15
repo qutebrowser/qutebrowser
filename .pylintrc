@@ -3,7 +3,6 @@ ignore=resources.py
 extension-pkg-whitelist=PyQt5,PyQt6,sip
 load-plugins=qute_pylint.config,
              pylint.extensions.docstyle,
-             pylint.extensions.emptystring,
              pylint.extensions.overlapping_exceptions,
              pylint.extensions.code_style,
              pylint.extensions.comparison_placement,
@@ -60,6 +59,7 @@ disable=locally-disabled,
         useless-param-doc,
         wrong-import-order,  # doesn't work with qutebrowser.qt, even with known-third-party set
         ungrouped-imports,   # ditto
+        use-implicit-booleaness-not-comparison-to-zero,
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

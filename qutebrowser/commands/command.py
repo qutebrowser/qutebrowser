@@ -62,10 +62,12 @@ class Command:
     COUNT_COMMAND_VALUES = [usertypes.CommandValue.count,
                             usertypes.CommandValue.count_tab]
 
-    def __init__(self, *, handler, name, instance=None, maxsplit=None,
-                 modes=None, not_modes=None, debug=False, deprecated=False,
-                 no_cmd_split=False, star_args_optional=False, scope='global',
-                 backend=None, no_replace_variables=False):
+    def __init__(
+        self, *, handler, name, instance=None, maxsplit=None,
+        modes=None, not_modes=None, debug=False, deprecated=False,
+        no_cmd_split=False, star_args_optional=False, scope='global',
+        backend=None, no_replace_variables=False,
+    ):  # pylint: disable=too-many-arguments
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         if modes is not None:
