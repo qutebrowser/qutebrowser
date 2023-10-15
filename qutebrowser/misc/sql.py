@@ -320,6 +320,7 @@ class Query:
             raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
+        # pylint: disable=prefer-typing-namedtuple
         rowtype = collections.namedtuple(  # type: ignore[misc]
             'ResultRow', fields)
 
