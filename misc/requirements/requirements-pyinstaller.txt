@@ -2,4 +2,4 @@
 
 altgraph==0.17.4
 pyinstaller @ git+https://github.com/pyinstaller/pyinstaller.git@79f62ef29822169ae00cd4271390d0e3175476ad
-pyinstaller-hooks-contrib==2023.9
+pyinstaller-hooks-contrib==2023.10
