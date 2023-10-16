@@ -34,19 +34,6 @@ def shutdown_log() -> None:
 def disable_qt_msghandler() -> Iterator[None]:
     """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = qtcore.qInstallMessageHandler(None)
-    if machinery.IS_QT6:
-        # cast str to Optional[str] to be compatible with PyQt6 type hints for
-        # qInstallMessageHandler
-        old_handler = cast(
-            Optional[
-                Callable[
-                    [qtcore.QtMsgType, qtcore.QMessageLogContext, Optional[str]],
-                    None
-                ]
-            ],
-            old_handler,
-        )
-
     try:
         yield
     finally:

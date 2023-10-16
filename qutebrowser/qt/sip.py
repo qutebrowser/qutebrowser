@@ -23,7 +23,7 @@ elif machinery.USE_PYQT5:
     try:
         from PyQt5.sip import *
     except ImportError:
-        from sip import *  # type: ignore[import]
+        from sip import *  # type: ignore[import-not-found]
 elif machinery.USE_PYQT6:
     try:
         from PyQt6.sip import *
@@ -31,6 +31,6 @@ elif machinery.USE_PYQT6:
         # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some
         # distributions still package later versions of PyQt5 with a top-level
         # "sip" rather than "PyQt5.sip".
-        from sip import *  # type: ignore[import]
+        from sip import *  # type: ignore[import-not-found]
 else:
     raise machinery.UnknownWrapper()
