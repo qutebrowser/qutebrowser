@@ -209,6 +209,16 @@ def _init_py_warnings() -> None:
                             message=r"Using or importing the ABCs from "
                             r"'collections' instead of from 'collections.abc' "
                             r"is deprecated.*")
+    # PyQt 5.15/6.2/6.3/6.4:
+    # https://riverbankcomputing.com/news/SIP_v6.7.12_Released
+    warnings.filterwarnings(
+        'ignore',
+        category=DeprecationWarning,
+        message=(
+            r"sipPyTypeDict\(\) is deprecated, the extension module should use "
+            r"sipPyTypeDictRef\(\) instead"
+        )
+    )
 
 
 @contextlib.contextmanager
