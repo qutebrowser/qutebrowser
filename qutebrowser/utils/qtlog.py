@@ -10,9 +10,9 @@ import faulthandler
 import logging
 import sys
 import traceback
-from typing import Iterator, Optional, Callable, cast
+from typing import Iterator, Optional
 
-from qutebrowser.qt import core as qtcore, machinery
+from qutebrowser.qt import core as qtcore
 from qutebrowser.utils import log
 
 _args = None
