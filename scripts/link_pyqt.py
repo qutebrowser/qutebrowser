@@ -110,7 +110,7 @@ def get_lib_path(executable, name, required=True):
             wrapper = os.environ["QUTE_QT_WRAPPER"]
             raise Error(
                 f"Could not import {name} with {executable}: {data} "
-                f"(QUTE_QT_WRAPPER: {wrapper}"
+                f"(QUTE_QT_WRAPPER: {wrapper})"
             )
         return None
     else:
