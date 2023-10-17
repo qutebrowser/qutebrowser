@@ -42,7 +42,8 @@ RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/i/icu/icu-72.1-2-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/l/libxml2/libxml2-2.10.4-4-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/q/qt5-base/qt5-base-5.15.10%2Bkde%2Br129-3-x86_64.pkg.tar.zst \
-    https://archive.archlinux.org/packages/q/qt5-declarative/qt5-declarative-5.15.10%2Bkde%2Br31-1-x86_64.pkg.tar.zst
+    https://archive.archlinux.org/packages/q/qt5-declarative/qt5-declarative-5.15.10%2Bkde%2Br31-1-x86_64.pkg.tar.zst \
+    https://archive.archlinux.org/packages/q/qt5-translations/qt5-translations-5.15.10-1-any.pkg.tar.zst
 
 RUN python3 -m ensurepip
 RUN python3 -m pip install tox pyqt5-sip
