@@ -119,7 +119,7 @@
   "idna": "https://github.com/kjd/idna/blob/master/HISTORY.rst",
   "tldextract": "https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md",
   "typing_extensions": "https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
-  "diff-cover": "https://github.com/Bachmann1234/diff_cover/blob/main/CHANGELOG",
+  "diff_cover": "https://github.com/Bachmann1234/diff_cover/blob/main/CHANGELOG",
   "beautifulsoup4": "https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG",
   "check-manifest": "https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst",
   "yamllint": "https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst",

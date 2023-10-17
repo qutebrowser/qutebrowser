@@ -254,7 +254,7 @@ class RegisterKeyParser(CommandKeyParser):
                  mode: usertypes.KeyMode,
                  commandrunner: 'runners.CommandRunner',
                  parent: QObject = None) -> None:
-        super().__init__(mode=usertypes.KeyMode.register,  # type: ignore[arg-type]
+        super().__init__(mode=usertypes.KeyMode.register,
                          win_id=win_id,
                          commandrunner=commandrunner,
                          parent=parent,
