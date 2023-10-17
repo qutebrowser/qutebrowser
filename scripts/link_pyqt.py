@@ -107,8 +107,11 @@ def get_lib_path(executable, name, required=True):
         return data
     elif prefix == 'ImportError':
         if required:
-            raise Error("Could not import {} with {}: {}!".format(
-                name, executable, data))
+            wrapper = os.environ["QUTE_QT_WRAPPER"]
+            raise Error(
+                f"Could not import {name} with {executable}: {data} "
+                f"(QUTE_QT_WRAPPER: {wrapper}"
+            )
         return None
     else:
         raise ValueError("Unexpected output: {!r}".format(output))
