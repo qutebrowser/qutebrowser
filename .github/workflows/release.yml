@@ -168,7 +168,7 @@ jobs:
         run: "tox -e build-release -- --upload --no-confirm"
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.THE_COMPILER_PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.QUTEBROWSER_BOT_PYPI_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   finalize:
     runs-on: ubuntu-20.04
