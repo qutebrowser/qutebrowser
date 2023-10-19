@@ -15,6 +15,52 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.0.1]]
+v3.0.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- The "restore video" functionality of the `view_in_mpv` script works again on
+  webengine.
+- Setting `url.auto_search` to `dns` works correctly now with Qt 6.
+- Counts passed via keypresses now have a digit limit (4300) to avoid
+  exceptions due to cats sleeping on numpads. (#7834)
+- Navigating via hints to a remote URL from a file:// one works again. (#7847)
+- The timers related to the tab audible indicator and the auto follow timeout
+  no longer accumulate connections over time. (#7888)
+- The workaround for crashes when using drag & drop on Wayland with Qt 6.5.2 now also
+  works correctly when using `wayland-egl` rather than `wayland` as Qt platform.
+- Worked around a weird `TypeError` with `QProxyStyle` / `TabBarStyle` on
+  certain platforms with Python 3.12.
+- Removed 1px border for the downloads view, mostly noticeable when it's
+  transparent.
+- Due to a Qt bug, cloning/undoing a tab which was not fully loaded caused
+  qutebrowser to crash. This is now fixed via a workaround.
+- Upgraded the bundled Qt version to 6.5.3. Note this is only relevant for the
+  macOS/Windows releases, on Linux those will be upgraded via your distribution
+  packages. This Qt patch release comes with
+  https://code.qt.io/cgit/qt/qtreleasenotes.git/tree/qt/6.5.3/release-note.md[various important fixes],
+  among them:
+    * Fix for crashes on Google Meet / GMail with dark mode enabled
+    * Fix for right-click in devtools not working properly
+    * Fix for drag & drop not working on Wayland
+    * Fix for some XKB key remappings not working
+    * Security fixes up to Chromium 116.0.5845.187, including
+      https://chromereleases.googleblog.com/2023/09/stable-channel-update-for-desktop_11.html[CVE-2023-4863],
+      a critical heap buffer overflow in WebP, for which "Google is aware that an
+      exploit [...] exists in the wild."
+- Graphical glitches in Google sheets and PDF.js via a new setting
+  `qt.workarounds.disable_accelerated_2d_canvas` to disable the accelerated 2D
+  canvas feature which defaults to enabled on affected Qt versions. (#7489)
+- The download dialog should no longer freeze when browsing to directories
+  with many files. (#7925)
+- The app.slack.com User-Agent quirk now targets chromium 112 on Qt versions
+  lower than 6.6.0 (previously it always targets chromium 99) (#7951)
+- Workaround a Qt issue causing jpeg files to not show up in the upload file
+  picker when it was filtering for image filetypes (#7866)
+
 [[v3.0.0]]
 v3.0.0 (2023-08-18)
 -------------------
