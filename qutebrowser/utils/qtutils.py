@@ -89,8 +89,8 @@ def version_check(version: str,
     With `compiled=False` only the runtime Qt version (1) is checked.
 
     You can often run older PyQt versions against newer Qt versions, but you
-    won't be able to access any APIs that where only added in the newer Qt
-    version. So if you want to check if a new feature if supported, use the
+    won't be able to access any APIs that were only added in the newer Qt
+    version. So if you want to check if a new feature is supported, use the
     default behavior. If you just want to check the underlying Qt version,
     pass `compiled=False`.
 
