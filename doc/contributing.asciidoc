@@ -578,10 +578,13 @@ With the QtWebEngine backend, qutebrowser supports several chrome:// urls which
 can be useful for debugging:
 
 - chrome://accessibility/
-- chrome://appcache-internals/
+- chrome://appcache-internals/ (QtWebEngine < 6.4)
+- chrome://attribution-internals (QtWebEngine >= 6.4)
 - chrome://blob-internals/
-- chrome://conversion-internals/ (QtWebEngine 5.15.3+)
+- chrome://conversion-internals/ (QtWebEngine >= 5.15.3 and < 6.4)
 - chrome://crash/ (crashes the current renderer process!)
+- chrome://device-log/ (QtWebEngine >= 6.3)
+- chrome://dino
 - chrome://gpu/
 - chrome://gpuclean/ (crashes the current renderer process!)
 - chrome://gpucrash/ (crashes qutebrowser!)
@@ -590,20 +593,17 @@ can be useful for debugging:
 - chrome://indexeddb-internals/
 - chrome://kill/ (kills the current renderer process!)
 - chrome://media-internals/
-- chrome://net-internals/ (QtWebEngine 5.15.4+)
+- chrome://net-internals/ (QtWebEngine >= 5.15.4)
 - chrome://network-errors/
-- chrome://ppapiflashcrash/
-- chrome://ppapiflashhang/
 - chrome://process-internals/
 - chrome://quota-internals/
 - chrome://sandbox/ (Linux only)
 - chrome://serviceworker-internals/
-- chrome://taskscheduler-internals/ (removed in QtWebEngine 5.14)
-- chrome://tracing/ (QtWebEngine 5.15.3+)
-- chrome://ukm/ (QtWebEngine 5.15.3+)
-- chrome://user-actions/ (QtWebEngine 5.15.3+)
+- chrome://tracing/ (QtWebEngine >= 5.15.3)
+- chrome://ukm/ (QtWebEngine >= 5.15.3)
+- chrome://user-actions/ (QtWebEngine >= 5.15.3)
 - chrome://webrtc-internals/
-- chrome://webrtc-logs/ (QtWebEngine 5.15.3+)
+- chrome://webrtc-logs/ (QtWebEngine >= 5.15.3)
 
 QtWebEngine internals
 ~~~~~~~~~~~~~~~~~~~~~
