@@ -33,16 +33,17 @@ from qutebrowser.misc import binparsing
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
+PAK_VERSION = 5
 
 TARGET_URL = b"https://*.google.com/*"
-REPLACEMENT_URL = b"https://*.qb.invalid/*"
+REPLACEMENT_URL = b"https://qute.invalid/*"
 assert len(TARGET_URL) == len(REPLACEMENT_URL)
 
 
 @dataclasses.dataclass
-class Pak5Header:
+class PakHeader:
 
-    """Chromium .pak header."""
+    """Chromium .pak header (version 5)."""
 
     encoding: int  # uint32
     resource_count: int  # uint16
@@ -51,7 +52,7 @@ class Pak5Header:
     _FORMAT: ClassVar[str] = '<IHH'
 
     @classmethod
-    def parse(cls, fobj: IO[bytes]) -> 'Pak5Header':
+    def parse(cls, fobj: IO[bytes]) -> 'PakHeader':
         """Parse a PAK version 5 header from a file."""
         return cls(*binparsing.unpack(cls._FORMAT, fobj))
 
@@ -78,7 +79,7 @@ class PakParser:
     def __init__(self, fobj: IO[bytes]) -> None:
         """Parse the .pak file from the given file object."""
         version = binparsing.unpack("<I", fobj)[0]
-        if version != 5:
+        if version != PAK_VERSION:
             raise binparsing.ParseError(f"Unsupported .pak version {version}")
 
         self.fobj = fobj
@@ -108,7 +109,7 @@ class PakParser:
         """Read the header and entry index from the .pak file."""
         entries = []
 
-        header = Pak5Header.parse(self.fobj)
+        header = PakHeader.parse(self.fobj)
         for _ in range(header.resource_count + 1):  # + 1 due to sentinel at end
             entries.append(PakEntry.parse(self.fobj))
 
@@ -123,7 +124,7 @@ class PakParser:
 
         return {entry.resource_id: entry for entry in entries}
 
-    def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, str]:
+    def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, bytes]:
         if HANGOUTS_ID in entries:
             suspected_entry = entries[HANGOUTS_ID]
             manifest = self._maybe_get_hangouts_manifest(suspected_entry)
@@ -131,7 +132,7 @@ class PakParser:
                 return suspected_entry, manifest
 
         # didn't find it via the prevously known ID, let's search them all...
-        for entry in entries:
+        for entry in entries.values():
             manifest = self._maybe_get_hangouts_manifest(entry)
             if manifest is not None:
                 return entry, manifest

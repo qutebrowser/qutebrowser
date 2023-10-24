@@ -44,21 +44,16 @@ This is a "best effort" parser. If it errors out, we instead end up relying on t
 PyQtWebEngine version, which is the next best thing.
 """
 
-import struct
 import enum
 import re
 import dataclasses
 import mmap
 import pathlib
-from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
+from typing import IO, ClassVar, Dict, Optional, cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.utils import log, version, qtutils
-
-
-class ParseError(Exception):
-
-    """Raised when the ELF file can't be parsed."""
+from qutebrowser.misc import binparsing
 
 
 class Bitness(enum.Enum):
@@ -75,33 +70,6 @@ class Endianness(enum.Enum):
 
     little = 1
     big = 2
-
-
-def _unpack(fmt: str, fobj: IO[bytes]) -> Tuple[Any, ...]:
-    """Unpack the given struct format from the given file."""
-    size = struct.calcsize(fmt)
-    data = _safe_read(fobj, size)
-
-    try:
-        return struct.unpack(fmt, data)
-    except struct.error as e:
-        raise ParseError(e)
-
-
-def _safe_read(fobj: IO[bytes], size: int) -> bytes:
-    """Read from a file, handling possible exceptions."""
-    try:
-        return fobj.read(size)
-    except (OSError, OverflowError) as e:
-        raise ParseError(e)
-
-
-def _safe_seek(fobj: IO[bytes], pos: int) -> None:
-    """Seek in a file, handling possible exceptions."""
-    try:
-        fobj.seek(pos)
-    except (OSError, OverflowError) as e:
-        raise ParseError(e)
 
 
 @dataclasses.dataclass
@@ -125,17 +93,17 @@ class Ident:
     @classmethod
     def parse(cls, fobj: IO[bytes]) -> 'Ident':
         """Parse an ELF ident header from a file."""
-        magic, klass, data, elfversion, osabi, abiversion = _unpack(cls._FORMAT, fobj)
+        magic, klass, data, elfversion, osabi, abiversion = binparsing.unpack(cls._FORMAT, fobj)
 
         try:
             bitness = Bitness(klass)
         except ValueError:
-            raise ParseError(f"Invalid bitness {klass}")
+            raise binparsing.ParseError(f"Invalid bitness {klass}")
 
         try:
             endianness = Endianness(data)
         except ValueError:
-            raise ParseError(f"Invalid endianness {data}")
+            raise binparsing.ParseError(f"Invalid endianness {data}")
 
         return cls(magic, bitness, endianness, elfversion, osabi, abiversion)
 
@@ -172,7 +140,7 @@ class Header:
     def parse(cls, fobj: IO[bytes], bitness: Bitness) -> 'Header':
         """Parse an ELF header from a file."""
         fmt = cls._FORMATS[bitness]
-        return cls(*_unpack(fmt, fobj))
+        return cls(*binparsing.unpack(fmt, fobj))
 
 
 @dataclasses.dataclass
@@ -203,39 +171,39 @@ class SectionHeader:
     def parse(cls, fobj: IO[bytes], bitness: Bitness) -> 'SectionHeader':
         """Parse an ELF section header from a file."""
         fmt = cls._FORMATS[bitness]
-        return cls(*_unpack(fmt, fobj))
+        return cls(*binparsing.unpack(fmt, fobj))
 
 
 def get_rodata_header(f: IO[bytes]) -> SectionHeader:
     """Parse an ELF file and find the .rodata section header."""
     ident = Ident.parse(f)
     if ident.magic != b'\x7fELF':
-        raise ParseError(f"Invalid magic {ident.magic!r}")
+        raise binparsing.ParseError(f"Invalid magic {ident.magic!r}")
 
     if ident.data != Endianness.little:
-        raise ParseError("Big endian is unsupported")
+        raise binparsing.ParseError("Big endian is unsupported")
 
     if ident.version != 1:
-        raise ParseError(f"Only version 1 is supported, not {ident.version}")
+        raise binparsing.ParseError(f"Only version 1 is supported, not {ident.version}")
 
     header = Header.parse(f, bitness=ident.klass)
 
     # Read string table
-    _safe_seek(f, header.shoff + header.shstrndx * header.shentsize)
+    binparsing.safe_seek(f, header.shoff + header.shstrndx * header.shentsize)
     shstr = SectionHeader.parse(f, bitness=ident.klass)
 
-    _safe_seek(f, shstr.offset)
-    string_table = _safe_read(f, shstr.size)
+    binparsing.safe_seek(f, shstr.offset)
+    string_table = binparsing.safe_read(f, shstr.size)
 
     # Back to all sections
     for i in range(header.shnum):
-        _safe_seek(f, header.shoff + i * header.shentsize)
+        binparsing.safe_seek(f, header.shoff + i * header.shentsize)
         sh = SectionHeader.parse(f, bitness=ident.klass)
         name = string_table[sh.name:].split(b'\x00')[0]
         if name == b'.rodata':
             return sh
 
-    raise ParseError("No .rodata section found")
+    raise binparsing.ParseError("No .rodata section found")
 
 
 @dataclasses.dataclass
@@ -262,7 +230,7 @@ def _find_versions(data: bytes) -> Versions:
                 chromium=match.group(2).decode('ascii'),
             )
         except UnicodeDecodeError as e:
-            raise ParseError(e)
+            raise binparsing.ParseError(e)
 
     # Here it gets even more crazy: Sometimes, we don't have the full UA in one piece
     # in the string table somehow (?!). However, Qt 6.2 added a separate
@@ -273,20 +241,20 @@ def _find_versions(data: bytes) -> Versions:
     # We first get the partial Chromium version from the UA:
     match = re.search(pattern[:-4], data)  # without trailing literal \x00
     if match is None:
-        raise ParseError("No match in .rodata")
+        raise binparsing.ParseError("No match in .rodata")
 
     webengine_bytes = match.group(1)
     partial_chromium_bytes = match.group(2)
     if b"." not in partial_chromium_bytes or len(partial_chromium_bytes) < 6:
         # some sanity checking
-        raise ParseError("Inconclusive partial Chromium bytes")
+        raise binparsing.ParseError("Inconclusive partial Chromium bytes")
 
     # And then try to find the *full* string, stored separately, based on the
     # partial one we got above.
     pattern = br"\x00(" + re.escape(partial_chromium_bytes) + br"[0-9.]+)\x00"
     match = re.search(pattern, data)
     if match is None:
-        raise ParseError("No match in .rodata for full version")
+        raise binparsing.ParseError("No match in .rodata for full version")
 
     chromium_bytes = match.group(1)
     try:
@@ -295,7 +263,7 @@ def _find_versions(data: bytes) -> Versions:
             chromium=chromium_bytes.decode('ascii'),
         )
     except UnicodeDecodeError as e:
-        raise ParseError(e)
+        raise binparsing.ParseError(e)
 
 
 def _parse_from_file(f: IO[bytes]) -> Versions:
@@ -316,8 +284,8 @@ def _parse_from_file(f: IO[bytes]) -> Versions:
             return _find_versions(cast(bytes, mmap_data))
     except (OSError, OverflowError) as e:
         log.misc.debug(f"mmap failed ({e}), falling back to reading", exc_info=True)
-        _safe_seek(f, sh.offset)
-        data = _safe_read(f, sh.size)
+        binparsing.safe_seek(f, sh.offset)
+        data = binparsing.safe_read(f, sh.size)
         return _find_versions(data)
 
 
@@ -344,6 +312,6 @@ def parse_webenginecore() -> Optional[Versions]:
 
         log.misc.debug(f"Got versions from ELF: {versions}")
         return versions
-    except ParseError as e:
+    except binparsing.ParseError as e:
         log.misc.debug(f"Failed to parse ELF: {e}", exc_info=True)
         return None
