@@ -138,6 +138,7 @@ def init(*, args: argparse.Namespace) -> None:
 
     loader.init()
     loader.load_components()
+    loader.load_extensions()
     try:
         _init_modules(args=args)
     except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
