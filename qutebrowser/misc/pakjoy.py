@@ -130,11 +130,11 @@ class PakParser:
             if manifest is not None:
                 return suspected_entry, manifest
 
-        # didn't find it via the prevously known ID, let's search them all...
-        for entry in entries:
-            manifest = self._maybe_get_hangouts_manifest(entry)
+        # didn't find it via the previously known ID, let's search them all...
+        for id_ in entries:
+            manifest = self._maybe_get_hangouts_manifest(entries[id_])
             if manifest is not None:
-                return entry, manifest
+                return entries[id_], manifest
 
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
