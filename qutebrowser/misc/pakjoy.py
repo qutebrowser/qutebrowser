@@ -26,10 +26,14 @@ This is a "best effort" parser. If it errors out, we don't apply the workaround
 instead of crashing.
 """
 
+import os
+import shutil
+import pathlib
 import dataclasses
 from typing import ClassVar, IO, Optional, Dict, Tuple
 
 from qutebrowser.misc import binparsing
+from qutebrowser.utils import qtutils, standarddir
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
@@ -137,6 +141,27 @@ class PakParser:
                 return entries[id_], manifest
 
         raise binparsing.ParseError("Couldn't find hangouts manifest")
+
+
+def patch():
+    resources_path = qtutils.library_path(qtutils.LibraryPath.data) / "resources"
+    work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
+    patched_file = work_dir / "qtwebengine_resources.pak"
+
+    print(f"{work_dir=} {work_dir.exists()=}")
+    print(f"{resources_path=}")
+    if work_dir.exists():
+        shutil.rmtree(work_dir)
+
+    shutil.copytree(resources_path, work_dir)
+
+    with open(patched_file, "r+b") as f:
+        parser = PakParser(f)
+        offset = parser.find_patch_offset()
+        f.seek(offset)
+        f.write(REPLACEMENT_URL)
+
+    os.environ["QTWEBENGINE_RESOURCES_PATH"] = str(work_dir)
 
 
 if __name__ == "__main__":
