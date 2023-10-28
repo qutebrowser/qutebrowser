@@ -50,7 +50,7 @@ from qutebrowser.keyinput import macros, eventfilter
 from qutebrowser.mainwindow import mainwindow, prompt, windowundo
 from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
-                              objects, quitter, nativeeventfilter, pakjoy)
+                              objects, quitter, nativeeventfilter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                resources, usertypes, standarddir,
                                error, qtutils, debug)
@@ -75,10 +75,6 @@ def run(args):
 
     log.init.debug("Initializing config...")
     configinit.early_init(args)
-
-    # Run after we've imported Qt but before webengine is initialized.
-    # TODO: check: backend, Qt version, frozen
-    pakjoy.patch()
 
     log.init.debug("Initializing application...")
     app = Application(args)

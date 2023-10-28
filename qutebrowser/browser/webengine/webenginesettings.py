@@ -24,6 +24,7 @@ from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
                                            webenginedownloads, notification)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
+from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
                                urlmatch, usertypes, objreg, version)
 if TYPE_CHECKING:
@@ -546,6 +547,10 @@ def init():
     _global_settings = WebEngineSettings(_SettingsWrapper())
 
     log.init.debug("Initializing profiles...")
+
+    # Apply potential resource patches before initializing profiles.
+    pakjoy.patch()
+
     _init_default_profile()
     init_private_profile()
     config.instance.changed.connect(_update_settings)
