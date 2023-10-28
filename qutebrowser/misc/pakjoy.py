@@ -33,7 +33,7 @@ import dataclasses
 from typing import ClassVar, IO, Optional, Dict, Tuple
 
 from qutebrowser.misc import binparsing
-from qutebrowser.utils import qtutils, standarddir
+from qutebrowser.utils import qtutils, standarddir, version, utils
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
@@ -144,6 +144,10 @@ class PakParser:
 
 
 def patch():
+    versions = version.qtwebengine_versions(avoid_init=True)
+    if versions.webengine != utils.VersionNumber(6, 6):
+        return
+
     resources_path = qtutils.library_path(qtutils.LibraryPath.data) / "resources"
     work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
     patched_file = work_dir / "qtwebengine_resources.pak"
