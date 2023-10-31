@@ -5,7 +5,7 @@ bump2version==1.0.1
 certifi==2023.7.22
 cffi==1.16.0
 charset-normalizer==3.3.1
-cryptography==41.0.4
+cryptography==41.0.5
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
