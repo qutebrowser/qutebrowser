@@ -32,7 +32,7 @@ import dataclasses
 from typing import ClassVar, IO, Optional, Dict, Tuple
 
 from qutebrowser.misc import binparsing
-from qutebrowser.utils import qtutils, standarddir, version, utils
+from qutebrowser.utils import qtutils, standarddir, version, utils, log
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
@@ -150,6 +150,11 @@ def copy_webengine_resources():
     resources_dir = qtutils.library_path(qtutils.LibraryPath.data) / "resources"
     work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
 
+    log.misc.debug(
+        "Copying webengine resources for quirk patching: "
+        f"{resources_dir} -> {work_dir}"
+    )
+
     if work_dir.exists():
         # TODO: make backup?
         shutil.rmtree(work_dir)
@@ -169,13 +174,23 @@ def patch(file_to_patch: pathlib.Path = None):
 
     if not file_to_patch:
         file_to_patch = copy_webengine_resources() / "qtwebengine_resources.pak"
-        assert file_to_patch.exists()
+
+    if not file_to_patch.exists():
+        log.misc.error(
+            "Resource pak doesn't exist at expected location! "
+            f"Not applying quirks. Expected location: {file_to_patch}"
+        )
+        return
 
     with open(file_to_patch, "r+b") as f:
-        parser = PakParser(f)
-        offset = parser.find_patch_offset()
-        f.seek(offset)
-        f.write(REPLACEMENT_URL)
+        try:
+            parser = PakParser(f)
+            log.misc.debug(f"Patching pak entry: {parser.manifest_entry}")
+            offset = parser.find_patch_offset()
+            f.seek(offset)
+            f.write(REPLACEMENT_URL)
+        except binparsing.ParseError:
+            log.misc.exception("Failed to apply quirk to resources pak.")
 
 
 if __name__ == "__main__":
