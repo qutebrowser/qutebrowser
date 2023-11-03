@@ -1,4 +1,3 @@
-
 # SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -50,7 +49,7 @@ class Pak5Header:
 
     encoding: int  # uint32
     resource_count: int  # uint16
-    alias_count: int  # uint16
+    _alias_count: int  # uint16
 
     _FORMAT: ClassVar[str] = '<IHH'
 
@@ -63,7 +62,7 @@ class Pak5Header:
 @dataclasses.dataclass
 class PakEntry:
 
-    """Entry description in a .pak file"""
+    """Entry description in a .pak file."""
 
     resource_id: int  # uint16
     file_offset: int  # uint32
@@ -78,18 +77,21 @@ class PakEntry:
 
 
 class PakParser:
+    """Parse webengine pak and find patch location to disable Google Meet extension.
+    """
 
     def __init__(self, fobj: IO[bytes]) -> None:
         """Parse the .pak file from the given file object."""
-        version = binparsing.unpack("<I", fobj)[0]
-        if version != 5:
-            raise binparsing.ParseError(f"Unsupported .pak version {version}")
+        pak_version = binparsing.unpack("<I", fobj)[0]
+        if pak_version != 5:
+            raise binparsing.ParseError(f"Unsupported .pak version {pak_version}")
 
         self.fobj = fobj
         entries = self._read_header()
         self.manifest_entry, self.manifest = self._find_manifest(entries)
 
     def find_patch_offset(self) -> int:
+        """Return byte offset of TARGET_URL into the pak file."""
         try:
             return self.manifest_entry.file_offset + self.manifest.index(TARGET_URL)
         except ValueError:
@@ -143,45 +145,46 @@ class PakParser:
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
 
-def patch():
+def copy_webengine_resources():
+    """Copy qtwebengine resources to local dir for patching."""
+    resources_dir = qtutils.library_path(qtutils.LibraryPath.data) / "resources"
+    work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
+
+    if work_dir.exists():
+        # TODO: make backup?
+        shutil.rmtree(work_dir)
+
+    shutil.copytree(resources_dir, work_dir)
+
+    os.environ["QTWEBENGINE_RESOURCES_PATH"] = str(work_dir)
+
+    return work_dir
+
+
+def patch(file_to_patch: pathlib.Path = None):
+    """Apply any patches to webengine resource pak files."""
     versions = version.qtwebengine_versions(avoid_init=True)
     if versions.webengine != utils.VersionNumber(6, 6):
         return
 
-    resources_path = qtutils.library_path(qtutils.LibraryPath.data) / "resources"
-    work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
-    patched_file = work_dir / "qtwebengine_resources.pak"
+    if not file_to_patch:
+        file_to_patch = copy_webengine_resources() / "qtwebengine_resources.pak"
+        assert file_to_patch.exists()
 
-    print(f"{work_dir=} {work_dir.exists()=}")
-    print(f"{resources_path=}")
-    if work_dir.exists():
-        shutil.rmtree(work_dir)
-
-    shutil.copytree(resources_path, work_dir)
-
-    with open(patched_file, "r+b") as f:
+    with open(file_to_patch, "r+b") as f:
         parser = PakParser(f)
         offset = parser.find_patch_offset()
         f.seek(offset)
         f.write(REPLACEMENT_URL)
-
-    os.environ["QTWEBENGINE_RESOURCES_PATH"] = str(work_dir)
 
 
 if __name__ == "__main__":
-    import shutil
-    shutil.copy("/usr/share/qt6/resources/qtwebengine_resources.pak", "/tmp/test.pak")
+    output_test_file = pathlib.Path("/tmp/test.pak")
+    shutil.copy("/usr/share/qt6/resources/qtwebengine_resources.pak", output_test_file)
+    patch(output_test_file)
 
-    with open("/tmp/test.pak", "r+b") as f:
-        parser = PakParser(f)
-        print(parser.manifest_entry)
-        print(parser.manifest)
-        offset = parser.find_patch_offset()
-        f.seek(offset)
-        f.write(REPLACEMENT_URL)
+    with open(output_test_file, "rb") as fd:
+        reparsed = PakParser(fd)
 
-    with open("/tmp/test.pak", "rb") as f:
-        parser = PakParser(f)
-
-    print(parser.manifest_entry)
-    print(parser.manifest)
+    print(reparsed.manifest_entry)
+    print(reparsed.manifest)
