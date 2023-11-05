@@ -77,8 +77,7 @@ class PakEntry:
 
 
 class PakParser:
-    """Parse webengine pak and find patch location to disable Google Meet extension.
-    """
+    """Parse webengine pak and find patch location to disable Google Meet extension."""
 
     def __init__(self, fobj: IO[bytes]) -> None:
         """Parse the .pak file from the given file object."""
@@ -173,7 +172,11 @@ def patch(file_to_patch: pathlib.Path = None):
         return
 
     if not file_to_patch:
-        file_to_patch = copy_webengine_resources() / "qtwebengine_resources.pak"
+        try:
+            file_to_patch = copy_webengine_resources() / "qtwebengine_resources.pak"
+        except OSError:
+            log.misc.exception("Failed to copy webengine resources, not applying quirk")
+            return
 
     if not file_to_patch.exists():
         log.misc.error(
@@ -195,6 +198,7 @@ def patch(file_to_patch: pathlib.Path = None):
 
 if __name__ == "__main__":
     output_test_file = pathlib.Path("/tmp/test.pak")
+    #shutil.copy("/opt/google/chrome/resources.pak", output_test_file)
     shutil.copy("/usr/share/qt6/resources/qtwebengine_resources.pak", output_test_file)
     patch(output_test_file)
 
