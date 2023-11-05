@@ -152,7 +152,7 @@ def copy_webengine_resources() -> pathlib.Path:
         # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
         # replacement for the qtutils bit but it doesn't seem to help find the
         # actually Resources folder.
-        resources_dir /= "lib" / "QtWebEngineCore.framework" / "Resources"
+        resources_dir /= pathlib.Path("lib", "QtWebEngineCore.framework", "Resources")
     else:
         resources_dir /= "resources"
     work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
