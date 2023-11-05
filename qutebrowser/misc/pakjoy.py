@@ -128,7 +128,7 @@ class PakParser:
 
         return {entry.resource_id: entry for entry in entries}
 
-    def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, str]:
+    def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, bytes]:
         if HANGOUTS_ID in entries:
             suspected_entry = entries[HANGOUTS_ID]
             manifest = self._maybe_get_hangouts_manifest(suspected_entry)
@@ -144,7 +144,7 @@ class PakParser:
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
 
-def copy_webengine_resources():
+def copy_webengine_resources() -> pathlib.Path:
     """Copy qtwebengine resources to local dir for patching."""
     resources_dir = qtutils.library_path(qtutils.LibraryPath.data)
     if utils.is_mac:
@@ -173,7 +173,7 @@ def copy_webengine_resources():
     return work_dir
 
 
-def patch(file_to_patch: pathlib.Path = None):
+def patch(file_to_patch: pathlib.Path = None) -> None:
     """Apply any patches to webengine resource pak files."""
     versions = version.qtwebengine_versions(avoid_init=True)
     if versions.webengine != utils.VersionNumber(6, 6):
