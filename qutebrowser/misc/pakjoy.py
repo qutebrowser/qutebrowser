@@ -146,7 +146,15 @@ class PakParser:
 
 def copy_webengine_resources():
     """Copy qtwebengine resources to local dir for patching."""
-    resources_dir = qtutils.library_path(qtutils.LibraryPath.data) / "resources"
+    resources_dir = qtutils.library_path(qtutils.LibraryPath.data)
+    if utils.is_mac:
+        # I'm not sure how to arrive at this path without hardcoding it
+        # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
+        # replacement for the qtutils bit but it doesn't seem to help find the
+        # actually Resources folder.
+        resources_dir /= "lib" / "QtWebEngineCore.framework" / "Resources"
+    else:
+        resources_dir /= "resources"
     work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
 
     log.misc.debug(
