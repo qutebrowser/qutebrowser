@@ -198,7 +198,7 @@ def patch(file_to_patch: pathlib.Path = None):
             parser = PakParser(f)
             log.misc.debug(f"Patching pak entry: {parser.manifest_entry}")
             offset = parser.find_patch_offset()
-            f.seek(offset)
+            binparsing.safe_seek(f, offset)
             f.write(REPLACEMENT_URL)
         except binparsing.ParseError:
             log.misc.exception("Failed to apply quirk to resources pak.")
