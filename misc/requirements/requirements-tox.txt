@@ -4,7 +4,7 @@ cachetools==5.3.2
 chardet==5.2.0
 colorama==0.4.6
 distlib==0.3.7
-filelock==3.13.0
+filelock==3.13.1
 packaging==23.2
 pip==23.3.1
 platformdirs==3.11.0
@@ -14,4 +14,4 @@ setuptools==68.2.2
 tomli==2.0.1
 tox==4.11.3
 virtualenv==20.24.6
-wheel==0.41.2
+wheel==0.41.3
