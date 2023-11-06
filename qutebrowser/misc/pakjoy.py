@@ -1,4 +1,3 @@
-
 # SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -26,10 +25,14 @@ This is a "best effort" parser. If it errors out, we don't apply the workaround
 instead of crashing.
 """
 
+import os
+import shutil
+import pathlib
 import dataclasses
 from typing import ClassVar, IO, Optional, Dict, Tuple
 
 from qutebrowser.misc import binparsing
+from qutebrowser.utils import qtutils, standarddir, version, utils, log
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
@@ -47,7 +50,7 @@ class PakHeader:
 
     encoding: int  # uint32
     resource_count: int  # uint16
-    alias_count: int  # uint16
+    _alias_count: int  # uint16
 
     _FORMAT: ClassVar[str] = '<IHH'
 
@@ -60,7 +63,7 @@ class PakHeader:
 @dataclasses.dataclass
 class PakEntry:
 
-    """Entry description in a .pak file"""
+    """Entry description in a .pak file."""
 
     resource_id: int  # uint16
     file_offset: int  # uint32
@@ -75,18 +78,20 @@ class PakEntry:
 
 
 class PakParser:
+    """Parse webengine pak and find patch location to disable Google Meet extension."""
 
     def __init__(self, fobj: IO[bytes]) -> None:
         """Parse the .pak file from the given file object."""
-        version = binparsing.unpack("<I", fobj)[0]
-        if version != PAK_VERSION:
-            raise binparsing.ParseError(f"Unsupported .pak version {version}")
+        pak_version = binparsing.unpack("<I", fobj)[0]
+        if pak_version != PAK_VERSION:
+            raise binparsing.ParseError(f"Unsupported .pak version {pak_version}")
 
         self.fobj = fobj
         entries = self._read_header()
         self.manifest_entry, self.manifest = self._find_manifest(entries)
 
     def find_patch_offset(self) -> int:
+        """Return byte offset of TARGET_URL into the pak file."""
         try:
             return self.manifest_entry.file_offset + self.manifest.index(TARGET_URL)
         except ValueError:
@@ -135,25 +140,79 @@ class PakParser:
         for entry in entries.values():
             manifest = self._maybe_get_hangouts_manifest(entry)
             if manifest is not None:
-                return entry, manifest
+                return entries[id_], manifest
 
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
 
+def copy_webengine_resources() -> pathlib.Path:
+    """Copy qtwebengine resources to local dir for patching."""
+    resources_dir = qtutils.library_path(qtutils.LibraryPath.data)
+    if utils.is_mac:
+        # I'm not sure how to arrive at this path without hardcoding it
+        # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
+        # replacement for the qtutils bit but it doesn't seem to help find the
+        # actually Resources folder.
+        resources_dir /= pathlib.Path("lib", "QtWebEngineCore.framework", "Resources")
+    else:
+        resources_dir /= "resources"
+    work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
+
+    log.misc.debug(
+        "Copying webengine resources for quirk patching: "
+        f"{resources_dir} -> {work_dir}"
+    )
+
+    if work_dir.exists():
+        # TODO: make backup?
+        shutil.rmtree(work_dir)
+
+    shutil.copytree(resources_dir, work_dir)
+
+    os.environ["QTWEBENGINE_RESOURCES_PATH"] = str(work_dir)
+
+    return work_dir
+
+
+def patch(file_to_patch: pathlib.Path = None) -> None:
+    """Apply any patches to webengine resource pak files."""
+    versions = version.qtwebengine_versions(avoid_init=True)
+    if versions.webengine != utils.VersionNumber(6, 6):
+        return
+
+    if not file_to_patch:
+        try:
+            file_to_patch = copy_webengine_resources() / "qtwebengine_resources.pak"
+        except OSError:
+            log.misc.exception("Failed to copy webengine resources, not applying quirk")
+            return
+
+    if not file_to_patch.exists():
+        log.misc.error(
+            "Resource pak doesn't exist at expected location! "
+            f"Not applying quirks. Expected location: {file_to_patch}"
+        )
+        return
+
+    with open(file_to_patch, "r+b") as f:
+        try:
+            parser = PakParser(f)
+            log.misc.debug(f"Patching pak entry: {parser.manifest_entry}")
+            offset = parser.find_patch_offset()
+            binparsing.safe_seek(f, offset)
+            f.write(REPLACEMENT_URL)
+        except binparsing.ParseError:
+            log.misc.exception("Failed to apply quirk to resources pak.")
+
+
 if __name__ == "__main__":
-    import shutil
-    shutil.copy("/usr/share/qt6/resources/qtwebengine_resources.pak", "/tmp/test.pak")
+    output_test_file = pathlib.Path("/tmp/test.pak")
+    #shutil.copy("/opt/google/chrome/resources.pak", output_test_file)
+    shutil.copy("/usr/share/qt6/resources/qtwebengine_resources.pak", output_test_file)
+    patch(output_test_file)
 
-    with open("/tmp/test.pak", "r+b") as f:
-        parser = PakParser(f)
-        print(parser.manifest_entry)
-        print(parser.manifest)
-        offset = parser.find_patch_offset()
-        f.seek(offset)
-        f.write(REPLACEMENT_URL)
+    with open(output_test_file, "rb") as fd:
+        reparsed = PakParser(fd)
 
-    with open("/tmp/test.pak", "rb") as f:
-        parser = PakParser(f)
-
-    print(parser.manifest_entry)
-    print(parser.manifest)
+    print(reparsed.manifest_entry)
+    print(reparsed.manifest)

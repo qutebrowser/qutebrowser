@@ -41,4 +41,3 @@ def safe_seek(fobj: IO[bytes], pos: int) -> None:
         fobj.seek(pos)
     except (OSError, OverflowError) as e:
         raise ParseError(e)
-
