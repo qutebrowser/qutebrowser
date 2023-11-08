@@ -5,6 +5,7 @@
 
 """pdf.js integration for qutebrowser."""
 
+import html
 import os
 
 from qutebrowser.qt.core import QUrl, QUrlQuery
@@ -49,24 +50,25 @@ def generate_pdfjs_page(filename, url):
         filename: The filename of the PDF to open.
         url: The URL being opened.
     """
-    if not is_available():
+    pdfjs_name = _get_pdfjs_basename()
+    if pdfjs_name is None or not is_available():
         pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found",
                             pdfjs_dir=pdfjs_dir)
-    html = get_pdfjs_res('web/viewer.html').decode('utf-8')
+    viewhtml = get_pdfjs_res('web/viewer.html').decode('utf-8')
 
     script = _generate_pdfjs_script(filename)
-    html = html.replace('</body>',
+    viewhtml = viewhtml.replace('</body>',
                         '</body><script>{}</script>'.format(script))
     # WORKAROUND for the fact that PDF.js tries to use the Fetch API even with
     # qute:// URLs.
-    pdfjs_script = '<script src="../build/pdf.js"></script>'
-    html = html.replace(pdfjs_script,
+    pdfjs_script = f'<script src="../build/{html.escape(pdfjs_name)}"></script>'
+    viewhtml = viewhtml.replace(pdfjs_script,
                         '<script>window.Response = undefined;</script>\n' +
                         pdfjs_script)
-    return html
+    return viewhtml
 
 
 def _generate_pdfjs_script(filename):
@@ -202,10 +204,23 @@ def _read_from_system(system_path, names):
     return (None, None)
 
 
+def _get_pdfjs_basename():
+    """Checks for pdf.js main module availability and returns the basename if available."""
+    exts = ['pdf.js', 'pdf.mjs']
+    for ext in exts:
+        try:
+            get_pdfjs_res('build/' + ext)
+        except PDFJSNotFound:
+            pass
+        else:
+            return ext
+    return None
+
+
 def is_available():
-    """Return true if a pdfjs installation is available."""
+    """Return true if certain parts of a pdfjs installation are available."""
     try:
-        get_pdfjs_res('build/pdf.js')
+        # get_pdfjs_res('build/pdf.mjs')
         get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
