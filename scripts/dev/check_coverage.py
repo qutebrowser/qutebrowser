@@ -98,6 +98,8 @@ PERFECT_FILES = [
 
     ('tests/unit/components/test_readlinecommands.py',
      'qutebrowser/components/readlinecommands.py'),
+    (None,
+     'qutebrowser/components/utils/exceptions.py'),
 
     ('tests/unit/misc/test_autoupdate.py',
      'qutebrowser/misc/autoupdate.py'),

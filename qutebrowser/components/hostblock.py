@@ -24,7 +24,7 @@ from qutebrowser.api import (
 from qutebrowser.components.utils import blockutils
 from qutebrowser.utils import (  # FIXME: Move needed parts into api namespace?
     urlutils,
-    version
+    version,
 )
 
 
@@ -46,7 +46,6 @@ def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
 
 def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
     """Get a usable file object to read the hosts file from."""
-    byte_io.seek(0)  # rewind downloaded file
     if zipfile.is_zipfile(byte_io):
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
         with zipfile.ZipFile(byte_io) as zf:
@@ -65,8 +64,10 @@ def _should_be_used() -> bool:
     adblock_info = version.MODULE_INFO["adblock"]
     adblock_usable = adblock_info.is_usable()
 
-    logger.debug(f"Configured adblock method {method}, adblock library usable: "
-                 f"{adblock_usable}")
+    logger.debug(
+        f"Configured adblock method {method}, adblock library usable: "
+        f"{adblock_usable}"
+    )
     return method in ("both", "hosts") or (method == "auto" and not adblock_usable)
 
 
@@ -88,7 +89,7 @@ class HostBlocker:
         *,
         data_dir: pathlib.Path,
         config_dir: pathlib.Path,
-        has_basedir: bool = False
+        has_basedir: bool = False,
     ) -> None:
         self.enabled = _should_be_used()
         self._has_basedir = has_basedir
@@ -125,9 +126,7 @@ class HostBlocker:
                 for hostname in urlutils.widened_hostnames(host)
             )
         else:
-            return (
-                host in self._blocked_hosts or host in self._config_blocked_hosts
-            )
+            return host in self._blocked_hosts or host in self._config_blocked_hosts
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""
@@ -227,7 +226,7 @@ class HostBlocker:
         dl.initiate()
         return dl
 
-    def _merge_file(self, byte_io: IO[bytes]) -> None:
+    def _merge_file(self, _url: QUrl, byte_io: IO[bytes]) -> None:
         """Read and merge host files.
 
         Args:

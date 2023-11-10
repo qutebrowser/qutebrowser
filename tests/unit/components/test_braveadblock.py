@@ -85,6 +85,521 @@ BUGGY_URLS = [
 ]
 
 
+GOOGLE_URL = QUrl("https://google.com")
+GOOGLE_UBLOCK_FILTERS_SELECTORS = [
+    # pylint: disable=line-too-long
+    r"""#atvcap + #tvcap > .mnr-c > .commercial-unit-mobile-top""",
+    r"""#center_col > #\5f Emc""",
+    r"""#center_col > #main > .dfrd > .mnr-c > .c._oc._zs""",
+    r"""#center_col > #res > #topstuff + #search > div > #ires > #rso > #flun""",
+    r"""#center_col > #resultStats + #tads""",
+    r"""#center_col > #resultStats + #tads + #res + #tads""",
+    r"""#center_col > #resultStats + div + #res + #tads""",
+    r"""#center_col > #resultStats + div[style="border:1px solid #dedede;margin-bottom:11px;padding:5px 7px 5px 6px"]""",
+    r"""#center_col > #taw > #tvcap > .commercial-unit-desktop-top""",
+    r"""#center_col > #taw > #tvcap > .cu-container > .commercial-unit-desktop-top""",
+    r"""#center_col > #taw > #tvcap > .rscontainer""",
+    r"""#center_col > div[style="font-size:14px;margin-right:0;min-height:5px"] > div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff8e7"]""",
+    r"""#cnt #center_col > #res > #topstuff > .ts""",
+    r"""#cnt #center_col > #taw > #tvcap > .c._oc._Lp""",
+    r"""#main_col > #center_col div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff7ed"]""",
+    r"""#mbEnd[cellspacing="0"][cellpadding="0"]""",
+    r"""#mclip_container:last-child""",
+    r"""#mn #center_col > div > h2.spon:first-child""",
+    r"""#mn #center_col > div > h2.spon:first-child + ol:last-child""",
+    r"""#mn div[style="position:relative"] > #center_col > ._Ak""",
+    r"""#mn div[style="position:relative"] > #center_col > div > ._dPg""",
+    r"""#resultspanel > #topads""",
+    r"""#rhs_block .mod > .gws-local-hotels__booking-module""",
+    r"""#rhs_block .mod > .luhb-div > div[data-async-type="updateHotelBookingModule"]""",
+    r"""#rhs_block .xpdopen > ._OKe > div > .mod > ._yYf""",
+    r"""#rhs_block > #mbEnd""",
+    r"""#rhs_block > .ts[cellspacing="0"][cellpadding="0"][style="padding:0"]""",
+    r"""#rhs_block > ol > .rhsvw > .kp-blk > .xpdopen > ._OKe > ol > ._DJe > .luhb-div""",
+    r"""#rhs_block > script + .c._oc._Ve.rhsvw""",
+    r"""#rhswrapper > #rhssection[border="0"][bgcolor="#ffffff"]""",
+    r"""#ssmiwdiv[jsdisplay]""",
+    r"""#tads + div + .c""",
+    r"""#tads.c""",
+    r"""#tadsb.c""",
+    r"""#tadsto.c""",
+    r"""#taw > .med + div > #tvcap > .mnr-c:not(.qs-ic) > .commercial-unit-mobile-top""",
+    r"""#topstuff > #tads""",
+    r""".GB3L-QEDGY .GB3L-QEDF- > .GB3L-QEDE-""",
+    r""".GFYY1SVD2 > .GFYY1SVC2 > .GFYY1SVF5""",
+    r""".GFYY1SVE2 > .GFYY1SVD2 > .GFYY1SVG5""",
+    r""".GHOFUQ5BG2 > .GHOFUQ5BF2 > .GHOFUQ5BG5""",
+    r""".GJJKPX2N1 > .GJJKPX2M1 > .GJJKPX2P4""",
+    r""".GKJYXHBF2 > .GKJYXHBE2 > .GKJYXHBH5""",
+    r""".GPMV2XEDA2 > .GPMV2XEDP1 > .GPMV2XEDJBB""",
+    r""".ch[onclick="ga(this,event)"]""",
+    r""".commercial-unit-desktop-rhs > .iKidV > .Ee92ae + .P2mpm + .hp3sk""",
+    r""".commercial-unit-desktop-rhs:not(.mnr-c)""",
+    r""".commercial-unit-mobile-bottom""",
+    r""".commercial-unit-mobile-top .jackpot-main-content-container > .UpgKEd + .nZZLFc > .vci""",
+    r""".commercial-unit-mobile-top .jackpot-main-content-container > .UpgKEd + .nZZLFc > div > .vci""",
+    r""".commercial-unit-tiles-immersive""",
+    r""".gws-flights-book__ads-wrapper""",
+    r""".lads[width="100%"][style="background:#FFF8DD"]""",
+    r""".mod > ._jH + .rscontainer""",
+    r""".mod > .gws-local-promotions__border""",
+    r""".mw > #rcnt > #center_col > #taw > #tvcap > .c""",
+    r""".mw > #rcnt > #center_col > #taw > .c""",
+    r""".ra[align="left"][width="30%"]""",
+    r""".ra[align="right"][width="30%"]""",
+    r""".ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0"]""",
+    r""".rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]""",
+    r""".rscontainer > .ellip""",
+    r""".section-result[data-result-ad-type]""",
+    r""".widget-pane-section-result[data-result-ad-type]""",
+    r"""c-wiz[jsrenderer="YnuqN"] > div > div > .Rn1jbe""",
+    r"""div[data-crl="true"][data-id^="CarouselPLA-"]""",
+    # NOTE: For whatever reason, the underlying adblocker doesn't seem to pick up on
+    # this selector.
+    # r"""#atvcap > div:has(h3[role="heading"] > span:has-text(/^Ads/))""",
+    r"""div[data-ismultirow="true"][data-id^="CarouselPLA-"]""",
+    r"""div[data-flt-ve="sponsored_search_ads"]""",
+    r"""div[jscontroller="U835zd"] + c-wiz[jsrenderer="YnuqN"]""",
+    r"""div[role="navigation"] + c-wiz > div > .kxhcC""",
+    r"""div[role="navigation"] + c-wiz > script + div > .kxhcC""",
+    r""".ads-ad""",
+    r"""#sqh""",
+]
+GENERAL_UBLOCK_FILTERS_SELECTORS = [
+    r"""[href*="/afu.php"]""",
+    r"""[href^="https://timesofindia.indiatimes.com/affiliate_amazon.cms"]""",
+    r"""[href^="https://m.timesofindia.com/affiliate_amazon.cms"]""",
+    r"""[href^="https://trk.clmbtrck.in/click"]""",
+    r"""[onclick*="window.open('http://deloplen.com/"]""",
+    r"""[href^="https://www.onclickmega.com/"]""",
+    r"""[href*="www.gaming-adult.com/"]""",
+    r"""[data-uri^="https://s3.amazonaws.com"]""",
+    r"""[data-lnguri^="https://s3.amazonaws.com"]""",
+    r"""a[href^="https://syndication.exdynsrv.com/splash.php"]""",
+    r"""[onclick*="postlnk.com"]""",
+    r"""[href*="postlnk.com"]""",
+    r"""[src*="/dutti/"]""",
+    r"""[class^="DisplayAd"]""",
+    r"""div[class*="displayAdRight"]""",
+    r"""a[href^="https://eawp2ra7.top/"]""",
+    r"""iframe[src^="https://smitionsory.co/"]""",
+    r"""[href^="https://2go7v1nes8.com/"]""",
+    r"""a[href^="http://gamingadult.biz/"]""",
+    r"""a[href^="https://bj1110.online/"]""",
+    r"""[href^="https://www.onclickperformance.com/"]""",
+    r"""[data-lnguri*="vipbox"]""",
+    r"""a[href*="/open?bver"]""",
+    r"""a[href*="/open?refer"]""",
+    r"""[href^="//look.ufinkln.com/"]""",
+    r"""[href*="passtechusa.com"]""",
+    r"""[href^="http://getalinkandshare.com/r"]""",
+    r"""[href^="https://t.mobtyb.com/"]""",
+    r"""[src="/static/img/download-top.png"]""",
+    r"""[href^="https://13vm73vbmp.com/"]""",
+    r"""a[href^="http://www.poweredbyliquidfire.mobi/"]""",
+    r"""[href*=".smartadserver.com"]""",
+    r"""[href^="https://go.dmzjmp.com/"]""",
+    r"""[href^="https://go.smljmp.com/"]""",
+    r"""[href^="https://go.xxxiijmp.com/"]""",
+    r"""[href^="https://go.zybrdr.com/"]""",
+    r"""[href^="https://popcash.net/"]""",
+    r"""[href^="https://adult.xyz/"]""",
+    r"""[href^="https://mymediarecommendations.com/"]""",
+    r"""[href^="https://ahf8n.com/"]""",
+    r"""[src="/img/bat-banner.png"]""",
+    r"""[href^="http://go.adovr.com/"]""",
+    r"""[href^="https://qwertyuiop.stream/"]""",
+    r"""[href^="//look.utndln.com/offer"]""",
+    r"""[href^="//mob1ledev1ces.com"]""",
+    r"""[src^="https://aff1xstavka.com"]""",
+    r"""a[href="http://linkswala.club/"]""",
+    r"""[href*="https://mlksis.com/"]""",
+    r"""[href^="https://track.wg-aff.com/click"]""",
+    r"""[href*="https://catastropheillusive.com/"]""",
+    r"""[href*="https://ads.enrt.eu/"]""",
+    r"""[href^="https://pl.allsports4free.club/"]""",
+    r"""[href^="https://pl.allsports4u.club/"]""",
+    r"""[href^="https://ghoto-12.win/"]""",
+    r"""[href="//xxxrevpushclcdu.com/app.webp"]""",
+    r"""[id^="p_root_"]""",
+    r"""[href^="http://smart.offers-tracking.com/"]""",
+    r"""[href^="//producebreed.com/"]""",
+    r"""[href*="uselnk.com/"]""",
+    r"""[href^="http://referrer.website/"]""",
+    r"""[href^="https://klsdee.com/"]""",
+    r"""a[href^="http://adtrack"]""",
+    r"""a[href*="/go.php?a_aid="]""",
+    r"""[href*="//agacelebir.com"]""",
+    r"""[href^="https://ladsanz.com/"]""",
+    r"""[href*="librateam.net"]""",
+    r"""[src*="librateam.net"]""",
+    r"""a[href^="https://pussl"]""",
+    r"""[href^="https://pics.ys1pve.site/redirect.html"]""",
+    r"""[src^="//dombnrs.com/"]""",
+]
+YOUTUBE_URL = QUrl("https://youtube.com")
+YOUTUBE_UBLOCK_FILTERS_SELECTORS = [
+    # pylint: disable=line-too-long
+    r""".masthead-ad-control,.ad-div,.pyv-afc-ads-container""",
+    r"""#promotion-shelf""",
+    r"""ytd-video-masthead-ad-advertiser-info-renderer,ytm-promoted-sparkles-web-renderer""",
+    # NOTE: For whatever reason, the underlying adblocker doesn't seem to pick up on
+    # this selector.
+    # r"""ytd-display-ad-renderer:upward(ytd-rich-item-renderer)""",
+]
+YOUTUBE_UBLOCK_FILTERS_SCRIPT = r"""try {
+(function() {
+    const rawPrunePaths = '[].playerResponse.adPlacements [].playerResponse.playerAds playerResponse.adPlacements playerResponse.playerAds adPlacements playerAds';
+    const rawNeedlePaths = '{{2}}';
+    const prunePaths = rawPrunePaths !== '{{1}}' && rawPrunePaths !== ''
+        ? rawPrunePaths.split(/ +/)
+        : [];
+    let needlePaths;
+    let log, reLogNeedle;
+    if ( prunePaths.length !== 0 ) {
+        needlePaths = prunePaths.length !== 0 &&
+                      rawNeedlePaths !== '{{2}}' && rawNeedlePaths !== ''
+            ? rawNeedlePaths.split(/ +/)
+            : [];
+    } else {
+        log = console.log.bind(console);
+        let needle;
+        if ( rawNeedlePaths === '' || rawNeedlePaths === '{{2}}' ) {
+            needle = '.?';
+        } else if ( rawNeedlePaths.charAt(0) === '/' && rawNeedlePaths.slice(-1) === '/' ) {
+            needle = rawNeedlePaths.slice(1, -1);
+        } else {
+            needle = rawNeedlePaths.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        reLogNeedle = new RegExp(needle);
+    }
+    const findOwner = function(root, path, prune = false) {
+        let owner = root;
+        let chain = path;
+        for (;;) {
+            if ( typeof owner !== 'object' || owner === null  ) {
+                return false;
+            }
+            const pos = chain.indexOf('.');
+            if ( pos === -1 ) {
+                if ( prune === false ) {
+                    return owner.hasOwnProperty(chain);
+                }
+                if ( chain === '*' ) {
+                    for ( const key in owner ) {
+                        if ( owner.hasOwnProperty(key) === false ) { continue; }
+                        delete owner[key];
+                    }
+                } else if ( owner.hasOwnProperty(chain) ) {
+                    delete owner[chain];
+                }
+                return true;
+            }
+            const prop = chain.slice(0, pos);
+            if (
+                prop === '[]' && Array.isArray(owner) ||
+                prop === '*' && owner instanceof Object
+            ) {
+                const next = chain.slice(pos + 1);
+                let found = false;
+                for ( const key of Object.keys(owner) ) {
+                    found = findOwner(owner[key], next, prune) || found;
+                }
+                return found;
+            }
+            if ( owner.hasOwnProperty(prop) === false ) { return false; }
+            owner = owner[prop];
+            chain = chain.slice(pos + 1);
+        }
+    };
+    const mustProcess = function(root) {
+        for ( const needlePath of needlePaths ) {
+            if ( findOwner(root, needlePath) === false ) {
+                return false;
+            }
+        }
+        return true;
+    };
+    const pruner = function(o) {
+        if ( log !== undefined ) {
+            const json = JSON.stringify(o, null, 2);
+            if ( reLogNeedle.test(json) ) {
+                log('uBO:', location.hostname, json);
+            }
+            return o;
+        }
+        if ( mustProcess(o) === false ) { return o; }
+        for ( const path of prunePaths ) {
+            findOwner(o, path, true);
+        }
+        return o;
+    };
+    JSON.parse = new Proxy(JSON.parse, {
+        apply: function() {
+            return pruner(Reflect.apply(...arguments));
+        },
+    });
+    Response.prototype.json = new Proxy(Response.prototype.json, {
+        apply: function() {
+            return Reflect.apply(...arguments).then(o => pruner(o));
+        },
+    });
+})();
+
+} catch ( e ) { }
+try {
+(function() {
+    const chain = 'ytInitialPlayerResponse.adPlacements';
+    let cValue = 'undefined';
+    const thisScript = document.currentScript;
+    if ( cValue === 'undefined' ) {
+        cValue = undefined;
+    } else if ( cValue === 'false' ) {
+        cValue = false;
+    } else if ( cValue === 'true' ) {
+        cValue = true;
+    } else if ( cValue === 'null' ) {
+        cValue = null;
+    } else if ( cValue === "''" ) {
+        cValue = '';
+    } else if ( cValue === '[]' ) {
+        cValue = [];
+    } else if ( cValue === '{}' ) {
+        cValue = {};
+    } else if ( cValue === 'noopFunc' ) {
+        cValue = function(){};
+    } else if ( cValue === 'trueFunc' ) {
+        cValue = function(){ return true; };
+    } else if ( cValue === 'falseFunc' ) {
+        cValue = function(){ return false; };
+    } else if ( /^\d+$/.test(cValue) ) {
+        cValue = parseFloat(cValue);
+        if ( isNaN(cValue) ) { return; }
+        if ( Math.abs(cValue) > 0x7FFF ) { return; }
+    } else {
+        return;
+    }
+    let aborted = false;
+    const mustAbort = function(v) {
+        if ( aborted ) { return true; }
+        aborted =
+            (v !== undefined && v !== null) &&
+            (cValue !== undefined && cValue !== null) &&
+            (typeof v !== typeof cValue);
+        return aborted;
+    };
+    // https://github.com/uBlockOrigin/uBlock-issues/issues/156
+    //   Support multiple trappers for the same property.
+    const trapProp = function(owner, prop, configurable, handler) {
+        if ( handler.init(owner[prop]) === false ) { return; }
+        const odesc = Object.getOwnPropertyDescriptor(owner, prop);
+        let prevGetter, prevSetter;
+        if ( odesc instanceof Object ) {
+            owner[prop] = cValue;
+            if ( odesc.get instanceof Function ) {
+                prevGetter = odesc.get;
+            }
+            if ( odesc.set instanceof Function ) {
+                prevSetter = odesc.set;
+            }
+        }
+        try {
+            Object.defineProperty(owner, prop, {
+                configurable,
+                get() {
+                    if ( prevGetter !== undefined ) {
+                        prevGetter();
+                    }
+                    return handler.getter(); // cValue
+                },
+                set(a) {
+                    if ( prevSetter !== undefined ) {
+                        prevSetter(a);
+                    }
+                    handler.setter(a);
+                }
+            });
+        } catch(ex) {
+        }
+    };
+    const trapChain = function(owner, chain) {
+        const pos = chain.indexOf('.');
+        if ( pos === -1 ) {
+            trapProp(owner, chain, false, {
+                v: undefined,
+                init: function(v) {
+                    if ( mustAbort(v) ) { return false; }
+                    this.v = v;
+                    return true;
+                },
+                getter: function() {
+                    return document.currentScript === thisScript
+                        ? this.v
+                        : cValue;
+                },
+                setter: function(a) {
+                    if ( mustAbort(a) === false ) { return; }
+                    cValue = a;
+                }
+            });
+            return;
+        }
+        const prop = chain.slice(0, pos);
+        const v = owner[prop];
+        chain = chain.slice(pos + 1);
+        if ( v instanceof Object || typeof v === 'object' && v !== null ) {
+            trapChain(v, chain);
+            return;
+        }
+        trapProp(owner, prop, true, {
+            v: undefined,
+            init: function(v) {
+                this.v = v;
+                return true;
+            },
+            getter: function() {
+                return this.v;
+            },
+            setter: function(a) {
+                this.v = a;
+                if ( a instanceof Object ) {
+                    trapChain(a, chain);
+                }
+            }
+        });
+    };
+    trapChain(window, chain);
+})();
+
+} catch ( e ) { }
+try {
+(function() {
+    const chain = 'playerResponse.adPlacements';
+    let cValue = 'undefined';
+    const thisScript = document.currentScript;
+    if ( cValue === 'undefined' ) {
+        cValue = undefined;
+    } else if ( cValue === 'false' ) {
+        cValue = false;
+    } else if ( cValue === 'true' ) {
+        cValue = true;
+    } else if ( cValue === 'null' ) {
+        cValue = null;
+    } else if ( cValue === "''" ) {
+        cValue = '';
+    } else if ( cValue === '[]' ) {
+        cValue = [];
+    } else if ( cValue === '{}' ) {
+        cValue = {};
+    } else if ( cValue === 'noopFunc' ) {
+        cValue = function(){};
+    } else if ( cValue === 'trueFunc' ) {
+        cValue = function(){ return true; };
+    } else if ( cValue === 'falseFunc' ) {
+        cValue = function(){ return false; };
+    } else if ( /^\d+$/.test(cValue) ) {
+        cValue = parseFloat(cValue);
+        if ( isNaN(cValue) ) { return; }
+        if ( Math.abs(cValue) > 0x7FFF ) { return; }
+    } else {
+        return;
+    }
+    let aborted = false;
+    const mustAbort = function(v) {
+        if ( aborted ) { return true; }
+        aborted =
+            (v !== undefined && v !== null) &&
+            (cValue !== undefined && cValue !== null) &&
+            (typeof v !== typeof cValue);
+        return aborted;
+    };
+    // https://github.com/uBlockOrigin/uBlock-issues/issues/156
+    //   Support multiple trappers for the same property.
+    const trapProp = function(owner, prop, configurable, handler) {
+        if ( handler.init(owner[prop]) === false ) { return; }
+        const odesc = Object.getOwnPropertyDescriptor(owner, prop);
+        let prevGetter, prevSetter;
+        if ( odesc instanceof Object ) {
+            owner[prop] = cValue;
+            if ( odesc.get instanceof Function ) {
+                prevGetter = odesc.get;
+            }
+            if ( odesc.set instanceof Function ) {
+                prevSetter = odesc.set;
+            }
+        }
+        try {
+            Object.defineProperty(owner, prop, {
+                configurable,
+                get() {
+                    if ( prevGetter !== undefined ) {
+                        prevGetter();
+                    }
+                    return handler.getter(); // cValue
+                },
+                set(a) {
+                    if ( prevSetter !== undefined ) {
+                        prevSetter(a);
+                    }
+                    handler.setter(a);
+                }
+            });
+        } catch(ex) {
+        }
+    };
+    const trapChain = function(owner, chain) {
+        const pos = chain.indexOf('.');
+        if ( pos === -1 ) {
+            trapProp(owner, chain, false, {
+                v: undefined,
+                init: function(v) {
+                    if ( mustAbort(v) ) { return false; }
+                    this.v = v;
+                    return true;
+                },
+                getter: function() {
+                    return document.currentScript === thisScript
+                        ? this.v
+                        : cValue;
+                },
+                setter: function(a) {
+                    if ( mustAbort(a) === false ) { return; }
+                    cValue = a;
+                }
+            });
+            return;
+        }
+        const prop = chain.slice(0, pos);
+        const v = owner[prop];
+        chain = chain.slice(pos + 1);
+        if ( v instanceof Object || typeof v === 'object' && v !== null ) {
+            trapChain(v, chain);
+            return;
+        }
+        trapProp(owner, prop, true, {
+            v: undefined,
+            init: function(v) {
+                this.v = v;
+                return true;
+            },
+            getter: function() {
+                return this.v;
+            },
+            setter: function(a) {
+                this.v = a;
+                if ( a instanceof Object ) {
+                    trapChain(a, chain);
+                }
+            }
+        });
+    };
+    trapChain(window, chain);
+})();
+
+} catch ( e ) { }
+"""
+
+
 def run_function_on_dataset(given_function):
     """Run the given function on a bunch of urls.
 
@@ -156,6 +671,27 @@ def easylist_easyprivacy(easylist_easyprivacy_both):
 def ad_blocker(config_stub, data_tmpdir):
     pytest.importorskip("adblock")
     return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(str(data_tmpdir)))
+
+
+@pytest.fixture
+def ublock_filters(tmp_path):
+    path = tmp_path / "filters.txt"
+    with testutils.ublock_filters_txt() as fin, open(path, "wb") as fout:
+        fout.write(fin.read())
+    return f"file://{path}"
+
+
+@pytest.fixture
+def ublock_resources_cache(data_tmpdir):
+    import adblock
+
+    if adblock.__version__ <= "0.5.2":
+        pytest.skip()
+
+    path = pathlib.Path(data_tmpdir) / "adblock-resources-cache.dat"
+    with testutils.ublock_resources_cache() as fin, open(path, "wb") as fout:
+        fout.write(fin.read())
+    return path
 
 
 def assert_only_one_success_message(messages):
@@ -264,7 +800,7 @@ def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()
     expected = "braveadblock: Block list is not valid utf-8"
-    assert caplog.messages[-2].startswith(expected)
+    assert caplog.messages[-3].startswith(expected)
 
 
 def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
@@ -364,9 +900,15 @@ def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, ca
     assert_none_blocked(ad_blocker)
 
 
-@pytest.mark.parametrize('url_str, source_url_str, resource_type', BUGGY_URLS)
-def test_buggy_url_workaround(ad_blocker, config_stub, easylist_easyprivacy,
-                              url_str, source_url_str, resource_type):
+@pytest.mark.parametrize("url_str, source_url_str, resource_type", BUGGY_URLS)
+def test_buggy_url_workaround(
+    ad_blocker,
+    config_stub,
+    easylist_easyprivacy,
+    url_str,
+    source_url_str,
+    resource_type,
+):
     """Make sure our workaround for buggy brave-adblock URLs works."""
     config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
     ad_blocker.adblock_update()
@@ -382,9 +924,15 @@ def test_buggy_url_workaround(ad_blocker, config_stub, easylist_easyprivacy,
     assert not ad_blocker._is_blocked(url, source_url, resource_type)
 
 
-@pytest.mark.parametrize('url_str, source_url_str, resource_type', BUGGY_URLS)
-def test_buggy_url_workaround_needed(ad_blocker, config_stub, easylist_easyprivacy,
-                                     url_str, source_url_str, resource_type):
+@pytest.mark.parametrize("url_str, source_url_str, resource_type", BUGGY_URLS)
+def test_buggy_url_workaround_needed(
+    ad_blocker,
+    config_stub,
+    easylist_easyprivacy,
+    url_str,
+    source_url_str,
+    resource_type,
+):
     """Make sure our workaround for buggy brave-adblock URLs is still needed.
 
     If this test fails, https://github.com/brave/adblock-rust/issues/146 was likely
@@ -398,9 +946,7 @@ def test_buggy_url_workaround_needed(ad_blocker, config_stub, easylist_easypriva
         source_url_str = ""
 
     result = ad_blocker._engine.check_network_urls(
-        url=url_str,
-        source_url=source_url_str,
-        request_type=resource_type_str
+        url=url_str, source_url=source_url_str, request_type=resource_type_str
     )
     assert result.matched
 
@@ -420,3 +966,32 @@ def test_corrupt_cache_handling(ad_blocker, message_mock, caplog):
 def test_resource_type_strings_complete():
     defined = set(braveadblock._RESOURCE_TYPE_STRINGS) - {None}
     assert defined == set(ResourceType)
+
+
+def test_url_specific_cosmetic_filters(
+    config_stub, ublock_filters, ublock_resources_cache, ad_blocker
+):
+    config_stub.val.content.blocking.adblock.lists = [ublock_filters]
+    config_stub.val.content.blocking.enabled = True
+    config_stub.val.content.blocking.method = "both"
+
+    ad_blocker.adblock_update()
+    ad_blocker.read_resources_cache()
+
+    cosmetic_resources = ad_blocker.url_cosmetic_resources(GOOGLE_URL)
+    assert cosmetic_resources is not None
+    assert set(cosmetic_resources.hide_selectors) == set(
+        GOOGLE_UBLOCK_FILTERS_SELECTORS + GENERAL_UBLOCK_FILTERS_SELECTORS
+    )
+    assert not cosmetic_resources.style_selectors
+    assert cosmetic_resources.injected_script == ""
+    assert not cosmetic_resources.generichide
+
+    cosmetic_resources = ad_blocker.url_cosmetic_resources(YOUTUBE_URL)
+    assert cosmetic_resources is not None
+    assert set(cosmetic_resources.hide_selectors) == set(
+        YOUTUBE_UBLOCK_FILTERS_SELECTORS + GENERAL_UBLOCK_FILTERS_SELECTORS
+    )
+    assert not cosmetic_resources.style_selectors
+    assert cosmetic_resources.injected_script == YOUTUBE_UBLOCK_FILTERS_SCRIPT
+    assert not cosmetic_resources.generichide

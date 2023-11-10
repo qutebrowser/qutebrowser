@@ -7,7 +7,7 @@
 import re
 import functools
 import xml.etree.ElementTree
-from typing import cast, Iterable, Optional
+from typing import cast, Iterable, Optional, Union
 
 from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from qutebrowser.qt.gui import QIcon
@@ -906,7 +906,7 @@ class WebKitTab(browsertab.AbstractTab):
         else:
             callback(frame.toHtml())
 
-    def run_js_async(self, code, callback=None, *, world=None):
+    def run_js_async(self, code, callback=None, *, world=None, name=''):
         if world is not None and world != usertypes.JsWorld.jseval:
             log.webview.warning("Ignoring world ID {}".format(world))
         result = self.private_api.run_js_sync(code)
@@ -928,6 +928,61 @@ class WebKitTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
+
+    def add_dynamic_css(self, name: str, css: str) -> None:
+        """Adds css which is expected to be updated often.
+
+        For example, the css may be updated right before a page load.
+
+        Note that this has lower precedence than the user-specified stylsheets.
+
+        The css will be scheduled to update right away.
+
+        Does nothing on webkit.
+        """
+
+    def remove_dynamic_css(self, name: str) -> None:
+        """Remove the specified tab-specific css.
+
+        If the given name for the css wasn't added before, nothing happens.
+
+        The css will be scheduled to update right away.
+
+        Does nothing on webkit.
+        """
+
+    def add_web_script(
+        self,
+        name: str,
+        js_code: str,
+        world: Optional[Union[usertypes.JsWorld, int]] = None,
+        injection_point: usertypes.InjectionPoint = (
+            usertypes.InjectionPoint.creation
+        ),
+        subframes: bool = False,
+    ) -> None:
+        """Adds a web scripts to be run at given injection point.
+
+        Web scripts, similar to greasemonkey scripts, are javascript snippets which are
+        set to be run whenever a page loads. The exact point time in which the script
+        run can be specified with `injection_point`. Web scripts are different to
+        greasemonkey scripts in that the user is given more precise control over their
+        exact parameters (e.g., which world to run in).
+
+        If a script with the name was added before, it will be removed and replaced with
+        the given data.
+
+        Does nothing on webkit.
+        """
+
+    def remove_web_script(self, name: str) -> None:
+        """Remove a web script with the given name.
+
+        If a script with the corresponding name was not previously added, nothing
+        happens.
+
+        Does nothing on webkit.
+        """
 
     def renderer_process_pid(self) -> Optional[int]:
         return None
