@@ -11,7 +11,10 @@ from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl
 from qutebrowser.qt.gui import QPalette
 from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineCertificateError
+from qutebrowser.qt.webenginecore import (
+    QWebEnginePage, QWebEngineCertificateError, QWebEngineSettings,
+    QWebEngineHistory,
+)
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
@@ -128,6 +131,25 @@ class WebEngineView(QWebEngineView):
             ev.ignore()
             return
         super().contextMenuEvent(ev)
+
+    def page(self) -> "WebEnginePage":
+        """Return the page for this view."""
+        maybe_page = super().page()
+        assert maybe_page is not None
+        assert isinstance(maybe_page, WebEnginePage)
+        return maybe_page
+
+    def settings(self) -> "QWebEngineSettings":
+        """Return the settings for this view."""
+        maybe_settings = super().settings()
+        assert maybe_settings is not None
+        return maybe_settings
+
+    def history(self) -> "QWebEngineHistory":
+        """Return the history for this view."""
+        maybe_history = super().history()
+        assert maybe_history is not None
+        return maybe_history
 
 
 def extra_suffixes_workaround(upstream_mimetypes):
