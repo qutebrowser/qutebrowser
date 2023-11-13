@@ -11,10 +11,10 @@ github3.py==4.0.1
 hunter==3.6.1
 idna==3.4
 importlib-metadata==6.8.0
-importlib-resources==6.1.0
+importlib-resources==6.1.1
 jaraco.classes==3.3.0
 jeepney==0.8.0
-keyring==24.2.0
+keyring==24.3.0
 manhole==1.8.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
