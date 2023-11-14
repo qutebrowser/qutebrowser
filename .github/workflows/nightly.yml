@@ -15,24 +15,19 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            branch: main
             toxenv: build-release-qt5
             name: qt5-macos
           - os: windows-2019
-            branch: main
             toxenv: build-release-qt5
             name: qt5-windows
           - os: macos-11
             args: --debug
-            branch: main
             toxenv: build-release-qt5
             name: qt5-macos-debug
           - os: windows-2019
             args: --debug
-            branch: main
             toxenv: build-release-qt5
             name: qt5-windows-debug
-
           - os: macos-11
             toxenv: build-release
             name: macos
@@ -52,7 +47,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: "${{ matrix.branch }}"
           persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v4
