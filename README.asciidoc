@@ -227,7 +227,7 @@ Active
   https://tridactyl.xyz/[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF]
 * Addons for Firefox and Chrome:
-  https://github.com/brookhong/Surfingkeys[Surfingkeys],
+  https://github.com/brookhong/Surfingkeys[Surfingkeys] (https://github.com/brookhong/Surfingkeys/issues/1796[somewhat sketchy]...),
   https://lydell.github.io/LinkHints/[Link Hints] (hinting only),
   https://github.com/ueokande/vimmatic[Vimmatic]
 
