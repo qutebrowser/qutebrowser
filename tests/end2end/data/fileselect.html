@@ -5,6 +5,7 @@
         <title>Testing fileselection</title>
         <script type="text/javascript">
             function onLoad() {
+                console.log('setting up event handlers')
                 for (let id of ['#single_file', '#multiple_files', '#folder']) {
                     const input = document.querySelector(id);
                     input.addEventListener('change', function (e) {

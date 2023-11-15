@@ -23,6 +23,7 @@
             function get_notification_permission() {
                 if ("Notification" in window) {
                     if (Notification.permission === "default") {
+                        console.log('requesting notification permission');
                         Notification.requestPermission(permission_cb);
                     } else {
                         console.log("[FAIL] unknown initial value for Notification.permission: " + Notification.permission);

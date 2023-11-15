@@ -5,6 +5,7 @@
         <title>Textarea</title>
         <script type="text/javascript">
           function setup_event_listener() {
+              console.log('setting up event listener');
               var elem = document.getElementById('qute-textarea');
               elem.addEventListener('input', function() {
                   console.log("contents: " + elem.value);

@@ -5,6 +5,7 @@
         <title>Fake keypresses</title>
         <script type="text/javascript">
             window.onload = function () {
+                console.log('setting up event handlers')
                 keyPressHandler = function (e) {
                     console.log("key press: " + e.keyCode);
                 }
