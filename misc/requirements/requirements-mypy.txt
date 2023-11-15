@@ -2,7 +2,7 @@
 
 chardet==5.2.0
 diff_cover==8.0.0
-importlib-resources==6.1.0
+importlib-resources==6.1.1
 Jinja2==3.1.2
 lxml==4.9.3
 MarkupSafe==2.1.3
@@ -14,8 +14,8 @@ PyQt5-stubs==5.15.6.0
 tomli==2.0.1
 types-colorama==0.4.15.12
 types-docutils==0.20.0.3
-types-Pygments==2.16.0.0
+types-Pygments==2.16.0.1
 types-PyYAML==6.0.12.12
-types-setuptools==68.2.0.0
+types-setuptools==68.2.0.1
 typing_extensions==4.8.0
 zipp==3.17.0
