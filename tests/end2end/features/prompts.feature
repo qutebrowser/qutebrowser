@@ -45,6 +45,7 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: prompt test" should be logged
 
+    @e2e_flaky
     Scenario: Javascript prompt with default
         When I open data/prompt/jsprompt.html
         And I run :click-element id button-default
@@ -245,6 +246,7 @@ Feature: Prompts
 
     # Geolocation
 
+    @e2e_flaky
     Scenario: Always rejecting geolocation
         When I set content.geolocation to false
         And I open data/prompt/geolocation.html in a new tab

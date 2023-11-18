@@ -16,6 +16,7 @@ import pytest
                  'cutebrowser', marks=pytest.mark.flaky),
 ])
 @pytest.mark.parametrize('zoom', [100, 125, 250])
+@pytest.mark.e2e_flaky
 def test_insert_mode(file_name, elem_id, source, input_text, zoom,
                      quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)

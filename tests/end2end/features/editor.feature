@@ -203,6 +203,7 @@ Feature: Opening external editors
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
 
+    @e2e_flaky
     Scenario: Select two files with single file command
         When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
 
@@ -220,6 +221,7 @@ Feature: Opening external editors
         And I run :click-element id multiple_files
         Then the javascript message "Files: 1.txt" should be logged
 
+    @e2e_flaky
     Scenario: Select two files with multiple files command
         When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
 
@@ -250,6 +252,7 @@ Feature: Opening external editors
 
     ## Select folder when expecting file
 
+    @e2e_flaky
     Scenario: Select folder for file
         When I set fileselect.handler to external
         When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers" and writes to a temporary file

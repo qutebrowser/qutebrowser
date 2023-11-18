@@ -30,6 +30,7 @@ Feature: Keyboard input
         When I run :fake-key <blub>
         Then the error "Could not parse '<blub>': Got invalid key!" should be shown
 
+    @e2e_flaky
     Scenario: :fake-key sending key to the website
         When I open data/keyinput/log.html
         And I run :fake-key x
@@ -46,6 +47,7 @@ Feature: Keyboard input
         And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView *>" in the log
         Then the error "No focused webview!" should be shown
 
+    @e2e_flaky
     Scenario: :fake-key sending special key to the website
         When I open data/keyinput/log.html
         And I run :fake-key <Escape>
