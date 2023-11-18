@@ -458,7 +458,12 @@ class QuteProc(testprocess.Process):
             kwargs['divisor'] = 10
         else:
             kwargs['divisor'] = 1
-        return super().wait_for(timeout=timeout, **kwargs)
+        try:
+            return super().wait_for(timeout=timeout, **kwargs)
+        except testprocess.WaitForTimeout as err:
+            self.send_cmd(":jseval console.log('console logging works after timeout')")
+            self.wait_for_js("console logging works after timeout")
+            raise err
 
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
