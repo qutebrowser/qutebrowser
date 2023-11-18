@@ -160,13 +160,17 @@ MATCHERS = {
     "tests": [
         {
             # pytest test summary output
+            # Examples (with ANSI color codes around FAILED|ERROR and the
+            # function name):
+            # FAILED tests/end2end/features/test_keyinput_bdd.py::test_fakekey_sending_special_key_to_the_website - end2end.fixtures.testprocess.WaitForTimeout: Timed out after 15000ms waiting for {'category': 'js', 'message': '[*] key press: 27'}.
+            # ERROR tests/end2end/test_insert_mode.py::test_insert_mode[100-textarea.html-qute-textarea-clipboard-qutebrowser] - Failed: Logged unexpected errors:
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^=+ short test summary info =+$',
+                    "regexp": r'^.*=== short test summary info ===.*$',
                 },
                 {
-                    "regexp": r"^((ERROR|FAILED) .*)",
+                    "regexp": r"^[^ ]*((ERROR|FAILED)[^ ]* .*)$",
                     "message": 1,
                     "loop": True,
                 }
