@@ -883,6 +883,11 @@ def test_sandboxing(
         line.expected = True
         pytest.skip("chrome://sandbox/ not supported")
 
+    if len(text.split("\n")) == 1:
+        # Try again, maybe the JS hasn't run yet?
+        text = quteproc_new.get_content()
+        print(text)
+
     bpf_text = "Seccomp-BPF sandbox"
     yama_text = "Ptrace Protection with Yama LSM"
 
