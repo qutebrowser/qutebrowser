@@ -50,12 +50,12 @@ class _SettingsWrapper:
     For read operations, the default profile value is always used.
     """
 
-    def default_profile(self):
+    def _default_profile_settings(self):
         assert default_profile is not None
-        return default_profile
+        return default_profile.settings()
 
     def _settings(self):
-        yield self.default_profile().settings()
+        yield self._default_profile_settings()
         if private_profile:
             yield private_profile.settings()
 
@@ -80,19 +80,19 @@ class _SettingsWrapper:
             settings.setUnknownUrlSchemePolicy(policy)
 
     def testAttribute(self, attribute):
-        return self.default_profile().settings().testAttribute(attribute)
+        return self._default_profile_settings().testAttribute(attribute)
 
     def fontSize(self, fonttype):
-        return self.default_profile().settings().fontSize(fonttype)
+        return self._default_profile_settings().fontSize(fonttype)
 
     def fontFamily(self, which):
-        return self.default_profile().settings().fontFamily(which)
+        return self._default_profile_settings().fontFamily(which)
 
     def defaultTextEncoding(self):
-        return self.default_profile().settings().defaultTextEncoding()
+        return self._default_profile_settings().defaultTextEncoding()
 
     def unknownUrlSchemePolicy(self):
-        return self.default_profile().settings().unknownUrlSchemePolicy()
+        return self._default_profile_settings().unknownUrlSchemePolicy()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
