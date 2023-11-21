@@ -4,12 +4,15 @@
 
 """Generic web element related code."""
 
+import os
+import functools
+import datetime
 from typing import Iterator, Optional, Set, TYPE_CHECKING, Union, Dict
 import collections.abc
 
 from qutebrowser.qt import machinery
-from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPointF
-from qutebrowser.qt.gui import QMouseEvent
+from qutebrowser.qt.core import QUrl, Qt, QEvent, QTimer, QRect, QPointF, QPoint, QSize
+from qutebrowser.qt.gui import QMouseEvent, QPainter
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -355,10 +358,27 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
             QMouseEvent(QEvent.Type.MouseButtonRelease, pos, button, Qt.MouseButton.NoButton, modifiers),
         ]
 
+        pixmap = self._tab.private_api.event_target().grab()
+        assert not pixmap.isNull()
+        painter = QPainter()
+        assert painter.begin(pixmap)
+        painter.setPen(Qt.GlobalColor.red)
+        painter.drawLine(pos - QPointF(10, 0), pos + QPointF(10, 0))
+        painter.drawLine(pos - QPointF(0, 10), pos + QPointF(0, 10))
+        assert painter.end()
+
         for evt in events:
             self._tab.send_event(evt)
 
         QTimer.singleShot(0, self._move_text_cursor)
+        QTimer.singleShot(0, functools.partial(self._save_pixmap, pixmap))
+
+    def _save_pixmap(self, pixmap):
+        test = os.environ.get("PYTEST_CURRENT_TEST", "unknown").replace("/", "_")
+        ts = datetime.datetime.now().isoformat()
+        filename = f"/tmp/qb-{test}-{ts}.png"
+        log.misc.debug(filename)
+        assert pixmap.save(filename)
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an editable input field."""
