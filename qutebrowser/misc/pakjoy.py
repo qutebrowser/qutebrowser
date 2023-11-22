@@ -31,7 +31,7 @@ import pathlib
 import dataclasses
 from typing import ClassVar, IO, Optional, Dict, Tuple
 
-from qutebrowser.misc import binparsing
+from qutebrowser.misc import binparsing, objects
 from qutebrowser.utils import qtutils, standarddir, version, utils, log
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
@@ -146,17 +146,43 @@ class PakParser:
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
 
-def copy_webengine_resources() -> Optional[pathlib.Path]:
-    """Copy qtwebengine resources to local dir for patching."""
-    resources_dir = qtutils.library_path(qtutils.LibraryPath.data)
+def _find_webengine_resources() -> pathlib.Path:
+    """Find the QtWebEngine resources dir.
+
+    Mirrors logic from QtWebEngine:
+    https://github.com/qt/qtwebengine/blob/v6.6.0/src/core/web_engine_library_info.cpp#L293-L341
+    """
+    if RESOURCES_ENV_VAR in os.environ:
+        return pathlib.Path(os.environ[RESOURCES_ENV_VAR])
+
+    candidates = []
+    qt_data_path = qtutils.library_path(qtutils.LibraryPath.data)
     if utils.is_mac:  # pragma: no cover
         # I'm not sure how to arrive at this path without hardcoding it
         # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
         # replacement for the qtutils bit but it doesn't seem to help find the
-        # actually Resources folder.
-        resources_dir /= pathlib.Path("lib", "QtWebEngineCore.framework", "Resources")
-    else:
-        resources_dir /= "resources"
+        # actuall Resources folder.
+        candidates.append(
+            qt_data_path / "lib" / "QtWebEngineCore.framework" / "Resources"
+        )
+
+    candidates += [
+        qt_data_path / "resources",
+        qt_data_path,
+        pathlib.Path(objects.qapp.applicationDirPath()),
+        pathlib.Path.home() / f".{objects.qapp.applicationName()}",
+    ]
+
+    for candidate in candidates:
+        if (candidate / PAK_FILENAME).exists():
+            return candidate
+
+    raise binparsing.ParseError("Couldn't find webengine resources dir")
+
+
+def copy_webengine_resources() -> Optional[pathlib.Path]:
+    """Copy qtwebengine resources to local dir for patching."""
+    resources_dir = _find_webengine_resources()
     work_dir = pathlib.Path(standarddir.cache()) / CACHE_DIR_NAME
 
     if work_dir.exists():

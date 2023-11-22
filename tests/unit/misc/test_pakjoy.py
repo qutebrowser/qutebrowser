@@ -36,10 +36,9 @@ skip_if_unsupported = pytest.mark.skipif(
 
 
 @pytest.fixture(autouse=True)
-def clean_env():
-    yield
-    if pakjoy.RESOURCES_ENV_VAR in os.environ:
-        del os.environ[pakjoy.RESOURCES_ENV_VAR]
+def prepare_env(qapp, monkeypatch):
+    monkeypatch.setattr(pakjoy.objects, "qapp", qapp)
+    monkeypatch.delenv(pakjoy.RESOURCES_ENV_VAR, raising=False)
 
 
 def patch_version(monkeypatch, *args):
@@ -76,6 +75,86 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
 
     assert not fake_open.called
     assert not workdir.exists()
+
+
+class TestFindWebengineResources:
+    @pytest.fixture
+    def qt_data_path(self, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path):
+        """Patch qtutils.library_path() to return a temp dir."""
+        qt_data_path = tmp_path / "qt_data"
+        qt_data_path.mkdir()
+        monkeypatch.setattr(pakjoy.qtutils, "library_path", lambda _which: qt_data_path)
+        return qt_data_path
+
+    @pytest.fixture
+    def application_dir_path(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: pathlib.Path,
+        qt_data_path: pathlib.Path,  # needs patching
+    ):
+        """Patch QApplication.applicationDirPath() to return a temp dir."""
+        app_dir_path = tmp_path / "app_dir"
+        app_dir_path.mkdir()
+        monkeypatch.setattr(
+            pakjoy.objects.qapp, "applicationDirPath", lambda: app_dir_path
+        )
+        return app_dir_path
+
+    @pytest.fixture
+    def fallback_path(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: pathlib.Path,
+        qt_data_path: pathlib.Path,  # needs patching
+        application_dir_path: pathlib.Path,  # needs patching
+    ):
+        """Patch the fallback path to return a temp dir."""
+        home_path = tmp_path / "home"
+        monkeypatch.setattr(pakjoy.pathlib.Path, "home", lambda: home_path)
+
+        app_path = home_path / f".{pakjoy.objects.qapp.applicationName()}"
+        app_path.mkdir(parents=True)
+        return app_path
+
+    @pytest.mark.parametrize("create_file", [True, False])
+    def test_overridden(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, create_file: bool
+    ):
+        """Test the overridden path is used."""
+        override_path = tmp_path / "override"
+        override_path.mkdir()
+        monkeypatch.setenv(pakjoy.RESOURCES_ENV_VAR, str(override_path))
+        if create_file:  # should get this no matter if file exists or not
+            (override_path / pakjoy.PAK_FILENAME).touch()
+        assert pakjoy._find_webengine_resources() == override_path
+
+    @pytest.mark.parametrize("with_subfolder", [True, False])
+    def test_qt_data_path(self, qt_data_path: pathlib.Path, with_subfolder: bool):
+        """Test qtutils.library_path() is used."""
+        resources_path = qt_data_path
+        if with_subfolder:
+            resources_path /= "resources"
+            resources_path.mkdir()
+        (resources_path / pakjoy.PAK_FILENAME).touch()
+        assert pakjoy._find_webengine_resources() == resources_path
+
+    def test_application_dir_path(self, application_dir_path: pathlib.Path):
+        """Test QApplication.applicationDirPath() is used."""
+        (application_dir_path / pakjoy.PAK_FILENAME).touch()
+        assert pakjoy._find_webengine_resources() == application_dir_path
+
+    def test_fallback_path(self, fallback_path: pathlib.Path):
+        """Test fallback path is used."""
+        (fallback_path / pakjoy.PAK_FILENAME).touch()
+        assert pakjoy._find_webengine_resources() == fallback_path
+
+    def test_nowhere(self, fallback_path: pathlib.Path):
+        """Test we raise if we can't find the resources."""
+        with pytest.raises(
+            binparsing.ParseError, match="Couldn't find webengine resources dir"
+        ):
+            pakjoy._find_webengine_resources()
 
 
 def json_without_comments(bytestring):
@@ -130,6 +209,9 @@ class TestWithRealResourcesFile:
         assert work_dir is not None
         tmpfile = work_dir / "tmp.txt"
         tmpfile.touch()
+
+        # Set by first call to copy_webengine_resources()
+        del os.environ[pakjoy.RESOURCES_ENV_VAR]
 
         pakjoy.copy_webengine_resources()
         assert not tmpfile.exists()
