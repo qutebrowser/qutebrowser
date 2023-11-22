@@ -21,16 +21,15 @@ pytest.importorskip("qutebrowser.qt.webenginecore")
 versions = version.qtwebengine_versions(avoid_init=True)
 
 
-@pytest.fixture
-def skipifneeded():
-    """Used to skip happy path tests with the real resources file.
-
-    Since we don't know how reliably the Google Meet hangouts extensions is
-    reliably in the resource files, and this quirk is only targeting 6.6
-    anyway.
-    """
-    if versions.webengine != utils.VersionNumber(6, 6):
-        raise pytest.skip("Code under test only runs on 6.6")
+# Used to skip happy path tests with the real resources file.
+#
+# Since we don't know how reliably the Google Meet hangouts extensions is
+# reliably in the resource files, and this quirk is only targeting 6.6
+# anyway.
+skip_if_unsupported = pytest.mark.skipif(
+    versions.webengine != utils.VersionNumber(6, 6),
+    reason="Code under test only runs on 6.6",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -98,7 +97,8 @@ def json_without_comments(bytestring):
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
 
-    def test_happy_path(self, skipifneeded):
+    @skip_if_unsupported
+    def test_happy_path(self):
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
         # afterwards.
