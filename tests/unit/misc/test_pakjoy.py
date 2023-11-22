@@ -89,6 +89,15 @@ def json_without_comments(bytestring):
     return json.loads(str_without_comments)
 
 
+def read_patched_manifest():
+    patched_resources = pathlib.Path(os.environ[pakjoy.RESOURCES_ENV_VAR])
+
+    with open(patched_resources / pakjoy.PAK_FILENAME, "rb") as fd:
+        reparsed = pakjoy.PakParser(fd)
+
+    return json_without_comments(reparsed.manifest)
+
+
 @pytest.mark.usefixtures("affected_version")
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
@@ -100,13 +109,7 @@ class TestWithRealResourcesFile:
         # afterwards.
         pakjoy.patch_webengine()
 
-        patched_resources = pathlib.Path(os.environ[pakjoy.RESOURCES_ENV_VAR])
-
-        with open(patched_resources / pakjoy.PAK_FILENAME, "rb") as fd:
-            reparsed = pakjoy.PakParser(fd)
-
-        json_manifest = json_without_comments(reparsed.manifest)
-
+        json_manifest = read_patched_manifest()
         assert (
             pakjoy.REPLACEMENT_URL.decode("utf-8")
             in json_manifest["externally_connectable"]["matches"]
@@ -124,6 +127,7 @@ class TestWithRealResourcesFile:
 
     def test_copying_resources_overwrites(self):
         work_dir = pakjoy.copy_webengine_resources()
+        assert work_dir is not None
         tmpfile = work_dir / "tmp.txt"
         tmpfile.touch()
 
@@ -218,8 +222,14 @@ def pak_factory(version=5, entries=None, encoding=1, sentinel_position=-1):
 class TestWithConstructedResourcesFile:
     """Tests that use a constructed pak file to give us more control over it."""
 
-    def test_happy_path(self):
-        buffer = pak_factory()
+    @pytest.mark.parametrize(
+        "offset",
+        [0, 42, pakjoy.HANGOUTS_ID],  # test both slow search and fast path
+    )
+    def test_happy_path(self, offset):
+        entries = [b""] * offset + [json_manifest_factory()]
+        assert entries[offset] != b""
+        buffer = pak_factory(entries=entries)
 
         parser = pakjoy.PakParser(buffer)
 
@@ -290,3 +300,21 @@ class TestWithConstructedResourcesFile:
             pakjoy._patch(tmpfile)
 
         assert caplog.messages == ["Failed to apply quirk to resources pak."]
+
+    def test_patching(self, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path):
+        """Go through the full patching processes with a fake resources file."""
+        resources_path = tmp_path / "resources"
+        resources_path.mkdir()
+
+        buffer = pak_factory()
+        with open(resources_path / pakjoy.PAK_FILENAME, "wb") as fd:
+            fd.write(buffer.read())
+
+        monkeypatch.setattr(pakjoy.qtutils, "library_path", lambda _which: tmp_path)
+        pakjoy.patch_webengine()
+
+        json_manifest = read_patched_manifest()
+        assert (
+            pakjoy.REPLACEMENT_URL.decode("utf-8")
+            in json_manifest["externally_connectable"]["matches"]
+        )

@@ -149,7 +149,7 @@ class PakParser:
 def copy_webengine_resources() -> Optional[pathlib.Path]:
     """Copy qtwebengine resources to local dir for patching."""
     resources_dir = qtutils.library_path(qtutils.LibraryPath.data)
-    if utils.is_mac:
+    if utils.is_mac:  # pragma: no cover
         # I'm not sure how to arrive at this path without hardcoding it
         # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
         # replacement for the qtutils bit but it doesn't seem to help find the
