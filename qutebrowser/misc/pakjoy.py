@@ -55,10 +55,10 @@ class PakHeader:
     resource_count: int  # uint16
     _alias_count: int  # uint16
 
-    _FORMAT: ClassVar[str] = '<IHH'
+    _FORMAT: ClassVar[str] = "<IHH"
 
     @classmethod
-    def parse(cls, fobj: IO[bytes]) -> 'PakHeader':
+    def parse(cls, fobj: IO[bytes]) -> "PakHeader":
         """Parse a PAK version 5 header from a file."""
         return cls(*binparsing.unpack(cls._FORMAT, fobj))
 
@@ -72,10 +72,10 @@ class PakEntry:
     file_offset: int  # uint32
     size: int = 0  # not in file
 
-    _FORMAT: ClassVar[str] = '<HI'
+    _FORMAT: ClassVar[str] = "<HI"
 
     @classmethod
-    def parse(cls, fobj: IO[bytes]) -> 'PakEntry':
+    def parse(cls, fobj: IO[bytes]) -> "PakEntry":
         """Parse a PAK entry from a file."""
         return cls(*binparsing.unpack(cls._FORMAT, fobj))
 

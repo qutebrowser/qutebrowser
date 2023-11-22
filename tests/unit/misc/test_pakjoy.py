@@ -47,7 +47,7 @@ def patch_version(monkeypatch, *args):
             webengine=utils.VersionNumber(*args),
             chromium=None,
             source="unittest",
-        )
+        ),
     )
 
 
@@ -85,8 +85,7 @@ def json_without_comments(bytestring):
     str_without_comments = "\n".join(
         [
             line
-            for line in
-            bytestring.decode("utf-8").split("\n")
+            for line in bytestring.decode("utf-8").split("\n")
             if not line.strip().startswith("//")
         ]
     )
@@ -111,9 +110,10 @@ class TestWithRealResourcesFile:
 
         json_manifest = json_without_comments(reparsed.manifest)
 
-        assert pakjoy.REPLACEMENT_URL.decode("utf-8") in json_manifest[
-            "externally_connectable"
-        ]["matches"]
+        assert (
+            pakjoy.REPLACEMENT_URL.decode("utf-8")
+            in json_manifest["externally_connectable"]["matches"]
+        )
 
     def test_copying_resources(self):
         # Test we managed to copy some files over
@@ -141,10 +141,14 @@ class TestWithRealResourcesFile:
         def raiseme(err):
             raise err
 
-        monkeypatch.setattr(pakjoy.shutil, osfunc, lambda *_args: raiseme(PermissionError(osfunc)))
+        monkeypatch.setattr(
+            pakjoy.shutil, osfunc, lambda *_args: raiseme(PermissionError(osfunc))
+        )
         with caplog.at_level(logging.ERROR, "misc"):
             pakjoy.patch_webengine()
-        assert caplog.messages == ["Failed to copy webengine resources, not applying quirk"]
+        assert caplog.messages == [
+            "Failed to copy webengine resources, not applying quirk"
+        ]
 
     def test_expected_file_not_found(self, tmp_cache, monkeypatch, caplog):
         with caplog.at_level(logging.ERROR, "misc"):
@@ -175,7 +179,9 @@ def json_manifest_factory(extension_id=pakjoy.HANGOUTS_MARKER, url=pakjoy.TARGET
         ]
         }}
     }}
-    """.strip().encode("utf-8")
+    """.strip().encode(
+        "utf-8"
+    )
 
 
 def pak_factory(version=5, entries=None, encoding=1, sentinel_position=-1):
@@ -221,9 +227,10 @@ class TestWithConstructedResourcesFile:
 
         json_manifest = json_without_comments(parser.manifest)
 
-        assert pakjoy.TARGET_URL.decode("utf-8") in json_manifest[
-            "externally_connectable"
-        ]["matches"]
+        assert (
+            pakjoy.TARGET_URL.decode("utf-8")
+            in json_manifest["externally_connectable"]["matches"]
+        )
 
     def test_bad_version(self):
         buffer = pak_factory(version=99)
@@ -234,20 +241,26 @@ class TestWithConstructedResourcesFile:
         ):
             pakjoy.PakParser(buffer)
 
-    @pytest.mark.parametrize("position, error", [
-        (0, "Unexpected sentinel entry"),
-        (None, "Missing sentinel entry"),
-    ])
+    @pytest.mark.parametrize(
+        "position, error",
+        [
+            (0, "Unexpected sentinel entry"),
+            (None, "Missing sentinel entry"),
+        ],
+    )
     def test_bad_sentinal_position(self, position, error):
         buffer = pak_factory(sentinel_position=position)
 
         with pytest.raises(binparsing.ParseError):
             pakjoy.PakParser(buffer)
 
-    @pytest.mark.parametrize("entry", [
-        b"{foo}",
-        b"V2VsbCBoZWxsbyB0aGVyZQo=",
-    ])
+    @pytest.mark.parametrize(
+        "entry",
+        [
+            b"{foo}",
+            b"V2VsbCBoZWxsbyB0aGVyZQo=",
+        ],
+    )
     def test_marker_not_found(self, entry):
         buffer = pak_factory(entries=[entry])
 
@@ -267,8 +280,7 @@ class TestWithConstructedResourcesFile:
         ):
             parser.find_patch_offset()
 
-    def test_url_not_found_high_level(self, tmp_cache, caplog,
-                                      affected_version):
+    def test_url_not_found_high_level(self, tmp_cache, caplog, affected_version):
         buffer = pak_factory(entries=[json_manifest_factory(url=b"example.com")])
 
         # Write bytes to file so we can test pakjoy._patch()
@@ -279,6 +291,4 @@ class TestWithConstructedResourcesFile:
         with caplog.at_level(logging.ERROR, "misc"):
             pakjoy._patch(tmpfile)
 
-        assert caplog.messages == [
-            "Failed to apply quirk to resources pak."
-        ]
+        assert caplog.messages == ["Failed to apply quirk to resources pak."]
