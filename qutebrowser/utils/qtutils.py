@@ -18,8 +18,8 @@ import enum
 import pathlib
 import operator
 import contextlib
-from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
-                    Optional, Union, Tuple, Protocol, cast, TypeVar)
+from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Iterator, Literal,
+                    Optional, Union, Tuple, Protocol, cast, overload, TypeVar)
 
 from qutebrowser.qt import machinery, sip
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
@@ -89,8 +89,8 @@ def version_check(version: str,
     With `compiled=False` only the runtime Qt version (1) is checked.
 
     You can often run older PyQt versions against newer Qt versions, but you
-    won't be able to access any APIs that where only added in the newer Qt
-    version. So if you want to check if a new feature if supported, use the
+    won't be able to access any APIs that were only added in the newer Qt
+    version. So if you want to check if a new feature is supported, use the
     default behavior. If you just want to check the underlying Qt version,
     pass `compiled=False`.
 
@@ -236,12 +236,32 @@ def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     check_qdatastream(stream)
 
 
+@overload
+@contextlib.contextmanager
+def savefile_open(
+        filename: str,
+        binary: Literal[False] = ...,
+        encoding: str = 'utf-8'
+) -> Iterator[IO[str]]:
+    ...
+
+
+@overload
+@contextlib.contextmanager
+def savefile_open(
+        filename: str,
+        binary: Literal[True] = ...,
+        encoding: str = 'utf-8'
+) -> Iterator[IO[str]]:
+    ...
+
+
 @contextlib.contextmanager
 def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> Iterator[IO[AnyStr]]:
+) -> Iterator[Union[IO[str], IO[bytes]]]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -253,7 +273,7 @@ def savefile_open(
         dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f: IO[Any] = dev  # FIXME:mypy Why doesn't AnyStr work?
+            new_f: Union[IO[str], IO[bytes]] = dev
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 

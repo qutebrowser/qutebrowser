@@ -48,7 +48,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '16.x'
         if: "matrix.testenv == 'eslint'"
@@ -157,28 +157,28 @@ jobs:
           - testenv: py310-pyqt65
             os: ubuntu-22.04
             python: "3.10"
-          ### PyQt 6.5 (Python 3.11)
-          - testenv: py311-pyqt65
+          ### PyQt 6.6 (Python 3.11)
+          - testenv: py311-pyqt66
             os: ubuntu-22.04
             python: "3.11"
-          ### PyQt 6.5 (Python 3.12)
-          - testenv: py312-pyqt65
+          ### PyQt 6.6 (Python 3.12)
+          - testenv: py312-pyqt66
             os: ubuntu-22.04
-            python: "3.12-dev"
-          ### macOS Big Sur: PyQt 5.15 (Python 3.9 to match PyInstaller env)
-          - testenv: py39-pyqt515
+            python: "3.12"
+          ### macOS Big Sur
+          - testenv: py311-pyqt66
             os: macos-11
-            python: "3.9"
+            python: "3.11"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Monterey
-          - testenv: py39-pyqt515
+          - testenv: py311-pyqt66
             os: macos-12
-            python: "3.9"
+            python: "3.11"
             args: "tests/unit"  # Only run unit tests on macOS
-          ### Windows: PyQt 5.15 (Python 3.9 to match PyInstaller env)
-          - testenv: py39-pyqt515
+          ### Windows
+          - testenv: py311-pyqt66
             os: windows-2019
-            python: "3.9"
+            python: "3.11"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v4

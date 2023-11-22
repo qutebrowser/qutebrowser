@@ -35,14 +35,19 @@ class WebEngineInspectorView(QWebEngineView):
 
         See WebEngineView.createWindow for details.
         """
-        inspected_page = self.page().inspectedPage()
+        our_page = self.page()
+        assert our_page is not None
+        inspected_page = our_page.inspectedPage()
+        assert inspected_page is not None
         if machinery.IS_QT5:
             view = inspected_page.view()
             assert isinstance(view, QWebEngineView), view
             return view.createWindow(wintype)
         else:  # Qt 6
             newpage = inspected_page.createWindow(wintype)
-            return webview.WebEngineView.forPage(newpage)
+            ret = webview.WebEngineView.forPage(newpage)
+            assert ret is not None
+            return ret
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):
@@ -88,16 +93,17 @@ class WebEngineInspector(inspector.AbstractWebInspector):
     def inspect(self, page: QWebEnginePage) -> None:
         if not self._widget:
             view = WebEngineInspectorView()
-            inspector_page = QWebEnginePage(
+            new_page = QWebEnginePage(
                 page.profile(),
                 self
             )
-            inspector_page.windowCloseRequested.connect(self._on_window_close_requested)
-            view.setPage(inspector_page)
+            new_page.windowCloseRequested.connect(self._on_window_close_requested)
+            view.setPage(new_page)
             self._settings = webenginesettings.WebEngineSettings(view.settings())
             self._set_widget(view)
 
         inspector_page = self._widget.page()
+        assert inspector_page is not None
         assert inspector_page.profile() == page.profile()
         inspector_page.setInspectedPage(page)
 

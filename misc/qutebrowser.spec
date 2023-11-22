@@ -100,6 +100,11 @@ else:
 
 
 DEBUG = os.environ.get('PYINSTALLER_DEBUG', '').lower() in ['1', 'true']
+if DEBUG:
+  options = options = [('v', None, 'OPTION')]
+else:
+  options = []
+
 
 
 a = Analysis(['../qutebrowser/__main__.py'],
@@ -117,6 +122,7 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
+          options,
           exclude_binaries=True,
           name='qutebrowser',
           icon=icon,

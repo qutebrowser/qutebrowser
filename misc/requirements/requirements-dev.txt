@@ -2,19 +2,19 @@
 
 build==1.0.3
 bump2version==1.0.1
-certifi==2023.7.22
+certifi==2023.11.17
 cffi==1.16.0
-charset-normalizer==3.3.0
-cryptography==41.0.4
+charset-normalizer==3.3.2
+cryptography==41.0.5
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
 idna==3.4
 importlib-metadata==6.8.0
-importlib-resources==6.1.0
+importlib-resources==6.1.1
 jaraco.classes==3.3.0
 jeepney==0.8.0
-keyring==24.2.0
+keyring==24.3.0
 manhole==1.8.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
@@ -24,7 +24,7 @@ packaging==23.2
 pkginfo==1.9.6
 ply==3.11
 pycparser==2.21
-Pygments==2.16.1
+Pygments==2.17.1
 PyJWT==2.8.0
 Pympler==1.0.1
 pyproject_hooks==1.0.0
@@ -34,7 +34,7 @@ readme-renderer==42.0
 requests==2.31.0
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.6.0
+rich==13.7.0
 SecretStorage==3.3.3
 sip==6.7.12
 six==1.16.0
@@ -42,5 +42,5 @@ tomli==2.0.1
 twine==4.0.2
 typing_extensions==4.8.0
 uritemplate==4.1.1
-# urllib3==2.0.6
+# urllib3==2.1.0
 zipp==3.17.0

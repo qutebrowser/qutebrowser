@@ -575,35 +575,46 @@ Chrome URLs
 ~~~~~~~~~~~
 
 With the QtWebEngine backend, qutebrowser supports several chrome:// urls which
-can be useful for debugging:
+can be useful for debugging.
+
+Info pages:
+
+- chrome://device-log/ (QtWebEngine >= 6.3)
+- chrome://gpu/
+- chrome://sandbox/ (Linux only)
+
+Misc. / Debugging pages:
+
+- chrome://dino/
+- chrome://histograms/
+- chrome://network-errors/
+- chrome://tracing/ (QtWebEngine >= 5.15.3)
+- chrome://ukm/ (QtWebEngine >= 5.15.3)
+- chrome://user-actions/ (QtWebEngine >= 5.15.3)
+- chrome://webrtc-logs/ (QtWebEngine >= 5.15.3)
+
+Internals pages:
 
 - chrome://accessibility/
-- chrome://appcache-internals/
+- chrome://appcache-internals/ (QtWebEngine < 6.4)
+- chrome://attribution-internals/ (QtWebEngine >= 6.4)
 - chrome://blob-internals/
-- chrome://conversion-internals/ (QtWebEngine 5.15.3+)
+- chrome://conversion-internals/ (QtWebEngine >= 5.15.3 and < 6.4)
+- chrome://indexeddb-internals/
+- chrome://media-internals/
+- chrome://net-internals/ (QtWebEngine >= 5.15.4)
+- chrome://process-internals/
+- chrome://quota-internals/
+- chrome://serviceworker-internals/
+- chrome://webrtc-internals/
+
+Crash/hang pages:
+
 - chrome://crash/ (crashes the current renderer process!)
-- chrome://gpu/
 - chrome://gpuclean/ (crashes the current renderer process!)
 - chrome://gpucrash/ (crashes qutebrowser!)
 - chrome://gpuhang/ (hangs qutebrowser!)
-- chrome://histograms/
-- chrome://indexeddb-internals/
 - chrome://kill/ (kills the current renderer process!)
-- chrome://media-internals/
-- chrome://net-internals/ (QtWebEngine 5.15.4+)
-- chrome://network-errors/
-- chrome://ppapiflashcrash/
-- chrome://ppapiflashhang/
-- chrome://process-internals/
-- chrome://quota-internals/
-- chrome://sandbox/ (Linux only)
-- chrome://serviceworker-internals/
-- chrome://taskscheduler-internals/ (removed in QtWebEngine 5.14)
-- chrome://tracing/ (QtWebEngine 5.15.3+)
-- chrome://ukm/ (QtWebEngine 5.15.3+)
-- chrome://user-actions/ (QtWebEngine 5.15.3+)
-- chrome://webrtc-internals/
-- chrome://webrtc-logs/ (QtWebEngine 5.15.3+)
 
 QtWebEngine internals
 ~~~~~~~~~~~~~~~~~~~~~

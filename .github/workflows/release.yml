@@ -34,7 +34,7 @@ jobs:
       contents: write  # To push release commit/tag
     steps:
       - name: Find release branch
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         id: find-branch
         with:
           script: |
@@ -84,7 +84,7 @@ jobs:
         id: bump
         run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
       - name: Check milestone
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const milestones = await github.paginate(github.rest.issues.listMilestones, {
@@ -178,7 +178,7 @@ jobs:
       contents: write  # To change release
     steps:
       - name: Publish final release
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             await github.rest.repos.updateRelease({

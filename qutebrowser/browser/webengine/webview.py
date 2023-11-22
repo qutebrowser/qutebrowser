@@ -5,13 +5,16 @@
 """The main browser widget for QtWebEngine."""
 
 import mimetypes
-from typing import List, Iterable
+from typing import List, Iterable, Optional
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl
 from qutebrowser.qt.gui import QPalette
 from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineCertificateError
+from qutebrowser.qt.webenginecore import (
+    QWebEnginePage, QWebEngineCertificateError, QWebEngineSettings,
+    QWebEngineHistory,
+)
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
@@ -128,6 +131,25 @@ class WebEngineView(QWebEngineView):
             ev.ignore()
             return
         super().contextMenuEvent(ev)
+
+    def page(self) -> "WebEnginePage":
+        """Return the page for this view."""
+        maybe_page = super().page()
+        assert maybe_page is not None
+        assert isinstance(maybe_page, WebEnginePage)
+        return maybe_page
+
+    def settings(self) -> "QWebEngineSettings":
+        """Return the settings for this view."""
+        maybe_settings = super().settings()
+        assert maybe_settings is not None
+        return maybe_settings
+
+    def history(self) -> "QWebEngineHistory":
+        """Return the history for this view."""
+        maybe_history = super().history()
+        assert maybe_history is not None
+        return maybe_history
 
 
 def extra_suffixes_workaround(upstream_mimetypes):
@@ -294,22 +316,28 @@ class WebEnginePage(QWebEnginePage):
     def chooseFiles(
         self,
         mode: QWebEnginePage.FileSelectionMode,
-        old_files: Iterable[str],
-        accepted_mimetypes: Iterable[str],
+        old_files: Iterable[Optional[str]],
+        accepted_mimetypes: Iterable[Optional[str]],
     ) -> List[str]:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
-        extra_suffixes = extra_suffixes_workaround(accepted_mimetypes)
+        accepted_mimetypes_filtered = [m for m in accepted_mimetypes if m is not None]
+        old_files_filtered = [f for f in old_files if f is not None]
+        extra_suffixes = extra_suffixes_workaround(accepted_mimetypes_filtered)
         if extra_suffixes:
             log.webview.debug(
                 "adding extra suffixes to filepicker: "
-                f"before={accepted_mimetypes} "
+                f"before={accepted_mimetypes_filtered} "
                 f"added={extra_suffixes}",
             )
-            accepted_mimetypes = list(accepted_mimetypes) + list(extra_suffixes)
+            accepted_mimetypes_filtered = list(
+                accepted_mimetypes_filtered
+            ) + list(extra_suffixes)
 
         handler = config.val.fileselect.handler
         if handler == "default":
-            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+            return super().chooseFiles(
+                mode, old_files_filtered, accepted_mimetypes_filtered,
+            )
         assert handler == "external", handler
         try:
             qb_mode = _QB_FILESELECTION_MODES[mode]
@@ -317,6 +345,8 @@ class WebEnginePage(QWebEnginePage):
             log.webview.warning(
                 f"Got file selection mode {mode}, but we don't support that!"
             )
-            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+            return super().chooseFiles(
+                mode, old_files_filtered, accepted_mimetypes_filtered,
+            )
 
         return shared.choose_file(qb_mode=qb_mode)
