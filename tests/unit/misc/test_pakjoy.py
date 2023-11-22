@@ -18,6 +18,9 @@ from qutebrowser.utils import utils, version, standarddir
 pytest.importorskip("qutebrowser.qt.webenginecore")
 
 
+pytestmark = pytest.mark.usefixtures("cache_tmpdir")
+
+
 versions = version.qtwebengine_versions(avoid_init=True)
 
 
@@ -75,12 +78,6 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
     assert not workdir.exists()
 
 
-@pytest.fixture(autouse=True)
-def tmp_cache(tmp_path, monkeypatch):
-    monkeypatch.setattr(pakjoy.standarddir, "cache", lambda: tmp_path)
-    return str(tmp_path)
-
-
 def json_without_comments(bytestring):
     str_without_comments = "\n".join(
         [
@@ -119,8 +116,9 @@ class TestWithRealResourcesFile:
         # Test we managed to copy some files over
         work_dir = pakjoy.copy_webengine_resources()
 
+        assert work_dir is not None
         assert work_dir.exists()
-        assert work_dir == standarddir.cache() / pakjoy.CACHE_DIR_NAME
+        assert work_dir == pathlib.Path(standarddir.cache()) / pakjoy.CACHE_DIR_NAME
         assert (work_dir / pakjoy.PAK_FILENAME).exists()
         assert len(list(work_dir.glob("*"))) > 1
 
@@ -150,9 +148,9 @@ class TestWithRealResourcesFile:
             "Failed to copy webengine resources, not applying quirk"
         ]
 
-    def test_expected_file_not_found(self, tmp_cache, monkeypatch, caplog):
+    def test_expected_file_not_found(self, cache_tmpdir, monkeypatch, caplog):
         with caplog.at_level(logging.ERROR, "misc"):
-            pakjoy._patch(pathlib.Path(tmp_cache) / "doesntexist")
+            pakjoy._patch(pathlib.Path(cache_tmpdir) / "doesntexist")
         assert caplog.messages[-1].startswith(
             "Resource pak doesn't exist at expected location! "
             "Not applying quirks. Expected location: "
@@ -280,11 +278,11 @@ class TestWithConstructedResourcesFile:
         ):
             parser.find_patch_offset()
 
-    def test_url_not_found_high_level(self, tmp_cache, caplog, affected_version):
+    def test_url_not_found_high_level(self, cache_tmpdir, caplog, affected_version):
         buffer = pak_factory(entries=[json_manifest_factory(url=b"example.com")])
 
         # Write bytes to file so we can test pakjoy._patch()
-        tmpfile = pathlib.Path(tmp_cache) / "bad.pak"
+        tmpfile = pathlib.Path(cache_tmpdir) / "bad.pak"
         with open(tmpfile, "wb") as fd:
             fd.write(buffer.read())
 
