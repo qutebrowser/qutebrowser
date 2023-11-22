@@ -130,14 +130,12 @@ class PakParser:
         return {entry.resource_id: entry for entry in entries}
 
     def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, bytes]:
+        to_check = list(entries.values())
         if HANGOUTS_ID in entries:
-            suspected_entry = entries[HANGOUTS_ID]
-            manifest = self._maybe_get_hangouts_manifest(suspected_entry)
-            if manifest is not None:
-                return suspected_entry, manifest
+            # Most likely candidate, based on previous known ID
+            to_check.insert(0, entries[HANGOUTS_ID])
 
-        # didn't find it via the prevously known ID, let's search them all...
-        for entry in entries.values():
+        for entry in to_check:
             manifest = self._maybe_get_hangouts_manifest(entry)
             if manifest is not None:
                 return entry, manifest
