@@ -37,6 +37,9 @@ from qutebrowser.utils import qtutils, standarddir, version, utils, log
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
 PAK_VERSION = 5
+RESOURCES_ENV_VAR = "QTWEBENGINE_RESOURCES_PATH"
+CACHE_DIR_NAME = "webengine_resources_pak_quirk"
+PAK_FILENAME = "qtwebengine_resources.pak"
 
 TARGET_URL = b"https://*.google.com/*"
 REPLACEMENT_URL = b"https://qute.invalid/*"
@@ -154,7 +157,7 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
         resources_dir /= pathlib.Path("lib", "QtWebEngineCore.framework", "Resources")
     else:
         resources_dir /= "resources"
-    work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
+    work_dir = pathlib.Path(standarddir.cache()) / CACHE_DIR_NAME
 
     if work_dir.exists():
         log.misc.debug(f"Removing existing {work_dir}")
@@ -172,7 +175,7 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
 
     shutil.copytree(resources_dir, work_dir)
 
-    os.environ["QTWEBENGINE_RESOURCES_PATH"] = str(work_dir)
+    os.environ[RESOURCES_ENV_VAR] = str(work_dir)
 
     return work_dir
 
@@ -210,4 +213,4 @@ def patch_webengine() -> None:
     if webengine_resources_path is None:
         return
 
-    _patch(webengine_resources_path / "qtwebengine_resources.pak")
+    _patch(webengine_resources_path / PAK_FILENAME)

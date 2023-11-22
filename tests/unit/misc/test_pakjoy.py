@@ -36,8 +36,8 @@ def skipifneeded():
 @pytest.fixture(autouse=True)
 def clean_env():
     yield
-    if "QTWEBENGINE_RESOURCES_PATH" in os.environ:
-        del os.environ["QTWEBENGINE_RESOURCES_PATH"]
+    if pakjoy.RESOURCES_ENV_VAR in os.environ:
+        del os.environ[pakjoy.RESOURCES_ENV_VAR]
 
 
 def patch_version(monkeypatch, *args):
@@ -64,7 +64,7 @@ def affected_version(monkeypatch):
 
 @pytest.mark.parametrize("workdir_exists", [True, False])
 def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
-    workdir = cache_tmpdir / "webengine_resources_pak_quirk"
+    workdir = cache_tmpdir / pakjoy.CACHE_DIR_NAME
     if workdir_exists:
         workdir.mkdir()
         (workdir / "some_patched_file.pak").ensure()
@@ -104,9 +104,9 @@ class TestWithRealResourcesFile:
         # afterwards.
         pakjoy.patch_webengine()
 
-        patched_resources = pathlib.Path(os.environ["QTWEBENGINE_RESOURCES_PATH"])
+        patched_resources = pathlib.Path(os.environ[pakjoy.RESOURCES_ENV_VAR])
 
-        with open(patched_resources / "qtwebengine_resources.pak", "rb") as fd:
+        with open(patched_resources / pakjoy.PAK_FILENAME, "rb") as fd:
             reparsed = pakjoy.PakParser(fd)
 
         json_manifest = json_without_comments(reparsed.manifest)
@@ -120,8 +120,8 @@ class TestWithRealResourcesFile:
         work_dir = pakjoy.copy_webengine_resources()
 
         assert work_dir.exists()
-        assert work_dir == standarddir.cache() / "webengine_resources_pak_quirk"
-        assert (work_dir / "qtwebengine_resources.pak").exists()
+        assert work_dir == standarddir.cache() / pakjoy.CACHE_DIR_NAME
+        assert (work_dir / pakjoy.PAK_FILENAME).exists()
         assert len(list(work_dir.glob("*"))) > 1
 
     def test_copying_resources_overwrites(self):
