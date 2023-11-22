@@ -140,7 +140,7 @@ class PakParser:
         for entry in entries.values():
             manifest = self._maybe_get_hangouts_manifest(entry)
             if manifest is not None:
-                return entries[id_], manifest
+                return entry, manifest
 
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
