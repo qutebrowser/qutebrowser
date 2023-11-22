@@ -38,6 +38,7 @@ HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_ID = 36197  # as found by toofar
 PAK_VERSION = 5
 RESOURCES_ENV_VAR = "QTWEBENGINE_RESOURCES_PATH"
+DISABLE_ENV_VAR = "QUTE_DISABLE_PAKJOY"
 CACHE_DIR_NAME = "webengine_resources_pak_quirk"
 PAK_FILENAME = "qtwebengine_resources.pak"
 
@@ -228,6 +229,10 @@ def _patch(file_to_patch: pathlib.Path) -> None:
 
 def patch_webengine() -> None:
     """Apply any patches to webengine resource pak files."""
+    if os.environ.get(DISABLE_ENV_VAR):
+        log.misc.debug(f"Not applying quirk due to {DISABLE_ENV_VAR}")
+        return
+
     try:
         # Still calling this on Qt != 6.6 so that the directory is cleaned up
         # when not needed anymore.

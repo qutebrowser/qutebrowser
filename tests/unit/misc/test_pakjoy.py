@@ -39,6 +39,7 @@ skip_if_unsupported = pytest.mark.skipif(
 def prepare_env(qapp, monkeypatch):
     monkeypatch.setattr(pakjoy.objects, "qapp", qapp)
     monkeypatch.delenv(pakjoy.RESOURCES_ENV_VAR, raising=False)
+    monkeypatch.delenv(pakjoy.DISABLE_ENV_VAR, raising=False)
 
 
 def patch_version(monkeypatch, *args):
@@ -75,6 +76,15 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
 
     assert not fake_open.called
     assert not workdir.exists()
+
+
+def test_escape_hatch(affected_version, mocker, monkeypatch):
+    fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
+    monkeypatch.setenv(pakjoy.DISABLE_ENV_VAR, "1")
+
+    pakjoy.patch_webengine()
+
+    assert not fake_open.called
 
 
 class TestFindWebengineResources:
