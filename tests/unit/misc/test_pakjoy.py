@@ -177,7 +177,7 @@ def pak_factory(version=5, entries=None, encoding=1, sentinel_position=-1):
 
     buffer = io.BytesIO()
     buffer.write(struct.pack("<I", version))
-    buffer.write(struct.pack(pakjoy.Pak5Header._FORMAT, encoding, len(entries), 0))
+    buffer.write(struct.pack(pakjoy.PakHeader._FORMAT, encoding, len(entries), 0))
 
     entry_headers_size = (len(entries) + 1) * 6
     start_of_data = buffer.tell() + entry_headers_size
