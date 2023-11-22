@@ -9,7 +9,7 @@ import pytest
 import hypothesis
 from hypothesis import strategies as hst
 
-from qutebrowser.misc import elf
+from qutebrowser.misc import elf, binparsing
 from qutebrowser.utils import utils
 
 
@@ -117,7 +117,7 @@ def test_find_versions(data, expected):
     ),
 ])
 def test_find_versions_invalid(data, message):
-    with pytest.raises(elf.ParseError) as excinfo:
+    with pytest.raises(binparsing.ParseError) as excinfo:
         elf._find_versions(data)
     assert str(excinfo.value) == message
 
@@ -132,5 +132,5 @@ def test_hypothesis(data):
     fobj = io.BytesIO(data)
     try:
         elf._parse_from_file(fobj)
-    except elf.ParseError as e:
+    except binparsing.ParseError as e:
         print(e)
