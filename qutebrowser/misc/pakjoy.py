@@ -143,7 +143,7 @@ class PakParser:
         raise binparsing.ParseError("Couldn't find hangouts manifest")
 
 
-def copy_webengine_resources() -> pathlib.Path:
+def copy_webengine_resources() -> Optional[pathlib.Path]:
     """Copy qtwebengine resources to local dir for patching."""
     resources_dir = qtutils.library_path(qtutils.LibraryPath.data)
     if utils.is_mac:
@@ -156,14 +156,19 @@ def copy_webengine_resources() -> pathlib.Path:
         resources_dir /= "resources"
     work_dir = pathlib.Path(standarddir.cache()) / "webengine_resources_pak_quirk"
 
+    if work_dir.exists():
+        log.misc.debug(f"Removing existing {work_dir}")
+        shutil.rmtree(work_dir)
+
+    versions = version.qtwebengine_versions(avoid_init=True)
+    if versions.webengine != utils.VersionNumber(6, 6):
+        # No patching needed
+        return None
+
     log.misc.debug(
         "Copying webengine resources for quirk patching: "
         f"{resources_dir} -> {work_dir}"
     )
-
-    if work_dir.exists():
-        # TODO: make backup?
-        shutil.rmtree(work_dir)
 
     shutil.copytree(resources_dir, work_dir)
 
@@ -194,14 +199,15 @@ def _patch(file_to_patch: pathlib.Path) -> None:
 
 def patch_webengine() -> None:
     """Apply any patches to webengine resource pak files."""
-    versions = version.qtwebengine_versions(avoid_init=True)
-    if versions.webengine != utils.VersionNumber(6, 6):
-        return
-
     try:
+        # Still calling this on Qt != 6.6 so that the directory is cleaned up
+        # when not needed anymore.
         webengine_resources_path = copy_webengine_resources()
     except OSError:
         log.misc.exception("Failed to copy webengine resources, not applying quirk")
+        return
+
+    if webengine_resources_path is None:
         return
 
     _patch(webengine_resources_path / "qtwebengine_resources.pak")

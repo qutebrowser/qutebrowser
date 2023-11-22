@@ -62,11 +62,18 @@ def affected_version(monkeypatch):
     patch_version(monkeypatch, 6, 6)
 
 
-def test_version_gate(unaffected_version, mocker):
-
+@pytest.mark.parametrize("workdir_exists", [True, False])
+def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
+    workdir = cache_tmpdir / "webengine_resources_pak_quirk"
+    if workdir_exists:
+        workdir.mkdir()
+        (workdir / "some_patched_file.pak").ensure()
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
+
     pakjoy.patch_webengine()
+
     assert not fake_open.called
+    assert not workdir.exists()
 
 
 @pytest.fixture(autouse=True)
