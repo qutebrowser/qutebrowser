@@ -65,7 +65,7 @@ def affected_version(monkeypatch):
 def test_version_gate(unaffected_version, mocker):
 
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
-    pakjoy.patch()
+    pakjoy.patch_webengine()
     assert not fake_open.called
 
 
@@ -95,7 +95,7 @@ class TestWithRealResourcesFile:
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
         # afterwards.
-        pakjoy.patch()
+        pakjoy.patch_webengine()
 
         patched_resources = pathlib.Path(os.environ["QTWEBENGINE_RESOURCES_PATH"])
 
@@ -136,12 +136,12 @@ class TestWithRealResourcesFile:
 
         monkeypatch.setattr(pakjoy.shutil, osfunc, lambda *_args: raiseme(PermissionError(osfunc)))
         with caplog.at_level(logging.ERROR, "misc"):
-            pakjoy.patch()
+            pakjoy.patch_webengine()
         assert caplog.messages == ["Failed to copy webengine resources, not applying quirk"]
 
     def test_expected_file_not_found(self, tmp_cache, monkeypatch, caplog):
         with caplog.at_level(logging.ERROR, "misc"):
-            pakjoy.patch(pathlib.Path(tmp_cache) / "doesntexist")
+            pakjoy._patch(pathlib.Path(tmp_cache) / "doesntexist")
         assert caplog.messages[-1].startswith(
             "Resource pak doesn't exist at expected location! "
             "Not applying quirks. Expected location: "
@@ -264,13 +264,13 @@ class TestWithConstructedResourcesFile:
                                       affected_version):
         buffer = pak_factory(entries=[json_manifest_factory(url=b"example.com")])
 
-        # Write bytes to file so we can test pakjoy.patch()
+        # Write bytes to file so we can test pakjoy._patch()
         tmpfile = pathlib.Path(tmp_cache) / "bad.pak"
         with open(tmpfile, "wb") as fd:
             fd.write(buffer.read())
 
         with caplog.at_level(logging.ERROR, "misc"):
-            pakjoy.patch(tmpfile)
+            pakjoy._patch(tmpfile)
 
         assert caplog.messages == [
             "Failed to apply quirk to resources pak."

@@ -172,19 +172,8 @@ def copy_webengine_resources() -> pathlib.Path:
     return work_dir
 
 
-def patch(file_to_patch: pathlib.Path = None) -> None:
-    """Apply any patches to webengine resource pak files."""
-    versions = version.qtwebengine_versions(avoid_init=True)
-    if versions.webengine != utils.VersionNumber(6, 6):
-        return
-
-    if not file_to_patch:
-        try:
-            file_to_patch = copy_webengine_resources() / "qtwebengine_resources.pak"
-        except OSError:
-            log.misc.exception("Failed to copy webengine resources, not applying quirk")
-            return
-
+def _patch(file_to_patch: pathlib.Path) -> None:
+    """Apply any patches to the given pak file."""
     if not file_to_patch.exists():
         log.misc.error(
             "Resource pak doesn't exist at expected location! "
@@ -203,14 +192,16 @@ def patch(file_to_patch: pathlib.Path = None) -> None:
             log.misc.exception("Failed to apply quirk to resources pak.")
 
 
-if __name__ == "__main__":
-    output_test_file = pathlib.Path("/tmp/test.pak")
-    #shutil.copy("/opt/google/chrome/resources.pak", output_test_file)
-    shutil.copy("/usr/share/qt6/resources/qtwebengine_resources.pak", output_test_file)
-    patch(output_test_file)
+def patch_webengine() -> None:
+    """Apply any patches to webengine resource pak files."""
+    versions = version.qtwebengine_versions(avoid_init=True)
+    if versions.webengine != utils.VersionNumber(6, 6):
+        return
 
-    with open(output_test_file, "rb") as fd:
-        reparsed = PakParser(fd)
+    try:
+        webengine_resources_path = copy_webengine_resources()
+    except OSError:
+        log.misc.exception("Failed to copy webengine resources, not applying quirk")
+        return
 
-    print(reparsed.manifest_entry)
-    print(reparsed.manifest)
+    _patch(webengine_resources_path / "qtwebengine_resources.pak")

@@ -556,7 +556,7 @@ def init():
     log.init.debug("Initializing profiles...")
 
     # Apply potential resource patches before initializing profiles.
-    pakjoy.patch()
+    pakjoy.patch_webengine()
 
     _init_default_profile()
     init_private_profile()
