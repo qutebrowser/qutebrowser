@@ -192,8 +192,7 @@ class BaseKeyParser(QObject):
                  passthrough: bool = False,
                  supports_count: bool = True,
                  allow_partial_timeout: bool = False,
-                 allow_forward: bool = True,
-                 forward_widget_name: str = None) -> None:
+                 allow_forward: bool = True) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._pure_sequence = keyutils.KeySequence()
@@ -206,7 +205,7 @@ class BaseKeyParser(QObject):
         self._supports_count = supports_count
         self.allow_partial_timeout = allow_partial_timeout
         self.allow_forward = allow_forward
-        self.forward_widget_name = forward_widget_name
+        self.forward_widget_name = None
         self.bindings = BindingTrie()
         self._read_config()
         config.instance.changed.connect(self._on_config_changed)
@@ -229,6 +228,17 @@ class BaseKeyParser(QObject):
             prefix = '{} for mode {}: '.format(self.__class__.__name__,
                                                self._mode.name)
             log.keyboard.debug(prefix + msg)
+
+    def set_forward_widget_name(self,
+                                forward_widget_name: str) -> 'BaseKeyParser':
+        """Set forward_widget_name.
+
+        Args:
+            forward_widget_name: Name of the widget to which partial keys are
+                                 forwarded.
+        """
+        self.forward_widget_name = forward_widget_name
+        return self
 
     def get_do_log(self) -> bool:
         return self._do_log

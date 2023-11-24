@@ -103,8 +103,8 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 do_log=log_sensitive_keys,
                 supports_count=False,
                 allow_partial_timeout=True,
-                allow_forward=True,
-                forward_widget_name='status-command'),
+                allow_forward=True)
+            .set_forward_widget_name('status-command'),
 
         usertypes.KeyMode.prompt:
             modeparsers.CommandKeyParser(
@@ -118,8 +118,8 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 # Maybe in the future implement this, but for the time being its
                 # infeasible as 'prompt-container' is registered as command-only.
                 # Plus, I imagine the use case for such a thing is quite rare.
+                # (The forward_widget_name would be 'prompt-container')
                 allow_forward=False,
-                forward_widget_name=None,  # 'prompt-container'
                 allow_partial_timeout=False),
 
         usertypes.KeyMode.yesno:
@@ -131,7 +131,6 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 supports_count=False,
                 # Similar story to prompt mode
                 allow_forward=False,
-                forward_widget_name=None,
                 allow_partial_timeout=False),
 
         usertypes.KeyMode.caret:

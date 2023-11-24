@@ -54,14 +54,12 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
                  passthrough: bool = False,
                  supports_count: bool = True,
                  allow_partial_timeout: bool = True,
-                 allow_forward: bool = True,
-                 forward_widget_name: str = None) -> None:
+                 allow_forward: bool = True) -> None:
         super().__init__(mode=mode, win_id=win_id, parent=parent,
                          do_log=do_log, passthrough=passthrough,
                          supports_count=supports_count,
                          allow_partial_timeout=allow_partial_timeout,
-                         allow_forward=allow_forward,
-                         forward_widget_name=forward_widget_name)
+                         allow_forward=allow_forward)
         self._commandrunner = commandrunner
 
     def execute(self, cmdstr: str, count: int = None) -> None:
