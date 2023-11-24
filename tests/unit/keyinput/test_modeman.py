@@ -182,11 +182,9 @@ def modeman_with_basekeyparser(mode_manager, config_stub):
     }
     config_stub.val.bindings.key_mappings = {}
     mode = usertypes.KeyMode.normal
-    mode_manager.register(mode,
-        basekeyparser.BaseKeyParser(mode=mode,
-                                    win_id=0,
-                                    passthrough=True,
-                                    forward_widget_name='fake-event-filter'))
+    kp = basekeyparser.BaseKeyParser(mode=mode, win_id=0, passthrough=True)
+    kp.set_forward_widget_name('fake-event-filter')
+    mode_manager.register(mode, kp)
     yield mode_manager
     objreg.delete('fake-event-filter', scope='window', window=0)
 
