@@ -50,8 +50,7 @@ def generate_pdfjs_page(filename, url):
         filename: The filename of the PDF to open.
         url: The URL being opened.
     """
-    pdfjs_name = get_pdfjs_basename()
-    if pdfjs_name is None or not is_available():
+    if not is_available():
         pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
@@ -220,7 +219,7 @@ def get_pdfjs_basename():
 def is_available():
     """Return true if certain parts of a pdfjs installation are available."""
     try:
-        # get_pdfjs_res('build/pdf.mjs')
+        get_pdfjs_basename()
         get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
