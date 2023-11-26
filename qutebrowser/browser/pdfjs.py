@@ -63,11 +63,11 @@ def generate_pdfjs_page(filename, url):
     viewhtml = viewhtml.replace('</body>',
                         '</body><script>{}</script>'.format(script))
     # WORKAROUND for the fact that PDF.js tries to use the Fetch API even with
-    # qute:// URLs.
-    pdfjs_script = f'<script src="../build/{html.escape(pdfjs_name)}"></script>'
-    viewhtml = viewhtml.replace(pdfjs_script,
-                        '<script>window.Response = undefined;</script>\n' +
-                        pdfjs_script)
+    # qute:// URLs, this is probably no longer needed in PDFjs 4+. See #4235
+    viewhtml = viewhtml.replace(
+        '<head>',
+        '<head>\n<script>window.Response = undefined;</script>\n'
+    )
     return viewhtml
 
 
