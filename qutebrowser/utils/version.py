@@ -480,7 +480,9 @@ def _pdfjs_version() -> str:
         A string with the version number.
     """
     try:
-        pdfjs_file, file_path = pdfjs.get_pdfjs_res_and_path('build/pdf.js')
+        pdfjs_file, file_path = pdfjs.get_pdfjs_res_and_path(
+            str(pathlib.Path("build") / pdfjs.get_pdfjs_basename())
+        )
     except pdfjs.PDFJSNotFound:
         return 'no'
     else:

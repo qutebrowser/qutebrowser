@@ -50,7 +50,7 @@ def generate_pdfjs_page(filename, url):
         filename: The filename of the PDF to open.
         url: The URL being opened.
     """
-    pdfjs_name = _get_pdfjs_basename()
+    pdfjs_name = get_pdfjs_basename()
     if pdfjs_name is None or not is_available():
         pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
         return jinja.render('no_pdfjs.html',
@@ -204,7 +204,7 @@ def _read_from_system(system_path, names):
     return (None, None)
 
 
-def _get_pdfjs_basename():
+def get_pdfjs_basename():
     """Checks for pdf.js main module availability and returns the basename if available."""
     exts = ['pdf.js', 'pdf.mjs']
     for ext in exts:

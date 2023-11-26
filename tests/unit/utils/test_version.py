@@ -849,11 +849,13 @@ class TestPDFJSVersion:
     """Tests for _pdfjs_version."""
 
     def test_not_found(self, mocker):
+        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_basename')
         mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
                      side_effect=pdfjs.PDFJSNotFound('/build/pdf.js'))
         assert version._pdfjs_version() == 'no'
 
-    def test_unknown(self, monkeypatch):
+    def test_unknown(self, monkeypatch, mocker):
+        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_basename')
         monkeypatch.setattr(
             'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
             lambda path: (b'foobar', None))
@@ -864,7 +866,7 @@ class TestPDFJSVersion:
         'var pdfjsVersion',  # v2.0.943
         'const pdfjsVersion',  # v2.5.207
     ])
-    def test_known(self, monkeypatch, varname):
+    def test_known(self, monkeypatch, mocker, varname):
         pdfjs_code = textwrap.dedent("""
             // Initializing PDFJS global object (if still undefined)
             if (typeof PDFJS === 'undefined') {
@@ -878,6 +880,7 @@ class TestPDFJSVersion:
               // Use strict in our context only - users might not want it
               'use strict';
         """.replace('VARNAME', varname)).strip().encode('utf-8')
+        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_basename')
         monkeypatch.setattr(
             'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
@@ -886,7 +889,9 @@ class TestPDFJSVersion:
     def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
         try:
-            pdfjs.get_pdfjs_res_and_path('build/pdf.js')
+            pdfjs_file, file_path = pdfjs.get_pdfjs_res_and_path(
+                str(pathlib.Path("build") / pdfjs.get_pdfjs_basename())
+            )
         except pdfjs.PDFJSNotFound:
             pytest.skip("No pdfjs found")
         ver = version._pdfjs_version()
