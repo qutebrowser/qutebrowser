@@ -4,14 +4,14 @@ build==1.0.3
 certifi==2023.11.17
 charset-normalizer==3.3.2
 docutils==0.20.1
-idna==3.4
+idna==3.6
 importlib-metadata==6.8.0
 packaging==23.2
-Pygments==2.17.1
+Pygments==2.17.2
 pyproject_hooks==1.0.0
 pyroma==4.2
 requests==2.31.0
 tomli==2.0.1
-trove-classifiers==2023.11.14
+trove-classifiers==2023.11.22
 urllib3==2.1.0
 zipp==3.17.0
