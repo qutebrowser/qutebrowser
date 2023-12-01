@@ -8,6 +8,7 @@ import json
 import struct
 import pathlib
 import logging
+import shutil
 
 import pytest
 
@@ -72,7 +73,8 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
         (workdir / "some_patched_file.pak").ensure()
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
 
-    pakjoy.patch_webengine()
+    with pakjoy.patch_webengine():
+        pass
 
     assert not fake_open.called
     assert not workdir.exists()
@@ -82,7 +84,8 @@ def test_escape_hatch(affected_version, mocker, monkeypatch):
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
     monkeypatch.setenv(pakjoy.DISABLE_ENV_VAR, "1")
 
-    pakjoy.patch_webengine()
+    with pakjoy.patch_webengine():
+        pass
 
     assert not fake_open.called
 
@@ -196,7 +199,8 @@ class TestWithRealResourcesFile:
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
         # afterwards.
-        pakjoy.patch_webengine()
+        with pakjoy.patch_webengine():
+            pass
 
         json_manifest = read_patched_manifest()
         assert (
@@ -220,9 +224,6 @@ class TestWithRealResourcesFile:
         tmpfile = work_dir / "tmp.txt"
         tmpfile.touch()
 
-        # Set by first call to copy_webengine_resources()
-        del os.environ[pakjoy.RESOURCES_ENV_VAR]
-
         pakjoy.copy_webengine_resources()
         assert not tmpfile.exists()
 
@@ -239,7 +240,9 @@ class TestWithRealResourcesFile:
             pakjoy.shutil, osfunc, lambda *_args: raiseme(PermissionError(osfunc))
         )
         with caplog.at_level(logging.ERROR, "misc"):
-            pakjoy.patch_webengine()
+            with pakjoy.patch_webengine():
+                pass
+
         assert caplog.messages == [
             "Failed to copy webengine resources, not applying quirk"
         ]
@@ -393,8 +396,10 @@ class TestWithConstructedResourcesFile:
 
         assert caplog.messages == ["Failed to apply quirk to resources pak."]
 
-    def test_patching(self, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path):
-        """Go through the full patching processes with a fake resources file."""
+    @pytest.fixture
+    def resources_path(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path
+    ) -> pathlib.Path:
         resources_path = tmp_path / "resources"
         resources_path.mkdir()
 
@@ -403,10 +408,36 @@ class TestWithConstructedResourcesFile:
             fd.write(buffer.read())
 
         monkeypatch.setattr(pakjoy.qtutils, "library_path", lambda _which: tmp_path)
-        pakjoy.patch_webengine()
+        return resources_path
 
-        json_manifest = read_patched_manifest()
+    @pytest.fixture
+    def quirk_dir_path(self, tmp_path: pathlib.Path) -> pathlib.Path:
+        return tmp_path / "cache" / pakjoy.CACHE_DIR_NAME
+
+    def test_patching(self, resources_path: pathlib.Path, quirk_dir_path: pathlib.Path):
+        """Go through the full patching processes with a fake resources file."""
+
+        with pakjoy.patch_webengine():
+            assert os.environ[pakjoy.RESOURCES_ENV_VAR] == str(quirk_dir_path)
+            json_manifest = read_patched_manifest()
+
         assert (
             pakjoy.REPLACEMENT_URL.decode("utf-8")
             in json_manifest["externally_connectable"]["matches"]
         )
+        assert pakjoy.RESOURCES_ENV_VAR not in os.environ
+
+    def test_preset_env_var(
+        self,
+        resources_path: pathlib.Path,
+        monkeypatch: pytest.MonkeyPatch,
+        quirk_dir_path: pathlib.Path,
+    ):
+        new_resources_path = resources_path.with_name(resources_path.name + "_moved")
+        shutil.move(resources_path, new_resources_path)
+        monkeypatch.setenv(pakjoy.RESOURCES_ENV_VAR, str(new_resources_path))
+
+        with pakjoy.patch_webengine():
+            assert os.environ[pakjoy.RESOURCES_ENV_VAR] == str(quirk_dir_path)
+
+        assert os.environ[pakjoy.RESOURCES_ENV_VAR] == str(new_resources_path)

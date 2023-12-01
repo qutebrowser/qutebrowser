@@ -29,7 +29,8 @@ import os
 import shutil
 import pathlib
 import dataclasses
-from typing import ClassVar, IO, Optional, Dict, Tuple
+import contextlib
+from typing import ClassVar, IO, Optional, Dict, Tuple, Iterator
 
 from qutebrowser.misc import binparsing, objects
 from qutebrowser.utils import qtutils, standarddir, version, utils, log
@@ -201,9 +202,6 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
     )
 
     shutil.copytree(resources_dir, work_dir)
-
-    os.environ[RESOURCES_ENV_VAR] = str(work_dir)
-
     return work_dir
 
 
@@ -227,10 +225,12 @@ def _patch(file_to_patch: pathlib.Path) -> None:
             log.misc.exception("Failed to apply quirk to resources pak.")
 
 
-def patch_webengine() -> None:
+@contextlib.contextmanager
+def patch_webengine() -> Iterator[None]:
     """Apply any patches to webengine resource pak files."""
     if os.environ.get(DISABLE_ENV_VAR):
         log.misc.debug(f"Not applying quirk due to {DISABLE_ENV_VAR}")
+        yield
         return
 
     try:
@@ -239,9 +239,22 @@ def patch_webengine() -> None:
         webengine_resources_path = copy_webengine_resources()
     except OSError:
         log.misc.exception("Failed to copy webengine resources, not applying quirk")
+        yield
         return
 
     if webengine_resources_path is None:
+        yield
         return
 
     _patch(webengine_resources_path / PAK_FILENAME)
+
+    old_value = os.environ.get(RESOURCES_ENV_VAR)
+    os.environ[RESOURCES_ENV_VAR] = str(webengine_resources_path)
+
+    yield
+
+    # Restore old value for subprocesses or :restart
+    if old_value is None:
+        del os.environ[RESOURCES_ENV_VAR]
+    else:
+        os.environ[RESOURCES_ENV_VAR] = old_value
