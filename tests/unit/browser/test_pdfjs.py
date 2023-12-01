@@ -193,6 +193,32 @@ def test_is_available(available, mocker):
     assert pdfjs.is_available() == available
 
 
+@pytest.mark.parametrize('found_file', [
+    "build/pdf.js",
+    "build/pdf.mjs",
+    None,
+])
+def test_get_pdfjs_js_path(found_file, mocker):
+
+    def side_effect(requested):
+        if found_file and requested.endswith(found_file):
+            return
+
+        raise pdfjs.PDFJSNotFound(requested)
+
+    mock = mocker.patch.object(pdfjs, 'get_pdfjs_res', autospec=True)
+    mock.side_effect = side_effect
+
+    if found_file is None:
+        with pytest.raises(
+            pdfjs.PDFJSNotFound,
+            match="Path 'build/pdf.js or build/pdf.mjs' not found"
+        ):
+            pdfjs.get_pdfjs_js_path()
+    else:
+        assert pdfjs.get_pdfjs_js_path() == found_file
+
+
 @pytest.mark.parametrize('mimetype, url, enabled, expected', [
     # PDF files
     ('application/pdf', 'http://www.example.com', True, True),
