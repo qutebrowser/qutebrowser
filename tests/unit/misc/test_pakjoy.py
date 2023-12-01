@@ -200,9 +200,8 @@ class TestWithRealResourcesFile:
         # the current installation. Make sure our replacement string is in it
         # afterwards.
         with pakjoy.patch_webengine():
-            pass
+            json_manifest = read_patched_manifest()
 
-        json_manifest = read_patched_manifest()
         assert (
             pakjoy.REPLACEMENT_URL.decode("utf-8")
             in json_manifest["externally_connectable"]["matches"]
@@ -416,7 +415,6 @@ class TestWithConstructedResourcesFile:
 
     def test_patching(self, resources_path: pathlib.Path, quirk_dir_path: pathlib.Path):
         """Go through the full patching processes with a fake resources file."""
-
         with pakjoy.patch_webengine():
             assert os.environ[pakjoy.RESOURCES_ENV_VAR] == str(quirk_dir_path)
             json_manifest = read_patched_manifest()
