@@ -212,7 +212,8 @@ def get_pdfjs_basename():
             pass
         else:
             return ext
-    return None
+
+    raise PDFJSNotFound(" or ".join(f"'build/{ext}'" for ext in exts))
 
 
 def is_available():

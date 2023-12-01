@@ -849,13 +849,11 @@ class TestPDFJSVersion:
     """Tests for _pdfjs_version."""
 
     def test_not_found(self, mocker):
-        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_basename')
         mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
                      side_effect=pdfjs.PDFJSNotFound('/build/pdf.js'))
         assert version._pdfjs_version() == 'no'
 
-    def test_unknown(self, monkeypatch, mocker):
-        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_basename')
+    def test_unknown(self, monkeypatch):
         monkeypatch.setattr(
             'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
             lambda path: (b'foobar', None))
@@ -880,7 +878,6 @@ class TestPDFJSVersion:
               // Use strict in our context only - users might not want it
               'use strict';
         """.replace('VARNAME', varname)).strip().encode('utf-8')
-        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_basename')
         monkeypatch.setattr(
             'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
