@@ -202,24 +202,24 @@ def _read_from_system(system_path, names):
     return (None, None)
 
 
-def get_pdfjs_basename():
-    """Checks for pdf.js main module availability and returns the basename if available."""
-    exts = ['pdf.js', 'pdf.mjs']
-    for ext in exts:
+def get_pdfjs_js_path():
+    """Checks for pdf.js main module availability and returns the path if available."""
+    paths = ['build/pdf.js', 'build/pdf.mjs']
+    for path in paths:
         try:
-            get_pdfjs_res('build/' + ext)
+            get_pdfjs_res(path)
         except PDFJSNotFound:
             pass
         else:
-            return ext
+            return path
 
-    raise PDFJSNotFound(" or ".join(f"'build/{ext}'" for ext in exts))
+    raise PDFJSNotFound(" or ".join(paths))
 
 
 def is_available():
     """Return true if certain parts of a pdfjs installation are available."""
     try:
-        get_pdfjs_basename()
+        get_pdfjs_js_path()
         get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
