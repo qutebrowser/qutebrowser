@@ -5,7 +5,6 @@
 
 """pdf.js integration for qutebrowser."""
 
-import html
 import os
 
 from qutebrowser.qt.core import QUrl, QUrlQuery
@@ -56,18 +55,18 @@ def generate_pdfjs_page(filename, url):
                             url=url.toDisplayString(),
                             title="PDF.js not found",
                             pdfjs_dir=pdfjs_dir)
-    viewhtml = get_pdfjs_res('web/viewer.html').decode('utf-8')
+    html = get_pdfjs_res('web/viewer.html').decode('utf-8')
 
     script = _generate_pdfjs_script(filename)
-    viewhtml = viewhtml.replace('</body>',
+    html = html.replace('</body>',
                         '</body><script>{}</script>'.format(script))
     # WORKAROUND for the fact that PDF.js tries to use the Fetch API even with
     # qute:// URLs, this is probably no longer needed in PDFjs 4+. See #4235
-    viewhtml = viewhtml.replace(
+    html = html.replace(
         '<head>',
         '<head>\n<script>window.Response = undefined;</script>\n'
     )
-    return viewhtml
+    return html
 
 
 def _generate_pdfjs_script(filename):
