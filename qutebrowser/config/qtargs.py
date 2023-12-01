@@ -336,10 +336,8 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
     'qt.workarounds.disable_accelerated_2d_canvas': {
         'always': '--disable-accelerated-2d-canvas',
         'never': None,
-        'auto': lambda versions: 'always'
+        'auto': lambda _versions: 'always'
         if machinery.IS_QT6
-        and versions.chromium_major
-        and versions.chromium_major < 111
         else 'never',
     },
 }
