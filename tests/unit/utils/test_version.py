@@ -864,7 +864,7 @@ class TestPDFJSVersion:
         'var pdfjsVersion',  # v2.0.943
         'const pdfjsVersion',  # v2.5.207
     ])
-    def test_known(self, monkeypatch, mocker, varname):
+    def test_known(self, monkeypatch, varname):
         pdfjs_code = textwrap.dedent("""
             // Initializing PDFJS global object (if still undefined)
             if (typeof PDFJS === 'undefined') {
