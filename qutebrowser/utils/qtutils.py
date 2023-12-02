@@ -250,9 +250,9 @@ def savefile_open(
 @contextlib.contextmanager
 def savefile_open(
         filename: str,
-        binary: Literal[True] = ...,
+        binary: Literal[True],
         encoding: str = 'utf-8'
-) -> Iterator[IO[str]]:
+) -> Iterator[IO[bytes]]:
     ...
 
 
