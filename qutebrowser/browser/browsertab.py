@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Base class for a wrapper over QWebView/QWebEngineView."""
+"""Base class for a wrapper over WebView/WebEngineView."""
 
 import enum
 import pathlib
@@ -22,10 +22,9 @@ from qutebrowser.qt.network import QNetworkAccessManager
 
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory, QWebHistoryItem
-    from qutebrowser.qt.webkitwidgets import QWebPage, QWebView
+    from qutebrowser.qt.webkitwidgets import QWebPage
     from qutebrowser.qt.webenginecore import (
         QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
-    from qutebrowser.qt.webenginewidgets import QWebEngineView
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, websettings
@@ -38,10 +37,12 @@ from qutebrowser.qt import sip
 if TYPE_CHECKING:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
+    from qutebrowser.browser.webengine.webview import WebEngineView
+    from qutebrowser.browser.webkit.webview import WebView
 
 
 tab_id_gen = itertools.count(0)
-_WidgetType = Union["QWebView", "QWebEngineView"]
+_WidgetType = Union["WebView", "WebEngineView"]
 
 
 def create(win_id: int,
@@ -964,7 +965,7 @@ class AbstractTabPrivate:
 
 class AbstractTab(QWidget):
 
-    """An adapter for QWebView/QWebEngineView representing a single tab."""
+    """An adapter for WebView/WebEngineView representing a single tab."""
 
     #: Signal emitted when a website requests to close this tab.
     window_close_requested = pyqtSignal()
@@ -1058,7 +1059,7 @@ class AbstractTab(QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
-    def _set_widget(self, widget: Union["QWebView", "QWebEngineView"]) -> None:
+    def _set_widget(self, widget: _WidgetType) -> None:
         # pylint: disable=protected-access
         self._widget = widget
         # FIXME:v4 ignore needed for QtWebKit

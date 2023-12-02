@@ -390,7 +390,8 @@ class QuteProc(testprocess.Process):
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
                 '--debug-flag', 'werror', '--debug-flag',
-                'test-notification-service']
+                'test-notification-service',
+                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
 
         if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
             args += testutils.DISABLE_SECCOMP_BPF_ARGS

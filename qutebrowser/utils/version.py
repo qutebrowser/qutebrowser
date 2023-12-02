@@ -686,7 +686,7 @@ class WebEngineVersions:
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
-    def from_api(cls, qtwe_version: str, chromium_version: str) -> 'WebEngineVersions':
+    def from_api(cls, qtwe_version: str, chromium_version: Optional[str]) -> 'WebEngineVersions':
         """Get the versions based on the exact versions.
 
         This is called if we have proper APIs to get the versions easily
@@ -796,8 +796,10 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
         except ImportError:
             pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
         else:
+            qtwe_version = qWebEngineVersion()
+            assert qtwe_version is not None
             return WebEngineVersions.from_api(
-                qtwe_version=qWebEngineVersion(),
+                qtwe_version=qtwe_version,
                 chromium_version=qWebEngineChromiumVersion(),
             )
 

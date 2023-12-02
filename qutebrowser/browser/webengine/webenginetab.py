@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Wrapper over a QWebEngineView."""
+"""Wrapper over a WebEngineView."""
 
 import math
 import struct
@@ -15,7 +15,6 @@ from typing import cast, Union, Optional
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
                           QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
-from qutebrowser.qt.webenginewidgets import QWebEngineView
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
@@ -1267,7 +1266,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     abort_questions = pyqtSignal()
 
-    _widget: QWebEngineView
+    _widget: webview.WebEngineView
     search: WebEngineSearch
     audio: WebEngineAudio
     printing: WebEnginePrinting

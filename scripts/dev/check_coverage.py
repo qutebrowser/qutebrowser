@@ -123,6 +123,8 @@ PERFECT_FILES = [
      'qutebrowser/misc/objects.py'),
     ('tests/unit/misc/test_throttle.py',
      'qutebrowser/misc/throttle.py'),
+    ('tests/unit/misc/test_pakjoy.py',
+     'qutebrowser/misc/pakjoy.py'),
 
     (None,
      'qutebrowser/mainwindow/statusbar/keystring.py'),
@@ -328,10 +330,6 @@ def main_check():
         print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 
-    if scriptutils.ON_CI:
-        print("Keeping coverage.xml on CI.")
-    else:
-        os.remove('coverage.xml')
     return 1 if messages else 0
 
 
@@ -352,7 +350,6 @@ def main_check_all():
              '--cov-report', 'xml', test_file], check=True)
         with open('coverage.xml', encoding='utf-8') as f:
             messages = check(f, [(test_file, src_file)])
-        os.remove('coverage.xml')
 
         messages = [msg for msg in messages
                     if msg.typ == MsgType.insufficient_coverage]

@@ -24,6 +24,7 @@ from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
                                            webenginedownloads, notification)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
+from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
                                urlmatch, usertypes, objreg, version)
 if TYPE_CHECKING:
@@ -50,8 +51,12 @@ class _SettingsWrapper:
     For read operations, the default profile value is always used.
     """
 
+    def _default_profile_settings(self):
+        assert default_profile is not None
+        return default_profile.settings()
+
     def _settings(self):
-        yield default_profile.settings()
+        yield self._default_profile_settings()
         if private_profile:
             yield private_profile.settings()
 
@@ -76,19 +81,19 @@ class _SettingsWrapper:
             settings.setUnknownUrlSchemePolicy(policy)
 
     def testAttribute(self, attribute):
-        return default_profile.settings().testAttribute(attribute)
+        return self._default_profile_settings().testAttribute(attribute)
 
     def fontSize(self, fonttype):
-        return default_profile.settings().fontSize(fonttype)
+        return self._default_profile_settings().fontSize(fonttype)
 
     def fontFamily(self, which):
-        return default_profile.settings().fontFamily(which)
+        return self._default_profile_settings().fontFamily(which)
 
     def defaultTextEncoding(self):
-        return default_profile.settings().defaultTextEncoding()
+        return self._default_profile_settings().defaultTextEncoding()
 
     def unknownUrlSchemePolicy(self):
-        return default_profile.settings().unknownUrlSchemePolicy()
+        return self._default_profile_settings().unknownUrlSchemePolicy()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -341,7 +346,10 @@ def _init_user_agent_str(ua):
 
 
 def init_user_agent():
-    _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
+    """Make the default WebEngine user agent available via parsed_user_agent."""
+    actual_default_profile = QWebEngineProfile.defaultProfile()
+    assert actual_default_profile is not None
+    _init_user_agent_str(actual_default_profile.httpUserAgent())
 
 
 def _init_profile(profile: QWebEngineProfile) -> None:
@@ -546,7 +554,11 @@ def init():
     _global_settings = WebEngineSettings(_SettingsWrapper())
 
     log.init.debug("Initializing profiles...")
-    _init_default_profile()
+
+    # Apply potential resource patches while initializing profiles.
+    with pakjoy.patch_webengine():
+        _init_default_profile()
+
     init_private_profile()
     config.instance.changed.connect(_update_settings)
 
