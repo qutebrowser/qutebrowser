@@ -148,6 +148,12 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
                  converter=lambda val: val != 'never'),
     }
+    try:
+        _ATTRIBUTES['content.canvas_reading'] = Attr(
+            QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)
+    except AttributeError:
+        # Added in QtWebEngine 6.6
+        pass
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':

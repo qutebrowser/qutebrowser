@@ -454,11 +454,14 @@ content.canvas_reading:
   default: true
   type: Bool
   backend: QtWebEngine
-  restart: true
+  supports_pattern: true
   desc: >-
     Allow websites to read canvas elements.
 
     Note this is needed for some websites to work properly.
+
+    On QtWebEngine < 6.6, this setting requires a restart and does not support
+    URL patterns, only the global setting is applied.
 
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp

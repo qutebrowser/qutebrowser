@@ -294,6 +294,7 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
     },
     'content.canvas_reading': {
         True: None,
+        # might be overridden in webenginesettings.py
         False: '--disable-reading-from-canvas',
     },
     'content.webrtc_ip_handling_policy': {

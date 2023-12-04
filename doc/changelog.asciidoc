@@ -41,6 +41,8 @@ Changed
 - The `colors.webpage.darkmode.threshold.text` setting got renamed to
   `colors.webpage.darkmode.threshold.foreground`, following a rename in
   Chromium.
+- With Qt 6.6, the `content.canvas_reading` setting now works without a restart
+  and supports URL patterns.
 
 Fixed
 ~~~~~
