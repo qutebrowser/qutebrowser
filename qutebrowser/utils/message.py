@@ -135,7 +135,7 @@ def ask(*args: Any, **kwargs: Any) -> Any:
     """Ask a modular question in the statusbar (blocking).
 
     Args:
-        message: The message to display to the user.
+        title: The message to display to the user.
         mode: A PromptMode.
         default: The default value to display.
         text: Additional text to show
@@ -182,7 +182,7 @@ def confirm_async(*, yes_action: _ActionType,
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
-        message: The message to display to the user.
+        title: The message to display to the user.
         yes_action: Callable to be called when the user answered yes.
         no_action: Callable to be called when the user answered no.
         cancel_action: Callable to be called when the user cancelled the
