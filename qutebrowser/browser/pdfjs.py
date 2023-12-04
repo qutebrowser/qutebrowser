@@ -61,11 +61,11 @@ def generate_pdfjs_page(filename, url):
     html = html.replace('</body>',
                         '</body><script>{}</script>'.format(script))
     # WORKAROUND for the fact that PDF.js tries to use the Fetch API even with
-    # qute:// URLs.
-    pdfjs_script = '<script src="../build/pdf.js"></script>'
-    html = html.replace(pdfjs_script,
-                        '<script>window.Response = undefined;</script>\n' +
-                        pdfjs_script)
+    # qute:// URLs, this is probably no longer needed in PDFjs 4+. See #4235
+    html = html.replace(
+        '<head>',
+        '<head>\n<script>window.Response = undefined;</script>\n'
+    )
     return html
 
 
@@ -202,10 +202,24 @@ def _read_from_system(system_path, names):
     return (None, None)
 
 
+def get_pdfjs_js_path():
+    """Checks for pdf.js main module availability and returns the path if available."""
+    paths = ['build/pdf.js', 'build/pdf.mjs']
+    for path in paths:
+        try:
+            get_pdfjs_res(path)
+        except PDFJSNotFound:
+            pass
+        else:
+            return path
+
+    raise PDFJSNotFound(" or ".join(paths))
+
+
 def is_available():
-    """Return true if a pdfjs installation is available."""
+    """Return true if certain parts of a pdfjs installation are available."""
     try:
-        get_pdfjs_res('build/pdf.js')
+        get_pdfjs_js_path()
         get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
