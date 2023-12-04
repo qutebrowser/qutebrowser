@@ -124,7 +124,7 @@
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
-|<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
+|<<colors.webpage.darkmode.threshold.foreground,colors.webpage.darkmode.threshold.foreground>>|Threshold for inverting text with dark mode.
 |<<colors.webpage.preferred_color_scheme,colors.webpage.preferred_color_scheme>>|Value to use for `prefers-color-scheme:` for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
@@ -1689,7 +1689,7 @@ Example configurations from Chromium's `chrome://flags`:
   `colors.webpage.darkmode.policy.images` to `smart`.
 
 - "With selective inversion of non-image elements": Set
-  `colors.webpage.darkmode.threshold.text` to 150 and
+  `colors.webpage.darkmode.threshold.foreground` to 150 and
   `colors.webpage.darkmode.threshold.background` to 205.
 
 - "With selective inversion of everything": Combines the two variants
@@ -1787,7 +1787,7 @@ Default: +pass:[smart]+
 === colors.webpage.darkmode.threshold.background
 Threshold for inverting background elements with dark mode.
 Background elements with brightness above this threshold will be inverted, and below it will be left as in the original, non-dark-mode page. Set to 256 to never invert the color or to 0 to always invert it.
-Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
+Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.foreground`!
 
 This setting requires a restart.
 
@@ -1797,8 +1797,8 @@ Type: <<types,Int>>
 
 Default: +pass:[0]+
 
-[[colors.webpage.darkmode.threshold.text]]
-=== colors.webpage.darkmode.threshold.text
+[[colors.webpage.darkmode.threshold.foreground]]
+=== colors.webpage.darkmode.threshold.foreground
 Threshold for inverting text with dark mode.
 Text colors with brightness below this threshold will be inverted, and above it will be left as in the original, non-dark-mode page. Set to 256 to always invert text color or to 0 to never invert text color.
 

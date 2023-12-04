@@ -3253,7 +3253,7 @@ colors.webpage.darkmode.enabled:
       `colors.webpage.darkmode.policy.images` to `smart`.
 
     - "With selective inversion of non-image elements": Set
-      `colors.webpage.darkmode.threshold.text` to 150 and
+      `colors.webpage.darkmode.threshold.foreground` to 150 and
       `colors.webpage.darkmode.threshold.background` to 205.
 
     - "With selective inversion of everything": Combines the two variants
@@ -3335,6 +3335,9 @@ colors.webpage.darkmode.policy.page:
   backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.text:
+  renamed: colors.webpage.darkmode.threshold.foreground
+
+colors.webpage.darkmode.threshold.foreground:
   default: 256
   type:
     name: Int
@@ -3363,7 +3366,7 @@ colors.webpage.darkmode.threshold.background:
       256 to never invert the color or to 0 to always invert it.
 
       Note: This behavior is the opposite of
-      `colors.webpage.darkmode.threshold.text`!
+      `colors.webpage.darkmode.threshold.foreground`!
   restart: true
   backend: QtWebEngine
 
