@@ -25,6 +25,9 @@ Changed
 - (TODO) Upgraded the bundled Qt version to 6.6.1, based on Chromium 112. Note
   this is only relevant for the macOS/Windows releases, on Linux those will be
   upgraded via your distribution packages.
+- The `colors.webpage.darkmode.threshold.text` setting got renamed to
+  `colors.webpage.darkmode.threshold.foreground`, following a rename in
+  Chromium.
 
 Fixed
 ~~~~~
@@ -36,6 +39,8 @@ Fixed
   restriction for the default application of
   `qt.workarounds.disable_accelerated_2d_canvas` as the issue was still
   evident on Qt 6.6.0. (#7489)
+- The `colors.webpage.darkmode.threshold.foreground` setting (`.text` in older
+  versions) now works correctly with Qt 6.4+.
 
 
 [[v3.0.2]]
