@@ -35,7 +35,7 @@ Added
 Changed
 ~~~~~~~
 
-- (TODO) Upgraded the bundled Qt version to 6.6.1, based on Chromium 112. Note
+- Upgraded the bundled Qt version to 6.6.1, based on Chromium 112. Note
   this is only relevant for the macOS/Windows releases, on Linux those will be
   upgraded via your distribution packages.
 - The `colors.webpage.darkmode.threshold.text` setting got renamed to
