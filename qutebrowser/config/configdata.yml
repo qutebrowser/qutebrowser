@@ -1031,6 +1031,29 @@ content.javascript.prompt:
   type: Bool
   desc: Show javascript prompts.
 
+content.javascript.legacy_touch_events:
+  type:
+    name: String
+    valid_values:
+      - always: Legacy touch events are always enabled. This might cause some websites to assume a mobile device.
+      - auto: Legacy touch events are only enabled if a touch screen was detected on startup.
+      - never: Legacy touch events are always disabled.
+  default: never
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Enables the legacy touch event feature.
+
+    This affects JS APIs such as:
+
+    - ontouch* members on window, document, Element
+    - document.createTouch, document.createTouchList
+    - document.createEvent("TouchEvent")
+
+    Newer Chromium versions have those disabled by default:
+    https://bugs.chromium.org/p/chromium/issues/detail?id=392584
+    https://groups.google.com/a/chromium.org/g/blink-dev/c/KV6kqDJpYiE
+
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool

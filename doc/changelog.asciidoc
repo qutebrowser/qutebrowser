@@ -31,6 +31,8 @@ Added
 - New `smart-simple` value for `colors.webpage.darkmode.policy.images`, which on
   QtWebEngine 6.6+ uses a simpler classification algorithm to decide whether to
   invert images.
+- New `content.javascript.legacy_touch_events` setting, with those now being
+  disabled by default, following a Chromium change.
 
 Changed
 ~~~~~~~

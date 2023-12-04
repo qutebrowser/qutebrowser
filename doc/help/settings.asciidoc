@@ -171,6 +171,7 @@
 |<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Allow JavaScript to open new tabs without user interaction.
 |<<content.javascript.clipboard,content.javascript.clipboard>>|Allow JavaScript to read from or write to the clipboard.
 |<<content.javascript.enabled,content.javascript.enabled>>|Enable JavaScript.
+|<<content.javascript.legacy_touch_events,content.javascript.legacy_touch_events>>|Enables the legacy touch event feature.
 |<<content.javascript.log,content.javascript.log>>|Log levels to use for JavaScript console logging messages.
 |<<content.javascript.log_message.excludes,content.javascript.log_message.excludes>>|Javascript messages to *not* show in the UI, despite a corresponding `content.javascript.log_message.levels` setting.
 |<<content.javascript.log_message.levels,content.javascript.log_message.levels>>|Javascript message sources/levels to show in the qutebrowser UI.
@@ -2364,6 +2365,27 @@ This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.javascript.legacy_touch_events]]
+=== content.javascript.legacy_touch_events
+Enables the legacy touch event feature.
+This affects JS APIs such as:
+- ontouch* members on window, document, Element - document.createTouch, document.createTouchList - document.createEvent("TouchEvent")
+Newer Chromium versions have those disabled by default: https://bugs.chromium.org/p/chromium/issues/detail?id=392584 https://groups.google.com/a/chromium.org/g/blink-dev/c/KV6kqDJpYiE
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Legacy touch events are always enabled. This might cause some websites to assume a mobile device.
+ * +auto+: Legacy touch events are only enabled if a touch screen was detected on startup.
+ * +never+: Legacy touch events are always disabled.
+
+Default: +pass:[never]+
 
 [[content.javascript.log]]
 === content.javascript.log

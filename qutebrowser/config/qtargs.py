@@ -309,6 +309,11 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
             '--force-webrtc-ip-handling-policy='
             'disable_non_proxied_udp',
     },
+    'content.javascript.legacy_touch_events': {
+        'always': '--touch-events=enabled',
+        'auto': '--touch-events=auto',
+        'never': '--touch-events=disabled',
+    },
     'qt.chromium.process_model': {
         'process-per-site-instance': None,
         'process-per-site': '--process-per-site',
