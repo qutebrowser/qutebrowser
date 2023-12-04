@@ -29,7 +29,7 @@ Changed
 Fixed
 ~~~~~
 
-- (TODO) Compatibility with PDF.js v4
+- Compatibility with PDF.js v4
 - Added an elaborate workaround for a bug in QtWebEngine 6.6.0 causing crashes
   on Google Mail/Meet/Chat.
 - Graphical glitches in Google sheets and PDF.js, again. Removed the version
