@@ -85,7 +85,8 @@ Qt 6.3
 ------
 
 - New IncreaseTextContrast:
-https://chromium-review.googlesource.com/c/chromium/src/+/2893236
+  https://chromium-review.googlesource.com/c/chromium/src/+/2893236
+  (UNSUPPORTED because dropped in 6.5)
 
 Qt 6.4
 ------
@@ -97,6 +98,15 @@ Qt 6.4
 
   "Rename text_classifier to foreground_classifier"
   https://chromium-review.googlesource.com/c/chromium/src/+/3226389
+
+- Grayscale darkmode support removed:
+  https://chromium-review.googlesource.com/c/chromium/src/+/3238985
+
+Qt 6.5
+------
+
+- IncreaseTextContrast removed:
+  https://chromium-review.googlesource.com/c/chromium/src/+/3821841
 """
 
 import os
@@ -120,7 +130,6 @@ class Variant(enum.Enum):
 
     qt_515_2 = enum.auto()
     qt_515_3 = enum.auto()
-    qt_63 = enum.auto()
     qt_64 = enum.auto()
 
 
@@ -273,12 +282,10 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
 
         _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
         _Setting('contrast', 'Contrast'),
-        _Setting('grayscale.all', 'Grayscale', _BOOLS),
 
         _Setting('policy.page', 'PagePolicy', _PAGE_POLICIES),
         _Setting('threshold.foreground', 'TextBrightnessThreshold'),
         _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
-        _Setting('grayscale.images', 'ImageGrayscale'),
 
         mandatory={'enabled', 'policy.images'},
         prefix='forceDarkMode',
@@ -291,21 +298,16 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
 
         _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
         _Setting('contrast', 'ContrastPercent'),
-        _Setting('grayscale.all', 'IsGrayScale', _BOOLS),
 
         _Setting('threshold.foreground', 'TextBrightnessThreshold'),
         _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
-        _Setting('grayscale.images', 'ImageGrayScalePercent'),
 
         mandatory={'enabled', 'policy.images'},
         prefix='',
         switch_names={'enabled': _BLINK_SETTINGS, None: 'dark-mode-settings'},
     ),
 }
-_DEFINITIONS[Variant.qt_63] = _DEFINITIONS[Variant.qt_515_3].copy_add_setting(
-    _Setting('increase_text_contrast', 'IncreaseTextContrast', _INT_BOOLS),
-)
-_DEFINITIONS[Variant.qt_64] = _DEFINITIONS[Variant.qt_63].copy_replace_setting(
+_DEFINITIONS[Variant.qt_64] = _DEFINITIONS[Variant.qt_515_3].copy_replace_setting(
     'threshold.foreground', 'ForegroundBrightnessThreshold',
 )
 
@@ -328,11 +330,6 @@ _PREFERRED_COLOR_SCHEME_DEFINITIONS: Mapping[Variant, Mapping[_SettingValType, s
         "light": "1",
     },
 
-    Variant.qt_63: {
-        "dark": "0",
-        "light": "1",
-    },
-
     Variant.qt_64: {
         "dark": "0",
         "light": "1",
@@ -351,8 +348,6 @@ def _variant(versions: version.WebEngineVersions) -> Variant:
 
     if versions.webengine >= utils.VersionNumber(6, 4):
         return Variant.qt_64
-    elif versions.webengine >= utils.VersionNumber(6, 3):
-        return Variant.qt_63
     elif (versions.webengine == utils.VersionNumber(5, 15, 2) and
             versions.chromium_major == 87):
         # WORKAROUND for Gentoo packaging something newer as 5.15.2...

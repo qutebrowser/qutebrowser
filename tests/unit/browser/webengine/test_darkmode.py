@@ -103,7 +103,6 @@ QT_515_2_SETTINGS = {'blink-settings': [
     ('forceDarkModeEnabled', 'true'),
     ('forceDarkModeInversionAlgorithm', '2'),
     ('forceDarkModeImagePolicy', '2'),
-    ('forceDarkModeGrayscale', 'true'),
     ('forceDarkModeTextBrightnessThreshold', '100'),
 ]}
 
@@ -113,7 +112,6 @@ QT_515_3_SETTINGS = {
     'dark-mode-settings': [
         ('InversionAlgorithm', '1'),
         ('ImagePolicy', '2'),
-        ('IsGrayScale', 'true'),
         ('TextBrightnessThreshold', '100'),
     ],
 }
@@ -123,7 +121,6 @@ QT_64_SETTINGS = {
     'dark-mode-settings': [
         ('InversionAlgorithm', '1'),
         ('ImagePolicy', '2'),
-        ('IsGrayScale', 'true'),
         ('ForegroundBrightnessThreshold', '100'),
     ],
 }
@@ -138,7 +135,6 @@ def test_qt_version_differences(config_stub, qversion, expected):
     settings = {
         'enabled': True,
         'algorithm': 'brightness-rgb',
-        'grayscale.all': True,
         'threshold.foreground': 100,
     }
     for k, v in settings.items():
@@ -160,10 +156,6 @@ def test_qt_version_differences(config_stub, qversion, expected):
      'TextBrightnessThreshold', '100'),
     ('threshold.background', 100,
      'BackgroundBrightnessThreshold', '100'),
-    ('grayscale.all', True,
-     'Grayscale', 'true'),
-    ('grayscale.images', 0.5,
-     'ImageGrayscale', '0.5'),
 ])
 def test_customization(config_stub, setting, value, exp_key, exp_val):
     config_stub.val.colors.webpage.darkmode.enabled = True

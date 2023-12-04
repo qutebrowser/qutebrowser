@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.1.0 (unreleased)
 -------------------
 
+Removed
+~~~~~~~
+
+- The darkmode settings `grayscale.all`, `grayscale.images` and
+  `increase_text_contrast` got removed, following removals in Chromium.
+
 Changed
 ~~~~~~~
 

@@ -118,9 +118,6 @@
 |<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
 |<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
 |<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
-|<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
-|<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
-|<<colors.webpage.darkmode.increase_text_contrast,colors.webpage.darkmode.increase_text_contrast>>|Increase text contrast by drawing an outline of the uninverted color.
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
@@ -1690,46 +1687,6 @@ Example configurations from Chromium's `chrome://flags`:
 This setting requires a restart.
 
 This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-[[colors.webpage.darkmode.grayscale.all]]
-=== colors.webpage.darkmode.grayscale.all
-Render all colors as grayscale.
-This only has an effect when `colors.webpage.darkmode.algorithm` is set to `lightness-hsl` or `brightness-rgb`.
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-[[colors.webpage.darkmode.grayscale.images]]
-=== colors.webpage.darkmode.grayscale.images
-Desaturation factor for images in dark mode.
-If set to 0, images are left as-is. If set to 1, images are completely grayscale. Values between 0 and 1 desaturate the colors accordingly.
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Float>>
-
-Default: +pass:[0.0]+
-
-[[colors.webpage.darkmode.increase_text_contrast]]
-=== colors.webpage.darkmode.increase_text_contrast
-Increase text contrast by drawing an outline of the uninverted color.
-
-This setting requires a restart.
-
-On QtWebEngine, this setting requires Qt 6.3 or newer.
-
-On QtWebKit, this setting is unavailable.
 
 Type: <<types,Bool>>
 

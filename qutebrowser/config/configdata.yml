@@ -3359,41 +3359,6 @@ colors.webpage.darkmode.threshold.background:
   restart: true
   backend: QtWebEngine
 
-colors.webpage.darkmode.grayscale.all:
-  default: false
-  type: Bool
-  desc: >-
-    Render all colors as grayscale.
-
-    This only has an effect when `colors.webpage.darkmode.algorithm` is set to
-    `lightness-hsl` or `brightness-rgb`.
-  restart: true
-  backend: QtWebEngine
-
-colors.webpage.darkmode.grayscale.images:
-  default: 0.0
-  type:
-    name: Float
-    minval: 0.0
-    maxval: 1.0
-  desc: >-
-    Desaturation factor for images in dark mode.
-
-    If set to 0, images are left as-is. If set to 1, images are completely
-    grayscale. Values between 0 and 1 desaturate the colors accordingly.
-  restart: true
-  backend: QtWebEngine
-
-colors.webpage.darkmode.increase_text_contrast:
-  default: false
-  type: Bool
-  desc: >-
-    Increase text contrast by drawing an outline of the uninverted color.
-  restart: true
-  backend:
-    QtWebEngine: Qt 6.3
-    QtWebKit: false
-
 # emacs: '
 
 ## fonts
