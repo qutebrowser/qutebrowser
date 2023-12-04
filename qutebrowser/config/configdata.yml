@@ -3298,13 +3298,11 @@ colors.webpage.darkmode.policy.images:
       - never: Never apply dark mode filter to any images.
       - smart: "Apply dark mode based on image content. Not available with Qt
         5.15.0."
+      - smart-simple: "On QtWebEngine 6.6, use a simpler algorithm for smart mode (based
+      on numbers of colors and transparency), rather than an ML-based model.
+      Same as 'smart' on older QtWebEnigne versions."
   desc: >-
       Which images to apply dark mode to.
-
-      With QtWebEngine 5.15.0, this setting can cause frequent renderer process
-      crashes due to a
-      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
-      in Qt].
   restart: true
   backend: QtWebEngine
 

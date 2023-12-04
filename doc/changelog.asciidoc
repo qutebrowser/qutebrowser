@@ -25,6 +25,13 @@ Removed
 - The darkmode settings `grayscale.all`, `grayscale.images` and
   `increase_text_contrast` got removed, following removals in Chromium.
 
+Added
+~~~~~
+
+- New `smart-simple` value for `colors.webpage.darkmode.policy.images`, which on
+  QtWebEngine 6.6+ uses a simpler classification algorithm to decide whether to
+  invert images.
+
 Changed
 ~~~~~~~
 
