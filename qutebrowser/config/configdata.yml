@@ -1035,8 +1035,10 @@ content.javascript.legacy_touch_events:
   type:
     name: String
     valid_values:
-      - always: Legacy touch events are always enabled. This might cause some websites to assume a mobile device.
-      - auto: Legacy touch events are only enabled if a touch screen was detected on startup.
+      - always: Legacy touch events are always enabled. This might cause some
+            websites to assume a mobile device.
+      - auto: Legacy touch events are only enabled if a touch screen was
+            detected on startup.
       - never: Legacy touch events are always disabled.
   default: never
   backend: QtWebEngine

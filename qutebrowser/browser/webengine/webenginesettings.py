@@ -150,7 +150,7 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
     try:
         _ATTRIBUTES['content.canvas_reading'] = Attr(
-                QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)  # type: ignore[attr-defined,unused-ignore]
+            QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)  # type: ignore[attr-defined,unused-ignore]
     except AttributeError:
         # Added in QtWebEngine 6.6
         pass

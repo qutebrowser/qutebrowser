@@ -75,9 +75,10 @@ class TestQtArgs:
         (['--qt-flag', 'foo', '--qt-flag', 'bar'],
          [sys.argv[0], '--foo', '--bar']),
     ])
-    def test_qt_args(self, monkeypatch, config_stub, args, expected, parser):
+    def test_qt_args(self, request, monkeypatch, config_stub, args, expected, parser):
         """Test commandline with no Qt arguments given."""
-        expected.append("--touch-events=disabled")  # passed unconditionally
+        if request.config.webengine:
+            expected.append("--touch-events=disabled")  # passed unconditionally
         parsed = parser.parse_args(args)
         assert qtargs.qt_args(parsed) == expected
 
