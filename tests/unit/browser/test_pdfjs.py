@@ -196,27 +196,28 @@ def test_is_available(available, mocker):
 @pytest.mark.parametrize('found_file', [
     "build/pdf.js",
     "build/pdf.mjs",
-    None,
 ])
-def test_get_pdfjs_js_path(found_file, mocker):
-
-    def side_effect(requested):
-        if found_file and requested.endswith(found_file):
+def test_get_pdfjs_js_path(found_file: str, monkeypatch: pytest.MonkeyPatch):
+    def fake_pdfjs_res(requested):
+        if requested.endswith(found_file):
             return
-
         raise pdfjs.PDFJSNotFound(requested)
 
-    mock = mocker.patch.object(pdfjs, 'get_pdfjs_res', autospec=True)
-    mock.side_effect = side_effect
+    monkeypatch.setattr(pdfjs, 'get_pdfjs_res', fake_pdfjs_res)
+    assert pdfjs.get_pdfjs_js_path() == found_file
 
-    if found_file is None:
-        with pytest.raises(
-            pdfjs.PDFJSNotFound,
-            match="Path 'build/pdf.js or build/pdf.mjs' not found"
-        ):
-            pdfjs.get_pdfjs_js_path()
-    else:
-        assert pdfjs.get_pdfjs_js_path() == found_file
+
+def test_get_pdfjs_js_path_none(monkeypatch: pytest.MonkeyPatch):
+    def fake_pdfjs_res(requested):
+        raise pdfjs.PDFJSNotFound(requested)
+
+    monkeypatch.setattr(pdfjs, 'get_pdfjs_res', fake_pdfjs_res)
+
+    with pytest.raises(
+        pdfjs.PDFJSNotFound,
+        match="Path 'build/pdf.js or build/pdf.mjs' not found"
+    ):
+        pdfjs.get_pdfjs_js_path()
 
 
 @pytest.mark.parametrize('mimetype, url, enabled, expected', [
