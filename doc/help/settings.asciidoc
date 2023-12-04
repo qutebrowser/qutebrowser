@@ -1681,22 +1681,11 @@ Default: +pass:[0.0]+
 === colors.webpage.darkmode.enabled
 Render all web contents using a dark theme.
 Example configurations from Chromium's `chrome://flags`:
-
 - "With simple HSL/CIELAB/RGB-based inversion": Set
-  `colors.webpage.darkmode.algorithm` accordingly.
+  `colors.webpage.darkmode.algorithm` accordingly, and
+  set `colors.webpage.darkmode.policy.images` to `never`.
 
-- "With selective image inversion": Set
-  `colors.webpage.darkmode.policy.images` to `smart`.
-
-- "With selective inversion of non-image elements": Set
-  `colors.webpage.darkmode.threshold.foreground` to 150 and
-  `colors.webpage.darkmode.threshold.background` to 205.
-
-- "With selective inversion of everything": Combines the two variants
-  above.
-
-- "With increased text contrast": Set
-  `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
+- "With selective image inversion": qutebrowser default settings.
 
 This setting requires a restart.
 
