@@ -208,6 +208,7 @@ class _Setting:
         return str(self.mapping[value])
 
     def chromium_tuple(self, value: Any) -> Optional[Tuple[str, str]]:
+        """Get the Chromium key and value, or None if no value should be set."""
         if self.mapping is not None and self.mapping[value] is None:
             return None
         return self.chromium_key, self._value_str(value)
@@ -334,7 +335,7 @@ _DEFINITIONS[Variant.qt_66] = _DEFINITIONS[Variant.qt_64].copy_add_setting(
 
 
 _SettingValType = Union[str, usertypes.Unset]
-_PREFERRED_COLOR_SCHEME_DEFINITIONS: Mapping[Variant, Mapping[_SettingValType, str]] = {
+_PREFERRED_COLOR_SCHEME_DEFINITIONS: MutableMapping[Variant, Mapping[_SettingValType, str]] = {
     Variant.qt_515_2: {
         # 0: no-preference (not exposed)
         "dark": "1",
@@ -351,9 +352,9 @@ _PREFERRED_COLOR_SCHEME_DEFINITIONS: Mapping[Variant, Mapping[_SettingValType, s
         "light": "1",
     },
 }
-for variant in Variant:
-    if variant not in _PREFERRED_COLOR_SCHEME_DEFINITIONS:
-        _PREFERRED_COLOR_SCHEME_DEFINITIONS[variant] = \
+for darkmode_variant in Variant:
+    if darkmode_variant not in _PREFERRED_COLOR_SCHEME_DEFINITIONS:
+        _PREFERRED_COLOR_SCHEME_DEFINITIONS[darkmode_variant] = \
             _PREFERRED_COLOR_SCHEME_DEFINITIONS[Variant.qt_515_3]
 
 
