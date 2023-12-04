@@ -32,6 +32,10 @@ Fixed
 - (TODO) Compatibility with PDF.js v4
 - Added an elaborate workaround for a bug in QtWebEngine 6.6.0 causing crashes
   on Google Mail/Meet/Chat.
+- Graphical glitches in Google sheets and PDF.js, again. Removed the version
+  restriction for the default application of
+  `qt.workarounds.disable_accelerated_2d_canvas` as the issue was still
+  evident on Qt 6.6.0. (#7489)
 
 
 [[v3.0.2]]
