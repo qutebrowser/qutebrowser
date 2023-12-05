@@ -43,26 +43,38 @@ def prepare_env(qapp, monkeypatch):
     monkeypatch.delenv(pakjoy.DISABLE_ENV_VAR, raising=False)
 
 
-def patch_version(monkeypatch, *args):
+def patch_version(monkeypatch: pytest.MonkeyPatch, qtwe_version: utils.VersionNumber):
     monkeypatch.setattr(
         pakjoy.version,
         "qtwebengine_versions",
         lambda **kwargs: version.WebEngineVersions(
-            webengine=utils.VersionNumber(*args),
+            webengine=qtwe_version,
             chromium=None,
             source="unittest",
         ),
     )
 
 
-@pytest.fixture
-def unaffected_version(monkeypatch):
-    patch_version(monkeypatch, 6, 6, 1)
+@pytest.fixture(params=[
+    utils.VersionNumber(6, 4),
+    utils.VersionNumber(6, 5, 3),
+    utils.VersionNumber(6, 6, 1),
+    utils.VersionNumber(6, 7),
+])
+def unaffected_version(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest, config_stub):
+    config_stub.val.colors.webpage.darkmode.enabled = True
+    patch_version(monkeypatch, request.param)
 
 
-@pytest.fixture
-def affected_version(monkeypatch):
-    patch_version(monkeypatch, 6, 6)
+@pytest.fixture(params=[
+    utils.VersionNumber(6, 5),
+    utils.VersionNumber(6, 5, 1),
+    utils.VersionNumber(6, 5, 2),
+    utils.VersionNumber(6, 6),
+])
+def affected_version(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest, config_stub):
+    config_stub.val.colors.webpage.darkmode.enabled = True
+    patch_version(monkeypatch, request.param)
 
 
 @pytest.mark.parametrize("workdir_exists", [True, False])
@@ -318,7 +330,7 @@ class TestWithConstructedResourcesFile:
 
     @pytest.mark.parametrize(
         "offset",
-        [0, 42, pakjoy.HANGOUTS_ID],  # test both slow search and fast path
+        [0, 42, *pakjoy.HANGOUTS_IDS],  # test both slow search and fast path
     )
     def test_happy_path(self, offset):
         entries = [b""] * offset + [json_manifest_factory()]

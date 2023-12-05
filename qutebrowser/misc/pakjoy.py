@@ -32,11 +32,15 @@ import dataclasses
 import contextlib
 from typing import ClassVar, IO, Optional, Dict, Tuple, Iterator
 
+from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
 from qutebrowser.utils import qtutils, standarddir, version, utils, log
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
-HANGOUTS_ID = 36197  # as found by toofar
+HANGOUTS_IDS = [
+    36197,  # QtWebEngine 6.5, as found by toofar
+    34897,  # QtWebEngine 6.4
+]
 PAK_VERSION = 5
 RESOURCES_ENV_VAR = "QTWEBENGINE_RESOURCES_PATH"
 DISABLE_ENV_VAR = "QUTE_DISABLE_PAKJOY"
@@ -136,9 +140,10 @@ class PakParser:
 
     def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, bytes]:
         to_check = list(entries.values())
-        if HANGOUTS_ID in entries:
-            # Most likely candidate, based on previous known ID
-            to_check.insert(0, entries[HANGOUTS_ID])
+        for hangouts_id in HANGOUTS_IDS:
+            if hangouts_id in entries:
+                # Most likely candidate, based on previous known ID
+                to_check.insert(0, entries[hangouts_id])
 
         for entry in to_check:
             manifest = self._maybe_get_hangouts_manifest(entry)
@@ -192,7 +197,16 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
         shutil.rmtree(work_dir)
 
     versions = version.qtwebengine_versions(avoid_init=True)
-    if versions.webengine != utils.VersionNumber(6, 6):
+    if not (
+        # https://bugreports.qt.io/browse/QTBUG-118157
+        versions.webengine == utils.VersionNumber(6, 6)
+        # https://bugreports.qt.io/browse/QTBUG-113369
+        or (
+            versions.webengine >= utils.VersionNumber(6, 5)
+            and versions.webengine < utils.VersionNumber(6, 5, 3)
+            and config.val.colors.webpage.darkmode.enabled
+        )
+    ):
         # No patching needed
         return None
 
