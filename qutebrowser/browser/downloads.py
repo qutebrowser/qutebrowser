@@ -817,8 +817,13 @@ class AbstractDownloadItem(QObject):
         - file:// downloads from file:// URLs (open the file instead)
         - http:// downloads from https:// URLs (mixed content)
         """
-        origin = self.origin()
         url = self.url()
+        if url.scheme() not in ["file", "http"]:
+            # WORKAROUND to avoid calling self.origin() if unneeded:
+            # https://github.com/qutebrowser/qutebrowser/issues/7854
+            return False
+
+        origin = self.origin()
         if not origin.isValid():
             return False
 
@@ -828,7 +833,7 @@ class AbstractDownloadItem(QObject):
             return True
 
         if (url.scheme() == "http" and
-                origin.isValid() and origin.scheme() == "https" and
+                origin.scheme() == "https" and
                 config.instance.get("downloads.prevent_mixed_content", url=origin)):
             self._die("Aborting insecure download from secure page "
                       "(see downloads.prevent_mixed_content).")

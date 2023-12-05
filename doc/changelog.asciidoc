@@ -53,6 +53,8 @@ Fixed
 - Added an elaborate workaround for a bug in QtWebEngine 6.6.0 causing crashes
   on Google Mail/Meet/Chat, and a bug in QtWebEngine 6.5.0/.1/.2 causing crashes
   there with dark mode.
+- Made a rare crash in QtWebEngine when starting/retrying a download less likely
+  to happen.
 - Graphical glitches in Google sheets and PDF.js, again. Removed the version
   restriction for the default application of
   `qt.workarounds.disable_accelerated_2d_canvas` as the issue was still
