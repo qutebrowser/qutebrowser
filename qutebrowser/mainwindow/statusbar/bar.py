@@ -377,9 +377,11 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.show == 'in-mode':
+        if config.val.statusbar.show == 'in-mode' and mode != usertypes.KeyMode.command:
+            # Showing in command mode is handled via _show_cmd_widget()
             self.show()
+
+        mode_manager = modeman.instance(self._win_id)
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
@@ -393,9 +395,11 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.show == 'in-mode':
+        if config.val.statusbar.show == 'in-mode' and old_mode != usertypes.KeyMode.command:
+            # Hiding in command mode is handled via _hide_cmd_widget()
             self.hide()
+
+        mode_manager = modeman.instance(self._win_id)
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)

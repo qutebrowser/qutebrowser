@@ -858,20 +858,34 @@ class TabbedBrowser(QWidget):
                 assert isinstance(tab, browsertab.AbstractTab), tab
                 tab.data.input_mode = mode
 
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
-        """Give focus to current tab if command mode was left."""
+    @pyqtSlot()
+    def on_release_focus(self):
+        """Give keyboard focus to the current tab when requested by statusbar/prompt.
+
+        This gets emitted by the statusbar and prompt container before they call .hide()
+        on themselves, with the idea that we can explicitly reassign the focus,
+        instead of Qt implicitly calling its QWidget::focusNextPrevChild() method,
+        finding a new widget to give keyboard focus to.
+        """
         widget = qtutils.add_optional(self.widget.currentWidget())
         if widget is None:
             return
 
-        if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:
-            log.modes.debug("Left status-input mode, focusing {!r}".format(
-                widget))
-            widget.setFocus()
-        if config.val.tabs.mode_on_change == 'restore':
-            assert isinstance(widget, browsertab.AbstractTab), widget
-            widget.data.input_mode = usertypes.KeyMode.normal
+        log.modes.debug(f"Focus released, focusing {widget!r}")
+        widget.setFocus()
+
+    @pyqtSlot()
+    def on_mode_left(self):
+        """Save input mode for restoring if needed."""
+        if config.val.tabs.mode_on_change != 'restore':
+            return
+
+        widget = qtutils.add_optional(self.widget.currentWidget())
+        if widget is None:
+            return
+
+        assert isinstance(widget, browsertab.AbstractTab), widget
+        widget.data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
     def _on_current_changed(self, idx):

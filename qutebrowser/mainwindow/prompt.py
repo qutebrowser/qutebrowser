@@ -202,6 +202,7 @@ class PromptQueue(QObject):
         log.prompt.debug("Left mode {}, hiding {}".format(
             mode, self._question))
         self.show_prompts.emit(None)
+
         if self._question.answer is None and not self._question.is_aborted:
             log.prompt.debug("Cancelling {} because {} was left".format(
                 self._question, mode))
@@ -261,6 +262,7 @@ class PromptContainer(QWidget):
         }
     """
     update_geometry = pyqtSignal()
+    release_focus = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -287,19 +289,26 @@ class PromptContainer(QWidget):
         Args:
             question: A Question object or None.
         """
-        item = self._layout.takeAt(0)
-        if item is not None:
+        item = qtutils.add_optional(self._layout.takeAt(0))
+        if item is None:
+            widget = None
+        else:
             widget = item.widget()
             assert widget is not None
-            log.prompt.debug("Deleting old prompt {}".format(widget))
-            widget.hide()
+            log.prompt.debug(f"Deleting old prompt {widget!r}")
             widget.deleteLater()
 
         if question is None:
             log.prompt.debug("No prompts left, hiding prompt container.")
             self._prompt = None
+            self.release_focus.emit()
             self.hide()
             return
+        elif widget is not None:
+            # We have more prompts to show, just hide the old one.
+            # This needs to happen *after* we possibly hid the entire prompt container,
+            # so that keyboard focus can be reassigned properly via release_focus.
+            widget.hide()
 
         classes = {
             usertypes.PromptMode.yesno: YesNoPrompt,
