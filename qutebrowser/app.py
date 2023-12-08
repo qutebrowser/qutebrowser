@@ -353,6 +353,10 @@ def _open_special_pages(args):
              objects.backend != usertypes.Backend.QtWebKit
          ),
          'qute://warning/qt5'),
+
+        ('birthday-2023-shown',
+         datetime.date.today() == datetime.date(2023, 12, 14),
+         'https://qutebrowser.org/birthday.html'),
     ]
 
     if 'quickstart-done' not in general_sect:
