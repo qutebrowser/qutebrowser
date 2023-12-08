@@ -11,10 +11,22 @@ import re
 import html
 import enum
 import dataclasses
-from itertools import product
+from pathlib import Path
+from itertools import product, chain, combinations
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Set,
+)
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from qutebrowser.qt.widgets import QLabel
@@ -25,6 +37,7 @@ from qutebrowser.browser import webelem, history
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils, urlutils
+
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -59,8 +72,7 @@ class HintingError(Exception):
 def on_mode_entered(mode: usertypes.KeyMode, win_id: int) -> None:
     """Stop hinting when insert mode was entered."""
     if mode == usertypes.KeyMode.insert:
-        modeman.leave(win_id, usertypes.KeyMode.hint, 'insert mode',
-                      maybe=True)
+        modeman.leave(win_id, usertypes.KeyMode.hint, "insert mode", maybe=True)
 
 
 class HintLabel(QLabel):
@@ -72,8 +84,7 @@ class HintLabel(QLabel):
         _context: The current hinting context.
     """
 
-    def __init__(self, elem: webelem.AbstractWebElement,
-                 context: 'HintContext') -> None:
+    def __init__(self, elem: webelem.AbstractWebElement, context: "HintContext") -> None:
         super().__init__(parent=context.tab)
         self._context = context
         self.elem = elem
@@ -94,7 +105,7 @@ class HintLabel(QLabel):
         try:
             text = self.text()
         except RuntimeError:
-            text = '<deleted>'
+            text = "<deleted>"
         return utils.get_repr(self, elem=self.elem, text=text)
 
     def update_text(self, matched: str, unmatched: str) -> None:
@@ -104,8 +115,11 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
-        if (config.cache['hints.uppercase'] and
-                self._context.hint_mode in ['letter', 'word', 'context']):
+        if config.cache["hints.uppercase"] and self._context.hint_mode in [
+            "letter",
+            "word",
+            "context",
+        ]:
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
         else:
@@ -113,9 +127,8 @@ class HintLabel(QLabel):
             unmatched = html.escape(unmatched)
 
         if matched:
-            match_color = config.cache['colors.hints.match.fg'].name()
-            self.setText('<font color="{}">{}</font>{}'.format(
-                match_color, matched, unmatched))
+            match_color = config.cache["colors.hints.match.fg"].name()
+            self.setText('<font color="{}">{}</font>{}'.format(match_color, matched, unmatched))
         else:
             self.setText(unmatched)
         self.adjustSize()
@@ -128,7 +141,7 @@ class HintLabel(QLabel):
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
             return
-        no_js = config.cache['hints.find_implementation'] != 'javascript'
+        no_js = config.cache["hints.find_implementation"] != "javascript"
         rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
 
@@ -169,7 +182,7 @@ class HintContext:
         group: The group of web elements to hint.
     """
 
-    tab: 'browsertab.AbstractTab'
+    tab: "browsertab.AbstractTab"
     target: Target
     rapid: bool
     hint_mode: str
@@ -189,7 +202,7 @@ class HintContext:
         """Get the arguments, with {hint-url} replaced by the given URL."""
         args = []
         for arg in self.args:
-            arg = arg.replace('{hint-url}', urlstr)
+            arg = arg.replace("{hint-url}", urlstr)
             args.append(arg)
         return args
 
@@ -201,8 +214,7 @@ class HintActions:
     def __init__(self, win_id: int) -> None:
         self._win_id = win_id
 
-    def click(self, elem: webelem.AbstractWebElement,
-              context: HintContext) -> None:
+    def click(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Click an element."""
         target_mapping = {
             Target.normal: usertypes.ClickTarget.normal,
@@ -235,11 +247,10 @@ class HintActions:
 
     def yank(self, url: QUrl, context: HintContext) -> None:
         """Yank an element to the clipboard or primary selection."""
-        sel = (context.target == Target.yank_primary and
-               utils.supports_selection())
+        sel = context.target == Target.yank_primary and utils.supports_selection()
 
         flags = urlutils.FormatOption.ENCODED | urlutils.FormatOption.REMOVE_PASSWORD
-        if url.scheme() == 'mailto':
+        if url.scheme() == "mailto":
             flags |= urlutils.FormatOption.REMOVE_SCHEME
         urlstr = url.toString(flags)
 
@@ -255,31 +266,28 @@ class HintActions:
                 new_content = os.linesep.join([old_content, new_content])
         utils.set_clipboard(new_content, selection=sel)
 
-        msg = "Yanked URL to {}: {}".format(
-            "primary selection" if sel else "clipboard",
-            urlstr)
-        message.info(msg, replace='rapid-hints' if context.rapid else None)
+        msg = "Yanked URL to {}: {}".format("primary selection" if sel else "clipboard", urlstr)
+        message.info(msg, replace="rapid-hints" if context.rapid else None)
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
         urlstr = url.toString(urlutils.FormatOption.ENCODED)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
-        commandrunner.run_safely(' '.join(args))
+        commandrunner.run_safely(" ".join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
         urlstr = url.toDisplayString(urlutils.FormatOption.ENCODED)
         args = context.get_args(urlstr)
-        text = ' '.join(args)
+        text = " ".join(args)
         if text[0] not in modeparsers.STARTCHARS:
             raise HintingError("Invalid command text '{}'.".format(text))
 
-        cmd = objreg.get('status-command', scope='window', window=self._win_id)
+        cmd = objreg.get("status-command", scope="window", window=self._win_id)
         cmd.cmd_set_text(text)
 
-    def download(self, elem: webelem.AbstractWebElement,
-                 context: HintContext) -> None:
+    def download(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Download a hint URL.
 
         Args:
@@ -294,11 +302,10 @@ class HintActions:
         qnam = context.tab.private_api.networkaccessmanager()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
-        download_manager = objreg.get('qtnetwork-download-manager')
+        download_manager = objreg.get("qtnetwork-download-manager")
         download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
-    def call_userscript(self, elem: webelem.AbstractWebElement,
-                        context: HintContext) -> None:
+    def call_userscript(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Call a userscript from a hint.
 
         Args:
@@ -313,24 +320,22 @@ class HintActions:
         flags = urlutils.FormatOption.ENCODED
 
         env = {
-            'QUTE_MODE': 'hints',
-            'QUTE_SELECTED_TEXT': str(elem),
-            'QUTE_SELECTED_HTML': elem.outer_xml(),
-            'QUTE_CURRENT_URL': context.baseurl.toString(flags),
+            "QUTE_MODE": "hints",
+            "QUTE_SELECTED_TEXT": str(elem),
+            "QUTE_SELECTED_HTML": elem.outer_xml(),
+            "QUTE_CURRENT_URL": context.baseurl.toString(flags),
         }
 
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            env['QUTE_URL'] = url.toString(flags)
+            env["QUTE_URL"] = url.toString(flags)
 
         try:
-            userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
-                                  env=env)
+            userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id, env=env)
         except userscripts.Error as e:
             raise HintingError(str(e))
 
-    def delete(self, elem: webelem.AbstractWebElement,
-               _context: HintContext) -> None:
+    def delete(self, elem: webelem.AbstractWebElement, _context: HintContext) -> None:
         elem.delete()
 
     def spawn(self, url: QUrl, context: HintContext) -> None:
@@ -341,10 +346,11 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword)
+            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword
+        )
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
-        commandrunner.run_safely('spawn ' + ' '.join(args))
+        commandrunner.run_safely("spawn " + " ".join(args))
 
 
 _ElemsType = Sequence[webelem.AbstractWebElement]
@@ -406,8 +412,8 @@ class HintManager(QObject):
         assert self._context is not None
         text = self.HINT_TEXTS[self._context.target]
         if self._context.rapid:
-            text += ' (rapid mode)'
-        text += '...'
+            text += " (rapid mode)"
+        text += "..."
         return text
 
     def _cleanup(self) -> None:
@@ -416,7 +422,7 @@ class HintManager(QObject):
         for label in self._context.all_labels:
             label.cleanup()
 
-        self.set_text.emit('')
+        self.set_text.emit("")
 
         self._context = None
 
@@ -436,31 +442,29 @@ class HintManager(QObject):
 
         assert self._context is not None
         hint_mode = self._context.hint_mode
-        if hint_mode == 'word':
+        if hint_mode == "word":
             try:
                 return self._word_hinter.hint(elems)
             except HintingError as e:
                 message.error(str(e))
                 # falls back on letter hints
-        if hint_mode == 'context':
+        if hint_mode == "context":
             try:
-                return self._context_hinter.hint(elems, self._context)
+                return self._context_hinter.hint(elems, self._context, config.val.hints.min_chars)
             except HintingError as e:
                 message.error(str(e))
                 # falls back on letter hints
-        if hint_mode == 'number':
-            chars = '0123456789'
+        if hint_mode == "number":
+            chars = "0123456789"
         else:
             chars = config.val.hints.chars
         min_chars = config.val.hints.min_chars
-        if config.val.hints.scatter and hint_mode != 'number':
+        if config.val.hints.scatter and hint_mode != "number":
             return self._hint_scattered(min_chars, chars, elems)
         else:
             return self._hint_linear(min_chars, chars, elems)
 
-    def _hint_scattered(self, min_chars: int,
-                        chars: str,
-                        elems: _ElemsType) -> _HintStringsType:
+    def _hint_scattered(self, min_chars: int, chars: str, elems: _ElemsType) -> _HintStringsType:
         """Produce scattered hint labels with variable length (like Vimium).
 
         Args:
@@ -497,9 +501,7 @@ class HintManager(QObject):
 
         return self._shuffle_hints(strings, len(chars))
 
-    def _hint_linear(self, min_chars: int,
-                     chars: str,
-                     elems: _ElemsType) -> _HintStringsType:
+    def _hint_linear(self, min_chars: int, chars: str, elems: _ElemsType) -> _HintStringsType:
         """Produce linear hint labels with constant length (like dwb).
 
         Args:
@@ -513,8 +515,7 @@ class HintManager(QObject):
             strings.append(self._number_to_hint_str(i, chars, needed))
         return strings
 
-    def _shuffle_hints(self, hints: _HintStringsType,
-                       length: int) -> _HintStringsType:
+    def _shuffle_hints(self, hints: _HintStringsType, length: int) -> _HintStringsType:
         """Shuffle the given set of hints so that they're scattered.
 
         Hints starting with the same character will be spread evenly throughout
@@ -537,9 +538,7 @@ class HintManager(QObject):
             result += bucket
         return result
 
-    def _number_to_hint_str(self, number: int,
-                            chars: str,
-                            digits: int = 0) -> str:
+    def _number_to_hint_str(self, number: int, chars: str, digits: int = 0) -> str:
         """Convert a number like "8" into a hint string like "JK".
 
         This is used to sequentially generate all of the hint text.
@@ -569,7 +568,7 @@ class HintManager(QObject):
         # Pad the hint string we're returning so that it matches digits.
         for _ in range(0, digits - len(hintstr)):
             hintstr.insert(0, chars[0])
-        return ''.join(hintstr)
+        return "".join(hintstr)
 
     def _check_args(self, target: Target, *args: str) -> None:
         """Check the arguments passed to start() and raise if they're wrong.
@@ -580,17 +579,15 @@ class HintManager(QObject):
         """
         if not isinstance(target, Target):
             raise TypeError("Target {} is no Target member!".format(target))
-        if target in [Target.userscript, Target.spawn, Target.run,
-                      Target.fill]:
+        if target in [Target.userscript, Target.spawn, Target.run, Target.fill]:
             if not args:
                 raise cmdutils.CommandError(
-                    "'args' is required with target userscript/spawn/run/"
-                    "fill.")
+                    "'args' is required with target userscript/spawn/run/" "fill."
+                )
         else:
             # pylint: disable=else-if-used
             if args:
-                raise cmdutils.CommandError(
-                    "'args' is only allowed with target userscript/spawn.")
+                raise cmdutils.CommandError("'args' is only allowed with target userscript/spawn.")
 
     def _filter_matches(self, filterstr: Optional[str], elemstr: str) -> bool:
         """Return True if `filterstr` matches `elemstr`."""
@@ -611,8 +608,7 @@ class HintManager(QObject):
         elemstr = elemstr.casefold()
         return filterstr == elemstr
 
-    def _get_keyparser(self,
-                       mode: usertypes.KeyMode) -> basekeyparser.BaseKeyParser:
+    def _get_keyparser(self, mode: usertypes.KeyMode) -> basekeyparser.BaseKeyParser:
         mode_manager = modeman.instance(self._win_id)
         return mode_manager.parsers[mode]
 
@@ -629,21 +625,24 @@ class HintManager(QObject):
         # Because _start_cb is called asynchronously, it's possible that the
         # user switched to another tab or closed the tab/window. In that case
         # we should not start hinting.
-        tabbed_browser = objreg.get('tabbed-browser', default=None,
-                                    scope='window', window=self._win_id)
+        tabbed_browser = objreg.get(
+            "tabbed-browser", default=None, scope="window", window=self._win_id
+        )
         tab = tabbed_browser.widget.currentWidget()
         if tab.tab_id != self._context.tab.tab_id:
             log.hints.debug(
-                "Current tab changed ({} -> {}) before _start_cb is run."
-                .format(self._context.tab.tab_id, tab.tab_id))
+                "Current tab changed ({} -> {}) before _start_cb is run.".format(
+                    self._context.tab.tab_id, tab.tab_id
+                )
+            )
             return
 
         strings = self._hint_strings(elems)
-        log.hints.debug("hints: {}".format(', '.join(strings)))
+        log.hints.debug("hints: {}".format(", ".join(strings)))
 
         for elem, string in zip(elems, strings):
             label = HintLabel(elem, self._context)
-            label.update_text('', string)
+            label.update_text("", string)
             self._context.all_labels.append(label)
             self._context.labels[string] = label
 
@@ -651,8 +650,7 @@ class HintManager(QObject):
         assert isinstance(keyparser, modeparsers.HintKeyParser), keyparser
         keyparser.update_bindings(strings)
 
-        modeman.enter(self._win_id, usertypes.KeyMode.hint,
-                      'HintManager.start')
+        modeman.enter(self._win_id, usertypes.KeyMode.hint, "HintManager.start")
 
         self.set_text.emit(self._get_text())
 
@@ -662,16 +660,19 @@ class HintManager(QObject):
         # to make auto_follow == 'always' work
         self._handle_auto_follow()
 
-    @cmdutils.register(instance='hintmanager', scope='window', name='hint',
-                       star_args_optional=True, maxsplit=2)
-    def start(self,  # pylint: disable=keyword-arg-before-vararg
-              group: str = 'all',
-              target: Target = Target.normal,
-              *args: str,
-              mode: str = None,
-              add_history: bool = False,
-              rapid: bool = False,
-              first: bool = False) -> None:
+    @cmdutils.register(
+        instance="hintmanager", scope="window", name="hint", star_args_optional=True, maxsplit=2
+    )
+    def start(
+        self,  # pylint: disable=keyword-arg-before-vararg
+        group: str = "all",
+        target: Target = Target.normal,
+        *args: str,
+        mode: str = None,
+        add_history: bool = False,
+        rapid: bool = False,
+        first: bool = False,
+    ) -> None:
         """Start hinting.
 
         Args:
@@ -736,15 +737,14 @@ class HintManager(QObject):
                                 URL.
                 - With `run`: Same as `fill`.
         """
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
+        tabbed_browser = objreg.get("tabbed-browser", scope="window", window=self._win_id)
         tab = tabbed_browser.widget.currentWidget()
         if tab is None:
             raise cmdutils.CommandError("No WebView available yet!")
 
         mode_manager = modeman.instance(self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
-            modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, "re-hinting")
 
         no_rapid_targets = [
             Target.tab_fg,  # opens new tab
@@ -753,9 +753,8 @@ class HintManager(QObject):
             Target.delete,  # deleting elements shifts them
         ]
         if rapid and target in no_rapid_targets:
-            name = target.name.replace('_', '-')
-            raise cmdutils.CommandError(
-                f"Rapid hinting makes no sense with target {name}!")
+            name = target.name.replace("_", "-")
+            raise cmdutils.CommandError(f"Rapid hinting makes no sense with target {name}!")
 
         self._check_args(target, *args)
 
@@ -777,8 +776,7 @@ class HintManager(QObject):
         )
 
         try:
-            selector = webelem.css_selector(self._context.group,
-                                            self._context.baseurl)
+            selector = webelem.css_selector(self._context.group, self._context.baseurl)
         except webelem.Error as e:
             raise cmdutils.CommandError(str(e))
 
@@ -786,14 +784,15 @@ class HintManager(QObject):
             selector,
             callback=self._start_cb,
             error_cb=lambda err: message.error(str(err)),
-            only_visible=True)
+            only_visible=True,
+        )
 
     def _get_hint_mode(self, mode: Optional[str]) -> str:
         """Get the hinting mode to use based on a mode argument."""
         if mode is None:
             return config.val.hints.mode
 
-        opt = config.instance.get_opt('hints.mode')
+        opt = config.instance.get_opt("hints.mode")
         try:
             opt.typ.to_py(mode)
         except configexc.ValidationError as e:
@@ -808,18 +807,15 @@ class HintManager(QObject):
         return self._context.hint_mode
 
     def _handle_auto_follow(
-            self,
-            keystr: str = "",
-            filterstr: str = "",
-            visible: Mapping[str, HintLabel] = None
+        self, keystr: str = "", filterstr: str = "", visible: Mapping[str, HintLabel] = None
     ) -> None:
         """Handle the auto_follow option."""
         assert self._context is not None
 
         if visible is None:
-            visible = {string: label
-                       for string, label in self._context.labels.items()
-                       if label.isVisible()}
+            visible = {
+                string: label for string, label in self._context.labels.items() if label.isVisible()
+            }
 
         if len(visible) != 1:
             return
@@ -859,13 +855,12 @@ class HintManager(QObject):
         for string, label in self._context.labels.items():
             try:
                 if string.startswith(keystr):
-                    matched = string[:len(keystr)]
-                    rest = string[len(keystr):]
+                    matched = string[: len(keystr)]
+                    rest = string[len(keystr) :]
                     label.update_text(matched, rest)
                     # Show label again if it was hidden before
                     label.show()
-                elif (not self._context.rapid or
-                      config.val.hints.hide_unmatched_rapid_hints):
+                elif not self._context.rapid or config.val.hints.hide_unmatched_rapid_hints:
                     # element doesn't match anymore -> hide it, unless in rapid
                     # mode and hide_unmatched_rapid_hints is false (see #1799)
                     label.hide()
@@ -907,16 +902,15 @@ class HintManager(QObject):
 
         if not visible:
             # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'all filtered')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, "all filtered")
             return
 
-        if self._context.hint_mode == 'number':
+        if self._context.hint_mode == "number":
             # renumber filtered hints
             strings = self._hint_strings([label.elem for label in visible])
             self._context.labels = {}
             for label, string in zip(visible, strings):
-                label.update_text('', string)
+                label.update_text("", string)
                 self._context.labels[string] = label
 
             keyparser = self._get_keyparser(usertypes.KeyMode.hint)
@@ -927,8 +921,7 @@ class HintManager(QObject):
             # when number mode is active
             if filterstr is not None:
                 # pass self._context.labels as the dict of visible hints
-                self._handle_auto_follow(filterstr=filterstr,
-                                         visible=self._context.labels)
+                self._handle_auto_follow(filterstr=filterstr, visible=self._context.labels)
 
     def _fire(self, keystr: str) -> None:
         """Fire a completed hint.
@@ -967,29 +960,26 @@ class HintManager(QObject):
             return
 
         if self._context.target in elem_handlers:
-            handler = functools.partial(elem_handlers[self._context.target],
-                                        elem, self._context)
+            handler = functools.partial(elem_handlers[self._context.target], elem, self._context)
         elif self._context.target in url_handlers:
             url = elem.resolve_url(self._context.baseurl)
             if url is None:
                 message.error("No suitable link found for this element.")
                 return
-            handler = functools.partial(url_handlers[self._context.target],
-                                        url, self._context)
+            handler = functools.partial(url_handlers[self._context.target], url, self._context)
             if self._context.add_history:
                 history.web_history.add_url(url, "")
         else:
             raise ValueError("No suitable handler found!")
 
         if not self._context.rapid:
-            modeman.leave(self._win_id, usertypes.KeyMode.hint, 'followed',
-                          maybe=True)
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, "followed", maybe=True)
         else:
             # Reset filtering
             self.filter_hints(None)
             # Undo keystring highlighting
             for string, label in self._context.labels.items():
-                label.update_text('', string)
+                label.update_text("", string)
 
         try:
             handler()
@@ -999,8 +989,7 @@ class HintManager(QObject):
         if self._context is not None:
             self._context.first_run = False
 
-    @cmdutils.register(instance='hintmanager', scope='window',
-                       modes=[usertypes.KeyMode.hint])
+    @cmdutils.register(instance="hintmanager", scope="window", modes=[usertypes.KeyMode.hint])
     def hint_follow(self, select: bool = False, keystring: str = None) -> None:
         """Follow a hint.
 
@@ -1068,7 +1057,7 @@ class WordHinter:
                             continue
                         for i in range(len(word)):
                             # remove all prefixes of this word
-                            hints.discard(word[:i + 1])
+                            hints.discard(word[: i + 1])
                         hints.add(word)
                     self.words.update(hints)
             except OSError as e:
@@ -1078,9 +1067,7 @@ class WordHinter:
                 error = "Word hints expects the file at {} to be encoded as UTF-8: {}"
                 raise HintingError(error.format(dictionary, str(e)))
 
-    def extract_tag_words(
-            self, elem: webelem.AbstractWebElement
-    ) -> Iterator[str]:
+    def extract_tag_words(self, elem: webelem.AbstractWebElement) -> Iterator[str]:
         """Extract tag words form the given element."""
         _extractor_type = Callable[[webelem.AbstractWebElement], str]
         attr_extractors: Mapping[str, _extractor_type] = {
@@ -1088,58 +1075,55 @@ class WordHinter:
             "name": lambda elem: elem["name"],
             "title": lambda elem: elem["title"],
             "placeholder": lambda elem: elem["placeholder"],
-            "src": lambda elem: elem["src"].split('/')[-1],
-            "href": lambda elem: elem["href"].split('/')[-1],
+            "src": lambda elem: elem["src"].split("/")[-1],
+            "href": lambda elem: elem["href"].split("/")[-1],
             "text": str,
         }
 
-        extractable_attrs = collections.defaultdict(list, {
-            "img": ["alt", "title", "src"],
-            "a": ["title", "href", "text"],
-            "input": ["name", "placeholder"],
-            "textarea": ["name", "placeholder"],
-            "button": ["text"]
-        })
+        extractable_attrs = collections.defaultdict(
+            list,
+            {
+                "img": ["alt", "title", "src"],
+                "a": ["title", "href", "text"],
+                "input": ["name", "placeholder"],
+                "textarea": ["name", "placeholder"],
+                "button": ["text"],
+            },
+        )
 
-        return (attr_extractors[attr](elem)
-                for attr in extractable_attrs[elem.tag_name()]
-                if attr in elem or attr == "text")
+        return (
+            attr_extractors[attr](elem)
+            for attr in extractable_attrs[elem.tag_name()]
+            if attr in elem or attr == "text"
+        )
 
-    def tag_words_to_hints(
-            self,
-            words: Iterable[str]
-    ) -> Iterator[str]:
+    def tag_words_to_hints(self, words: Iterable[str]) -> Iterator[str]:
         """Take words and transform them to proper hints if possible."""
         for candidate in words:
             if not candidate:
                 continue
-            match = re.search('[A-Za-z]{3,}', candidate)
+            match = re.search("[A-Za-z]{3,}", candidate)
             if not match:
                 continue
             if 4 < match.end() - match.start() < 8:
-                yield candidate[match.start():match.end()].lower()
+                yield candidate[match.start() : match.end()].lower()
 
     def any_prefix(self, hint: str, existing: Iterable[str]) -> bool:
         return any(hint.startswith(e) or e.startswith(hint) for e in existing)
 
-    def filter_prefixes(
-            self,
-            hints: Iterable[str],
-            existing: Iterable[str]
-    ) -> Iterator[str]:
+    def filter_prefixes(self, hints: Iterable[str], existing: Iterable[str]) -> Iterator[str]:
         """Filter hints which don't start with the given prefix."""
         return (h for h in hints if not self.any_prefix(h, existing))
 
-    def new_hint_for(self, elem: webelem.AbstractWebElement,
-                     existing: Iterable[str],
-                     fallback: Iterable[str]) -> Optional[str]:
+    def new_hint_for(
+        self, elem: webelem.AbstractWebElement, existing: Iterable[str], fallback: Iterable[str]
+    ) -> Optional[str]:
         """Return a hint for elem, not conflicting with the existing."""
         new = self.tag_words_to_hints(self.extract_tag_words(elem))
         new_no_prefixes = self.filter_prefixes(new, existing)
         fallback_no_prefixes = self.filter_prefixes(fallback, existing)
         # either the first good, or None
-        return (next(new_no_prefixes, None) or
-                next(fallback_no_prefixes, None))
+        return next(new_no_prefixes, None) or next(fallback_no_prefixes, None)
 
     def hint(self, elems: _ElemsType) -> _HintStringsType:
         """Produce hint labels based on the html tags.
@@ -1165,6 +1149,7 @@ class WordHinter:
             hints.append(hint)
         return hints
 
+
 class ContextHinter(WordHinter):
     def extract_tag_words(self, elem: webelem.AbstractWebElement) -> Iterator[str]:
         """Extract tag words form the given element."""
@@ -1176,7 +1161,8 @@ class ContextHinter(WordHinter):
             "value": lambda elem: elem["value"],
             "id": lambda elem: elem["id"],
             "placeholder": lambda elem: elem["placeholder"],
-            "src": lambda elem: elem["src"].split("/")[-1],
+            "aria-label": lambda elem: elem["aria-label"],
+            "src": lambda elem: Path(elem["src"]).stem,
             "href": lambda elem: elem["href"].split("/")[-1],
             "text": str,
         }
@@ -1185,10 +1171,11 @@ class ContextHinter(WordHinter):
             list,
             {
                 "img": ["alt", "title", "src"],
-                "a": ["title", "text", "href"],
+                "a": ["text", "title", "href"],
                 "input": ["id", "value", "name", "placeholder"],
-                "textarea": ["name", "placeholder"],
+                "textarea": ["name", "aria-label", "placeholder"],
                 "button": ["text"],
+                "div": ["aria-label"],
             },
         )
 
@@ -1198,8 +1185,8 @@ class ContextHinter(WordHinter):
             if attr in elem or attr == "text"
         )
 
-    def tag_words_to_hints(self, words: Iterable[str]) -> Iterator[str]:
-        """Take words and transform them to proper hints if possible."""
+    def tag_words_to_hint_candidates(self, words: Iterable[str], hint_length) -> Iterator[str]:
+        """Take words and transform them to proper hints candidates."""
         for candidate in words:
             log.hints.debug("candidate: " + candidate)
             if not candidate:
@@ -1208,7 +1195,7 @@ class ContextHinter(WordHinter):
             candidate = re.sub("[^a-z ]", " ", candidate)
             candidate = re.sub(" +", " ", candidate)
             candidate = candidate.strip()
-            if len(candidate) >= 3:
+            if len(candidate) >= hint_length:
                 yield candidate
             else:
                 continue
@@ -1221,124 +1208,85 @@ class ContextHinter(WordHinter):
             or hint in existing_hints
             or len(hint) != hint_length
             or not hint
+            or not all(char in ascii_lowercase for char in hint)
         ):
             return False
         else:
+            log.hints.debug("Valid hint: {}".format(hint))
             return True
 
     def create_hint_from_words(self, text, existing_words, hint_length):
         max_iterations = 50
         hint = ""
-        words = text.split()
+        words = re.split("[ _]", text)
 
-        for word in words[:hint_length]:
+        for word in words:
+            log.hints.debug("Choosing from words in hint '{}': {}".format(text,word))
             if self._is_valid_hint(word[:hint_length], existing_words, hint_length):
                 return word[:hint_length]
 
-        num_chars_of_other_word = 0
-        first_try_three_words = True
-        third_letter_pos = 2
-        second_letter_pos = 1
-        first_letter_pos = 0
+        text = re.sub("[ _] ", "", text)
         iterations = 0
+        generator = combinations(text, hint_length)
 
         while (
             not self._is_valid_hint(hint, existing_words, hint_length)
             and iterations < max_iterations
         ):
             iterations += 1
-            if len(words) == 1:
-                hint = (
-                    words[0][first_letter_pos]
-                    + words[0][second_letter_pos]
-                    + words[0][third_letter_pos]
-                )
-                if third_letter_pos + 1 < len(words[0]):
-                    third_letter_pos += 1
-                elif second_letter_pos + 2 < len(words[0]):
-                    second_letter_pos += 1
-                    third_letter_pos = second_letter_pos + 1
-                elif first_letter_pos + 3 < len(words[0]):
-                    first_letter_pos += 1
-                    second_letter_pos = first_letter_pos + 1
-                    third_letter_pos = second_letter_pos + 1
-                else:
-                    hint = ""
 
-            elif len(words) == 2:
-                hint = (
-                    words[0][: hint_length - num_chars_of_other_word]
-                    + words[1][:num_chars_of_other_word]
-                )
-                num_chars_of_other_word += 1
-            elif len(words) > 2:
-                if first_try_three_words:
-                    hint = words[0][0] + words[1][0] + words[2][0]
-                    first_try_three_words = False
-                else:
-                    hint = (
-                        words[0][: hint_length - num_chars_of_other_word]
-                        + words[1][:num_chars_of_other_word]
-                    )
-                num_chars_of_other_word += 1
+            hint = "".join(next(generator, ""))
+            if hint == "":
+                break
 
+        log.hints.debug("created hint: " + hint)
         return hint
 
-    def create_hint(self, text, existing_words=[], hint_length=3):
-        log.hints.debug("text = " + text)
+    def generate_random_hint(self, existing_hints, hint_length):
+        possible_hints = product("abcdefghij", repeat=hint_length)
 
-        hint = ""
+        for possibility in possible_hints:
+            tmp_hint = "".join(reversed(possibility))
+            log.hints.debug("product tmp_hint = " + tmp_hint)
+            if self._is_valid_hint(tmp_hint, existing_hints, hint_length):
+                log.hints.debug("resulting hint = " + tmp_hint)
+                return tmp_hint
 
-        if len(re.sub(" ", "", text)) >= hint_length:
-            hint = self.create_hint_from_words(text, existing_words, hint_length)
-            log.hints.debug("created hint: " + str(hint))
+        return ""
 
-        if not self._is_valid_hint(hint, existing_words, hint_length):
-            if hint is None:
-                hint = ""
-
-            # chars = config.val.hints.chars
-            # min_chars = config.val.hints.min_chars
-            possible_hints = product("abcdefghijklmnopqrstxvwxyz", repeat=hint_length)
-
-            for possibility in possible_hints:
-                tmp_hint = ''.join(reversed(possibility))
-                log.hints.debug("product tmp_hint = " + tmp_hint)
-                if self._is_valid_hint(tmp_hint, existing_words, hint_length):
-                    log.hints.debug("resulting hint = " + tmp_hint)
-                    return tmp_hint
-
-        log.hints.debug("resulting hint = " + str(hint))
-        return hint
-
-    def filter_doubles(
-        self, hints: Iterable[str], existing: Iterable[str]
+    def create_hint(
+        self, hints: Iterable[str], existing_hints: Iterable[str], hint_length
     ) -> Iterator[str]:
+        hint = ""
         for h in hints:
-            log.hints.debug("filtering: " + h)
-            hint = self.create_hint(h, existing)
+            log.hints.debug("Creating hint for: " + h)
+            hint = ""
+
+            if len(re.sub(" ", "", h)) >= hint_length:
+                hint = self.create_hint_from_words(h, existing_hints, hint_length)
+                log.hints.debug("Created hint: {}".format(hint))
+
+            if not self._is_valid_hint(hint, existing_hints, hint_length):
+                log.hints.debug("Created hint: " + str(hint))
+                yield self.generate_random_hint(existing_hints, hint_length)
+
+            log.hints.debug("Resulting hint = " + str(hint))
             yield hint
+
         yield "no hint found"
 
     def new_hint_for(
-        self, elem: webelem.AbstractWebElement, existing_hints: [], context
+        self, elem: webelem.AbstractWebElement, existing_hints: [], context, hint_length
     ) -> Optional[str]:
         """Return a hint for elem, not conflicting with the existing."""
-        url = elem.resolve_url(context.baseurl)
+        candidates = self.tag_words_to_hint_candidates(self.extract_tag_words(elem), hint_length)
+        resulting_hints = self.create_hint(candidates, existing_hints, hint_length)
 
-        if url is not None:
-            url = url.toString()
-        else:
-            url = ""
-
-        new = self.tag_words_to_hints(self.extract_tag_words(elem))
-        newer = self.filter_doubles(new, existing_hints)
-
-        t = next(newer, None)
+        t = next(resulting_hints, None)
         if t is not None:
             if not t:
                 log.hints.debug("Empty string as hint :" + str(elem))
-                return "empty string"
+                return "Hint was empty string"
         else:
             log.hints.debug("Hint was None: " + str(elem))
             return "Hint was None"
@@ -1346,7 +1294,7 @@ class ContextHinter(WordHinter):
         log.hints.debug("elem: " + str(elem.tag_name()) + " hint: " + t)
         return t
 
-    def hint(self, elems: _ElemsType, context) -> _HintStringsType:
+    def hint(self, elems: _ElemsType, context, hint_length) -> _HintStringsType:
         """Produce hint labels based on the html tags.
 
         Produce hint words based on the link text and random words
@@ -1360,30 +1308,33 @@ class ContextHinter(WordHinter):
         """
         hints = [""] * len(elems)
         used_hints = [""] * len(elems)
-        elem_order = ["textarea", "button", "a", "input", "img"]
-        for elem in elems:
-            if elem.tag_name() not in elem_order:
-                elem_order.append(elem.tag_name())
+        tag_order = ["textarea", "button", "a", "input", "img"]
 
-        for tag in elem_order:
+        for elem in elems:
+            if elem.tag_name() not in tag_order:
+                tag_order.append(elem.tag_name())
+
+        for tag in tag_order:
             for index in range(len(elems)):
                 if elems[index].tag_name() == tag:
-                    hint = self.new_hint_for(elems[index], used_hints, context)
+                    hint = self.new_hint_for(elems[index], used_hints, context, hint_length)
                     if not hint:
                         raise HintingError("No hint found. Weird")
                     used_hints[index] = hint
                     hints[index] = hint
 
+        # debugging stuff
         t = set()
         for elem in elems:
             t.add(elem.tag_name())
 
         log.hints.debug("all tags: " + " ".join(t))
-        log.hints.debug("tag order: " + " ".join(elem_order))
+        log.hints.debug("tag order: " + " ".join(tag_order))
         log.hints.debug("Resulting hints: " + " ".join(hints))
         log.hints.debug("Used hints: " + " ".join(used_hints))
         if None in hints:
             log.hints.debug("None exists")
         log.hints.debug(len(elems))
         log.hints.debug(len(hints))
+
         return hints
