@@ -166,19 +166,19 @@ jobs:
             os: ubuntu-22.04
             python: "3.12"
           ### macOS Big Sur
-          - testenv: py311-pyqt66
+          - testenv: py312-pyqt66
             os: macos-11
-            python: "3.11"
+            python: "3.12"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Monterey
-          - testenv: py311-pyqt66
+          - testenv: py312-pyqt66
             os: macos-12
-            python: "3.11"
+            python: "3.12"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py311-pyqt66
+          - testenv: py312-pyqt66
             os: windows-2019
-            python: "3.11"
+            python: "3.12"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v4

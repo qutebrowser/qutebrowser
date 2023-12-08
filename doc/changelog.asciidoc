@@ -40,6 +40,7 @@ Changed
 - Upgraded the bundled Qt version to 6.6.1, based on Chromium 112. Note
   this is only relevant for the macOS/Windows releases, on Linux those will be
   upgraded via your distribution packages.
+- Upgraded the bundled Python version for macOS/Windows to 3.12
 - The `colors.webpage.darkmode.threshold.text` setting got renamed to
   `colors.webpage.darkmode.threshold.foreground`, following a rename in
   Chromium.
