@@ -61,7 +61,7 @@ jobs:
           result-encoding: string
       - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           # Doesn't really matter what we prepare the release with, but let's
           # use the same version for consistency.
@@ -139,7 +139,7 @@ jobs:
         with:
           ref: v${{ needs.prepare.outputs.version }}
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ github.event.inputs.python_version }}
       - name: Import GPG Key
