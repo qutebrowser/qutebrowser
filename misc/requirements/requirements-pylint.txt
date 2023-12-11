@@ -11,7 +11,7 @@ idna==3.6
 isort==5.12.0
 mccabe==0.7.0
 pefile==2023.2.7
-platformdirs==4.0.0
+platformdirs==4.1.0
 pycparser==2.21
 PyJWT==2.8.0
 pylint==3.0.2
@@ -21,6 +21,6 @@ requests==2.31.0
 six==1.16.0
 tomli==2.0.1
 tomlkit==0.12.3
-typing_extensions==4.8.0
+typing_extensions==4.9.0
 uritemplate==4.1.1
 # urllib3==2.1.0
