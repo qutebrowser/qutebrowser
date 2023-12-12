@@ -59,9 +59,8 @@ def expanded_path(path):
 
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p',
-                             default=expanded_path(os.getenv('PASSWORD_STORE_DIR', default='~/.password-store')),
-                             help='Path to your pass password-store (only used in pass-mode)', type=expanded_path)
+argument_parser.add_argument('--password-store', '-p', default=None,
+                             help='Path to your password-store', type=expanded_path)
 argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
                              help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--prefix', type=str,
@@ -107,6 +106,10 @@ class CouldNotMatchUsername(Exception):
     pass
 
 
+class PassExecutionFailed(Exception):
+    pass
+
+
 class CouldNotMatchPassword(Exception):
     pass
 
@@ -121,22 +124,26 @@ def find_pass_candidates(domain, unfiltered=False):
     candidates = []
 
     if arguments.mode == "gopass":
-        gopass_args = ["gopass", "list", "--flat"]
+        gopass_args = ["list", "--flat"]
         if arguments.prefix:
             gopass_args.append(arguments.prefix)
-        all_passwords = subprocess.run(gopass_args, stdout=subprocess.PIPE).stdout.decode("UTF-8").splitlines()
 
-        for password in all_passwords:
+        for password in _run_pass(gopass_args).splitlines():
             if unfiltered or domain in password:
                 candidates.append(password)
     else:
-        for path, directories, file_names in os.walk(arguments.password_store, followlinks=True):
+        if arguments.password_store:
+            store_path = arguments.password_store
+        else:
+            store_path = expanded_path(os.getenv('PASSWORD_STORE_DIR', default='~/.password-store'))
+
+        for path, directories, file_names in os.walk(store_path, followlinks=True):
             secrets = fnmatch.filter(file_names, '*.gpg')
             if not secrets:
                 continue
 
             # Strip password store path prefix to get the relative pass path
-            pass_path = path[len(arguments.password_store):]
+            pass_path = path[len(store_path):]
             split_path = pass_path.split(os.path.sep)
             for secret in secrets:
                 secret_base = os.path.splitext(secret)[0]
@@ -148,11 +155,27 @@ def find_pass_candidates(domain, unfiltered=False):
 
 
 def _run_pass(pass_arguments):
-    # The executable is conveniently named after it's mode [pass|gopass].
-    pass_command = [arguments.mode]
+    # The executable is conveniently named after its mode [pass|gopass].
+    pass_command = [arguments.mode] + pass_arguments
     env = os.environ.copy()
-    env['PASSWORD_STORE_DIR'] = arguments.password_store
-    process = subprocess.run(pass_command + pass_arguments, env=env, stdout=subprocess.PIPE)
+    if arguments.password_store:
+        # Only overwrite PASSWORD_STORE_DIR if a store has been explicity specified
+        env['PASSWORD_STORE_DIR'] = arguments.password_store
+    process = subprocess.run(pass_command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    err_msg = process.stderr.decode(arguments.io_encoding).strip()
+
+    if err_msg:
+        if arguments.mode == "gopass" and "initialize" in err_msg:
+            # Warn the user if the error could be caused by a changed default directory.
+            # See <https://github.com/gopasspw/gopass/pull/1968/commits/de4ba223422417559f36346bd51ce075e9812924>
+            stderr(
+                "Warning: With gopass 1.12.8, the default password store directory changed from `~/.password-store` "
+                "to `~/.local/share/gopass/stores/root, and qute-pass now uses this new default. If your password "
+                f"store isn't '{arguments.password_store}', specify a store with the `--password-store` argument "
+                "to qute-pass, or by setting the PASSWORD_STORE_DIR environment variable."
+            )
+        if err_msg.startswith("Error:"):
+            raise PassExecutionFailed(err_msg)
     return process.stdout.decode(arguments.io_encoding).strip()
 
 
@@ -175,8 +198,8 @@ def dmenu(items, invocation):
 def fake_key_raw(text):
     for character in text:
         # Escape all characters by default, space requires special handling
-        sequence = '" "' if character == ' ' else r'\{}'.format(character)
-        qute_command('fake-key {}'.format(sequence))
+        sequence = '" "' if character == ' ' else fr'\{character}'
+        qute_command(f'fake-key {sequence}')
 
 
 def extract_password(secret, pattern):
@@ -197,6 +220,31 @@ def extract_username(target, pattern):
         return match.group(1)
     except IndexError:
         raise CouldNotMatchUsername("Pattern did not contain capture group, please use capture group. Example: (.*)")
+
+
+def type_secret(selection):
+    secret = None
+    # If username-target is path and user asked for username-only, we don't need to run pass.
+    # Or if using otp-only, it will run pass on its own.
+    if not (arguments.username_target == 'path' and arguments.username_only) and not arguments.otp_only:
+        secret = pass_(selection)
+    username_target = selection if arguments.username_target == 'path' else secret
+
+    if arguments.username_only:
+        fake_key_raw(extract_username(username_target, arguments.username_pattern))
+    elif arguments.password_only:
+        fake_key_raw(extract_password(secret, arguments.password_pattern))
+    elif arguments.otp_only:
+        fake_key_raw(pass_otp(selection))
+    else:
+        # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
+        # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
+        fake_key_raw(extract_username(username_target, arguments.username_pattern))
+        qute_command('fake-key <Tab>')
+        fake_key_raw(extract_password(secret, arguments.password_pattern))
+
+    if arguments.insert_mode:
+        qute_command('mode-enter insert')
 
 
 def main(arguments):
@@ -222,7 +270,12 @@ def main(arguments):
 
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain, netloc]):
         attempted_targets.append(target)
-        target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
+        try:
+            target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
+        except PassExecutionFailed as e:
+            stderr(f'Failed to execute {arguments.mode}, target: candidates, error: {e}')
+            return ExitCodes.FAILURE
+
         if not target_candidates:
             continue
 
@@ -231,7 +284,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
+            stderr(f'No pass candidates for URL {repr(arguments.url)} found! (I tried {repr(attempted_targets)})')
             return ExitCodes.NO_PASS_CANDIDATES
 
     if len(candidates) == 1 and not arguments.always_show_selection:
@@ -243,35 +296,17 @@ def main(arguments):
     if not selection:
         return ExitCodes.SUCCESS
 
-    # If username-target is path and user asked for username-only, we don't need to run pass.
-    # Or if using otp-only, it will run pass on its own.
-    secret = None
-    if not (arguments.username_target == 'path' and arguments.username_only) and not arguments.otp_only:
-        secret = pass_(selection)
-    username_target = selection if arguments.username_target == 'path' else secret
     try:
-        if arguments.username_only:
-            fake_key_raw(extract_username(username_target, arguments.username_pattern))
-        elif arguments.password_only:
-            fake_key_raw(extract_password(secret, arguments.password_pattern))
-        elif arguments.otp_only:
-            otp = pass_otp(selection)
-            fake_key_raw(otp)
-        else:
-            # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
-            # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
-            fake_key_raw(extract_username(username_target, arguments.username_pattern))
-            qute_command('fake-key <Tab>')
-            fake_key_raw(extract_password(secret, arguments.password_pattern))
+        type_secret(selection)
+    except PassExecutionFailed as e:
+        stderr(f'Failed to execute {arguments.mode}, target: secret, error: {e}')
+        return ExitCodes.FAILURE
     except CouldNotMatchPassword as e:
-        stderr('Failed to match password, target: secret, error: {}'.format(e))
+        stderr(f'Failed to match password, target: secret, error: {e}')
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     except CouldNotMatchUsername as e:
-        stderr('Failed to match username, target: {}, error: {}'.format(arguments.username_target, e))
+        stderr(f'Failed to match username, target: {arguments.username_target}, error: {e}')
         return ExitCodes.COULD_NOT_MATCH_USERNAME
-
-    if arguments.insert_mode:
-        qute_command('mode-enter insert')
 
     return ExitCodes.SUCCESS
 
