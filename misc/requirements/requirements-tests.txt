@@ -7,13 +7,13 @@ certifi==2023.11.17
 charset-normalizer==3.3.2
 cheroot==10.0.0
 click==8.1.7
-coverage==7.3.2
+coverage==7.3.3
 exceptiongroup==1.2.0
 execnet==2.0.2
 filelock==3.13.1
 Flask==3.0.0
 hunter==3.6.1
-hypothesis==6.92.0
+hypothesis==6.92.1
 idna==3.6
 importlib-metadata==7.0.0
 iniconfig==2.0.0
