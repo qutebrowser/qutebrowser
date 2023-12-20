@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.2.0 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- A few more completions will now match search terms in any order:
+  `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
+  and bookmark categories). (#7955)
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
