@@ -32,6 +32,11 @@ from qutebrowser.completion.models import listcategory
      [('foo', 'bar'), ('bar', 'foo'), ('bar', 'bar')],
      [('foo', 'bar'), ('bar', 'foo')],
      [('foo', 'bar'), ('bar', 'foo')]),
+
+    ('foo bar',
+     [('foobar', ''), ('barfoo', ''), ('foobaz', '')],
+     [('barfoo', ''), ('foobar', '')],
+     [('foobar', ''), ('barfoo', '')]),
 ])
 def test_set_pattern(pattern, before, after, after_nosort, model_validator):
     """Validate the filtering and sorting results of set_pattern."""
