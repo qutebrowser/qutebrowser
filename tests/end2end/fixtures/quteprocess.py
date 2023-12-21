@@ -68,6 +68,12 @@ def is_ignored_lowlevel_message(message):
             'driver_name = (null)'
         ),
         'libva error: vaGetDriverNames() failed with unknown libva error',
+
+        # Mesa 23.3
+        # See https://gitlab.freedesktop.org/mesa/mesa/-/issues/10293
+        'MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)',
+        'glx: failed to create drisw screen',
+        'failed to load driver: zink',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
