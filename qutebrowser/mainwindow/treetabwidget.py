@@ -107,6 +107,7 @@ class TreeTabWidget(TabWidget):
 
     def tree_tab_update(self):
         """Update titles and positions."""
-        self.update_tree_tab_visibility()
-        self.update_tree_tab_positions()
+        with self._disable_tab_title_updates():
+            self.update_tree_tab_visibility()
+            self.update_tree_tab_positions()
         self.update_tab_titles()

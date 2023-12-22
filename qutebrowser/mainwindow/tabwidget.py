@@ -65,6 +65,7 @@ class TabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
+        self._tab_title_update_disabled = False
 
         self._init_config()
         config.instance.changed.connect(self._init_config)
@@ -136,6 +137,9 @@ class TabWidget(QTabWidget):
             field: A field name which was updated. If given, the title
                    is only set if the given field is in the template.
         """
+        if self._tab_title_update_disabled:
+            return
+
         assert idx != -1
         tab = self._tab_by_idx(idx)
         assert tab is not None
@@ -253,8 +257,17 @@ class TabWidget(QTabWidget):
             bar.setVisible(True)
             bar.setUpdatesEnabled(True)
 
+    @contextlib.contextmanager
+    def _disable_tab_title_updates(self):
+        self._tab_title_update_disabled = True
+        yield
+        self._tab_title_update_disabled = False
+
     def update_tab_titles(self):
         """Update all texts."""
+        if self._tab_title_update_disabled:
+            return
+
         with self._toggle_visibility():
             for idx in range(self.count()):
                 self.update_tab_title(idx)
