@@ -39,25 +39,16 @@ class TreeTabWidget(TabWidget):
 
         rendered_tree = self.tree_root.render()
 
-        # We can be called when the count of tabs in the widget is different
-        # to the size of the rendered tree. This is known to happen when
-        # hiding a tree group with multiple tabs in it. render() will reflect
-        # the final state right away but we get called for every removal or
-        # insertion from the tab widget while update_tree_tab_visibility() is
-        # traversing through the tree group to update the widget.
-        # There may be other cases when this happens that we would be
-        # swallowing here. To avoid that, since we get called via
-        # update_tab_titles() possibly it would be cleanest to add an
-        # attribute to TabWidget (or a context manager) to disabled tab title
-        # updates and set that while calling
-        # update_tree_tab_{visibility,positions} in tree_tab_update().
-        miscount = len(rendered_tree) - 1 - self.count()
-        if miscount < 0:
-            log.misc.error(f"Less nodes in tree than widget. Are we collapsing tabs? {idx=} {miscount=} {fields['current_url']=}")
-            return fields
-        elif miscount > 0:
-            log.misc.error(f"More nodes in tree than widget. Are we revealing tabs? {idx=} {miscount=} {fields['current_url']=}")
-            return fields
+        # We are getting called with an index into the tab bar. If we have a
+        # different amount of nodes in the tree than the tab bar that
+        # indicates a logic error.
+        difference = len(rendered_tree) - 1 - self.count()
+        if difference != 0:
+            tabs = [str(self.widget(idx)) for idx in range(self.count())]
+            assert difference == 0, (
+                "Different amount of nodes in tree than widget. "
+                f"difference={difference} tree={rendered_tree[1:]} tabs={tabs}"
+            )
 
         # we remove the first two chars because every tab is child of tree
         # root and that gets rendered as well

@@ -54,6 +54,7 @@ class TabWidget(QTabWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._tabbed_browser = parent
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
@@ -138,6 +139,9 @@ class TabWidget(QTabWidget):
                    is only set if the given field is in the template.
         """
         if self._tab_title_update_disabled:
+            return
+
+        if self._tabbed_browser.is_shutting_down:
             return
 
         assert idx != -1
