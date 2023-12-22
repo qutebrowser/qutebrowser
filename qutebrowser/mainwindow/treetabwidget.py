@@ -32,20 +32,42 @@ class TreeTabWidget(TabWidget):
         """Add tree field data to normal tab field data."""
         fields = super().get_tab_fields(idx)
 
-        tab = self.widget(idx)
-        fields['collapsed'] = '[...] ' if tab.node.collapsed else ''
+        if len(self.tree_root.children) == 0:
+            # Presumably the window is still being initialized
+            log.misc.vdebug(f"Tree root has no children. Are we starting up? fields={fields}")
+            return fields
+
+        rendered_tree = self.tree_root.render()
+
+        # We can be called when the count of tabs in the widget is different
+        # to the size of the rendered tree. This is known to happen when
+        # hiding a tree group with multiple tabs in it. render() will reflect
+        # the final state right away but we get called for every removal or
+        # insertion from the tab widget while update_tree_tab_visibility() is
+        # traversing through the tree group to update the widget.
+        # There may be other cases when this happens that we would be
+        # swallowing here. To avoid that, since we get called via
+        # update_tab_titles() possibly it would be cleanest to add an
+        # attribute to TabWidget (or a context manager) to disabled tab title
+        # updates and set that while calling
+        # update_tree_tab_{visibility,positions} in tree_tab_update().
+        miscount = len(rendered_tree) - 1 - self.count()
+        if miscount < 0:
+            log.misc.error(f"Less nodes in tree than widget. Are we collapsing tabs? {idx=} {miscount=} {fields['current_url']=}")
+            return fields
+        elif miscount > 0:
+            log.misc.error(f"More nodes in tree than widget. Are we revealing tabs? {idx=} {miscount=} {fields['current_url']=}")
+            return fields
 
         # we remove the first two chars because every tab is child of tree
         # root and that gets rendered as well
-        rendered_tree = self.tree_root.render()
-        try:
-            pre, _ = rendered_tree[idx+1]
-            tree_prefix = pre[2:]
-        except IndexError:  # window or first tab are not initialized yet
-            tree_prefix = ""
-            log.misc.error("tree_prefix is empty!")
-
+        pre, _ = rendered_tree[idx+1]
+        tree_prefix = pre[2:]
         fields['tree'] = tree_prefix
+
+        tab = self.widget(idx)
+        fields['collapsed'] = '[...] ' if tab.node.collapsed else ''
+
         return fields
 
     def update_tree_tab_positions(self):
