@@ -5,7 +5,7 @@ certifi==2023.11.17
 charset-normalizer==3.3.2
 docutils==0.20.1
 idna==3.6
-importlib-metadata==7.0.0
+importlib-metadata==7.0.1
 packaging==23.2
 Pygments==2.17.2
 pyproject_hooks==1.0.0
