@@ -107,6 +107,9 @@ class TreeTabbedBrowser(TabbedBrowser):
             children = node.children
 
             if children:
+                # Promote first child,
+                # make that promoted node the parent of our other children
+                # give the promoted node our position in our siblings list.
                 next_node = children[0]
 
                 for n in children[1:]:
@@ -117,7 +120,7 @@ class TreeTabbedBrowser(TabbedBrowser):
                 siblings[node_idx] = next_node
 
                 parent.children = tuple(siblings)
-                node.children = ()
+                assert not node.children
 
             node.parent = None
 
