@@ -498,29 +498,32 @@ class CommandDispatcher:
 
     def _tree_tab_give(self, tabbed_browser, keep):
         """Helper function to simplify tab-give."""
-        uid_map = {1: 1}
+        # first pass: open tabs and save the uids of the new nodes
+        uid_map = {}  # old_uid -> new_uid
         traversed = list(self._current_widget().node.traverse())
-        # first pass: open tabs
         for node in traversed:
-            tab = tabbed_browser.tabopen(node.value.url())
-
+            tab = tabbed_browser.tabopen(
+                node.value.url(),
+                related=False,
+            )
             uid_map[node.uid] = tab.node.uid
 
         # second pass: copy tree structure over
         newroot = tabbed_browser.widget.tree_root
         oldroot = self._tabbed_browser.widget.tree_root
         for node in traversed:
-            if node.parent is not oldroot:
+            if node.parent.uid in uid_map:
                 uid = uid_map[node.uid]
                 new_node = newroot.get_descendent_by_uid(uid)
                 parent_uid = uid_map[node.parent.uid]
                 new_parent = newroot.get_descendent_by_uid(parent_uid)
                 new_node.parent = new_parent
 
-        # third pass: remove tabs from old window
+        # third pass: remove tabs from old window, children first this time to
+        # avoid having to re-parent things when traversing.
         if not keep:
-            for _node in traversed:
-                self._tabbed_browser.close_tab(self._current_widget(),
+            for node in reversed(traversed):
+                self._tabbed_browser.close_tab(node.value,
                                                add_undo=False,
                                                transfer=True)
 
