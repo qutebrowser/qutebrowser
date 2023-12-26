@@ -86,9 +86,6 @@ class TreeTabbedBrowser(TabbedBrowser):
         # to save descendents
         descendents = tuple(node.traverse(render_collapsed=True))
 
-        super()._remove_tab(tab, add_undo=False, new_undo=False,
-                            crashed=crashed)
-
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             idx = self.widget.indexOf(tab)
             self._add_undo_entry(tab, idx, new_undo)
@@ -96,13 +93,16 @@ class TreeTabbedBrowser(TabbedBrowser):
         parent = node.parent
 
         if node.collapsed:
-            # node will already be removed from tree
-            # but we need to manually close the tab processes
+            # Collapsed nodes have already been removed from the TabWidget so
+            # we can't ask super() to disposed of them and need to do it
+            # ourselves.
+            # The node is removed from the tree in _add_undo_entry() currently
+            # (see fixme comment).
             for descendent in descendents:
-                tab = descendent.value
-                tab.private_api.shutdown()
-                tab.deleteLater()
-                tab.layout().unwrap()
+                descendent_tab = descendent.value
+                descendent_tab.private_api.shutdown()
+                descendent_tab.deleteLater()
+                descendent_tab.layout().unwrap()
         elif parent:
             siblings = list(parent.children)
             children = node.children
@@ -121,6 +121,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                 node.children = ()
 
             node.parent = None
+
+        super()._remove_tab(tab, add_undo=False, new_undo=False,
+                            crashed=crashed)
+
         self.widget.tree_tab_update()
 
     def _add_undo_entry(self, tab, idx, new_undo):
