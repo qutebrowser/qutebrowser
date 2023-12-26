@@ -522,7 +522,10 @@ class CommandDispatcher:
         # third pass: remove tabs from old window, children first this time to
         # avoid having to re-parent things when traversing.
         if not keep:
-            for node in reversed(traversed):
+            for node in self._current_widget().node.traverse(
+                notree.TraverseOrder.POST_R,
+                render_collapsed=False,
+            ):
                 self._tabbed_browser.close_tab(node.value,
                                                add_undo=False,
                                                transfer=True)

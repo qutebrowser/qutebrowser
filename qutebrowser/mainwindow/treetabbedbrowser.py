@@ -81,22 +81,22 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Handle children positioning after a tab is removed."""
-        node = tab.node
-        # FIXME after the fixme in _add_undo_entry is resolved, no need
-        # to save descendents
-        descendents = tuple(node.traverse(render_collapsed=True))
 
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             idx = self.widget.indexOf(tab)
             self._add_undo_entry(tab, idx, new_undo)
 
+        node = tab.node
         parent = node.parent
 
         if node.collapsed:
             # Collapsed nodes have already been removed from the TabWidget so
             # we can't ask super() to dispose of them and need to do it
             # ourselves.
-            for descendent in descendents:
+            for descendent in node.traverse(
+                order=notree.TraverseOrder.POST_R,
+                render_collapsed=True
+            ):
                 descendent.parent = None
                 descendent_tab = descendent.value
                 descendent_tab.private_api.shutdown()
