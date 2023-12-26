@@ -243,9 +243,6 @@ class SessionManager(QObject):
             active: Whether the tab is currently active.
             with_history: Include the tab's history.
         """
-        # FIXME understand why this happens
-        if tab is None:
-            return {}
         data: _JsonType = {'history': []}
         if active:
             data['active'] = True
@@ -302,7 +299,10 @@ class SessionManager(QObject):
                 for i, node in enumerate(root_node.traverse(), -1):
                     node_data = {}
                     active = i == tabbed_browser.widget.currentIndex()
-                    node_data['tab'] = self._save_tab(node.value, active)
+                    if node == root_node:
+                        node_data['tab'] = {}
+                    else:
+                        node_data['tab'] = self._save_tab(node.value, active)
                     node_data['children'] = [c.uid for c in node.children]
                     node_data['collapsed'] = node.collapsed
                     tree_data[node.uid] = node_data
