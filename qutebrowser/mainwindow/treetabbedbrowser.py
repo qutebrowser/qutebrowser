@@ -134,45 +134,29 @@ class TreeTabbedBrowser(TabbedBrowser):
         """
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
-        try:
-            history_data = tab.history.private_api.serialize()
-        except browsertab.WebTabError:
-            pass  # special URL
-        else:
-            node = tab.node
-            uid = node.uid
-            parent_uid = node.parent.uid
-            if not node.collapsed:
-                children = [n.uid for n in node.children]
-                local_idx = node.index
-                entry = _TreeUndoEntry(url=tab.url(),
-                                       history=history_data,
-                                       index=idx,
-                                       pinned=tab.data.pinned,
-                                       uid=uid,
-                                       parent_node_uid=parent_uid,
-                                       children_node_uids=children,
-                                       local_index=local_idx)
-                if new_undo or not self.undo_stack:
-                    self.undo_stack.append([entry])
-                else:
-                    self.undo_stack[-1].append(entry)
+        node = tab.node
+        if not node.collapsed:
+            entry = _TreeUndoEntry.from_node(node, 0)
+            if new_undo or not self.undo_stack:
+                self.undo_stack.append([entry])
             else:
-                entries = []
-                for descendent in node.traverse(notree.TraverseOrder.POST_R):
-                    entry = _TreeUndoEntry.from_node(descendent, 0)
-                    # Recursively removed nodes will never have any children
-                    # in the tree they are being added into. Children will
-                    # always be added later as the undo stack is worked
-                    # through.
-                    # UndoEntry.from_node() is not clever enough enough to
-                    # handle this case on its own currently.
-                    entry.children_node_uids = []
-                    entries.append(entry)
-                if new_undo:
-                    self.undo_stack.append(entries)
-                else:
-                    self.undo_stack[-1] += entries
+                self.undo_stack[-1].append(entry)
+        else:
+            entries = []
+            for descendent in node.traverse(notree.TraverseOrder.POST_R):
+                entry = _TreeUndoEntry.from_node(descendent, 0)
+                # Recursively removed nodes will never have any children
+                # in the tree they are being added into. Children will
+                # always be added later as the undo stack is worked
+                # through.
+                # UndoEntry.from_node() is not clever enough enough to
+                # handle this case on its own currently.
+                entry.children_node_uids = []
+                entries.append(entry)
+            if new_undo:
+                self.undo_stack.append(entries)
+            else:
+                self.undo_stack[-1] += entries
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
