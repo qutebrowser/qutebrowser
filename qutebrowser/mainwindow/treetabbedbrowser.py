@@ -94,11 +94,10 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         if node.collapsed:
             # Collapsed nodes have already been removed from the TabWidget so
-            # we can't ask super() to disposed of them and need to do it
+            # we can't ask super() to dispose of them and need to do it
             # ourselves.
-            # The node is removed from the tree in _add_undo_entry() currently
-            # (see fixme comment).
             for descendent in descendents:
+                descendent.parent = None
                 descendent_tab = descendent.value
                 descendent_tab.private_api.shutdown()
                 descendent_tab.deleteLater()
@@ -161,10 +160,15 @@ class TreeTabbedBrowser(TabbedBrowser):
             else:
                 entries = []
                 for descendent in node.traverse(notree.TraverseOrder.POST_R):
-                    entries.append(_TreeUndoEntry.from_node(descendent, 0))
-                    # ensure descendent is not later saved as child as well
-                    descendent.parent = None  # FIXME: Find a way not to change
-                    # the tree
+                    entry = _TreeUndoEntry.from_node(descendent, 0)
+                    # Recursively removed nodes will never have any children
+                    # in the tree they are being added into. Children will
+                    # always be added later as the undo stack is worked
+                    # through.
+                    # UndoEntry.from_node() is not clever enough enough to
+                    # handle this case on its own currently.
+                    entry.children_node_uids = []
+                    entries.append(entry)
                 if new_undo:
                     self.undo_stack.append(entries)
                 else:
