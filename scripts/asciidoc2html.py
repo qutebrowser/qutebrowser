@@ -109,11 +109,11 @@ class AsciiDoc:
         """Copy image files to qutebrowser/html/doc."""
         print("Copying files...")
         dst_path = DOC_DIR / 'img'
-        dst_path.mkdir(exist_ok=True)
-        for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
-            src = REPO_ROOT / 'doc' / 'img' / filename
-            dst = dst_path / filename
-            shutil.copy(src, dst)
+        try:
+            shutil.rmtree(dst_path)
+        except FileNotFoundError:
+            pass
+        shutil.copytree(REPO_ROOT / 'doc' / 'img', dst_path)
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
