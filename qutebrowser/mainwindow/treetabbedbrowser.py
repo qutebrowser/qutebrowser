@@ -101,7 +101,6 @@ class TreeTabbedBrowser(TabbedBrowser):
                 descendent_tab = descendent.value
                 descendent_tab.private_api.shutdown()
                 descendent_tab.deleteLater()
-                descendent_tab.layout().unwrap()
         elif parent:
             siblings = list(parent.children)
             children = node.children

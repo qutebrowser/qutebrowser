@@ -289,7 +289,6 @@ class CommandDispatcher:
                     tab = descendent.value
                     tab.private_api.shutdown()
                     tab.deleteLater()
-                    tab.layout().unwrap()
         else:
             # this also applied to closing collapsed tabs
             # logic for that is in TreeTabbedBrowser
