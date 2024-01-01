@@ -63,6 +63,13 @@ class CompletionView(QTreeView):
                 {{ conf.colors.completion.category.border.bottom }};
         }
 
+        QTreeView:item {
+            padding-top: {{ conf.completion.item_padding['top'] }}px;
+            padding-left: {{ conf.completion.item_padding['left'] }}px;
+            padding-right: {{ conf.completion.item_padding['right'] }}px;
+            padding-bottom: {{ conf.completion.item_padding['bottom'] }}px;
+        }
+
         QTreeView::item:selected, QTreeView::item:selected:hover {
             border-top: 1px solid
                 {{ conf.colors.completion.item.selected.border.top }};
