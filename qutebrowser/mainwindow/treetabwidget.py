@@ -38,27 +38,71 @@ class TreeTabWidget(TabWidget):
             return fields
 
         rendered_tree = self.tree_root.render()
+        tab = self.widget(idx)
+        found = [
+            prefix
+            for prefix, node in rendered_tree
+            if node.value == tab
+        ]
 
-        # We are getting called with an index into the tab bar. If we have a
-        # different amount of nodes in the tree than the tab bar that
-        # indicates a logic error.
-        difference = len(rendered_tree) - 1 - self.count()
-        if difference != 0:
-            tabs = [str(self.widget(idx)) for idx in range(self.count())]
+        if len(found) == 1:
+            # we remove the first two chars because every tab is child of tree
+            # root and that gets rendered as well
+            fields['tree'] = found[0][2:]
+            fields['collapsed'] = '[...] ' if tab.node.collapsed else ''
+            return fields
+
+        # Beyond here we have a mismatch between the tab widget and the tree.
+        # Try to identify known situations where this happens precisely and
+        # handle them gracefully. Blow up on unknown situations so we don't
+        # miss them.
+
+        # Just sanity checking, we haven't seen this yet.
+        assert len(found) == 0, (
+            "Found multiple tree nodes with the same tab as value: tab={tab}"
+        )
+
+        # Having more tabs in the widget when loading a session with a
+        # collapsed group in is a known case. Check for it with a heuristic
+        # (for now) and assert if that doesn't look like that's how we got
+        # here.
+        all_nodes = self.tree_root.traverse()
+        node = [n for n in all_nodes if n.value == tab][0]
+        is_hidden = any(n.collapsed for n in node.path)
+
+        tabs = [str(self.widget(idx)) for idx in range(self.count())]
+        difference = len(rendered_tree) - 1 - len(tabs)
+        # empty_urls here is a proxy for "there is a session being loaded into
+        # this window"
+        empty_urls = all(
+            [self.widget(idx).url().toString() == "" for idx in range(self.count())]
+        )
+        if empty_urls and is_hidden:
+            # All tabs will be added to the tab widget during session load
+            # and they will only be removed later when the widget is
+            # updated from the tree. Meanwhile, if we get here we'll have
+            # hidden tabs present in the widget but absent from the node.
+            # To detect this situation more clearly we could do something like
+            # have a is_starting_up or is_loading_session attribute on the
+            # tabwidget/tabbbedbrowser. Or have the session manager add all
+            # nodes to the tree uncollapsed initially and then go through and
+            # collapse them.
+            log.misc.vdebug(
+                "get_tab_fields() called with different amount of tabs in "
+                f"widget vs in the tree: difference={difference} "
+                f"tree={rendered_tree[1:]} tabs={tabs}"
+            )
+        else:
+            # If we get here then we have another case to investigate.
             assert difference == 0, (
                 "Different amount of nodes in tree than widget. "
                 f"difference={difference} tree={rendered_tree[1:]} tabs={tabs}"
             )
 
-        # we remove the first two chars because every tab is child of tree
-        # root and that gets rendered as well
-        pre, _ = rendered_tree[idx+1]
-        tree_prefix = pre[2:]
-        fields['tree'] = tree_prefix
-
-        tab = self.widget(idx)
-        fields['collapsed'] = '[...] ' if tab.node.collapsed else ''
-
+        # Return dummy entries for now. Once we finish whatever operation is
+        # causing the current irregularity we should get proper values.
+        fields["tree"] = ""
+        fields["collapsed"] = ""
         return fields
 
     def update_tree_tab_positions(self):
