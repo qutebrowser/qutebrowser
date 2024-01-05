@@ -579,11 +579,13 @@ class CommandDispatcher:
             self._tree_tab_give(tabbed_browser, keep)
         else:
             tabbed_browser.tabopen(self._current_url())
-            tabbed_browser.window().show()
             if not keep:
                 self._tabbed_browser.close_tab(self._current_widget(),
                                                add_undo=False,
                                                transfer=True)
+        # Make sure the tabbed browser is shown in case we created a new one
+        # when detaching.
+        tabbed_browser.window().show()
 
     def _back_forward(
         self, *,
