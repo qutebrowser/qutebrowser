@@ -282,7 +282,7 @@ class CommandDispatcher:
                     close = functools.partial(self._tab_close,
                                               descendent.value, prev, next_,
                                               opposite, new_undo)
-                    tabbed_browser.tab_close_prompt_if_pinned(tab, force,
+                    tabbed_browser.tab_close_prompt_if_pinned(descendent.value, force,
                                                               close)
                     new_undo = False
                 else:
