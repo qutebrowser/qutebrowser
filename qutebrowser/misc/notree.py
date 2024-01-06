@@ -46,13 +46,15 @@ class TreeError(RuntimeError):
 
 
 class TraverseOrder(enum.Enum):
-    """To be used as argument to traverse().
+    """Tree traversal order for Node.traverse().
 
-    Implemented orders are pre-order and post-order.
+    All traversals are depth first.
+    See https://en.wikipedia.org/wiki/Depth-first_search#Vertex_orderings
+
     Attributes:
-        PRE: pre-order (parents before children). Same as in Node.render
-        POST: children of a node are always yield before their parent.
-        POST_R: Like POST, but children are yield in reverse order
+        PRE: pre-order: parent then children, leftmost nodes first. Same as in Node.render().
+        POST: post-order: children then parent, leftmost nodes first, then parent.
+        POST_R: post-order-reverse: like POST but rightmost nodes first.
     """
 
     PRE = 'pre-order'
