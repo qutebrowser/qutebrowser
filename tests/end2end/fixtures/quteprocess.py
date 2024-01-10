@@ -74,6 +74,7 @@ def is_ignored_lowlevel_message(message):
         'MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)',
         'glx: failed to create drisw screen',
         'failed to load driver: zink',
+        'DRI3 not available',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
