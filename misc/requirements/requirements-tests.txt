@@ -13,7 +13,7 @@ execnet==2.0.2
 filelock==3.13.1
 Flask==3.0.0
 hunter==3.6.1
-hypothesis==6.92.2
+hypothesis==6.92.3
 idna==3.6
 importlib-metadata==7.0.1
 iniconfig==2.0.0
