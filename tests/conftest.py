@@ -184,11 +184,10 @@ def pytest_collection_modifyitems(config, items):
     items[:] = remaining_items
 
 
-def pytest_ignore_collect(path):
+def pytest_ignore_collect(collection_path: pathlib.Path) -> bool:
     """Ignore BDD tests if we're unable to run them."""
-    fspath = pathlib.Path(path)
     skip_bdd = hasattr(sys, 'frozen')
-    rel_path = fspath.relative_to(pathlib.Path(__file__).parent)
+    rel_path = collection_path.relative_to(pathlib.Path(__file__).parent)
     return rel_path == pathlib.Path('end2end') / 'features' and skip_bdd
 
 
