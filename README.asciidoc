@@ -140,7 +140,7 @@ level, you can get qutebrowser t-shirts, stickers and more!
 GitHub Sponsors allows for one-time donations (using the buttons next to "Select a
 tier") as well as custom amounts. **For currencies other than Euro or Swiss Francs, this
 is the preferred donation method.** GitHub uses https://stripe.com/[Stripe] to accept
-payment via credit carts without any fees. Billing via PayPal is available as well, with
+payment via credit cards without any fees. Billing via PayPal is available as well, with
 less fees than a direct PayPal transaction.
 
 Alternatively, the following donation methods are available -- note that
