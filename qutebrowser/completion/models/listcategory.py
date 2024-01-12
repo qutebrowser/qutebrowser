@@ -52,7 +52,7 @@ class ListCategory(QSortFilterProxyModel):
         # Positive lookahead per search term. This means that all search terms must
         # be matched but they can be matched anywhere in the string, so they can be
         # in any order. For example "foo bar" -> "(?=.*foo)(?=.*bar)"
-        val = '(?=.*' + ')(?=.*'.join(map(re.escape, val.split())) + ')'
+        val = '^(?=.*' + ')(?=.*'.join(map(re.escape, val.split())) + ')'
         rx = QRegularExpression(val, QRegularExpression.PatternOption.CaseInsensitiveOption)
         qtutils.ensure_valid(rx)
         self.setFilterRegularExpression(rx)

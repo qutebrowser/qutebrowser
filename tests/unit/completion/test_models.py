@@ -1310,11 +1310,11 @@ def test_url_completion_benchmark(benchmark, info,
     web_history.completion.insert_batch(entries)
 
     quickmark_manager_stub.marks = collections.OrderedDict([
-        ('title{}'.format(i), 'example.com/{}'.format(i))
+        ('title{}'.format('a'*i), 'example.com/{}'.format(i))
         for i in range(1000)])
 
     bookmark_manager_stub.marks = collections.OrderedDict([
-        ('example.com/{}'.format(i), 'title{}'.format(i))
+        ('example.com/{}'.format('a'*i), 'title{}'.format(i))
         for i in range(1000)])
 
     def bench():
@@ -1326,6 +1326,7 @@ def test_url_completion_benchmark(benchmark, info,
         model.set_pattern('ex 1')
         model.set_pattern('ex 12')
         model.set_pattern('ex 123')
+        model.set_pattern('zzzzz')  # no match
 
     benchmark(bench)
 
