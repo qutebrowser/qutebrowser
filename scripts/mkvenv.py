@@ -1,20 +1,8 @@
 #!/usr/bin/env python3
-# Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
-# This file is part of qutebrowser.
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 
 """Create a local virtualenv with a PyQt install."""
@@ -134,8 +122,7 @@ def pyqt_versions() -> List[str]:
 
 def _is_qt6_version(version: str) -> bool:
     """Check if the given version is Qt 6."""
-    # FIXME:qt6 Adjust once auto = Qt 6
-    return version == "6" or version.startswith("6.")
+    return version in ["auto", "6"] or version.startswith("6.")
 
 
 def run_venv(
@@ -228,7 +215,7 @@ def requirements_file(name: str) -> pathlib.Path:
 
 def pyqt_requirements_file(version: str) -> pathlib.Path:
     """Get the filename of the requirements file for the given PyQt version."""
-    name = 'pyqt' if version == 'auto' else 'pyqt-{}'.format(version)
+    name = 'pyqt-6' if version == 'auto' else f'pyqt-{version}'
     return requirements_file(name)
 
 
@@ -277,7 +264,8 @@ def install_pyqt_link(venv_dir: pathlib.Path, version: str) -> None:
     """Install PyQt by linking a system-wide install."""
     utils.print_title("Linking system-wide PyQt")
     lib_path = link_pyqt.get_venv_lib_path(str(venv_dir))
-    link_pyqt.link_pyqt(sys.executable, lib_path, version=version)
+    major_version: str = "6" if _is_qt6_version(version) else "5"
+    link_pyqt.link_pyqt(sys.executable, lib_path, version=major_version)
 
 
 def install_pyqt_wheels(venv_dir: pathlib.Path,
@@ -288,7 +276,7 @@ def install_pyqt_wheels(venv_dir: pathlib.Path,
     pip_install(venv_dir, *wheels)
 
 
-def install_pyqt_shapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
+def install_pyqt_snapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
     """Install PyQt packages from the snapshot server."""
     utils.print_title("Installing PyQt snapshots")
     pip_install(venv_dir, '-U', *packages, '--no-deps', '--pre',
@@ -439,7 +427,7 @@ def run_qt_smoke_test_single(
 def run_qt_smoke_test(venv_dir: pathlib.Path, *, pyqt_version: str) -> None:
     """Make sure the Qt installation works."""
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-104415
-    no_debug = pyqt_version in ("6.3", "6") and sys.platform == "darwin"
+    no_debug = pyqt_version == "6.3" and sys.platform == "darwin"
     if no_debug:
         try:
             run_qt_smoke_test_single(venv_dir, debug=False, pyqt_version=pyqt_version)
@@ -504,7 +492,7 @@ def install_pyqt(venv_dir, args):
     if args.pyqt_type == 'binary':
         install_pyqt_binary(venv_dir, args.pyqt_version)
         if args.pyqt_snapshot:
-            install_pyqt_shapshot(venv_dir, args.pyqt_snapshot.split(','))
+            install_pyqt_snapshot(venv_dir, args.pyqt_snapshot.split(','))
     elif args.pyqt_type == 'source':
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':

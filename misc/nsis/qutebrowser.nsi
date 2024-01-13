@@ -1,20 +1,7 @@
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # encoding: iso-8859-1
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # NSIS installer script. Uses NsisMultiUser plugin and contains portions of
 # its demo code, copyright 2017 Richard Drizin, Alex Mitev.
@@ -137,12 +124,15 @@ ShowUninstDetails hide
 
 ; If not defined, get VERSION from PROGEXE. Set DIST_DIR accordingly.
 !ifndef VERSION
-  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${ARCH}"
+  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}"
   !getdllversion "${DIST_DIR}\${PROGEXE}" expv_
   !define VERSION "${expv_1}.${expv_2}.${expv_3}"
 !else
-  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}-${ARCH}"
+  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}"
 !endif
+
+; If not defined, assume Qt6 (requires a more recent windows version)
+!define /ifndef QT5 "False"
 
 ; Pack the exe header with upx if UPX is defined.
 !ifdef UPX

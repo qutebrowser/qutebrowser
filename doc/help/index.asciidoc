@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 qutebrowser help
 ================
 
@@ -6,7 +8,7 @@ Documentation
 
 The following help pages are currently available:
 
-* link:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[Key binding cheatsheet]
+* link:https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-big.png[Key binding cheatsheet]
 * link:../quickstart{outfilesuffix}[Quick start guide]
 * link:../faq{outfilesuffix}[Frequently asked questions]
 * link:../changelog{outfilesuffix}[Change Log]

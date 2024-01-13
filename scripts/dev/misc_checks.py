@@ -1,20 +1,8 @@
 #!/usr/bin/env python3
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Various small code checkers."""
 
@@ -27,7 +15,7 @@ import subprocess
 import tokenize
 import traceback
 import pathlib
-from typing import List, Iterator, Optional
+from typing import List, Iterator, Optional, Tuple
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -152,6 +140,24 @@ def _check_spelling_file(path, fobj, patterns):
     return ok
 
 
+def _check_spelling_all(
+    args: argparse.Namespace,
+    ignored: List[pathlib.Path],
+    patterns: List[Tuple[re.Pattern, str]],
+) -> Optional[bool]:
+    try:
+        ok = True
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(str(path)) as f:
+                if not _check_spelling_file(path, f, patterns):
+                    ok = False
+        print()
+        return ok
+    except Exception:
+        traceback.print_exc()
+        return None
+
+
 def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
@@ -260,6 +266,14 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'pathlib\.Path\(tmpdir\)'),
             "use tmp_path instead",
         ),
+        (
+            re.compile(r' Copyright 2'),
+            "use 'SPDX-FileCopyrightText: ...' without year instead",
+        ),
+        (
+            re.compile(r'qutebrowser is free software: you can redistribute'),
+            "use 'SPDX-License-Identifier: GPL-3.0-or-later' instead",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
@@ -270,28 +284,17 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
         pathlib.Path('qutebrowser', 'qt', '_core_pyqtproperty.py'),
+        pathlib.Path('qutebrowser', 'javascript', 'caret.js'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]
-
-    try:
-        ok = True
-        for path in _get_files(verbose=args.verbose, ignored=ignored):
-            with tokenize.open(path) as f:
-                if not _check_spelling_file(path, f, patterns):
-                    ok = False
-        print()
-        return ok
-    except Exception:
-        traceback.print_exc()
-        return None
+    return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
 def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
     """Check for direct PyQt imports."""
     ignored = [
         pathlib.Path("qutebrowser", "qt"),
-        # FIXME:qt6 fix those too?
         pathlib.Path("misc", "userscripts"),
         pathlib.Path("scripts"),
     ]
@@ -305,18 +308,7 @@ def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
             "Use 'import qutebrowser.qt.MODULE' instead",
         )
     ]
-    # FIXME:qt6 unify this with check_spelling somehow?
-    try:
-        ok = True
-        for path in _get_files(verbose=args.verbose, ignored=ignored):
-            with tokenize.open(str(path)) as f:
-                if not _check_spelling_file(path, f, patterns):
-                    ok = False
-        print()
-        return ok
-    except Exception:
-        traceback.print_exc()
-        return None
+    return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
 def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:

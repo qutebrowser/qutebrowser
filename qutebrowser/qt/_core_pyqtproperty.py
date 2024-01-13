@@ -1,16 +1,18 @@
 """WORKAROUND for missing pyqtProperty typing, ported from PyQt5-stubs:
 
 FIXME:mypy PyQt6-stubs issue
-https://github.com/python-qt-tools/PyQt5-stubs/blob/5.15.6.0/PyQt5-stubs/QtCore.pyi#L70-L111
+https://github.com/python-qt-tools/PyQt5-stubs/blob/5.15.6.0/PyQt5-stubs/QtCore.pyi#L68-L111
 """
 
 # flake8: noqa
-# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument,import-error
+# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument
 
 import typing
-from PyQt6.QtCore import QObjectT, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal
 
 if typing.TYPE_CHECKING:
+    QObjectT = typing.TypeVar("QObjectT", bound=QObject)
+
     TPropertyTypeVal = typing.TypeVar("TPropertyTypeVal")
 
     TPropGetter = typing.TypeVar(

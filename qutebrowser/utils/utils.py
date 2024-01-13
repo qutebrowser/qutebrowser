@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Other utilities which don't fit anywhere else."""
 
@@ -128,17 +115,20 @@ class VersionNumber:
             return NotImplemented
         return self._ver != other._ver
 
+    # FIXME:mypy type ignores below needed for PyQt5-stubs:
+    # Unsupported left operand type for ... ("QVersionNumber")
+
     def __ge__(self, other: 'VersionNumber') -> bool:
-        return self._ver >= other._ver  # type: ignore[operator]
+        return self._ver >= other._ver  # type: ignore[operator,unused-ignore]
 
     def __gt__(self, other: 'VersionNumber') -> bool:
-        return self._ver > other._ver  # type: ignore[operator]
+        return self._ver > other._ver  # type: ignore[operator,unused-ignore]
 
     def __le__(self, other: 'VersionNumber') -> bool:
-        return self._ver <= other._ver  # type: ignore[operator]
+        return self._ver <= other._ver  # type: ignore[operator,unused-ignore]
 
     def __lt__(self, other: 'VersionNumber') -> bool:
-        return self._ver < other._ver  # type: ignore[operator]
+        return self._ver < other._ver  # type: ignore[operator,unused-ignore]
 
 
 class Unreachable(Exception):
@@ -516,6 +506,13 @@ def sanitize_filename(name: str,
     return name
 
 
+def _clipboard() -> QClipboard:
+    """Get the QClipboard and make sure it's not None."""
+    clipboard = QApplication.clipboard()
+    assert clipboard is not None
+    return clipboard
+
+
 def set_clipboard(data: str, selection: bool = False) -> None:
     """Set the clipboard to some given data."""
     global fake_clipboard
@@ -527,7 +524,7 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         fake_clipboard = data
     else:
         mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
-        QApplication.clipboard().setText(data, mode=mode)
+        _clipboard().setText(data, mode=mode)
 
 
 def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
@@ -553,7 +550,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
         fake_clipboard = None
     else:
         mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
-        data = QApplication.clipboard().text(mode=mode)
+        data = _clipboard().text(mode=mode)
 
     target = "Primary selection" if selection else "Clipboard"
     if not data.strip():
@@ -565,7 +562,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
 
 def supports_selection() -> bool:
     """Check if the OS supports primary selection."""
-    return QApplication.clipboard().supportsSelection()
+    return _clipboard().supportsSelection()
 
 
 def open_file(filename: str, cmdline: str = None) -> None:

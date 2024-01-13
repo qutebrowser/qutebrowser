@@ -1,19 +1,6 @@
-# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Dialogs shown when there was a problem with a backend choice."""
 
@@ -246,6 +233,13 @@ class _BackendProblemChecker:
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
+
+        # Doing this here because it's not relevant with QtWebKit where fatal=True
+        if machinery.IS_QT6:
+            text += ("\nHint: If installed via mkvenv.py on a system without "
+                     "OpenSSL 3.x (e.g. Ubuntu 20.04), you can use --pyqt-version 6.4 "
+                     "to get an older Qt still compatible with OpenSSL 1.1 (at the "
+                     "expense of running an older QtWebEngine/Chromium)")
 
         assert not fatal
         log.init.warning(text)

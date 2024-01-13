@@ -44,6 +44,13 @@ Feature: Using hints
             - data/hints/link_blank.html
             - data/hello.txt
 
+    # https://github.com/qutebrowser/qutebrowser/issues/7842
+    @qtwebkit_skip
+    Scenario: Following a hint from a local file to a remote origin
+        When I open file://(testdata)/hints/link_inject.html?port=(port)
+        And I hint with args "links" and follow a
+        Then data/hello.txt should be loaded
+
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
         And I hint with args "links current" and follow a
@@ -251,13 +258,13 @@ Feature: Using hints
         When I open data/hints/iframe.html
         And I wait for "* wrapped loaded" in the log
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current http://localhost:*/data/hints/iframe.html), type link_clicked, *" should be logged
 
     Scenario: Using :hint-follow inside an iframe button
         When I open data/hints/iframe_button.html
         And I wait for "* wrapped_button loaded" in the log
         And I hint with args "all normal" and follow s
-        Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current http://localhost:*/data/hints/iframe_button.html), *" should be logged
 
     Scenario: Hinting inputs in an iframe without type
         When I open data/hints/iframe_input.html
@@ -274,12 +281,12 @@ Feature: Using hints
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello2.txt, type Type.link_clicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello2.txt (current http://localhost:*/data/hints/iframe_scroll.html), type link_clicked, *" should be logged
 
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current *), type link_clicked, *" should be logged
 
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html

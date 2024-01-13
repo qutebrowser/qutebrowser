@@ -118,13 +118,10 @@
 |<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
 |<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
 |<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
-|<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
-|<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
-|<<colors.webpage.darkmode.increase_text_contrast,colors.webpage.darkmode.increase_text_contrast>>|Increase text contrast by drawing an outline of the uninverted color.
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
-|<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
+|<<colors.webpage.darkmode.threshold.foreground,colors.webpage.darkmode.threshold.foreground>>|Threshold for inverting text with dark mode.
 |<<colors.webpage.preferred_color_scheme,colors.webpage.preferred_color_scheme>>|Value to use for `prefers-color-scheme:` for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
@@ -174,6 +171,7 @@
 |<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Allow JavaScript to open new tabs without user interaction.
 |<<content.javascript.clipboard,content.javascript.clipboard>>|Allow JavaScript to read from or write to the clipboard.
 |<<content.javascript.enabled,content.javascript.enabled>>|Enable JavaScript.
+|<<content.javascript.legacy_touch_events,content.javascript.legacy_touch_events>>|Enables the legacy touch event feature.
 |<<content.javascript.log,content.javascript.log>>|Log levels to use for JavaScript console logging messages.
 |<<content.javascript.log_message.excludes,content.javascript.log_message.excludes>>|Javascript messages to *not* show in the UI, despite a corresponding `content.javascript.log_message.levels` setting.
 |<<content.javascript.log_message.levels,content.javascript.log_message.levels>>|Javascript message sources/levels to show in the qutebrowser UI.
@@ -303,6 +301,7 @@
 |<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
+|<<qt.workarounds.disable_accelerated_2d_canvas,qt.workarounds.disable_accelerated_2d_canvas>>|Disable accelerated 2d canvas to avoid graphical glitches.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
@@ -570,9 +569,9 @@ Default:
 * +pass:[&#x27;]+: +pass:[mode-enter jump_mark]+
 * +pass:[+]+: +pass:[zoom-in]+
 * +pass:[-]+: +pass:[zoom-out]+
-* +pass:[.]+: +pass:[repeat-command]+
-* +pass:[/]+: +pass:[set-cmd-text /]+
-* +pass:[:]+: +pass:[set-cmd-text :]+
+* +pass:[.]+: +pass:[cmd-repeat-last]+
+* +pass:[/]+: +pass:[cmd-set-text /]+
+* +pass:[:]+: +pass:[cmd-set-text :]+
 * +pass:[;I]+: +pass:[hint images tab]+
 * +pass:[;O]+: +pass:[hint links fill :open -t -r {hint-url}]+
 * +pass:[;R]+: +pass:[hint --rapid links window]+
@@ -628,9 +627,9 @@ Default:
 * +pass:[&lt;back&gt;]+: +pass:[back]+
 * +pass:[&lt;forward&gt;]+: +pass:[forward]+
 * +pass:[=]+: +pass:[zoom]+
-* +pass:[?]+: +pass:[set-cmd-text ?]+
+* +pass:[?]+: +pass:[cmd-set-text ?]+
 * +pass:[@]+: +pass:[macro-run]+
-* +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
+* +pass:[B]+: +pass:[cmd-set-text -s :quickmark-load -t]+
 * +pass:[D]+: +pass:[tab-close -o]+
 * +pass:[F]+: +pass:[hint all tab]+
 * +pass:[G]+: +pass:[scroll-to-perc]+
@@ -640,7 +639,7 @@ Default:
 * +pass:[L]+: +pass:[forward]+
 * +pass:[M]+: +pass:[bookmark-add]+
 * +pass:[N]+: +pass:[search-prev]+
-* +pass:[O]+: +pass:[set-cmd-text -s :open -t]+
+* +pass:[O]+: +pass:[cmd-set-text -s :open -t]+
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
@@ -648,7 +647,7 @@ Default:
 * +pass:[Sh]+: +pass:[history]+
 * +pass:[Sq]+: +pass:[bookmark-list]+
 * +pass:[Ss]+: +pass:[set]+
-* +pass:[T]+: +pass:[set-cmd-text -sr :tab-focus]+
+* +pass:[T]+: +pass:[cmd-set-text -sr :tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
@@ -657,30 +656,30 @@ Default:
 * +pass:[\]\]]+: +pass:[navigate next]+
 * +pass:[`]+: +pass:[mode-enter set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
-* +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
+* +pass:[b]+: +pass:[cmd-set-text -s :quickmark-load]+
 * +pass:[cd]+: +pass:[download-clear]+
 * +pass:[co]+: +pass:[tab-only]+
 * +pass:[d]+: +pass:[tab-close]+
 * +pass:[f]+: +pass:[hint]+
 * +pass:[g$]+: +pass:[tab-focus -1]+
 * +pass:[g0]+: +pass:[tab-focus 1]+
-* +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
+* +pass:[gB]+: +pass:[cmd-set-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
 * +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gJ]+: +pass:[tab-move +]+
 * +pass:[gK]+: +pass:[tab-move -]+
-* +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
+* +pass:[gO]+: +pass:[cmd-set-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
 * +pass:[ga]+: +pass:[open -t]+
-* +pass:[gb]+: +pass:[set-cmd-text -s :bookmark-load]+
+* +pass:[gb]+: +pass:[cmd-set-text -s :bookmark-load]+
 * +pass:[gd]+: +pass:[download]+
 * +pass:[gf]+: +pass:[view-source]+
 * +pass:[gg]+: +pass:[scroll-to-perc 0]+
 * +pass:[gi]+: +pass:[hint inputs --first]+
 * +pass:[gm]+: +pass:[tab-move]+
-* +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
-* +pass:[gt]+: +pass:[set-cmd-text -s :tab-select]+
+* +pass:[go]+: +pass:[cmd-set-text :open {url:pretty}]+
+* +pass:[gt]+: +pass:[cmd-set-text -s :tab-select]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
 * +pass:[i]+: +pass:[mode-enter insert]+
@@ -689,15 +688,15 @@ Default:
 * +pass:[l]+: +pass:[scroll right]+
 * +pass:[m]+: +pass:[quickmark-save]+
 * +pass:[n]+: +pass:[search-next]+
-* +pass:[o]+: +pass:[set-cmd-text -s :open]+
+* +pass:[o]+: +pass:[cmd-set-text -s :open]+
 * +pass:[pP]+: +pass:[open -- {primary}]+
 * +pass:[pp]+: +pass:[open -- {clipboard}]+
 * +pass:[q]+: +pass:[macro-record]+
 * +pass:[r]+: +pass:[reload]+
 * +pass:[sf]+: +pass:[save]+
-* +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
-* +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
-* +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[sk]+: +pass:[cmd-set-text -s :bind]+
+* +pass:[sl]+: +pass:[cmd-set-text -s :set -t]+
+* +pass:[ss]+: +pass:[cmd-set-text -s :set]+
 * +pass:[tCH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tCh]+: +pass:[config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tCu]+: +pass:[config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
@@ -726,24 +725,24 @@ Default:
 * +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[mode-enter caret]+
-* +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wB]+: +pass:[cmd-set-text -s :bookmark-load -w]+
 * +pass:[wIf]+: +pass:[devtools-focus]+
 * +pass:[wIh]+: +pass:[devtools left]+
 * +pass:[wIj]+: +pass:[devtools bottom]+
 * +pass:[wIk]+: +pass:[devtools top]+
 * +pass:[wIl]+: +pass:[devtools right]+
 * +pass:[wIw]+: +pass:[devtools window]+
-* +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
+* +pass:[wO]+: +pass:[cmd-set-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
-* +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
+* +pass:[wb]+: +pass:[cmd-set-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
 * +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
-* +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
+* +pass:[wo]+: +pass:[cmd-set-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
-* +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
-* +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
+* +pass:[xO]+: +pass:[cmd-set-text :open -b -r {url:pretty}]+
+* +pass:[xo]+: +pass:[cmd-set-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
 * +pass:[yM]+: +pass:[yank inline [{title}\]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
@@ -1696,66 +1695,15 @@ Default: +pass:[0.0]+
 === colors.webpage.darkmode.enabled
 Render all web contents using a dark theme.
 Example configurations from Chromium's `chrome://flags`:
-
 - "With simple HSL/CIELAB/RGB-based inversion": Set
-  `colors.webpage.darkmode.algorithm` accordingly.
+  `colors.webpage.darkmode.algorithm` accordingly, and
+  set `colors.webpage.darkmode.policy.images` to `never`.
 
-- "With selective image inversion": Set
-  `colors.webpage.darkmode.policy.images` to `smart`.
-
-- "With selective inversion of non-image elements": Set
-  `colors.webpage.darkmode.threshold.text` to 150 and
-  `colors.webpage.darkmode.threshold.background` to 205.
-
-- "With selective inversion of everything": Combines the two variants
-  above.
-
-- "With increased text contrast": Set
-  `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
+- "With selective image inversion": qutebrowser default settings.
 
 This setting requires a restart.
 
 This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-[[colors.webpage.darkmode.grayscale.all]]
-=== colors.webpage.darkmode.grayscale.all
-Render all colors as grayscale.
-This only has an effect when `colors.webpage.darkmode.algorithm` is set to `lightness-hsl` or `brightness-rgb`.
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-[[colors.webpage.darkmode.grayscale.images]]
-=== colors.webpage.darkmode.grayscale.images
-Desaturation factor for images in dark mode.
-If set to 0, images are left as-is. If set to 1, images are completely grayscale. Values between 0 and 1 desaturate the colors accordingly.
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Float>>
-
-Default: +pass:[0.0]+
-
-[[colors.webpage.darkmode.increase_text_contrast]]
-=== colors.webpage.darkmode.increase_text_contrast
-Increase text contrast by drawing an outline of the uninverted color.
-
-This setting requires a restart.
-
-On QtWebEngine, this setting requires Qt 6.3 or newer.
-
-On QtWebKit, this setting is unavailable.
 
 Type: <<types,Bool>>
 
@@ -1764,7 +1712,6 @@ Default: +pass:[false]+
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
 Which images to apply dark mode to.
-With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
 
 This setting requires a restart.
 
@@ -1777,6 +1724,7 @@ Valid values:
  * +always+: Apply dark mode filter to all images.
  * +never+: Never apply dark mode filter to any images.
  * +smart+: Apply dark mode based on image content. Not available with Qt 5.15.0.
+ * +smart-simple+: On QtWebEngine 6.6, use a simpler algorithm for smart mode (based on numbers of colors and transparency), rather than an ML-based model. Same as 'smart' on older QtWebEnigne versions.
 
 Default: +pass:[smart]+
 
@@ -1802,7 +1750,7 @@ Default: +pass:[smart]+
 === colors.webpage.darkmode.threshold.background
 Threshold for inverting background elements with dark mode.
 Background elements with brightness above this threshold will be inverted, and below it will be left as in the original, non-dark-mode page. Set to 256 to never invert the color or to 0 to always invert it.
-Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
+Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.foreground`!
 
 This setting requires a restart.
 
@@ -1812,8 +1760,8 @@ Type: <<types,Int>>
 
 Default: +pass:[0]+
 
-[[colors.webpage.darkmode.threshold.text]]
-=== colors.webpage.darkmode.threshold.text
+[[colors.webpage.darkmode.threshold.foreground]]
+=== colors.webpage.darkmode.threshold.foreground
 Threshold for inverting text with dark mode.
 Text colors with brightness below this threshold will be inverted, and above it will be left as in the original, non-dark-mode page. Set to 256 to always invert text color or to 0 to never invert text color.
 
@@ -2154,8 +2102,9 @@ Default: empty
 === content.canvas_reading
 Allow websites to read canvas elements.
 Note this is needed for some websites to work properly.
+On QtWebEngine < 6.6, this setting requires a restart and does not support URL patterns, only the global setting is applied.
 
-This setting requires a restart.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2432,6 +2381,27 @@ This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.javascript.legacy_touch_events]]
+=== content.javascript.legacy_touch_events
+Enables the legacy touch event feature.
+This affects JS APIs such as:
+- ontouch* members on window, document, Element - document.createTouch, document.createTouchList - document.createEvent("TouchEvent")
+Newer Chromium versions have those disabled by default: https://bugs.chromium.org/p/chromium/issues/detail?id=392584 https://groups.google.com/a/chromium.org/g/blink-dev/c/KV6kqDJpYiE
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Legacy touch events are always enabled. This might cause some websites to assume a mobile device.
+ * +auto+: Legacy touch events are only enabled if a touch screen was detected on startup.
+ * +never+: Legacy touch events are always disabled.
+
+Default: +pass:[never]+
 
 [[content.javascript.log]]
 === content.javascript.log
@@ -4016,6 +3986,26 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[qt.workarounds.disable_accelerated_2d_canvas]]
+=== qt.workarounds.disable_accelerated_2d_canvas
+Disable accelerated 2d canvas to avoid graphical glitches.
+On some setups graphical issues can occur on sites like Google sheets and PDF.js. These don't occur when accelerated 2d canvas is turned off, so we do that by default.
+So far these glitches only occur on some Intel graphics devices.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Disable accelerated 2d canvas
+ * +auto+: Disable on Qt6 < 6.6.0, enable otherwise
+ * +never+: Enable accelerated 2d canvas
+
+Default: +pass:[auto]+
 
 [[qt.workarounds.locale]]
 === qt.workarounds.locale

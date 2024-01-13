@@ -3,6 +3,16 @@
 """Qt wrapper selection.
 
 Contains selection logic and globals for Qt wrapper selection.
+
+All other files in this package are intended to be simple wrappers around Qt imports.
+Depending on what is set in this module, they import from PyQt5 or PyQt6.
+
+The import wrappers are intended to be as thin as possible. They will not unify
+API-level differences between Qt 5 and Qt 6. This is best handled by the calling code,
+which has a better picture of what changed between APIs and how to best handle it.
+
+What they *will* do is handle simple 1:1 renames of classes, or moves between
+modules (where they aim to always expose the Qt 6 API). See e.g. webenginecore.py.
 """
 
 # NOTE: No qutebrowser or PyQt import should be done here (at import time),
@@ -18,11 +28,13 @@ import importlib
 import dataclasses
 from typing import Optional, Dict
 
-# Packagers: Patch the line below to change the default wrapper for Qt 6 packages, e.g.:
-# sed -i 's/_DEFAULT_WRAPPER = "PyQt5"/_DEFAULT_WRAPPER = "PyQt6"/' qutebrowser/qt/machinery.py
+from qutebrowser.utils import log
+
+# Packagers: Patch the line below to enforce a Qt wrapper, e.g.:
+# sed -i 's/_WRAPPER_OVERRIDE = .*/_WRAPPER_OVERRIDE = "PyQt6"/' qutebrowser/qt/machinery.py
 #
 # Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
-_DEFAULT_WRAPPER = "PyQt5"
+_WRAPPER_OVERRIDE = None
 
 WRAPPERS = [
     "PyQt6",
@@ -77,6 +89,9 @@ class SelectionReason(enum.Enum):
 
     #: The wrapper was faked/patched out (e.g. in tests).
     fake = "fake"
+
+    #: The wrapper was overridden by patching _WRAPPER_OVERRIDE.
+    override = "override"
 
     #: The reason was not set.
     unknown = "unknown"
@@ -150,7 +165,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
 
     - If --qt-wrapper is given, use that.
     - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
-    - Otherwise, use PyQt5 (FIXME:qt6 autoselect).
+    - Otherwise, try the wrappers in WRAPPER in order (PyQt6 -> PyQt5)
     """
     # If any Qt wrapper has been imported before this, something strange might
     # be happening.
@@ -168,15 +183,17 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
         if env_wrapper == "auto":
             return _autoselect_wrapper()
         elif env_wrapper not in WRAPPERS:
-            raise Error(f"Unknown wrapper {env_wrapper} set via {env_var}, "
-                        f"allowed: {', '.join(WRAPPERS)}")
+            raise Error(
+                f"Unknown wrapper {env_wrapper} set via {env_var}, "
+                f"allowed: {', '.join(WRAPPERS)}"
+            )
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
-    # FIXME:qt6 Go back to the auto-detection once ready
-    # FIXME:qt6 Make sure to still consider _DEFAULT_WRAPPER for packagers
-    # (rename to _WRAPPER_OVERRIDE since our sed command is broken anyways then?)
-    # return _autoselect_wrapper()
-    return SelectionInfo(wrapper=_DEFAULT_WRAPPER, reason=SelectionReason.default)
+    if _WRAPPER_OVERRIDE is not None:
+        assert _WRAPPER_OVERRIDE in WRAPPERS  # type: ignore[unreachable]
+        return SelectionInfo(wrapper=_WRAPPER_OVERRIDE, reason=SelectionReason.override)
+
+    return _autoselect_wrapper()
 
 
 # Values are set in init(). If you see a NameError here, it means something tried to
@@ -217,8 +234,7 @@ def _set_globals(info: SelectionInfo) -> None:
     Those are split into multiple global variables because that way we can teach mypy
     about them via --always-true and --always-false, see tox.ini.
     """
-    global INFO, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, \
-        IS_PYQT, IS_PYSIDE, _initialized
+    global INFO, USE_PYQT5, USE_PYQT6, USE_PYSIDE6, IS_QT5, IS_QT6, IS_PYQT, IS_PYSIDE, _initialized
 
     assert info.wrapper is not None, info
     assert not _initialized
@@ -280,6 +296,7 @@ def init(args: argparse.Namespace) -> SelectionInfo:
     info = _select_wrapper(args)
     if info.wrapper is not None:
         _set_globals(info)
+        log.init.debug(str(info))
 
     # If info is None here (no Qt wrapper available), we'll show an error later
     # in earlyinit.py.

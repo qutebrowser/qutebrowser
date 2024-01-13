@@ -1,32 +1,20 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Base class for vim-like key sequence parser."""
 
 import string
 import types
 import dataclasses
+import traceback
 from typing import Mapping, MutableMapping, Optional, Sequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, utils
+from qutebrowser.utils import log, usertypes, utils, message
 from qutebrowser.keyinput import keyutils
 
 
@@ -202,7 +190,7 @@ class BaseKeyParser(QObject):
                               passthrough=self.passthrough,
                               supports_count=self._supports_count)
 
-    def _debug_log(self, message: str) -> None:
+    def _debug_log(self, msg: str) -> None:
         """Log a message to the debug log if logging is active.
 
         Args:
@@ -211,7 +199,7 @@ class BaseKeyParser(QObject):
         if self._do_log:
             prefix = '{} for mode {}: '.format(self.__class__.__name__,
                                                self._mode.name)
-            log.keyboard.debug(prefix + message)
+            log.keyboard.debug(prefix + msg)
 
     def _match_key(self, sequence: keyutils.KeySequence) -> MatchResult:
         """Try to match a given keystring with any bound keychain.
@@ -328,7 +316,15 @@ class BaseKeyParser(QObject):
             assert result.command is not None
             self._debug_log("Definitive match for '{}'.".format(
                 result.sequence))
-            count = int(self._count) if self._count else None
+
+            try:
+                count = int(self._count) if self._count else None
+            except ValueError as err:
+                message.error(f"Failed to parse count: {err}",
+                              stack=traceback.format_exc())
+                self.clear_keystring()
+                return
+
             self.clear_keystring()
             self.execute(result.command, count)
         elif result.match_type == QKeySequence.SequenceMatch.PartialMatch:

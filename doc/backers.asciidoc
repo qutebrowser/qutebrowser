@@ -1,6 +1,14 @@
 Crowdfunding backers
 ====================
 
+2019+
+-----
+
+Since late 2019, qutebrowser is taking recurring donations via
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors] and
+https://liberapay.com/The-Compiler/[Liberapay]. You can find Sponsors/Patrons
+who opted to be listed as public on the respective pages. **Thank you!**
+
 2017
 ----
 

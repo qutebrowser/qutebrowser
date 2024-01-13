@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """URL displayed in the statusbar."""
 
@@ -116,7 +103,9 @@ class UrlText(textbase.TextBase):
         if old_urltype != self._urltype:
             # We can avoid doing an unpolish here because the new style will
             # always override the old one.
-            self.style().polish(self)
+            style = self.style()
+            assert style is not None
+            style.polish(self)
 
     @pyqtSlot(usertypes.LoadStatus)
     def on_load_status_changed(self, status):

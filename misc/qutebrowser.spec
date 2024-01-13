@@ -64,17 +64,17 @@ INFO_PLIST_UPDATES = {
 
 def get_data_files():
     data_files = [
-        ('../qutebrowser/html', 'html'),
-        ('../qutebrowser/img', 'img'),
-        ('../qutebrowser/icons', 'icons'),
-        ('../qutebrowser/javascript', 'javascript'),
-        ('../qutebrowser/html/doc', 'html/doc'),
-        ('../qutebrowser/git-commit-id', '.'),
-        ('../qutebrowser/config/configdata.yml', 'config'),
+        ('../qutebrowser/html', 'qutebrowser/html'),
+        ('../qutebrowser/img', 'qutebrowser/img'),
+        ('../qutebrowser/icons', 'qutebrowser/icons'),
+        ('../qutebrowser/javascript', 'qutebrowser/javascript'),
+        ('../qutebrowser/html/doc', 'qutebrowser/html/doc'),
+        ('../qutebrowser/git-commit-id', 'qutebrowser/git-commit-id'),
+        ('../qutebrowser/config/configdata.yml', 'qutebrowser/config'),
     ]
 
     if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
-        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+        data_files.append(('../qutebrowser/3rdparty/pdfjs', 'qutebrowser/3rdparty/pdfjs'))
     else:
         print("Warning: excluding pdfjs as it's not present!")
 
@@ -82,7 +82,7 @@ def get_data_files():
 
 
 def get_hidden_imports():
-    imports = [] if "PYINSTALLER_QT6" in os.environ else ['PyQt5.QtOpenGL']
+    imports = ["PyQt5.QtOpenGL"] if "PYINSTALLER_QT5" in os.environ else []
     for info in loader.walk_components():
         imports.append(info.name)
     return imports
@@ -100,6 +100,11 @@ else:
 
 
 DEBUG = os.environ.get('PYINSTALLER_DEBUG', '').lower() in ['1', 'true']
+if DEBUG:
+  options = options = [('v', None, 'OPTION')]
+else:
+  options = []
+
 
 
 a = Analysis(['../qutebrowser/__main__.py'],
@@ -117,6 +122,7 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
+          options,
           exclude_binaries=True,
           name='qutebrowser',
           icon=icon,
@@ -137,5 +143,4 @@ app = BUNDLE(coll,
              name='qutebrowser.app',
              icon=icon,
              info_plist=INFO_PLIST_UPDATES,
-             # https://github.com/pyinstaller/pyinstaller/blob/b78bfe530cdc2904f65ce098bdf2de08c9037abb/PyInstaller/hooks/hook-PyQt5.QtWebEngineWidgets.py#L24
-             bundle_identifier='org.qt-project.Qt.QtWebEngineCore')
+             bundle_identifier='org.qutebrowser.qutebrowser')

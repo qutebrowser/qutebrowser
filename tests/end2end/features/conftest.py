@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Steps for bdd-like tests."""
 
@@ -46,8 +33,7 @@ def _get_echo_exe_path():
         Path to the "echo"-utility.
     """
     if utils.is_windows:
-        return os.path.join(testutils.abs_datapath(), 'userscripts',
-                            'echo.bat')
+        return str(testutils.abs_datapath() / 'userscripts' / 'echo.bat')
     else:
         return shutil.which("echo")
 
@@ -212,6 +198,7 @@ def open_path(quteproc, server, path):
     - With "... as a URL", it's opened according to new_instance_open_target.
     """
     path = path.replace('(port)', str(server.port))
+    path = testutils.substitute_testdata(path)
 
     new_tab = False
     related_tab = False
@@ -294,7 +281,7 @@ def run_command(quteproc, server, tmpdir, command):
         invalid = False
 
     command = command.replace('(port)', str(server.port))
-    command = command.replace('(testdata)', testutils.abs_datapath())
+    command = testutils.substitute_testdata(command)
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
     command = command.replace('(echo-exe)', _get_echo_exe_path())
@@ -388,7 +375,7 @@ def hint(quteproc, args):
 
 @bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
 def hint_and_follow(quteproc, args, letter):
-    args = args.replace('(testdata)', testutils.abs_datapath())
+    args = testutils.substitute_testdata(args)
     args = args.replace('(python-executable)', sys.executable)
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')

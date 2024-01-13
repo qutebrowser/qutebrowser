@@ -1,21 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>
+# SPDX-FileCopyrightText: Jay Kamat <jaygkamat@gmail.com>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """This userscript allows for insertion of usernames and passwords from keepass
 databases using pykeepass. Since it is a userscript, it must be run from
@@ -42,7 +29,7 @@ you do not do this, you will get 'element not editable' errors.
 If keepass takes a while to open the DB, you might want to consider reducing
 the number of transform rounds in your database settings.
 
-Dependencies: pykeepass (in python3), PyQt5. Without pykeepass, you will get an
+Dependencies: pykeepass (in python3), PyQt6. Without pykeepass, you will get an
 exit code of 100.
 
 ********************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************
@@ -64,8 +51,8 @@ import shlex
 import subprocess
 import sys
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QApplication, QInputDialog, QLineEdit
 
 try:
     import pykeepass
@@ -152,7 +139,7 @@ def get_password():
     text, ok = QInputDialog.getText(
         None, "KeePass DB Password",
         "Please enter your KeePass Master Password",
-        QLineEdit.Password)
+        QLineEdit.EchoMode.Password)
     if not ok:
         stderr('Password Prompt Rejected.')
         sys.exit(ExitCodes.USER_QUIT)
@@ -247,10 +234,10 @@ def run(args):
         # into insert-mode, so the form can be directly submitted by hitting
         # enter afterwards. It doesn't matter when we go into insert mode, but
         # the other commands need to be be executed sequentially, so we add
-        # delays with later.
+        # delays with cmd-later.
         qute_command('insert-text {} ;;'
-                     'later {} fake-key <Tab> ;;'
-                     'later {} insert-text {}{}'
+                     'cmd-later {} fake-key <Tab> ;;'
+                     'cmd-later {} insert-text {}{}'
                      .format(username, CMD_DELAY,
                              CMD_DELAY * 2, password, insert_mode))
 

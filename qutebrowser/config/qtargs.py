@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Get arguments to pass to Qt."""
 
@@ -21,7 +8,7 @@ import os
 import sys
 import argparse
 import pathlib
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union, Callable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QLocale
@@ -286,10 +273,19 @@ def _qtwebengine_args(
     if disabled_features:
         yield _DISABLE_FEATURES + ','.join(disabled_features)
 
-    yield from _qtwebengine_settings_args()
+    yield from _qtwebengine_settings_args(versions)
 
 
-_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
+_SettingValueType = Union[
+    str,
+    Callable[
+        [
+            version.WebEngineVersions,
+        ],
+        Optional[str],
+    ],
+]
+_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
     'qt.force_software_rendering': {
         'software-opengl': None,
         'qt-quick': None,
@@ -298,6 +294,7 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
     },
     'content.canvas_reading': {
         True: None,
+        # might be overridden in webenginesettings.py
         False: '--disable-reading-from-canvas',
     },
     'content.webrtc_ip_handling_policy': {
@@ -311,6 +308,11 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
         'disable-non-proxied-udp':
             '--force-webrtc-ip-handling-policy='
             'disable_non_proxied_udp',
+    },
+    'content.javascript.legacy_touch_events': {
+        'always': '--touch-events=enabled',
+        'auto': '--touch-events=auto',
+        'never': '--touch-events=disabled',
     },
     'qt.chromium.process_model': {
         'process-per-site-instance': None,
@@ -337,13 +339,25 @@ _WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[str]]] = {
         'auto':
             '--enable-experimental-web-platform-features' if machinery.IS_QT5 else None,
     },
+    'qt.workarounds.disable_accelerated_2d_canvas': {
+        'always': '--disable-accelerated-2d-canvas',
+        'never': None,
+        'auto': lambda _versions: '--disable-accelerated-2d-canvas' if machinery.IS_QT6 else None,
+    },
 }
 
 
-def _qtwebengine_settings_args() -> Iterator[str]:
+def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
     for setting, args in sorted(_WEBENGINE_SETTINGS.items()):
         arg = args[config.instance.get(setting)]
-        if arg is not None:
+        if callable(arg):
+            result = arg(versions)
+            if result is not None:
+                assert isinstance(
+                    result, str
+                ), f"qt.settings feature detection returned an invalid type: {type(result)} for {setting}"
+                yield result
+        elif arg is not None:
             yield arg
 
 

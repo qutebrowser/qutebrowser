@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utilities for IPC with existing instances."""
 
@@ -23,12 +10,13 @@ import json
 import getpass
 import binascii
 import hashlib
+from typing import Optional
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt
 from qutebrowser.qt.network import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, standarddir, utils, debug
+from qutebrowser.utils import log, usertypes, error, standarddir, utils, debug, qtutils
 from qutebrowser.qt import sip
 
 
@@ -188,7 +176,7 @@ class IPCServer(QObject):
             self._atime_timer.timeout.connect(self.update_atime)
             self._atime_timer.setTimerType(Qt.TimerType.VeryCoarseTimer)
 
-        self._server = QLocalServer(self)
+        self._server: Optional[QLocalServer] = QLocalServer(self)
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
@@ -215,6 +203,7 @@ class IPCServer(QObject):
 
     def listen(self):
         """Start listening on self._socketname."""
+        assert self._server is not None
         log.ipc.debug("Listening as {}".format(self._socketname))
         if self._atime_timer is not None:  # pragma: no branch
             self._atime_timer.start()
@@ -252,17 +241,16 @@ class IPCServer(QObject):
     @pyqtSlot()
     def handle_connection(self):
         """Handle a new connection to the server."""
-        if self.ignored:
+        if self.ignored or self._server is None:
             return
         if self._socket is not None:
             log.ipc.debug("Got new connection but ignoring it because we're "
                           "still handling another one (0x{:x}).".format(
                               id(self._socket)))
             return
-        socket = self._server.nextPendingConnection()
+        socket = qtutils.add_optional(self._server.nextPendingConnection())
         if socket is None:
-            log.ipc.debug(  # type: ignore[unreachable]
-                "No new connection to handle.")
+            log.ipc.debug("No new connection to handle.")
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
         self._socket = socket
@@ -423,6 +411,7 @@ class IPCServer(QObject):
         access time timestamp modified at least once every 6 hours of monotonic
         time or the 'sticky' bit should be set on the file.
         """
+        assert self._server is not None
         path = self._server.fullServerName()
         if not path:
             log.ipc.error("In update_atime with no server path!")
@@ -441,11 +430,19 @@ class IPCServer(QObject):
     @pyqtSlot()
     def shutdown(self):
         """Shut down the IPC server cleanly."""
+        if self._server is None:
+            # We can get called twice when using :restart -- there, IPC is shut down
+            # early to avoid processing new connections while shutting down, and then
+            # we get called again when the application is about to quit.
+            return
+
         log.ipc.debug("Shutting down IPC (socket 0x{:x})".format(
             id(self._socket)))
+
         if self._socket is not None:
             self._socket.deleteLater()
             self._socket = None
+
         self._timer.stop()
         if self._atime_timer is not None:  # pragma: no branch
             self._atime_timer.stop()
@@ -453,9 +450,11 @@ class IPCServer(QObject):
                 self._atime_timer.timeout.disconnect(self.update_atime)
             except TypeError:
                 pass
+
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
+        self._server = None
 
 
 def send_to_running_instance(socketname, command, target_arg, *, socket=None):

@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.version."""
 
@@ -657,8 +644,8 @@ class TestModuleVersions:
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
-        ('colorama', 1, 'colorama: no'),
-        ('adblock', 5, 'adblock: no'),
+        ('colorama', 0, 'colorama: no'),
+        ('adblock', 4, 'adblock: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -706,11 +693,11 @@ class TestModuleVersions:
         assert not mod_info.is_usable()
 
         expected = f"adblock: {fake_version} (< {mod_info.min_version}, outdated)"
-        assert version._module_versions()[5] == expected
+        assert version._module_versions()[4] == expected
 
     @pytest.mark.parametrize('attribute, expected_modules', [
         ('VERSION', ['colorama']),
-        ('SIP_VERSION_STR', ['sip']),
+        ('SIP_VERSION_STR', ['PyQt5.sip', 'PyQt6.sip']),
         (None, []),
     ])
     def test_version_attribute(self, attribute, expected_modules, import_fake):
@@ -898,9 +885,7 @@ class TestPDFJSVersion:
 
     def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
-        try:
-            pdfjs.get_pdfjs_res_and_path('build/pdf.js')
-        except pdfjs.PDFJSNotFound:
+        if not pdfjs.is_available():
             pytest.skip("No pdfjs found")
         ver = version._pdfjs_version()
         assert ver.split()[0] not in ['no', 'unknown'], ver
@@ -1002,6 +987,17 @@ class TestWebEngineVersions:
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
+        try:
+            # pylint: disable=unused-import
+            from qutebrowser.qt.webenginecore import (
+                qWebEngineVersion,
+                qWebEngineChromiumVersion,
+            )
+        except ImportError:
+            pass
+        else:
+            pytest.skip("API available to get the real version")
+
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
             if '.dev' in PYQT_VERSION_STR:

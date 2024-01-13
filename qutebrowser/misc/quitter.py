@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Helpers related to quitting qutebrowser cleanly."""
 
@@ -26,6 +13,7 @@ import shutil
 import argparse
 import tokenize
 import functools
+import warnings
 import subprocess
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
 
@@ -37,7 +25,7 @@ except ImportError:
 
 import qutebrowser
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtlog
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
@@ -192,11 +180,18 @@ class Quitter(QObject):
         # Open a new process and immediately shutdown the existing one
         try:
             args = self._get_restart_args(pages, session, override_args)
-            subprocess.Popen(args)  # pylint: disable=consider-using-with
+            proc = subprocess.Popen(args)  # pylint: disable=consider-using-with
         except OSError:
             log.destroy.exception("Failed to restart")
             return False
         else:
+            log.destroy.debug(f"New process PID: {proc.pid}")
+            # Avoid ResourceWarning about still running subprocess when quitting.
+            warnings.filterwarnings(
+                "ignore",
+                category=ResourceWarning,
+                message=f"subprocess {proc.pid} is still running",
+            )
             return True
 
     def shutdown(self, status: int = 0,
@@ -219,7 +214,8 @@ class Quitter(QObject):
             status, session))
 
         sessions.shutdown(session, last_window=last_window)
-        prompt.prompt_queue.shutdown()
+        if prompt.prompt_queue is not None:
+            prompt.prompt_queue.shutdown()
 
         # If shutdown was called while we were asking a question, we're in
         # a still sub-eventloop (which gets quit now) and not in the main
@@ -304,5 +300,5 @@ def init(args: argparse.Namespace) -> None:
     """Initialize the global Quitter instance."""
     global instance
     instance = Quitter(args=args, parent=objects.qapp)
-    instance.shutting_down.connect(log.shutdown_log)
+    instance.shutting_down.connect(qtlog.shutdown_log)
     objects.qapp.lastWindowClosed.connect(instance.on_last_window_closed)

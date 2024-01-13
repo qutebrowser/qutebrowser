@@ -1,26 +1,9 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Based on the Eric5 helpviewer,
 # Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
-#
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-#
-# For some reason, a segfault will be triggered if the unnecessary lambdas in
-# this file aren't there.
-# pylint: disable=unnecessary-lambda
 
 """Special network replies.."""
 
@@ -115,6 +98,7 @@ class ErrorNetworkReply(QNetworkReply):
         self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
         QTimer.singleShot(0, lambda: self.errorOccurred.emit(error))
+        # pylint: disable-next=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
@@ -142,6 +126,7 @@ class RedirectNetworkReply(QNetworkReply):
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
         self.setAttribute(QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url)
+        # pylint: disable-next=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):

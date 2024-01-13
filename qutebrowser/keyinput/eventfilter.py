@@ -1,31 +1,17 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Global Qt event filter which dispatches key events."""
 
-from typing import cast
+from typing import cast, Optional
 
-from qutebrowser.qt import machinery
-from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
+from qutebrowser.qt.core import pyqtSlot, QObject, QEvent, qVersion
 from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
-from qutebrowser.utils import objreg, debug, log
+from qutebrowser.utils import objreg, debug, log, qtutils
 
 
 class EventFilter(QObject):
@@ -76,7 +62,7 @@ class EventFilter(QObject):
             # No window available yet, or not a MainWindow
             return False
 
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, obj: Optional[QObject], event: Optional[QEvent]) -> bool:
         """Handle an event.
 
         Args:
@@ -86,9 +72,8 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
+        assert event is not None
         ev_type = event.type()
-        if machinery.IS_QT6:
-            ev_type = cast(QEvent.Type, ev_type)
 
         if self._log_qt_events:
             try:
@@ -98,6 +83,19 @@ class EventFilter(QObject):
 
             ev_type_str = debug.qenum_key(QEvent, ev_type)
             log.misc.debug(f"{source} got event: {ev_type_str}")
+
+        if (
+            ev_type == QEvent.Type.DragEnter and
+            qtutils.is_wayland() and
+            qVersion() == "6.5.2"
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-115757
+            # Fixed in Qt 6.5.3
+            # Can't do this via self._handlers since handling it for QWindow
+            # seems to be too late.
+            log.mouse.warning("Ignoring drag event to prevent Qt crash")
+            event.ignore()
+            return True
 
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so

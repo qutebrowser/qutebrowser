@@ -49,7 +49,7 @@ msg() {
 
 MPV_COMMAND=${MPV_COMMAND:-mpv}
 # Warning: spaces in single flags are not supported
-MPV_FLAGS=${MPV_FLAGS:- --force-window --no-terminal --keep-open=yes --ytdl}
+MPV_FLAGS=${MPV_FLAGS:- --force-window --quiet --keep-open=yes --ytdl}
 IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
 
 js() {
@@ -94,9 +94,9 @@ cat <<EOF
             <a style=\\"font-weight: bold;
                         color: white;
                         background: transparent;
+                        cursor: pointer;
                      \\"
                onClick=\\"restore_video(this, " + i + ");\\"
-               href=\\"javascript: restore_video(this, " + i + ")\\"
               >click here</a>.
             </p>
         ";
@@ -119,7 +119,6 @@ cat <<EOF
     function restore_video(obj, index) {
         obj = App.all_replacements[index];
         video = App.backup_videos[index];
-        console.log(video);
         obj.parentNode.replaceChild(video, obj);
     }
 
@@ -137,7 +136,7 @@ EOF
 printjs() {
     js | sed 's,//.*$,,' | tr '\n' ' '
 }
-echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
+echo "jseval -q -w main $(printjs)" >> "$QUTE_FIFO"
 
 msg info "Opening $QUTE_URL with mpv"
 "${video_command[@]}" "$@" "$QUTE_URL"

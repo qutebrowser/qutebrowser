@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Custom astroid checker for config calls."""
 
@@ -34,7 +21,6 @@ class ConfigChecker(checkers.BaseChecker):
 
     """Custom astroid checker for config calls."""
 
-    __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
         'E9998': ('%s is no valid config option.',  # flake8: disable=S001
@@ -44,7 +30,7 @@ class ConfigChecker(checkers.BaseChecker):
     priority = -1
     printed_warning = False
 
-    @utils.check_messages('bad-config-option')
+    @utils.only_required_for_messages('bad-config-option')
     def visit_attribute(self, node):
         """Visit a getattr node."""
         # We're only interested in the end of a config.val.foo.bar chain

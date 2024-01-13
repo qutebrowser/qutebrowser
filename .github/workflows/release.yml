@@ -1,0 +1,223 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+          # FIXME do we want a possibility to do prereleases here?
+      python_version:
+        description: 'Python version'
+        required: true
+        default: '3.12'
+        type: choice
+        options:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+jobs:
+  prepare:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      release_id: ${{ steps.create-release.outputs.id }}
+    permissions:
+      contents: write  # To push release commit/tag
+    steps:
+      - name: Find release branch
+        uses: actions/github-script@v7
+        id: find-branch
+        with:
+          script: |
+            if (context.payload.inputs.release_type != 'patch') {
+              return 'main';
+            }
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const branch_names = branches.map(branch => branch.name);
+            console.log(`branches: ${branch_names}`);
+            const release_branches = branch_names.filter(branch => branch.match(/^v\d+\.\d+\.x$/));
+            if (release_branches.length === 0) {
+              core.setFailed('No release branch found!');
+              return '';
+            }
+            console.log(`release_branches: ${release_branches}`);
+            // Get newest release branch (biggest version number)
+            const sorted = release_branches.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+            console.log(`sorted: ${sorted}`);
+            return sorted.at(-1);
+          result-encoding: string
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Doesn't really matter what we prepare the release with, but let's
+          # use the same version for consistency.
+          python-version: ${{ github.event.inputs.python_version }}
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Configure git
+        run: |
+            git config --global user.name "qutebrowser bot"
+            git config --global user.email "bot@qutebrowser.org"
+      - name: Switch to release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.find-branch.outputs.result }}
+      - name: Import GPG Key
+        run: |
+          gpg --import <<< "${{ secrets.QUTEBROWSER_BOT_GPGKEY }}"
+      - name: Bump version
+        id: bump
+        run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
+      - name: Check milestone
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const milestones = await github.paginate(github.rest.issues.listMilestones, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const names = milestones.map(milestone => milestone.title);
+            console.log(`milestones: ${names}`);
+
+            const milestone = milestones.find(milestone => milestone.title === "v${{ steps.bump.outputs.version }}");
+            if (milestone !== undefined) {
+              core.setFailed(`Found open milestone ${milestone.title} with ${milestone.open_issues} open and ${milestone.closed_issues} closed issues!`);
+            }
+      - name: Push release commit/tag
+        run: |
+            git push origin ${{ steps.find-branch.outputs.result }}
+            git push origin v${{ steps.bump.outputs.version }}
+      - name: Cherry-pick release commit
+        if: ${{ github.event.inputs.release_type == 'patch' }}
+        run: |
+            git checkout main
+            git cherry-pick -x v${{ steps.bump.outputs.version }}
+            git push origin main
+            git checkout v${{ steps.bump.outputs.version_x }}
+      - name: Create release branch
+        if: ${{ github.event.inputs.release_type != 'patch' }}
+        run: |
+            git checkout -b v${{ steps.bump.outputs.version_x }}
+            git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
+      - name: Create GitHub draft release
+        id: create-release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          draft: true
+          body: "*Release artifacts for this release are currently being uploaded...*"
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: macos-11
+          - os: windows-2019
+          - os: ubuntu-20.04
+    runs-on: "${{ matrix.os }}"
+    timeout-minutes: 45
+    needs: [prepare]
+    permissions:
+      contents: write  # To upload release artifacts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare.outputs.version }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ github.event.inputs.python_version }}
+      - name: Import GPG Key
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        run: |
+          gpg --import <<< "${{ secrets.QUTEBROWSER_BOT_GPGKEY }}"
+      # Needed because of the following import chain:
+      # - scripts/dev/build_release.py
+      # - scripts/dev/update_3rdparty.py
+      # - scripts/dictcli.py
+      # - qutebrowser/browser/webengine/spell.py
+      # - utils.message -> utils.usertypes -> utils.qtutils -> qt.gui
+      # - PyQt6.QtGui
+      # Some additional packages are needed for a2x to build manpage
+      - name: Install apt dependencies
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        run: |
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends libegl1-mesa libxml2-utils docbook-xml xsltproc docbook-xsl
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      # FIXME consider switching to trusted publishers:
+      # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
+      - name: Build and upload release
+        run: "tox -e build-release -- --upload --no-confirm"
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.QUTEBROWSER_BOT_PYPI_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  finalize:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    needs: [prepare, release]
+    permissions:
+      contents: write  # To change release
+    steps:
+      - name: Publish final release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: "${{ needs.prepare.outputs.release_id }}",
+              draft: false,
+              body: "Check the [changelog](https://github.com/qutebrowser/qutebrowser/blob/main/doc/changelog.asciidoc) for changes in this release.",
+            })
+  irc:
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    needs: [prepare, release, finalize]
+    if: "${{ always() }}"
+    steps:
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "${{ needs.finalize.result == 'success' }}"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send main channel IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "${{ needs.finalize.result == 'success' && github.repository == 'qutebrowser/qutebrowser' }}"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser'
+          nickname: qutebrowser-bot
+          message: "qutebrowser v${{ needs.prepare.outputs.version }} has been released! https://github.com/${{ github.repository }}/releases/tag/v${{ needs.prepare.outputs.version }}"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v2
+        if: "${{ needs.finalize.result != 'success' }}"
+        with:
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            prepare: ${{ needs.prepare.result }}, release: ${{ needs.release.result}}, finalize: ${{ needs.finalize.result }}"

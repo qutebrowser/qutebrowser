@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Initialization of qutebrowser and application-wide things.
 
@@ -42,7 +29,7 @@ import tempfile
 import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional
+from typing import Iterable, Optional, List, Tuple
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.widgets import QApplication, QWidget
@@ -340,7 +327,7 @@ def _open_special_pages(args):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
-    pages = [
+    pages: List[Tuple[str, bool, str]] = [
         # state, condition, URL
         ('quickstart-done',
          True,
@@ -359,14 +346,17 @@ def _open_special_pages(args):
          True,
          'qute://warning/sessions'),
 
-        ('sandboxing-warning-shown',
+        ('qt5-warning-shown',
          (
-             hasattr(sys, "frozen") and
-             utils.is_mac and
-             machinery.IS_QT6 and
-             os.environ.get("QTWEBENGINE_DISABLE_SANDBOX") == "1"
+             machinery.IS_QT5 and
+             machinery.INFO.reason == machinery.SelectionReason.auto and
+             objects.backend != usertypes.Backend.QtWebKit
          ),
-         'qute://warning/sandboxing'),
+         'qute://warning/qt5'),
+
+        ('birthday-2023-shown',
+         datetime.date.today() == datetime.date(2023, 12, 14),
+         'https://qutebrowser.org/birthday.html'),
     ]
 
     if 'quickstart-done' not in general_sect:
@@ -575,7 +565,7 @@ class Application(QApplication):
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
         """Log when the focus object changed."""
-        output = repr(obj)
+        output = qtutils.qobj_repr(obj)
         if self._last_focus_object != output:
             log.misc.debug("Focus object changed: {}".format(output))
         self._last_focus_object = output

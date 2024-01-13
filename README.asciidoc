@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // If you are reading this in plaintext or on PyPi:
 //
 // A rendered version is available at:
-// https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc
+// https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc
 
 qutebrowser
 ===========
@@ -10,9 +12,9 @@ qutebrowser
 image:qutebrowser/icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on Python and Qt.*
 
 image:https://github.com/qutebrowser/qutebrowser/workflows/CI/badge.svg["Build Status", link="https://github.com/qutebrowser/qutebrowser/actions?query=workflow%3ACI"]
-image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
+image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=main["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=main"]
 
-link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc[installing]
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/main/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc[installing]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
@@ -25,7 +27,7 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 part-time on qutebrowser, funded by donations.** To sustain this for a long
 time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] or
-https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[alternative donation methods]
+https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#donating[alternative donation methods]
 for more information. Depending on your sign-up date and how
 long you keep a certain level, you can get qutebrowser t-shirts, stickers and
 more!
@@ -138,7 +140,7 @@ level, you can get qutebrowser t-shirts, stickers and more!
 GitHub Sponsors allows for one-time donations (using the buttons next to "Select a
 tier") as well as custom amounts. **For currencies other than Euro or Swiss Francs, this
 is the preferred donation method.** GitHub uses https://stripe.com/[Stripe] to accept
-payment via credit carts without any fees. Billing via PayPal is available as well, with
+payment via credit cards without any fees. Billing via PayPal is available as well, with
 less fees than a direct PayPal transaction.
 
 Alternatively, the following donation methods are available -- note that
@@ -218,16 +220,16 @@ Active
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebEngine or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution in 2019] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
+* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium]
 * Firefox addons (based on WebExtensions):
   https://tridactyl.xyz/[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF]
 * Addons for Firefox and Chrome:
-  https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
-* Addons for Safari:
-  https://televator.net/vimari/[Vimari]
+  https://github.com/brookhong/Surfingkeys[Surfingkeys] (https://github.com/brookhong/Surfingkeys/issues/1796[somewhat sketchy]...),
+  https://lydell.github.io/LinkHints/[Link Hints] (hinting only),
+  https://github.com/ueokande/vimmatic[Vimmatic]
 
 Inactive
 ~~~~~~~~
@@ -244,7 +246,6 @@ main inspiration for qutebrowser)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
 * https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
-* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
@@ -261,6 +262,8 @@ main inspiration for qutebrowser)
   https://github.com/1995eaton/chromium-vim[cVim],
   https://github.com/dcchambers/vb4c[vb4c] (fork of cVim, https://github.com/dcchambers/vb4c/issues/23#issuecomment-810694017[unmaintained]),
   https://glee.github.io/[GleeBox]
+* Addons for Safari:
+  https://televator.net/vimari/[Vimari]
 
 License
 -------

@@ -23,9 +23,9 @@ Basic keybindings to get you started
 What to do now
 --------------
 
-* View the link:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[key binding cheatsheet]
+* View the link:https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-big.png[key binding cheatsheet]
 to make yourself familiar with the key bindings: +
-image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png"]
+image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-big.png"]
 * There's also a https://www.shortcutfoo.com/app/dojos/qutebrowser[free training
   course] on shortcutfoo for the keybindings - note that you need to be in
   insert mode (i) for it to work.
@@ -63,11 +63,11 @@ qutebrowser, funded by donations.
 
 To sustain this for a long time, your help is needed! Check the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] or
-https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[alternative
+https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#donating[alternative
 donation methods] for more information.  Depending on your sign-up date and how
 long you keep a certain level, you can get qutebrowser t-shirts, stickers and
 more!
 
 Alternatively, there are also various options available for one-time donations, see the
-https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[donation section]
+https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#donating[donation section]
 in the README for details.

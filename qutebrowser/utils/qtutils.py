@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Misc. utilities related to Qt.
 
@@ -31,8 +18,8 @@ import enum
 import pathlib
 import operator
 import contextlib
-from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
-                    Optional, Union, Tuple, Protocol, cast)
+from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Iterator, Literal,
+                    Optional, Union, Tuple, Protocol, cast, overload, TypeVar)
 
 from qutebrowser.qt import machinery, sip
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
@@ -46,6 +33,7 @@ except ImportError:  # pragma: no cover
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory
     from qutebrowser.qt.webenginecore import QWebEngineHistory
+    from typing_extensions import TypeGuard  # added in Python 3.10
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
@@ -92,17 +80,36 @@ def version_check(version: str,
                   compiled: bool = True) -> bool:
     """Check if the Qt runtime version is the version supplied or newer.
 
+    By default this function will check `version` against:
+
+    1. the runtime Qt version (from qVersion())
+    2. the Qt version that PyQt was compiled against (from QT_VERSION_STR)
+    3. the PyQt version (from PYQT_VERSION_STR)
+
+    With `compiled=False` only the runtime Qt version (1) is checked.
+
+    You can often run older PyQt versions against newer Qt versions, but you
+    won't be able to access any APIs that were only added in the newer Qt
+    version. So if you want to check if a new feature is supported, use the
+    default behavior. If you just want to check the underlying Qt version,
+    pass `compiled=False`.
+
     Args:
         version: The version to check against.
         exact: if given, check with == instead of >=
-        compiled: Set to False to not check the compiled version.
+        compiled: Set to False to not check the compiled Qt version or the
+          PyQt version.
     """
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
     parsed = utils.VersionNumber.parse(version)
     op = operator.eq if exact else operator.ge
-    result = op(utils.VersionNumber.parse(qVersion()), parsed)
+
+    qversion = qVersion()
+    assert qversion is not None
+    result = op(utils.VersionNumber.parse(qversion), parsed)
+
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
         result = op(utils.VersionNumber.parse(QT_VERSION_STR), parsed)
@@ -129,6 +136,11 @@ def is_single_process() -> bool:
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
     args = objects.qapp.arguments()
     return '--single-process' in args
+
+
+def is_wayland() -> bool:
+    """Check if we are running on Wayland."""
+    return objects.qapp.platformName() in ["wayland", "wayland-egl"]
 
 
 def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
@@ -224,12 +236,32 @@ def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     check_qdatastream(stream)
 
 
+@overload
+@contextlib.contextmanager
+def savefile_open(
+        filename: str,
+        binary: Literal[False] = ...,
+        encoding: str = 'utf-8'
+) -> Iterator[IO[str]]:
+    ...
+
+
+@overload
+@contextlib.contextmanager
+def savefile_open(
+        filename: str,
+        binary: Literal[True],
+        encoding: str = 'utf-8'
+) -> Iterator[IO[bytes]]:
+    ...
+
+
 @contextlib.contextmanager
 def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> Iterator[IO[AnyStr]]:
+) -> Iterator[Union[IO[str], IO[bytes]]]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -241,7 +273,7 @@ def savefile_open(
         dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f: IO[Any] = dev  # FIXME:mypy Why doesn't AnyStr work?
+            new_f: Union[IO[str], IO[bytes]] = dev
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 
@@ -535,24 +567,58 @@ def interpolate_color(
 
     if colorspace is None:
         if percent == 100:
-            return QColor(*end.getRgb())
+            r, g, b, a = end.getRgb()
+            assert r is not None
+            assert g is not None
+            assert b is not None
+            assert a is not None
+            return QColor(r, g, b, a)
         else:
-            return QColor(*start.getRgb())
+            r, g, b, a = start.getRgb()
+            assert r is not None
+            assert g is not None
+            assert b is not None
+            assert a is not None
+            return QColor(r, g, b, a)
 
     out = QColor()
     if colorspace == QColor.Spec.Rgb:
         r1, g1, b1, a1 = start.getRgb()
         r2, g2, b2, a2 = end.getRgb()
+        assert r1 is not None
+        assert g1 is not None
+        assert b1 is not None
+        assert a1 is not None
+        assert r2 is not None
+        assert g2 is not None
+        assert b2 is not None
+        assert a2 is not None
         components = _get_color_percentage(r1, g1, b1, a1, r2, g2, b2, a2, percent)
         out.setRgb(*components)
     elif colorspace == QColor.Spec.Hsv:
         h1, s1, v1, a1 = start.getHsv()
         h2, s2, v2, a2 = end.getHsv()
+        assert h1 is not None
+        assert s1 is not None
+        assert v1 is not None
+        assert a1 is not None
+        assert h2 is not None
+        assert s2 is not None
+        assert v2 is not None
+        assert a2 is not None
         components = _get_color_percentage(h1, s1, v1, a1, h2, s2, v2, a2, percent)
         out.setHsv(*components)
     elif colorspace == QColor.Spec.Hsl:
         h1, s1, l1, a1 = start.getHsl()
         h2, s2, l2, a2 = end.getHsl()
+        assert h1 is not None
+        assert s1 is not None
+        assert l1 is not None
+        assert a1 is not None
+        assert h2 is not None
+        assert s2 is not None
+        assert l2 is not None
+        assert a2 is not None
         components = _get_color_percentage(h1, s1, l1, a1, h2, s2, l2, a2, percent)
         out.setHsl(*components)
     else:
@@ -611,3 +677,63 @@ def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
     elif isinstance(val, sip.simplewrapper):
         return int(val)  # type: ignore[call-overload]
     return val
+
+
+def qobj_repr(obj: Optional[QObject]) -> str:
+    """Show nicer debug information for a QObject."""
+    py_repr = repr(obj)
+    if obj is None:
+        return py_repr
+
+    try:
+        object_name = obj.objectName()
+        meta_object = obj.metaObject()
+    except AttributeError:
+        # Technically not possible if obj is a QObject, but crashing when trying to get
+        # some debug info isn't helpful.
+        return py_repr
+
+    class_name = "" if meta_object is None else meta_object.className()
+
+    if py_repr.startswith("<") and py_repr.endswith(">"):
+        # With a repr such as <QObject object at 0x...>, we want to end up with:
+        # <QObject object at 0x..., objectName='...'>
+        # But if we have RichRepr() as existing repr, we want:
+        # <RichRepr(), objectName='...'>
+        py_repr = py_repr[1:-1]
+
+    parts = [py_repr]
+    if object_name:
+        parts.append(f"objectName={object_name!r}")
+    if class_name and f".{class_name} object at 0x" not in py_repr:
+        parts.append(f"className={class_name!r}")
+
+    return f"<{', '.join(parts)}>"
+
+
+_T = TypeVar("_T")
+
+
+if machinery.IS_QT5:
+    # On Qt 5, add/remove Optional where type annotations don't have it.
+    # Also we have a special QT_NONE, which (being Any) we can pass to functions
+    # where PyQt type hints claim that it's not allowed.
+
+    def remove_optional(obj: Optional[_T]) -> _T:
+        return cast(_T, obj)
+
+    def add_optional(obj: _T) -> Optional[_T]:
+        return cast(Optional[_T], obj)
+
+    QT_NONE: Any = None
+else:
+    # On Qt 6, all those things are handled correctly by type annotations, so we
+    # have a no-op below.
+
+    def remove_optional(obj: Optional[_T]) -> Optional[_T]:
+        return obj
+
+    def add_optional(obj: Optional[_T]) -> Optional[_T]:
+        return obj
+
+    QT_NONE = None

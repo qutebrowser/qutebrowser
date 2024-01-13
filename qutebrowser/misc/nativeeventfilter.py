@@ -1,26 +1,13 @@
-# Copyright 2023 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Native Qt event filter.
 
 This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG-114334.
 """
 
-from typing import Tuple, Union, cast
+from typing import Tuple, Union, cast, Optional
 import enum
 import ctypes
 import ctypes.util
@@ -150,11 +137,12 @@ class NativeEventFilter(QAbstractNativeEventFilter):
             xcb.xcb_disconnect(conn)
 
     def nativeEventFilter(
-        self, evtype: Union[bytes, QByteArray], message: sip.voidptr
+        self, evtype: Union[bytes, QByteArray], message: Optional[sip.voidptr]
     ) -> Tuple[bool, _PointerRetType]:
         """Handle XCB events."""
         # We're only installed when the platform plugin is xcb
         assert evtype == b"xcb_generic_event_t", evtype
+        assert message is not None
 
         # We cast to xcb_ge_generic_event_t, which overlaps with xcb_generic_event_t.
         # .extension and .event_type will only make sense if this is an

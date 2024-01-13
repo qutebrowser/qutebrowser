@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-# Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
-# This file is part of qutebrowser.
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 
 """Register problem matchers for GitHub Actions.
 
@@ -171,13 +160,17 @@ MATCHERS = {
     "tests": [
         {
             # pytest test summary output
+            # Examples (with ANSI color codes around FAILED|ERROR and the
+            # function name):
+            # FAILED tests/end2end/features/test_keyinput_bdd.py::test_fakekey_sending_special_key_to_the_website - end2end.fixtures.testprocess.WaitForTimeout: Timed out after 15000ms waiting for {'category': 'js', 'message': '[*] key press: 27'}.
+            # ERROR tests/end2end/test_insert_mode.py::test_insert_mode[100-textarea.html-qute-textarea-clipboard-qutebrowser] - Failed: Logged unexpected errors:
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^=+ short test summary info =+$',
+                    "regexp": r'^.*=== short test summary info ===.*$',
                 },
                 {
-                    "regexp": r"^((ERROR|FAILED) .*)",
+                    "regexp": r"^[^ ]*((ERROR|FAILED)[^ ]* .*)$",
                     "message": 1,
                     "loop": True,
                 }

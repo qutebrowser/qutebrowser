@@ -328,6 +328,26 @@ Feature: Saving and loading sessions
                 - active: true
                   url: http://localhost:*/data/numbers/5.txt
 
+  # https://github.com/qutebrowser/qutebrowser/issues/7696
+  @qtwebkit_skip
+  Scenario: Saving session with an empty download tab
+    When I open data/downloads/downloads.html
+    And I run :click-element --force-event -t tab id download
+    And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
+    And I run :mode-leave
+    And I run :session-save current
+    And I run :session-load --clear current
+    And I wait until data/downloads/downloads.html is loaded
+    Then the session should look like:
+      windows:
+        - tabs:
+          - history:
+            - active: true
+              title: Simple downloads
+              url: http://localhost:*/data/downloads/downloads.html
+          - active: true
+            history: []
+
   # :session-delete
 
   Scenario: Deleting a directory

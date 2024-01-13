@@ -32,25 +32,25 @@ Feature: Searching on a page
 
     @xfail_norun
     Scenario: Searching with / and spaces at the end (issue 874)
-        When I run :set-cmd-text -s /space
+        When I run :cmd-set-text -s /space
         And I run :command-accept
         And I wait for "search found space " in the log
         Then "space " should be found
 
     Scenario: Searching with / and slash in search term (issue 507)
-        When I run :set-cmd-text //slash
+        When I run :cmd-set-text //slash
         And I run :command-accept
         And I wait for "search found /slash" in the log
         Then "/slash" should be found
 
     Scenario: Searching with arguments at start of search term
-        When I run :set-cmd-text /-r reversed
+        When I run :cmd-set-text /-r reversed
         And I run :command-accept
         And I wait for "search found -r reversed" in the log
         Then "-r reversed" should be found
 
     Scenario: Searching with semicolons in search term
-        When I run :set-cmd-text /;
+        When I run :cmd-set-text /;
         And I run :fake-key -g ;
         And I run :fake-key -g <space>
         And I run :fake-key -g semi
@@ -147,6 +147,14 @@ Feature: Searching on a page
         And I run :search-next
         Then the error "No search done yet." should be shown
 
+    # https://github.com/qutebrowser/qutebrowser/issues/7275
+    @qtwebkit_skip
+    Scenario: Jumping to next without matches
+        When I run :search doesnotmatch
+        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I run :search-next
+        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+
     Scenario: Repeating search in a second tab (issue #940)
         When I open data/search.html in a new tab
         And I run :search foo
@@ -221,6 +229,14 @@ Feature: Searching on a page
         When I open data/search.html in a new window
         And I run :search-prev
         Then the error "No search done yet." should be shown
+
+    # https://github.com/qutebrowser/qutebrowser/issues/7275
+    @qtwebkit_skip
+    Scenario: Jumping to previous without matches
+        When I run :search doesnotmatch
+        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I run :search-prev
+        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
 
     ## wrapping
 
@@ -369,7 +385,7 @@ Feature: Searching on a page
         And I run :search follow
         And I wait for "search found follow" in the log
         And I run :selection-follow
-        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt (current http://localhost:*/data/iframe_search.html), type link_clicked, is_main_frame False" should be logged
 
     @qtwebkit_skip: Not supported in qtwebkit @skip
     Scenario: Follow a tabbed searched link in an iframe

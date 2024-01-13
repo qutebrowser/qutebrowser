@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Customized QWebInspector for QtWebEngine."""
 
@@ -48,14 +35,19 @@ class WebEngineInspectorView(QWebEngineView):
 
         See WebEngineView.createWindow for details.
         """
-        inspected_page = self.page().inspectedPage()
+        our_page = self.page()
+        assert our_page is not None
+        inspected_page = our_page.inspectedPage()
+        assert inspected_page is not None
         if machinery.IS_QT5:
             view = inspected_page.view()
             assert isinstance(view, QWebEngineView), view
             return view.createWindow(wintype)
         else:  # Qt 6
             newpage = inspected_page.createWindow(wintype)
-            return webview.WebEngineView.forPage(newpage)
+            ret = webview.WebEngineView.forPage(newpage)
+            assert ret is not None
+            return ret
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):
@@ -101,16 +93,17 @@ class WebEngineInspector(inspector.AbstractWebInspector):
     def inspect(self, page: QWebEnginePage) -> None:
         if not self._widget:
             view = WebEngineInspectorView()
-            inspector_page = QWebEnginePage(
+            new_page = QWebEnginePage(
                 page.profile(),
                 self
             )
-            inspector_page.windowCloseRequested.connect(self._on_window_close_requested)
-            view.setPage(inspector_page)
+            new_page.windowCloseRequested.connect(self._on_window_close_requested)
+            view.setPage(new_page)
             self._settings = webenginesettings.WebEngineSettings(view.settings())
             self._set_widget(view)
 
         inspector_page = self._widget.page()
+        assert inspector_page is not None
         assert inspector_page.profile() == page.profile()
         inspector_page.setInspectedPage(page)
 

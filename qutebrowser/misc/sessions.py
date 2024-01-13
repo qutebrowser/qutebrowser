@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Management of sessions - saved tabs/windows."""
 
@@ -252,6 +239,13 @@ class SessionManager(QObject):
         for idx, item in enumerate(history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
+
+            if not item.url().isValid():
+                # WORKAROUND Qt 6.5 regression
+                # https://github.com/qutebrowser/qutebrowser/issues/7696
+                log.sessions.debug(f"Skipping invalid history item: {item}")
+                continue
+
             if item.url().scheme() == 'qute' and item.url().host() == 'back':
                 # don't add qute://back to the session file
                 if item_data.get('active', False) and data['history']:

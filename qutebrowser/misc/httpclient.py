@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """An HTTP client based on QNetworkAccessManager."""
 
@@ -25,7 +12,7 @@ from qutebrowser.qt.core import pyqtSignal, QObject, QTimer
 from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
 
-from qutebrowser.utils import log
+from qutebrowser.utils import qtlog
 
 
 class HTTPRequest(QNetworkRequest):
@@ -59,7 +46,7 @@ class HTTPClient(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        with log.disable_qt_msghandler():
+        with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
             self._nam = QNetworkAccessManager(self)
@@ -78,9 +65,7 @@ class HTTPClient(QObject):
         request = HTTPRequest(url)
         request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader,
                           'application/x-www-form-urlencoded;charset=utf-8')
-        # FIXME:mypy PyQt6-stubs issue
-        reply = self._nam.post(  # type: ignore[call-overload,unused-ignore]
-            request, encoded_data)
+        reply = self._nam.post(request, encoded_data)
         self._handle_reply(reply)
 
     def get(self, url):

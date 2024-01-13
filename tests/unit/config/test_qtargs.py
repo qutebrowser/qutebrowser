@@ -1,19 +1,7 @@
-# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -63,6 +51,7 @@ def reduce_args(config_stub, version_patcher, monkeypatch):
     config_stub.val.content.headers.referer = 'always'
     config_stub.val.scrolling.bar = 'never'
     config_stub.val.qt.chromium.experimental_web_platform_features = 'never'
+    config_stub.val.qt.workarounds.disable_accelerated_2d_canvas = 'never'
     monkeypatch.setattr(qtargs.utils, 'is_mac', False)
     # Avoid WebRTC pipewire feature
     monkeypatch.setattr(qtargs.utils, 'is_linux', False)
@@ -86,8 +75,10 @@ class TestQtArgs:
         (['--qt-flag', 'foo', '--qt-flag', 'bar'],
          [sys.argv[0], '--foo', '--bar']),
     ])
-    def test_qt_args(self, monkeypatch, config_stub, args, expected, parser):
+    def test_qt_args(self, request, monkeypatch, config_stub, args, expected, parser):
         """Test commandline with no Qt arguments given."""
+        if request.config.webengine:
+            expected.append("--touch-events=disabled")  # passed unconditionally
         parsed = parser.parse_args(args)
         assert qtargs.qt_args(parsed) == expected
 
@@ -165,6 +156,32 @@ class TestWebEngineArgs:
         else:
             assert '--disable-in-process-stack-traces' in args
             assert '--enable-in-process-stack-traces' not in args
+
+    @pytest.mark.parametrize(
+        'qt6, value, has_arg',
+        [
+            (False, 'auto', False),
+            (True, 'auto', True),
+            (True, 'always', True),
+            (True, 'never', False),
+        ],
+    )
+    def test_accelerated_2d_canvas(
+        self,
+        parser,
+        version_patcher,
+        config_stub,
+        monkeypatch,
+        qt6,
+        value,
+        has_arg,
+    ):
+        config_stub.val.qt.workarounds.disable_accelerated_2d_canvas = value
+        monkeypatch.setattr(machinery, 'IS_QT6', qt6)
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+        assert ('--disable-accelerated-2d-canvas' in args) == has_arg
 
     @pytest.mark.parametrize('flags, args', [
         ([], []),

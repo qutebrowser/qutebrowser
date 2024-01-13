@@ -1,19 +1,6 @@
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Showing prompts above the statusbar."""
 
@@ -28,8 +15,8 @@ from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelI
                           QItemSelectionModel, QObject, QEventLoop)
 from qutebrowser.qt.widgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QTreeView, QSizePolicy,
-                             QSpacerItem)
-from qutebrowser.qt.gui import QFileSystemModel
+                             QSpacerItem, QFileIconProvider)
+from qutebrowser.qt.gui import (QFileSystemModel, QIcon)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
@@ -215,6 +202,7 @@ class PromptQueue(QObject):
         log.prompt.debug("Left mode {}, hiding {}".format(
             mode, self._question))
         self.show_prompts.emit(None)
+
         if self._question.answer is None and not self._question.is_aborted:
             log.prompt.debug("Cancelling {} because {} was left".format(
                 self._question, mode))
@@ -274,6 +262,7 @@ class PromptContainer(QWidget):
         }
     """
     update_geometry = pyqtSignal()
+    release_focus = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -300,18 +289,26 @@ class PromptContainer(QWidget):
         Args:
             question: A Question object or None.
         """
-        item = self._layout.takeAt(0)
-        if item is not None:
+        item = qtutils.add_optional(self._layout.takeAt(0))
+        if item is None:
+            widget = None
+        else:
             widget = item.widget()
-            log.prompt.debug("Deleting old prompt {}".format(widget))
-            widget.hide()
+            assert widget is not None
+            log.prompt.debug(f"Deleting old prompt {widget!r}")
             widget.deleteLater()
 
         if question is None:
             log.prompt.debug("No prompts left, hiding prompt container.")
             self._prompt = None
+            self.release_focus.emit()
             self.hide()
             return
+        elif widget is not None:
+            # We have more prompts to show, just hide the old one.
+            # This needs to happen *after* we possibly hid the entire prompt container,
+            # so that keyboard focus can be reassigned properly via release_focus.
+            widget.hide()
 
         classes = {
             usertypes.PromptMode.yesno: YesNoPrompt,
@@ -366,6 +363,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
+            assert widget is not None
             log.prompt.debug("Deleting prompt {}".format(widget))
             widget.hide()
             widget.deleteLater()
@@ -635,6 +633,21 @@ class LineEditPrompt(_BasePrompt):
         return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
+class NullIconProvider(QFileIconProvider):
+
+    """Returns empty icon for everything."""
+
+    def __init__(self):
+        super().__init__()
+        self.null_icon = QIcon()
+
+    def icon(self, _t):
+        return self.null_icon
+
+    def type(self, _info):
+        return 'unknown'
+
+
 class FilenamePrompt(_BasePrompt):
 
     """A prompt for a filename."""
@@ -736,6 +749,10 @@ class FilenamePrompt(_BasePrompt):
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
+
+        # avoid icon and mime type lookups, they are slow in Qt6
+        self._file_model.setIconProvider(NullIconProvider())
+
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
@@ -780,6 +797,7 @@ class FilenamePrompt(_BasePrompt):
         # This duplicates some completion code, but I don't see a nicer way...
         assert which in ['prev', 'next'], which
         selmodel = self._file_view.selectionModel()
+        assert selmodel is not None
 
         parent = self._file_view.rootIndex()
         first_index = self._file_model.index(0, 0, parent)

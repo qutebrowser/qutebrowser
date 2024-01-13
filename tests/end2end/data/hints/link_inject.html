@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>A link to use hints on</title>
+        <script>
+            function injectPort() {
+                const queryString = document.location.search;
+                const params = new URLSearchParams(queryString);
+                const port = params.get("port")
+                let link = document.getElementById("link");
+                link.href = link.href.replace("<port>", port);
+            }
+        </script>
+    </head>
+    <body onload="injectPort()">
+        <a href="http://localhost:<port>/data/hello.txt" id="link">Follow me!</a>
+    </body>
+</html>

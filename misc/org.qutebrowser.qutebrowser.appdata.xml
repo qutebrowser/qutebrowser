@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2017 suve <veg@svgames.pl> -->
+<!-- SPDX-FileCopyrightText: suve <veg@svgames.pl> -->
 <component type="desktop">
 	<id>org.qutebrowser.qutebrowser</id>
 	<metadata_license>CC-BY-SA-3.0</metadata_license>
@@ -23,16 +23,16 @@
 	<launchable type="desktop-id">org.qutebrowser.qutebrowser.desktop</launchable>
 	<screenshots>
 		<screenshot type="default">
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/main.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/main.png</image>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/downloads.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/downloads.png</image>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/completion.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/completion.png</image>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/hints.png</image>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/hints.png</image>
 		</screenshot>
 	</screenshots>
 	<url type="homepage">https://www.qutebrowser.org</url>
@@ -44,6 +44,10 @@
 	</content_rating>
 	<releases>
 <!-- Add new releases here -->
+<release version="3.1.0" date="2023-12-08"/>
+<release version="3.0.2" date="2023-10-19"/>
+<release version="3.0.1" date="2023-10-19"/>
+<release version="3.0.0" date="2023-08-18"/>
 <release version="2.5.4" date="2023-03-13"/>
 <release version="2.5.3" date="2023-02-17"/>
 <release version="2.5.2" date="2022-06-22"/>

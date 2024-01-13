@@ -1,20 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for qutebrowser.utils.qtutils."""
 
@@ -27,8 +13,9 @@ import unittest.mock
 
 import pytest
 from qutebrowser.qt.core import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo, Qt)
+                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo, Qt, QObject)
 from qutebrowser.qt.gui import QColor
+from qutebrowser.qt import sip
 
 from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
@@ -121,6 +108,17 @@ def test_is_single_process(monkeypatch, stubs, backend, arguments, single_proces
     monkeypatch.setattr(qtutils.objects, 'qapp', qapp)
     monkeypatch.setattr(qtutils.objects, 'backend', backend)
     assert qtutils.is_single_process() == single_process
+
+
+@pytest.mark.parametrize('platform, is_wayland', [
+    ("wayland", True),
+    ("wayland-egl", True),
+    ("xcb", False),
+])
+def test_is_wayland(monkeypatch, stubs, platform, is_wayland):
+    qapp = stubs.FakeQApplication(platform_name=platform)
+    monkeypatch.setattr(qtutils.objects, 'qapp', qapp)
+    assert qtutils.is_wayland() == is_wayland
 
 
 class TestCheckOverflow:
@@ -1065,3 +1063,50 @@ class TestLibraryPath:
 def test_extract_enum_val():
     value = qtutils.extract_enum_val(Qt.KeyboardModifier.ShiftModifier)
     assert value == 0x02000000
+
+
+class TestQObjRepr:
+
+    @pytest.mark.parametrize("obj", [QObject(), object(), None])
+    def test_simple(self, obj):
+        assert qtutils.qobj_repr(obj) == repr(obj)
+
+    def _py_repr(self, obj):
+        """Get the original repr of an object, with <> stripped off.
+
+        We do this in code instead of recreating it in tests because of output
+        differences between PyQt5/PyQt6 and between operating systems.
+        """
+        r = repr(obj)
+        if r.startswith("<") and r.endswith(">"):
+            return r[1:-1]
+        return r
+
+    def test_object_name(self):
+        obj = QObject()
+        obj.setObjectName("Tux")
+        expected = f"<{self._py_repr(obj)}, objectName='Tux'>"
+        assert qtutils.qobj_repr(obj) == expected
+
+    def test_class_name(self):
+        obj = QTimer()
+        hidden = sip.cast(obj, QObject)
+        expected = f"<{self._py_repr(hidden)}, className='QTimer'>"
+        assert qtutils.qobj_repr(hidden) == expected
+
+    def test_both(self):
+        obj = QTimer()
+        obj.setObjectName("Pomodoro")
+        hidden = sip.cast(obj, QObject)
+        expected = f"<{self._py_repr(hidden)}, objectName='Pomodoro', className='QTimer'>"
+        assert qtutils.qobj_repr(hidden) == expected
+
+    def test_rich_repr(self):
+        class RichRepr(QObject):
+            def __repr__(self):
+                return "RichRepr()"
+
+        obj = RichRepr()
+        assert repr(obj) == "RichRepr()"  # sanity check
+        expected = "<RichRepr(), className='RichRepr'>"
+        assert qtutils.qobj_repr(obj) == expected

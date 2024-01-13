@@ -15,9 +15,160 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.0.0]]
-v3.0.0 (unreleased)
+[[v3.2.0]]
+v3.2.0 (unreleased)
 -------------------
+
+Changed
+~~~~~~~
+
+- A few more completions will now match search terms in any order:
+  `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
+  and bookmark categories). (#7955)
+
+[[v3.1.1]]
+v3.1.1 (unreleased)
+-------------------
+
+
+[[v3.1.0]]
+v3.1.0 (2023-12-08)
+-------------------
+
+Removed
+~~~~~~~
+
+- The darkmode settings `grayscale.all`, `grayscale.images` and
+  `increase_text_contrast` got removed, following removals in Chromium.
+
+Added
+~~~~~
+
+- New `smart-simple` value for `colors.webpage.darkmode.policy.images`, which on
+  QtWebEngine 6.6+ uses a simpler classification algorithm to decide whether to
+  invert images.
+- New `content.javascript.legacy_touch_events` setting, with those now being
+  disabled by default, following a Chromium change.
+
+Changed
+~~~~~~~
+
+- Upgraded the bundled Qt version to 6.6.1, based on Chromium 112. Note
+  this is only relevant for the macOS/Windows releases, on Linux those will be
+  upgraded via your distribution packages.
+- Upgraded the bundled Python version for macOS/Windows to 3.12
+- The `colors.webpage.darkmode.threshold.text` setting got renamed to
+  `colors.webpage.darkmode.threshold.foreground`, following a rename in
+  Chromium.
+- With Qt 6.6, the `content.canvas_reading` setting now works without a restart
+  and supports URL patterns.
+
+Fixed
+~~~~~
+
+- Some web pages jumping to the top when the statusbar is hidden or (with
+  v3.0.x) when a prompt is hidden.
+- Compatibility with PDF.js v4
+- Added an elaborate workaround for a bug in QtWebEngine 6.6.0 causing crashes
+  on Google Mail/Meet/Chat, and a bug in QtWebEngine 6.5.0/.1/.2 causing crashes
+  there with dark mode.
+- Made a rare crash in QtWebEngine when starting/retrying a download less likely
+  to happen.
+- Graphical glitches in Google sheets and PDF.js, again. Removed the version
+  restriction for the default application of
+  `qt.workarounds.disable_accelerated_2d_canvas` as the issue was still
+  evident on Qt 6.6.0. (#7489)
+- The `colors.webpage.darkmode.threshold.foreground` setting (`.text` in older
+  versions) now works correctly with Qt 6.4+.
+
+
+[[v3.0.2]]
+v3.0.2 (2023-10-19)
+-------------------
+
+Fixed
+~~~~~
+
+- Upgraded the bundled Qt version to 6.5.3. Note this is only relevant for the
+  macOS/Windows releases, on Linux those will be upgraded via your distribution
+  packages. This Qt patch release comes with
+  https://code.qt.io/cgit/qt/qtreleasenotes.git/tree/qt/6.5.3/release-note.md[various important fixes],
+  among them:
+    * Fix for crashes on Google Meet / GMail with dark mode enabled
+    * Fix for right-click in devtools not working properly
+    * Fix for drag & drop not working on Wayland
+    * Fix for some XKB key remappings not working
+    * Security fixes up to Chromium 116.0.5845.187, including
+      https://chromereleases.googleblog.com/2023/09/stable-channel-update-for-desktop_11.html[CVE-2023-4863],
+      a critical heap buffer overflow in WebP, for which "Google is aware that an
+      exploit [...] exists in the wild."
+
+[[v3.0.1]]
+v3.0.1 (2023-10-19)
+-------------------
+
+Fixed
+~~~~~
+
+- The "restore video" functionality of the `view_in_mpv` script works again on
+  webengine.
+- Setting `url.auto_search` to `dns` works correctly now with Qt 6.
+- Counts passed via keypresses now have a digit limit (4300) to avoid
+  exceptions due to cats sleeping on numpads. (#7834)
+- Navigating via hints to a remote URL from a file:// one works again. (#7847)
+- The timers related to the tab audible indicator and the auto follow timeout
+  no longer accumulate connections over time. (#7888)
+- The workaround for crashes when using drag & drop on Wayland with Qt 6.5.2 now also
+  works correctly when using `wayland-egl` rather than `wayland` as Qt platform.
+- Worked around a weird `TypeError` with `QProxyStyle` / `TabBarStyle` on
+  certain platforms with Python 3.12.
+- Removed 1px border for the downloads view, mostly noticeable when it's
+  transparent.
+- Due to a Qt bug, cloning/undoing a tab which was not fully loaded caused
+  qutebrowser to crash. This is now fixed via a workaround.
+- Graphical glitches in Google sheets and PDF.js via a new setting
+  `qt.workarounds.disable_accelerated_2d_canvas` to disable the accelerated 2D
+  canvas feature which defaults to enabled on affected Qt versions. (#7489)
+- The download dialog should no longer freeze when browsing to directories
+  with many files. (#7925)
+- The app.slack.com User-Agent quirk now targets chromium 112 on Qt versions
+  lower than 6.6.0 (previously it always targets chromium 99) (#7951)
+- Workaround a Qt issue causing jpeg files to not show up in the upload file
+  picker when it was filtering for image filetypes (#7866)
+
+[[v3.0.0]]
+v3.0.0 (2023-08-18)
+-------------------
+
+Major changes
+~~~~~~~~~~~~~
+
+- qutebrowser now supports Qt 6 and uses it by default. Qt 5.15 is used as a
+  fallback if Qt 6 is unavailable. This behavior can be customized in three ways
+  (in order of precedence):
+  * Via `--qt-wrapper PyQt5` or `--qt-wrapper PyQt6` command-line arguments.
+  * Via the `QUTE_QT_WRAPPER` environment variable, set to `PyQt6` or `PyQt5`.
+  * For packagers wanting to provide packages specific to a Qt version,
+    patch `qutebrowser/qt/machinery.py` and set `_WRAPPER_OVERRIDE`.
+- Various commands were renamed to better group related commands:
+  * `set-cmd-text` -> `cmd-set-text`
+  * `repeat` -> `cmd-repeat`
+  * `repeat-command` -> `cmd-repeat-last`
+  * `later` -> `cmd-later`
+  * `edit-command` -> `cmd-edit`
+  * `run-with-count` -> `cmd-run-with-count`
+  The old names continue to work for the time being, but are deprecated and
+  show a warning.
+- Releases are now automated on CI, and GPG signed by
+  `qutebrowser bot <bot@qutebrowser.org>`, fingerprint
+  `27F3 BB4F C217 EECB 8585  78AE EF7E E4D0 3969 0B7B`.
+  The key is available as follows:
+  * On https://qutebrowser.org/pubkey.gpg
+  * Via keys.openpgp.org
+  * Via WKD for bot@qutebrowser.org
+- Support for old Qt versions (< 5.15), old Python versions (< 3.8) and old
+  macOS (< 11)/Windows (< 10) versions were dropped. See the "Removed" section
+  below for details.
 
 Added
 ~~~~~
@@ -27,7 +178,6 @@ Added
 - New `:prompt-fileselect-external` command which can be used to spawn an
   external file selector (`fileselect.folder.command`) from download filename
   prompts (bound to `<Alt+e>` by default).
-- New `clock` value for `statusbar.widgets`, displaying the current time.
 - New `qute://start` built-in start page (not set as the default start page yet).
 - New `content.javascript.log_message.levels` setting, allowing to surface JS log
   messages as qutebrowser messages (rather than only logging them). By default,
@@ -50,19 +200,25 @@ Added
     * `qutedmenu` gained new `window` and `private` options.
     * `qute-keepassxc` now supports unlock-on-demand, multiple account
       selection via rofi, and inserting TOTP-codes (experimental).
+    * `qute-pass` will now try looking up candidate pass entries based on the
+      calling tab's verbatim netloc (hostname including port and username) if it
+      can't find a match with an earlier candidate (FQDN, IPv4 etc).
 - New `qt.chromium.experimental_web_platform_features` setting, which is enabled
   on Qt 5 by default, to maximize compatibility with websites despite an aging
   Chromium backend.
 - New `colors.webpage.darkmode.increase_text_contrast` setting for Qt 6.3+
 - New `fonts.tooltip`, `colors.tooltip.bg` and `colors.tooltip.fg` settings.
 - New `log-qt-events` debug flag for `-D`
+- New `--all` flags for `:bookmark-del` and `:quickmark-del` to delete all
+  quickmarks/bookmarks.
 
 Removed
 ~~~~~~~
 
 - Python 3.8.0 or newer is now required.
   - Support for Python 3.6 and 3.7 is dropped, as they both reached
-    their [end of life] in December 2021 and June 2023, respectively.
+    their https://endoflife.date/python[end of life] in December 2021 and June
+    2023, respectively.
 - Support for Qt/PyQt before 5.15.0 and QtWebEngine before 5.15.2 are now
   dropped, as older Qt versions are
   https://endoflife.date/qt[end-of-life upstream] since mid/late 2020
@@ -70,14 +226,17 @@ Removed
 - The `--enable-webengine-inspector` flag is now dropped. It used to be ignored
   but still accepted, to allow doing a `:restart` from versions older than v2.0.0.
   Thus, switching from v1.x.x directly to v3.0.0 via `:restart` will not be possible.
-- It's planned to drop support for various legacy platforms and libraries which
-  are unsupported upstream, such as:
-  * The QtWebKit backend
-  * macOS 10.14 (via Homebrew)
-  * 32-bit Windows (via Qt)
-  * Windows 8 (via Qt)
-  * Windows 10 before 1809 (via Qt)
-  * Possibly other more minor dependency changes
+- Support for macOS 10.14 and 10.15 is now dropped, raising the minimum
+  required macOS version to macOS 11 Big Sur.
+  * Qt 6.4 was the latest version to support macOS 10.14 and 10.15.
+  * It should be possible to build a custom .dmg with Qt 6.4, but this is
+    unsupported and not recommended.
+- Support for Windows 8 and for Windows 10 before 1607 is now dropped.
+  * Support for older Windows 10 versions might still be present in Qt 6.0/6.1/6.2
+  * Support for Windows 8.1 is still present in Qt 5.15
+  * It should be possible to build a custom .exe with those versions, but this
+    is unsupported and not recommended.
+- Support for 32-bit Windows is now dropped.
 
 Changed
 ~~~~~~~
@@ -116,11 +275,10 @@ Changed
   the ones produced by `:download --mhtml`.
 - The "... called unimplemented GM_..." messages are now logged as info JS
   messages instead of errors.
-- JS errors in internal qutebrowser scripts are now shown as errors in the UI.
 - For QtNetwork downloads (e.g. `:adblock-update`), various changes were done
   for how redirects work:
   - Insecure redirects (HTTPS -> HTTP) now fail the download.
-  - 20 redirects are now allowed before the download fails rather than only 10
+  - 20 redirects are now allowed before the download fails rather than only 10.
   - A redirect to the same URL will now fail the download with too many
     redirects instead of being ignored.
 - When a download fails in a way it'd leave an empty file around, the empty
@@ -131,7 +289,7 @@ Changed
   should make certain operations happen when the page has started loading rather
   when it fully finished.
 - `mkvenv.py` has a new `--pyqt-snapshot` flag, allowing to install certain packages
-  from the https://www.riverbankcomputing.com/pypi/[Riverbank development snapshots server]
+  from the https://www.riverbankcomputing.com/pypi/[Riverbank development snapshots server].
 - When `QUTE_QTWEBENGINE_VERSION_OVERRIDE` is set, it now always wins, no matter how
   the version would otherwise have been determined. Note setting this value can break
   things (if set to a wrong value), and usually isn't needed.
@@ -139,8 +297,8 @@ Changed
   launch, it now prints an error before starting (which causes the underlying
   Chromium to remove all browsing data such as cookies).
 - The keys "<To Do List>" and "<Contrast adjust>" are now named "<To-do list>"
-  and "<Adjust contrast>", respeectively.
-- The `tox.ini` now requires at least tox 3.20 (was tox 3.15 previously)
+  and "<Adjust contrast>", respectively.
+- The `tox.ini` now requires at least tox 3.20 (was tox 3.15 previously).
 - `:config-diff` now has an `--include-hidden` flag, which also shows
   internally-set settings.
 - Improved error messages when `:spawn` can't find an executable.
@@ -148,17 +306,18 @@ Changed
   the correct PID (rather than always showing the latest process, which might not
   be the failing one)
 - When a process got killed with `SIGTERM`, no error message is now displayed
-  anymore (unless started with `:spawn --verbose`). 
+  anymore (unless started with `:spawn --verbose`).
 - When a process got killed by a signal, the signal name is now displayed in
   the message.
-- The qute-pass will now try looking up candidate pass entries based on the
-  calling tab's verbatim netloc (hostname including port and username) if it
-  can't find a match with an earlier candidate (FQDN, IPv4 etc).
 - The `js-string-replaceall` quirk is now removed from the default
   `content.site_specific_quirks.skip`, so that `String.replaceAll` is now
   polyfilled on QtWebEngine < 5.15.3, hopefully improving website
   compaitibility.
 - Hints are now displayed for elements setting an `aria-haspopup` attribute.
+- qutebrowser now uses SPDX license identifiers in its files. Full support for
+  the https://reuse.software/[REUSE specification] (license provided in a
+  machine-readable way for every single file) is not done yet, but planned for
+  a future release.
 
 Fixed
 ~~~~~
@@ -177,12 +336,24 @@ Fixed
 - Multiple rare crashes when quitting qutebrowser.
 - The `asciidoc2html.py` script now correctly uses the virtualenv-installed
   asciidoc rather than requiring a system-wide installation.
+- "Package would be ignored" deprecation warnings when running `setup.py`.
+- ResourceWarning when using `:restart`.
+- Crash when shutting down before fully initialized.
 - Crash with some notification servers when the server is quitting.
 - Crash when using QtWebKit with PAC and the file has an invalid encoding.
 - Crash with the "tiramisu" notification server.
 - Crash when the "herbe" notification presenter doesn't start correctly.
+- Crash when no notification server is installed/available.
+- Warning with recent versions of the "deadd" (aka "linux notification center") notification server.
 - Crash when using `:print --pdf` with a directory where its parent directory
   did not exist.
+- The `PyQt{5,6}.sip` version is now shown correctly in the `:version`/`--version`
+  output. Previously that showed the version from the standalone `sip` module
+  which was only set for PyQt5. (#7805)
+- When a `config.py` calls `.redirect()` via a request interceptor (which is
+  unsupported) and supplies an invalid redirect target URL, an exception is now
+  raised for the `.redirect()` call instead of later inside qutebrowser.
+- Crash when loading invalid history items from a session file.
 
 [[v2.5.4]]
 v2.5.4 (2023-03-13)
@@ -1152,7 +1323,7 @@ Changed
   It also has compatibility issues with various websites (GitHub, Twitch, Android
   Developer documentation, YouTube, ...). Since no newer Debian Stable is released
   at the time of writing, it's recommended to
-  https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
+  https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
   with a newer version of Qt/PyQt.
 - New optional dependency on the Python `adblock` library (see above for details).
 - The (formerly optional) `cssutils` dependency is now removed. It was only
@@ -3303,7 +3474,7 @@ Major changes
   completion is too slow on your machine, try setting it to a few 1000 items.
 - Up/Down now navigates through the command history instead of selecting
   completion items. Either use Tab to cycle through the completion, or
-  https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
+  https://github.com/qutebrowser/qutebrowser/blob/main/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
 
 Added
 ~~~~~

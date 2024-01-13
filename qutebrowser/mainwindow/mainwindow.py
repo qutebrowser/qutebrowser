@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main window of qutebrowser."""
 
@@ -502,6 +489,8 @@ class MainWindow(QWidget):
         mode_manager = modeman.instance(self.win_id)
 
         # misc
+        self._prompt_container.release_focus.connect(
+            self.tabbed_browser.on_release_focus)
         self.tabbed_browser.close_window.connect(self.close)
         mode_manager.entered.connect(hints.on_mode_entered)
 
@@ -580,6 +569,7 @@ class MainWindow(QWidget):
             self._completion.on_clear_completion_selection)
         self.status.cmd.hide_completion.connect(
             self._completion.hide)
+        self.status.cmd.hide_cmd.connect(self.tabbed_browser.on_release_focus)
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""

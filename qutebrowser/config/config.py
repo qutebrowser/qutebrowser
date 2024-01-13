@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Configuration storage and config-related utilities."""
 
@@ -167,14 +154,14 @@ class KeyConfig:
         return bindings
 
     def _implied_cmd(self, cmdline: str) -> Optional[str]:
-        """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
+        """Return cmdline, or the implied cmd if cmdline is a cmd-set-text."""
         try:
             results = parser.CommandParser().parse_all(cmdline)
         except cmdexc.NoSuchCommandError:
             return None
 
         result = results[0]
-        if result.cmd.name != "set-cmd-text":
+        if result.cmd.name not in ["set-cmd-text", "cmd-set-text"]:
             return cmdline
         if not result.args:
             return None  # doesn't look like this sets a command

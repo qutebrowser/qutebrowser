@@ -1,19 +1,6 @@
-# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Different ways of showing notifications to the user.
 
@@ -126,6 +113,9 @@ class DBusError(Error):
         # https://crashes.qutebrowser.org/view/de62220a
         # after "Notification daemon did quit!"
         "org.freedesktop.DBus.Error.UnknownObject",
+
+        # notmuch-sha1-ef7b6e9e79e5f2f6cba90224122288895c1fe0d8
+        "org.freedesktop.DBus.Error.ServiceUnknown",
     }
 
     def __init__(self, msg: QDBusMessage) -> None:
@@ -869,12 +859,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
 
-        expected_spec_version = self._quirks.spec_version or self.SPEC_VERSION
-        if spec_version != expected_spec_version:
+        expected_spec_versions = [self.SPEC_VERSION]
+        if self._quirks.spec_version is not None:
+            expected_spec_versions.append(self._quirks.spec_version)
+
+        if spec_version not in expected_spec_versions:
             log.misc.warning(
                 f"Notification server ({name} {ver} by {vendor}) implements "
-                f"spec {spec_version}, but {expected_spec_version} was expected. "
-                f"If {name} is up to date, please report a qutebrowser bug.")
+                f"spec {spec_version}, but {'/'.join(expected_spec_versions)} was "
+                f"expected. If {name} is up to date, please report a qutebrowser bug.")
 
         # https://specifications.freedesktop.org/notification-spec/latest/ar01s08.html
         icon_key_overrides = {
@@ -1108,9 +1101,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         if padding and self._quirks.no_padded_images:
             return None
 
-        bits = qimage.constBits().asstring(size)
-        # FIXME:mypy PyQt6-stubs issue
-        image_data.add(QByteArray(bits))  # type: ignore[call-overload,unused-ignore]
+        bits_ptr = qimage.constBits()
+        assert bits_ptr is not None
+        bits = bits_ptr.asstring(size)
+        image_data.add(QByteArray(bits))
 
         image_data.endStructure()
         return image_data

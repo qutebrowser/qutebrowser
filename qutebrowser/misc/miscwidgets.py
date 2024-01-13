@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Misc. widgets used at different places."""
 
@@ -25,7 +12,7 @@ from qutebrowser.qt.widgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
 from qutebrowser.qt.gui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import utils, log, usertypes, debug
+from qutebrowser.utils import utils, log, usertypes, debug, qtutils
 from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
 from qutebrowser.keyinput import keyutils, modeman
@@ -185,7 +172,10 @@ class _FoldArrow(QWidget):
             elem = QStyle.PrimitiveElement.PE_IndicatorArrowRight
         else:
             elem = QStyle.PrimitiveElement.PE_IndicatorArrowDown
-        self.style().drawPrimitive(elem, opt, painter, self)
+
+        style = self.style()
+        assert style is not None
+        style.drawPrimitive(elem, opt, painter, self)
 
     def minimumSizeHint(self):
         """Return a sensible size."""
@@ -241,10 +231,10 @@ class WrapperLayout(QLayout):
         if self._widget is None:
             return
         assert self._container is not None
-        self._widget.setParent(None)  # type: ignore[call-overload]
+        self._widget.setParent(qtutils.QT_NONE)
         self._widget.deleteLater()
         self._widget = None
-        self._container.setFocusProxy(None)  # type: ignore[arg-type]
+        self._container.setFocusProxy(qtutils.QT_NONE)
 
 
 class FullscreenNotification(QLabel):
@@ -270,9 +260,17 @@ class FullscreenNotification(QLabel):
 
         self.resize(self.sizeHint())
         if config.val.content.fullscreen.window:
-            geom = self.parentWidget().geometry()
+            parent = self.parentWidget()
+            assert parent is not None
+            geom = parent.geometry()
         else:
-            geom = self.window().windowHandle().screen().geometry()
+            window = self.window()
+            assert window is not None
+            handle = window.windowHandle()
+            assert handle is not None
+            screen = handle.screen()
+            assert screen is not None
+            geom = screen.geometry()
         self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
@@ -327,6 +325,8 @@ class InspectorSplitter(QSplitter):
 
         main_widget = self.widget(self._main_idx)
         inspector_widget = self.widget(self._inspector_idx)
+        assert main_widget is not None
+        assert inspector_widget is not None
 
         if not inspector_widget.isVisible():
             raise inspector.Error("No inspector inside main window")
@@ -439,8 +439,9 @@ class InspectorSplitter(QSplitter):
         self._preferred_size = sizes[self._inspector_idx]
         self._save_preferred_size()
 
-    def resizeEvent(self, e: QResizeEvent) -> None:
+    def resizeEvent(self, e: Optional[QResizeEvent]) -> None:
         """Window resize event."""
+        assert e is not None
         super().resizeEvent(e)
         if self.count() == 2:
             self._adjust_size()

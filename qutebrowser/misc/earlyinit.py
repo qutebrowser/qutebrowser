@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Things which need to be done really early (e.g. before importing Qt).
 
@@ -62,7 +49,7 @@ def _missing_str(name, *, webengine=False):
               "<b>The error encountered was:</b><br />%ERROR%"]
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or see '
-             'https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc'
+             'https://github.com/qutebrowser/qutebrowser/blob/main/doc/install.asciidoc'
              .format(name)]
     blocks.append('<br />'.join(lines))
     if not webengine:
@@ -298,7 +285,17 @@ def init_log(args):
     from qutebrowser.utils import log
     log.init_log(args)
     log.init.debug("Log initialized.")
-    log.init.debug(str(machinery.INFO))
+
+
+def init_qtlog(args):
+    """Initialize Qt logging.
+
+    Args:
+        args: The argparse namespace.
+    """
+    from qutebrowser.utils import log, qtlog
+    qtlog.init(args)
+    log.init.debug("Qt log initialized.")
 
 
 def check_optimize_flag():
@@ -333,16 +330,18 @@ def early_init(args):
     Args:
         args: The argparse namespace.
     """
+    # Init logging as early as possible
+    init_log(args)
     # First we initialize the faulthandler as early as possible, so we
     # theoretically could catch segfaults occurring later during earlyinit.
     init_faulthandler()
     # Then we configure the selected Qt wrapper
     info = machinery.init(args)
+    # Init Qt logging after machinery is initialized
+    init_qtlog(args)
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
     check_qt_available(info)
-    # Init logging as early as possible
-    init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_libraries()

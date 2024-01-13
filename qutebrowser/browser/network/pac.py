@@ -1,19 +1,6 @@
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Evaluation of PAC scripts."""
 
@@ -28,7 +15,7 @@ from qutebrowser.qt.network import (QNetworkProxy, QNetworkRequest, QHostInfo,
                              QHostAddress)
 from qutebrowser.qt.qml import QJSEngine, QJSValue
 
-from qutebrowser.utils import log, utils, qtutils, resources, urlutils
+from qutebrowser.utils import log, qtlog, utils, qtutils, resources, urlutils
 
 
 class ParseProxyError(Exception):
@@ -65,7 +52,8 @@ def _js_slot(*args):
                 return self._error_con.callAsConstructor([e])
                 # pylint: enable=protected-access
 
-        deco = pyqtSlot(*args, result=QJSValue)
+        # FIXME:mypy PyQt6 stubs issue, passing type should work too
+        deco = pyqtSlot(*args, result="QJSValue")
         return deco(new_method)
     return _decorator
 
@@ -257,7 +245,7 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        with log.disable_qt_msghandler():
+        with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
             self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
@@ -276,6 +264,7 @@ class PACFetcher(QObject):
         """Fetch the proxy from the remote URL."""
         assert self._manager is not None
         self._reply = self._manager.get(QNetworkRequest(self._pac_url))
+        assert self._reply is not None
         self._reply.finished.connect(self._finish)
 
     @pyqtSlot()

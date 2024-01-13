@@ -1,19 +1,6 @@
-# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# SPDX-FileCopyrightText: Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Completion category that uses a list of tuples as a data source."""
 
@@ -61,10 +48,13 @@ class ListCategory(QSortFilterProxyModel):
             log.completion.warning(f"Trimming {len(val)}-char pattern to 5000")
             val = val[:5000]
         self._pattern = val
-        val = re.sub(r' +', r' ', val)  # See #1919
-        val = re.escape(val)
-        val = val.replace(r'\ ', '.*')
-        rx = QRegularExpression(val, QRegularExpression.PatternOption.CaseInsensitiveOption)
+
+        # Positive lookahead per search term. This means that all search terms must
+        # be matched but they can be matched anywhere in the string, so they can be
+        # in any order. For example "foo bar" -> "(?=.*foo)(?=.*bar)"
+        re_pattern = "^" + "".join(f"(?=.*{re.escape(term)})" for term in val.split())
+
+        rx = QRegularExpression(re_pattern, QRegularExpression.PatternOption.CaseInsensitiveOption)
         qtutils.ensure_valid(rx)
         self.setFilterRegularExpression(rx)
         self.invalidate()

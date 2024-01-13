@@ -1,19 +1,6 @@
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Bridge from QWebEngineSettings to our own settings.
 
@@ -37,6 +24,7 @@ from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
                                            webenginedownloads, notification)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
+from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
                                urlmatch, usertypes, objreg, version)
 if TYPE_CHECKING:
@@ -63,8 +51,12 @@ class _SettingsWrapper:
     For read operations, the default profile value is always used.
     """
 
+    def _default_profile_settings(self):
+        assert default_profile is not None
+        return default_profile.settings()
+
     def _settings(self):
-        yield default_profile.settings()
+        yield self._default_profile_settings()
         if private_profile:
             yield private_profile.settings()
 
@@ -89,19 +81,19 @@ class _SettingsWrapper:
             settings.setUnknownUrlSchemePolicy(policy)
 
     def testAttribute(self, attribute):
-        return default_profile.settings().testAttribute(attribute)
+        return self._default_profile_settings().testAttribute(attribute)
 
     def fontSize(self, fonttype):
-        return default_profile.settings().fontSize(fonttype)
+        return self._default_profile_settings().fontSize(fonttype)
 
     def fontFamily(self, which):
-        return default_profile.settings().fontFamily(which)
+        return self._default_profile_settings().fontFamily(which)
 
     def defaultTextEncoding(self):
-        return default_profile.settings().defaultTextEncoding()
+        return self._default_profile_settings().defaultTextEncoding()
 
     def unknownUrlSchemePolicy(self):
-        return default_profile.settings().unknownUrlSchemePolicy()
+        return self._default_profile_settings().unknownUrlSchemePolicy()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -156,6 +148,12 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
                  converter=lambda val: val != 'never'),
     }
+    try:
+        _ATTRIBUTES['content.canvas_reading'] = Attr(
+            QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)  # type: ignore[attr-defined,unused-ignore]
+    except AttributeError:
+        # Added in QtWebEngine 6.6
+        pass
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':
@@ -354,7 +352,10 @@ def _init_user_agent_str(ua):
 
 
 def init_user_agent():
-    _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
+    """Make the default WebEngine user agent available via parsed_user_agent."""
+    actual_default_profile = QWebEngineProfile.defaultProfile()
+    assert actual_default_profile is not None
+    _init_user_agent_str(actual_default_profile.httpUserAgent())
 
 
 def _init_profile(profile: QWebEngineProfile) -> None:
@@ -443,11 +444,20 @@ def _init_site_specific_quirks():
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
                   "{upstream_browser_key}/{upstream_browser_version} "
                   "Safari/{webkit_version}")
-    new_chrome_ua = ("Mozilla/5.0 ({os_info}) "
-                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                     "Chrome/99 "
-                     "Safari/537.36")
     firefox_ua = "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"
+
+    def maybe_newer_chrome_ua(at_least_version):
+        """Return a new UA if our current chrome version isn't at least at_least_version."""
+        current_chome_version = version.qtwebengine_versions().chromium_major
+        if current_chome_version >= at_least_version:
+            return None
+
+        return (
+            "Mozilla/5.0 ({os_info}) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            f"Chrome/{at_least_version} "
+            "Safari/537.36"
+        )
 
     user_agents = [
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
@@ -463,13 +473,14 @@ def _init_site_specific_quirks():
 
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
-        # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
-        # FIXME:qt6 Still needed?
-        # https://github.com/qutebrowser/qutebrowser/issues/4669
-        ("ua-slack", 'https://*.slack.com/*', new_chrome_ua),
+        # October 2023: Slack claims they only support 112+. On #7951 at least
+        # one user claims it still works fine on 108 based Qt versions.
+        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(112)),
     ]
 
     for name, pattern, ua in user_agents:
+        if not ua:
+            continue
         if name not in config.val.content.site_specific_quirks.skip:
             config.instance.set_obj('content.headers.user_agent', ua,
                                     pattern=urlmatch.UrlPattern(pattern),
@@ -549,7 +560,11 @@ def init():
     _global_settings = WebEngineSettings(_SettingsWrapper())
 
     log.init.debug("Initializing profiles...")
-    _init_default_profile()
+
+    # Apply potential resource patches while initializing profiles.
+    with pakjoy.patch_webengine():
+        _init_default_profile()
+
     init_private_profile()
     config.instance.changed.connect(_update_settings)
 

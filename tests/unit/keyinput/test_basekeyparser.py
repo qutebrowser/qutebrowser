@@ -1,22 +1,12 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Tests for BaseKeyParser."""
 
+import logging
+import re
+import sys
 from unittest import mock
 
 from qutebrowser.qt.core import Qt
@@ -171,7 +161,7 @@ class TestHandle:
         assert not prompt_keyparser._count
 
     def test_invalid_key(self, prompt_keyparser):
-        keys = [Qt.Key.Key_B, 0x0]
+        keys = [Qt.Key.Key_B, keyutils._NIL_KEY]
         for key in keys:
             info = keyutils.KeyInfo(key, Qt.KeyboardModifier.NoModifier)
             prompt_keyparser.handle(info.to_event())
@@ -353,5 +343,22 @@ def test_respect_config_when_matching_counts(keyparser, config_stub):
     info = keyutils.KeyInfo(Qt.Key.Key_1, Qt.KeyboardModifier.NoModifier)
     keyparser.handle(info.to_event())
 
+    assert not keyparser._sequence
+    assert not keyparser._count
+
+
+def test_count_limit_exceeded(handle_text, keyparser, caplog):
+    try:
+        max_digits = sys.get_int_max_str_digits()
+    except AttributeError:
+        pytest.skip('sys.get_int_max_str_digits() not available')
+
+    keys = (max_digits + 1) * [Qt.Key.Key_1]
+
+    with caplog.at_level(logging.ERROR):
+        handle_text(keyparser, *keys, Qt.Key.Key_B, Qt.Key.Key_A)
+
+    pattern = re.compile(r"^Failed to parse count: Exceeds the limit .* for integer string conversion: .*")
+    assert any(pattern.fullmatch(msg) for msg in caplog.messages)
     assert not keyparser._sequence
     assert not keyparser._count

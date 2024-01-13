@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Because every method needs to have a log_stack argument
 # and because we use *args a lot
@@ -148,7 +135,7 @@ def ask(*args: Any, **kwargs: Any) -> Any:
     """Ask a modular question in the statusbar (blocking).
 
     Args:
-        message: The message to display to the user.
+        title: The message to display to the user.
         mode: A PromptMode.
         default: The default value to display.
         text: Additional text to show
@@ -195,7 +182,7 @@ def confirm_async(*, yes_action: _ActionType,
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
-        message: The message to display to the user.
+        title: The message to display to the user.
         yes_action: Callable to be called when the user answered yes.
         no_action: Callable to be called when the user answered no.
         cancel_action: Callable to be called when the user cancelled the

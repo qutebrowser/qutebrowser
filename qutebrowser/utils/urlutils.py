@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utils regarding URL handling."""
 
@@ -52,6 +39,7 @@ if machinery.IS_QT6:
 
         REMOVE_SCHEME = QUrl.UrlFormattingOption.RemoveScheme
         REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
+        REMOVE_QUERY = QUrl.UrlFormattingOption.RemoveQuery
 else:
     UrlFlagsType = Union[
         QUrl.FormattingOptions,
@@ -87,6 +75,8 @@ else:
             _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveScheme)
         REMOVE_PASSWORD = cast(
             _QtFormattingOptions, QUrl.UrlFormattingOption.RemovePassword)
+        REMOVE_QUERY = cast(
+            _QtFormattingOptions, QUrl.UrlFormattingOption.RemoveQuery)
 
 
 # URL schemes supported by QtWebEngine
@@ -179,9 +169,9 @@ def _get_search_url(txt: str) -> QUrl:
         url = QUrl.fromUserInput(evaluated)
     else:
         url = QUrl.fromUserInput(config.val.url.searchengines[engine])
-        url.setPath(None)  # type: ignore[arg-type]
-        url.setFragment(None)  # type: ignore[arg-type]
-        url.setQuery(None)  # type: ignore[call-overload]
+        url.setPath(qtutils.QT_NONE)
+        url.setFragment(qtutils.QT_NONE)
+        url.setQuery(qtutils.QT_NONE)
     qtutils.ensure_valid(url)
     return url
 
@@ -236,7 +226,7 @@ def _is_url_dns(urlstr: str) -> bool:
         return False
     log.url.debug("Doing DNS request for {}".format(host))
     info = QHostInfo.fromName(host)
-    return not info.error()
+    return info.error() == QHostInfo.HostInfoError.NoError
 
 
 def fuzzy_url(urlstr: str,

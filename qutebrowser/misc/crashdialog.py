@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The dialog which gets shown when qutebrowser crashes."""
 
@@ -510,7 +497,7 @@ class FatalCrashDialog(_CrashDialog):
                 "<br/>Note: Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
                 "follow the steps in <a href='https://github.com/qutebrowser/"
-                "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
+                "qutebrowser/blob/main/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
 
@@ -631,8 +618,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        # FIXME:mypy PyQt6-stubs issue
-        btn.clicked.connect(self.close)  # type: ignore[arg-type,unused-ignore]
+        btn.clicked.connect(self.close)
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 

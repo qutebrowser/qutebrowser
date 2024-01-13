@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
@@ -70,10 +57,24 @@ def is_ignored_lowlevel_message(message):
         # 'style-src' was not explicitly set, so 'default-src' is used as a
         # fallback.
         # INVALID: ", source: userscript:_qute_stylesheet (65)
-        '", source: userscript:_qute_stylesheet (65)',
+        '", source: userscript:_qute_stylesheet (*)',
 
         # Randomly started showing up on Qt 5.15.2
         'QPaintDevice: Cannot destroy paint device that is being painted',
+
+        # Qt 6.6 on GitHub Actions
+        (
+            'libva error: vaGetDriverNameByIndex() failed with unknown libva error, '
+            'driver_name = (null)'
+        ),
+        'libva error: vaGetDriverNames() failed with unknown libva error',
+
+        # Mesa 23.3
+        # See https://gitlab.freedesktop.org/mesa/mesa/-/issues/10293
+        'MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)',
+        'glx: failed to create drisw screen',
+        'failed to load driver: zink',
+        'DRI3 not available',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -207,6 +208,11 @@ def is_ignored_chromium_message(line):
         # [5464:5464:0318/024215.821650:ERROR:interface_endpoint_client.cc(687)] Message 6 rejected by interface blink.mojom.WidgetHost
         # [5718:5718:0318/031330.803863:ERROR:interface_endpoint_client.cc(687)] Message 3 rejected by interface blink.mojom.Widget
         "Message * rejected by interface blink.mojom.Widget*",
+
+        # GitHub Actions, Qt 6.6
+        # [9895:9983:0904/043039.500565:ERROR:gpu_memory_buffer_support_x11.cc(49)]
+        # dri3 extension not supported.
+        "dri3 extension not supported.",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -391,7 +397,8 @@ class QuteProc(testprocess.Process):
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
                 '--debug-flag', 'werror', '--debug-flag',
-                'test-notification-service']
+                'test-notification-service',
+                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
 
         if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
             args += testutils.DISABLE_SECCOMP_BPF_ARGS
@@ -406,7 +413,7 @@ class QuteProc(testprocess.Process):
         verbatim.
         """
         special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:',
-                           'data:', 'http:', 'https:']
+                           'data:', 'http:', 'https:', 'file:']
         server = self.request.getfixturevalue('server')
         server_port = server.port if port is None else port
 
@@ -609,7 +616,7 @@ class QuteProc(testprocess.Process):
             command = command.replace('\\', r'\\')
 
         if count is not None:
-            command = ':run-with-count {} {}'.format(count,
+            command = ':cmd-run-with-count {} {}'.format(count,
                                                      command.lstrip(':'))
 
         self.send_ipc([command])

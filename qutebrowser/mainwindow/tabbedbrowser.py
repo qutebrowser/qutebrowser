@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main tabbed browser widget."""
 
@@ -250,7 +237,7 @@ class TabbedBrowser(QWidget):
         self.search_options: Mapping[str, Any] = {}
         self._local_marks: MutableMapping[QUrl, MutableMapping[str, QPoint]] = {}
         self._global_marks: MutableMapping[str, Tuple[QPoint, QUrl]] = {}
-        self.default_window_icon = self.widget.window().windowIcon()
+        self.default_window_icon = self._window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
@@ -302,10 +289,9 @@ class TabbedBrowser(QWidget):
         """
         widgets = []
         for i in range(self.widget.count()):
-            widget = self.widget.widget(i)
+            widget = qtutils.add_optional(self.widget.widget(i))
             if widget is None:
-                log.webview.debug(  # type: ignore[unreachable]
-                    "Got None-widget in tabbedbrowser!")
+                log.webview.debug("Got None-widget in tabbedbrowser!")
             else:
                 widgets.append(widget)
         return widgets
@@ -331,7 +317,10 @@ class TabbedBrowser(QWidget):
         fields['id'] = self._win_id
 
         title = title_format.format(**fields)
-        self.widget.window().setWindowTitle(title)
+        # prevent hanging WMs and similar issues with giant URLs
+        title = utils.elide(title, 1024)
+
+        self._window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -396,6 +385,15 @@ class TabbedBrowser(QWidget):
         tab = self.widget.currentWidget()
         assert isinstance(tab, browsertab.AbstractTab), tab
         return tab
+
+    def _window(self) -> QWidget:
+        """Get the current window widget.
+
+        Note: This asserts if there is no window.
+        """
+        window = self.widget.window()
+        assert window is not None
+        return window
 
     def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
         """Get a browser tab by index.
@@ -673,11 +671,12 @@ class TabbedBrowser(QWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            tab.resize(self.widget.currentWidget().size())
+            current_widget = self._current_tab()
+            tab.resize(current_widget.size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
             # Refocus webview in case we lost it by spawning a bg tab
-            self.widget.currentWidget().setFocus()
+            current_widget.setFocus()
         else:
             self.widget.setCurrentWidget(tab)
 
@@ -750,7 +749,7 @@ class TabbedBrowser(QWidget):
             tab.data.keep_icon = False
         elif (config.cache['tabs.tabs_are_windows'] and
               tab.data.should_show_icon()):
-            self.widget.window().setWindowIcon(self.default_window_icon)
+            self._window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def _on_load_status_changed(self, tab):
@@ -870,19 +869,34 @@ class TabbedBrowser(QWidget):
                 assert isinstance(tab, browsertab.AbstractTab), tab
                 tab.data.input_mode = mode
 
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
-        """Give focus to current tab if command mode was left."""
-        widget = self.widget.currentWidget()
+    @pyqtSlot()
+    def on_release_focus(self):
+        """Give keyboard focus to the current tab when requested by statusbar/prompt.
+
+        This gets emitted by the statusbar and prompt container before they call .hide()
+        on themselves, with the idea that we can explicitly reassign the focus,
+        instead of Qt implicitly calling its QWidget::focusNextPrevChild() method,
+        finding a new widget to give keyboard focus to.
+        """
+        widget = qtutils.add_optional(self.widget.currentWidget())
         if widget is None:
-            return  # type: ignore[unreachable]
-        if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:
-            log.modes.debug("Left status-input mode, focusing {!r}".format(
-                widget))
-            widget.setFocus()
-        if config.val.tabs.mode_on_change == 'restore':
-            assert isinstance(widget, browsertab.AbstractTab), widget
-            widget.data.input_mode = usertypes.KeyMode.normal
+            return
+
+        log.modes.debug(f"Focus released, focusing {widget!r}")
+        widget.setFocus()
+
+    @pyqtSlot()
+    def on_mode_left(self):
+        """Save input mode for restoring if needed."""
+        if config.val.tabs.mode_on_change != 'restore':
+            return
+
+        widget = qtutils.add_optional(self.widget.currentWidget())
+        if widget is None:
+            return
+
+        assert isinstance(widget, browsertab.AbstractTab), widget
+        widget.data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
     def _on_current_changed(self, idx):

@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Completion view for statusbar command section.
 
@@ -156,6 +143,15 @@ class CompletionView(QTreeView):
         assert isinstance(model, completionmodel.CompletionModel), model
         return model
 
+    def _selection_model(self) -> QItemSelectionModel:
+        """Get the current selection model.
+
+        Ensures the model is not None.
+        """
+        model = self.selectionModel()
+        assert model is not None
+        return model
+
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['completion.height', 'completion.shrink']:
@@ -169,7 +165,9 @@ class CompletionView(QTreeView):
         column_widths = self._model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
-        delta = self.verticalScrollBar().sizeHint().width()
+        bar = self.verticalScrollBar()
+        assert bar is not None
+        delta = bar.sizeHint().width()
         for i, width in reversed(list(enumerate(pixel_widths))):
             if width > delta:
                 pixel_widths[i] -= delta
@@ -191,7 +189,7 @@ class CompletionView(QTreeView):
             A QModelIndex.
         """
         model = self._model()
-        idx = self.selectionModel().currentIndex()
+        idx = self._selection_model().currentIndex()
         if not idx.isValid():
             # No item selected yet
             if upwards:
@@ -223,7 +221,7 @@ class CompletionView(QTreeView):
         Return:
             A QModelIndex.
         """
-        old_idx = self.selectionModel().currentIndex()
+        old_idx = self._selection_model().currentIndex()
         idx = old_idx
         model = self._model()
 
@@ -267,7 +265,7 @@ class CompletionView(QTreeView):
         Return:
             A QModelIndex.
         """
-        idx = self.selectionModel().currentIndex()
+        idx = self._selection_model().currentIndex()
         model = self._model()
         if not idx.isValid():
             return self._next_idx(upwards).sibling(0, 0)
@@ -323,7 +321,7 @@ class CompletionView(QTreeView):
         if not self._active:
             return
 
-        selmodel = self.selectionModel()
+        selmodel = self._selection_model()
         indices = {
             'next': lambda: self._next_idx(upwards=False),
             'prev': lambda: self._next_idx(upwards=True),
@@ -363,9 +361,10 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
-        if self.model() is not None and model is not self.model():
-            self.model().deleteLater()
-            self.selectionModel().deleteLater()
+        old_model = self.model()
+        if old_model is not None and model is not old_model:
+            old_model.deleteLater()
+            self._selection_model().deleteLater()
 
         self.setModel(model)
 
@@ -395,7 +394,7 @@ class CompletionView(QTreeView):
         self.pattern = pattern
         with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
             self._model().set_pattern(pattern)
-            self.selectionModel().clear()
+            self._selection_model().clear()
             self._maybe_update_geometry()
             self._maybe_show()
 
@@ -415,7 +414,7 @@ class CompletionView(QTreeView):
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
         self.hide()
-        selmod = self.selectionModel()
+        selmod = self._selection_model()
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()
@@ -426,14 +425,18 @@ class CompletionView(QTreeView):
         confheight = str(config.val.completion.height)
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
-            height = self.window().height() * perc // 100
+            window = self.window()
+            assert window is not None
+            height = window.height() * perc // 100
         else:
             height = int(confheight)
         # Shrink to content size if needed and shrinking is enabled
         if config.val.completion.shrink:
+            bar = self.horizontalScrollBar()
+            assert bar is not None
             contents_height = (
                 self.viewportSizeHint().height() +
-                self.horizontalScrollBar().sizeHint().height())
+                bar.sizeHint().height())
             if contents_height <= height:
                 height = contents_height
         # The width isn't really relevant as we're expanding anyways.

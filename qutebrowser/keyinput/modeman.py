@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Mode manager (per window) which handles the current keyboard mode."""
 
@@ -29,7 +16,7 @@ from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, objreg, utils, qtutils
 from qutebrowser.browser import hints
 from qutebrowser.misc import objects
 
@@ -321,10 +308,10 @@ class ModeManager(QObject):
             focus_widget = objects.qapp.focusWidget()
             log.modes.debug("match: {}, forward_unbound_keys: {}, "
                             "passthrough: {}, is_non_alnum: {}, dry_run: {} "
-                            "--> filter: {} (focused: {!r})".format(
+                            "--> filter: {} (focused: {})".format(
                                 match, forward_unbound_keys,
                                 parser.passthrough, is_non_alnum, dry_run,
-                                filter_this, focus_widget))
+                                filter_this, qtutils.qobj_repr(focus_widget)))
         return filter_this
 
     def _handle_keyrelease(self, event: QKeyEvent) -> bool:
@@ -474,11 +461,7 @@ class ModeManager(QObject):
             QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
-        ev_type = event.type()
-        if machinery.IS_QT6:
-            ev_type = cast(QEvent.Type, ev_type)
-
-        handler = handlers[ev_type]
+        handler = handlers[event.type()]
         return handler(cast(QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')

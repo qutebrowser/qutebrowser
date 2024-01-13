@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Utilities to show various version information."""
 
@@ -32,7 +19,7 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast, Any,
+from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, Any,
                     TYPE_CHECKING)
 
 from qutebrowser.qt import machinery
@@ -394,7 +381,6 @@ class ModuleInfo:
 
 def _create_module_info() -> Dict[str, ModuleInfo]:
     packages = [
-        ('sip', ['SIP_VERSION_STR']),
         ('colorama', ['VERSION', '__version__']),
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
@@ -408,9 +394,13 @@ def _create_module_info() -> Dict[str, ModuleInfo]:
             ('PyQt5.QtWebEngineWidgets', []),
             ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
             ('PyQt5.QtWebKitWidgets', []),
+            ('PyQt5.sip', ['SIP_VERSION_STR']),
         ]
     elif machinery.IS_QT6:
-        packages.append(('PyQt6.QtWebEngineCore', ['PYQT_WEBENGINE_VERSION_STR']))
+        packages += [
+            ('PyQt6.QtWebEngineCore', ['PYQT_WEBENGINE_VERSION_STR']),
+            ('PyQt6.sip', ['SIP_VERSION_STR']),
+        ]
     else:
         raise utils.Unreachable()
 
@@ -490,7 +480,7 @@ def _pdfjs_version() -> str:
         A string with the version number.
     """
     try:
-        pdfjs_file, file_path = pdfjs.get_pdfjs_res_and_path('build/pdf.js')
+        pdfjs_file, file_path = pdfjs.get_pdfjs_res_and_path(pdfjs.get_pdfjs_js_path())
     except pdfjs.PDFJSNotFound:
         return 'no'
     else:
@@ -614,11 +604,18 @@ class WebEngineVersions:
         #         6.4.3: Security fixes up to 110.0.5481.78 (2023-02-07)
         utils.VersionNumber(6, 4): '102.0.5005.177',
 
-        # Qt 6.5: Chromium 105
+        # Qt 6.5: Chromium 108
         #         108.0.5359.220 (~2022-12-23)
         #         (.220 claimed by code, .181 claimed by CHROMIUM_VERSION)
         #         6.5.0: Security fixes up to 110.0.5481.104 (2023-02-16)
+        #         6.5.1: Security fixes up to 112.0.5615.138 (2023-04-18)
+        #         6.5.2: Security fixes up to 114.0.5735.133 (2023-06-13)
         utils.VersionNumber(6, 5): '108.0.5359.220',
+
+        # Qt 6.6: Chromium 112
+        #         112.0.5615.213 (~2023-04-18)
+        #         6.6.0: Security fixes up to 116.0.5845.110 (?) (2023-08-22)
+        utils.VersionNumber(6, 6): '112.0.5615.213',
     }
 
     def __post_init__(self) -> None:
@@ -689,7 +686,7 @@ class WebEngineVersions:
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
-    def from_api(cls, qtwe_version: str, chromium_version: str) -> 'WebEngineVersions':
+    def from_api(cls, qtwe_version: str, chromium_version: Optional[str]) -> 'WebEngineVersions':
         """Get the versions based on the exact versions.
 
         This is called if we have proper APIs to get the versions easily
@@ -799,8 +796,10 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
         except ImportError:
             pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
         else:
+            qtwe_version = qWebEngineVersion()
+            assert qtwe_version is not None
             return WebEngineVersions.from_api(
-                qtwe_version=qWebEngineVersion(),
+                qtwe_version=qtwe_version,
                 chromium_version=qWebEngineChromiumVersion(),
             )
 
@@ -886,7 +885,10 @@ def version_info() -> str:
 
     if objects.qapp:
         style = objects.qapp.style()
-        lines.append('Style: {}'.format(style.metaObject().className()))
+        assert style is not None
+        metaobj = style.metaObject()
+        assert metaobj is not None
+        lines.append('Style: {}'.format(metaobj.className()))
         lines.append('Platform plugin: {}'.format(objects.qapp.platformName()))
         lines.append('OpenGL: {}'.format(opengl_info()))
 
@@ -1005,7 +1007,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
-    old_context = cast(Optional[QOpenGLContext], QOpenGLContext.currentContext())
+    old_context: Optional[QOpenGLContext] = QOpenGLContext.currentContext()
     old_surface = None if old_context is None else old_context.surface()
 
     surface = QOffscreenSurface()

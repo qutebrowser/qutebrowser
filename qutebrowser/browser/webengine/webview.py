@@ -1,34 +1,25 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main browser widget for QtWebEngine."""
 
-from typing import List, Iterable
+import mimetypes
+from typing import List, Iterable, Optional
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl
 from qutebrowser.qt.gui import QPalette
 from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineCertificateError
+from qutebrowser.qt.webenginecore import (
+    QWebEnginePage, QWebEngineCertificateError, QWebEngineSettings,
+    QWebEngineHistory,
+)
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes
+from qutebrowser.utils import log, debug, usertypes, qtutils
 
 
 _QB_FILESELECTION_MODES = {
@@ -54,7 +45,9 @@ class WebEngineView(QWebEngineView):
         self._win_id = win_id
         self._tabdata = tabdata
 
-        theme_color = self.style().standardPalette().color(QPalette.ColorRole.Base)
+        style = self.style()
+        assert style is not None
+        theme_color = style.standardPalette().color(QPalette.ColorRole.Base)
         if private:
             assert webenginesettings.private_profile is not None
             profile = webenginesettings.private_profile
@@ -138,6 +131,57 @@ class WebEngineView(QWebEngineView):
             ev.ignore()
             return
         super().contextMenuEvent(ev)
+
+    def page(self) -> "WebEnginePage":
+        """Return the page for this view."""
+        maybe_page = super().page()
+        assert maybe_page is not None
+        assert isinstance(maybe_page, WebEnginePage)
+        return maybe_page
+
+    def settings(self) -> "QWebEngineSettings":
+        """Return the settings for this view."""
+        maybe_settings = super().settings()
+        assert maybe_settings is not None
+        return maybe_settings
+
+    def history(self) -> "QWebEngineHistory":
+        """Return the history for this view."""
+        maybe_history = super().history()
+        assert maybe_history is not None
+        return maybe_history
+
+
+def extra_suffixes_workaround(upstream_mimetypes):
+    """Return any extra suffixes for mimetypes in upstream_mimetypes.
+
+    Return any file extensions (aka suffixes) for mimetypes listed in
+    upstream_mimetypes that are not already contained in there.
+
+    WORKAROUND: for https://bugreports.qt.io/browse/QTBUG-116905
+    Affected Qt versions > 6.2.2 (probably) < 6.7.0
+    """
+    if not (
+        qtutils.version_check("6.2.3", compiled=False)
+        and not qtutils.version_check("6.7.0", compiled=False)
+    ):
+        return set()
+
+    suffixes = {entry for entry in upstream_mimetypes if entry.startswith(".")}
+    mimes = {entry for entry in upstream_mimetypes if "/" in entry}
+    python_suffixes = set()
+    for mime in mimes:
+        if mime.endswith("/*"):
+            python_suffixes.update(
+                [
+                    suffix
+                    for suffix, mimetype in mimetypes.types_map.items()
+                    if mimetype.startswith(mime[:-1])
+                ]
+            )
+        else:
+            python_suffixes.update(mimetypes.guess_all_extensions(mime))
+    return python_suffixes - suffixes
 
 
 class WebEnginePage(QWebEnginePage):
@@ -272,13 +316,28 @@ class WebEnginePage(QWebEnginePage):
     def chooseFiles(
         self,
         mode: QWebEnginePage.FileSelectionMode,
-        old_files: Iterable[str],
-        accepted_mimetypes: Iterable[str],
+        old_files: Iterable[Optional[str]],
+        accepted_mimetypes: Iterable[Optional[str]],
     ) -> List[str]:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
+        accepted_mimetypes_filtered = [m for m in accepted_mimetypes if m is not None]
+        old_files_filtered = [f for f in old_files if f is not None]
+        extra_suffixes = extra_suffixes_workaround(accepted_mimetypes_filtered)
+        if extra_suffixes:
+            log.webview.debug(
+                "adding extra suffixes to filepicker: "
+                f"before={accepted_mimetypes_filtered} "
+                f"added={extra_suffixes}",
+            )
+            accepted_mimetypes_filtered = list(
+                accepted_mimetypes_filtered
+            ) + list(extra_suffixes)
+
         handler = config.val.fileselect.handler
         if handler == "default":
-            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+            return super().chooseFiles(
+                mode, old_files_filtered, accepted_mimetypes_filtered,
+            )
         assert handler == "external", handler
         try:
             qb_mode = _QB_FILESELECTION_MODES[mode]
@@ -286,6 +345,8 @@ class WebEnginePage(QWebEnginePage):
             log.webview.warning(
                 f"Got file selection mode {mode}, but we don't support that!"
             )
-            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+            return super().chooseFiles(
+                mode, old_files_filtered, accepted_mimetypes_filtered,
+            )
 
         return shared.choose_file(qb_mode=qb_mode)

@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The ListView to display downloads in."""
 
@@ -48,6 +35,7 @@ class DownloadView(QListView):
         QListView {
             background-color: {{ conf.colors.downloads.bar.bg }};
             font: {{ conf.fonts.downloads }};
+            border: 0;
         }
 
         QListView::item {
@@ -77,9 +65,10 @@ class DownloadView(QListView):
         self.clicked.connect(self.on_clicked)
 
     def __repr__(self):
-        model = self.model()
+        model = qtutils.add_optional(self.model())
+        count: Union[int, str]
         if model is None:
-            count = 'None'  # type: ignore[unreachable]
+            count = 'None'
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
@@ -173,9 +162,12 @@ class DownloadView(QListView):
                 assert name is not None
                 assert handler is not None
                 action = self._menu.addAction(name)
+                assert action is not None
                 action.triggered.connect(handler)
         if actions:
-            self._menu.popup(self.viewport().mapToGlobal(point))
+            viewport = self.viewport()
+            assert viewport is not None
+            self._menu.popup(viewport.mapToGlobal(point))
 
     def minimumSizeHint(self):
         """Override minimumSizeHint so the size is correct in a layout."""

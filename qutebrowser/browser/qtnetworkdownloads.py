@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Download manager."""
 
@@ -29,7 +16,7 @@ from qutebrowser.qt.widgets import QApplication
 from qutebrowser.qt.network import QNetworkRequest, QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
+from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg, qtlog
 from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
@@ -121,7 +108,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._reply.errorOccurred.disconnect()
         self._reply.readyRead.disconnect()
 
-        with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
+        with qtlog.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
                                  'problem, this method must only be called '
                                  'once.'):
             # See https://codereview.qt-project.org/#/c/107863/

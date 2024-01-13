@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Resources related utilities."""
 
@@ -48,11 +35,6 @@ def _path(filename: str) -> _ResourceType:
     """Get a pathlib.Path object for a resource."""
     assert not posixpath.isabs(filename), filename
     assert os.path.pardir not in filename.split(posixpath.sep), filename
-
-    if hasattr(sys, 'frozen'):
-        # For PyInstaller, where we can't store resource files in a qutebrowser/ folder
-        # because the executable is already named "qutebrowser" (at least on macOS).
-        return pathlib.Path(sys.executable).parent / filename
 
     return importlib_resources.files(qutebrowser) / filename
 

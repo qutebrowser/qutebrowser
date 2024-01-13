@@ -1,19 +1,7 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.config."""
 
@@ -197,20 +185,20 @@ class TestKeyConfig:
         # Chained command
         ({'a': 'open foo ;; open bar'},
          {'open foo': ['a'], 'open bar': ['a']}),
-        # Command using set-cmd-text (#5942)
+        # Command using cmd-set-text (#5942)
         (
             {
-                "o": "set-cmd-text -s :open",
-                "O": "set-cmd-text -s :open -t",
-                "go": "set-cmd-text :open {url:pretty}",
+                "o": "cmd-set-text -s :open",
+                "O": "cmd-set-text -s :open -t",
+                "go": "cmd-set-text :open {url:pretty}",
                 # all of these should be ignored
-                "/": "set-cmd-text /",
-                "?": "set-cmd-text ?",
-                ":": "set-cmd-text :",
-                "a": "set-cmd-text no_leading_colon",
-                "b": "set-cmd-text -s -a :skip_cuz_append",
-                "c": "set-cmd-text --append :skip_cuz_append",
-                "x": "set-cmd-text",
+                "/": "cmd-set-text /",
+                "?": "cmd-set-text ?",
+                ":": "cmd-set-text :",
+                "a": "cmd-set-text no_leading_colon",
+                "b": "cmd-set-text -s -a :skip_cuz_append",
+                "c": "cmd-set-text --append :skip_cuz_append",
+                "x": "cmd-set-text",
             },
             {
                 "open": ["o"],
@@ -265,7 +253,7 @@ class TestKeyConfig:
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         key_config_stub.bind(keyseq('a'),
-                             'set-cmd-text :nop ;; rl-beginning-of-line',
+                             'cmd-set-text :nop ;; rl-beginning-of-line',
                              mode='normal')
 
     def test_bind_default(self, key_config_stub, config_stub):

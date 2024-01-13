@@ -2,20 +2,7 @@
 
 # Copyright (c) 2018-2021 Markus Blöchl <ususdei@gmail.com>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """
 # Introduction
@@ -91,7 +78,7 @@ insert mode if you prefer that).
 [2]: https://qutebrowser.org/
 [3]: https://gnupg.org/
 [4]: https://github.com/keepassxreboot/keepassxc-browser/blob/develop/keepassxc-protocol.md
-[5]: https://github.com/qutebrowser/qutebrowser/blob/master/doc/userscripts.asciidoc
+[5]: https://github.com/qutebrowser/qutebrowser/blob/main/doc/userscripts.asciidoc
 [6]: https://keepassxc.org/docs/KeePassXC_GettingStarted.html#_setup_browser_integration
 """
 

@@ -1,19 +1,6 @@
-# Copyright 2021 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import io
 import struct
@@ -22,7 +9,7 @@ import pytest
 import hypothesis
 from hypothesis import strategies as hst
 
-from qutebrowser.misc import elf
+from qutebrowser.misc import elf, binparsing
 from qutebrowser.utils import utils
 
 
@@ -130,7 +117,7 @@ def test_find_versions(data, expected):
     ),
 ])
 def test_find_versions_invalid(data, message):
-    with pytest.raises(elf.ParseError) as excinfo:
+    with pytest.raises(binparsing.ParseError) as excinfo:
         elf._find_versions(data)
     assert str(excinfo.value) == message
 
@@ -145,5 +132,5 @@ def test_hypothesis(data):
     fobj = io.BytesIO(data)
     try:
         elf._parse_from_file(fobj)
-    except elf.ParseError as e:
+    except binparsing.ParseError as e:
         print(e)

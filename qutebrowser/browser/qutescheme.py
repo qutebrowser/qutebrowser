@@ -1,19 +1,6 @@
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Backend-independent qute://* code.
 
@@ -22,6 +9,7 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import sys
 import html
 import json
 import os
@@ -580,9 +568,12 @@ def qute_warning(url: QUrl) -> _HandlerRet:
                            title='Qt 5.15 sessions warning',
                            datadir=standarddir.data(),
                            sep=os.sep)
-    elif path == '/sandboxing':
-        src = jinja.render('warning-sandboxing.html',
-                           title='Qt 6 macOS sandboxing warning')
+    elif path == '/qt5':
+        is_venv = hasattr(sys, 'real_prefix') or sys.base_prefix != sys.prefix
+        src = jinja.render('warning-qt5.html',
+                           title='Switch to Qt 6',
+                           is_venv=is_venv,
+                           prefix=sys.prefix)
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src

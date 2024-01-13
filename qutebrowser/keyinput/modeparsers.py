@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """KeyChainParser for "hint" and "normal" modes.
 
@@ -97,6 +84,7 @@ class NormalKeyParser(CommandKeyParser):
         self._inhibited = False
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
+        self._inhibited_timer.timeout.connect(self._clear_inhibited)
 
     def __repr__(self) -> str:
         return utils.get_repr(self)
@@ -126,7 +114,6 @@ class NormalKeyParser(CommandKeyParser):
                 timeout))
             self._inhibited = True
             self._inhibited_timer.setInterval(timeout)
-            self._inhibited_timer.timeout.connect(self._clear_inhibited)
             self._inhibited_timer.start()
 
     @pyqtSlot()
@@ -267,8 +254,10 @@ class RegisterKeyParser(CommandKeyParser):
                  mode: usertypes.KeyMode,
                  commandrunner: 'runners.CommandRunner',
                  parent: QObject = None) -> None:
-        super().__init__(mode=usertypes.KeyMode.register, win_id=win_id,
-                         commandrunner=commandrunner, parent=parent,
+        super().__init__(mode=usertypes.KeyMode.register,
+                         win_id=win_id,
+                         commandrunner=commandrunner,
+                         parent=parent,
                          supports_count=False)
         self._register_mode = mode
 

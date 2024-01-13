@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The qutebrowser test suite conftest file."""
 
@@ -57,7 +44,7 @@ hypothesis.settings.register_profile(
         deadline=None,
         suppress_health_check=[
             hypothesis.HealthCheck.function_scoped_fixture,
-            hypothesis.HealthCheck.too_slow,
+            hypothesis.HealthCheck.too_slow
         ]
     )
 )
@@ -197,11 +184,10 @@ def pytest_collection_modifyitems(config, items):
     items[:] = remaining_items
 
 
-def pytest_ignore_collect(path):
+def pytest_ignore_collect(collection_path: pathlib.Path) -> bool:
     """Ignore BDD tests if we're unable to run them."""
-    fspath = pathlib.Path(path)
     skip_bdd = hasattr(sys, 'frozen')
-    rel_path = fspath.relative_to(pathlib.Path(__file__).parent)
+    rel_path = collection_path.relative_to(pathlib.Path(__file__).parent)
     return rel_path == pathlib.Path('end2end') / 'features' and skip_bdd
 
 
@@ -210,7 +196,12 @@ def qapp_args():
     """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
     if testutils.disable_seccomp_bpf_sandbox():
         return [sys.argv[0], testutils.DISABLE_SECCOMP_BPF_FLAG]
-    return [sys.argv[0]]
+
+    # Disabling PaintHoldingCrossOrigin makes tests needing UI interaction with
+    # QtWebEngine more reliable.
+    # Only needed with QtWebEngine and Qt 6.5, but Qt just ignores arguments it
+    # doesn't know about anyways.
+    return [sys.argv[0], "--webEngineArgs", "--disable-features=PaintHoldingCrossOrigin"]
 
 
 @pytest.fixture(scope='session')

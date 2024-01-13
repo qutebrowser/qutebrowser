@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The commandline in the statusbar."""
 
@@ -111,7 +98,7 @@ class Command(misc.CommandLineEdit):
         else:
             return ''
 
-    def set_cmd_text(self, text: str) -> None:
+    def cmd_set_text(self, text: str) -> None:
         """Preset the statusbar to some text.
 
         Args:
@@ -123,10 +110,10 @@ class Command(misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='status-command', name='set-cmd-text',
-                       scope='window', maxsplit=0)
+    @cmdutils.register(instance='status-command', name='cmd-set-text',
+                       scope='window', maxsplit=0, deprecated_name='set-cmd-text')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def set_cmd_text_command(self, text: str,
+    def cmd_set_text_command(self, text: str,
                              count: int = None,
                              space: bool = False,
                              append: bool = False,
@@ -135,7 +122,7 @@ class Command(misc.CommandLineEdit):
 
         //
 
-        Wrapper for set_cmd_text to check the arguments and allow multiple
+        Wrapper for cmd_set_text to check the arguments and allow multiple
         strings which will get joined.
 
         Args:
@@ -159,7 +146,7 @@ class Command(misc.CommandLineEdit):
         if run_on_count and count is not None:
             self.got_cmd[str, int].emit(text, count)
         else:
-            self.set_cmd_text(text)
+            self.cmd_set_text(text)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -174,7 +161,7 @@ class Command(misc.CommandLineEdit):
                 cmdhistory.HistoryEndReachedError):
             return
         if item:
-            self.set_cmd_text(item)
+            self.cmd_set_text(item)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -187,7 +174,7 @@ class Command(misc.CommandLineEdit):
         except cmdhistory.HistoryEndReachedError:
             return
         if item:
-            self.set_cmd_text(item)
+            self.cmd_set_text(item)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -210,8 +197,9 @@ class Command(misc.CommandLineEdit):
         if not was_search:
             self.got_cmd[str].emit(text[1:])
 
-    @cmdutils.register(instance='status-command', scope='window')
-    def edit_command(self, run: bool = False) -> None:
+    @cmdutils.register(instance='status-command', scope='window',
+                       deprecated_name='edit-command')
+    def cmd_edit(self, run: bool = False) -> None:
         """Open an editor to modify the current command.
 
         Args:
@@ -225,7 +213,7 @@ class Command(misc.CommandLineEdit):
                 message.error('command must start with one of {}'
                               .format(modeparsers.STARTCHARS))
                 return
-            self.set_cmd_text(text)
+            self.cmd_set_text(text)
             if run:
                 self.command_accept()
 
@@ -259,15 +247,19 @@ class Command(misc.CommandLineEdit):
         else:
             raise utils.Unreachable("setText got called with invalid text "
                                     "'{}'!".format(text))
+        # FIXME:mypy PyQt6 stubs issue
+        if machinery.IS_QT6:
+            text = cast(str, text)
         super().setText(text)
 
-    def keyPressEvent(self, e: QKeyEvent) -> None:
+    def keyPressEvent(self, e: Optional[QKeyEvent]) -> None:
         """Override keyPressEvent to ignore Return key presses, and add Shift-Ins.
 
         If this widget is focused, we are in passthrough key mode, and
         Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
         without command_accept to be called.
         """
+        assert e is not None
         if machinery.IS_QT5:  # FIXME:v4 needed for Qt 5 typing
             shift = cast(Qt.KeyboardModifiers, Qt.KeyboardModifier.ShiftModifier)
         else:

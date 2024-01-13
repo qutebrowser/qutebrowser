@@ -1,22 +1,6 @@
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
-
-# FIXME:qt6 (lint)
-# pylint: disable=no-name-in-module
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Wrapper over our (QtWebKit) WebView."""
 
@@ -28,8 +12,10 @@ from typing import cast, Iterable, Optional
 from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from qutebrowser.qt.gui import QIcon
 from qutebrowser.qt.widgets import QWidget
+# pylint: disable=no-name-in-module
 from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
 from qutebrowser.qt.webkit import QWebSettings, QWebHistory, QWebElement
+# pylint: enable=no-name-in-module
 from qutebrowser.qt.printsupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared

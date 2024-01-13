@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Various utilities used inside tests."""
 
@@ -163,7 +150,7 @@ def partial_compare(val1, val2, *, indent=0):
     if val2 is Ellipsis:
         print_i("Ignoring ellipsis comparison", indent, error=True)
         return PartialCompareOutcome()
-    elif type(val1) != type(val2):  # pylint: disable=unidiomatic-typecheck
+    elif type(val1) is not type(val2):
         outcome = PartialCompareOutcome(
             "Different types ({}, {}) -> False".format(type(val1).__name__,
                                                        type(val2).__name__))
@@ -205,8 +192,26 @@ def pattern_match(*, pattern, value):
 
 def abs_datapath():
     """Get the absolute path to the end2end data directory."""
-    file_abs = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(file_abs, '..', 'end2end', 'data')
+    path = pathlib.Path(__file__).parent / '..' / 'end2end' / 'data'
+    return path.resolve()
+
+
+def substitute_testdata(path):
+    r"""Replace the (testdata) placeholder in path with `abs_datapath()`.
+
+    If path is starting with file://, return path as an URI with file:// removed. This
+    is useful if path is going to be inserted into an URI:
+
+    >>> path = substitute_testdata("C:\Users\qute")
+    >>> f"file://{path}/slug  # results in valid URI
+    'file:///C:/Users/qute/slug'
+    """
+    if path.startswith('file://'):
+        testdata_path = abs_datapath().as_uri().replace('file://', '')
+    else:
+        testdata_path = str(abs_datapath())
+
+    return path.replace('(testdata)', testdata_path)
 
 
 @contextlib.contextmanager

@@ -1,19 +1,6 @@
-# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """A request interceptor taking care of adblocking and custom headers."""
 
@@ -23,7 +10,7 @@ from qutebrowser.qt.webenginecore import (QWebEngineUrlRequestInterceptor,
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
-from qutebrowser.utils import debug, log
+from qutebrowser.utils import debug, log, qtutils
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
 
@@ -33,9 +20,8 @@ class WebEngineRequest(interceptors.Request):
     """QtWebEngine-specific request interceptor functionality."""
 
     _WHITELISTED_REQUEST_METHODS = {
-        # FIXME:mypy PyQt6-stubs issue?
-        QByteArray(b'GET'),  # type: ignore[call-overload,unused-ignore]
-        QByteArray(b'HEAD'),  # type: ignore[call-overload,unused-ignore]
+        QByteArray(b'GET'),
+        QByteArray(b'HEAD'),
     }
 
     def __init__(self, *args, webengine_info, **kwargs):
@@ -48,6 +34,11 @@ class WebEngineRequest(interceptors.Request):
             raise interceptors.RedirectException("Request already redirected.")
         if self._webengine_info is None:
             raise interceptors.RedirectException("Request improperly initialized.")
+
+        try:
+            qtutils.ensure_valid(url)
+        except qtutils.QtValueError as e:
+            raise interceptors.RedirectException(f"Redirect to invalid URL: {e}")
 
         # Redirecting a request that contains payload data is not allowed.
         # To be safe, abort on any request not in a whitelist.

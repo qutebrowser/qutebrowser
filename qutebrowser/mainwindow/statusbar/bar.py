@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """The main statusbar widget."""
 
@@ -390,9 +377,11 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.show == 'in-mode':
+        if config.val.statusbar.show == 'in-mode' and mode != usertypes.KeyMode.command:
+            # Showing in command mode is handled via _show_cmd_widget()
             self.show()
+
+        mode_manager = modeman.instance(self._win_id)
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
@@ -406,9 +395,11 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.show == 'in-mode':
+        if config.val.statusbar.show == 'in-mode' and old_mode != usertypes.KeyMode.command:
+            # Hiding in command mode is handled via _hide_cmd_widget()
             self.hide()
+
+        mode_manager = modeman.instance(self._win_id)
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)

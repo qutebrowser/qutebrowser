@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
-# This file is part of qutebrowser.
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 
 """Generate the html documentation based on the asciidoc files."""
 
@@ -84,9 +73,9 @@ class AsciiDoc:
 
         replacements = [
             # patch image links to use local copy
-            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-big.png",
              "qute://help/img/cheatsheet-big.png"),
-            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/main/doc/img/cheatsheet-small.png",
              "qute://help/img/cheatsheet-small.png"),
 
             # patch relative links to work with qute://help flat structure

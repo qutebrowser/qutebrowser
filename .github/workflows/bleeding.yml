@@ -12,25 +12,33 @@ jobs:
     if: "github.repository == 'qutebrowser/qutebrowser'"
     runs-on: ubuntu-20.04
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - testenv: bleeding
+            image: "archlinux-webengine-unstable-qt6"
+          - testenv: bleeding-qt5
+            image: "archlinux-webengine-unstable"
     container:
-      image: "qutebrowser/ci:archlinux-webengine-unstable"
+      image: "qutebrowser/ci:${{ matrix.image }}"
       env:
         FORCE_COLOR: "1"
         PY_COLORS: "1"
-        DOCKER: "archlinux-webengine-unstable"
+        DOCKER: "${{ matrix.image }}"
         CI: true
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e bleeding
+        run: dbus-run-session tox -e ${{ matrix.testenv }}
   irc:
     timeout-minutes: 2
     continue-on-error: true

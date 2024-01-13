@@ -1,19 +1,6 @@
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import operator
 
@@ -29,6 +16,16 @@ from helpers import testutils
 from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import utils
+
+
+pyqt_enum_workaround_skip = pytest.mark.skipif(
+    isinstance(keyutils._NIL_KEY, int),
+    reason="Can't create QKey for unknown keys with this PyQt version"
+)
+try:
+    OE_KEY = Qt.Key(ord('Œ'))
+except ValueError:
+    OE_KEY = None  # affected tests skipped
 
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
@@ -156,10 +153,14 @@ class TestKeyToString:
     (Qt.Key.Key_A,
      Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.MetaModifier | Qt.KeyboardModifier.ShiftModifier,
      '<Meta+Ctrl+Alt+Shift+a>'),
-    (ord('Œ'), Qt.KeyboardModifier.NoModifier, '<Œ>'),
-    (ord('Œ'), Qt.KeyboardModifier.ShiftModifier, '<Shift+Œ>'),
-    (ord('Œ'), Qt.KeyboardModifier.GroupSwitchModifier, '<AltGr+Œ>'),
-    (ord('Œ'), Qt.KeyboardModifier.GroupSwitchModifier | Qt.KeyboardModifier.ShiftModifier, '<AltGr+Shift+Œ>'),
+
+    pytest.param(OE_KEY, Qt.KeyboardModifier.NoModifier, '<Œ>',
+                 marks=pyqt_enum_workaround_skip),
+    pytest.param(OE_KEY, Qt.KeyboardModifier.ShiftModifier, '<Shift+Œ>',
+                 marks=pyqt_enum_workaround_skip),
+    pytest.param(OE_KEY, Qt.KeyboardModifier.GroupSwitchModifier, '<AltGr+Œ>',
+                 marks=pyqt_enum_workaround_skip),
+    pytest.param(OE_KEY, Qt.KeyboardModifier.GroupSwitchModifier | Qt.KeyboardModifier.ShiftModifier, '<AltGr+Shift+Œ>'),
 
     (Qt.Key.Key_Shift, Qt.KeyboardModifier.ShiftModifier, '<Shift>'),
     (Qt.Key.Key_Shift, Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier, '<Ctrl+Shift>'),
@@ -212,10 +213,10 @@ def test_surrogates(key, modifiers, text, expected, pyqt_enum_workaround):
     ([Qt.Key.Key_Shift, 0x29df6], '<Shift><𩷶>'),
     ([0x1f468, 0x200d, 0x1f468, 0x200d, 0x1f466], '<👨><‍><👨><‍><👦>'),
 ])
-def test_surrogate_sequences(keys, expected, pyqt_enum_workaround):
-    infos = [keyutils.KeyInfo(key) for key in keys]
-    with pyqt_enum_workaround(keyutils.KeyParseError):
-        seq = keyutils.KeySequence(*infos)
+@pyqt_enum_workaround_skip
+def test_surrogate_sequences(keys, expected):
+    infos = [keyutils.KeyInfo(Qt.Key(key)) for key in keys]
+    seq = keyutils.KeySequence(*infos)
     assert str(seq) == expected
 
 
@@ -590,7 +591,8 @@ def test_key_info_to_qt():
     (Qt.Key.Key_Return, False),
     (Qt.Key.Key_Enter, False),
     (Qt.Key.Key_Space, False),
-    (0x0, False),  # Used by Qt for unknown keys
+    # Used by Qt for unknown keys
+    pytest.param(keyutils._NIL_KEY, False, marks=pyqt_enum_workaround_skip),
 
     (Qt.Key.Key_ydiaeresis, True),
     (Qt.Key.Key_X, True),

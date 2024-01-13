@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
-# This file is part of qutebrowser.
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 
 """Symlink PyQt into a given virtualenv."""
 
@@ -118,14 +107,17 @@ def get_lib_path(executable, name, required=True):
         return data
     elif prefix == 'ImportError':
         if required:
-            raise Error("Could not import {} with {}: {}!".format(
-                name, executable, data))
+            wrapper = os.environ["QUTE_QT_WRAPPER"]
+            raise Error(
+                f"Could not import {name} with {executable}: {data} "
+                f"(QUTE_QT_WRAPPER: {wrapper})"
+            )
         return None
     else:
         raise ValueError("Unexpected output: {!r}".format(output))
 
 
-def link_pyqt(executable, venv_path, *, version='5'):
+def link_pyqt(executable, venv_path, *, version):
     """Symlink the systemwide PyQt/sip into the venv.
 
     Args:

@@ -1,19 +1,6 @@
-# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
-# This file is part of qutebrowser.
-#
-# qutebrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# qutebrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """A QProcess which shows notifications in the GUI."""
 
@@ -27,7 +14,7 @@ from typing import Mapping, Sequence, Dict, Optional
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl, Qt)
 
-from qutebrowser.utils import message, log, utils, usertypes, version
+from qutebrowser.utils import message, log, utils, usertypes, version, qtutils
 from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
 
@@ -394,7 +381,7 @@ class GUIProcess(QObject):
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
         self._proc.start(
-            self.resolved_cmd,  # type: ignore[arg-type]
+            qtutils.remove_optional(self.resolved_cmd),
             args,
         )
         self._post_start()
