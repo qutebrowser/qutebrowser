@@ -18,7 +18,7 @@ keyring==24.3.0
 manhole==1.8.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
-more-itertools==10.1.0
+more-itertools==10.2.0
 nh3==0.2.15
 packaging==23.2
 pkginfo==1.9.6
