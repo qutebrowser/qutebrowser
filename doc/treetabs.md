@@ -127,12 +127,12 @@ ones? Any theme to them?
 * `zK`: `tab-prev -s` - cycle tab focus upwards among siblings
 * `zJ`: `tab-next -s` - cycle tab focus downwards among siblings
 * `zd`: `tab-close -r` - r = recursive
-* `zg`: `set-cmd-text -s :tree-tab-create-group -r` - r = related
-* `zG`: `set-cmd-text -s :tree-tab-create-group`
+* `zg`: `cmd-set-text -s :tree-tab-create-group -r` - r = related
+* `zG`: `cmd-set-text -s :tree-tab-create-group`
 * `za`: `tree-tab-toggle-hide` - same binding as vim folds
 * `zp`: `tab-focus parent`
-* `zo`: `set-cmd-text --space :open -tr` - r = related
-* `zO`: `set-cmd-text --space :open -tS` - S = sibling
+* `zo`: `cmd-set-text --space :open -tr` - r = related
+* `zO`: `cmd-set-text --space :open -tS` - S = sibling
 
 ## Implementation
 

@@ -3884,12 +3884,12 @@ bindings.default:
       zJ: tab-next -s
       zK: tab-prev -s
       zd: tab-close -r
-      zg: set-cmd-text -s :tree-tab-create-group -r
-      zG: set-cmd-text -s :tree-tab-create-group
+      zg: cmd-set-text -s :tree-tab-create-group -r
+      zG: cmd-set-text -s :tree-tab-create-group
       za: tree-tab-toggle-hide
       zp: tab-focus parent
-      zo: set-cmd-text --space :open -tr
-      zO: set-cmd-text --space :open -tS
+      zo: cmd-set-text --space :open -tr
+      zO: cmd-set-text --space :open -tS
     insert:
       <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}

@@ -351,6 +351,7 @@
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
+|<<tabs.tree_tabs,tabs.tree_tabs>>|Enable tree-tabs mode.
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of closed tabs (per window) and closed windows to remember for :undo (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
@@ -753,16 +754,16 @@ Default:
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
-* +pass:[zG]+: +pass:[set-cmd-text -s :tree-tab-create-group]+
+* +pass:[zG]+: +pass:[cmd-set-text -s :tree-tab-create-group]+
 * +pass:[zH]+: +pass:[tree-tab-promote]+
 * +pass:[zJ]+: +pass:[tab-next -s]+
 * +pass:[zK]+: +pass:[tab-prev -s]+
 * +pass:[zL]+: +pass:[tree-tab-demote]+
-* +pass:[zO]+: +pass:[set-cmd-text --space :open -tS]+
+* +pass:[zO]+: +pass:[cmd-set-text --space :open -tS]+
 * +pass:[za]+: +pass:[tree-tab-toggle-hide]+
 * +pass:[zd]+: +pass:[tab-close -r]+
-* +pass:[zg]+: +pass:[set-cmd-text -s :tree-tab-create-group -r]+
-* +pass:[zo]+: +pass:[set-cmd-text --space :open -tr]+
+* +pass:[zg]+: +pass:[cmd-set-text -s :tree-tab-create-group -r]+
+* +pass:[zo]+: +pass:[cmd-set-text --space :open -tr]+
 * +pass:[zp]+: +pass:[tab-focus parent]+
 * +pass:[{{]+: +pass:[navigate prev -t]+
 * +pass:[}}]+: +pass:[navigate next -t]+
@@ -4665,6 +4666,7 @@ Default: +pass:[true]+
 [[tabs.tree_tabs]]
 === tabs.tree_tabs
 Enable tree-tabs mode.
+
 This setting requires a restart.
 
 Type: <<types,Bool>>
