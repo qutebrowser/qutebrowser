@@ -3284,7 +3284,7 @@ colors.webpage.darkmode.enabled:
 colors.webpage.darkmode.algorithm:
   default: lightness-cielab
   desc: >-
-    Which algorithm to use for modifying how colors are rendered with darkmode.
+    Which algorithm to use for modifying how colors are rendered with dark mode.
 
     The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated
     like `lightness-hsl` with older QtWebEngine versions.
