@@ -620,6 +620,18 @@ def check_contents_json(quteproc, text):
     assert actual == expected
 
 
+# TODO(pylbrecht): merge this with check_open_tabs() once mature enough
+@bdd.then(bdd.parsers.parse("the following tree tabs should be open:\n{tabs}"))
+def check_open_tree_tabs(quteproc, request, tabs):
+    """Check the tree of open tabs in the session.
+
+    This is a lightweight alternative for "The session should look like: ...".
+
+    It expects a tree of URLs, with an optional "(active)" suffix.
+    """
+    raise NotImplementedError
+
+
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
 def check_open_tabs(quteproc, request, tabs):
     """Check the list of open tabs in the session.
