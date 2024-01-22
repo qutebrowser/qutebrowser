@@ -341,7 +341,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
             """Call the original function."""
             try:
                 return func(*args, **kwargs)
-            except BaseException:
+            except BaseException:  # noqa: B036
                 log.misc.exception("Error in {}".format(qualname(func)))
                 return retval
 
