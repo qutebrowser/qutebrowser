@@ -300,7 +300,6 @@ class SessionManager(QObject):
                         'uid': node.uid
                     }
                     tab_data['treetab_node_data'] = node_data
-                print(tab_data)
                 win_data['tabs'].append(tab_data)
             if tabbed_browser.is_treetabbedbrowser:
                 root = tabbed_browser.widget.tree_root
