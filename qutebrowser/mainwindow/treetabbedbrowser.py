@@ -134,8 +134,6 @@ class TreeTabbedBrowser(TabbedBrowser):
         This function was removed in tabbedbrowser, but it is still useful here because
         the mechanism is quite a bit more complex
         """
-        # TODO see if it's possible to remove duplicate code from
-        # super()._add_undo_entry
         node = tab.node
         if not node.collapsed:
             entry = _TreeUndoEntry.from_node(node, 0)
@@ -162,10 +160,6 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
-        # TODO find a way to remove dupe code
-        # probably by getting entries from undo stack, THEN calling super
-        # then post-processing the entries
-
         # save entries before super().undo() pops them
         entries = list(self.undo_stack[-depth])
         new_tabs = super().undo(depth)
