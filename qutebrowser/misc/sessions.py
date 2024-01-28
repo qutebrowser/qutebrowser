@@ -338,7 +338,6 @@ class SessionManager(QObject):
                 if tabbed_browser.is_treetabbedbrowser:
                     node = tab.node
                     node_data = {
-                        'node': node.uid,
                         'parent': node.parent.uid,
                         'children': [c.uid for c in node.children],
                         'collapsed': node.collapsed,
