@@ -519,7 +519,7 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
-    def _load_tree(self, tabbed_browser, tree_data):
+    def _load_tree(self, tabbed_browser, tree_data, legacy=False):
         tree_keys = list(tree_data.keys())
         if not tree_keys:
             return None
@@ -536,8 +536,12 @@ class SessionManager(QObject):
             nonlocal tab_to_focus
             nonlocal index
             index += 1
-            tab_data = tree_data[uid]
-            node_data = tab_data['treetab_node_data']
+            if legacy:
+                node_data = tree_data[uid]
+                tab_data = node_data['tab']
+            else:
+                tab_data = tree_data[uid]
+                node_data = tab_data['treetab_node_data']
             children_uids = node_data['children']
 
             if tab_data.get('active'):
@@ -558,6 +562,32 @@ class SessionManager(QObject):
 
         return tab_to_focus
 
+    def _load_legacy_tree_tabs(self, win, tabbed_browser):
+        """Load the "legacy" tree session format.
+
+        For a number of years (pull #4602) tree tabs used a session format
+        that wasn't backwards compatible with prior session formats. In that
+        tab data was a child of a tree node. Now it's been switched to the
+        other way around. This method (along with a conditional in
+        `_load_tree()`) handle loading the old format for early adopters who
+        have session they don't want to have to rebuild.
+
+        Returns:
+          a. `(None, None)` if tree tabs where loaded, or
+          b. or a tuple of the tab index to focus and a flat list of tabs that
+             need loading if tree tabs is turned off.
+        """
+        plain_tabs = None
+        tab_to_focus = None
+        tree_data = win.get('tree')
+        if tabbed_browser.is_treetabbedbrowser:
+            tab_to_focus = self._load_tree(tabbed_browser, tree_data, legacy=True)
+            tabbed_browser.widget.tree_tab_update()
+        else:
+            plain_tabs = [tree_data[i]['tab'] for i in tree_data if
+                          tree_data[i]['tab']]
+        return tab_to_focus, plain_tabs
+
     def _load_window(self, win):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
@@ -566,7 +596,13 @@ class SessionManager(QObject):
                                     window=window.win_id)
         tab_to_focus = None
 
-        tabs = win['tabs']
+        legacy_tree_loaded = False
+        if win.get('tree'):
+            tab_to_focus, tabs = self._load_legacy_tree_tabs(win, tabbed_browser)
+            legacy_tree_loaded = not tabs
+        else:
+            tabs = win['tabs']
+
         # restore a tab tree only if the session contains treetab
         # data and tree tabs are enabled.
         # Otherwise, restore tabs "flat"
@@ -575,7 +611,7 @@ class SessionManager(QObject):
         if load_tree_tabs:
             tree_data = reconstruct_tree_data(win)
             self._load_tree(tabbed_browser, tree_data)
-        else:
+        elif not legacy_tree_loaded:
             for i, tab in enumerate(tabs):
                 new_tab = tabbed_browser.tabopen(background=False)
                 self._load_tab(new_tab, tab)
