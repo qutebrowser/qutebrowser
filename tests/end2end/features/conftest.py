@@ -613,7 +613,35 @@ def check_open_tree_tabs(quteproc, request, tabs):
 
     It expects a tree of URLs, with an optional "(active)" suffix.
     """
+    session = quteproc.get_session()
+    # TODO: support ' (collapsed)', also maybe make suffixes generic?
+    active_suffix = ' (active)'
+    pinned_suffix = ' (pinned)'
+    tabs = tabs.splitlines()
+    assert len(session['windows']) == 1
+    assert len(session['windows'][0]['tabs']) == len(tabs)
+
+    # If we don't have (active) anywhere, don't check it
+    has_active = any(active_suffix in line for line in tabs)
+    has_pinned = any(pinned_suffix in line for line in tabs)
+
+
+    from qutebrowser.misc import sessions
+    tree_data = sessions.SessionManager._reconstruct_tree_data(None, session['windows'][0])
+
+    # TODO: iterate/recurse through tree_data and build a string of the same
+    # format we are putting in the test fixtures
+
+    root = [v for v in tree_data.values() if "treetab_node_data" not in v][0]
+    expected = ""
+    for uid in root["children"]:
+        ...
+
+    # Then copy the remaining parts from check_open_tabs() and probably change
+    # it to support more leading spaces
+
     raise NotImplementedError
+
 
 
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
