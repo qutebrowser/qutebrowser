@@ -125,14 +125,14 @@ def set_setting_given(quteproc, server, opt, value):
 
 
 @bdd.given(bdd.parsers.parse("I open {path}"))
-def open_path_given(quteproc, path):
+def open_path_given(quteproc, server, path):
     """Open a URL.
 
     This is available as "Given:" step so it can be used as "Background:".
 
     It always opens a new tab, unlike "When I open ..."
     """
-    quteproc.open_path(path, new_tab=True)
+    open_path(quteproc, server, path, default_kwargs={"new_tab": True})
 
 
 @bdd.given(bdd.parsers.parse("I run {command}"))
@@ -188,7 +188,7 @@ def clear_log_lines(quteproc):
 
 
 @bdd.when(bdd.parsers.parse("I open {path}"))
-def open_path(quteproc, server, path):
+def open_path(quteproc, server, path, default_kwargs: dict = None):
     """Open a URL.
 
     - If used like "When I open ... in a new tab", the URL is opened in a new
@@ -200,56 +200,40 @@ def open_path(quteproc, server, path):
     path = path.replace('(port)', str(server.port))
     path = testutils.substitute_testdata(path)
 
-    new_tab = False
-    related_tab = False
-    new_bg_tab = False
-    new_window = False
-    private = False
-    as_url = False
-    wait = True
+    suffixes = {
+        "in a new tab": "new_tab",
+        "in a new related tab": ("new_tab", "related_tab"),
+        "in a new related background tab": ("new_bg_tab", "related_tab"),
+        "in a new background tab": "new_bg_tab",
+        "in a new window": "new_window",
+        "in a private window": "private",
+        "without waiting": {"wait": False},
+        "as a URL": "as_url",
+    }
 
-    related_tab_suffix = ' in a new related tab'
-    related_background_tab_suffix = ' in a new related background tab'
-    new_tab_suffix = ' in a new tab'
-    new_bg_tab_suffix = ' in a new background tab'
-    new_window_suffix = ' in a new window'
-    private_suffix = ' in a private window'
-    do_not_wait_suffix = ' without waiting'
-    as_url_suffix = ' as a URL'
+    def update_from_value(value, kwargs):
+        if isinstance(value, str):
+            kwargs[value] = True
+        elif isinstance(value, (tuple, list)):
+            for i in value:
+                update_from_value(i, kwargs)
+        elif isinstance(value, dict):
+            kwargs.update(value)
 
+    kwargs = {}
     while True:
-        if path.endswith(new_tab_suffix):
-            path = path[:-len(new_tab_suffix)]
-            new_tab = True
-        elif path.endswith(related_tab_suffix):
-            path = path[:-len(related_tab_suffix)]
-            new_tab = True
-            related_tab = True
-        elif path.endswith(related_background_tab_suffix):
-            path = path[:-len(related_background_tab_suffix)]
-            new_bg_tab = True
-            related_tab = True
-        elif path.endswith(new_bg_tab_suffix):
-            path = path[:-len(new_bg_tab_suffix)]
-            new_bg_tab = True
-        elif path.endswith(new_window_suffix):
-            path = path[:-len(new_window_suffix)]
-            new_window = True
-        elif path.endswith(private_suffix):
-            path = path[:-len(private_suffix)]
-            private = True
-        elif path.endswith(as_url_suffix):
-            path = path[:-len(as_url_suffix)]
-            as_url = True
-        elif path.endswith(do_not_wait_suffix):
-            path = path[:-len(do_not_wait_suffix)]
-            wait = False
+        for suffix, value in suffixes.items():
+            if path.endswith(suffix):
+                path = path[:-len(suffix) - 1]
+                update_from_value(value, kwargs)
+                break
         else:
             break
 
-    quteproc.open_path(path, related_tab=related_tab, new_tab=new_tab,
-                       new_bg_tab=new_bg_tab, new_window=new_window,
-                       private=private, as_url=as_url, wait=wait)
+    if not kwargs and default_kwargs:
+        kwargs.update(default_kwargs)
+
+    quteproc.open_path(path, **kwargs)
 
 
 @bdd.when(bdd.parsers.parse("I set {opt} to {value}"))
