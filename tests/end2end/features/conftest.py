@@ -614,7 +614,6 @@ def check_open_tree_tabs(quteproc, request, tabs):
     It expects a tree of URLs, with an optional "(active)" suffix.
     """
     session = quteproc.get_session()
-    # TODO: support ' (collapsed)', also maybe make suffixes generic?
     active_suffix = ' (active)'
     pinned_suffix = ' (pinned)'
     collapsed_suffix = ' (collapsed)'
@@ -622,32 +621,36 @@ def check_open_tree_tabs(quteproc, request, tabs):
     assert len(session['windows']) == 1
     assert len(session['windows'][0]['tabs']) == len(tabs)
 
-    # If we don't have (active) anywhere, don't check it
+    # Don't check for states in the session if they aren't in the expected
+    # text.
     has_active = any(active_suffix in line for line in tabs)
     has_pinned = any(pinned_suffix in line for line in tabs)
+    has_collapsed = any(collapsed_suffix in line for line in tabs)
 
-
-    # TODO: iterate/recurse through tree_data and build a string of the same
-    # format we are putting in the test fixtures
+    def tab_to_str(tab, prefix="", collapsed=False):
+        current = [
+            entry
+            for entry in tab["history"]
+            if entry.get("active")
+        ][0]
+        text = f"{prefix}- {current['url']}"
+        for suffix, state in {
+            active_suffix: tab.get("active") and has_active,
+            collapsed_suffix: collapsed and has_collapsed,
+            pinned_suffix: current["pinned"] and has_pinned,
+        }.items():
+            if state:
+                text += suffix
+        return text
 
     def tree_to_str(node, indentation=-1):
         tree_node = node.get("treetab_node_data")
-        if tree_node:  # root node doesn't have a tree data structure
-            current = [
-                entry
-                for entry in node["history"]
-                if entry.get("active")
-            ][0]
-            text = f"{'  ' * indentation}- {current['url']}"
-            for suffix, state in {
-                active_suffix: node.get("active"),
-                pinned_suffix: current["pinned"],
-                collapsed_suffix: tree_node["collapsed"],
-            }.items():
-                if state:
-                    text += suffix
-
-            yield text
+        if tree_node:  # root node doesn't have treetab_node_data
+            yield tab_to_str(
+                node,
+                prefix="  " * indentation,
+                collapsed=tree_node["collapsed"],
+            )
         else:
             tree_node = node
 
@@ -657,21 +660,26 @@ def check_open_tree_tabs(quteproc, request, tabs):
     is_tree_tab_window = "treetab_root" in session["windows"][0]
     if is_tree_tab_window:
         from qutebrowser.misc import sessions
-        tree_data = sessions.SessionManager._reconstruct_tree_data(None, session['windows'][0])
+        tree_data = sessions.SessionManager._reconstruct_tree_data(None, session["windows"][0])
 
         root = [v for v in tree_data.values() if "treetab_node_data" not in v][0]
-        expected = "\n".join(tree_to_str(root))
+        actual = list(tree_to_str(root))
     else:
-        pass  # TODO: support "flat" tab windows too
+        actual = [tab_to_str(tab) for tab in session["windows"][0]["tabs"]]
 
-    import pdbr
-    pdbr.set_trace()
+    def normalize(line):
+        prefix, rest = line.split("- ", maxsplit=1)
+        path = rest.split(" ", maxsplit=1)
+        path[0] = quteproc.path_to_url(path[0])
+        if len(path) == 2:
+            path[1] = " (".join(sorted(path[1].split(" (")))
+        return "- ".join((prefix, " ".join(path)))
 
-    # Then copy the remaining parts from check_open_tabs() and probably change
-    # it to support more leading spaces
-
-    raise NotImplementedError
-
+    tabs = [
+        normalize(line)
+        for line in tabs
+    ]
+    assert "\n".join(tabs) == "\n".join(actual)
 
 
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))

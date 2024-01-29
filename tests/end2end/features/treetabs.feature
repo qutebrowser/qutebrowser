@@ -24,4 +24,4 @@ Feature: Tree tab management
         And I open data/numbers/2.txt in a new related tab
         Then the following tree tabs should be open:
             - data/numbers/1.txt
-              - data/numbers/2.txt
+              - data/numbers/2.txt (active)
