@@ -617,6 +617,7 @@ def check_open_tree_tabs(quteproc, request, tabs):
     # TODO: support ' (collapsed)', also maybe make suffixes generic?
     active_suffix = ' (active)'
     pinned_suffix = ' (pinned)'
+    collapsed_suffix = ' (collapsed)'
     tabs = tabs.splitlines()
     assert len(session['windows']) == 1
     assert len(session['windows'][0]['tabs']) == len(tabs)
@@ -626,16 +627,45 @@ def check_open_tree_tabs(quteproc, request, tabs):
     has_pinned = any(pinned_suffix in line for line in tabs)
 
 
-    from qutebrowser.misc import sessions
-    tree_data = sessions.SessionManager._reconstruct_tree_data(None, session['windows'][0])
-
     # TODO: iterate/recurse through tree_data and build a string of the same
     # format we are putting in the test fixtures
 
-    root = [v for v in tree_data.values() if "treetab_node_data" not in v][0]
-    expected = ""
-    for uid in root["children"]:
-        ...
+    def tree_to_str(node, indentation=-1):
+        tree_node = node.get("treetab_node_data")
+        if tree_node:  # root node doesn't have a tree data structure
+            current = [
+                entry
+                for entry in node["history"]
+                if entry.get("active")
+            ][0]
+            text = f"{'  ' * indentation}- {current['url']}"
+            for suffix, state in {
+                active_suffix: node.get("active"),
+                pinned_suffix: current["pinned"],
+                collapsed_suffix: tree_node["collapsed"],
+            }.items():
+                if state:
+                    text += suffix
+
+            yield text
+        else:
+            tree_node = node
+
+        for uid in tree_node["children"]:
+            yield from tree_to_str(tree_data[uid], indentation + 1)
+
+    is_tree_tab_window = "treetab_root" in session["windows"][0]
+    if is_tree_tab_window:
+        from qutebrowser.misc import sessions
+        tree_data = sessions.SessionManager._reconstruct_tree_data(None, session['windows'][0])
+
+        root = [v for v in tree_data.values() if "treetab_node_data" not in v][0]
+        expected = "\n".join(tree_to_str(root))
+    else:
+        pass  # TODO: support "flat" tab windows too
+
+    import pdbr
+    pdbr.set_trace()
 
     # Then copy the remaining parts from check_open_tabs() and probably change
     # it to support more leading spaces
