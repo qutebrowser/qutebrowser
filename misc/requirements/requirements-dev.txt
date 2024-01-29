@@ -5,7 +5,7 @@ bump2version==1.0.1
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==41.0.7
+cryptography==42.0.1
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
@@ -35,7 +35,7 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.7.0
 SecretStorage==3.3.3
-sip==6.8.1
+sip==6.8.2
 six==1.16.0
 tomli==2.0.1
 twine==4.0.2
