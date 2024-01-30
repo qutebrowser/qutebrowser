@@ -1172,7 +1172,6 @@ class ContextHinter():
 
     """Generator for context hints.
 
-
     Attributes:
         words: A set of words to be used when no "smart hint" can be
             derived from the hinted element.
@@ -1230,10 +1229,11 @@ class ContextHinter():
 
         yield ''
 
-    def _is_valid_hint(self,
-                       hint: str,
-                       existing_hints: Iterable[str],
-                       hint_length: int
+    def _is_valid_hint(
+            self,
+            hint: str,
+            existing_hints: Iterable[str],
+            hint_length: int
     ) -> bool:
         """Check if the given hint is valid."""
         if (
@@ -1248,10 +1248,11 @@ class ContextHinter():
             log.hints.debug("Valid hint: {}".format(hint))
             return True
 
-    def create_hint_from_words(self,
-                               text: str,
-                               existing_words: Iterable[str],
-                               hint_length: int
+    def create_hint_from_words(
+            self,
+            text: str,
+            existing_words: Iterable[str],
+            hint_length: int
     ) -> str:
         """Create a hint from the given text."""
         max_iterations = 50
@@ -1280,9 +1281,10 @@ class ContextHinter():
         log.hints.debug("created hint: " + hint)
         return hint
 
-    def generate_random_hint(self,
-                             existing_hints: Iterable[str],
-                             hint_length: int
+    def generate_random_hint(
+            self,
+            existing_hints: Iterable[str],
+            hint_length: int
     ) -> str:
         """Generate a random hint.
 
@@ -1300,10 +1302,11 @@ class ContextHinter():
 
         return ""
 
-    def create_hint(self,
-                    candidates: Iterable[str],
-                    existing_hints: Iterable[str],
-                    hint_length: int
+    def create_hint(
+            self,
+            candidates: Iterable[str],
+            existing_hints: Iterable[str],
+            hint_length: int
     ) -> Iterator[str]:
         """Crate a hint from the given candidates."""
         hint = ""
@@ -1324,10 +1327,11 @@ class ContextHinter():
 
         yield 'no hint found'
 
-    def new_hint_for(self,
-                     elem: webelem.AbstractWebElement,
-                     existing_hints: Iterable[str],
-                     hint_length: int
+    def new_hint_for(
+            self,
+            elem: webelem.AbstractWebElement,
+            existing_hints: Iterable[str],
+            hint_length: int
     ) -> Optional[str]:
         """Return a hint for elem, not conflicting with the existing."""
         candidates = self.tag_words_to_hint_candidates(self.extract_tag_words(elem),
@@ -1346,9 +1350,10 @@ class ContextHinter():
         log.hints.debug("elem: " + str(elem.tag_name()) + " hint: " + t)
         return t
 
-    def hint(self,
-             elems: _ElemsType,
-             hint_length: int
+    def hint(
+            self,
+            elems: _ElemsType,
+            hint_length: int
     ) -> _HintStringsType:
         """Produce hint labels based on the html tags.
 
