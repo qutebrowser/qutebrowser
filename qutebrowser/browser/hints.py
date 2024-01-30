@@ -446,7 +446,6 @@ class HintManager(QObject):
         if hint_mode == "context":
             try:
                 return self._context_hinter.hint(elems,
-                                                 self._context,
                                                  config.val.hints.min_chars)
             except HintingError as e:
                 message.error(str(e))
@@ -1273,7 +1272,7 @@ class ContextHinter():
             iterations += 1
 
             hint = ''.join(next(generator, ''))
-            if hint == "":
+            if not hint:
                 break
 
         log.hints.debug("created hint: " + hint)
@@ -1341,7 +1340,6 @@ class ContextHinter():
 
     def hint(self,
              elems: _ElemsType,
-             context: HintContext,
              hint_length: int
     ) -> _HintStringsType:
         """Produce hint labels based on the html tags.
@@ -1364,7 +1362,7 @@ class ContextHinter():
                 tag_order.append(elem.tag_name())
 
         for tag in tag_order:
-            for index in range(len(elems)):
+            for index, _ in enumerate(elems):
                 if elems[index].tag_name() == tag:
                     hint = self.new_hint_for(elems[index], used_hints, hint_length)
                     if not hint:
