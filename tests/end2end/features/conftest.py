@@ -20,6 +20,7 @@ import pytest
 import pytest_bdd as bdd
 
 import qutebrowser
+from qutebrowser.misc import sessions
 from qutebrowser.utils import log, utils, docutils, version
 from qutebrowser.browser import pdfjs
 from end2end.fixtures import testprocess
@@ -670,10 +671,7 @@ def check_open_tabs(quteproc, request, expected_tabs):
 
     is_tree_tab_window = "treetab_root" in window
     if is_tree_tab_window:
-        # TODO: make this public
-        from qutebrowser.misc import sessions
-        tree_data = sessions.SessionManager._reconstruct_tree_data(None, window)
-
+        tree_data = sessions.reconstruct_tree_data(window)
         root = [node for node in tree_data.values() if "treetab_node_data" not in node][0]
         actual = list(tree_to_str(root, tree_data))
     else:
