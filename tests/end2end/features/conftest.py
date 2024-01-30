@@ -697,6 +697,10 @@ def check_open_tabs(quteproc, request, expected_tabs):
         normalize(line)
         for line in expected_tabs
     ]
+    # Removed the hyphens from the start of lines so they don't get mixed in
+    # with the diff markers.
+    expected_tabs = [line.replace("- ", "") for line in expected_tabs]
+    actual = [line.replace("- ", "") for line in actual]
     for idx, expected in enumerate(expected_tabs):
         assert expected == actual[idx]
 
