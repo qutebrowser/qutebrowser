@@ -445,7 +445,9 @@ class HintManager(QObject):
                 # falls back on letter hints
         if hint_mode == "context":
             try:
-                return self._context_hinter.hint(elems, self._context, config.val.hints.min_chars)
+                return self._context_hinter.hint(elems,
+                                                 self._context,
+                                                 config.val.hints.min_chars)
             except HintingError as e:
                 message.error(str(e))
                 # falls back on letter hints
@@ -1167,7 +1169,7 @@ class WordHinter:
         return hints
 
 
-class ContextHinter(WordHinter):
+class ContextHinter():
 
     """Generator for context hints.
 
@@ -1211,7 +1213,7 @@ class ContextHinter(WordHinter):
     def tag_words_to_hint_candidates(
             self,
             words: Iterable[str],
-            hint_length
+            hint_length: int
     ) -> Iterator[str]:
         """Take words and transform them to proper hints candidates."""
         for candidate in words:
@@ -1229,7 +1231,11 @@ class ContextHinter(WordHinter):
 
         yield ''
 
-    def _is_valid_hint(self, hint, existing_hints, hint_length):
+    def _is_valid_hint(self,
+                       hint: str,
+                       existing_hints: Iterable[str],
+                       hint_length: int
+    ) -> bool:
         if (
             hint is None
             or hint in existing_hints
@@ -1242,7 +1248,11 @@ class ContextHinter(WordHinter):
             log.hints.debug("Valid hint: {}".format(hint))
             return True
 
-    def create_hint_from_words(self, text, existing_words, hint_length):
+    def create_hint_from_words(self,
+                               text: str,
+                               existing_words: Iterable[str],
+                               hint_length: int
+    ) -> str:
         max_iterations = 50
         hint = ""
         words = re.split("[ _]", text)
@@ -1269,7 +1279,10 @@ class ContextHinter(WordHinter):
         log.hints.debug("created hint: " + hint)
         return hint
 
-    def generate_random_hint(self, existing_hints, hint_length):
+    def generate_random_hint(self,
+                             existing_hints: Iterable[str],
+                             hint_length: int
+    ) -> str:
         possible_hints = product('abcdefghij', repeat=hint_length)
 
         for possibility in possible_hints:
@@ -1281,8 +1294,10 @@ class ContextHinter(WordHinter):
 
         return ""
 
-    def create_hint(
-        self, hints: Iterable[str], existing_hints: Iterable[str], hint_length
+    def create_hint(self,
+                    hints: Iterable[str],
+                    existing_hints: Iterable[str],
+                    hint_length: int
     ) -> Iterator[str]:
         hint = ""
         for h in hints:
@@ -1302,12 +1317,10 @@ class ContextHinter(WordHinter):
 
         yield 'no hint found'
 
-    def new_hint_for(
-        self,
-        elem: webelem.AbstractWebElement,
-        existing_hints: [],
-        context,
-        hint_length
+    def new_hint_for(self,
+                     elem: webelem.AbstractWebElement,
+                     existing_hints: Iterable[str],
+                     hint_length: int
     ) -> Optional[str]:
         """Return a hint for elem, not conflicting with the existing."""
         candidates = self.tag_words_to_hint_candidates(self.extract_tag_words(elem),
@@ -1326,7 +1339,11 @@ class ContextHinter(WordHinter):
         log.hints.debug("elem: " + str(elem.tag_name()) + " hint: " + t)
         return t
 
-    def hint(self, elems: _ElemsType, context, hint_length) -> _HintStringsType:
+    def hint(self,
+             elems: _ElemsType,
+             context: HintContext,
+             hint_length: int
+    ) -> _HintStringsType:
         """Produce hint labels based on the html tags.
 
         Produce hint words based on the link text and random words
@@ -1349,8 +1366,7 @@ class ContextHinter(WordHinter):
         for tag in tag_order:
             for index in range(len(elems)):
                 if elems[index].tag_name() == tag:
-                    hint = self.new_hint_for(elems[index], used_hints, context,
-                                             hint_length)
+                    hint = self.new_hint_for(elems[index], used_hints, hint_length)
                     if not hint:
                         raise HintingError("No hint found. Weird")
                     used_hints[index] = hint
