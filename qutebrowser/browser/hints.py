@@ -1235,6 +1235,7 @@ class ContextHinter():
                        existing_hints: Iterable[str],
                        hint_length: int
     ) -> bool:
+        """Check if the given hint is valid."""
         if (
             hint is None
             or hint in existing_hints
@@ -1252,6 +1253,7 @@ class ContextHinter():
                                existing_words: Iterable[str],
                                hint_length: int
     ) -> str:
+        """Create a hint from the given text."""
         max_iterations = 50
         hint = ""
         words = re.split("[ _]", text)
@@ -1282,6 +1284,11 @@ class ContextHinter():
                              existing_hints: Iterable[str],
                              hint_length: int
     ) -> str:
+        """Generate a random hint.
+
+        If not hint can be created from the text of an element a random one
+        is generated.
+        """
         possible_hints = product('abcdefghij', repeat=hint_length)
 
         for possibility in possible_hints:
@@ -1294,12 +1301,13 @@ class ContextHinter():
         return ""
 
     def create_hint(self,
-                    hints: Iterable[str],
+                    candidates: Iterable[str],
                     existing_hints: Iterable[str],
                     hint_length: int
     ) -> Iterator[str]:
+        """Crate a hint from the given candidates."""
         hint = ""
-        for h in hints:
+        for h in candidates:
             log.hints.debug("Creating hint for: " + h)
             hint = ""
 
