@@ -604,30 +604,40 @@ def check_contents_json(quteproc, text):
     assert actual == expected
 
 
-# TODO(pylbrecht): merge this with check_open_tabs() once mature enough
-@bdd.then(bdd.parsers.parse("the following tree tabs should be open:\n{tabs}"))
-def check_open_tree_tabs(quteproc, request, tabs):
-    """Check the tree of open tabs in the session.
+@bdd.then(bdd.parsers.parse("the following tabs should be open:\n{expected_tabs}"))
+def check_open_tabs(quteproc, request, expected_tabs):
+    """Check the list of open tabs in a one window session.
 
     This is a lightweight alternative for "The session should look like: ...".
 
-    It expects a tree of URLs, with an optional "(active)" suffix.
+    It expects a tree of URLs in the form:
+        - data/numbers/1.txt
+          - data/numbers/2.txt (active)
+
+    Where the indentation is optional (but if present the indent should be two
+    spaces) and the suffix can be one or more of:
+
+        (active)
+        (pinned)
+        (collapsed)
     """
     session = quteproc.get_session()
+    expected_tabs = expected_tabs.splitlines()
+    assert len(session['windows']) == 1
+    window = session['windows'][0]
+    assert len(window['tabs']) == len(expected_tabs)
+
     active_suffix = ' (active)'
     pinned_suffix = ' (pinned)'
     collapsed_suffix = ' (collapsed)'
-    tabs = tabs.splitlines()
-    assert len(session['windows']) == 1
-    assert len(session['windows'][0]['tabs']) == len(tabs)
-
     # Don't check for states in the session if they aren't in the expected
     # text.
-    has_active = any(active_suffix in line for line in tabs)
-    has_pinned = any(pinned_suffix in line for line in tabs)
-    has_collapsed = any(collapsed_suffix in line for line in tabs)
+    has_active = any(active_suffix in line for line in expected_tabs)
+    has_pinned = any(pinned_suffix in line for line in expected_tabs)
+    has_collapsed = any(collapsed_suffix in line for line in expected_tabs)
 
     def tab_to_str(tab, prefix="", collapsed=False):
+        """Convert a tab from a session file into a one line string."""
         current = [
             entry
             for entry in tab["history"]
@@ -643,7 +653,8 @@ def check_open_tree_tabs(quteproc, request, tabs):
                 text += suffix
         return text
 
-    def tree_to_str(node, indentation=-1):
+    def tree_to_str(node, tree_data, indentation=-1):
+        """Traverse a tree turning each node into an indented string."""
         tree_node = node.get("treetab_node_data")
         if tree_node:  # root node doesn't have treetab_node_data
             yield tab_to_str(
@@ -655,82 +666,41 @@ def check_open_tree_tabs(quteproc, request, tabs):
             tree_node = node
 
         for uid in tree_node["children"]:
-            yield from tree_to_str(tree_data[uid], indentation + 1)
+            yield from tree_to_str(tree_data[uid], tree_data, indentation + 1)
 
-    is_tree_tab_window = "treetab_root" in session["windows"][0]
+    is_tree_tab_window = "treetab_root" in window
     if is_tree_tab_window:
+        # TODO: make this public
         from qutebrowser.misc import sessions
-        tree_data = sessions.SessionManager._reconstruct_tree_data(None, session["windows"][0])
+        tree_data = sessions.SessionManager._reconstruct_tree_data(None, window)
 
-        root = [v for v in tree_data.values() if "treetab_node_data" not in v][0]
-        actual = list(tree_to_str(root))
+        root = [node for node in tree_data.values() if "treetab_node_data" not in node][0]
+        actual = list(tree_to_str(root, tree_data))
     else:
-        actual = [tab_to_str(tab) for tab in session["windows"][0]["tabs"]]
+        actual = [tab_to_str(tab) for tab in window["tabs"]]
 
     def normalize(line):
+        """Normalize expected lines to match session lines.
+
+        Turn paths into URLs and sort suffixes.
+        """
         prefix, rest = line.split("- ", maxsplit=1)
         path = rest.split(" ", maxsplit=1)
         path[0] = quteproc.path_to_url(path[0])
         if len(path) == 2:
-            path[1] = " (".join(sorted(path[1].split(" (")))
+            suffixes = path[1].split()
+            for s in suffixes:
+                assert s[0] == "("
+                assert s[-1] == ")"
+            path[1] = " ".join(sorted(suffixes))
         return "- ".join((prefix, " ".join(path)))
 
-    tabs = [
+    expected_tabs = [
         normalize(line)
-        for line in tabs
+        for line in expected_tabs
     ]
-    assert "\n".join(tabs) == "\n".join(actual)
-
-
-@bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
-def check_open_tabs(quteproc, request, tabs):
-    """Check the list of open tabs in the session.
-
-    This is a lightweight alternative for "The session should look like: ...".
-
-    It expects a list of URLs, with an optional "(active)" suffix.
-    """
-    session = quteproc.get_session()
-    active_suffix = ' (active)'
-    pinned_suffix = ' (pinned)'
-    tabs = tabs.splitlines()
-    assert len(session['windows']) == 1
-    assert len(session['windows'][0]['tabs']) == len(tabs)
-
-    # If we don't have (active) anywhere, don't check it
-    has_active = any(active_suffix in line for line in tabs)
-    has_pinned = any(pinned_suffix in line for line in tabs)
-
-    for i, line in enumerate(tabs):
-        line = line.strip()
-        assert line.startswith('- ')
-        line = line[2:]  # remove "- " prefix
-
-        active = False
-        pinned = False
-
-        while line.endswith(active_suffix) or line.endswith(pinned_suffix):
-            if line.endswith(active_suffix):
-                # active
-                line = line[:-len(active_suffix)]
-                active = True
-            else:
-                # pinned
-                line = line[:-len(pinned_suffix)]
-                pinned = True
-
-        session_tab = session['windows'][0]['tabs'][i]
-        current_page = session_tab['history'][-1]
-        assert current_page['url'] == quteproc.path_to_url(line)
-        if active:
-            assert session_tab['active']
-        elif has_active:
-            assert 'active' not in session_tab
-
-        if pinned:
-            assert current_page['pinned']
-        elif has_pinned:
-            assert not current_page['pinned']
+    for idx, expected in enumerate(expected_tabs):
+        assert expected == actual[idx]
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '

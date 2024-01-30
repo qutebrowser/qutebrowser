@@ -22,6 +22,6 @@ Feature: Tree tab management
     Scenario: Open a child tab
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
-        Then the following tree tabs should be open:
+        Then the following tabs should be open:
             - data/numbers/1.txt
               - data/numbers/2.txt (active)
