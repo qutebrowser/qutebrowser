@@ -171,7 +171,7 @@ class Command:
         """Check if the given parameter is a special one.
 
         Args:
-            param: The inspect.Parameter to handle.
+            param: The inspect parameter to handle.
 
         Return:
             True if the parameter is special, False otherwise.
@@ -189,7 +189,6 @@ class Command:
         else:
             raise TypeError("{}: Invalid value={!r} for argument '{}'!"
                             .format(self.name, arg_info.value, param.name))
-        raise utils.Unreachable
 
     def _inspect_func(self):
         """Inspect the function to get useful information from it.
@@ -240,7 +239,7 @@ class Command:
         """Get argparse keyword arguments for a parameter.
 
         Args:
-            param: The inspect.Parameter object to get the args for.
+            param: The inspect parameter object to get the args for.
             is_bool: Whether the parameter is a boolean.
 
         Return:
@@ -277,7 +276,7 @@ class Command:
         """Get argparse positional arguments for a parameter.
 
         Args:
-            param: The inspect.Parameter object to get the args for.
+            param: The inspect parameter object to get the args for.
             is_bool: Whether the parameter is a boolean.
 
         Return:
@@ -314,7 +313,7 @@ class Command:
         """Get the type of an argument from its default value or annotation.
 
         Args:
-            param: The inspect.Parameter to look at.
+            param: The inspect parameter to look at.
         """
         arg_info = self.get_arg_info(param)
         if arg_info.value:
