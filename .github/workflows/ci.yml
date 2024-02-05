@@ -217,7 +217,7 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: "${{ matrix.testenv }}"
 
