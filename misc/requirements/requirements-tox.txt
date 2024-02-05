@@ -6,8 +6,8 @@ colorama==0.4.6
 distlib==0.3.8
 filelock==3.13.1
 packaging==23.2
-pip==23.3.2
-platformdirs==4.1.0
+pip==24.0
+platformdirs==4.2.0
 pluggy==1.4.0
 pyproject-api==1.6.1
 setuptools==69.0.3

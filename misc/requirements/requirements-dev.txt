@@ -2,10 +2,10 @@
 
 build==1.0.3
 bump2version==1.0.1
-certifi==2023.11.17
+certifi==2024.2.2
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==42.0.1
+cryptography==42.0.2
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
@@ -41,5 +41,5 @@ tomli==2.0.1
 twine==4.0.2
 typing_extensions==4.9.0
 uritemplate==4.1.1
-# urllib3==2.1.0
+# urllib3==2.2.0
 zipp==3.17.0
