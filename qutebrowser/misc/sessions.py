@@ -330,8 +330,8 @@ class SessionManager(QObject):
                 ]
             else:
                 tabs = tabbed_browser.widgets()
-            for i, tab in enumerate(tabs):
-                active = i == tabbed_browser.widget.currentIndex()
+            for tab in tabs:
+                active = tab == tabbed_browser.current_tab()
                 tab_data = self._save_tab(tab,
                                           active,
                                           with_history=with_history)
