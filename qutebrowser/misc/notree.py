@@ -57,15 +57,15 @@ class TraverseOrder(enum.Enum):
         POST_R: post-order-reverse: like POST but rightmost nodes first.
     """
 
-    PRE = 'pre-order'
-    POST = 'post-order'
-    POST_R = 'post-order-reverse'
+    PRE = 'pre-order'  # pylint: disable=invalid-name
+    POST = 'post-order'  # pylint: disable=invalid-name
+    POST_R = 'post-order-reverse'  # pylint: disable=invalid-name
 
 
 uid_gen = itertools.count(0)
 
 # generic type of value held by Node
-T = TypeVar('T')  # pylint: disable=invalid-name
+T = TypeVar('T')
 
 
 class Node(Generic[T]):
@@ -187,7 +187,7 @@ class Node(Generic[T]):
     def __set_modified(self) -> None:
         """If self is modified, every ancestor is modified as well."""
         for node in self.path:
-            node.__modified = True  # pylint: disable=protected-access
+            node.__modified = True  # pylint: disable=protected-access,unused-private-member
 
     def render(self) -> List[Tuple[str, 'Node[T]']]:
         """Render a tree with ascii symbols.
@@ -217,11 +217,10 @@ class Node(Generic[T]):
                     result += [subtree[0]]
                 else:
                     result += subtree
+            elif child is self.children[-1]:
+                result.append((CORNER, child))
             else:
-                if child is self.children[-1]:
-                    result.append((CORNER, child))
-                else:
-                    result.append((INTERSECTION, child))
+                result.append((INTERSECTION, child))
         self.__modified = False
         self.__rendered = list(result)
         return list(result)
@@ -253,11 +252,17 @@ class Node(Generic[T]):
         if order in [TraverseOrder.POST, TraverseOrder.POST_R]:
             yield self
 
-    def __add_child(self, node: 'Node[T]') -> None:
+    def __add_child(  # pylint: disable=unused-private-member
+        self,
+        node: 'Node[T]',
+    ) -> None:
         if node not in self.__children:
             self.__children.append(node)
 
-    def __disown(self, value: 'Node[T]') -> None:
+    def __disown(  # pylint: disable=unused-private-member
+        self,
+        value: 'Node[T]',
+    ) -> None:
         self.__set_modified()
         if value in self.__children:
             self.__children.remove(value)
@@ -286,7 +291,7 @@ class Node(Generic[T]):
 
         """
         if to not in ['first', 'last', 'next', 'prev']:
-            raise Exception("Invalid value supplied for 'to': " + to)
+            raise ValueError("Invalid value supplied for 'to': " + to)
         position = {'first': 0, 'last': -1}.get(to, None)
         diff = {'next': 1, 'prev': 0}.get(to, 1)
         count = times

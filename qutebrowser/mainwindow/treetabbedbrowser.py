@@ -16,7 +16,6 @@ from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
-from qutebrowser.utils import log
 
 
 @dataclasses.dataclass
@@ -81,7 +80,6 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Handle children positioning after a tab is removed."""
-
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             idx = self.widget.indexOf(tab)
             self._add_undo_entry(tab, idx, new_undo)
@@ -128,7 +126,12 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         self.widget.tree_tab_update()
 
-    def _add_undo_entry(self, tab, idx, new_undo):
+    def _add_undo_entry(
+        self,
+        tab,
+        idx,  # pylint: disable=unused-argument
+        new_undo,
+    ):
         """Save undo entry with tree information.
 
         This function was removed in tabbedbrowser, but it is still useful here because
@@ -199,8 +202,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             self, url: QUrl = None,
             background: bool = None,
             related: bool = True,
-            sibling: bool = False,
             idx: int = None,
+            sibling: bool = False,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given url.
 
@@ -211,7 +214,6 @@ class TreeTabbedBrowser(TabbedBrowser):
                      focused tab.  Follows `tabs.new_position.tree.sibling`.
 
         """
-        # pylint: disable=arguments-differ
         # we save this now because super.tabopen also resets the focus
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx)
