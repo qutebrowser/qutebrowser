@@ -281,8 +281,10 @@ class TabbedBrowser(QWidget):
             raise TabDeletedError("index is -1!")
         return idx
 
-    def widgets(self):
+    def widgets(self) -> List[browsertab.AbstractTab]:
         """Get a list of open tab widgets.
+
+        Consider using `tabs()` instead of this method.
 
         We don't implement this as generator so we can delete tabs while
         iterating over the list.
@@ -295,6 +297,18 @@ class TabbedBrowser(QWidget):
             else:
                 widgets.append(widget)
         return widgets
+
+    def tabs(
+        self,
+        include_hidden: bool = False,  # pylint: disable=unused-argument
+    ) -> List[browsertab.AbstractTab]:
+        """Get a list of tabs in this browser.
+
+        Args:
+            include_hidden: Include child tabs which are not currently in the
+                            tab bar.
+        """
+        return self.widgets()
 
     def _update_window_title(self, field=None):
         """Change the window title to match the current tab.

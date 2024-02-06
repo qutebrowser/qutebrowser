@@ -321,16 +321,7 @@ class SessionManager(QObject):
                 win_data['private'] = True
 
             win_data['tabs'] = []
-            if tabbed_browser.is_treetabbedbrowser:
-                tabs = [
-                    node.value
-                    for node
-                    in tabbed_browser.widget.tree_root.traverse()
-                    if node.value
-                ]
-            else:
-                tabs = tabbed_browser.widgets()
-            for tab in tabs:
+            for tab in tabbed_browser.tabs(include_hidden=True):
                 active = tab == tabbed_browser.current_tab()
                 tab_data = self._save_tab(tab,
                                           active,

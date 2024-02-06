@@ -195,6 +195,25 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         self.widget.tree_tab_update()
 
+    def tabs(
+        self,
+        include_hidden: bool = False,
+    ) -> List[browsertab.AbstractTab]:
+        """Get a list of tabs in this browser.
+
+        Args:
+            include_hidden: Include child tabs which are not currently in the
+                            tab bar.
+        """
+        return [
+            node.value
+            for node
+            in self.widget.tree_root.traverse(
+                render_collapsed=include_hidden,
+            )
+            if node.value
+        ]
+
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
