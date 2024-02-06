@@ -5,7 +5,7 @@
 Tree style tabs allow you to group and manage related tabs together. Related
 tabs will be shown in a hierarchical fashion in the tab bar when it is on the
 left or right side of the browser window. It can be enabled by setting
-`tabs.tree_tabs` to `true`. That setting only applies to new windows create
+`tabs.tree_tabs` to `true`. That setting only applies to new windows created
 after it is enabled (including via saving and loading a session or
 `:restart`).
 
@@ -38,10 +38,10 @@ todo: add animated illustrations?
 
 You can change how tabs relate to each other after they are created too.
 
-* `:open`, as described in the into, has picked up some new behaviour to
+* `:open`, as described in the intro, has picked up some new behavior to
   decide where in relation to the current tab a new one should go. It has a
-  new `--sibling` argument and the `--related` argument, as well as `--tab` and
-  `-background`, has some additional meaning.
+  new `--sibling` argument and the existing arguments `--related`, `--tab` and
+  `--background` have picked up some additional meaning to help with that.
 * `:tab-move` will move a tab and its children within the tree
     * With a `+` or `-` argument tabs will only move within their siblings
       (wrapping at the top or bottom)
@@ -90,7 +90,7 @@ commands introduced to take advantage of the tab grouping feature.
 
 ## Settings
 
-There are some existing settings who's behaviour will be modified when tree
+There are some existing settings that will have modified behavior when tree
 tabs are enabled:
 
 * `tabs.new_position.related`: this is essentially replaced by
@@ -144,7 +144,7 @@ either the parent or children of a node via property setters. Beyond those two
 setters nodes have `promote()` and `demote()` helper functions used by the
 corresponding commands.
 
-Beyond those four methods to manipulate tree the tree structures nodes have
+Beyond those four methods to manipulate the tree structure nodes have
 methods for:
 
 * traversing the tree:
@@ -153,9 +153,9 @@ methods for:
   * `depth()` return depth in tree
 * collapsing a node
   * this just sets an attribute on a node, the traversal function respects it
-  * but beyond that it's up to callers to know that an un-collapsed node may
+    but beyond that it's up to callers to know that an un-collapsed node may
     be hidden if a parent node is collapsed, there are a few pieces of
-    calling code which do implement different behaviour for collapsed nodes
+    calling code which do implement different behavior for collapsed nodes
 * rendering unicode tree segments to be used in tab titles
   * our tab bar itself doesn't understand the tree structure for now, it's
     just being represented by drawing unicode line and angle characters to

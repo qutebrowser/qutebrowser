@@ -616,6 +616,7 @@ class TabbedBrowser(QWidget):
             background: bool = None,
             related: bool = True,
             idx: int = None,
+            sibling: bool = False,  # pylint: disable=unused-argument
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 

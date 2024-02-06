@@ -496,7 +496,6 @@ class CommandDispatcher:
 
         # second pass: copy tree structure over
         newroot = tabbed_browser.widget.tree_root
-        oldroot = self._tabbed_browser.widget.tree_root
         for node in traversed:
             if node.parent.uid in uid_map:
                 uid = uid_map[node.uid]

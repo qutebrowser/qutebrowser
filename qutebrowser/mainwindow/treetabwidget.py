@@ -75,7 +75,7 @@ class TreeTabWidget(TabWidget):
         # empty_urls here is a proxy for "there is a session being loaded into
         # this window"
         empty_urls = all(
-            [self.widget(idx).url().toString() == "" for idx in range(self.count())]
+            not self.widget(idx).url().toString() for idx in range(self.count())
         )
         if empty_urls and is_hidden:
             # All tabs will be added to the tab widget during session load
@@ -121,24 +121,25 @@ class TreeTabWidget(TabWidget):
         for node in self.tree_root.traverse():
             if node.value is None:
                 continue
-            if any(ancestor.collapsed for ancestor in node.path[:-1]):
-                if self.indexOf(node.value) != -1:
-                    # node should be hidden but is shown
-                    cur_tab = node.value
-                    idx = self.indexOf(cur_tab)
-                    if idx != -1:
-                        self.removeTab(idx)
-            else:
-                if self.indexOf(node.value) == -1:
-                    # node should be shown but is hidden
-                    parent = node.parent
-                    tab = node.value
-                    name = tab.title()
-                    icon = tab.icon()
-                    if node.parent is not None:
-                        parent_idx = self.indexOf(node.parent.value)
-                    self.insertTab(parent_idx + 1, tab, icon, name)
-                    tab.node.parent = parent  # insertTab resets node
+
+            should_be_hidden = any(ancestor.collapsed for ancestor in node.path[:-1])
+            is_shown = self.indexOf(node.value) != -1
+            if should_be_hidden and is_shown:
+                # node should be hidden but is shown
+                cur_tab = node.value
+                idx = self.indexOf(cur_tab)
+                if idx != -1:
+                    self.removeTab(idx)
+            elif not should_be_hidden and not is_shown:
+                # node should be shown but is hidden
+                parent = node.parent
+                tab = node.value
+                name = tab.title()
+                icon = tab.icon()
+                if node.parent is not None:
+                    parent_idx = self.indexOf(node.parent.value)
+                self.insertTab(parent_idx + 1, tab, icon, name)
+                tab.node.parent = parent  # insertTab resets node
 
     def tree_tab_update(self):
         """Update titles and positions."""
