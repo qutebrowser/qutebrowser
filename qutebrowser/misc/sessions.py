@@ -600,7 +600,7 @@ class SessionManager(QObject):
             tabbed_browser.is_treetabbedbrowser
         if load_tree_tabs:
             tree_data = reconstruct_tree_data(win)
-            self._load_tree(tabbed_browser, tree_data)
+            tab_to_focus = self._load_tree(tabbed_browser, tree_data)
         elif not legacy_tree_loaded:
             for i, tab in enumerate(tabs):
                 new_tab = tabbed_browser.tabopen(background=False)
