@@ -440,3 +440,18 @@ Feature: Saving and loading sessions
         - data/numbers/2.txt (active) (pinned)
         - data/numbers/4.txt
         - data/numbers/3.txt
+
+  # Make sure the new_position.related setting doesn't change the tab order
+  # when loading from a session.
+  Scenario: Loading a session with tabs.new_position.related=prev
+      When I open data/numbers/1.txt
+      And I open data/numbers/2.txt in a new tab
+      And I open data/numbers/3.txt in a new tab
+      And I run :session-save foo
+      And I set tabs.new_position.related to prev
+      And I run :session-load -c foo
+      And I wait until data/numbers/3.txt is loaded
+      Then the following tabs should be open:
+        - data/numbers/1.txt
+        - data/numbers/2.txt
+        - data/numbers/3.txt (active)

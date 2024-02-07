@@ -537,7 +537,11 @@ class SessionManager(QObject):
             if tab_data.get('active'):
                 tab_to_focus = index
 
-            new_tab = tabbed_browser.tabopen(background=False)
+            new_tab = tabbed_browser.tabopen(
+                background=False,
+                related=False,
+                idx=index,
+            )
             self._load_tab(new_tab, tab_data)
 
             new_tab.node.parent = root_node
@@ -603,7 +607,11 @@ class SessionManager(QObject):
             tab_to_focus = self._load_tree(tabbed_browser, tree_data)
         elif not legacy_tree_loaded:
             for i, tab in enumerate(tabs):
-                new_tab = tabbed_browser.tabopen(background=False)
+                new_tab = tabbed_browser.tabopen(
+                    background=False,
+                    related=False,
+                    idx=i,
+                )
                 self._load_tab(new_tab, tab)
                 if tab.get('active', False):
                     tab_to_focus = i
