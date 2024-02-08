@@ -121,6 +121,42 @@ class TabHistoryItem:
                               last_visited=self.last_visited)
 
 
+def reconstruct_tree_data(window_data):
+    """Return a dict usable as a tree from a window.
+
+    Returns a dict like:
+        {
+           1: {'children': [2]},
+           2: {
+                ...tab,
+                "treetab_node_data": {
+                  "children": [],
+                  "collapsed": False,
+                  "parent": 1,
+                  "uid": 2,
+              }
+          }
+        }
+
+    Which you can traverse by starting at the node with no "treetab_node_data"
+    attribute (the root) and pulling successive levels of children from the
+    dict using their `uid`s as keys.
+
+    The ...tab part represents the usual attributes for a tab when saved in a
+    session.
+    """
+    tree_data = {}
+    root = window_data['treetab_root']
+    tree_data[root['uid']] = {
+        'children': root['children'],
+        'tab': {},
+        'collapsed': False
+    }
+    for tab in window_data['tabs']:
+        tree_data[tab['treetab_node_data']['uid']] = tab
+    return tree_data
+
+
 class SessionManager(QObject):
 
     """Manager for sessions.
@@ -474,18 +510,6 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
-    def _reconstruct_tree_data(self, window_data):
-        tree_data = {}
-        root = window_data['treetab_root']
-        tree_data[root['uid']] = {
-            'children': root['children'],
-            'tab': {},
-            'collapsed': False
-        }
-        for tab in window_data['tabs']:
-            tree_data[tab['treetab_node_data']['uid']] = tab
-        return tree_data
-
     def _load_tree(self, tabbed_browser, tree_data):
         tree_keys = list(tree_data.keys())
         if not tree_keys:
@@ -540,7 +564,7 @@ class SessionManager(QObject):
         load_tree_tabs = 'treetab_root' in win.keys() and \
             tabbed_browser.is_treetabbedbrowser
         if load_tree_tabs:
-            tree_data = self._reconstruct_tree_data(win)
+            tree_data = reconstruct_tree_data(win)
             self._load_tree(tabbed_browser, tree_data)
         else:
             for i, tab in enumerate(tabs):

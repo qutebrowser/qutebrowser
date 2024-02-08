@@ -20,6 +20,7 @@ import pytest
 import pytest_bdd as bdd
 
 import qutebrowser
+from qutebrowser.misc import sessions
 from qutebrowser.utils import log, utils, docutils, version
 from qutebrowser.browser import pdfjs
 from end2end.fixtures import testprocess
@@ -125,14 +126,14 @@ def set_setting_given(quteproc, server, opt, value):
 
 
 @bdd.given(bdd.parsers.parse("I open {path}"))
-def open_path_given(quteproc, path):
+def open_path_given(quteproc, server, path):
     """Open a URL.
 
     This is available as "Given:" step so it can be used as "Background:".
 
     It always opens a new tab, unlike "When I open ..."
     """
-    quteproc.open_path(path, new_tab=True)
+    open_path(quteproc, server, path, default_kwargs={"new_tab": True})
 
 
 @bdd.given(bdd.parsers.parse("I run {command}"))
@@ -188,7 +189,7 @@ def clear_log_lines(quteproc):
 
 
 @bdd.when(bdd.parsers.parse("I open {path}"))
-def open_path(quteproc, server, path):
+def open_path(quteproc, server, path, default_kwargs: dict = None):
     """Open a URL.
 
     - If used like "When I open ... in a new tab", the URL is opened in a new
@@ -200,56 +201,40 @@ def open_path(quteproc, server, path):
     path = path.replace('(port)', str(server.port))
     path = testutils.substitute_testdata(path)
 
-    new_tab = False
-    related_tab = False
-    new_bg_tab = False
-    new_window = False
-    private = False
-    as_url = False
-    wait = True
+    suffixes = {
+        "in a new tab": "new_tab",
+        "in a new related tab": ("new_tab", "related_tab"),
+        "in a new related background tab": ("new_bg_tab", "related_tab"),
+        "in a new background tab": "new_bg_tab",
+        "in a new window": "new_window",
+        "in a private window": "private",
+        "without waiting": {"wait": False},
+        "as a URL": "as_url",
+    }
 
-    related_tab_suffix = ' in a new related tab'
-    related_background_tab_suffix = ' in a new related background tab'
-    new_tab_suffix = ' in a new tab'
-    new_bg_tab_suffix = ' in a new background tab'
-    new_window_suffix = ' in a new window'
-    private_suffix = ' in a private window'
-    do_not_wait_suffix = ' without waiting'
-    as_url_suffix = ' as a URL'
+    def update_from_value(value, kwargs):
+        if isinstance(value, str):
+            kwargs[value] = True
+        elif isinstance(value, (tuple, list)):
+            for i in value:
+                update_from_value(i, kwargs)
+        elif isinstance(value, dict):
+            kwargs.update(value)
 
+    kwargs = {}
     while True:
-        if path.endswith(new_tab_suffix):
-            path = path[:-len(new_tab_suffix)]
-            new_tab = True
-        elif path.endswith(related_tab_suffix):
-            path = path[:-len(related_tab_suffix)]
-            new_tab = True
-            related_tab = True
-        elif path.endswith(related_background_tab_suffix):
-            path = path[:-len(related_background_tab_suffix)]
-            new_bg_tab = True
-            related_tab = True
-        elif path.endswith(new_bg_tab_suffix):
-            path = path[:-len(new_bg_tab_suffix)]
-            new_bg_tab = True
-        elif path.endswith(new_window_suffix):
-            path = path[:-len(new_window_suffix)]
-            new_window = True
-        elif path.endswith(private_suffix):
-            path = path[:-len(private_suffix)]
-            private = True
-        elif path.endswith(as_url_suffix):
-            path = path[:-len(as_url_suffix)]
-            as_url = True
-        elif path.endswith(do_not_wait_suffix):
-            path = path[:-len(do_not_wait_suffix)]
-            wait = False
+        for suffix, value in suffixes.items():
+            if path.endswith(suffix):
+                path = path[:-len(suffix) - 1]
+                update_from_value(value, kwargs)
+                break
         else:
             break
 
-    quteproc.open_path(path, related_tab=related_tab, new_tab=new_tab,
-                       new_bg_tab=new_bg_tab, new_window=new_window,
-                       private=private, as_url=as_url, wait=wait)
+    if not kwargs and default_kwargs:
+        kwargs.update(default_kwargs)
+
+    quteproc.open_path(path, **kwargs)
 
 
 @bdd.when(bdd.parsers.parse("I set {opt} to {value}"))
@@ -620,55 +605,104 @@ def check_contents_json(quteproc, text):
     assert actual == expected
 
 
-@bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
-def check_open_tabs(quteproc, request, tabs):
-    """Check the list of open tabs in the session.
+@bdd.then(bdd.parsers.parse("the following tabs should be open:\n{expected_tabs}"))
+def check_open_tabs(quteproc, request, expected_tabs):
+    """Check the list of open tabs in a one window session.
 
     This is a lightweight alternative for "The session should look like: ...".
 
-    It expects a list of URLs, with an optional "(active)" suffix.
+    It expects a tree of URLs in the form:
+        - data/numbers/1.txt
+          - data/numbers/2.txt (active)
+
+    Where the indentation is optional (but if present the indent should be two
+    spaces) and the suffix can be one or more of:
+
+        (active)
+        (pinned)
+        (collapsed)
     """
     session = quteproc.get_session()
+    expected_tabs = expected_tabs.splitlines()
+    assert len(session['windows']) == 1
+    window = session['windows'][0]
+    assert len(window['tabs']) == len(expected_tabs)
+
     active_suffix = ' (active)'
     pinned_suffix = ' (pinned)'
-    tabs = tabs.splitlines()
-    assert len(session['windows']) == 1
-    assert len(session['windows'][0]['tabs']) == len(tabs)
+    collapsed_suffix = ' (collapsed)'
+    # Don't check for states in the session if they aren't in the expected
+    # text.
+    has_active = any(active_suffix in line for line in expected_tabs)
+    has_pinned = any(pinned_suffix in line for line in expected_tabs)
+    has_collapsed = any(collapsed_suffix in line for line in expected_tabs)
 
-    # If we don't have (active) anywhere, don't check it
-    has_active = any(active_suffix in line for line in tabs)
-    has_pinned = any(pinned_suffix in line for line in tabs)
+    def tab_to_str(tab, prefix="", collapsed=False):
+        """Convert a tab from a session file into a one line string."""
+        current = [
+            entry
+            for entry in tab["history"]
+            if entry.get("active")
+        ][0]
+        text = f"{prefix}- {current['url']}"
+        for suffix, state in {
+            active_suffix: tab.get("active") and has_active,
+            collapsed_suffix: collapsed and has_collapsed,
+            pinned_suffix: current["pinned"] and has_pinned,
+        }.items():
+            if state:
+                text += suffix
+        return text
 
-    for i, line in enumerate(tabs):
-        line = line.strip()
-        assert line.startswith('- ')
-        line = line[2:]  # remove "- " prefix
+    def tree_to_str(node, tree_data, indentation=-1):
+        """Traverse a tree turning each node into an indented string."""
+        tree_node = node.get("treetab_node_data")
+        if tree_node:  # root node doesn't have treetab_node_data
+            yield tab_to_str(
+                node,
+                prefix="  " * indentation,
+                collapsed=tree_node["collapsed"],
+            )
+        else:
+            tree_node = node
 
-        active = False
-        pinned = False
+        for uid in tree_node["children"]:
+            yield from tree_to_str(tree_data[uid], tree_data, indentation + 1)
 
-        while line.endswith(active_suffix) or line.endswith(pinned_suffix):
-            if line.endswith(active_suffix):
-                # active
-                line = line[:-len(active_suffix)]
-                active = True
-            else:
-                # pinned
-                line = line[:-len(pinned_suffix)]
-                pinned = True
+    is_tree_tab_window = "treetab_root" in window
+    if is_tree_tab_window:
+        tree_data = sessions.reconstruct_tree_data(window)
+        root = [node for node in tree_data.values() if "treetab_node_data" not in node][0]
+        actual = list(tree_to_str(root, tree_data))
+    else:
+        actual = [tab_to_str(tab) for tab in window["tabs"]]
 
-        session_tab = session['windows'][0]['tabs'][i]
-        current_page = session_tab['history'][-1]
-        assert current_page['url'] == quteproc.path_to_url(line)
-        if active:
-            assert session_tab['active']
-        elif has_active:
-            assert 'active' not in session_tab
+    def normalize(line):
+        """Normalize expected lines to match session lines.
 
-        if pinned:
-            assert current_page['pinned']
-        elif has_pinned:
-            assert not current_page['pinned']
+        Turn paths into URLs and sort suffixes.
+        """
+        prefix, rest = line.split("- ", maxsplit=1)
+        path = rest.split(" ", maxsplit=1)
+        path[0] = quteproc.path_to_url(path[0])
+        if len(path) == 2:
+            suffixes = path[1].split()
+            for s in suffixes:
+                assert s[0] == "("
+                assert s[-1] == ")"
+            path[1] = " ".join(sorted(suffixes))
+        return "- ".join((prefix, " ".join(path)))
+
+    expected_tabs = [
+        normalize(line)
+        for line in expected_tabs
+    ]
+    # Removed the hyphens from the start of lines so they don't get mixed in
+    # with the diff markers.
+    expected_tabs = [line.replace("- ", "") for line in expected_tabs]
+    actual = [line.replace("- ", "") for line in actual]
+    for idx, expected in enumerate(expected_tabs):
+        assert expected == actual[idx]
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
