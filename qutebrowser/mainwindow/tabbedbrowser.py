@@ -281,8 +281,10 @@ class TabbedBrowser(QWidget):
             raise TabDeletedError("index is -1!")
         return idx
 
-    def widgets(self):
+    def widgets(self) -> List[browsertab.AbstractTab]:
         """Get a list of open tab widgets.
+
+        Consider using `tabs()` instead of this method.
 
         We don't implement this as generator so we can delete tabs while
         iterating over the list.
@@ -295,6 +297,18 @@ class TabbedBrowser(QWidget):
             else:
                 widgets.append(widget)
         return widgets
+
+    def tabs(
+        self,
+        include_hidden: bool = False,  # pylint: disable=unused-argument
+    ) -> List[browsertab.AbstractTab]:
+        """Get a list of tabs in this browser.
+
+        Args:
+            include_hidden: Include child tabs which are not currently in the
+                            tab bar.
+        """
+        return self.widgets()
 
     def _update_window_title(self, field=None):
         """Change the window title to match the current tab.
@@ -377,7 +391,7 @@ class TabbedBrowser(QWidget):
             tab.history_item_triggered.connect(
                 history.web_history.add_from_tab)
 
-    def _current_tab(self) -> browsertab.AbstractTab:
+    def current_tab(self) -> browsertab.AbstractTab:
         """Get the current browser tab.
 
         Note: The assert ensures the current tab is never None.
@@ -586,7 +600,7 @@ class TabbedBrowser(QWidget):
         if newtab or self.widget.currentWidget() is None:
             self.tabopen(url, background=False)
         else:
-            self._current_tab().load_url(url)
+            self.current_tab().load_url(url)
 
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
@@ -672,7 +686,7 @@ class TabbedBrowser(QWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            current_widget = self._current_tab()
+            current_widget = self.current_tab()
             tab.resize(current_widget.size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
@@ -1087,7 +1101,7 @@ class TabbedBrowser(QWidget):
             if key != "'":
                 message.error("Failed to set mark: url invalid")
             return
-        point = self._current_tab().scroller.pos_px()
+        point = self.current_tab().scroller.pos_px()
 
         if key.isupper():
             self._global_marks[key] = point, url
@@ -1108,7 +1122,7 @@ class TabbedBrowser(QWidget):
         except qtutils.QtValueError:
             urlkey = None
 
-        tab = self._current_tab()
+        tab = self.current_tab()
 
         if key.isupper():
             if key in self._global_marks:
