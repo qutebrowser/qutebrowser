@@ -554,6 +554,13 @@ class SessionManager(QObject):
             child = recursive_load_node(child_uid)
             child.parent = root_node
 
+        # Make sure any collapsed tabs are removed from the widget.
+        # Since we only set the "collapsed" attribute after loading the tab,
+        # and the tree only gets updated in the above loop on tab loads. So if
+        # the last set of tabs we load is a collapsed group this children
+        # won't know they are support to be hidden yet.
+        tabbed_browser.widget.tree_tab_update()
+
         return tab_to_focus
 
     def _load_legacy_tree_tabs(self, win, tabbed_browser):
