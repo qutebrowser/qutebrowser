@@ -47,6 +47,8 @@ Feature: Tree tab management
         # Now actually load the saved session
         And I run :session-save foo
         And I run :session-load -c foo
+        And I wait until data/numbers/1.txt is loaded
+        And I wait until data/numbers/2.txt is loaded
         And I wait until data/numbers/3.txt is loaded
         # And of course the same assertion as above too
         Then the following tabs should be open:
@@ -80,6 +82,9 @@ Feature: Tree tab management
         And I set tabs.new_position.tree.new_child to last
         And I set tabs.new_position.tree.new_toplevel to prev
         And I run :session-load -c foo
+        And I wait until data/numbers/1.txt is loaded
+        And I wait until data/numbers/2.txt is loaded
+        And I wait until data/numbers/3.txt is loaded
         And I wait until data/numbers/4.txt is loaded
         Then the following tabs should be open:
           - data/numbers/1.txt
