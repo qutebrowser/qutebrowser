@@ -9,6 +9,18 @@ Feature: Tree tab management
         And I clean up open tabs
         And I clear the log
 
+    Scenario: Closing a tab promotes the first child in its place
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-close
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+              - data/numbers/3.txt
+            - data/numbers/4.txt
+
     Scenario: :tab-close --recursive
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
