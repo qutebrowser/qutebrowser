@@ -9,6 +9,16 @@ Feature: Tree tab management
         And I clean up open tabs
         And I clear the log
 
+    Scenario: Focus previous sibling tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-prev --sibling
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+              - data/numbers/2.txt
+            - data/numbers/3.txt
+
     Scenario: Focus next sibling tab
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
