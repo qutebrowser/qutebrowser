@@ -52,6 +52,4 @@ TODO
 /scripts/dev/pylint_checkers/build
 /misc/file_version_info.txt
 /doc/extapi/_build
-/misc/nsis/include
-/misc/nsis/plugins
 /wheels
