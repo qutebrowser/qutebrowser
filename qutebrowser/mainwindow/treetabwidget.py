@@ -21,12 +21,6 @@ class TreeTabWidget(TabWidget):
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
 
-    def _init_config(self):
-        super()._init_config()
-        # For tree-tabs
-        self.update_tab_titles()  # Must also be called when deactivating
-        self.tree_tab_update()
-
     def get_tab_fields(self, idx):
         """Add tree field data to normal tab field data."""
         fields = super().get_tab_fields(idx)
