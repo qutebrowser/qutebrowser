@@ -13,5 +13,5 @@ pyroma==4.2
 requests==2.31.0
 tomli==2.0.1
 trove-classifiers==2024.1.31
-urllib3==2.2.0
+urllib3==2.2.1
 zipp==3.17.0
