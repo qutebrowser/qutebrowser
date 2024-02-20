@@ -92,10 +92,6 @@ class TreeTabWidget(TabWidget):
                 f"difference={difference} tree={rendered_tree[1:]} tabs={tabs}"
             )
 
-        # Return dummy entries for now. Once we finish whatever operation is
-        # causing the current irregularity we should get proper values.
-        fields["tree"] = ""
-        fields["collapsed"] = ""
         return fields
 
     def update_tree_tab_positions(self):

@@ -185,10 +185,17 @@ filled in for the tab title template string, with a lot of help from the data
 structure. It also handles hiding or showing tabs for collapsed
 groups/branches. Hidden tabs are children of tabs with the `collapsed`
 property set, they remain in the tree structure (which is held by the tabbed
-browser) but they are removed entirely from the tab widget. It also handles
-making sure tabs are moved to indexes corresponding to their traversal order
-in the tree if any changes to the tree structure happen via the
-`tree_tab_update()` method that is called from several places.
+browser) but they are removed entirely from the tab widget. The
+`tree_tab_update()` method, which is called from several places, also handles
+making sure tabs are moved to indices corresponding to their traversal order
+in the tree, in case any changes have been made to the tree structure.
+
+One place in the tab widget classes where tree tab specific code isn't
+contained entirely in TreeTabWidget is the `{tree}` and `{collapsed}`
+tab/window title format attributes. A key error will be thrown if a
+placeholder is in the format string but no value is supplied for it. So the
+parent class initialize them to an empty string in case users have them
+configured but have tree tabs turned off.
 
 A fair amount of tree tab specific code lives in *commands.py*. The six new
 commands have been added, as well as a customization so that these commands
