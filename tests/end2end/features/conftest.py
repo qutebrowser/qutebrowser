@@ -204,6 +204,7 @@ def open_path(quteproc, server, path, default_kwargs: dict = None):
     suffixes = {
         "in a new tab": "new_tab",
         "in a new related tab": ("new_tab", "related_tab"),
+        "in a new sibling tab": ("new_tab", "sibling_tab"),
         "in a new related background tab": ("new_bg_tab", "related_tab"),
         "in a new background tab": "new_bg_tab",
         "in a new window": "new_window",
