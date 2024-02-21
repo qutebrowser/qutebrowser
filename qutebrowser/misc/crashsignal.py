@@ -335,6 +335,8 @@ class SignalHandler(QObject):
             signal.SIGINT, self.interrupt)
         self._orig_handlers[signal.SIGTERM] = signal.signal(
             signal.SIGTERM, self.interrupt)
+        self._orig_handlers[signal.SIGHUP] = signal.signal(
+            signal.SIGHUP, self.reload_config)
 
         if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
@@ -429,6 +431,15 @@ class SignalHandler(QObject):
         """
         print("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
+
+    def reload_config(self, _signum, _frame):
+        """Reload the config."""
+        log.signals.info("SIGHUP received, reloading config.")
+        config_commands = objreg.get('config-commands', from_command=True)
+        try:
+            config_commands.config_source()
+        except cmdutils.CommandError as e:
+            log.signals.error("Error while reloading config:", exc_info=e)
 
 
 def init(q_app: QApplication,
