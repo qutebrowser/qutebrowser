@@ -25,7 +25,7 @@ from qutebrowser.config import configfiles, configexc
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
+from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils, message
 from qutebrowser.qt import sip
 if TYPE_CHECKING:
     from qutebrowser.misc import quitter
@@ -441,7 +441,7 @@ class SignalHandler(QObject):
         try:
             configfiles.read_config_py(filename)
         except configexc.ConfigFileErrors as e:
-            raise cmdutils.CommandError(e)
+            message.error(str(e))
 
 
 def init(q_app: QApplication,
