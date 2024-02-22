@@ -21,6 +21,8 @@ from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from qutebrowser.qt.widgets import QApplication
 
+from qutebrowser.config import configfiles, configexc
+
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
@@ -435,11 +437,11 @@ class SignalHandler(QObject):
     def reload_config(self, _signum, _frame):
         """Reload the config."""
         log.signals.info("SIGHUP received, reloading config.")
-        config_commands = objreg.get('config-commands', from_command=True)
+        filename = standarddir.config_py()
         try:
-            config_commands.config_source()
-        except cmdutils.CommandError as e:
-            log.signals.error("Error while reloading config:", exc_info=e)
+            configfiles.read_config_py(filename)
+        except configexc.ConfigFileErrors as e:
+            raise cmdutils.CommandError(e)
 
 
 def init(q_app: QApplication,
