@@ -21,9 +21,8 @@ from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from qutebrowser.qt.widgets import QApplication
 
-from qutebrowser.config import configfiles, configexc
-
 from qutebrowser.api import cmdutils
+from qutebrowser.config import configfiles, configexc
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils, message
 from qutebrowser.qt import sip
@@ -324,6 +323,12 @@ class SignalHandler(QObject):
         self._activated = False
         self._orig_wakeup_fd: Optional[int] = None
 
+        self._handlers = {
+            signal.SIGINT: self.interrupt,
+            signal.SIGTERM: self.interrupt,
+            signal.SIGHUP: self.reload_config,
+        }
+
     def activate(self):
         """Set up signal handlers.
 
@@ -333,12 +338,8 @@ class SignalHandler(QObject):
         On Unix, it uses a QSocketNotifier with os.set_wakeup_fd to get
         notified.
         """
-        self._orig_handlers[signal.SIGINT] = signal.signal(
-            signal.SIGINT, self.interrupt)
-        self._orig_handlers[signal.SIGTERM] = signal.signal(
-            signal.SIGTERM, self.interrupt)
-        self._orig_handlers[signal.SIGHUP] = signal.signal(
-            signal.SIGHUP, self.reload_config)
+        for sig, handler in self._handlers.items():
+            self._orig_handlers[sig] = signal.signal(sig, handler)
 
         if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
