@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.2.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- When qutebrowser receives a SIGHUP it will now reload any config.py file
+  in use (same as the `:config-source` command does). (#8108)
+
 Changed
 ~~~~~~~
 
