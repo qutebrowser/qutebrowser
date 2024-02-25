@@ -326,8 +326,13 @@ class SignalHandler(QObject):
         self._handlers = {
             signal.SIGINT: self.interrupt,
             signal.SIGTERM: self.interrupt,
-            signal.SIGHUP: self.reload_config,
         }
+        platform_dependant_handlers = {
+            "SIGHUP": self.reload_config,
+        }
+        for sig_str, handler in platform_dependant_handlers.items():
+            if hasattr(signal.Signals, sig_str):
+                self._handlers[signal.Signals[sig_str]] = handler
 
     def activate(self):
         """Set up signal handlers.

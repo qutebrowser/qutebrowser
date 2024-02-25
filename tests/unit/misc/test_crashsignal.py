@@ -80,12 +80,14 @@ def test_interrupt_repeatedly(signal_handler):
         expected(test_signal, None)
 
 
+@pytest.mark.posix
 def test_reload_config_call_on_hup(signal_handler, read_config_mock):
     signal_handler._handlers[signal.SIGHUP](None, None)
 
     read_config_mock.assert_called_once_with("config.py-unittest")
 
 
+@pytest.mark.posix
 def test_reload_config_displays_errors(signal_handler, read_config_mock, mocker):
     read_config_mock.side_effect = configexc.ConfigFileErrors(
         "config.py",
