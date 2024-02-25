@@ -20,13 +20,6 @@ class TreeTabWidget(TabWidget):
         # root of the tab tree, common for all tabs in the window
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
-        self.tabBar().tabMoved.disconnect(self.update_tab_titles)
-
-    def _init_config(self):
-        super()._init_config()
-        # For tree-tabs
-        self.update_tab_titles()  # Must also be called when deactivating
-        self.tree_tab_update()
 
     def get_tab_fields(self, idx):
         """Add tree field data to normal tab field data."""
@@ -99,10 +92,6 @@ class TreeTabWidget(TabWidget):
                 f"difference={difference} tree={rendered_tree[1:]} tabs={tabs}"
             )
 
-        # Return dummy entries for now. Once we finish whatever operation is
-        # causing the current irregularity we should get proper values.
-        fields["tree"] = ""
-        fields["collapsed"] = ""
         return fields
 
     def update_tree_tab_positions(self):
