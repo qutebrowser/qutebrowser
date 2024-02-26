@@ -133,7 +133,7 @@
   "mypy-extensions": "https://github.com/python/mypy_extensions/commits/master",
   "pyroma": "https://github.com/regebro/pyroma/blob/master/CHANGES.txt",
   "adblock": "https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md",
-  "importlib-resources": "https://importlib-resources.readthedocs.io/en/latest/history.html",
+  "importlib_resources": "https://importlib-resources.readthedocs.io/en/latest/history.html",
   "importlib-metadata": "https://github.com/python/importlib_metadata/blob/main/NEWS.rst",
   "zipp": "https://github.com/jaraco/zipp/blob/main/NEWS.rst",
   "pip": "https://pip.pypa.io/en/stable/news/",
