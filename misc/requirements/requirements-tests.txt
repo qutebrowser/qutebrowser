@@ -7,13 +7,13 @@ certifi==2024.2.2
 charset-normalizer==3.3.2
 cheroot==10.0.0
 click==8.1.7
-coverage==7.4.1
+coverage==7.4.3
 exceptiongroup==1.2.0
 execnet==2.0.2
 filelock==3.13.1
 Flask==3.0.2
 hunter==3.6.1
-hypothesis==6.98.8
+hypothesis==6.98.12
 idna==3.6
 importlib-metadata==7.0.1
 iniconfig==2.0.0
@@ -30,7 +30,7 @@ parse-type==0.6.2
 pluggy==1.4.0
 py-cpuinfo==9.0.0
 Pygments==2.17.2
-pytest==8.0.1
+pytest==8.0.2
 pytest-bdd==7.0.1
 pytest-benchmark==4.0.0
 pytest-cov==4.1.0
@@ -49,7 +49,7 @@ sortedcontainers==2.4.0
 soupsieve==2.5
 tldextract==5.1.1
 tomli==2.0.1
-typing_extensions==4.9.0
+typing_extensions==4.10.0
 urllib3==2.2.1
 vulture==2.11
 Werkzeug==3.0.1
