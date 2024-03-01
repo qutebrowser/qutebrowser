@@ -529,6 +529,8 @@ class MainWindow(QWidget):
 
         self.tabbed_browser.cur_url_changed.connect(
             self.status.url.set_url)
+        self.tabbed_browser.cur_url_changed.connect(
+            self.status.settings.on_url_changed)
         self.tabbed_browser.cur_url_changed.connect(functools.partial(
             self.status.backforward.on_tab_cur_url_changed,
             tabs=self.tabbed_browser))
@@ -536,6 +538,10 @@ class MainWindow(QWidget):
             self.status.url.set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
             self.status.url.on_load_status_changed)
+        self.tabbed_browser.cur_load_status_changed.connect(
+            self.status.settings.on_load_status_changed)
+        self.tabbed_browser.cur_feature_permission_changed.connect(
+            self.status.settings.on_feature_permission_changed)
 
         self.tabbed_browser.cur_search_match_changed.connect(
             self.status.search_match.set_match)
