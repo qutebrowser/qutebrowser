@@ -15,7 +15,13 @@ parameter `--unfiltered` may be used to get a list of all passwords. How the
 username and password are determined is freely configurable using the CLI
 arguments. As an example, if you instead store the username as part of the
 secret (and use a site's name as filename), instead of the default configuration,
-use `--username-target secret` and `--username-pattern "username: (.+)"`.
+use `--username-target secret` and change the --username-pattern option to
+what fits better for you, for instance `--username-pattern "username: (.+)"` would
+capture whatever (non-empty) is in front of "username: " pattern, but 
+`--username-pattern ".+: (.+)"` would capture whatever (non-empty) is in front
+of a non-empty string followed by a colon. The previous examples may not apply to your
+way of storing your usernames/emails/id_numbers, please refer to Python RegEx
+in order to adjust it to your needs.
 
 The login information is inserted by emulating key events using qutebrowser's
 fake-key command in this manner: [USERNAME]<Tab>[PASSWORD], which is compatible
