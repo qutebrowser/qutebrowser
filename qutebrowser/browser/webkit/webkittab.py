@@ -932,12 +932,6 @@ class WebKitTab(browsertab.AbstractTab):
     def renderer_process_pid(self) -> Optional[int]:
         return None
 
-    @pyqtSlot()
-    def _on_history_trigger(self):
-        url = self.url()
-        requested_url = self.url(requested=True)
-        self.history_item_triggered.emit(url, requested_url, self.title())
-
     def set_html(self, html, base_url=QUrl()):
         self._widget.setHtml(html, base_url)
 
@@ -1031,8 +1025,12 @@ class WebKitTab(browsertab.AbstractTab):
         view.scroll_pos_changed.connect(self.scroller.perc_changed)
         view.titleChanged.connect(  # type: ignore[attr-defined]
             self.title_changed)
+        view.titleChanged.connect(  # type: ignore[attr-defined]
+            functools.partial(self._on_history_trigger, False))
         view.urlChanged.connect(  # type: ignore[attr-defined]
             self._on_url_changed)
+        view.urlChanged.connect(  # type: ignore[attr-defined]
+            functools.partial(self._on_history_trigger, False))
         view.shutting_down.connect(self.shutting_down)
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
         frame.loadFinished.connect(  # type: ignore[attr-defined]

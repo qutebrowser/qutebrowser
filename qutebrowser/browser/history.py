@@ -166,8 +166,6 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
-        # Store the last saved url to avoid duplicate immediate saves.
-        self._last_url = None
 
         self.completion = CompletionHistory(database, parent=self)
         self.metainfo = CompletionMetaInfo(database, parent=self)
@@ -357,7 +355,6 @@ class WebHistory(sql.SqlTable):
             self.delete_all()
             self.completion.delete_all()
         self.history_cleared.emit()
-        self._last_url = None
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -369,38 +366,30 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
-        if self._last_url == url:
-            self._last_url = None
         self.url_cleared.emit(qurl)
 
-    @pyqtSlot(QUrl, QUrl, str)
-    def add_from_tab(self, url, requested_url, title):
+    @pyqtSlot(QUrl, str, int, bool, bool)
+    def add_from_tab(self, url, title, atime=None, redirect=False,
+                     update=False):
         """Add a new history entry as slot, called from a BrowserTab."""
-        if self._is_excluded_entirely(url) or self._is_excluded_entirely(requested_url):
+        if self._is_excluded_entirely(url):
             return
         if url.isEmpty():
             # things set via setHtml
             return
+        self.add_url(url, title, atime, redirect=redirect, update=update)
 
-        no_formatting = QUrl.UrlFormattingOption(0)
-        if (requested_url.isValid() and
-                not requested_url.matches(url, no_formatting)):
-            # If the url of the page is different than the url of the link
-            # originally clicked, save them both.
-            self.add_url(requested_url, title, redirect=True)
-        if url != self._last_url:
-            self.add_url(url, title)
-            self._last_url = url
-
-    def add_url(self, url, title="", *, redirect=False, atime=None):
+    def add_url(self, url, title="", atime=None, *, redirect=False,
+                update=False):
         """Called via add_from_tab when a URL should be added to the history.
 
         Args:
             url: A url (as QUrl) to add to the history.
             title: The tab title to add.
+            atime: Override the atime used to add the entry
             redirect: Whether the entry was redirected to another URL
                       (hidden in completion)
-            atime: Override the atime used to add the entry
+            update: Whether this is an update to a previous history entry
         """
         if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
@@ -412,10 +401,37 @@ class WebHistory(sql.SqlTable):
         atime = int(atime) if (atime is not None) else int(time.time())
 
         with self._handle_sql_errors():
-            self.insert({'url': self._format_url(url),
-                         'title': title,
-                         'atime': atime,
-                         'redirect': redirect})
+            if update:
+                self.update({'url': self._format_url(url), 'atime': atime},
+                            {'title': title, 'redirect': redirect})
+            else:
+                self.insert({'url': self._format_url(url),
+                             'title': title,
+                             'atime': atime,
+                             'redirect': redirect})
+
+            if redirect and update:
+                try:
+                    self.completion.delete(
+                        'url', self._format_completion_url(url))
+                except KeyError:
+                    # This is fine - probably it was deleted by another tab.
+                    pass
+                else:
+                    # Check if we've over-writtent a non-redirected entry
+                    previous = self.select(
+                        sort_by='atime',
+                        sort_order='desc',
+                        limit=1,
+                        filter_values={"url": self._format_url(url),
+                                       "redirect": 0})
+                    for entry in previous:
+                        # This runs either 0 or 1 times
+                        self.completion.insert({
+                            'url': self._format_completion_url(url),
+                            'title': entry.title,
+                            'last_atime': entry.atime
+                        }, replace=True)
 
             if redirect or self._is_excluded_from_completion(url):
                 return

@@ -190,70 +190,86 @@ class TestAdd:
             with pytest.raises(sql.BugError):
                 web_history.add_url(QUrl('https://www.example.org/'))
 
-    @pytest.mark.parametrize('level, url, req_url, expected', [
-        (logging.DEBUG, 'a.com', 'a.com', [('a.com', 'title', 12345, False)]),
-        (logging.DEBUG, 'a.com', 'b.com', [('a.com', 'title', 12345, False),
-                                           ('b.com', 'title', 12345, True)]),
-        (logging.WARNING, 'a.com', '', [('a.com', 'title', 12345, False)]),
-
-        (logging.WARNING, '', '', []),
-
-        (logging.WARNING, 'data:foo', '', []),
-        (logging.WARNING, 'a.com', 'data:foo', []),
-
-        (logging.WARNING, 'view-source:foo', '', []),
-        (logging.WARNING, 'a.com', 'view-source:foo', []),
-
-        (logging.WARNING, 'qute://back', '', []),
-        (logging.WARNING, 'a.com', 'qute://back', []),
-
-        (logging.WARNING, 'qute://pdfjs/', '', []),
-        (logging.WARNING, 'a.com', 'qute://pdfjs/', []),
+    @pytest.mark.parametrize('level, url, expected', [
+        (logging.DEBUG, 'a.com', [('a.com', 'title', 12345, False)]),
+        (logging.WARNING, '', []),
+        (logging.WARNING, 'data:foo', []),
+        (logging.WARNING, 'view-source:foo', []),
+        (logging.WARNING, 'qute://back', []),
+        (logging.WARNING, 'qute://pdfjs/', []),
     ])
     def test_from_tab(self, web_history, caplog, mock_time,
-                      level, url, req_url, expected):
+                      level, url, expected):
         with caplog.at_level(level):
-            web_history.add_from_tab(QUrl(url), QUrl(req_url), 'title')
+            web_history.add_from_tab(QUrl(url), 'title',)
         assert set(web_history) == set(expected)
 
     def test_exclude(self, web_history, config_stub):
         """Excluded URLs should be in the history but not completion."""
         config_stub.val.completion.web_history.exclude = ['*.example.org']
         url = QUrl('http://www.example.org/')
-        web_history.add_from_tab(url, url, 'title')
+        web_history.add_from_tab(url, 'title')
         assert list(web_history)
         assert not list(web_history.completion)
 
-    def test_no_immedate_duplicates(self, web_history, mock_time):
-        url = QUrl("http://example.com")
-        url2 = QUrl("http://example2.com")
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
-        hist = list(web_history)
-        assert hist
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
-        assert list(web_history) == hist
-        web_history.add_from_tab(QUrl(url2), QUrl(url2), 'title')
-        assert list(web_history) != hist
-
     def test_delete_add_tab(self, web_history, mock_time):
         url = QUrl("http://example.com")
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QUrl(url), 'title')
         hist = list(web_history)
         assert hist
         web_history.delete_url(QUrl(url))
         assert len(web_history) == 0
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QUrl(url), 'title')
         assert list(web_history) == hist
 
     def test_clear_add_tab(self, web_history, mock_time):
         url = QUrl("http://example.com")
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QUrl(url), 'title')
         hist = list(web_history)
         assert hist
         history.history_clear(force=True)
         assert len(web_history) == 0
-        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        web_history.add_from_tab(QUrl(url), 'title')
         assert list(web_history) == hist
+
+    def test_update_title(self, web_history):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(QUrl(url), 'title', 12345, False, False)
+        expected = [("http://example.com", 'title', 12345, False)]
+        assert list(web_history) == expected
+        assert list(web_history.completion)
+        web_history.add_from_tab(QUrl(url), 'title2', 12345, False, True)
+        expected = [("http://example.com", 'title2', 12345, False)]
+        assert list(web_history) == expected
+        assert len(web_history.completion) == 1
+
+    def test_update_redirect(self, web_history):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(QUrl(url), 'title', 12345, False, False)
+        expected = [("http://example.com", 'title', 12345, False)]
+        assert list(web_history) == expected
+        assert list(web_history.completion)
+        web_history.add_from_tab(QUrl(url), 'title', 12345, True, True)
+        expected = [("http://example.com", 'title', 12345, True)]
+        assert list(web_history) == expected
+        assert not list(web_history.completion)
+
+    def test_add_interleaved_redirects(self, web_history):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(url, 'title', 12345, False, False)
+        web_history.add_from_tab(url, 'title', 12345, False, False)
+        web_history.add_from_tab(url, 'title', 12345, True, True)
+        web_history.add_from_tab(url, 'title', 12345, True, True)
+        assert not list(web_history.completion)
+
+    def test_redirect_restores_old_completion(self, web_history):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(url, 'title1', 12345, False, False)
+        web_history.add_from_tab(url, 'title2', 12346, False, False)
+        web_history.add_from_tab(url, 'title3', 12347, False, False)
+        web_history.add_from_tab(url, 'title4', 12347, True, True)
+        expected = [("http://example.com", 'title2', 12346)]
+        assert list(web_history.completion) == expected
 
 
 class TestHistoryInterface:
