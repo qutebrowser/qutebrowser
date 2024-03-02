@@ -67,16 +67,9 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     is_treetabbedbrowser = True
 
-    def __init__(self, *, win_id, private, parent=None):
-        super().__init__(win_id=win_id, private=private, parent=parent)
-        self.is_treetabbedbrowser = True
-        self.widget = TreeTabWidget(win_id, parent=self)
-        self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
-        self.widget.new_tab_requested.connect(self.tabopen)
-        self.widget.currentChanged.connect(self._on_current_changed)
-        self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
-        self.widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self._reset_stack_counters()
+    def _create_tab_widget(self):
+        """Return the tab widget that can display a tree structure."""
+        return TreeTabWidget(self._win_id, parent=self)
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Handle children positioning after a tab is removed."""

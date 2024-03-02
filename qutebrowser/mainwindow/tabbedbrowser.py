@@ -201,11 +201,12 @@ class TabbedBrowser(QWidget):
         if private:
             assert not qtutils.is_single_process()
         super().__init__(parent)
-        self.widget = tabwidget.TabWidget(win_id, parent=self)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
         self.is_shutting_down = False
+
+        self.widget = self._create_tab_widget()
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(
             self.tabopen)  # type: ignore[arg-type,unused-ignore]
@@ -242,6 +243,9 @@ class TabbedBrowser(QWidget):
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
+
+    def _create_tab_widget(self):
+        return tabwidget.TabWidget(self._win_id, parent=self)
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
