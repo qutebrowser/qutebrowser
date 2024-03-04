@@ -1802,8 +1802,8 @@ class CommandDispatcher:
                 QApplication.postEvent(window, release_event)
             else:
                 tab = self._current_widget()
-                tab.send_event(press_event)
-                tab.send_event(release_event)
+                tab.post_event(press_event)
+                tab.post_event(release_event)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True, backend=usertypes.Backend.QtWebKit)

@@ -356,7 +356,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         ]
 
         for evt in events:
-            self._tab.send_event(evt)
+            self._tab.post_event(evt)
 
         QTimer.singleShot(0, self._move_text_cursor)
 
@@ -438,7 +438,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         pos = self._mouse_pos()
         event = QMouseEvent(QEvent.Type.MouseMove, pos, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton,
                             Qt.KeyboardModifier.NoModifier)
-        self._tab.send_event(event)
+        self._tab.post_event(event)
 
     def right_click(self) -> None:
         """Simulate a right-click on the element."""
