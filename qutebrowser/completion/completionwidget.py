@@ -8,6 +8,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
+import contextlib
 from typing import TYPE_CHECKING, Optional
 
 from qutebrowser.qt.widgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
@@ -353,6 +354,60 @@ class CompletionView(QTreeView):
         elif config.val.completion.show == 'auto':
             self.show()
 
+    @contextlib.contextmanager
+    def clean_up_old_selection_models(self):
+        """Make sure selection models are cleaned after we change models.
+
+        The docs for QAbstractItemView say that it doesn't take care of deleting
+        QItemSelectionModels for you. In practise it seems like selection
+        models connected to a model get cleaned up on their own but when we
+        set the model to `None` we have to do it ourselves. There should be no
+        harm in doing it all the time anyhow.
+        """
+        # Get a reference to the old models so we can delete them later.
+        old_selection_model = self.selectionModel()
+        header = self.header()
+        assert header is not None
+        old_header_selection_model = header.selectionModel()
+
+        yield
+
+        # Get the new ones so we can double check assumptions
+        current_selection_model = self.selectionModel()
+        current_header_selection_model = header.selectionModel()
+
+        # Delete the old selection model of the TreeView.
+        if old_selection_model:
+            old_selection_model.deleteLater()
+
+        # Dealing with the selection model of the TreeView's child HeaderView
+        # is a bit more complicated than the one on the TreeView itself. Both
+        # QTreeView and QHeaderView inherit from QAbstractItemView. The chain
+        # of events when set call setModel() is this:
+        #
+        #   TreeView::setModel()
+        #     header->setModel()                # creates a new selection model in QHeaderView
+        #     QAbstractItemView::setModel()     # creates a new selection model in QTreeView
+        #       QTreeView::setSelectionModel()
+        #         header->setSelectionModel()   # tells the QHeaderView to use the selection model from the QTreeView
+        #
+        # `header->setModel()` creates a new selection model in QHeaderView.
+        # `QAbstractItemView::setModel()` creates a new selection model in
+        # QTreeView. QTreeView then calls `header->setSelectionModel()` with
+        # its model. So the model that is a child of QHeaderView is now an
+        # orphan with no references.
+
+        # Verify some assumptions. If `header->setSelection()` was called then
+        # `header.seletionModel()` should be returning the same objects as the
+        # parent.
+        assert old_selection_model == old_header_selection_model
+        assert current_selection_model == current_header_selection_model
+
+        header_children = header.findChildren(QItemSelectionModel)
+        for item in header_children:
+            if item != current_header_selection_model:
+                item.deleteLater()
+
     def set_model(self, model):
         """Switch completion to a new model.
 
@@ -362,11 +417,19 @@ class CompletionView(QTreeView):
             model: The model to use.
         """
         old_model = self.model()
-        if old_model is not None and model is not old_model:
-            old_model.deleteLater()
-            self._selection_model().deleteLater()
 
-        self.setModel(model)
+        # Do we ever actually get called with the same model twice?
+        # Running through the function below with model == old_model == None
+        # is required for some e2e tests to pass. Maybe it's when the
+        # completion is first initialised?
+        if model is not None and old_model is model:
+            return
+
+        with self.clean_up_old_selection_models():
+            self.setModel(model)
+
+        if old_model:
+            old_model.deleteLater()
 
         if model is None:
             self._active = False
