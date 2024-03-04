@@ -145,7 +145,7 @@
   "keyring": "https://github.com/jaraco/keyring/blob/main/NEWS.rst",
   "jaraco.classes": "https://github.com/jaraco/jaraco.classes/blob/main/NEWS.rst",
   "pkginfo": "https://bazaar.launchpad.net/~tseaver/pkginfo/trunk/view/head:/CHANGES.txt",
-  "readme-renderer": "https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst",
+  "readme_renderer": "https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst",
   "requests-toolbelt": "https://github.com/requests/toolbelt/blob/master/HISTORY.rst",
   "rfc3986": "https://rfc3986.readthedocs.io/en/latest/release-notes/index.html",
   "twine": "https://twine.readthedocs.io/en/stable/changelog.html",
