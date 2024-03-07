@@ -8,7 +8,6 @@ import collections
 import dataclasses
 import datetime
 from typing import List, Dict
-from qutebrowser.qt.widgets import QSizePolicy
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
@@ -94,6 +93,12 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     is_treetabbedbrowser = True
     _undo_class = _TreeUndoEntry
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._tree_tab_child_rel_idx = 0
+        self._tree_tab_sibling_rel_idx = 0
+        self._tree_tab_toplevel_rel_idx = 0
 
     def _create_tab_widget(self):
         """Return the tab widget that can display a tree structure."""
