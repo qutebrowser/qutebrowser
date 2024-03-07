@@ -36,6 +36,21 @@ class _UndoEntry:
     created_at: datetime.datetime = dataclasses.field(
         default_factory=datetime.datetime.now)
 
+    @classmethod
+    def from_tab(cls, tab: browsertab.AbstractTab, idx: int):
+        """Generate an undo entry from `tab`."""
+        try:
+            history_data = tab.history.private_api.serialize()
+        except browsertab.WebTabError:
+            return None  # special URL
+
+        return cls(
+            url=tab.url(),
+            history=history_data,
+            index=idx,
+            pinned=tab.data.pinned,
+        )
+
 
 UndoStackType = MutableSequence[MutableSequence[_UndoEntry]]
 
@@ -196,6 +211,7 @@ class TabbedBrowser(QWidget):
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
     is_treetabbedbrowser = False
     shutting_down = pyqtSignal()
+    _undo_class = _UndoEntry
 
     def __init__(self, *, win_id, private, parent=None):
         if private:
@@ -513,36 +529,46 @@ class TabbedBrowser(QWidget):
 
         tab.pending_removal = True
 
-        if tab.url().isEmpty():
-            # There are some good reasons why a URL could be empty
-            # (target="_blank" with a download, see [1]), so we silently ignore
-            # this.
-            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
-            pass
-        elif not tab.url().isValid():
-            # We display a warning for URLs which are not empty but invalid -
-            # but we don't return here because we want the tab to close either
-            # way.
-            urlutils.invalid_url_error(tab.url(), "saving tab")
-        elif add_undo:
-            try:
-                history_data = tab.history.private_api.serialize()
-            except browsertab.WebTabError:
-                pass  # special URL
-            else:
-                entry = _UndoEntry(url=tab.url(),
-                                   history=history_data,
-                                   index=idx,
-                                   pinned=tab.data.pinned)
-                if new_undo or not self.undo_stack:
-                    self.undo_stack.append([entry])
-                else:
-                    self.undo_stack[-1].append(entry)
+        if add_undo:
+            self._add_undo_entry(tab, new_undo=new_undo)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
 
         tab.deleteLater()
+
+    def _add_undo_entry(self, tab, new_undo):
+        if tab.url().isEmpty():
+            # There are some good reasons why a URL could be empty
+            # (target="_blank" with a download, see [1]), so we silently ignore
+            # this.
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
+            return
+
+        if not tab.url().isValid():
+            # We display a warning for URLs which are not empty but invalid -
+            # but we don't return here because we want the tab to close either
+            # way.
+            urlutils.invalid_url_error(tab.url(), "saving tab")
+            return
+
+        idx = self.widget.indexOf(tab)
+        entry = self._undo_class.from_tab(tab, idx)
+        if not entry:
+            return
+
+        if isinstance(entry, self._undo_class):
+            if new_undo or not self.undo_stack:
+                self.undo_stack.append([entry])
+            else:
+                self.undo_stack[-1].append(entry)
+        else:
+            assert len(entry) > 0
+            entries = entry
+            if new_undo:
+                self.undo_stack.append(entries)
+            else:
+                self.undo_stack[-1].extend(entries)
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
