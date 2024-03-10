@@ -24,7 +24,7 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils,
 from qutebrowser.misc import quitter, objects
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class _UndoEntry:
 
     """Information needed for :undo."""

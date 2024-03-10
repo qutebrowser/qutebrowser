@@ -6,36 +6,27 @@
 
 import collections
 import dataclasses
-import datetime
 from typing import List, Dict
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
-from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
+from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser, _UndoEntry
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
 
 
-@dataclasses.dataclass
-class _TreeUndoEntry():
+@dataclasses.dataclass(kw_only=True)
+class _TreeUndoEntry(_UndoEntry):
     """Information needed for :undo."""
 
-    url: QUrl
-    history: bytes
-    index: int
-    pinned: bool
     uid: int
     parent_node_uid: int
     children_node_uids: List[int]
     local_index: int  # index of the tab relative to its siblings
-    created_at: datetime.datetime = dataclasses.field(
-        default_factory=datetime.datetime.now)
 
     def restore_into_tab(self, tab: browsertab.AbstractTab):
-        tab.history.private_api.deserialize(self.history)
-        tab.set_pinned(self.pinned)
-        tab.setFocus()
+        super().restore_into_tab(tab)
 
         root = tab.node.path[0]
         uid = self.uid
