@@ -16,7 +16,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class _TreeUndoEntry(_UndoEntry):
     """Information needed for :undo."""
 

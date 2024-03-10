@@ -24,7 +24,7 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils,
 from qutebrowser.misc import quitter, objects
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class _UndoEntry:
 
     """Information needed for :undo."""
@@ -34,7 +34,9 @@ class _UndoEntry:
     index: int
     pinned: bool
     created_at: datetime.datetime = dataclasses.field(
-        default_factory=datetime.datetime.now)
+        default_factory=datetime.datetime.now,
+        init=False,  # WORKAROUND until py3.10 with kw_only: https://www.trueblade.com/blogs/news/python-3-10-new-dataclass-features
+    )
 
     def restore_into_tab(self, tab: browsertab.AbstractTab):
         """Set the url, history and state of `tab` from this undo entry."""
