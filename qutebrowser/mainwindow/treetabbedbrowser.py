@@ -32,6 +32,35 @@ class _TreeUndoEntry():
     created_at: datetime.datetime = dataclasses.field(
         default_factory=datetime.datetime.now)
 
+    def restore_into_tab(self, tab: browsertab.AbstractTab):
+        tab.history.private_api.deserialize(self.history)
+        tab.set_pinned(self.pinned)
+        tab.setFocus()
+
+        root = tab.node.path[0]
+        uid = self.uid
+        parent_uid = self.parent_node_uid
+        parent_node = root.get_descendent_by_uid(parent_uid)
+        if not parent_node:
+            parent_node = root
+
+        children = []
+        for child_uid in self.children_node_uids:
+            child_node = root.get_descendent_by_uid(child_uid)
+            if child_node:
+                children.append(child_node)
+        tab.node.parent = None  # Remove the node from the tree
+        tab.node = notree.Node(tab, parent_node,
+                               children, uid)
+
+        # correctly reposition the tab
+        local_idx = self.local_index
+        if tab.node.parent:  # should always be true
+            new_siblings = list(tab.node.parent.children)
+            new_siblings.remove(tab.node)
+            new_siblings.insert(local_idx, tab.node)
+            tab.node.parent.children = new_siblings
+
     @classmethod
     def from_tab(
         cls,
@@ -153,39 +182,7 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
-        # save entries before super().undo() pops them
-        entries = self.undo_stack[-depth]
-        new_tabs = super().undo(depth)
-
-        for entry, tab in zip(reversed(entries), new_tabs):
-            if not isinstance(entry, _TreeUndoEntry):
-                # Likely we are undoing the close of a non-tree tab window
-                # while a tree tab window is focused.
-                continue
-            root = self.widget.tree_root
-            uid = entry.uid
-            parent_uid = entry.parent_node_uid
-            parent_node = root.get_descendent_by_uid(parent_uid)
-            if not parent_node:
-                parent_node = root
-
-            children = []
-            for child_uid in entry.children_node_uids:
-                child_node = root.get_descendent_by_uid(child_uid)
-                if child_node:
-                    children.append(child_node)
-            tab.node.parent = None  # Remove the node from the tree
-            tab.node = notree.Node(tab, parent_node,
-                                   children, uid)
-
-            # correctly reposition the tab
-            local_idx = entry.local_index
-            if tab.node.parent:  # should always be true
-                new_siblings = list(tab.node.parent.children)
-                new_siblings.remove(tab.node)
-                new_siblings.insert(local_idx, tab.node)
-                tab.node.parent.children = new_siblings
-
+        super().undo(depth)
         self.widget.tree_tab_update()
 
     def tabs(

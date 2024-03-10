@@ -36,6 +36,12 @@ class _UndoEntry:
     created_at: datetime.datetime = dataclasses.field(
         default_factory=datetime.datetime.now)
 
+    def restore_into_tab(self, tab: browsertab.AbstractTab):
+        """Set the url, history and state of `tab` from this undo entry."""
+        tab.history.private_api.deserialize(self.history)
+        tab.set_pinned(self.pinned)
+        tab.setFocus()
+
     @classmethod
     def from_tab(cls, tab: browsertab.AbstractTab, idx: int):
         """Generate an undo entry from `tab`."""
@@ -597,8 +603,6 @@ class TabbedBrowser(QWidget):
         entries = self.undo_stack[-depth]
         del self.undo_stack[-depth]
 
-        # we return the tab list because tree_tabs needs it in post_processing
-        new_tabs = []
         for entry in reversed(entries):
             if use_current_tab:
                 newtab = self._tab_by_idx(0)
@@ -612,11 +616,7 @@ class TabbedBrowser(QWidget):
                     idx=entry.index
                 )
 
-            newtab.history.private_api.deserialize(entry.history)
-            newtab.set_pinned(entry.pinned)
-            new_tabs.append(newtab)
-            newtab.setFocus()
-        return new_tabs
+            entry.restore_into_tab(newtab)
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
