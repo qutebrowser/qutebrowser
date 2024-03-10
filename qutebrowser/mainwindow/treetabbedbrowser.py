@@ -154,11 +154,13 @@ class TreeTabbedBrowser(TabbedBrowser):
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
         # save entries before super().undo() pops them
-        entries = list(self.undo_stack[-depth])
+        entries = self.undo_stack[-depth]
         new_tabs = super().undo(depth)
 
         for entry, tab in zip(reversed(entries), new_tabs):
             if not isinstance(entry, _TreeUndoEntry):
+                # Likely we are undoing the close of a non-tree tab window
+                # while a tree tab window is focused.
                 continue
             root = self.widget.tree_root
             uid = entry.uid
@@ -170,7 +172,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             children = []
             for child_uid in entry.children_node_uids:
                 child_node = root.get_descendent_by_uid(child_uid)
-                children.append(child_node)
+                if child_node:
+                    children.append(child_node)
             tab.node.parent = None  # Remove the node from the tree
             tab.node = notree.Node(tab, parent_node,
                                    children, uid)

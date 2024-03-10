@@ -91,3 +91,62 @@ Feature: Tree tab management
             - data/numbers/2.txt (active) (collapsed)
               - data/numbers/3.txt
           - data/numbers/4.txt
+
+    Scenario: Undo a tab close restores tree structure
+        # Restored node should be put back in the right place in the tree with
+        # same parent and child.
+        When I open about:blank?grandparent
+        And I open about:blank?parent in a new related tab
+        And I open about:blank?child in a new related tab
+        And I run :tab-select ?parent
+        And I run :tab-close
+        And I run :undo
+        Then the following tabs should be open:
+          - about:blank?grandparent
+            - about:blank?parent (active)
+              - about:blank?child
+
+    Scenario: Undo a tab close when the parent has already been closed
+        # Close the child first, then the parent. When the child is restored
+        # it should be placed back at the root.
+        When I open about:blank?grandparent
+        And I open about:blank?parent in a new related tab
+        And I open about:blank?child in a new related tab
+        And I run :tab-close
+        And I run :tab-close
+        And I run :undo 2
+        Then the following tabs should be open:
+          - about:blank?child (active)
+          - about:blank?grandparent
+
+    Scenario: Undo a tab close when the parent has already been closed - with children
+        # Close the child first, then the parent. When the child is restored
+        # it should be placed back at the root, and its previous child should
+        # be re-attached to it. (Not sure if this is the best behavior.)
+        When I open about:blank?grandparent
+        And I open about:blank?parent in a new related tab
+        And I open about:blank?child in a new related tab
+        And I open about:blank?leaf in a new related tab
+        And I run :tab-select ?child
+        And I run :tab-close
+        And I run :tab-select ?parent
+        And I run :tab-close
+        And I run :undo 2
+        Then the following tabs should be open:
+          - about:blank?child (active)
+            - about:blank?leaf
+          - about:blank?grandparent
+
+    Scenario: Undo a tab close when the child has already been closed
+        # Close the parent first, then the child. Make sure we don't crash
+        # when trying to re-parent the child.
+        When I open about:blank?grandparent
+        And I open about:blank?parent in a new related tab
+        And I open about:blank?child in a new related tab
+        And I run :tab-select ?parent
+        And I run :tab-close
+        And I run :tab-close
+        And I run :undo 2
+        Then the following tabs should be open:
+          - about:blank?grandparent
+            - about:blank?parent (active)
