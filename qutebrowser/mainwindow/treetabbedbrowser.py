@@ -218,10 +218,12 @@ class TreeTabbedBrowser(TabbedBrowser):
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx)
 
-        tab.node.parent = self.widget.tree_root
-        if cur_tab is None or tab is cur_tab:
-            self.widget.tree_tab_update()
+        if config.val.tabs.tabs_are_windows or tab is cur_tab:
             return tab
+
+        assert tab.node.parent, (
+            f"Node for new tab doesn't have a parent: {tab.node}"
+        )
 
         # get pos
         if related:
