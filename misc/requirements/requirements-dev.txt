@@ -10,8 +10,8 @@ docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
 idna==3.6
-importlib-metadata==7.0.1
-importlib_resources==6.1.2
+importlib_metadata==7.0.2
+importlib_resources==6.3.1
 jaraco.classes==3.3.1
 jeepney==0.8.0
 keyring==24.3.1
@@ -20,7 +20,7 @@ markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.2.0
 nh3==0.2.15
-packaging==23.2
+packaging==24.0
 pkginfo==1.10.0
 pycparser==2.21
 Pygments==2.17.2
@@ -42,4 +42,4 @@ twine==5.0.0
 typing_extensions==4.10.0
 uritemplate==4.1.1
 # urllib3==2.2.1
-zipp==3.17.0
+zipp==3.18.1
