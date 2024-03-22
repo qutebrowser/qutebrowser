@@ -14,7 +14,7 @@ import mimetypes
 from typing import Optional, Tuple, Union, Iterable, cast
 
 from qutebrowser.qt import machinery
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.core import QUrl, QUrlQuery
 from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
@@ -682,3 +682,25 @@ def widened_hostnames(hostname: str) -> Iterable[str]:
     while hostname:
         yield hostname
         hostname = hostname.partition(".")[-1]
+
+
+def get_url_yank_text(url: QUrl, *, pretty: bool) -> str:
+    """Get the text that should be yanked for the given URL."""
+    flags = FormatOption.REMOVE_PASSWORD
+    if url.scheme() == 'mailto':
+        flags |= FormatOption.REMOVE_SCHEME
+    if pretty:
+        flags |= FormatOption.DECODE_RESERVED
+    else:
+        flags |= FormatOption.ENCODED
+
+    url_query = QUrlQuery()
+    url_query_str = url.query()
+    if '&' not in url_query_str and ';' in url_query_str:
+        url_query.setQueryDelimiters('=', ';')
+    url_query.setQuery(url_query_str)
+    for key in dict(url_query.queryItems()):
+        if key in config.val.url.yank_ignored_parameters:
+            url_query.removeQueryItem(key)
+    url.setQuery(url_query)
+    return url.toString(flags)
