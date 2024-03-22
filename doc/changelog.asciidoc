@@ -24,6 +24,10 @@ Added
 
 - When qutebrowser receives a SIGHUP it will now reload any config.py file
   in use (same as the `:config-source` command does). (#8108)
+- The Chromium security patch version is now shown in the backend string in
+  --version and :version. This reflects the latest Chromium version that
+  security fixes have been backported to the base QtWebEngine version from.
+  (#7187)
 
 Changed
 ~~~~~~~
