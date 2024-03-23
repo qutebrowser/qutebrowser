@@ -544,7 +544,7 @@ def _validated_selected_files(
             message.warning("More than one file/folder chosen, using only the first")
             selected_files = selected_files[:1]
     for selected_file in selected_files:
-        if not os.path.exists(selected_file):
+        if not os.path.exists(selected_file) and qb_mode != FileSelectionMode.download:
             message.warning(f"Ignoring non-existent file '{selected_file}'")
             continue
         if qb_mode == FileSelectionMode.folder:
@@ -555,7 +555,7 @@ def _validated_selected_files(
                 continue
         else:
             # pylint: disable=else-if-used
-            if not os.path.isfile(selected_file):
+            if qb_mode != FileSelectionMode.download and not os.path.isfile(selected_file):
                 message.warning(
                     f"Expected file but got folder, ignoring '{selected_file}'"
                 )
