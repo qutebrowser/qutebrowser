@@ -443,6 +443,7 @@ class FileSelectionMode(enum.Enum):
     single_file = enum.auto()
     multiple_files = enum.auto()
     folder = enum.auto()
+    download = enum.auto()
 
 
 def choose_file(qb_mode: FileSelectionMode) -> List[str]:
@@ -459,6 +460,7 @@ def choose_file(qb_mode: FileSelectionMode) -> List[str]:
         FileSelectionMode.single_file: config.val.fileselect.single_file.command,
         FileSelectionMode.multiple_files: config.val.fileselect.multiple_files.command,
         FileSelectionMode.folder: config.val.fileselect.folder.command,
+        FileSelectionMode.download: config.val.fileselect.download.command,
     }[qb_mode]
     use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
