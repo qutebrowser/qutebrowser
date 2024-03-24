@@ -214,18 +214,42 @@ class TreeTabbedBrowser(TabbedBrowser):
                      focused tab.  Follows `tabs.new_position.tree.sibling`.
 
         """
-        # we save this now because super.tabopen also resets the focus
+        # Save the current tab now before letting super create the new tab
+        # (and possibly give it focus). To insert the new tab correctly in the
+        # tree structure later we may need to know which tab it was opened
+        # from (for the `related` and `sibling` cases).
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx)
 
-        if config.val.tabs.tabs_are_windows or tab is cur_tab:
+        # Some trivial cases where we don't need to do positioning:
+
+        # 1. this is the first tab in the window.
+        if cur_tab is None:
+            assert self.widget.count() == 1
+            assert tab.node.parent == self.widget.tree_root
             return tab
 
+        if (
+            config.val.tabs.tabs_are_windows or  # 2. one tab per window
+            tab is cur_tab                       # 3. opening URL in existing tab
+        ):
+            return tab
+
+        # Some sanity checking to make sure the tab super created was set up
+        # as a tree style tab correctly. We don't have a TreeTab so this is
+        # heuristic to highlight any problems elsewhere in the application
+        # logic.
         assert tab.node.parent, (
             f"Node for new tab doesn't have a parent: {tab.node}"
         )
 
-        # get pos
+        # We may also be able to skip the positioning code below if the `idx`
+        # arg is passed in. Semgrep says that arg is used from undo() and
+        # SessionManager, both cases are updating the tree structure
+        # themselves after opening the new tab. On the other hand the only
+        # downside is we move the tab and update the tree twice. Although that
+        # may actually make loading large sessions a bit slower.
+
         if related:
             pos = config.val.tabs.new_position.tree.new_child
             parent = cur_tab.node
@@ -238,14 +262,14 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
-        self._position_tab(cur_tab, tab, pos, parent, sibling, related, background)
+        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling, related, background)
 
         return tab
 
     def _position_tab(
         self,
-        cur_tab: browsertab.AbstractTab,
-        tab: browsertab.AbstractTab,
+        cur_node: notree.Node,
+        new_node: notree.Node,
         pos: str,
         parent: notree.Node,
         sibling: bool = False,
@@ -254,20 +278,21 @@ class TreeTabbedBrowser(TabbedBrowser):
     ) -> None:
         toplevel = not sibling and not related
         siblings = list(parent.children)
-        if tab.node in siblings:  # true if parent is tree_root
-            # remove it and add it later in the right position
-            siblings.remove(tab.node)
+        if new_node.parent == parent:
+            # Remove the current node from its parent's children list to avoid
+            # potentially adding it as a duplicate later.
+            siblings.remove(new_node)
 
         if pos == 'first':
             rel_idx = 0
             if config.val.tabs.new_position.stacking and related:
                 rel_idx += self._tree_tab_child_rel_idx
                 self._tree_tab_child_rel_idx += 1
-            siblings.insert(rel_idx, tab.node)
+            siblings.insert(rel_idx, new_node)
         elif pos in ['prev', 'next'] and (sibling or toplevel):
-            # pivot is the tab relative to which 'prev' or 'next' apply
-            # it is always a member of 'siblings'
-            pivot = cur_tab.node if sibling else cur_tab.node.path[1]
+            # Pivot is the tab relative to which 'prev' or 'next' apply to.
+            # Either the current node or top of the current tree.
+            pivot = cur_node if sibling else cur_node.path[1]
             direction = -1 if pos == 'prev' else 1
             rel_idx = 0 if pos == 'prev' else 1
             tgt_idx = siblings.index(pivot) + rel_idx
@@ -278,9 +303,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                 elif toplevel:
                     tgt_idx += self._tree_tab_toplevel_rel_idx
                     self._tree_tab_toplevel_rel_idx += direction
-            siblings.insert(tgt_idx, tab.node)
+            siblings.insert(tgt_idx, new_node)
         else:  # position == 'last'
-            siblings.append(tab.node)
+            siblings.append(new_node)
+
         parent.children = siblings
         self.widget.tree_tab_update()
         if not background:
