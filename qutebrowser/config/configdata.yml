@@ -1640,7 +1640,8 @@ fileselect.download.command:
   default: ['xterm', '-e', 'ranger', '--choosedir={}']
   desc: >-
     Command (and arguments) to use for downloading a file.
-    The command should write the selected file or folder path to the specified file or stdout.
+    The command should write the selected file or folder path to the
+    specified file or stdout.
 
     The following placeholders are defined:
 
