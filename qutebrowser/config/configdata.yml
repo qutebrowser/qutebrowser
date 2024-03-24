@@ -1639,8 +1639,8 @@ fileselect.download.command:
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosedir={}']
   desc: >-
-    Command (and arguments) to use for selecting a single folder in forms.
-    The command should write the selected folder path to the specified file or stdout.
+    Command (and arguments) to use for download a file.
+    The command should write the selected file or folder path to the specified file or stdout.
 
     The following placeholders are defined:
 
