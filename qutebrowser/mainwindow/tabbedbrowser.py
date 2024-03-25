@@ -9,7 +9,7 @@ import functools
 import weakref
 import datetime
 import dataclasses
-from typing import (Any, Deque, List, Mapping,
+from typing import (Any, Deque, List, Mapping, Union,
                     MutableMapping, MutableSequence, Optional, Tuple)
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
@@ -38,14 +38,16 @@ class _UndoEntry:
         init=False,  # WORKAROUND until py3.10 with kw_only: https://www.trueblade.com/blogs/news/python-3-10-new-dataclass-features
     )
 
-    def restore_into_tab(self, tab: browsertab.AbstractTab):
+    def restore_into_tab(self, tab: browsertab.AbstractTab) -> None:
         """Set the url, history and state of `tab` from this undo entry."""
         tab.history.private_api.deserialize(self.history)
         tab.set_pinned(self.pinned)
         tab.setFocus()
 
     @classmethod
-    def from_tab(cls, tab: browsertab.AbstractTab, idx: int):
+    def from_tab(
+        cls, tab: browsertab.AbstractTab, idx: int
+    ) -> Union["_UndoEntry", List["_UndoEntry"]]:
         """Generate an undo entry from `tab`."""
         try:
             history_data = tab.history.private_api.serialize()

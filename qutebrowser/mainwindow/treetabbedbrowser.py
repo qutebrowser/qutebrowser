@@ -6,7 +6,7 @@
 
 import collections
 import dataclasses
-from typing import List, Dict
+from typing import List, Dict, Union
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
@@ -25,7 +25,7 @@ class _TreeUndoEntry(_UndoEntry):
     children_node_uids: List[int]
     local_index: int  # index of the tab relative to its siblings
 
-    def restore_into_tab(self, tab: browsertab.AbstractTab):
+    def restore_into_tab(self, tab: browsertab.AbstractTab) -> None:
         super().restore_into_tab(tab)
 
         root = tab.node.path[0]
@@ -58,7 +58,7 @@ class _TreeUndoEntry(_UndoEntry):
         tab: browsertab.AbstractTab,
         idx: int,
         recursing: bool = False,
-    ):
+    ) -> Union["_TreeUndoEntry", List["_TreeUndoEntry"]]:
         """Make a TreeUndoEntry from a Node."""
         node = tab.node
         url = node.value.url()
