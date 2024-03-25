@@ -1054,7 +1054,7 @@ class AbstractTab(QWidget):
             self, parent=self)
         self.backend: Optional[usertypes.Backend] = None
 
-        if parent and isinstance(parent, TreeTabWidget):
+        if parent is not None and isinstance(parent, TreeTabWidget):
             self.node: AbstractTab = Node(self, parent=parent.tree_root)
         else:
             self.node: AbstractTab = Node(self, parent=None)

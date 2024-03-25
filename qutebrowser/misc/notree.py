@@ -146,7 +146,7 @@ class Node(Generic[T]):
         """
         seen = set(value)
         if len(seen) != len(value):
-            raise TreeError("A duplicate item is present in in %r" % value)
+            raise TreeError("A duplicate item is present in %r" % value)
         new_children = list(value)
         for child in new_children:
             if child.parent is not self:
