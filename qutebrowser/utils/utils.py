@@ -38,7 +38,7 @@ except ImportError:  # pragma: no cover
 
 from qutebrowser.utils import log
 
-fake_clipboard = None
+fake_clipboard: Optional[str] = None
 log_clipboard = False
 
 is_mac = sys.platform.startswith('darwin')

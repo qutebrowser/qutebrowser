@@ -26,7 +26,7 @@ from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 if machinery.IS_QT6:
     from qutebrowser.qt.core import QKeyCombination
 else:
-    QKeyCombination = None  # QKeyCombination was added in Qt 6
+    QKeyCombination: None = None  # QKeyCombination was added in Qt 6
 
 from qutebrowser.utils import utils, qtutils, debug
 

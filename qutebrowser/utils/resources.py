@@ -9,7 +9,7 @@ import sys
 import contextlib
 import posixpath
 import pathlib
-from typing import Iterator, Iterable, Union
+from typing import Iterator, Iterable, Union, Dict
 
 
 # We cannot use the stdlib version on 3.8 because we need the files() API.
@@ -25,7 +25,7 @@ else:  # pragma: no cover
     from importlib_resources.abc import Traversable
 
 import qutebrowser
-_cache = {}
+_cache: Dict[str, str] = {}
 
 
 _ResourceType = Union[Traversable, pathlib.Path]

@@ -7,7 +7,7 @@
 import traceback
 import re
 import contextlib
-from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
+from typing import TYPE_CHECKING, Callable, Dict, Tuple, Iterator, Mapping, MutableMapping
 
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 _ReplacementFunction = Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 
-last_command = {}
+last_command: Dict[usertypes.KeyMode, Tuple[str, int]] = {}
 
 
 def _url(tabbed_browser):

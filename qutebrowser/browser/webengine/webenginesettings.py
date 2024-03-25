@@ -37,7 +37,7 @@ private_profile: Optional[QWebEngineProfile] = None
 # The global WebEngineSettings object
 _global_settings = cast('WebEngineSettings', None)
 
-parsed_user_agent = None
+parsed_user_agent: Optional[websettings.UserAgent] = None
 
 _qute_scheme_handler = cast(webenginequtescheme.QuteSchemeHandler, None)
 _req_interceptor = cast('interceptor.RequestInterceptor', None)

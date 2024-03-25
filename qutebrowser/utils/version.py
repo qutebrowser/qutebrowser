@@ -78,7 +78,7 @@ class DistributionInfo:
     pretty: str
 
 
-pastebin_url = None
+pastebin_url: Optional[str] = None
 
 
 class Distribution(enum.Enum):

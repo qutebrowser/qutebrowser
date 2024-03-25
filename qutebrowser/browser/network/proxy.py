@@ -4,6 +4,8 @@
 
 """Handling of proxies."""
 
+from typing import Optional
+
 from qutebrowser.qt.core import QUrl, pyqtSlot
 from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory
 
@@ -13,7 +15,7 @@ from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
 
-application_factory = None
+application_factory: Optional["ProxyFactory"] = None
 
 
 def init():

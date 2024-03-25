@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
 
 _log_inited = False
-_args = None
+_args: Optional[argparse.Namespace] = None
 
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
@@ -146,7 +146,7 @@ LOGGER_NAMES = [
 
 ram_handler: Optional['RAMHandler'] = None
 console_handler: Optional[logging.Handler] = None
-console_filter = None
+console_filter: Optional["LogFilter"] = None
 
 
 def stub(suffix: str = '') -> None:

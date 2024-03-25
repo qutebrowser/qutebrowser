@@ -736,4 +736,4 @@ else:
     def add_optional(obj: Optional[_T]) -> Optional[_T]:
         return obj
 
-    QT_NONE = None
+    QT_NONE: None = None

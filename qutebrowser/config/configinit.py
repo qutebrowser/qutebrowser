@@ -7,6 +7,7 @@
 import argparse
 import os.path
 import sys
+from typing import Optional
 
 from qutebrowser.qt.widgets import QMessageBox
 
@@ -19,7 +20,7 @@ from qutebrowser.misc import msgbox, objects, savemanager
 
 
 # Error which happened during init, so we can show a message box.
-_init_errors = None
+_init_errors: Optional[configexc.ConfigFileErrors] = None
 
 
 def early_init(args: argparse.Namespace) -> None:
