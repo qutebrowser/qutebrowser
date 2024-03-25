@@ -12,6 +12,6 @@ pluggy==1.4.0
 pyproject-api==1.6.1
 setuptools==69.2.0
 tomli==2.0.1
-tox==4.14.1
+tox==4.14.2
 virtualenv==20.25.1
 wheel==0.43.0

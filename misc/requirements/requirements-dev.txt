@@ -10,11 +10,13 @@ docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
 idna==3.6
-importlib_metadata==7.0.2
-importlib_resources==6.3.1
+importlib_metadata==7.1.0
+importlib_resources==6.4.0
 jaraco.classes==3.3.1
+jaraco.context==4.3.0
+jaraco.functools==4.0.0
 jeepney==0.8.0
-keyring==24.3.1
+keyring==25.0.0
 manhole==1.8.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
