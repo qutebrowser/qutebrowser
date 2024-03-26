@@ -9,7 +9,6 @@ import sys
 import json
 import pathlib
 import socket
-import fnmatch
 import dataclasses
 from http import HTTPStatus
 
@@ -17,6 +16,7 @@ import pytest
 from qutebrowser.qt.core import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
+from helpers import testutils
 
 
 class Request(testprocess.Line):
@@ -113,13 +113,13 @@ class ExpectedRequest:
 
 
 def is_ignored_webserver_message(line: str) -> bool:
-    return fnmatch.fnmatchcase(
-        line,
-        (
+    return testutils.pattern_match(
+        pattern=(
             "Client ('127.0.0.1', *) lost — peer dropped the TLS connection suddenly, "
             "during handshake: (1, '[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] ssl/tls "
             "alert certificate unknown (_ssl.c:*)')"
-        )
+        ),
+        value=line,
     )
 
 
