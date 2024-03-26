@@ -9,6 +9,7 @@ import sys
 import json
 import pathlib
 import socket
+import fnmatch
 import dataclasses
 from http import HTTPStatus
 
@@ -111,6 +112,17 @@ class ExpectedRequest:
             return NotImplemented
 
 
+def is_ignored_webserver_message(line: str) -> bool:
+    return fnmatch.fnmatchcase(
+        line,
+        (
+            "Client ('127.0.0.1', *) lost — peer dropped the TLS connection suddenly, "
+            "during handshake: (1, '[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] ssl/tls "
+            "alert certificate unknown (_ssl.c:*)')"
+        )
+    )
+
+
 class WebserverProcess(testprocess.Process):
 
     """Abstraction over a running Flask server process.
@@ -151,7 +163,13 @@ class WebserverProcess(testprocess.Process):
         if started_re.fullmatch(line):
             self.ready.emit()
             return None
-        return Request(line)
+
+        try:
+            return Request(line)
+        except testprocess.InvalidLine:
+            if is_ignored_webserver_message(line):
+                return None
+            raise
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
