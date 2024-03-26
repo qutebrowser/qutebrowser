@@ -535,6 +535,7 @@ class WebEngineVersions:
     webengine: utils.VersionNumber
     chromium: Optional[str]
     source: str
+    chromium_security: Optional[str] = None
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
     _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, str]] = {
@@ -629,6 +630,8 @@ class WebEngineVersions:
         s = f'QtWebEngine {self.webengine}'
         if self.chromium is not None:
             s += f', based on Chromium {self.chromium}'
+        if self.chromium_security is not None:
+            s += f', with security patches up to {self.chromium_security} (plus any distribution patches)'
         if self.source != 'UA':
             s += f' (from {self.source})'
         return s
@@ -686,7 +689,12 @@ class WebEngineVersions:
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
-    def from_api(cls, qtwe_version: str, chromium_version: Optional[str]) -> 'WebEngineVersions':
+    def from_api(
+        cls,
+        qtwe_version: str,
+        chromium_version: Optional[str],
+        chromium_security: Optional[str] = None,
+    ) -> 'WebEngineVersions':
         """Get the versions based on the exact versions.
 
         This is called if we have proper APIs to get the versions easily
@@ -696,6 +704,7 @@ class WebEngineVersions:
         return cls(
             webengine=parsed,
             chromium=chromium_version,
+            chromium_security=chromium_security,
             source='api',
         )
 
@@ -796,11 +805,20 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
         except ImportError:
             pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
         else:
+            try:
+                from qutebrowser.qt.webenginecore import (
+                    qWebEngineChromiumSecurityPatchVersion,
+                )
+                chromium_security = qWebEngineChromiumSecurityPatchVersion()
+            except ImportError:
+                chromium_security = None  # Needs QtWebEngine 6.3+
+
             qtwe_version = qWebEngineVersion()
             assert qtwe_version is not None
             return WebEngineVersions.from_api(
                 qtwe_version=qtwe_version,
                 chromium_version=qWebEngineChromiumVersion(),
+                chromium_security=chromium_security,
             )
 
     from qutebrowser.browser.webengine import webenginesettings

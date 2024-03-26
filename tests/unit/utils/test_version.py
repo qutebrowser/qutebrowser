@@ -915,6 +915,17 @@ class TestWebEngineVersions:
                 source='faked'),
             "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144 (from faked)",
         ),
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium='87.0.4280.144',
+                chromium_security='9000.1',
+                source='faked'),
+            (
+                "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144, with security "
+                "patches up to 9000.1 (plus any distribution patches) (from faked)"
+            ),
+        ),
     ])
     def test_str(self, version, expected):
         assert str(version) == expected
@@ -1023,6 +1034,20 @@ class TestWebEngineVersions:
         real = webenginesettings.parsed_user_agent.upstream_browser_version
 
         assert inferred == real
+
+    def test_real_chromium_security_version(self, qapp):
+        """Check the API for reading the chromium security patch version."""
+        try:
+            from qutebrowser.qt.webenginecore import (
+                qWebEngineChromiumVersion,
+                qWebEngineChromiumSecurityPatchVersion,
+            )
+        except ImportError:
+            pytest.skip("Requires QtWebEngine 6.3+")
+
+        base = utils.VersionNumber.parse(qWebEngineChromiumVersion())
+        security = utils.VersionNumber.parse(qWebEngineChromiumSecurityPatchVersion())
+        assert security >= base
 
 
 class FakeQSslSocket:
