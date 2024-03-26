@@ -168,9 +168,9 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
     - Otherwise, try the wrappers in WRAPPER in order (PyQt6 -> PyQt5)
     """
     # If any Qt wrapper has been imported before this, something strange might
-    # be happening.
+    # be happening. With PyInstaller, it imports the Qt bindings early.
     for name in WRAPPERS:
-        if name in sys.modules:
+        if name in sys.modules and not hasattr(sys, "frozen"):
             warnings.warn(f"{name} already imported", stacklevel=1)
 
     if args is not None and args.qt_wrapper is not None:
