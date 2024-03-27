@@ -32,6 +32,12 @@ Changed
   `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
   and bookmark categories). (#7955)
 
+Fixed
+~~~~~
+
+- `input.insert_mode.auto_load` sometimes not triggering due to a race
+  condition.
+
 [[v3.1.1]]
 v3.1.1 (unreleased)
 -------------------
