@@ -3476,6 +3476,7 @@ Default:
 * +pass:[[role=&quot;button&quot;\]]+
 * +pass:[[role=&quot;tab&quot;\]]+
 * +pass:[[role=&quot;checkbox&quot;\]]+
+* +pass:[[role=&quot;switch&quot;\]]+
 * +pass:[[role=&quot;menuitem&quot;\]]+
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+

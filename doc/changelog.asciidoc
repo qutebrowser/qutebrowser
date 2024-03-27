@@ -31,6 +31,8 @@ Changed
 - A few more completions will now match search terms in any order:
   `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
   and bookmark categories). (#7955)
+- Elements with an ARIA `role="switch"` now get hints (toggle switches like
+  e.g. on cookie banners).
 
 Fixed
 ~~~~~
