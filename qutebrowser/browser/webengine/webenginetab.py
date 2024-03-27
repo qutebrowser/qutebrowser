@@ -292,6 +292,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
         flags = set()
         if utils.is_windows:
             flags.add('windows')
+        if 'caret' in objects.debug_flags:
+            flags.add('debug')
         return list(flags)
 
     @pyqtSlot(usertypes.KeyMode)

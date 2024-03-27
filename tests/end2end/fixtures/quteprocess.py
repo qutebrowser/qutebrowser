@@ -405,9 +405,11 @@ class QuteProc(testprocess.Process):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, '--debug-flag', 'no-sql-history',
-                '--debug-flag', 'werror', '--debug-flag',
-                'test-notification-service',
+                '--backend', backend,
+                '--debug-flag', 'no-sql-history',
+                '--debug-flag', 'werror',
+                '--debug-flag', 'test-notification-service',
+                '--debug-flag', 'caret',
                 '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
 
         if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
