@@ -625,6 +625,7 @@ class WebEngineVersions:
         #         118.0.5993.220 (~2023-10-24)
         #         6.6.0: Security fixes up to 122.0.6261.128 (?) (2024-03-12)
         utils.VersionNumber(6, 7): '118.0.5993.220',
+    }
 
     def __post_init__(self) -> None:
         """Set the major Chromium version."""
