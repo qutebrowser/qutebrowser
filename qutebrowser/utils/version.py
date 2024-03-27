@@ -610,13 +610,21 @@ class WebEngineVersions:
         #         6.5.0: Security fixes up to 110.0.5481.104 (2023-02-16)
         #         6.5.1: Security fixes up to 112.0.5615.138 (2023-04-18)
         #         6.5.2: Security fixes up to 114.0.5735.133 (2023-06-13)
+        #         6.5.3: Security fixes up to 117.0.5938.63 (2023-09-12)
         utils.VersionNumber(6, 5): '108.0.5359.220',
 
         # Qt 6.6: Chromium 112
         #         112.0.5615.213 (~2023-04-18)
-        #         6.6.0: Security fixes up to 116.0.5845.110 (?) (2023-08-22)
+        #         6.6.0: Security fixes up to 117.0.5938.63 (2023-09-12)
+        #         6.6.1: Security fixes up to 119.0.6045.123 (2023-11-07)
+        #         6.6.2: Security fixes up to 121.0.6167.160 (2024-02-06)
+        #         6.6.3: Security fixes up to 122.0.6261.128 (2024-03-12)
         utils.VersionNumber(6, 6): '112.0.5615.213',
-    }
+
+        # Qt 6.7: Chromium 118
+        #         118.0.5993.220
+        #         6.6.0: Security fixes up to 122.0.6261.128 (?) (2024-03-12)
+        utils.VersionNumber(6, 7): '118.0.5993.220',
 
     def __post_init__(self) -> None:
         """Set the major Chromium version."""
