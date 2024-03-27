@@ -622,7 +622,7 @@ class WebEngineVersions:
         utils.VersionNumber(6, 6): '112.0.5615.213',
 
         # Qt 6.7: Chromium 118
-        #         118.0.5993.220
+        #         118.0.5993.220 (~2023-10-24)
         #         6.6.0: Security fixes up to 122.0.6261.128 (?) (2024-03-12)
         utils.VersionNumber(6, 7): '118.0.5993.220',
 
