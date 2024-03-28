@@ -9,8 +9,8 @@ import functools
 import weakref
 import datetime
 import dataclasses
-from typing import (
-    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+from typing import (Any, Deque, List, Mapping,
+                    MutableMapping, MutableSequence, Optional, Tuple)
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
@@ -194,6 +194,7 @@ class TabbedBrowser(QWidget):
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    is_treetabbedbrowser = False
     shutting_down = pyqtSignal()
 
     def __init__(self, *, win_id, private, parent=None):
@@ -280,8 +281,10 @@ class TabbedBrowser(QWidget):
             raise TabDeletedError("index is -1!")
         return idx
 
-    def widgets(self):
+    def widgets(self) -> List[browsertab.AbstractTab]:
         """Get a list of open tab widgets.
+
+        Consider using `tabs()` instead of this method.
 
         We don't implement this as generator so we can delete tabs while
         iterating over the list.
@@ -294,6 +297,18 @@ class TabbedBrowser(QWidget):
             else:
                 widgets.append(widget)
         return widgets
+
+    def tabs(
+        self,
+        include_hidden: bool = False,  # pylint: disable=unused-argument
+    ) -> List[browsertab.AbstractTab]:
+        """Get a list of tabs in this browser.
+
+        Args:
+            include_hidden: Include child tabs which are not currently in the
+                            tab bar.
+        """
+        return self.widgets()
 
     def _update_window_title(self, field=None):
         """Change the window title to match the current tab.
@@ -376,7 +391,7 @@ class TabbedBrowser(QWidget):
             tab.history_item_triggered.connect(
                 history.web_history.add_from_tab)
 
-    def _current_tab(self) -> browsertab.AbstractTab:
+    def current_tab(self) -> browsertab.AbstractTab:
         """Get the current browser tab.
 
         Note: The assert ensures the current tab is never None.
@@ -483,6 +498,7 @@ class TabbedBrowser(QWidget):
             crashed: Whether we're closing a tab with crashed renderer process.
         """
         idx = self.widget.indexOf(tab)
+
         if idx == -1:
             if crashed:
                 return
@@ -551,17 +567,26 @@ class TabbedBrowser(QWidget):
         entries = self.undo_stack[-depth]
         del self.undo_stack[-depth]
 
+        # we return the tab list because tree_tabs needs it in post_processing
+        new_tabs = []
         for entry in reversed(entries):
             if use_current_tab:
                 newtab = self._tab_by_idx(0)
                 assert newtab is not None
                 use_current_tab = False
             else:
-                newtab = self.tabopen(background=False, idx=entry.index)
+                # FIXME:typing mypy thinks this is None due to @pyqtSlot
+                newtab = self.tabopen(
+                    background=False,
+                    related=False,
+                    idx=entry.index
+                )
 
             newtab.history.private_api.deserialize(entry.history)
             newtab.set_pinned(entry.pinned)
+            new_tabs.append(newtab)
             newtab.setFocus()
+        return new_tabs
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
@@ -575,7 +600,7 @@ class TabbedBrowser(QWidget):
         if newtab or self.widget.currentWidget() is None:
             self.tabopen(url, background=False)
         else:
-            self._current_tab().load_url(url)
+            self.current_tab().load_url(url)
 
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
@@ -605,6 +630,7 @@ class TabbedBrowser(QWidget):
             background: bool = None,
             related: bool = True,
             idx: int = None,
+            sibling: bool = False,  # pylint: disable=unused-argument
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 
@@ -649,7 +675,7 @@ class TabbedBrowser(QWidget):
 
         if idx is None:
             idx = self._get_new_tab_idx(related)
-        self.widget.insertTab(idx, tab, "")
+        idx = self.widget.insertTab(idx, tab, "")
 
         if url is not None:
             tab.load_url(url)
@@ -660,7 +686,7 @@ class TabbedBrowser(QWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            current_widget = self._current_tab()
+            current_widget = self.current_tab()
             tab.resize(current_widget.size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
@@ -1075,7 +1101,7 @@ class TabbedBrowser(QWidget):
             if key != "'":
                 message.error("Failed to set mark: url invalid")
             return
-        point = self._current_tab().scroller.pos_px()
+        point = self.current_tab().scroller.pos_px()
 
         if key.isupper():
             self._global_marks[key] = point, url
@@ -1096,7 +1122,7 @@ class TabbedBrowser(QWidget):
         except qtutils.QtValueError:
             urlkey = None
 
-        tab = self._current_tab()
+        tab = self.current_tab()
 
         if key.isupper():
             if key in self._global_marks:
