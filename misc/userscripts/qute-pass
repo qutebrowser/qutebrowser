@@ -220,7 +220,17 @@ def main(arguments):
 
     netloc = urlparse(arguments.url).netloc
 
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain, netloc]):
+    subdomains = extract_result.subdomain.split(".")
+    del subdomains[0] # all subdomains appended is equal to FQDN, so removing top one.
+
+    extra_domains = []
+    subdomain = extract_result.registered_domain
+
+    for sd in reversed(subdomains):
+        subdomain = '.'.join((sd, subdomain))
+        extra_domains.append(subdomain)
+
+    for target in filter(None, [*extra_domains, extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain, netloc]):
         attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         if not target_candidates:
