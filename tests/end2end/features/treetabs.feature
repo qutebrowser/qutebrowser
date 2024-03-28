@@ -9,6 +9,49 @@ Feature: Tree tab management
         And I clean up open tabs
         And I clear the log
 
+    Scenario: Focus previous sibling tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-prev --sibling
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+              - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: Focus next sibling tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-next --sibling
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+              - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: Closing a tab promotes the first child in its place
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-close
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+              - data/numbers/3.txt
+            - data/numbers/4.txt
+
+    Scenario: Focus a parent tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/2.txt in a new sibling tab
+        And I run :tab-focus parent
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+              - data/numbers/2.txt
+              - data/numbers/3.txt
+
     Scenario: :tab-close --recursive
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
@@ -25,6 +68,19 @@ Feature: Tree tab management
         Then the following tabs should be open:
             - data/numbers/1.txt
               - data/numbers/2.txt (active)
+
+    Scenario: Move a tab to the given index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-focus 3
+        And I run :tab-move 1
+        Then the following tabs should be open:
+            - data/numbers/3.txt
+              - data/numbers/4.txt
+            - data/numbers/1.txt
+              - data/numbers/2.txt
 
     Scenario: Collapse a subtree
         When I open data/numbers/1.txt
