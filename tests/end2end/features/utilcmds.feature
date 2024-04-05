@@ -3,6 +3,7 @@ Feature: Miscellaneous utility commands exposed to the user.
     Background:
         Given I open data/scroll/simple.html
         And I run :tab-only
+        And I run :window-only
 
     ## :cmd-later
 
