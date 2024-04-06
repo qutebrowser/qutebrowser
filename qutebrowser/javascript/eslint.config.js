@@ -1,0 +1,136 @@
+// qutebrowser's way of using eslint is perhaps a bit untypical: We turn on *all*
+// the checks eslint has to offer, and then selectively disable/reconfigure the
+// ones which got in the way below.
+//
+// This makes eslint much stricter (which is good). However, it means you might
+// run into a case where you totally disagree with what it says, because some
+// check is not useful or desired for qutebrowser, but nobody did run into it
+// yet.
+//
+// In those cases, it's absolutely okay to modify this config as part of your PR.
+// See it as a way to fine-tune eslint rather than a rigid style guide.
+const js = require("@eslint/js"); // eslint-disable-line no-undef
+const globals = require("globals"); // eslint-disable-line no-undef
+module.exports = [ // eslint-disable-line no-undef
+  js.configs.all,
+  {
+    "languageOptions": {
+      globals: {
+        ...globals.browser,
+      },
+    },
+    "ignores": [
+      // Upstream Mozilla's code
+      "pac_utils.js",
+      // Actually a jinja template so eslint chokes on the {{}} syntax.
+      "greasemonkey_wrapper.js",
+      "global_wrapper.js",
+    ],
+    "rules": {
+      "strict": [
+        "error",
+        "global",
+      ],
+      "one-var": "off",
+      "padded-blocks": [
+        "error",
+        "never",
+      ],
+      "space-before-function-paren": [
+        "error",
+        "never",
+      ],
+      "no-underscore-dangle": "off",
+      "camelcase": "off",
+      "require-jsdoc": "off",
+      "func-style": [
+        "error",
+        "declaration",
+      ],
+      "init-declarations": "off",
+      "no-plusplus": "off",
+      "no-extra-parens": "off",
+      "id-length": [
+        "error",
+        {
+          "exceptions": [
+            "i",
+            "n",
+            "k",
+            "v",
+            "x",
+            "y",
+          ],
+        },
+      ],
+      "object-shorthand": "off",
+      "max-statements": [
+        "error",
+        {
+          "max": 40,
+        },
+      ],
+      "quotes": [
+        "error",
+        "double",
+        {
+          "avoidEscape": true,
+        },
+      ],
+      "object-property-newline": [
+        "error",
+        {
+          "allowMultiplePropertiesPerLine": true,
+        },
+      ],
+      "comma-dangle": [
+        "error",
+        "always-multiline",
+      ],
+      "no-magic-numbers": "off",
+      "no-undefined": "off",
+      "wrap-iife": [
+        "error",
+        "inside",
+      ],
+      "func-names": "off",
+      "sort-keys": "off",
+      "no-warning-comments": "off",
+      "max-len": [
+        "error",
+        {
+          "ignoreUrls": true,
+          "code": 88,
+        },
+      ],
+      "capitalized-comments": "off",
+      "prefer-destructuring": "off",
+      "line-comment-position": "off",
+      "no-inline-comments": "off",
+      "array-bracket-newline": "off",
+      "array-element-newline": "off",
+      "no-multi-spaces": [
+        "error",
+        {
+          "ignoreEOLComments": true,
+        },
+      ],
+      "function-paren-newline": "off",
+      "multiline-comment-style": "off",
+      "no-bitwise": "off",
+      "no-ternary": "off",
+      "max-lines": "off",
+      "multiline-ternary": [
+        "error",
+        "always-multiline",
+      ],
+      "max-lines-per-function": "off",
+      "require-unicode-regexp": "off",
+      "max-params": "off",
+      "prefer-named-capture-group": "off",
+      "function-call-argument-newline": "off",
+      "no-negated-condition": "off",
+      "no-console": "off",
+    },
+  },
+];

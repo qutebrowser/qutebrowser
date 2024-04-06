@@ -1290,7 +1290,7 @@ window._qutebrowser.caret = (function() {
         if (CaretBrowsing.isDebug) {
             console.debug(`caret: ${text}`);
         }
-    }
+    };
 
     CaretBrowsing.init = function() {
         CaretBrowsing.isWindowFocused = document.hasFocus();

@@ -17,6 +17,13 @@ env:
 extends:
     "eslint:all"
 
+#ignores:
+#    # Upstream Mozilla's code
+#    pac_utils.js
+#    # Actually a jinja template so eslint chokes on the {{}} syntax.
+#    greasemonkey_wrapper.js
+#    global_wrapper.js
+
 rules:
     strict: ["error", "global"]
     one-var: "off"
