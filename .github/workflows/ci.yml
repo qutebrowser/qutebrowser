@@ -56,7 +56,7 @@ jobs:
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
       - name: Install dependencies
         run: |
-            [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
+            [[ ${{ matrix.testenv }} == eslint ]] && npm install -g 'eslint@<9.0.0'
             [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1-mesa
             [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1-mesa
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
