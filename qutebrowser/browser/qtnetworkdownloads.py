@@ -19,7 +19,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg, qtlog
 from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
-from qutebrowser.browser.webkit import http
+from qutebrowser.browser.webkit import httpheaders
 from qutebrowser.browser.webkit.network import networkmanager
 
 
@@ -533,7 +533,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             try:
                 suggested_filename = target.suggested_filename()
             except downloads.NoFilenameError:
-                _, suggested_filename = http.parse_content_disposition(reply)
+                _, suggested_filename = httpheaders.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, manager=self)
