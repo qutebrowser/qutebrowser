@@ -75,6 +75,8 @@ def is_ignored_lowlevel_message(message):
         'glx: failed to create drisw screen',
         'failed to load driver: zink',
         'DRI3 not available',
+        # Webkit on arch with a newer mesa
+        'MESA: error: ZINK: failed to load libvulkan.so.1',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
