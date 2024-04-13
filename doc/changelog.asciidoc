@@ -33,6 +33,8 @@ Changed
   and bookmark categories). (#7955)
 - Elements with an ARIA `role="switch"` now get hints (toggle switches like
   e.g. on cookie banners).
+- The `tor_identity` userscript now validates that the -c|--control-port
+  argument value is an int. (#8162)
 
 Fixed
 ~~~~~
