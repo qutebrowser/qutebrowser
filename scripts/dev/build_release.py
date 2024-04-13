@@ -171,6 +171,9 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt5: bool) -> None:
                 r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
                 (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
                 r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
+                # Qt 6.7, only seen on macos for some reason
+                (r'.*Path override failed for key base::DIR_APP_DICTIONARIES '
+                 r"and path '.*/qtwebengine_dictionaries'"),
             ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
