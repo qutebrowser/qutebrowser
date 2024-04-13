@@ -1410,14 +1410,15 @@ def test_forward_completion(tab_with_history, info):
 def test_undo_completion(tabbed_browser_stubs, info):
     """Test :undo completion."""
     entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 1))
+                                      history=None, index=None, pinned=None)
     entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 2))
+                                      history=None, index=None, pinned=None)
     entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 2))
+                                      history=None, index=None, pinned=None)
+
+    entry1.created_at = datetime(2020, 1, 1)
+    for entry in [entry2, entry3]:
+        entry.created_at = datetime(2020, 1, 2)
 
     # Most recently closed is at the end
     tabbed_browser_stubs[0].undo_stack = [
@@ -1442,19 +1443,22 @@ def test_undo_completion(tabbed_browser_stubs, info):
     })
 
 
-def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
+def test_undo_completion_retains_sort_order(tabbed_browser_stubs, info):
     """Test :undo completion sort order with > 10 entries."""
     created_dt = datetime(2020, 1, 1)
-    created_str = "2020-01-02 00:00"
+    created_str = "2020-01-01 00:00"
 
     tabbed_browser_stubs[0].undo_stack = [
-        tabbedbrowser._UndoEntry(
-            url=QUrl(f'https://example.org/{idx}'),
-            history=None, index=None, pinned=None,
-            created_at=created_dt,
-        )
-        for idx in range(1, 11)
+        [
+            tabbedbrowser._UndoEntry(
+                url=QUrl(f'https://example.org/{idx}'),
+                history=None, index=None, pinned=None,
+            )
+        ]
+        for idx in reversed(range(1, 11))
     ]
+    for entries in tabbed_browser_stubs[0].undo_stack:
+        entries[0].created_at = created_dt
 
     model = miscmodels.undo(info=info)
     model.set_pattern('')

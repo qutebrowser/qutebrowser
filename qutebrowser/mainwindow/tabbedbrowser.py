@@ -9,7 +9,7 @@ import functools
 import weakref
 import datetime
 import dataclasses
-from typing import (Any, Deque, List, Mapping,
+from typing import (Any, Deque, List, Mapping, Union,
                     MutableMapping, MutableSequence, Optional, Tuple)
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
@@ -34,7 +34,32 @@ class _UndoEntry:
     index: int
     pinned: bool
     created_at: datetime.datetime = dataclasses.field(
-        default_factory=datetime.datetime.now)
+        default_factory=datetime.datetime.now,
+        init=False,  # WORKAROUND until py3.10 with kw_only: https://www.trueblade.com/blogs/news/python-3-10-new-dataclass-features
+    )
+
+    def restore_into_tab(self, tab: browsertab.AbstractTab) -> None:
+        """Set the url, history and state of `tab` from this undo entry."""
+        tab.history.private_api.deserialize(self.history)
+        tab.set_pinned(self.pinned)
+        tab.setFocus()
+
+    @classmethod
+    def from_tab(
+        cls, tab: browsertab.AbstractTab, idx: int
+    ) -> Union["_UndoEntry", List["_UndoEntry"]]:
+        """Generate an undo entry from `tab`."""
+        try:
+            history_data = tab.history.private_api.serialize()
+        except browsertab.WebTabError:
+            return None  # special URL
+
+        return cls(
+            url=tab.url(),
+            history=history_data,
+            index=idx,
+            pinned=tab.data.pinned,
+        )
 
 
 UndoStackType = MutableSequence[MutableSequence[_UndoEntry]]
@@ -196,16 +221,18 @@ class TabbedBrowser(QWidget):
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
     is_treetabbedbrowser = False
     shutting_down = pyqtSignal()
+    _undo_class = _UndoEntry
 
     def __init__(self, *, win_id, private, parent=None):
         if private:
             assert not qtutils.is_single_process()
         super().__init__(parent)
-        self.widget = tabwidget.TabWidget(win_id, parent=self)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
         self.is_shutting_down = False
+
+        self.widget = self._create_tab_widget()
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(
             self.tabopen)  # type: ignore[arg-type,unused-ignore]
@@ -242,6 +269,9 @@ class TabbedBrowser(QWidget):
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
+
+    def _create_tab_widget(self):
+        return tabwidget.TabWidget(self._win_id, parent=self)
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
@@ -509,36 +539,46 @@ class TabbedBrowser(QWidget):
 
         tab.pending_removal = True
 
-        if tab.url().isEmpty():
-            # There are some good reasons why a URL could be empty
-            # (target="_blank" with a download, see [1]), so we silently ignore
-            # this.
-            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
-            pass
-        elif not tab.url().isValid():
-            # We display a warning for URLs which are not empty but invalid -
-            # but we don't return here because we want the tab to close either
-            # way.
-            urlutils.invalid_url_error(tab.url(), "saving tab")
-        elif add_undo:
-            try:
-                history_data = tab.history.private_api.serialize()
-            except browsertab.WebTabError:
-                pass  # special URL
-            else:
-                entry = _UndoEntry(url=tab.url(),
-                                   history=history_data,
-                                   index=idx,
-                                   pinned=tab.data.pinned)
-                if new_undo or not self.undo_stack:
-                    self.undo_stack.append([entry])
-                else:
-                    self.undo_stack[-1].append(entry)
+        if add_undo:
+            self._add_undo_entry(tab, new_undo=new_undo)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
 
         tab.deleteLater()
+
+    def _add_undo_entry(self, tab, new_undo):
+        if tab.url().isEmpty():
+            # There are some good reasons why a URL could be empty
+            # (target="_blank" with a download, see [1]), so we silently ignore
+            # this.
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
+            return
+
+        if not tab.url().isValid():
+            # We display a warning for URLs which are not empty but invalid -
+            # but we don't return here because we want the tab to close either
+            # way.
+            urlutils.invalid_url_error(tab.url(), "saving tab")
+            return
+
+        idx = self.widget.indexOf(tab)
+        entry = self._undo_class.from_tab(tab, idx)
+        if not entry:
+            return
+
+        if isinstance(entry, self._undo_class):
+            if new_undo or not self.undo_stack:
+                self.undo_stack.append([entry])
+            else:
+                self.undo_stack[-1].append(entry)
+        else:
+            assert len(entry) > 0
+            entries = entry
+            if new_undo:
+                self.undo_stack.append(entries)
+            else:
+                self.undo_stack[-1].extend(entries)
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
@@ -567,8 +607,6 @@ class TabbedBrowser(QWidget):
         entries = self.undo_stack[-depth]
         del self.undo_stack[-depth]
 
-        # we return the tab list because tree_tabs needs it in post_processing
-        new_tabs = []
         for entry in reversed(entries):
             if use_current_tab:
                 newtab = self._tab_by_idx(0)
@@ -582,11 +620,7 @@ class TabbedBrowser(QWidget):
                     idx=entry.index
                 )
 
-            newtab.history.private_api.deserialize(entry.history)
-            newtab.set_pinned(entry.pinned)
-            new_tabs.append(newtab)
-            newtab.setFocus()
-        return new_tabs
+            entry.restore_into_tab(newtab)
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
