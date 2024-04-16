@@ -10,7 +10,7 @@ cryptography==42.0.5
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.6.1
-idna==3.6
+idna==3.7
 importlib_metadata==7.1.0
 importlib_resources==6.4.0
 jaraco.classes==3.4.0

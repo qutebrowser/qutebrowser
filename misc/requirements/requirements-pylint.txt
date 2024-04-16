@@ -7,7 +7,7 @@ charset-normalizer==3.3.2
 cryptography==42.0.5
 dill==0.3.8
 github3.py==4.0.1
-idna==3.6
+idna==3.7
 isort==5.13.2
 mccabe==0.7.0
 pefile==2023.2.7
