@@ -132,6 +132,9 @@ def init(*, args: argparse.Namespace) -> None:
     crashsignal.crash_handler.init_faulthandler()
 
     objects.qapp.setQuitOnLastWindowClosed(False)
+    # WORKAROUND for KDE file dialogs / QEventLoopLocker quitting:
+    # https://bugreports.qt.io/browse/QTBUG-124386
+    objects.qapp.setQuitLockEnabled(False)
     quitter.instance.shutting_down.connect(QApplication.closeAllWindows)
 
     _init_icon()

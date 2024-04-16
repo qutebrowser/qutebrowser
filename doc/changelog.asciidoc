@@ -41,6 +41,8 @@ Fixed
 
 - `input.insert_mode.auto_load` sometimes not triggering due to a race
   condition.
+- Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
+  bug.
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
