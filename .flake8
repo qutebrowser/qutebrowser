@@ -70,6 +70,4 @@ per-file-ignores =
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*
 copyright-min-file-size = 110
-pytest-fixture-no-parentheses = True
-pytest-mark-no-parentheses = True
 pytest-parametrize-names-type = csv

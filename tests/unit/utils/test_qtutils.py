@@ -208,6 +208,18 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
      "The data stream has read corrupt data."),
     (QDataStream.Status.WriteFailed, True,
      "The data stream cannot write to the underlying device."),
+    pytest.param(
+        getattr(QDataStream.Status, "SizeLimitExceeded", None),
+        True,
+        (
+            "The data stream cannot read or write the data because its size is larger "
+            "than supported by the current platform."
+        ),
+        marks=pytest.mark.skipif(
+            not hasattr(QDataStream.Status, "SizeLimitExceeded"),
+            reason="Added in Qt 6.7"
+        )
+    ),
 ])
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
@@ -226,10 +238,25 @@ def test_check_qdatastream(status, raising, message):
         qtutils.check_qdatastream(stream)
 
 
-def test_qdatastream_status_count():
-    """Make sure no new members are added to QDataStream.Status."""
-    status_vals = testutils.enum_members(QDataStream, QDataStream.Status)
-    assert len(status_vals) == 4
+def test_qdatastream_status_members():
+    """Make sure no new members are added to QDataStream.Status.
+
+    If this fails, qtutils.check_qdatastream will need to be updated with the
+    respective error documentation.
+    """
+    status_vals = set(testutils.enum_members(QDataStream, QDataStream.Status).values())
+    expected = {
+        QDataStream.Status.Ok,
+        QDataStream.Status.ReadPastEnd,
+        QDataStream.Status.ReadCorruptData,
+        QDataStream.Status.WriteFailed,
+    }
+    try:
+        expected.add(QDataStream.Status.SizeLimitExceeded)
+    except AttributeError:
+        # Added in Qt 6.7
+        pass
+    assert status_vals == expected
 
 
 @pytest.mark.parametrize('color, expected', [

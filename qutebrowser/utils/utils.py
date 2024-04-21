@@ -38,7 +38,7 @@ except ImportError:  # pragma: no cover
 
 from qutebrowser.utils import log
 
-fake_clipboard = None
+fake_clipboard: Optional[str] = None
 log_clipboard = False
 
 is_mac = sys.platform.startswith('darwin')
@@ -341,7 +341,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
             """Call the original function."""
             try:
                 return func(*args, **kwargs)
-            except BaseException:
+            except BaseException:  # noqa: B036
                 log.misc.exception("Error in {}".format(qualname(func)))
                 return retval
 

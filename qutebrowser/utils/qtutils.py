@@ -193,6 +193,15 @@ def check_qdatastream(stream: QDataStream) -> None:
         QDataStream.Status.WriteFailed: ("The data stream cannot write to the "
                                   "underlying device."),
     }
+    try:
+        status_to_str[QDataStream.Status.SizeLimitExceeded] = (  # type: ignore[attr-defined]
+            "The data stream cannot read or write the data because its size is larger "
+            "than supported by the current platform."
+        )
+    except AttributeError:
+        # Added in Qt 6.7
+        pass
+
     if stream.status() != QDataStream.Status.Ok:
         raise OSError(status_to_str[stream.status()])
 
@@ -736,4 +745,4 @@ else:
     def add_optional(obj: Optional[_T]) -> Optional[_T]:
         return obj
 
-    QT_NONE = None
+    QT_NONE: None = None

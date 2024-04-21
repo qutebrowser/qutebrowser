@@ -15,7 +15,7 @@ from typing import Iterator, Optional
 from qutebrowser.qt import core as qtcore
 from qutebrowser.utils import log
 
-_args = None
+_args: Optional[argparse.Namespace] = None
 
 
 def init(args: argparse.Namespace) -> None:

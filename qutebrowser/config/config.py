@@ -29,7 +29,7 @@ key_instance = cast('KeyConfig', None)
 cache = cast('configcache.ConfigCache', None)
 
 # Keeping track of all change filters to validate them later.
-change_filters = []
+change_filters: List["change_filter"] = []
 
 # Sentinel
 UNSET = object()

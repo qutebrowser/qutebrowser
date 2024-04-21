@@ -730,8 +730,15 @@ def should_quit(qtbot, quteproc):
 
 def _get_scroll_values(quteproc):
     data = quteproc.get_session()
-    pos = data['windows'][0]['tabs'][0]['history'][-1]['scroll-pos']
-    return (pos['x'], pos['y'])
+
+    def get_active(things):
+        return next(thing for thing in things if thing.get("active"))
+
+    active_window = get_active(data["windows"])
+    active_tab = get_active(active_window["tabs"])
+    current_entry = get_active(active_tab["history"])
+    pos = current_entry["scroll-pos"]
+    return (pos["x"], pos["y"])
 
 
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "

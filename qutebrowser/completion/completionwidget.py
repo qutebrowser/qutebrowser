@@ -437,8 +437,7 @@ class CompletionView(QTreeView):
             contents_height = (
                 self.viewportSizeHint().height() +
                 bar.sizeHint().height())
-            if contents_height <= height:
-                height = contents_height
+            height = min(height, contents_height)
         # The width isn't really relevant as we're expanding anyways.
         return QSize(-1, height)
 

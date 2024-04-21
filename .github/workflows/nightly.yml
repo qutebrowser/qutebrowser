@@ -59,7 +59,9 @@ jobs:
       - name: Patch qutebrowser for debugging
         if: "contains(matrix.args, '--debug')"
         run: |
-          sed -i '' '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py
+          sed '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py > qutebrowser/qutebrowser.py.tmp
+          cp qutebrowser/qutebrowser.py.tmp qutebrowser/qutebrowser.py
+          rm qutebrowser/qutebrowser.py.tmp
       - name: Run tox
         run: "tox -e ${{ matrix.toxenv }} -- --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
       - name: Gather info

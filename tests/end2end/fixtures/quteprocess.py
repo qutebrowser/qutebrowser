@@ -75,6 +75,8 @@ def is_ignored_lowlevel_message(message):
         'glx: failed to create drisw screen',
         'failed to load driver: zink',
         'DRI3 not available',
+        # Webkit on arch with a newer mesa
+        'MESA: error: ZINK: failed to load libvulkan.so.1',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -213,6 +215,16 @@ def is_ignored_chromium_message(line):
         # [9895:9983:0904/043039.500565:ERROR:gpu_memory_buffer_support_x11.cc(49)]
         # dri3 extension not supported.
         "dri3 extension not supported.",
+
+        # Qt 6.7 debug build
+        # [44513:44717:0325/173456.146759:WARNING:render_message_filter.cc(144)]
+        # Could not find tid
+        "Could not find tid",
+
+        # [127693:127748:0325/230155.835421:WARNING:discardable_shared_memory_manager.cc(438)]
+        # Some MojoDiscardableSharedMemoryManagerImpls are still alive. They
+        # will be leaked.
+        "Some MojoDiscardableSharedMemoryManagerImpls are still alive. They will be leaked.",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -395,9 +407,11 @@ class QuteProc(testprocess.Process):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, '--debug-flag', 'no-sql-history',
-                '--debug-flag', 'werror', '--debug-flag',
-                'test-notification-service',
+                '--backend', backend,
+                '--debug-flag', 'no-sql-history',
+                '--debug-flag', 'werror',
+                '--debug-flag', 'test-notification-service',
+                '--debug-flag', 'caret',
                 '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
 
         if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():

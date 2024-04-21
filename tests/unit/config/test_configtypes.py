@@ -1874,24 +1874,24 @@ class TestProxy:
     def klass(self):
         return configtypes.Proxy
 
-    @pytest.mark.parametrize('val, expected', [
-        ('system', configtypes.SYSTEM_PROXY),
-        ('none', QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
+    @pytest.mark.parametrize('val, expected_factory', [
+        ('system', lambda: configtypes.SYSTEM_PROXY),
+        ('none', lambda: QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
         ('socks://example.com/',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
+         lambda: QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://foo:bar@example.com:2323',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
-                       'foo', 'bar')),
+         lambda: QNetworkProxy(
+             QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323, 'foo', 'bar')),
         ('pac+http://example.com/proxy.pac',
-         pac.PACFetcher(QUrl('pac+http://example.com/proxy.pac'))),
+         lambda: pac.PACFetcher(QUrl('pac+http://example.com/proxy.pac'))),
         ('pac+file:///tmp/proxy.pac',
-         pac.PACFetcher(QUrl('pac+file:///tmp/proxy.pac'))),
+         lambda: pac.PACFetcher(QUrl('pac+file:///tmp/proxy.pac'))),
     ])
-    def test_to_py_valid(self, klass, val, expected):
+    def test_to_py_valid(self, klass, val, expected_factory):
         actual = klass().to_py(val)
         if isinstance(actual, QNetworkProxy):
             actual = QNetworkProxy(actual)
-        assert actual == expected
+        assert actual == expected_factory()
 
     @pytest.mark.parametrize('val', [
         'blah',

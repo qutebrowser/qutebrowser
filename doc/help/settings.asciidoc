@@ -115,7 +115,7 @@
 |<<colors.tooltip.bg,colors.tooltip.bg>>|Background color of tooltips.
 |<<colors.tooltip.fg,colors.tooltip.fg>>|Foreground color of tooltips.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
-|<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
+|<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with dark mode.
 |<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
 |<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
@@ -1662,7 +1662,7 @@ Default: +pass:[white]+
 
 [[colors.webpage.darkmode.algorithm]]
 === colors.webpage.darkmode.algorithm
-Which algorithm to use for modifying how colors are rendered with darkmode.
+Which algorithm to use for modifying how colors are rendered with dark mode.
 The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated like `lightness-hsl` with older QtWebEngine versions.
 
 This setting requires a restart.
@@ -3493,6 +3493,7 @@ Default:
 * +pass:[[role=&quot;button&quot;\]]+
 * +pass:[[role=&quot;tab&quot;\]]+
 * +pass:[[role=&quot;checkbox&quot;\]]+
+* +pass:[[role=&quot;switch&quot;\]]+
 * +pass:[[role=&quot;menuitem&quot;\]]+
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+

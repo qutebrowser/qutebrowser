@@ -19,12 +19,34 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.2.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- When qutebrowser receives a SIGHUP it will now reload any config.py file
+  in use (same as the `:config-source` command does). (#8108)
+- The Chromium security patch version is now shown in the backend string in
+  --version and :version. This reflects the latest Chromium version that
+  security fixes have been backported to the base QtWebEngine version from.
+  (#7187)
+
 Changed
 ~~~~~~~
 
 - A few more completions will now match search terms in any order:
   `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
   and bookmark categories). (#7955)
+- Elements with an ARIA `role="switch"` now get hints (toggle switches like
+  e.g. on cookie banners).
+- The `tor_identity` userscript now validates that the -c|--control-port
+  argument value is an int. (#8162)
+
+Fixed
+~~~~~
+
+- `input.insert_mode.auto_load` sometimes not triggering due to a race
+  condition.
+- Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
+  bug.
 
 [[v3.1.1]]
 v3.1.1 (unreleased)

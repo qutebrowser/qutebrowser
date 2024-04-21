@@ -34,11 +34,11 @@ Feature: Caret mode
 
     Scenario: :yank selection with --keep
         When I run :selection-toggle
-        And I run :move-to-end-of-word
+        And I run :move-to-next-word
         And I run :yank selection --keep
         And I run :move-to-end-of-word
         And I run :yank selection --keep
-        Then the message "3 chars yanked to clipboard" should be shown
+        Then the message "4 chars yanked to clipboard" should be shown
         And the message "7 chars yanked to clipboard" should be shown
         And the clipboard should contain "one two"
 

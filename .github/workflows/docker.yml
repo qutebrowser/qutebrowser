@@ -10,6 +10,7 @@ jobs:
     if: "github.repository == 'qutebrowser/qutebrowser'"
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         image:
           - archlinux-webkit

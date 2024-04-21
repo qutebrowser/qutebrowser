@@ -21,7 +21,7 @@ from qutebrowser.misc import objects
 
 
 # ModuleInfo objects for all loaded plugins
-_module_infos = []
+_module_infos: List["ModuleInfo"] = []
 
 InitHookType = Callable[['InitContext'], None]
 ConfigChangedHookType = Callable[[], None]

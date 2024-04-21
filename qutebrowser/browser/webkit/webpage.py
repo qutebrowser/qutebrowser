@@ -18,7 +18,7 @@ from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
-from qutebrowser.browser.webkit import http
+from qutebrowser.browser.webkit import httpheaders
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
 from qutebrowser.qt import sip
@@ -263,14 +263,14 @@ class BrowserPage(QWebPage):
         At some point we might want to implement the MIME Sniffing standard
         here: https://mimesniff.spec.whatwg.org/
         """
-        inline, suggested_filename = http.parse_content_disposition(reply)
+        inline, suggested_filename = httpheaders.parse_content_disposition(reply)
         download_manager = objreg.get('qtnetwork-download-manager')
         if not inline:
             # Content-Disposition: attachment -> force download
             download_manager.fetch(reply,
                                    suggested_filename=suggested_filename)
             return
-        mimetype, _rest = http.parse_content_type(reply)
+        mimetype, _rest = httpheaders.parse_content_type(reply)
         if mimetype == 'image/jpg':
             # Some servers (e.g. the LinkedIn CDN) send a non-standard
             # image/jpg (instead of image/jpeg, defined in RFC 1341 section

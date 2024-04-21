@@ -28,7 +28,7 @@ PROTOCOL_VERSION = 1
 
 
 # The ipc server instance
-server = None
+server: Optional["IPCServer"] = None
 
 
 def _get_socketname_windows(basedir):
