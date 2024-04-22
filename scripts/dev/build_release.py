@@ -394,7 +394,7 @@ def build_windows(
 ) -> List[Artifact]:
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=qt5,
+    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=qt5,
                         fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
@@ -436,7 +436,6 @@ def _package_windows_single(
     if qt5:
         name_parts.append('qt5')
 
-    name_parts.append('amd64')  # FIXME:qt6 temporary until new installer
     name = '-'.join(name_parts) + '.exe'
 
     artifacts.append(Artifact(
