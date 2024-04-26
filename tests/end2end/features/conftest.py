@@ -759,3 +759,9 @@ def set_up_fileselector(quteproc, py_proc, tmpdir, kind, files, output_type):
     fileselect_cmd = json.dumps([cmd, *args])
     quteproc.set_setting('fileselect.handler', 'external')
     quteproc.set_setting(f'fileselect.{kind}.command', fileselect_cmd)
+
+
+@bdd.then(bdd.parsers.parse("I run {command}"))
+def run_command_then(quteproc, command):
+    """Run a qutebrowser command."""
+    quteproc.send_cmd(command)

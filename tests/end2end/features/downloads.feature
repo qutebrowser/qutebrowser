@@ -712,3 +712,4 @@ Feature: Downloading things from a website.
         And I wait for "Asking question *" in the log
         And I run :prompt-fileselect-external
         Then the error "Can only launch external fileselect for FilenamePrompt, not LineEditPrompt" should be shown
+        And I run :mode-leave
