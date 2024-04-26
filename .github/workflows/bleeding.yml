@@ -42,6 +42,21 @@ jobs:
         if: "endsWith(matrix.image, '-qt6')"
       - name: Run tox
         run: dbus-run-session tox -e ${{ matrix.testenv }}
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
+          path: |
+            ${{ runner.temp }}/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
   irc:
     timeout-minutes: 2
     continue-on-error: true
