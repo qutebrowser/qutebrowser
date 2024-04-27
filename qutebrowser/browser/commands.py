@@ -10,7 +10,7 @@ import functools
 from typing import cast, Callable, Dict, Union, Optional
 
 from qutebrowser.qt.widgets import QApplication, QTabBar
-from qutebrowser.qt.core import Qt, QUrl, QEvent, QUrlQuery, QTimer
+from qutebrowser.qt.core import Qt, QUrl, QEvent, QUrlQuery
 
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
@@ -1790,26 +1790,20 @@ class CommandDispatcher:
         except keyutils.KeyParseError as e:
             raise cmdutils.CommandError(str(e))
 
-        events = []
         for keyinfo in sequence:
-            events.append(keyinfo.to_event(QEvent.Type.KeyPress))
-            events.append(keyinfo.to_event(QEvent.Type.KeyRelease))
+            press_event = keyinfo.to_event(QEvent.Type.KeyPress)
+            release_event = keyinfo.to_event(QEvent.Type.KeyRelease)
 
-        if global_:
-            window = QApplication.focusWindow()
-            if window is None:
-                raise cmdutils.CommandError("No focused window!")
-            for event in events:
-                QApplication.postEvent(window, event)
-        else:
-            tab = self._current_widget()
-
-            def _send_fake_key_after_delay():
-                """Delay events to workaround timing issue in e2e tests on 6.7."""
-                for event in events:
-                    tab.send_event(event)
-
-            QTimer.singleShot(10, _send_fake_key_after_delay)
+            if global_:
+                window = QApplication.focusWindow()
+                if window is None:
+                    raise cmdutils.CommandError("No focused window!")
+                QApplication.postEvent(window, press_event)
+                QApplication.postEvent(window, release_event)
+            else:
+                tab = self._current_widget()
+                tab.send_event(press_event)
+                tab.send_event(release_event)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True, backend=usertypes.Backend.QtWebKit)
