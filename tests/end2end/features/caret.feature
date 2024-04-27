@@ -74,6 +74,7 @@ Feature: Caret mode
         And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
+        And I wait for "* Got key: <qutebrowser.keyinput.keyutils.KeyInfo key='Key_Tab' modifiers='NoModifier' text='<Tab>'> (dry_run True)" in the log
         And I run :selection-follow
         Then data/hello.txt should be loaded
 
@@ -83,6 +84,7 @@ Feature: Caret mode
         And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
+        And I wait for "* Got key: <qutebrowser.keyinput.keyutils.KeyInfo key='Key_Tab' modifiers='NoModifier' text='<Tab>'> (dry_run True)" in the log
         And I run :selection-follow
         Then data/hello.txt should be loaded
 
@@ -92,6 +94,7 @@ Feature: Caret mode
         And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
+        And I wait for "* Got key: <qutebrowser.keyinput.keyutils.KeyInfo key='Key_Tab' modifiers='NoModifier' text='<Tab>'> (dry_run True)" in the log
         And I run :selection-follow --tab
         Then data/hello.txt should be loaded
 
@@ -101,5 +104,6 @@ Feature: Caret mode
         And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
+        And I wait for "* Got key: <qutebrowser.keyinput.keyutils.KeyInfo key='Key_Tab' modifiers='NoModifier' text='<Tab>'> (dry_run True)" in the log
         And I run :selection-follow --tab
         Then data/hello.txt should be loaded
