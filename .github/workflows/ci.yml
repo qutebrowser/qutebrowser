@@ -14,7 +14,7 @@ jobs:
   linters:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +86,7 @@ jobs:
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -129,7 +129,7 @@ jobs:
       matrix:
         include:
           ### PyQt 5.15.2 (Python 3.8)
-          - testenv: py37-pyqt5152
+          - testenv: py38-pyqt5152
             os: ubuntu-20.04
             python: "3.8"
           ### PyQt 5.15 (Python 3.10, with coverage)
@@ -142,7 +142,7 @@ jobs:
             os: ubuntu-20.04
             python: "3.11"
           ### PyQt 6.2 (Python 3.8)
-          - testenv: py37-pyqt62
+          - testenv: py38-pyqt62
             os: ubuntu-20.04
             python: "3.8"
           ### PyQt 6.3 (Python 3.8)
@@ -165,18 +165,26 @@ jobs:
           - testenv: py312-pyqt66
             os: ubuntu-22.04
             python: "3.12"
+          ### PyQt 6.7 (Python 3.11)
+          - testenv: py311-pyqt67
+            os: ubuntu-22.04
+            python: "3.11"
+          ### PyQt 6.7 (Python 3.12)
+          - testenv: py312-pyqt67
+            os: ubuntu-22.04
+            python: "3.12"
           ### macOS Big Sur
-          - testenv: py312-pyqt66
+          - testenv: py312-pyqt67
             os: macos-11
             python: "3.12"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Monterey
-          - testenv: py312-pyqt66
+          - testenv: py312-pyqt67
             os: macos-12
             python: "3.12"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py312-pyqt66
+          - testenv: py312-pyqt67
             os: windows-2019
             python: "3.12"
     runs-on: "${{ matrix.os }}"
@@ -226,7 +234,7 @@ jobs:
     permissions:
       security-events: write
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -243,7 +251,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
