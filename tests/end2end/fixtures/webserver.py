@@ -116,7 +116,7 @@ def is_ignored_webserver_message(line: str) -> bool:
     return testutils.pattern_match(
         pattern=(
             "Client ('127.0.0.1', *) lost — peer dropped the TLS connection suddenly, "
-            "during handshake: (1, '[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] ssl/tls "
+            "during handshake: (1, '[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] * "
             "alert certificate unknown (_ssl.c:*)')"
         ),
         value=line,
