@@ -574,8 +574,14 @@ class WebEngineVersions:
         #            5.15.7: Security fixes up to 94.0.4606.61  (2021-09-24)
         #            5.15.8: Security fixes up to 96.0.4664.110 (2021-12-13)
         #            5.15.9: Security fixes up to 98.0.4758.102 (2022-02-14)
-        #            5.15.10: Security fixes up to ???
-        #            5.15.11: Security fixes up to ???
+        #            5.15.10: Security fixes up to 98.0.4758.102 (?) (2022-02-14)
+        #            5.15.11: Security fixes up to 98.0.4758.102 (?) (2022-02-14)
+        #            5.15.12: Security fixes up to 98.0.4758.102 (?) (2022-02-14)
+        #            5.15.13: Security fixes up to 108.0.5359.124 (2022-12-13)
+        #            5.15.14: Security fixes up to 113.0.5672.64 (2023-05-02)
+        #            5.15.15: Security fixes up to ???
+        #            5.15.16: Security fixes up to 119.0.6045.123 (2023-11-07)
+        #            5.15.17: Security fixes up to 123.0.6312.58 (2024-03-19)
         utils.VersionNumber(5, 15): '87.0.4280.144',  # >= 5.15.3
 
         # Qt 6.2: Chromium 90
@@ -587,7 +593,8 @@ class WebEngineVersions:
         #         6.2.4: Security fixes up to 98.0.4758.102 (2022-02-14)
         #         6.2.5: Security fixes up to ???
         #         6.2.6: Security fixes up to ???
-        #         6.2.7: Security fixes up to ???
+        #         6.2.7: Security fixes up to 107.0.5304.110 (2022-11-08)
+        #         6.2.8: Security fixes up to 111.0.5563.110 (2023-03-21)
         utils.VersionNumber(6, 2): '90.0.4430.228',
 
         # Qt 6.3: Chromium 94
@@ -624,7 +631,8 @@ class WebEngineVersions:
 
         # Qt 6.7: Chromium 118
         #         118.0.5993.220 (~2023-10-24)
-        #         6.6.0: Security fixes up to 122.0.6261.128 (?) (2024-03-12)
+        #         6.7.0: Security fixes up to 122.0.6261.128 (2024-03-12)
+        #         6.7.1: Security fixes up to 124.0.6367.78 (?) (2024-04-24)
         utils.VersionNumber(6, 7): '118.0.5993.220',
     }
 
