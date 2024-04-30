@@ -150,9 +150,15 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
     try:
         _ATTRIBUTES['content.canvas_reading'] = Attr(
-            QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)  # type: ignore[attr-defined,unused-ignore]
+            QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)
     except AttributeError:
         # Added in QtWebEngine 6.6
+        pass
+    try:
+        _ATTRIBUTES['colors.webpage.darkmode.enabled'] = Attr(
+            QWebEngineSettings.WebAttribute.ForceDarkMode)
+    except AttributeError:
+        # Added in QtWebEngine 6.7
         pass
 
     _FONT_SIZES = {

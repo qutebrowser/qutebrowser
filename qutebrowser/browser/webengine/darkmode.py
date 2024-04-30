@@ -126,6 +126,10 @@ from typing import (Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils, log, version
 
+# Note: We *cannot* initialize QtWebEngine (even implicitly) in here, but checking for
+# the enum attribute seems to be okay.
+from qutebrowser.qt.webenginecore import QWebEngineSettings
+
 
 _BLINK_SETTINGS = 'blink-settings'
 
@@ -138,6 +142,7 @@ class Variant(enum.Enum):
     qt_515_3 = enum.auto()
     qt_64 = enum.auto()
     qt_66 = enum.auto()
+    qt_67 = enum.auto()
 
 
 # Mapping from a colors.webpage.darkmode.algorithm setting value to
@@ -276,6 +281,13 @@ class _Definition:
         new._settings = self._settings + (setting,)  # pylint: disable=protected-access
         return new
 
+    def copy_remove_setting(self, name: str) -> '_Definition':
+        """Get a new _Definition object with a setting removed."""
+        new = copy.copy(self)
+        settings = tuple(s for s in self._settings if s.option != name)
+        new._settings = settings  # pylint: disable=protected-access
+        return new
+
     def copy_replace_setting(self, option: str, chromium_key: str) -> '_Definition':
         """Get a new _Definition object with `old` replaced by `new`.
 
@@ -332,6 +344,8 @@ _DEFINITIONS[Variant.qt_64] = _DEFINITIONS[Variant.qt_515_3].copy_replace_settin
 _DEFINITIONS[Variant.qt_66] = _DEFINITIONS[Variant.qt_64].copy_add_setting(
     _Setting('policy.images', 'ImageClassifierPolicy', _IMAGE_CLASSIFIERS),
 )
+# Qt 6.7: Enabled is now handled dynamically via QWebEngineSettings
+_DEFINITIONS[Variant.qt_67] = _DEFINITIONS[Variant.qt_66].copy_remove_setting('enabled')
 
 
 _SettingValType = Union[str, usertypes.Unset]
@@ -367,7 +381,14 @@ def _variant(versions: version.WebEngineVersions) -> Variant:
         except KeyError:
             log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
 
-    if versions.webengine >= utils.VersionNumber(6, 6):
+    if (
+        # We need a PyQt 6.7 as well with the API available, otherwise we can't turn on
+        # dark mode later in webenginesettings.py.
+        versions.webengine >= utils.VersionNumber(6, 7) and
+        hasattr(QWebEngineSettings.WebAttribute, 'ForceDarkMode')
+    ):
+        return Variant.qt_67
+    elif versions.webengine >= utils.VersionNumber(6, 6):
         return Variant.qt_66
     elif versions.webengine >= utils.VersionNumber(6, 4):
         return Variant.qt_64
