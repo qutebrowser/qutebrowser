@@ -899,21 +899,32 @@ class TestWebEngineVersions:
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium=None,
                 source='UA'),
-            "QtWebEngine 5.15.2",
+            (
+                "QtWebEngine 5.15.2\n"
+                "  (source: UA)"
+            ),
         ),
         (
             version.WebEngineVersions(
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='UA'),
-            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144",
+            (
+                "QtWebEngine 5.15.2\n"
+                "  based on Chromium 87.0.4280.144\n"
+                "  (source: UA)"
+            ),
         ),
         (
             version.WebEngineVersions(
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='faked'),
-            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144 (from faked)",
+            (
+                "QtWebEngine 5.15.2\n"
+                "  based on Chromium 87.0.4280.144\n"
+                "  (source: faked)"
+            ),
         ),
         (
             version.WebEngineVersions(
@@ -922,8 +933,10 @@ class TestWebEngineVersions:
                 chromium_security='9000.1',
                 source='faked'),
             (
-                "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144, with security "
-                "patches up to 9000.1 (plus any distribution patches) (from faked)"
+                "QtWebEngine 5.15.2\n"
+                "  based on Chromium 87.0.4280.144\n"
+                "  with security patches up to 9000.1 (plus any distribution patches)\n"
+                "  (source: faked)"
             ),
         ),
     ])
@@ -1319,7 +1332,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        substitutions['backend'] = 'QtWebEngine 1.2.3 (from faked)'
+        substitutions['backend'] = 'QtWebEngine 1.2.3\n  (source: faked)'
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(

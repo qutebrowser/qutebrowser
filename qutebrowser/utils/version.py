@@ -636,14 +636,13 @@ class WebEngineVersions:
             self.chromium_major = int(self.chromium.split('.')[0])
 
     def __str__(self) -> str:
-        s = f'QtWebEngine {self.webengine}'
+        lines = [f'QtWebEngine {self.webengine}']
         if self.chromium is not None:
-            s += f', based on Chromium {self.chromium}'
+            lines.append(f'  based on Chromium {self.chromium}')
         if self.chromium_security is not None:
-            s += f', with security patches up to {self.chromium_security} (plus any distribution patches)'
-        if self.source != 'UA':
-            s += f' (from {self.source})'
-        return s
+            lines.append(f'  with security patches up to {self.chromium_security} (plus any distribution patches)')
+        lines.append(f'  (source: {self.source})')
+        return "\n".join(lines)
 
     @classmethod
     def from_ua(cls, ua: 'websettings.UserAgent') -> 'WebEngineVersions':
