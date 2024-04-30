@@ -48,7 +48,7 @@ class Error(Exception):
     """Base class for all exceptions in this module."""
 
 
-class Unavailable(Error, ImportError):
+class Unavailable(Error, ModuleNotFoundError):
 
     """Raised when a module is unavailable with the given wrapper."""
 
