@@ -26,6 +26,7 @@ else:  # pragma: no cover
 
 import qutebrowser
 _cache: Dict[str, str] = {}
+_bin_cache: Dict[str, bytes] = {}
 
 
 _ResourceType = Union[Traversable, pathlib.Path]
@@ -88,6 +89,10 @@ def preload() -> None:
         for name in _glob(resource_path, subdir, ext):
             _cache[name] = read_file(name)
 
+    for name in _glob(resource_path, 'img', '.png'):
+        # e.g. broken_qutebrowser_logo.png
+        _bin_cache[name] = read_file_binary(name)
+
 
 def read_file(filename: str) -> str:
     """Get the contents of a file contained with qutebrowser.
@@ -115,6 +120,9 @@ def read_file_binary(filename: str) -> bytes:
     Return:
         The file contents as a bytes object.
     """
+    if filename in _bin_cache:
+        return _bin_cache[filename]
+
     path = _path(filename)
     with _keyerror_workaround():
         return path.read_bytes()

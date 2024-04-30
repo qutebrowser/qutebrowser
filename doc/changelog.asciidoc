@@ -47,6 +47,9 @@ Fixed
   condition.
 - Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
   bug.
+- Worked around a crash when trying to use qutebrowser after it's been
+  deleted/moved on disk (e.g. after a Python upgrade). It now shows an error
+  asking to run `:restart` instead.
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
