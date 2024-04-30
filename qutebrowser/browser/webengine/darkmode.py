@@ -113,6 +113,11 @@ Qt 6.6
 
 - New alternative image classifier:
   https://chromium-review.googlesource.com/c/chromium/src/+/3987823
+
+Qt 6.7
+------
+
+Enabling dark mode can now be done at runtime via QWebEngineSettings.
 """
 
 import os
@@ -192,11 +197,6 @@ _BOOLS = {
     False: 'false',
 }
 
-_INT_BOOLS = {
-    True: '1',
-    False: '0',
-}
-
 
 @dataclasses.dataclass
 class _Setting:
@@ -265,16 +265,6 @@ class _Definition:
             switch = self._switch_names.get(setting.option, self._switch_names[None])
             yield switch, setting.with_prefix(self.prefix)
 
-    def copy_with(self, attr: str, value: Any) -> '_Definition':
-        """Get a new _Definition object with a changed attribute.
-
-        NOTE: This does *not* copy the settings list. Both objects will reference the
-        same (immutable) tuple.
-        """
-        new = copy.copy(self)
-        setattr(new, attr, value)
-        return new
-
     def copy_add_setting(self, setting: _Setting) -> '_Definition':
         """Get a new _Definition object with an additional setting."""
         new = copy.copy(self)
@@ -285,13 +275,15 @@ class _Definition:
         """Get a new _Definition object with a setting removed."""
         new = copy.copy(self)
         filtered_settings = tuple(s for s in self._settings if s.option != name)
+        if len(filtered_settings) == len(self._settings):
+            raise ValueError(f"Setting {name} not found in {self}")
         new._settings = filtered_settings  # pylint: disable=protected-access
         return new
 
     def copy_replace_setting(self, option: str, chromium_key: str) -> '_Definition':
         """Get a new _Definition object with `old` replaced by `new`.
 
-        If `old` is not in the settings list, return the old _Definition object.
+        If `old` is not in the settings list, raise ValueError.
         """
         new = copy.deepcopy(self)
 
