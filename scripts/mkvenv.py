@@ -249,8 +249,15 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
         utils.print_error("Non-glibc Linux is not a supported platform for PyQt "
                           "binaries, this will most likely fail.")
 
+    # WORKAROUND for
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2024-April/045832.html
+    needs_manual_install = version in ["auto", "6", "6.7"]
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--only-binary', ','.join(PYQT_PACKAGES))
+                '--only-binary', ','.join(PYQT_PACKAGES),
+                *(["--no-deps"] if needs_manual_install else []))
+
+    if needs_manual_install:
+        pip_install(venv_dir, "PyQt6-WebEngine-Qt6")
 
 
 def install_pyqt_source(venv_dir: pathlib.Path, version: str) -> None:
