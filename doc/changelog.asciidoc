@@ -25,7 +25,7 @@ Added
 - When qutebrowser receives a SIGHUP it will now reload any config.py file
   in use (same as the `:config-source` command does). (#8108)
 - The Chromium security patch version is now shown in the backend string in
-  --version and :version. This reflects the latest Chromium version that
+  `--version` and `:version`. This reflects the latest Chromium version that
   security fixes have been backported to the base QtWebEngine version from.
   (#7187)
 
@@ -47,9 +47,8 @@ Fixed
   condition.
 - Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
   bug.
-- Worked around a crash when trying to use qutebrowser after it's been
-  deleted/moved on disk (e.g. after a Python upgrade). It now shows an error
-  asking to run `:restart` instead.
+- Trying to use qutebrowser after it's been deleted/moved on disk (e.g. after a
+  Python upgrade) should now not crash anymore.
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
