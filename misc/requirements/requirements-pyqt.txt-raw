@@ -1,7 +1,4 @@
 PyQt6
 PyQt6-Qt6
 PyQt6-WebEngine
-
-# WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2024-April/045832.html
-#@ ignore: PyQt6-WebEngine-Qt6
-# PyQt6-WebEngine-Qt6
+PyQt6-WebEngine-Qt6
