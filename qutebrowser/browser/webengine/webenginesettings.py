@@ -148,18 +148,20 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
                  converter=lambda val: val != 'never'),
     }
-    try:
-        _ATTRIBUTES['content.canvas_reading'] = Attr(
-            QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)
-    except AttributeError:
-        # Added in QtWebEngine 6.6
-        pass
-    try:
-        _ATTRIBUTES['colors.webpage.darkmode.enabled'] = Attr(
-            QWebEngineSettings.WebAttribute.ForceDarkMode)
-    except AttributeError:
-        # Added in QtWebEngine 6.7
-        pass
+
+    if machinery.IS_QT6:
+        try:
+            _ATTRIBUTES['content.canvas_reading'] = Attr(
+                QWebEngineSettings.WebAttribute.ReadingFromCanvasEnabled)
+        except AttributeError:
+            # Added in QtWebEngine 6.6
+            pass
+        try:
+            _ATTRIBUTES['colors.webpage.darkmode.enabled'] = Attr(
+                QWebEngineSettings.WebAttribute.ForceDarkMode)
+        except AttributeError:
+            # Added in QtWebEngine 6.7
+            pass
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':

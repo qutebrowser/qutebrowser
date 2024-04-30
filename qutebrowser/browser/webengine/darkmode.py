@@ -284,8 +284,8 @@ class _Definition:
     def copy_remove_setting(self, name: str) -> '_Definition':
         """Get a new _Definition object with a setting removed."""
         new = copy.copy(self)
-        settings = tuple(s for s in self._settings if s.option != name)
-        new._settings = settings  # pylint: disable=protected-access
+        filtered_settings = tuple(s for s in self._settings if s.option != name)
+        new._settings = filtered_settings  # pylint: disable=protected-access
         return new
 
     def copy_replace_setting(self, option: str, chromium_key: str) -> '_Definition':
