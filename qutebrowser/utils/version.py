@@ -538,7 +538,19 @@ class WebEngineVersions:
     chromium_security: Optional[str] = None
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
-    _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, str]] = {
+    _BASES: ClassVar[Dict[int, str]] = {
+        83: '83.0.4103.122',  # ~2020-06-24
+        87: '87.0.4280.144',  # ~2020-12-02
+        90: '90.0.4430.228',  # 2021-06-22
+        94: '94.0.4606.126',  # 2021-11-17
+        102: '102.0.5005.177',  # ~2022-05-24
+        # (.220 claimed by code, .181 claimed by CHROMIUM_VERSION)
+        108: '108.0.5359.220',  # ~2022-12-23
+        112: '112.0.5615.213',  # ~2023-04-18
+        118: '118.0.5993.220',  # ~2023-10-24
+    }
+
+    _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, Tuple[str, Optional[str]]]] = {
         # ====== UNSUPPORTED =====
 
         # Qt 5.12: Chromium 69
@@ -559,81 +571,61 @@ class WebEngineVersions:
         #          5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
 
         # ====== SUPPORTED =====
+        #                               base         security
+        ## Qt 5.15
+        utils.VersionNumber(5, 15, 2): (_BASES[83], '86.0.4240.183'),  # 2020-11-02
+        utils.VersionNumber(5, 15): (_BASES[87], None),  # >= 5.15.3
+        utils.VersionNumber(5, 15, 3): (_BASES[87], '88.0.4324.150'),  # 2021-02-04
+        # 5.15.4 to 5.15.6: unknown security fixes
+        utils.VersionNumber(5, 15, 7): (_BASES[87], '94.0.4606.61'),  # 2021-09-24
+        utils.VersionNumber(5, 15, 8): (_BASES[87], '96.0.4664.110'),  # 2021-12-13
+        utils.VersionNumber(5, 15, 9): (_BASES[87], '98.0.4758.102'),  # 2022-02-14
+        utils.VersionNumber(5, 15, 10): (_BASES[87], '98.0.4758.102'),  # (?) 2022-02-14
+        utils.VersionNumber(5, 15, 11): (_BASES[87], '98.0.4758.102'),  # (?) 2022-02-14
+        utils.VersionNumber(5, 15, 12): (_BASES[87], '98.0.4758.102'),  # (?) 2022-02-14
+        utils.VersionNumber(5, 15, 13): (_BASES[87], '108.0.5359.124'),  # 2022-12-13
+        utils.VersionNumber(5, 15, 14): (_BASES[87], '113.0.5672.64'),  # 2023-05-02
+        # 5.15.15: unknown security fixes
+        utils.VersionNumber(5, 15, 16): (_BASES[87], '119.0.6045.123'),  # 2023-11-07
+        utils.VersionNumber(5, 15, 17): (_BASES[87], '123.0.6312.58'),  # 2024-03-19
 
-        # Qt 5.15.2: Chromium 83
-        #            83.0.4103.122           (~2020-06-24)
-        #            5.15.2: Security fixes up to 86.0.4240.183 (2020-11-02)
-        utils.VersionNumber(5, 15, 2): '83.0.4103.122',
 
-        # Qt 5.15.3: Chromium 87
-        #            87.0.4280.144           (~2020-12-02)
-        #            5.15.3: Security fixes up to 88.0.4324.150 (2021-02-04)
-        #            5.15.4: Security fixes up to ???
-        #            5.15.5: Security fixes up to ???
-        #            5.15.6: Security fixes up to ???
-        #            5.15.7: Security fixes up to 94.0.4606.61  (2021-09-24)
-        #            5.15.8: Security fixes up to 96.0.4664.110 (2021-12-13)
-        #            5.15.9: Security fixes up to 98.0.4758.102 (2022-02-14)
-        #            5.15.10: Security fixes up to 98.0.4758.102 (?) (2022-02-14)
-        #            5.15.11: Security fixes up to 98.0.4758.102 (?) (2022-02-14)
-        #            5.15.12: Security fixes up to 98.0.4758.102 (?) (2022-02-14)
-        #            5.15.13: Security fixes up to 108.0.5359.124 (2022-12-13)
-        #            5.15.14: Security fixes up to 113.0.5672.64 (2023-05-02)
-        #            5.15.15: Security fixes up to ???
-        #            5.15.16: Security fixes up to 119.0.6045.123 (2023-11-07)
-        #            5.15.17: Security fixes up to 123.0.6312.58 (2024-03-19)
-        utils.VersionNumber(5, 15): '87.0.4280.144',  # >= 5.15.3
+        ## Qt 6.2
+        utils.VersionNumber(6, 2): (_BASES[90], '93.0.4577.63'),  # 2021-08-31
+        utils.VersionNumber(6, 2, 1): (_BASES[90], '94.0.4606.61'),  # 2021-09-24
+        utils.VersionNumber(6, 2, 2): (_BASES[90], '96.0.4664.45'),  # 2021-11-15
+        utils.VersionNumber(6, 2, 3): (_BASES[90], '96.0.4664.45'),  # 2021-11-15
+        utils.VersionNumber(6, 2, 4): (_BASES[90], '98.0.4758.102'),  # 2022-02-14
+        # 6.2.5 / 6.2.6: unknown security fixes
+        utils.VersionNumber(6, 2, 7): (_BASES[90], '107.0.5304.110'),  # 2022-11-08
+        utils.VersionNumber(6, 2, 8): (_BASES[90], '111.0.5563.110'),  # 2023-03-21
 
-        # Qt 6.2: Chromium 90
-        #         90.0.4430.228 (2021-06-22)
-        #         6.2.0: Security fixes up to 93.0.4577.63 (2021-08-31)
-        #         6.2.1: Security fixes up to 94.0.4606.61 (2021-09-24)
-        #         6.2.2: Security fixes up to 96.0.4664.45 (2021-11-15)
-        #         6.2.3: Security fixes up to 96.0.4664.45 (2021-11-15)
-        #         6.2.4: Security fixes up to 98.0.4758.102 (2022-02-14)
-        #         6.2.5: Security fixes up to ???
-        #         6.2.6: Security fixes up to ???
-        #         6.2.7: Security fixes up to 107.0.5304.110 (2022-11-08)
-        #         6.2.8: Security fixes up to 111.0.5563.110 (2023-03-21)
-        utils.VersionNumber(6, 2): '90.0.4430.228',
+        ## Qt 6.3
+        utils.VersionNumber(6, 3): (_BASES[94], '99.0.4844.84'),  # 2022-03-25
+        utils.VersionNumber(6, 3, 1): (_BASES[94], '101.0.4951.64'),  # 2022-05-10
+        utils.VersionNumber(6, 3, 2): (_BASES[94], '104.0.5112.81'),  # 2022-08-01
 
-        # Qt 6.3: Chromium 94
-        #         94.0.4606.126 (2021-11-17)
-        #         6.3.0: Security fixes up to 99.0.4844.84 (2022-03-25)
-        #         6.3.1: Security fixes up to 101.0.4951.64 (2022-05-10)
-        #         6.3.2: Security fixes up to 104.0.5112.81 (2022-08-01)
-        utils.VersionNumber(6, 3): '94.0.4606.126',
+        ## Qt 6.4
+        utils.VersionNumber(6, 4): (_BASES[102], '104.0.5112.102'),  # 2022-08-16
+        utils.VersionNumber(6, 4, 1): (_BASES[102], '107.0.5304.88'),  # 2022-10-27
+        utils.VersionNumber(6, 4, 2): (_BASES[102], '108.0.5359.94'),  # 2022-12-02
+        utils.VersionNumber(6, 4, 3): (_BASES[102], '110.0.5481.78'),  # 2023-02-07
 
-        # Qt 6.4: Chromium 102
-        #         102.0.5005.177 (~2022-05-24)
-        #         6.4.0: Security fixes up to 104.0.5112.102 (2022-08-16)
-        #         6.4.1: Security fixes up to 107.0.5304.88 (2022-10-27)
-        #         6.4.2: Security fixes up to 108.0.5359.94 (2022-12-02)
-        #         6.4.3: Security fixes up to 110.0.5481.78 (2023-02-07)
-        utils.VersionNumber(6, 4): '102.0.5005.177',
+        ## Qt 6.5
+        utils.VersionNumber(6, 5): (_BASES[108], '110.0.5481.104'),  # 2023-02-16
+        utils.VersionNumber(6, 5, 1): (_BASES[108], '112.0.5615.138'),  # 2023-04-18
+        utils.VersionNumber(6, 5, 2): (_BASES[108], '114.0.5735.133'),  # 2023-06-13
+        utils.VersionNumber(6, 5, 3): (_BASES[108], '117.0.5938.63'),  # 2023-09-12
 
-        # Qt 6.5: Chromium 108
-        #         108.0.5359.220 (~2022-12-23)
-        #         (.220 claimed by code, .181 claimed by CHROMIUM_VERSION)
-        #         6.5.0: Security fixes up to 110.0.5481.104 (2023-02-16)
-        #         6.5.1: Security fixes up to 112.0.5615.138 (2023-04-18)
-        #         6.5.2: Security fixes up to 114.0.5735.133 (2023-06-13)
-        #         6.5.3: Security fixes up to 117.0.5938.63 (2023-09-12)
-        utils.VersionNumber(6, 5): '108.0.5359.220',
+        ## Qt 6.6
+        utils.VersionNumber(6, 6): (_BASES[112], '117.0.5938.63'),  # 2023-09-12
+        utils.VersionNumber(6, 6, 1): (_BASES[112], '119.0.6045.123'),  # 2023-11-07
+        utils.VersionNumber(6, 6, 2): (_BASES[112], '121.0.6167.160'),  # 2024-02-06
+        utils.VersionNumber(6, 6, 3): (_BASES[112], '122.0.6261.128'),  # 2024-03-12
 
-        # Qt 6.6: Chromium 112
-        #         112.0.5615.213 (~2023-04-18)
-        #         6.6.0: Security fixes up to 117.0.5938.63 (2023-09-12)
-        #         6.6.1: Security fixes up to 119.0.6045.123 (2023-11-07)
-        #         6.6.2: Security fixes up to 121.0.6167.160 (2024-02-06)
-        #         6.6.3: Security fixes up to 122.0.6261.128 (2024-03-12)
-        utils.VersionNumber(6, 6): '112.0.5615.213',
-
-        # Qt 6.7: Chromium 118
-        #         118.0.5993.220 (~2023-10-24)
-        #         6.7.0: Security fixes up to 122.0.6261.128 (2024-03-12)
-        #         6.7.1: Security fixes up to 124.0.6367.78 (?) (2024-04-24)
-        utils.VersionNumber(6, 7): '118.0.5993.220',
+        ## Qt 6.7
+        utils.VersionNumber(6, 7): (_BASES[118], '122.0.6261.128'),  # 2024-03-12
+        utils.VersionNumber(6, 7, 1): (_BASES[118], '124.0.6367.78'),  # (?) 2024-04-24
     }
 
     def __post_init__(self) -> None:
@@ -656,14 +648,25 @@ class WebEngineVersions:
     def from_ua(cls, ua: 'websettings.UserAgent') -> 'WebEngineVersions':
         """Get the versions parsed from a user agent.
 
-        This is the most reliable and "default" way to get this information (at least
-        until QtWebEngine adds an API for it). However, it needs a fully initialized
-        QtWebEngine, and we sometimes need this information before that is available.
+        This is the most reliable and "default" way to get this information for
+        older Qt versions that don't provide an API for it. However, it needs a
+        fully initialized QtWebEngine, and we sometimes need this information
+        before that is available.
         """
         assert ua.qt_version is not None, ua
+        webengine = utils.VersionNumber.parse(ua.qt_version)
+        chromium_inferred, chromium_security = cls._infer_chromium_version(webengine)
+        if ua.upstream_browser_version != chromium_inferred:  # pragma: no cover
+            # should never happen, but let's play it safe
+            log.misc.debug(
+                f"Chromium version mismatch: {ua.upstream_browser_version} (UA) != "
+                f"{chromium_inferred} (inferred)")
+            chromium_security = None
+
         return cls(
-            webengine=utils.VersionNumber.parse(ua.qt_version),
+            webengine=webengine,
             chromium=ua.upstream_browser_version,
+            chromium_security=chromium_security,
             source='UA',
         )
 
@@ -678,9 +681,19 @@ class WebEngineVersions:
         sometimes mix and match Qt/QtWebEngine versions, so this is a more reliable
         (though hackish) way to get a more accurate result.
         """
+        webengine = utils.VersionNumber.parse(versions.webengine)
+        chromium_inferred, chromium_security = cls._infer_chromium_version(webengine)
+        if versions.chromium != chromium_inferred:  # pragma: no cover
+            # should never happen, but let's play it safe
+            log.misc.debug(
+                f"Chromium version mismatch: {versions.chromium} (ELF) != "
+                f"{chromium_inferred} (inferred)")
+            chromium_security = None
+
         return cls(
-            webengine=utils.VersionNumber.parse(versions.webengine),
+            webengine=webengine,
             chromium=versions.chromium,
+            chromium_security=chromium_security,
             source='ELF',
         )
 
@@ -688,21 +701,29 @@ class WebEngineVersions:
     def _infer_chromium_version(
             cls,
             pyqt_webengine_version: utils.VersionNumber,
-    ) -> Optional[str]:
-        """Infer the Chromium version based on the PyQtWebEngine version."""
-        chromium_version = cls._CHROMIUM_VERSIONS.get(pyqt_webengine_version)
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """Infer the Chromium version based on the PyQtWebEngine version.
+
+        Returns:
+            A tuple of the Chromium version and the security patch version.
+        """
+        chromium_version, security_version = cls._CHROMIUM_VERSIONS.get(
+            pyqt_webengine_version, (None, None))
         if chromium_version is not None:
-            return chromium_version
+            return chromium_version, security_version
 
         # 5.15 patch versions change their QtWebEngine version, but no changes are
         # expected after 5.15.3 and 5.15.[01] are unsupported.
-        if pyqt_webengine_version == utils.VersionNumber(5, 15, 2):
-            minor_version = pyqt_webengine_version
-        else:
-            # e.g. 5.14.2 -> 5.14
-            minor_version = pyqt_webengine_version.strip_patch()
+        assert pyqt_webengine_version != utils.VersionNumber(5, 15, 2)
 
-        return cls._CHROMIUM_VERSIONS.get(minor_version)
+        # e.g. 5.15.4 -> 5.15
+        # we ignore the security version as that one will have changed from .0
+        # and is thus unknown.
+        minor_version = pyqt_webengine_version.strip_patch()
+        chromium_ver, _security_ver = cls._CHROMIUM_VERSIONS.get(
+            minor_version, (None, None))
+
+        return chromium_ver, None
 
     @classmethod
     def from_api(
@@ -737,9 +758,11 @@ class WebEngineVersions:
         a PyQtWebEngine-Qt{,5} package from PyPI, so we could query its exact version.
         """
         parsed = utils.VersionNumber.parse(pyqt_webengine_qt_version)
+        chromium, chromium_security = cls._infer_chromium_version(parsed)
         return cls(
             webengine=parsed,
-            chromium=cls._infer_chromium_version(parsed),
+            chromium=chromium,
+            chromium_security=chromium_security,
             source=source,
         )
 
@@ -782,9 +805,12 @@ class WebEngineVersions:
             if frozen:
                 parsed = utils.VersionNumber(5, 15, 2)
 
+        chromium, chromium_security = cls._infer_chromium_version(parsed)
+
         return cls(
             webengine=parsed,
-            chromium=cls._infer_chromium_version(parsed),
+            chromium=chromium,
+            chromium_security=chromium_security,
             source=source,
         )
 
