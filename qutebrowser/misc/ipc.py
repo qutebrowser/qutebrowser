@@ -139,6 +139,7 @@ class IPCServer(QObject):
         _timer: A timer to handle timeouts.
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
+        _socket_id: An unique, incrementing ID for every socket.
         _socketname: The socketname to use.
         _atime_timer: Timer to update the atime of the socket regularly.
 
@@ -180,6 +181,7 @@ class IPCServer(QObject):
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
+        self._socket_id = 0
         self._old_socket = None
 
         if utils.is_windows:  # pragma: no cover
@@ -232,11 +234,13 @@ class IPCServer(QObject):
             log.ipc.debug("In on_error with None socket!")
             return
         self._timer.stop()
-        log.ipc.debug("Socket 0x{:x}: error {}: {}".format(
-            id(self._socket), self._socket.error(),
+        log.ipc.debug("Socket {}: error {}: {}".format(
+            self._socket_id, self._socket.error(),
             self._socket.errorString()))
         if err != QLocalSocket.LocalSocketError.PeerClosedError:
-            raise SocketError("handling IPC connection", self._socket)
+            raise SocketError(
+                f"handling IPC connection {self._socket_id}", self._socket
+            )
 
     @pyqtSlot()
     def handle_connection(self):
@@ -245,14 +249,16 @@ class IPCServer(QObject):
             return
         if self._socket is not None:
             log.ipc.debug("Got new connection but ignoring it because we're "
-                          "still handling another one (0x{:x}).".format(
-                              id(self._socket)))
+                          "still handling another one ({}).".format(
+                              self._socket_id))
             return
         socket = qtutils.add_optional(self._server.nextPendingConnection())
         if socket is None:
             log.ipc.debug("No new connection to handle.")
             return
-        log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
+
+        self._socket_id += 1
+        log.ipc.debug("Client connected (socket {}).".format(self._socket_id))
         self._socket = socket
         self._timer.start()
         socket.readyRead.connect(self.on_ready_read)
@@ -279,8 +285,7 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_disconnected(self):
         """Clean up socket when the client disconnected."""
-        log.ipc.debug("Client disconnected from socket 0x{:x}.".format(
-            id(self._socket)))
+        log.ipc.debug("Client disconnected from socket {}.".format(self._socket_id))
         self._timer.stop()
         if self._old_socket is not None:
             self._old_socket.deleteLater()
@@ -292,8 +297,8 @@ class IPCServer(QObject):
     def _handle_invalid_data(self):
         """Handle invalid data we got from a QLocalSocket."""
         assert self._socket is not None
-        log.ipc.error("Ignoring invalid IPC data from socket 0x{:x}.".format(
-            id(self._socket)))
+        log.ipc.error("Ignoring invalid IPC data from socket {}.".format(
+            self._socket_id))
         self.got_invalid_data.emit()
         self._socket.errorOccurred.connect(self.on_error)
         self._socket.disconnectFromServer()
@@ -347,7 +352,7 @@ class IPCServer(QObject):
         self.got_args.emit(args, target_arg, cwd)
 
     def _get_socket(self, warn=True):
-        """Get the current socket for on_ready_read.
+        """Get the current socket and ID for on_ready_read.
 
         Arguments:
             warn: Whether to warn if no socket was found.
@@ -358,31 +363,33 @@ class IPCServer(QObject):
             if self._old_socket is None:
                 if warn:
                     log.ipc.warning("In _get_socket with None socket and old_socket!")
-                return None
+                return None, None
             log.ipc.debug("In _get_socket with None socket!")
             socket = self._old_socket
+            # hopefully accurate guess, but at least we have a debug log
+            socket_id = self._socket_id - 1
         else:
             socket = self._socket
+            socket_id = self._socket_id
 
         if sip.isdeleted(socket):  # pragma: no cover
             log.ipc.warning("Ignoring deleted IPC socket")
-            return None
+            return None, None
 
-        return socket
+        return socket, socket_id
 
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
         self._timer.stop()
 
-        socket = self._get_socket()
+        socket, socket_id = self._get_socket()
         while socket is not None and socket.canReadLine():
             data = bytes(socket.readLine())
             self.got_raw.emit(data)
-            log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
-                id(socket), data))
+            log.ipc.debug("Read from socket {}: {!r}".format(socket_id, data))
             self._handle_data(data)
-            socket = self._get_socket(warn=False)
+            socket, socket_id = self._get_socket(warn=False)
 
         if self._socket is not None:
             self._timer.start()
@@ -392,7 +399,7 @@ class IPCServer(QObject):
         """Cancel the current connection if it was idle for too long."""
         assert self._socket is not None
         log.ipc.error("IPC connection timed out "
-                      "(socket 0x{:x}).".format(id(self._socket)))
+                      "(socket {}).".format(self._socket_id))
         self._socket.disconnectFromServer()
         if self._socket is not None:  # pragma: no cover
             # on_socket_disconnected sets it to None
@@ -436,8 +443,7 @@ class IPCServer(QObject):
             # we get called again when the application is about to quit.
             return
 
-        log.ipc.debug("Shutting down IPC (socket 0x{:x})".format(
-            id(self._socket)))
+        log.ipc.debug("Shutting down IPC (socket {})".format(self._socket_id))
 
         if self._socket is not None:
             self._socket.deleteLater()
