@@ -899,21 +899,32 @@ class TestWebEngineVersions:
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium=None,
                 source='UA'),
-            "QtWebEngine 5.15.2",
+            (
+                "QtWebEngine 5.15.2\n"
+                "  (source: UA)"
+            ),
         ),
         (
             version.WebEngineVersions(
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='UA'),
-            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144",
+            (
+                "QtWebEngine 5.15.2\n"
+                "  based on Chromium 87.0.4280.144\n"
+                "  (source: UA)"
+            ),
         ),
         (
             version.WebEngineVersions(
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='faked'),
-            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144 (from faked)",
+            (
+                "QtWebEngine 5.15.2\n"
+                "  based on Chromium 87.0.4280.144\n"
+                "  (source: faked)"
+            ),
         ),
         (
             version.WebEngineVersions(
@@ -922,8 +933,10 @@ class TestWebEngineVersions:
                 chromium_security='9000.1',
                 source='faked'),
             (
-                "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144, with security "
-                "patches up to 9000.1 (plus any distribution patches) (from faked)"
+                "QtWebEngine 5.15.2\n"
+                "  based on Chromium 87.0.4280.144\n"
+                "  with security patches up to 9000.1 (plus any distribution patches)\n"
+                "  (source: faked)"
             ),
         ),
     ])
@@ -961,6 +974,7 @@ class TestWebEngineVersions:
         expected = version.WebEngineVersions(
             webengine=utils.VersionNumber(5, 15, 2),
             chromium='83.0.4103.122',
+            chromium_security='86.0.4240.183',
             source='UA',
         )
         assert version.WebEngineVersions.from_ua(ua) == expected
@@ -970,21 +984,27 @@ class TestWebEngineVersions:
         expected = version.WebEngineVersions(
             webengine=utils.VersionNumber(5, 15, 2),
             chromium='83.0.4103.122',
+            chromium_security='86.0.4240.183',
             source='ELF',
         )
         assert version.WebEngineVersions.from_elf(elf_version) == expected
 
-    @pytest.mark.parametrize('pyqt_version, chromium_version', [
-        ('5.15.2', '83.0.4103.122'),
-        ('5.15.3', '87.0.4280.144'),
-        ('5.15.4', '87.0.4280.144'),
-        ('5.15.5', '87.0.4280.144'),
-        ('6.2.0', '90.0.4430.228'),
-        ('6.3.0', '94.0.4606.126'),
+    @pytest.mark.parametrize('pyqt_version, chromium_version, security_version', [
+        ('5.15.2', '83.0.4103.122', '86.0.4240.183'),
+        ('5.15.3', '87.0.4280.144', '88.0.4324.150'),
+        ('5.15.4', '87.0.4280.144', None),
+        ('5.15.5', '87.0.4280.144', None),
+        ('5.15.6', '87.0.4280.144', None),
+        ('5.15.7', '87.0.4280.144', '94.0.4606.61'),
+        ('6.2.0', '90.0.4430.228', '93.0.4577.63'),
+        ('6.2.99', '90.0.4430.228', None),
+        ('6.3.0', '94.0.4606.126', '99.0.4844.84'),
+        ('6.99.0', None, None),
     ])
-    def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
-        if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
+    def test_from_pyqt(self, freezer, pyqt_version, chromium_version, security_version):
+        if freezer and utils.VersionNumber(5, 15, 3) <= utils.VersionNumber.parse(pyqt_version) < utils.VersionNumber(6):
             chromium_version = '83.0.4103.122'
+            security_version = '86.0.4240.183'
             expected_pyqt_version = '5.15.2'
         else:
             expected_pyqt_version = pyqt_version
@@ -992,6 +1012,7 @@ class TestWebEngineVersions:
         expected = version.WebEngineVersions(
             webengine=utils.VersionNumber.parse(expected_pyqt_version),
             chromium=chromium_version,
+            chromium_security=security_version,
             source='PyQt',
         )
         assert version.WebEngineVersions.from_pyqt(pyqt_version) == expected
@@ -1048,6 +1069,25 @@ class TestWebEngineVersions:
         base = utils.VersionNumber.parse(qWebEngineChromiumVersion())
         security = utils.VersionNumber.parse(qWebEngineChromiumSecurityPatchVersion())
         assert security >= base
+
+    def test_chromium_security_version_dict(self, qapp):
+        """Check if we infer the QtWebEngine security version properly.
+
+        Note this test mostly tests that our overview in version.py (also
+        intended for human readers) is accurate. The code we call here is never
+        going to be called in real-life situations, as the API is available.
+        """
+        try:
+            from qutebrowser.qt.webenginecore import (
+                qWebEngineVersion,
+                qWebEngineChromiumSecurityPatchVersion,
+            )
+        except ImportError:
+            pytest.skip("Requires QtWebEngine 6.3+")
+
+        inferred = version.WebEngineVersions.from_webengine(
+            qWebEngineVersion(), source="API")
+        assert inferred.chromium_security == qWebEngineChromiumSecurityPatchVersion()
 
 
 class FakeQSslSocket:
@@ -1319,7 +1359,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        substitutions['backend'] = 'QtWebEngine 1.2.3 (from faked)'
+        substitutions['backend'] = 'QtWebEngine 1.2.3\n  (source: faked)'
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
