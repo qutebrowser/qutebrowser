@@ -3272,6 +3272,9 @@ colors.webpage.darkmode.enabled:
   desc: >-
     Render all web contents using a dark theme.
 
+    On QtWebEngine < 6.7, this setting requires a restart and does not support
+    URL patterns, only the global setting is applied.
+
     Example configurations from Chromium's `chrome://flags`:
 
     - "With simple HSL/CIELAB/RGB-based inversion": Set
@@ -3279,7 +3282,7 @@ colors.webpage.darkmode.enabled:
       set `colors.webpage.darkmode.policy.images` to `never`.
 
     - "With selective image inversion": qutebrowser default settings.
-  restart: true
+  supports_pattern: true
   backend: QtWebEngine
 
 colors.webpage.darkmode.algorithm:
