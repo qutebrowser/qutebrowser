@@ -131,10 +131,10 @@ class IMEEventHandler(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._input_method = QApplication.inputMethod()
-        print("adding ime handler")
-        self._input_method.cursorRectangleChanged.connect(
-            self.cursor_rectangle_changed
-        )
+        if self._input_method is not None:
+            self._input_method.cursorRectangleChanged.connect(
+                self.cursor_rectangle_changed
+            )
         self._last_seen_rect = None
 
     @pyqtSlot()
