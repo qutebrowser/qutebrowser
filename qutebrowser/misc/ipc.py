@@ -155,8 +155,9 @@ class IPCConnection(QObject):
 
         self._timer = usertypes.Timer(self, "ipc-timeout")
         self._timer.setInterval(READ_TIMEOUT)
-        self._timer.timeout.connect(functools.partial(self.on_timeout, time.time()))
+        self._timer.timeout.connect(self.on_timeout)
         self._timer.start()
+        log.ipc.debug(f"Connection {self.conn_id} -> timer {self._timer.timerId()} at {time.time()}")
 
         self._socket: Optional[QLocalSocket] = socket
         self._socket.readyRead.connect(self.on_ready_read)
@@ -220,11 +221,12 @@ class IPCConnection(QObject):
         if self._socket is not None:
             self._timer.start()
 
-    @pyqtSlot(float)
-    def on_timeout(self, t: float) -> None:
+    @pyqtSlot()
+    def on_timeout(self) -> None:
         """Cancel the current connection if it was idle for too long."""
         assert self._socket is not None
-        log.ipc.error(f"IPC connection timed out (socket {self.conn_id}, t {t}, now {time.time()}).")
+        now = time.time()
+        log.ipc.error(f"IPC connection timed out (socket {self.conn_id}, now {now}, timer id {self.sender().timerId()}).")
         self._socket.disconnectFromServer()
         if self._socket is not None:  # pragma: no cover
             # on_disconnected sets it to None
