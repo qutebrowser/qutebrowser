@@ -6,10 +6,10 @@ bump2version==1.0.1
 certifi==2024.2.2
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==42.0.5
+cryptography==42.0.6
 docutils==0.20.1
 github3.py==4.0.1
-hunter==3.6.1
+hunter==3.7.0
 idna==3.7
 importlib_metadata==7.1.0
 importlib_resources==6.4.0
@@ -26,10 +26,10 @@ nh3==0.2.17
 packaging==24.0
 pkginfo==1.10.0
 pycparser==2.22
-Pygments==2.17.2
+Pygments==2.18.0
 PyJWT==2.8.0
 Pympler==1.0.1
-pyproject_hooks==1.0.0
+pyproject_hooks==1.1.0
 PyQt-builder==1.16.2
 python-dateutil==2.9.0.post0
 readme_renderer==43.0

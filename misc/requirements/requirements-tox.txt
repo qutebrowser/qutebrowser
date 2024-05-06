@@ -4,7 +4,7 @@ cachetools==5.3.3
 chardet==5.2.0
 colorama==0.4.6
 distlib==0.3.8
-filelock==3.13.4
+filelock==3.14.0
 packaging==24.0
 pip==24.0
 platformdirs==4.2.1
@@ -13,5 +13,5 @@ pyproject-api==1.6.1
 setuptools==69.5.1
 tomli==2.0.1
 tox==4.15.0
-virtualenv==20.26.0
+virtualenv==20.26.1
 wheel==0.43.0
