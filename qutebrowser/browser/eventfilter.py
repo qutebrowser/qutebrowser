@@ -193,16 +193,16 @@ class TabEventFilter(QObject):
             self._check_insertmode_on_release = True
             return
 
-        if elem.is_editable():
-            log.mouse.debug("Clicked editable element!")
-            if config.val.input.insert_mode.auto_enter:
-                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
-                              'click', only_if_normal=True)
-        else:
-            log.mouse.debug("Clicked non-editable element!")
-            if config.val.input.insert_mode.auto_leave:
-                modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
-                              'click', maybe=True)
+        # if elem.is_editable():
+        #     log.mouse.debug("Clicked editable element!")
+        #     if config.val.input.insert_mode.auto_enter:
+        #         modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+        #                       'click', only_if_normal=True)
+        # else:
+        #     log.mouse.debug("Clicked non-editable element!")
+        #     if config.val.input.insert_mode.auto_leave:
+        #         modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
+        #                       'click', maybe=True)
 
     def _mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""

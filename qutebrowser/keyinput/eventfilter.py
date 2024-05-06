@@ -6,19 +6,21 @@
 
 from typing import cast, Optional
 
-from qutebrowser.qt.core import pyqtSlot, QObject, QEvent, qVersion
-from qutebrowser.qt.gui import QKeyEvent, QWindow
+from qutebrowser.qt.core import pyqtSlot, QObject, QEvent, qVersion, Qt, QTimer
+from qutebrowser.qt.gui import QKeyEvent, QWindow, QInputMethodQueryEvent
+from qutebrowser.qt.widgets import QApplication
 
+from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
-from qutebrowser.utils import objreg, debug, log, qtutils
+from qutebrowser.utils import objreg, debug, log, qtutils, usertypes
 
 
 class EventFilter(QObject):
 
     """Global Qt event filter.
 
-    Attributes:
+    Attributes:, usertypes
         _activated: Whether the EventFilter is currently active.
         _handlers: A {QEvent.Type: callable} dict with the handlers for an
                    event.
@@ -117,9 +119,82 @@ class EventFilter(QObject):
             self._activated = False
             raise
 
+class IMEEventHandler(QObject):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._input_method = QApplication.inputMethod()
+        print("adding ime handler")
+        self._input_method.cursorRectangleChanged.connect(
+            self.cursor_rectangle_changed
+        )
+        self._last_seen_rect = None
+
+    @pyqtSlot()
+    def cursor_rectangle_changed(self):
+        # todo:
+        #   clear last_seen_rect on mode exit so that you can click on
+        #     focused input field and re-enter
+        #   last seen rect per window? tab? tab might work better with
+        #      remembering focus for tabs
+        #   anything to unregister? saw some hangs on crash but might be
+        #      because of being a temp basedir
+        # some input examples here https://www.javatpoint.com/html-form-input-types
+        #  <input type="date">: doesn't report as having an input method enabled,
+        #  although the existing heuristics pick it up
+        # if insert_mode_auto_load is false but there is a blinking cursor on
+        # load clicking the scroll bar will enter insert mode
+
+        new_rect = self._input_method.cursorRectangle()
+        if self._last_seen_rect and self._last_seen_rect.contains(new_rect):
+            print("contains")
+            return
+
+        self._last_seen_rect = new_rect
+
+        # implementation detail: qtwebengine doesn't set anchor for input
+        # fields in a web page, qt widgets do, I haven't found any cases where
+        # it doesn't work yet. Would like to compare with a "get focused thing
+        # and examine" check first and compare across versions.
+        anchor_rect = self._input_method.anchorRectangle()
+        if anchor_rect:
+            print("Not handling because anchor rect is set")
+            return
+
+        focused_window = objreg.last_focused_window()
+        focus_object = QApplication.focusObject()
+        query = None
+
+        if not new_rect and focus_object:
+            # sometimes we get a rectangle changed event and the queried
+            # rectangle is empty but we are still in an editable element. For
+            # instance when pressing enter in a text box on confluence or jira
+            # (including comment on the Qt instance) and tabbing between cells
+            # on https://html-online.com/editor/
+            # Checking ImEnabled helps in these cases.
+            query = QInputMethodQueryEvent(Qt.InputMethodQuery.ImEnabled);
+            QApplication.sendEvent(focus_object, query);
+
+        if new_rect or (query and query.value(Qt.InputMethodQuery.ImEnabled)):
+            log.mouse.debug("Clicked editable element!")
+            if config.val.input.insert_mode.auto_enter:
+                modeman.enter(focused_window.win_id, usertypes.KeyMode.insert,
+                              'click', only_if_normal=True)
+        else:
+            log.mouse.debug("Clicked non-editable element!")
+            if config.val.input.insert_mode.auto_leave:
+                modeman.leave(focused_window.win_id, usertypes.KeyMode.insert,
+                              'click', maybe=True)
+
+
+_ime_event_handler_instance = None
+
 
 def init() -> None:
     """Initialize the global EventFilter instance."""
     event_filter = EventFilter(parent=objects.qapp)
     event_filter.install()
     quitter.instance.shutting_down.connect(event_filter.shutdown)
+    def donothing():
+        _ime_event_handler_instance = IMEEventHandler(parent=QApplication.instance())
+    QTimer.singleShot(1000, donothing)
