@@ -6,14 +6,11 @@
 
 import os
 import time
-import functools
 import json
 import getpass
 import binascii
 import hashlib
-import itertools
-import argparse
-from typing import Optional, List
+from typing import Optional
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt
 from qutebrowser.qt.network import QLocalSocket, QLocalServer, QAbstractSocket
@@ -34,7 +31,7 @@ PROTOCOL_VERSION = 1
 server: Optional["IPCServer"] = None
 
 
-def _get_socketname_windows(basedir: Optional[str]) -> str:
+def _get_socketname_windows(basedir):
     """Get a socketname to use for Windows."""
     try:
         username = getpass.getuser()
@@ -55,7 +52,7 @@ def _get_socketname_windows(basedir: Optional[str]) -> str:
     return '-'.join(parts)
 
 
-def _get_socketname(basedir: Optional[str]) -> str:
+def _get_socketname(basedir):
     """Get a socketname to use."""
     if utils.is_windows:  # pragma: no cover
         return _get_socketname_windows(basedir)
@@ -87,7 +84,7 @@ class SocketError(Error):
         action: The action which was taken when the error happened.
     """
 
-    def __init__(self, action: str, socket: QLocalSocket) -> None:
+    def __init__(self, action, socket):
         """Constructor.
 
         Args:
@@ -99,7 +96,7 @@ class SocketError(Error):
         self.code: QLocalSocket.LocalSocketError = socket.error()
         self.message: str = socket.errorString()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "Error while {}: {} ({})".format(
             self.action, self.message, debug.qenum_key(QLocalSocket, self.code))
 
@@ -113,7 +110,7 @@ class ListenError(Error):
         message: The error message.
     """
 
-    def __init__(self, local_server: QLocalServer) -> None:
+    def __init__(self, local_server):
         """Constructor.
 
         Args:
@@ -123,7 +120,7 @@ class ListenError(Error):
         self.code: QAbstractSocket.SocketError = local_server.serverError()
         self.message: str = local_server.errorString()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "Error while listening to IPC server: {} ({})".format(
             self.message, debug.qenum_key(QAbstractSocket, self.code))
 
@@ -131,116 +128,6 @@ class ListenError(Error):
 class AddressInUseError(ListenError):
 
     """Emitted when the server address is already in use."""
-
-
-class IPCConnection(QObject):
-    """A connection to an IPC socket.
-
-    Multiple connections might be active in parallel.
-
-    Attributes:
-        _socket: The QLocalSocket to use.
-
-    Signals:
-        got_raw: Emitted with the connection ID and raw data from the socket.
-    """
-
-    got_raw = pyqtSignal(int, bytes)
-    id_gen = itertools.count()
-
-    def __init__(self, socket: QLocalSocket, parent: Optional[QObject] = None):
-        super().__init__(parent)
-        self.conn_id = next(self.id_gen)
-        log.ipc.debug("Client connected (socket {}).".format(self.conn_id))
-
-        self._timer = usertypes.Timer(self, "ipc-timeout")
-        self._timer.setInterval(READ_TIMEOUT)
-        self._timer.timeout.connect(self.on_timeout)
-        self._timer.start()
-        log.ipc.debug(f"Connection {self.conn_id} -> timer {self._timer.timerId()} at {time.time()}")
-
-        self._socket: Optional[QLocalSocket] = socket
-        self._socket.readyRead.connect(self.on_ready_read)
-
-        if socket.canReadLine():
-            log.ipc.debug("We can read a line immediately.")
-            self.on_ready_read()
-
-        socket.errorOccurred.connect(self.on_error)
-
-        # FIXME:v4 Ignore needed due to overloaded signal/method in Qt 5
-        socket_error = socket.error()  # type: ignore[operator,unused-ignore]
-        if socket_error not in [
-            QLocalSocket.LocalSocketError.UnknownSocketError,
-            QLocalSocket.LocalSocketError.PeerClosedError,
-        ]:
-            log.ipc.debug("We got an error immediately.")
-            self.on_error(socket_error)
-
-        socket.disconnected.connect(self.on_disconnected)
-        if socket.state() == QLocalSocket.LocalSocketState.UnconnectedState:
-            log.ipc.debug("Socket was disconnected immediately.")
-            self.on_disconnected()
-
-    @pyqtSlot("QLocalSocket::LocalSocketError")
-    def on_error(self, err: QLocalSocket.LocalSocketError) -> None:
-        """Raise SocketError on fatal errors."""
-        if self._socket is None:
-            # Sometimes this gets called from stale sockets.
-            log.ipc.debug("In on_error with None socket!")
-            return
-        self._timer.stop()
-        log.ipc.debug(
-            "Socket {}: error {}: {}".format(
-                self.conn_id, self._socket.error(), self._socket.errorString()
-            )
-        )
-        if err != QLocalSocket.LocalSocketError.PeerClosedError:
-            raise SocketError(f"handling IPC connection {self.conn_id}", self._socket)
-
-    @pyqtSlot()
-    def on_disconnected(self) -> None:
-        """Clean up socket when the client disconnected."""
-        assert self._socket is not None
-        log.ipc.debug(f"Client disconnected from socket {self.conn_id}.")
-        self._timer.stop()
-        self._socket.deleteLater()
-        self._socket = None
-        self.deleteLater()
-
-    @pyqtSlot()
-    def on_ready_read(self) -> None:
-        """Read json data from the client."""
-        self._timer.stop()
-
-        while self._socket is not None and self._socket.canReadLine():
-            data = self._socket.readLine().data()
-            log.ipc.debug("Read from socket {}: {!r}".format(self.conn_id, data))
-            self.got_raw.emit(self.conn_id, data)
-
-        if self._socket is not None:
-            self._timer.start()
-
-    @pyqtSlot()
-    def on_timeout(self) -> None:
-        """Cancel the current connection if it was idle for too long."""
-        assert self._socket is not None
-        now = time.time()
-        log.ipc.error(f"IPC connection timed out (socket {self.conn_id}, now {now}, timer id {self.sender().timerId()}).")
-        self._socket.disconnectFromServer()
-        if self._socket is not None:  # pragma: no cover
-            # on_disconnected sets it to None
-            self._socket.waitForDisconnected(CONNECT_TIMEOUT)
-        if self._socket is not None:  # pragma: no cover
-            # on_disconnected sets it to None
-            self._socket.abort()
-
-    @pyqtSlot(int)
-    def on_invalid_data(self, conn_id: int) -> None:
-        if conn_id != self.conn_id:
-            return
-        assert self._socket is not None
-        self._socket.disconnectFromServer()
 
 
 class IPCServer(QObject):
@@ -251,23 +138,23 @@ class IPCServer(QObject):
         ignored: Whether requests are ignored (in exception hook).
         _timer: A timer to handle timeouts.
         _server: A QLocalServer to accept new connections.
+        _socket: The QLocalSocket we're currently connected to.
+        _socket_id: An unique, incrementing ID for every socket.
         _socketname: The socketname to use.
         _atime_timer: Timer to update the atime of the socket regularly.
 
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were
                   passed.
-        got_raw: Emitted with the raw data an IPC connection got.
+        got_args: Emitted with the raw data an IPC connection got.
         got_invalid_data: Emitted when there was invalid incoming data.
-        shutting_down: IPC is shutting down.
     """
 
     got_args = pyqtSignal(list, str, str)
     got_raw = pyqtSignal(bytes)
-    got_invalid_data = pyqtSignal(int)
-    shutting_down = pyqtSignal()
+    got_invalid_data = pyqtSignal()
 
-    def __init__(self, socketname: str, parent: QObject = None) -> None:
+    def __init__(self, socketname, parent=None):
         """Start the IPC server and listen to commands.
 
         Args:
@@ -277,6 +164,10 @@ class IPCServer(QObject):
         super().__init__(parent)
         self.ignored = False
         self._socketname = socketname
+
+        self._timer = usertypes.Timer(self, 'ipc-timeout')
+        self._timer.setInterval(READ_TIMEOUT)
+        self._timer.timeout.connect(self.on_timeout)
 
         if utils.is_windows:  # pragma: no cover
             self._atime_timer = None
@@ -288,6 +179,10 @@ class IPCServer(QObject):
 
         self._server: Optional[QLocalServer] = QLocalServer(self)
         self._server.newConnection.connect(self.handle_connection)
+
+        self._socket = None
+        self._socket_id = 0
+        self._old_socket = None
 
         if utils.is_windows:  # pragma: no cover
             # As a WORKAROUND for a Qt bug, we can't use UserAccessOption on Unix. If we
@@ -301,14 +196,14 @@ class IPCServer(QObject):
         else:  # pragma: no cover
             log.ipc.debug("Not calling setSocketOptions")
 
-    def _remove_server(self) -> None:
+    def _remove_server(self):
         """Remove an existing server."""
         ok = QLocalServer.removeServer(self._socketname)
         if not ok:
             raise Error("Error while removing server {}!".format(
                 self._socketname))
 
-    def listen(self) -> None:
+    def listen(self):
         """Start listening on self._socketname."""
         assert self._server is not None
         log.ipc.debug("Listening as {}".format(self._socketname))
@@ -331,30 +226,90 @@ class IPCServer(QObject):
                 # True, so report this as an error.
                 raise ListenError(self._server)
 
+    @pyqtSlot('QLocalSocket::LocalSocketError')
+    def on_error(self, err):
+        """Raise SocketError on fatal errors."""
+        if self._socket is None:
+            # Sometimes this gets called from stale sockets.
+            log.ipc.debug("In on_error with None socket!")
+            return
+        self._timer.stop()
+        log.ipc.debug("Socket {}: error {}: {}".format(
+            self._socket_id, self._socket.error(),
+            self._socket.errorString()))
+        if err != QLocalSocket.LocalSocketError.PeerClosedError:
+            raise SocketError(
+                f"handling IPC connection {self._socket_id}", self._socket
+            )
+
     @pyqtSlot()
-    def handle_connection(self) -> None:
+    def handle_connection(self):
         """Handle a new connection to the server."""
         if self.ignored or self._server is None:
             return
-
+        if self._socket is not None:
+            log.ipc.debug("Got new connection but ignoring it because we're "
+                          "still handling another one ({}).".format(
+                              self._socket_id))
+            return
         socket = qtutils.add_optional(self._server.nextPendingConnection())
         if socket is None:
             log.ipc.debug("No new connection to handle.")
             return
 
-        conn = IPCConnection(socket, parent=self)
-        conn.got_raw.connect(self.handle_data)
-        self.got_invalid_data.connect(conn.on_invalid_data)
-        self.shutting_down.connect(conn.on_disconnected)
+        self._socket_id += 1
+        log.ipc.debug("Client connected (socket {}).".format(self._socket_id))
+        self._socket = socket
+        self._timer.start()
+        socket.readyRead.connect(self.on_ready_read)
+        if socket.canReadLine():
+            log.ipc.debug("We can read a line immediately.")
+            self.on_ready_read()
 
-    @pyqtSlot(int, bytes)
-    def handle_data(self, conn_id: int, data: bytes) -> None:
-        """Handle data we got from a connection."""
+        socket.errorOccurred.connect(self.on_error)
+
+        # FIXME:v4 Ignore needed due to overloaded signal/method in Qt 5
+        socket_error = socket.error()  # type: ignore[operator,unused-ignore]
+        if socket_error not in [
+            QLocalSocket.LocalSocketError.UnknownSocketError,
+            QLocalSocket.LocalSocketError.PeerClosedError
+        ]:
+            log.ipc.debug("We got an error immediately.")
+            self.on_error(socket_error)
+
+        socket.disconnected.connect(self.on_disconnected)
+        if socket.state() == QLocalSocket.LocalSocketState.UnconnectedState:
+            log.ipc.debug("Socket was disconnected immediately.")
+            self.on_disconnected()
+
+    @pyqtSlot()
+    def on_disconnected(self):
+        """Clean up socket when the client disconnected."""
+        log.ipc.debug("Client disconnected from socket {}.".format(self._socket_id))
+        self._timer.stop()
+        if self._old_socket is not None:
+            self._old_socket.deleteLater()
+        self._old_socket = self._socket
+        self._socket = None
+        # Maybe another connection is waiting.
+        self.handle_connection()
+
+    def _handle_invalid_data(self):
+        """Handle invalid data we got from a QLocalSocket."""
+        assert self._socket is not None
+        log.ipc.error("Ignoring invalid IPC data from socket {}.".format(
+            self._socket_id))
+        self.got_invalid_data.emit()
+        self._socket.errorOccurred.connect(self.on_error)
+        self._socket.disconnectFromServer()
+
+    def _handle_data(self, data):
+        """Handle data (as bytes) we got from on_ready_read."""
         try:
             decoded = data.decode('utf-8')
         except UnicodeDecodeError:
             log.ipc.error("invalid utf-8: {!r}".format(binascii.hexlify(data)))
-            self._handle_invalid_data(conn_id)
+            self._handle_invalid_data()
             return
 
         log.ipc.debug("Processing: {}".format(decoded))
@@ -362,26 +317,26 @@ class IPCServer(QObject):
             json_data = json.loads(decoded)
         except ValueError:
             log.ipc.error("invalid json: {}".format(decoded.strip()))
-            self._handle_invalid_data(conn_id)
+            self._handle_invalid_data()
             return
 
         for name in ['args', 'target_arg']:
             if name not in json_data:
                 log.ipc.error("Missing {}: {}".format(name, decoded.strip()))
-                self._handle_invalid_data(conn_id)
+                self._handle_invalid_data()
                 return
 
         try:
             protocol_version = int(json_data['protocol_version'])
         except (KeyError, ValueError):
             log.ipc.error("invalid version: {}".format(decoded.strip()))
-            self._handle_invalid_data(conn_id)
+            self._handle_invalid_data()
             return
 
         if protocol_version != PROTOCOL_VERSION:
             log.ipc.error("incompatible version: expected {}, got {}".format(
                 PROTOCOL_VERSION, protocol_version))
-            self._handle_invalid_data(conn_id)
+            self._handle_invalid_data()
             return
 
         args = json_data['args']
@@ -396,13 +351,65 @@ class IPCServer(QObject):
 
         self.got_args.emit(args, target_arg, cwd)
 
-    def _handle_invalid_data(self, conn_id: int) -> None:
-        """Handle invalid data we got from a QLocalSocket."""
-        log.ipc.error(f"Ignoring invalid IPC data from socket {conn_id}.")
-        self.got_invalid_data.emit(conn_id)
+    def _get_socket(self, warn=True):
+        """Get the current socket and ID for on_ready_read.
+
+        Arguments:
+            warn: Whether to warn if no socket was found.
+        """
+        if self._socket is None:  # pragma: no cover
+            # This happens when doing a connection while another one is already
+            # active for some reason.
+            if self._old_socket is None:
+                if warn:
+                    log.ipc.warning("In _get_socket with None socket and old_socket!")
+                return None, None
+            log.ipc.debug("In _get_socket with None socket!")
+            socket = self._old_socket
+            # hopefully accurate guess, but at least we have a debug log
+            socket_id = self._socket_id - 1
+        else:
+            socket = self._socket
+            socket_id = self._socket_id
+
+        if sip.isdeleted(socket):  # pragma: no cover
+            log.ipc.warning("Ignoring deleted IPC socket")
+            return None, None
+
+        return socket, socket_id
 
     @pyqtSlot()
-    def update_atime(self) -> None:
+    def on_ready_read(self):
+        """Read json data from the client."""
+        self._timer.stop()
+
+        socket, socket_id = self._get_socket()
+        while socket is not None and socket.canReadLine():
+            data = bytes(socket.readLine())
+            self.got_raw.emit(data)
+            log.ipc.debug("Read from socket {}: {!r}".format(socket_id, data))
+            self._handle_data(data)
+            socket, socket_id = self._get_socket(warn=False)
+
+        if self._socket is not None:
+            self._timer.start()
+
+    @pyqtSlot()
+    def on_timeout(self):
+        """Cancel the current connection if it was idle for too long."""
+        assert self._socket is not None
+        log.ipc.error("IPC connection timed out "
+                      "(socket {}).".format(self._socket_id))
+        self._socket.disconnectFromServer()
+        if self._socket is not None:  # pragma: no cover
+            # on_socket_disconnected sets it to None
+            self._socket.waitForDisconnected(CONNECT_TIMEOUT)
+        if self._socket is not None:  # pragma: no cover
+            # on_socket_disconnected sets it to None
+            self._socket.abort()
+
+    @pyqtSlot()
+    def update_atime(self):
         """Update the atime of the socket file all few hours.
 
         From the XDG basedir spec:
@@ -428,7 +435,7 @@ class IPCServer(QObject):
             self.listen()
 
     @pyqtSlot()
-    def shutdown(self) -> None:
+    def shutdown(self):
         """Shut down the IPC server cleanly."""
         if self._server is None:
             # We can get called twice when using :restart -- there, IPC is shut down
@@ -436,9 +443,13 @@ class IPCServer(QObject):
             # we get called again when the application is about to quit.
             return
 
-        log.ipc.debug("Shutting down IPC")
-        self.shutting_down.emit()
+        log.ipc.debug("Shutting down IPC (socket {})".format(self._socket_id))
 
+        if self._socket is not None:
+            self._socket.deleteLater()
+            self._socket = None
+
+        self._timer.stop()
         if self._atime_timer is not None:  # pragma: no branch
             self._atime_timer.stop()
             try:
@@ -452,13 +463,7 @@ class IPCServer(QObject):
         self._server = None
 
 
-def send_to_running_instance(
-    socketname: int,
-    command: List[str],
-    target_arg: str,
-    *,
-    socket: Optional[QLocalSocket] = None,
-) -> None:
+def send_to_running_instance(socketname, command, target_arg, *, socket=None):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -510,14 +515,14 @@ def send_to_running_instance(
         return False
 
 
-def display_error(exc: Exception, args: argparse.Namespace) -> None:
+def display_error(exc, args):
     """Display a message box with an IPC error."""
     error.handle_fatal_exc(
         exc, "Error while connecting to running instance!",
         no_err_windows=args.no_err_windows)
 
 
-def send_or_listen(args: argparse.Namespace) -> None:
+def send_or_listen(args):
     """Send the args to a running instance or start a new IPCServer.
 
     Args:
