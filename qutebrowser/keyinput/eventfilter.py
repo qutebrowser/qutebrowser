@@ -131,10 +131,10 @@ class IMEEventHandler(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._input_method = QApplication.inputMethod()
-        if self._input_method is not None:
-            self._input_method.cursorRectangleChanged.connect(
-                self.cursor_rectangle_changed
-            )
+        assert self._input_method is not None
+        self._input_method.cursorRectangleChanged.connect(
+            self.cursor_rectangle_changed
+        )
         self._last_seen_rect = None
 
     @pyqtSlot()
@@ -155,6 +155,7 @@ class IMEEventHandler(QObject):
         #  although the existing heuristics pick it up
         # if insert_mode_auto_load is false but there is a blinking cursor on
         # load clicking the scroll bar will enter insert mode
+        assert self._input_method is not None
 
         new_rect = self._input_method.cursorRectangle()
         if self._last_seen_rect and self._last_seen_rect.contains(new_rect):
