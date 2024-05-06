@@ -125,7 +125,7 @@ class EventFilter(QObject):
 """
 class IMEEventHandler(QObject):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._input_method = QApplication.inputMethod()
         print("adding ime handler")
@@ -135,7 +135,7 @@ class IMEEventHandler(QObject):
         self._last_seen_rect = None
 
     @pyqtSlot()
-    def cursor_rectangle_changed(self):
+    def cursor_rectangle_changed(self) -> QObject:
         # todo:
         #   clear last_seen_rect on mode exit so that you can click on
         #     focused input field and re-enter
