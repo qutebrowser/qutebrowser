@@ -191,9 +191,6 @@ class IMEEventHandler(QObject):
                               'click', maybe=True)
 
 
-_ime_event_handler_instance = None
-
-
 def init() -> None:
     """Initialize the global EventFilter instance."""
     event_filter = EventFilter(parent=objects.qapp)
@@ -201,5 +198,5 @@ def init() -> None:
     quitter.instance.shutting_down.connect(event_filter.shutdown)
 
     def donothing() -> None:
-        _ime_event_handler_instance = IMEEventHandler(parent=QApplication.instance())
+        _ = IMEEventHandler(parent=QApplication.instance())
     QTimer.singleShot(1000, donothing)
