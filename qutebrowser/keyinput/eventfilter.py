@@ -119,6 +119,10 @@ class EventFilter(QObject):
             self._activated = False
             raise
 
+""" Handles the cursorRectangleChanged event from the inputMethod
+
+    This provides better input detection
+"""
 class IMEEventHandler(QObject):
 
     def __init__(self, parent=None):
@@ -172,8 +176,8 @@ class IMEEventHandler(QObject):
             # (including comment on the Qt instance) and tabbing between cells
             # on https://html-online.com/editor/
             # Checking ImEnabled helps in these cases.
-            query = QInputMethodQueryEvent(Qt.InputMethodQuery.ImEnabled);
-            QApplication.sendEvent(focus_object, query);
+            query = QInputMethodQueryEvent(Qt.InputMethodQuery.ImEnabled)
+            QApplication.sendEvent(focus_object, query)
 
         if new_rect or (query and query.value(Qt.InputMethodQuery.ImEnabled)):
             log.mouse.debug("Clicked editable element!")
@@ -195,6 +199,7 @@ def init() -> None:
     event_filter = EventFilter(parent=objects.qapp)
     event_filter.install()
     quitter.instance.shutting_down.connect(event_filter.shutdown)
-    def donothing():
+
+    def donothing() -> None:
         _ime_event_handler_instance = IMEEventHandler(parent=QApplication.instance())
     QTimer.singleShot(1000, donothing)
