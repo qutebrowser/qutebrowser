@@ -816,7 +816,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         # Implements the intended two-second delay specified at
         # https://doc.qt.io/archives/qt-5.14/qwebenginepage.html#recentlyAudibleChanged
         delay_ms = 2000
-        self._silence_timer = QTimer(self)
+        self._silence_timer = usertypes.Timer(self)
         self._silence_timer.setSingleShot(True)
         self._silence_timer.setInterval(delay_ms)
 
