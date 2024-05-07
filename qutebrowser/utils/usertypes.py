@@ -7,6 +7,7 @@
 import html
 import operator
 import enum
+import time
 import dataclasses
 from typing import Optional, Sequence, TypeVar, Union
 
@@ -443,6 +444,8 @@ class Timer(QTimer):
 
     def __init__(self, parent: QObject = None, name: str = None) -> None:
         super().__init__(parent)
+        self._start_time = None
+        self.timeout.connect(self._check_timeout_validity)
         if name is None:
             self._name = "unnamed"
         else:
@@ -452,6 +455,17 @@ class Timer(QTimer):
     def __repr__(self) -> str:
         return utils.get_repr(self, name=self._name)
 
+    @pyqtSlot()
+    def _check_timeout_validity(self) -> None:
+        if self._start_time is None:
+            # manual emission?
+            return
+        elapsed = time.monotonic() - self._start_time
+        if elapsed < self.interval() / 1000 / 2:
+            log.misc.warning(
+                f"Timer {self._name} (id {self.timerId()} triggered too early: "
+                f"interval {self.interval()} but only {elapsed:.3f}s passed")
+
     def setInterval(self, msec: int) -> None:
         """Extend setInterval to check for overflows."""
         qtutils.check_overflow(msec, 'int')
@@ -459,6 +473,7 @@ class Timer(QTimer):
 
     def start(self, msec: int = None) -> None:
         """Extend start to check for overflows."""
+        self._start_time = time.monotonic()
         if msec is not None:
             qtutils.check_overflow(msec, 'int')
             super().start(msec)
