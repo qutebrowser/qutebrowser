@@ -12,7 +12,7 @@ from qutebrowser.qt.core import pyqtSignal, QObject, QTimer
 from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
 
-from qutebrowser.utils import qtlog
+from qutebrowser.utils import qtlog, usertypes
 
 
 class HTTPRequest(QNetworkRequest):
@@ -85,7 +85,7 @@ class HTTPClient(QObject):
         if reply.isFinished():
             self.on_reply_finished(reply)
         else:
-            timer = QTimer(self)
+            timer = usertypes.Timer(self)
             timer.setInterval(10000)
             timer.timeout.connect(reply.abort)
             timer.start()

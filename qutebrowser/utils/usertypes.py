@@ -461,9 +461,9 @@ class Timer(QTimer):
             # manual emission?
             return
         elapsed = time.monotonic() - self._start_time
-        if elapsed < self.interval() / 1000 / 2:
+        if elapsed < self.interval() / 1000 / 2 and self._name != "ipc-timeout":
             log.misc.warning(
-                f"Timer {self._name} (id {self.timerId()} triggered too early: "
+                f"Timer {self._name} (id {self.timerId()}) triggered too early: "
                 f"interval {self.interval()} but only {elapsed:.3f}s passed")
 
     def setInterval(self, msec: int) -> None:
