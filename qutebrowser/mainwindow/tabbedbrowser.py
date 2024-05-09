@@ -190,6 +190,7 @@ class TabbedBrowser(QWidget):
     cur_search_match_changed = pyqtSignal(browsertab.SearchMatch)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(browsertab.SelectionState)
+    cur_feature_permission_changed = pyqtSignal(str, browsertab.FeatureState)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
@@ -344,6 +345,8 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_caret_selection_toggled, tab))
         tab.search.match_changed.connect(
             self._filter.create(self.cur_search_match_changed, tab))
+        tab.feature_permission_changed.connect(
+            self._filter.create(self.cur_feature_permission_changed, tab))
         # misc
         tab.scroller.perc_changed.connect(self._on_scroll_pos_changed)
         tab.scroller.before_jump_requested.connect(lambda: self.set_mark("'"))

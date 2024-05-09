@@ -12,7 +12,7 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
+from qutebrowser.qt.core import (pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
                           QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -871,39 +871,29 @@ class WebEngineAudio(browsertab.AbstractAudio):
         self._on_url_changed(self._tab.url())
 
 
-class _WebEnginePermissions(QObject):
-
-    """Handling of various permission-related signals."""
+class _WebEnginePermissions(browsertab.AbstractPermissions):
 
     _widget: webview.WebEngineView
 
-    _options = {
-        QWebEnginePage.Feature.Notifications: 'content.notifications.enabled',
-        QWebEnginePage.Feature.Geolocation: 'content.geolocation',
-        QWebEnginePage.Feature.MediaAudioCapture: 'content.media.audio_capture',
-        QWebEnginePage.Feature.MediaVideoCapture: 'content.media.video_capture',
-        QWebEnginePage.Feature.MediaAudioVideoCapture: 'content.media.audio_video_capture',
-        QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
-        QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
-        QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
-    }
-
-    _messages = {
-        QWebEnginePage.Feature.Notifications: 'show notifications',
-        QWebEnginePage.Feature.Geolocation: 'access your location',
-        QWebEnginePage.Feature.MediaAudioCapture: 'record audio',
-        QWebEnginePage.Feature.MediaVideoCapture: 'record video',
-        QWebEnginePage.Feature.MediaAudioVideoCapture: 'record audio/video',
-        QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
-        QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
-        QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
-    }
-
-    def __init__(self, tab, parent=None):
-        super().__init__(parent)
-        self._tab = tab
-        self._widget = cast(webview.WebEngineView, None)
-        assert self._options.keys() == self._messages.keys()
+    def _init_features(self):
+        self.features.update({
+            QWebEnginePage.Feature.Notifications: browsertab.Feature(
+                'content.notifications.enabled', 'show notifications'),
+            QWebEnginePage.Feature.Geolocation: browsertab.Feature(
+                'content.geolocation', 'access your location'),
+            QWebEnginePage.Feature.MediaAudioCapture: browsertab.Feature(
+                'content.media.audio_capture', 'record audio'),
+            QWebEnginePage.Feature.MediaVideoCapture: browsertab.Feature(
+                'content.media.video_capture', 'record video'),
+            QWebEnginePage.Feature.MediaAudioVideoCapture: browsertab.Feature(
+                'content.media.audio_video_capture', 'record audio/video'),
+            QWebEnginePage.Feature.MouseLock: browsertab.Feature(
+                'content.mouse_lock', 'hide your mouse pointer'),
+            QWebEnginePage.Feature.DesktopVideoCapture: browsertab.Feature(
+                'content.desktop_capture', 'capture your desktop'),
+            QWebEnginePage.Feature.DesktopAudioVideoCapture: browsertab.Feature(
+                'content.desktop_capture', 'capture your desktop and audio'),
+        })
 
     def connect_signals(self):
         """Connect related signals from the QWebEnginePage."""
@@ -916,6 +906,8 @@ class _WebEnginePermissions(QObject):
         page.quotaRequested.connect(self._on_quota_requested)
         page.registerProtocolHandlerRequested.connect(
             self._on_register_protocol_handler_requested)
+
+        self._tab.load_started.connect(self._on_load_started)
 
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
@@ -936,10 +928,10 @@ class _WebEnginePermissions(QObject):
         """Ask the user for approval for geolocation/media/etc.."""
         page = self._widget.page()
         grant_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
+            self.set_feature_permission, url, feature,
             QWebEnginePage.PermissionPolicy.PermissionGrantedByUser)
         deny_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
+            self.set_feature_permission, url, feature,
             QWebEnginePage.PermissionPolicy.PermissionDeniedByUser)
 
         permission_str = debug.qenum_key(QWebEnginePage, feature)
@@ -950,17 +942,22 @@ class _WebEnginePermissions(QObject):
             deny_permission()
             return
 
-        if feature not in self._options:
+        if feature not in self.features:
             log.webview.error("Unhandled feature permission {}".format(
                 permission_str))
-            deny_permission()
+            page.setFeaturePermission(
+                url, feature, QWebEnginePage.PermissionPolicy.PermissionDeniedByUser
+            )
             return
 
         question = shared.feature_permission(
             url=url.adjusted(QUrl.UrlFormattingOption.RemovePath),
-            option=self._options[feature], msg=self._messages[feature],
-            yes_action=grant_permission, no_action=deny_permission,
-            abort_on=[self._tab.abort_questions])
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=grant_permission,
+            no_action=deny_permission,
+            abort_on=[self._tab.abort_questions]
+        )
 
         if question is not None:
             page.featurePermissionRequestCanceled.connect(
@@ -999,6 +996,26 @@ class _WebEnginePermissions(QObject):
             yes_action=request.accept, no_action=request.reject,
             abort_on=[self._tab.abort_questions],
             blocking=True)
+
+    def set_feature_permission(self, origin, feature, policy):
+        """Sets a policy to use feature for origin.
+
+        Should only be called when an interactive permission request is
+        pending.
+        """
+        self._widget.page().setFeaturePermission(origin, feature, policy)
+
+        if policy == QWebEnginePage.PermissionPolicy.PermissionGrantedByUser:
+            self.features[feature].state = browsertab.FeatureState.granted
+        elif policy == QWebEnginePage.PermissionPolicy.PermissionDeniedByUser:
+            self.features[feature].state = browsertab.FeatureState.denied
+        else:
+            self.features[feature].state = browsertab.FeatureState.ask
+
+        self._tab.feature_permission_changed.emit(
+            self.features[feature].setting_name,
+            self.features[feature].state,
+        )
 
 
 @dataclasses.dataclass
@@ -1259,19 +1276,13 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
 class WebEngineTab(browsertab.AbstractTab):
 
-    """A QtWebEngine tab in the browser.
-
-    Signals:
-        abort_questions: Emitted when a new load started or we're shutting
-            down.
-    """
-
-    abort_questions = pyqtSignal()
+    """A QtWebEngine tab in the browser."""
 
     _widget: webview.WebEngineView
     search: WebEngineSearch
     audio: WebEngineAudio
     printing: WebEnginePrinting
+    permissions: _WebEnginePermissions
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,
@@ -1292,7 +1303,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.audio = WebEngineAudio(tab=self, parent=self)
         self.private_api = WebEngineTabPrivate(mode_manager=mode_manager,
                                                tab=self)
-        self._permissions = _WebEnginePermissions(tab=self, parent=self)
+        self.permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
@@ -1309,7 +1320,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         super()._set_widget(widget)
-        self._permissions._widget = widget
         self._scripts._widget = widget
 
     def _install_event_filter(self):
@@ -1689,12 +1699,9 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_load_finished)
         page.renderProcessPidChanged.connect(self._on_renderer_process_pid_changed)
 
-        self.shutting_down.connect(self.abort_questions)
-        self.load_started.connect(self.abort_questions)
-
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self.search.connect_signals()
         self.printing.connect_signals()
-        self._permissions.connect_signals()
+        self.permissions.connect_signals()
         self._scripts.connect_signals()

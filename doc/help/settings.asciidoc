@@ -315,6 +315,7 @@
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.settings,statusbar.settings>>|Which boolean settings to display in the statusbar settings widget.
 |<<statusbar.show,statusbar.show>>|When to show the statusbar.
 |<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
@@ -4179,6 +4180,15 @@ Valid values:
 
 Default: +pass:[bottom]+
 
+[[statusbar.settings]]
+=== statusbar.settings
+Which boolean settings to display in the statusbar settings widget.
+The keys should be setting names and the values should be strings which are shown if the setting is true for the current tab.
+
+Type: <<types,StatusbarSettings>>
+
+Default: empty
+
 [[statusbar.show]]
 === statusbar.show
 When to show the statusbar.
@@ -4211,6 +4221,7 @@ Valid values:
  * +progress+: Progress bar for the current page loading.
  * +text:foo+: Display the static text after the colon, `foo` in the example.
  * +clock+: Display current time. The format can be changed by adding a format string via `clock:...`. For supported format strings, see https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the Python datetime documentation].
+ * +settings+: Boolean settings state for the current page.
 
 Default: 
 
@@ -4858,6 +4869,7 @@ See the documentation for `List`.
 |StatusbarWidget|A widget for the status bar.
 
 Allows some predefined widgets and custom text-widgets via text:$CONTENT.
+|StatusbarSettings|A mapping of settings to indicator strings.
 |String|A string value.
 
 See the setting's valid values for more information on allowed values.
