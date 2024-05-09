@@ -124,7 +124,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                 log.downloads.exception("Error while closing file object")
 
             if pos == 0:
-                # Emtpy remaining file
+                # Empty remaining file
                 filename = self._get_open_filename()
                 log.downloads.debug(f"Removing empty file at {filename}")
                 try:

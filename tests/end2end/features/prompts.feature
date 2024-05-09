@@ -413,7 +413,7 @@ Feature: Prompts
             }
 
     @qtwebengine_skip
-    Scenario: Cancellling webpage authentication with QtWebKit
+    Scenario: Cancelling webpage authentication with QtWebKit
         When I open basic-auth/user6/password6 without waiting
         And I wait for a prompt
         And I run :mode-leave

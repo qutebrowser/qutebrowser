@@ -636,7 +636,7 @@ def expand_windows_drive(path: str) -> str:
         path: The path to expand.
     """
     # Usually, "E:" on Windows refers to the current working directory on drive
-    # E:\. The correct way to specifify drive E: is "E:\", but most users
+    # E:\. The correct way to specify drive E: is "E:\", but most users
     # probably don't use the "multiple working directories" feature and expect
     # "E:" and "E:\" to be equal.
     if re.fullmatch(r'[A-Z]:', path, re.IGNORECASE):
