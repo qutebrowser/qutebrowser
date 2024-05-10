@@ -168,7 +168,7 @@ def _find_webengine_resources() -> pathlib.Path:
         # I'm not sure how to arrive at this path without hardcoding it
         # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
         # replacement for the qtutils bit but it doesn't seem to help find the
-        # actuall Resources folder.
+        # actual Resources folder.
         candidates.append(
             qt_data_path / "lib" / "QtWebEngineCore.framework" / "Resources"
         )

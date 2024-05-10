@@ -3673,7 +3673,7 @@ Fixed
 - Continuing a search after clearing it now works correctly.
 - The tabbar and completion should now be more consistently and correctly
   styled with various system styles.
-- Applying styiles in `qt5ct` now shouldn't crash anymore.
+- Applying styles in `qt5ct` now shouldn't crash anymore.
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
 - `data:` URLs now aren't added to the history anymore.
