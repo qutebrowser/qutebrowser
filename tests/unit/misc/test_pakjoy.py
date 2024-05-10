@@ -177,7 +177,7 @@ class TestFindWebengineResources:
     def test_nowhere(self, fallback_path: pathlib.Path):
         """Test we raise if we can't find the resources."""
         with pytest.raises(
-            binparsing.ParseError, match="Couldn't find webengine resources dir"
+            FileNotFoundError, match="Couldn't find webengine resources dir, candidates:\n*"
         ):
             pakjoy._find_webengine_resources()
 

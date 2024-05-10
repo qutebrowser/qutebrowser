@@ -51,6 +51,8 @@ Fixed
   bug.
 - Trying to use qutebrowser after it's been deleted/moved on disk (e.g. after a
   Python upgrade) should now not crash anymore.
+- When the QtWebEngine resources dir couldn't be found, qutebrowser now doesn't
+  crash anymore (but QtWebEngine still might).
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
