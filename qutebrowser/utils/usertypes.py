@@ -9,6 +9,7 @@ import operator
 import enum
 import time
 import dataclasses
+import logging
 from typing import Optional, Sequence, TypeVar, Union
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer
@@ -459,9 +460,15 @@ class Timer(QTimer):
     def _validity_check_handler(self) -> None:
         if not self.check_timeout_validity() and self._start_time is not None:
             elapsed = time.monotonic() - self._start_time
-            log.misc.warning(
-                f"Timer {self._name} (id {self.timerId()}) triggered too early: "
-                f"interval {self.interval()} but only {elapsed:.3f}s passed"
+            level = logging.WARNING
+            if utils.is_windows and self._name == "ipc-timeout":
+                level = logging.DEBUG
+            log.misc.log(
+                level,
+                (
+                    f"Timer {self._name} (id {self.timerId()}) triggered too early: "
+                    f"interval {self.interval()} but only {elapsed:.3f}s passed"
+                )
             )
 
     def check_timeout_validity(self) -> bool:
