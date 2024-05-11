@@ -444,8 +444,8 @@ class Timer(QTimer):
 
     def __init__(self, parent: QObject = None, name: str = None) -> None:
         super().__init__(parent)
-        self._start_time = None
-        self.timeout.connect(self._check_timeout_validity)
+        self._start_time: Optional[float] = None
+        self.timeout.connect(self._validity_check_handler)
         if name is None:
             self._name = "unnamed"
         else:
@@ -456,15 +456,31 @@ class Timer(QTimer):
         return utils.get_repr(self, name=self._name)
 
     @pyqtSlot()
-    def _check_timeout_validity(self) -> None:
-        if self._start_time is None:
-            # manual emission?
-            return
-        elapsed = time.monotonic() - self._start_time
-        if elapsed < self.interval() / 1000 / 2 and self._name != "ipc-timeout":
+    def _validity_check_handler(self) -> None:
+        if not self.check_timeout_validity() and self._start_time is not None:
+            elapsed = time.monotonic() - self._start_time
             log.misc.warning(
                 f"Timer {self._name} (id {self.timerId()}) triggered too early: "
-                f"interval {self.interval()} but only {elapsed:.3f}s passed")
+                f"interval {self.interval()} but only {elapsed:.3f}s passed"
+            )
+
+    def check_timeout_validity(self) -> bool:
+        """Check to see if the timeout signal was fired at the expected time.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-124496
+        """
+        if self._start_time is None:
+            # manual emission?
+            return True
+
+        elapsed = time.monotonic() - self._start_time
+        # Checking for half the interval is pretty arbitrary. In the bug case
+        # the timer typically fires immediately since the expiry event is
+        # already pending when it is created.
+        if elapsed < self.interval() / 1000 / 2:
+            return False
+
+        return True
 
     def setInterval(self, msec: int) -> None:
         """Extend setInterval to check for overflows."""
