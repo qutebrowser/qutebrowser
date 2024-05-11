@@ -404,7 +404,7 @@ class TestOnError:
         socket.setErrorString("Connection refused.")
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
-                           r"connection: Connection refused \(ConnectionRefusedError\)"):
+                           r"connection [0-9]: Connection refused \(ConnectionRefusedError\)"):
             ipc_server.on_error(QLocalSocket.LocalSocketError.ConnectionRefusedError)
 
 
@@ -439,7 +439,7 @@ class TestHandleConnection:
         ipc_server._server = FakeServer(socket)
 
         with pytest.raises(ipc.Error, match=r"Error while handling IPC "
-                           r"connection: Error string \(ConnectionError\)"):
+                           r"connection [0-9]: Error string \(ConnectionError\)"):
             ipc_server.handle_connection()
 
         assert "We got an error immediately." in caplog.messages
