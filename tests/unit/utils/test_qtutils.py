@@ -1118,13 +1118,13 @@ class TestQObjRepr:
         assert qtutils.qobj_repr(obj) == expected
 
     def test_class_name(self):
-        obj = QTimer()
+        obj = QTimer()  # misc: ignore
         hidden = sip.cast(obj, QObject)
         expected = f"<{self._py_repr(hidden)}, className='QTimer'>"
         assert qtutils.qobj_repr(hidden) == expected
 
     def test_both(self):
-        obj = QTimer()
+        obj = QTimer()  # misc: ignore
         obj.setObjectName("Pomodoro")
         hidden = sip.cast(obj, QObject)
         expected = f"<{self._py_repr(hidden)}, objectName='Pomodoro', className='QTimer'>"
