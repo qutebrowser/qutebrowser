@@ -5,7 +5,7 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
-from qutebrowser.qt.core import Qt, QTimer
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes

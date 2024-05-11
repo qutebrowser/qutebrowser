@@ -7,7 +7,7 @@
 import dataclasses
 from typing import TYPE_CHECKING
 
-from qutebrowser.qt.core import pyqtSlot, QObject, QTimer
+from qutebrowser.qt.core import pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.commands import parser, cmdexc
