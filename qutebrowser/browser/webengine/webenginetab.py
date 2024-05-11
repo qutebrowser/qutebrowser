@@ -12,7 +12,7 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory

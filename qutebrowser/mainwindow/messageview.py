@@ -6,7 +6,7 @@
 
 from typing import MutableSequence, Optional
 
-from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QTimer, Qt
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt
 from qutebrowser.qt.widgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
