@@ -168,7 +168,6 @@ class IPCServer(QObject):
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
-        self._timer_start_time = None
 
         if utils.is_windows:  # pragma: no cover
             self._atime_timer = None
@@ -262,7 +261,6 @@ class IPCServer(QObject):
         log.ipc.debug("Client connected (socket {}).".format(self._socket_id))
         self._socket = socket
         self._timer.start()
-        self._timer_start_time = time.monotonic()
         socket.readyRead.connect(self.on_ready_read)
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
@@ -395,20 +393,13 @@ class IPCServer(QObject):
 
         if self._socket is not None:
             self._timer.start()
-            self._timer_start_time = time.monotonic()
 
     @pyqtSlot()
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
         assert self._socket is not None
-        assert self._timer_start_time is not None
-        if (
-            time.monotonic() - self._timer_start_time < READ_TIMEOUT / 1000 / 10
-            and qtutils.version_check("6.7.0", exact=True, compiled=False)
-            and utils.is_windows
-        ):
-            # WORKAROUND for unknown Qt bug (?) where the timer triggers immediately
-            # https://github.com/qutebrowser/qutebrowser/issues/8191
+        if not self._timer.check_timeout_validity():
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-124496
             log.ipc.debug("Ignoring early on_timeout call")
             return
 
