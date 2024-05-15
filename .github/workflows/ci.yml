@@ -214,6 +214,9 @@ jobs:
         run: |
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Upgrade 3rd party assets
+        run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
+        if: "startsWith(matrix.os, 'windows-')"
       - name: "Run ${{ matrix.testenv }}"
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
