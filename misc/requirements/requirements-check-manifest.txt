@@ -6,4 +6,4 @@ importlib_metadata==7.1.0
 packaging==24.0
 pyproject_hooks==1.1.0
 tomli==2.0.1
-zipp==3.18.1
+zipp==3.18.2
