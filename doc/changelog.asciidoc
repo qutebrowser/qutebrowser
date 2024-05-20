@@ -110,6 +110,8 @@ Fixed
   evident on Qt 6.6.0. (#7489)
 - The `colors.webpage.darkmode.threshold.foreground` setting (`.text` in older
   versions) now works correctly with Qt 6.4+.
+- Worked around a minor issue around QTimers on Windows where the IPC server
+  could close the socket early. (#8191)
 
 
 [[v3.0.2]]
