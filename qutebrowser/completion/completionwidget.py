@@ -414,7 +414,7 @@ class CompletionView(QTreeView):
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
         self.hide()
-        selmod = self._selection_model()
+        selmod = self.selectionModel()
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()

@@ -53,6 +53,8 @@ Fixed
   Python upgrade) should now not crash anymore.
 - When the QtWebEngine resources dir couldn't be found, qutebrowser now doesn't
   crash anymore (but QtWebEngine still might).
+- Fixed a rare crash in the completion widget when there was no selection model
+  when we went to clear that, probably when leaving a mode. (#7901)
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
