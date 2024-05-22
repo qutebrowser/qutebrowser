@@ -4,6 +4,7 @@
 
 """Scroll percentage displayed in the statusbar."""
 
+from qutebrowser.mainwindow.statusbar.widget import StatusBarWidget
 from qutebrowser.qt.core import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -11,7 +12,7 @@ from qutebrowser.misc import throttle
 from qutebrowser.utils import utils
 
 
-class Percentage(textbase.TextBase):
+class Percentage(StatusBarWidget, textbase.TextBase):
 
     """Reading percentage displayed in the statusbar."""
 
@@ -21,6 +22,12 @@ class Percentage(textbase.TextBase):
         self._strings = self._calc_strings()
         self._set_text = throttle.Throttle(self.setText, 100, parent=self)
         self.set_perc(0, 0)
+
+    def enable(self):
+        self.show()
+
+    def disable(self):
+        self.hide()
 
     def set_raw(self):
         self._strings = self._calc_strings(raw=True)
