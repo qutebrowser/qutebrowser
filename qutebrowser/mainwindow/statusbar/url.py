@@ -6,6 +6,7 @@
 
 import enum
 
+from qutebrowser.mainwindow.statusbar.widget import StatusBarWidget
 from qutebrowser.qt.core import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -28,7 +29,7 @@ class UrlType(enum.Enum):
     normal = enum.auto()
 
 
-class UrlText(textbase.TextBase):
+class UrlText(StatusBarWidget, textbase.TextBase):
 
     """URL displayed in the statusbar.
 
@@ -75,6 +76,12 @@ class UrlText(textbase.TextBase):
         self._hover_url = None
         self._normal_url = None
         self._normal_url_type = UrlType.normal
+
+    def enable(self):
+        self.show()
+
+    def disable(self):
+        self.hide()
 
     @pyqtProperty(str)  # type: ignore[type-var]
     def urltype(self):
