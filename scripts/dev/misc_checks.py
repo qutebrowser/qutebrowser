@@ -274,6 +274,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'qutebrowser is free software: you can redistribute'),
             "use 'SPDX-License-Identifier: GPL-3.0-or-later' instead",
         ),
+        (
+            re.compile(r'QTimer\(.*\)$'),
+            "use usertypes.Timer() instead of a plain QTimer",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another

@@ -5,9 +5,10 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
-from qutebrowser.qt.core import Qt, QTimer
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.utils import usertypes
 
 
 class Clock(textbase.TextBase):
@@ -20,7 +21,7 @@ class Clock(textbase.TextBase):
         super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
         self.format = ""
 
-        self.timer = QTimer(self)
+        self.timer = usertypes.Timer(self)
         self.timer.timeout.connect(self._show_time)
 
     def _show_time(self):
