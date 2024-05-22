@@ -5,6 +5,7 @@
 """The search match indicator in the statusbar."""
 
 
+from qutebrowser.mainwindow.statusbar.widget import StatusBarWidget
 from qutebrowser.qt.core import pyqtSlot
 
 from qutebrowser.browser import browsertab
@@ -12,9 +13,15 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import log
 
 
-class SearchMatch(textbase.TextBase):
+class SearchMatch(StatusBarWidget, textbase.TextBase):
 
     """The part of the statusbar that displays the search match counter."""
+
+    def enable(self):
+        self.show()
+
+    def disable(self):
+        self.hide()
 
     @pyqtSlot(browsertab.SearchMatch)
     def set_match(self, search_match: browsertab.SearchMatch) -> None:
