@@ -5,14 +5,21 @@
 """Navigation (back/forward) indicator displayed in the statusbar."""
 
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.mainwindow.statusbar.widget import StatusBarWidget
 
 
-class Backforward(textbase.TextBase):
+class Backforward(StatusBarWidget, textbase.TextBase):
 
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.enabled = False
+
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
         self.enabled = False
 
     def on_tab_cur_url_changed(self, tabs):
