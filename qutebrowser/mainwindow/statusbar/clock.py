@@ -5,12 +5,13 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
+from qutebrowser.mainwindow.statusbar.widget import StatusBarWidget
 from qutebrowser.qt.core import Qt, QTimer
 
 from qutebrowser.mainwindow.statusbar import textbase
 
 
-class Clock(textbase.TextBase):
+class Clock(StatusBarWidget, textbase.TextBase):
 
     """Shows current time and date in the statusbar."""
 
@@ -22,6 +23,12 @@ class Clock(textbase.TextBase):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._show_time)
+
+    def enable(self):
+        self.show()
+
+    def disable(self):
+        self.hide()
 
     def _show_time(self):
         """Set text to current time, using self.format as format-string."""
