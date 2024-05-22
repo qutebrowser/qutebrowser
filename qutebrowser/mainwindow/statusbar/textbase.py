@@ -11,7 +11,7 @@ from qutebrowser.qt.gui import QPainter
 from qutebrowser.utils import qtutils, utils
 
 
-class TextBase(QLabel):
+class TextBase(StatusBarWidget, QLabel):
 
     """A text in the statusbar.
 
@@ -30,6 +30,13 @@ class TextBase(QLabel):
         self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         self._elidemode = elidemode
         self._elided_text = ''
+
+    def enable(self):
+        self.show()
+
+    def disable(self):
+        self.hide()
+        self.clear()
 
     def __repr__(self):
         return utils.get_repr(self, text=self.text())
