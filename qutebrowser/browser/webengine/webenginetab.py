@@ -1477,9 +1477,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.network.debug("Asking for credentials")
             answer = shared.authentication_required(
                 url, authenticator, abort_on=[self.abort_questions])
-        if not netrc_success and answer is None:
-            log.network.debug("Aborting auth")
-            sip.assign(authenticator, QAuthenticator())
+            if answer is None:
+                log.network.debug("Aborting auth")
+                sip.assign(authenticator, QAuthenticator())
 
     @pyqtSlot()
     def _on_load_started(self):

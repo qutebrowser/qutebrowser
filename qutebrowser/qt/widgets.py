@@ -26,4 +26,5 @@ else:
     raise machinery.UnknownWrapper()
 
 if machinery.IS_QT5:
+    # pylint: disable=undefined-variable
     del QFileSystemModel  # moved to QtGui in Qt 6

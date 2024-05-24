@@ -10,7 +10,7 @@ DATA: A dict of Option objects after init() has been called.
 """
 
 from typing import (Any, Dict, Iterable, List, Mapping, MutableMapping, Optional,
-                    Sequence, Tuple, Union, cast)
+                    Sequence, Tuple, Union, NoReturn, cast)
 import functools
 import dataclasses
 
@@ -57,7 +57,7 @@ class Migrations:
     deleted: List[str] = dataclasses.field(default_factory=list)
 
 
-def _raise_invalid_node(name: str, what: str, node: Any) -> None:
+def _raise_invalid_node(name: str, what: str, node: Any) -> NoReturn:
     """Raise an exception for an invalid configdata YAML node.
 
     Args:
@@ -94,6 +94,7 @@ def _parse_yaml_type(
         _raise_invalid_node(name, 'type', node)
 
     try:
+        # pylint: disable=possibly-used-before-assignment
         typ = getattr(configtypes, type_name)
     except AttributeError:
         raise AttributeError("Did not find type {} for {}".format(

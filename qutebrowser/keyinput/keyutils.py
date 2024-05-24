@@ -359,6 +359,8 @@ class KeyInfo:
             modifier_classes = (Qt.KeyboardModifier, Qt.KeyboardModifiers)
         elif machinery.IS_QT6:
             modifier_classes = Qt.KeyboardModifier
+        else:
+            raise utils.Unreachable()
         assert isinstance(self.key, Qt.Key), self.key
         assert isinstance(self.modifiers, modifier_classes), self.modifiers
 
