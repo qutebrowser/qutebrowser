@@ -17,6 +17,7 @@ import traceback
 import functools
 import contextlib
 import shlex
+import sysconfig
 import mimetypes
 from typing import (Any, Callable, IO, Iterator,
                     Optional, Sequence, Tuple, List, Type, Union,
@@ -666,7 +667,10 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
-    deadline = 10 if 'CI' in os.environ else 2
+    if "CI" in os.environ or sysconfig.get_config_var("Py_DEBUG"):
+        deadline = 10
+    else:
+        deadline = 2
     if delta > deadline:  # pragma: no cover
         log.misc.warning(
             "YAML load took unusually long, please report this at "
