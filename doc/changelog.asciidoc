@@ -55,6 +55,8 @@ Fixed
   crash anymore (but QtWebEngine still might).
 - Fixed a rare crash in the completion widget when there was no selection model
   when we went to clear that, probably when leaving a mode. (#7901)
+- Worked around a minor issue around QTimers on Windows where the IPC server
+  could close the socket early. (#8191)
 
 [[v3.1.1]]
 v3.1.1 (unreleased)
@@ -110,8 +112,6 @@ Fixed
   evident on Qt 6.6.0. (#7489)
 - The `colors.webpage.darkmode.threshold.foreground` setting (`.text` in older
   versions) now works correctly with Qt 6.4+.
-- Worked around a minor issue around QTimers on Windows where the IPC server
-  could close the socket early. (#8191)
 
 
 [[v3.0.2]]
