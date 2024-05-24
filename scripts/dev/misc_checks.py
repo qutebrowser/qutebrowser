@@ -75,7 +75,7 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
         with open(outfile, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
-                if line.startswith('#') or not line:
+                if line.startswith(('#', '--')) or not line:
                     continue
                 req, _version = recompile_requirements.parse_versioned_line(line)
                 if req.startswith('./'):
