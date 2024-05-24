@@ -948,6 +948,8 @@ class CommandDispatcher:
                     "No window specified and couldn't find active window!")
             assert isinstance(active_win, mainwindow.MainWindow), active_win
             win_id = active_win.win_id
+        else:
+            raise utils.Unreachable(index_parts)
 
         if win_id not in objreg.window_registry:
             raise cmdutils.CommandError(

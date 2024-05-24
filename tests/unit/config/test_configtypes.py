@@ -1602,6 +1602,8 @@ class TestDict:
                       valtype=configtypes.String(),
                       required_keys=['one', 'two'])
             message = 'Required keys .*'
+        else:
+            raise utils.Unreachable(kind)
 
         if ok:
             expectation = testutils.nop_contextmanager()
