@@ -507,7 +507,7 @@ Feature: Various utility commands.
 
     Scenario: Clicking on focused element
         When I open data/click_element.html
-        And I run :fake-key <Tab>
+        And I run :jseval document.getElementById("qute-input").focus()
         And I wait for the javascript message "qute-input focused"
         And I run :click-element focused
         Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
