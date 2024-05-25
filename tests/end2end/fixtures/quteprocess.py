@@ -17,6 +17,7 @@ import contextlib
 import itertools
 import collections
 import json
+import filelock
 
 import yaml
 import pytest
@@ -881,11 +882,26 @@ class QuteProc(testprocess.Process):
 
         temp_path = os.environ.get("RUNNER_TEMP", tempfile.gettempdir())
         screenshot_path = pathlib.Path(temp_path) / "pytest-screenshots"
+
+        lock = filelock.FileLock(screenshot_path / ".pytest.lock")
         if screenshot_path.exists():
-            shutil.rmtree(screenshot_path)
-        screenshot_path.mkdir()
+            # Clean and re-create dir for a new run. Except if the lock file
+            # is being held then we are running in parallel.
+            try:
+                lock.acquire(blocking=False)
+            except filelock.Timeout:
+                pass
+            else:
+                lock.release()
+                shutil.rmtree(screenshot_path)
+                screenshot_path.mkdir()
+                lock.acquire()
+        else:
+            screenshot_path.mkdir()
+            lock.acquire()
 
         self.request.session.stash["screenshot_path"] = screenshot_path
+        self.request.session.stash["screenshot_lock"] = lock
         return screenshot_path
 
     def _take_x11_screenshot_of_failed_test(self):
@@ -908,10 +924,9 @@ class QuteProc(testprocess.Process):
             fname = fname.replace(char, "_")
 
         # TODO:
-        # 1. Keep old directories around?
-        # 2. Will different runs in parallel in CI clobber the folder? Might
-        #    have to put them in subdirs with the process ID if so.
-        # 4. Log a "screenshot saved to ..." message?
+        # 1. Log a "screenshot saved to ..." message so that people know where
+        #    to go look for them when running locally? Using pytest-print? Or
+        #    add an FYI to the report summary?
         fpath = self._get_x11_screenshot_directory() / fname
         img.save(fpath)
 
