@@ -16,6 +16,7 @@ RUN pacman -Su --noconfirm \
       qt6-declarative \
       {% if webengine %}
         qt6-webengine python-pyqt6-webengine \
+        pdfjs \
       {% else %}{{ 1/0 }}{% endif %}
       python-pyqt6 \
     {% else %}
