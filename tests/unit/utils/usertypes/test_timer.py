@@ -71,13 +71,13 @@ def test_timeout_set_interval(qtbot):
 
 
 @pytest.mark.parametrize(
-    "elapsed_ms,expected",
+    "elapsed_ms, expected",
     [
-        (0, False,),
-        (1, False,),
-        (600, True,),
-        (999, True,),
-        (1000, True,),
+        (0, False),
+        (1, False),
+        (600, True),
+        (999, True),
+        (1000, True),
     ],
 )
 def test_early_timeout_check(qtbot, mocker, elapsed_ms, expected):
