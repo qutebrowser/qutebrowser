@@ -9,7 +9,6 @@ env:
   FORCE_COLOR: "1"
   PY_COLORS: "1"
   MYPY_FORCE_TERMINAL_WIDTH: "180"
-  CI_PYTEST_WORKERS: "-n 2"
 
 jobs:
   linters:
@@ -119,7 +118,7 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- $CI_PYTEST_WORKERS"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- -n 2"
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -219,10 +218,10 @@ jobs:
         run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
         if: "startsWith(matrix.os, 'windows-')"
       - name: "Run ${{ matrix.testenv }}"
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- $CI_PYTEST_WORKERS ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- -n 2 ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: "Run ${{ matrix.testenv }} without DBus"
-        run: "tox -e ${{ matrix.testenv }} -- $CI_PYTEST_WORKERS ${{ matrix.args }}"
+        run: "tox -e ${{ matrix.testenv }} -- -n 2 ${{ matrix.args }}"
         if: "!startsWith(matrix.os, 'ubuntu-')"
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
