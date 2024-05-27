@@ -10,8 +10,8 @@ packaging==24.0
 Pygments==2.18.0
 pyproject_hooks==1.1.0
 pyroma==4.2
-requests==2.31.0
+requests==2.32.2
 tomli==2.0.1
-trove-classifiers==2024.5.17
+trove-classifiers==2024.5.22
 urllib3==2.2.1
-zipp==3.18.2
+zipp==3.19.0
