@@ -19,6 +19,13 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.2.0 (unreleased)
 -------------------
 
+Deprecated
+~~~~~~~~~~
+
+- This will be the last feature release supporting macOS 11 Big Sur.
+  Starting with qutebrowser v3.3.0, macOS 12 Monterey will be the oldest
+  supported version.
+
 Added
 ~~~~~
 
@@ -32,6 +39,8 @@ Added
 Changed
 ~~~~~~~
 
+- Windows and macOS releases now ship with Qt 6.7.1, which is based on Chromium
+  118.0.5993.220 with security patches up to 122.0.6261.128.
 - With QtWebEngine 6.7+, the `colors.webpage.darkmode.enabled` setting can now
   be changed at runtime and supports URL patterns (#8182).
 - A few more completions will now match search terms in any order:
@@ -46,9 +55,9 @@ Fixed
 ~~~~~
 
 - `input.insert_mode.auto_load` sometimes not triggering due to a race
-  condition.
+  condition. (#8145)
 - Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
-  bug.
+  bug. (#8143)
 - Trying to use qutebrowser after it's been deleted/moved on disk (e.g. after a
   Python upgrade) should now not crash anymore.
 - When the QtWebEngine resources dir couldn't be found, qutebrowser now doesn't
@@ -59,11 +68,6 @@ Fixed
   could close the socket early. (#8191)
 - The latest PDF.js release (v4.2.67) is now supported when backed by
   QtWebEngine 6.6+ (#8170)
-
-[[v3.1.1]]
-v3.1.1 (unreleased)
--------------------
-
 
 [[v3.1.0]]
 v3.1.0 (2023-12-08)
