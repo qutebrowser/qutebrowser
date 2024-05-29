@@ -5,9 +5,12 @@
 """A keyboard-driven, vim-like browser based on Python and Qt."""
 
 import os.path
+import datetime
+
+_year = datetime.date.today().year
 
 __author__ = "Florian Bruhin"
-__copyright__ = "Copyright 2014-2021 Florian Bruhin (The Compiler)"
+__copyright__ = f"Copyright 2013-{_year} Florian Bruhin (The Compiler)"
 __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
