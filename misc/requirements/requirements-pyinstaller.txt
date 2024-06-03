@@ -5,4 +5,4 @@ importlib_metadata==7.1.0
 packaging==24.0
 pyinstaller==6.7.0
 pyinstaller-hooks-contrib==2024.6
-zipp==3.19.0
+zipp==3.19.1
