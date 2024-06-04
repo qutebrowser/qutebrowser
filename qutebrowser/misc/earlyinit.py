@@ -337,11 +337,11 @@ def early_init(args):
     init_faulthandler()
     # Then we configure the selected Qt wrapper
     info = machinery.init(args)
-    # Init Qt logging after machinery is initialized
-    init_qtlog(args)
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
     check_qt_available(info)
+    # Init Qt logging after machinery is initialized
+    init_qtlog(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_libraries()
