@@ -252,9 +252,9 @@ main inspiration for qutebrowser)
   https://github.com/akhodakivskiy/VimFx[VimFx] (seems to offer a
   https://gir.st/blog/legacyfox.htm[hack] to run on modern Firefox releases),
   https://github.com/shinglyu/QuantumVim[QuantumVim],
-  https://github.com/ueokande/vim-vixen[Vim Vixen] (ESR only),
+  https://github.com/ueokande/vim-vixen[Vim Vixen],
   https://github.com/amedama41/vvimpulation[VVimpulation],
-  https://krabby.netlify.com/[Krabby]
+  https://krabby.netlify.app/[Krabby]
 * Chrome/Chromium addons:
   https://github.com/k2nr/ViChrome/[ViChrome],
   https://github.com/jinzhu/vrome[Vrome],
