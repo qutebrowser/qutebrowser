@@ -6,7 +6,7 @@ bump2version==1.0.1
 certifi==2024.6.2
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==42.0.7
+cryptography==42.0.8
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.7.0
@@ -23,8 +23,8 @@ markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.2.0
 nh3==0.2.17
-packaging==24.0
-pkginfo==1.11.0
+packaging==24.1
+pkginfo==1.11.1
 pycparser==2.22
 Pygments==2.18.0
 PyJWT==2.8.0
@@ -42,7 +42,7 @@ sip==6.8.3
 six==1.16.0
 tomli==2.0.1
 twine==5.1.0
-typing_extensions==4.12.1
+typing_extensions==4.12.2
 uritemplate==4.1.1
 # urllib3==2.2.1
-zipp==3.19.1
+zipp==3.19.2
