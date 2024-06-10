@@ -4,7 +4,7 @@ astroid==3.2.2
 certifi==2024.6.2
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==42.0.7
+cryptography==42.0.8
 dill==0.3.8
 github3.py==4.0.1
 idna==3.7
@@ -14,13 +14,13 @@ pefile==2023.2.7
 platformdirs==4.2.2
 pycparser==2.22
 PyJWT==2.8.0
-pylint==3.2.2
+pylint==3.2.3
 python-dateutil==2.9.0.post0
 ./scripts/dev/pylint_checkers
 requests==2.32.3
 six==1.16.0
 tomli==2.0.1
 tomlkit==0.12.5
-typing_extensions==4.12.1
+typing_extensions==4.12.2
 uritemplate==4.1.1
 # urllib3==2.2.1

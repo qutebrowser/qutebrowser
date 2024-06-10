@@ -10,7 +10,7 @@ imagesize==1.4.1
 importlib_metadata==7.1.0
 Jinja2==3.1.4
 MarkupSafe==2.1.5
-packaging==24.0
+packaging==24.1
 Pygments==2.18.0
 pytz==2024.1
 requests==2.32.3
@@ -23,4 +23,4 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 urllib3==2.2.1
-zipp==3.19.1
+zipp==3.19.2
