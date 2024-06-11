@@ -16,6 +16,7 @@ import subprocess
 import argparse
 import tarfile
 import tempfile
+import platform
 import collections
 import dataclasses
 import re
@@ -301,8 +302,10 @@ def build_mac(
     dmg_makefile_path = REPO_ROOT / "scripts" / "dev" / "Makefile-dmg"
     subprocess.run(['make', '-f', dmg_makefile_path], check=True)
 
+    arch = platform.machine()
     suffix = "-debug" if debug else ""
     suffix += "-qt5" if qt5 else ""
+    suffix += f"-{arch}"
     dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
     pathlib.Path('qutebrowser.dmg').rename(dmg_path)
 
@@ -322,11 +325,14 @@ def build_mac(
     except PermissionError as e:
         print(f"Failed to remove tempdir: {e}")
 
+    arch_to_desc = {"x86_64": "Intel", "arm64": "Apple Silicon"}
+    desc_arch = arch_to_desc[arch]
+
     return [
         Artifact(
             path=dmg_path,
             mimetype='application/x-apple-diskimage',
-            description='macOS .dmg'
+            description=f'macOS .dmg ({desc_arch})'
         )
     ]
 
