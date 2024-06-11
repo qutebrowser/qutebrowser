@@ -183,6 +183,11 @@ jobs:
             os: macos-12
             python: "3.12"
             args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Sonoma (M1 runner)
+          - testenv: py312-pyqt67
+            os: macos-14
+            python: "3.12"
+            args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
           - testenv: py312-pyqt67
             os: windows-2019

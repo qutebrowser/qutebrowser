@@ -127,6 +127,7 @@ jobs:
       matrix:
         include:
           - os: macos-11
+          - os: macos-14
           - os: windows-2019
           - os: ubuntu-20.04
     runs-on: "${{ matrix.os }}"

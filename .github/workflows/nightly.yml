@@ -30,14 +30,20 @@ jobs:
             name: qt5-windows-debug
           - os: macos-11
             toxenv: build-release
-            name: macos
+            name: macos-intel
+          - os: macos-14
+            toxenv: build-release
+            name: macos-apple-silicon
           - os: windows-2019
             toxenv: build-release
             name: windows
           - os: macos-11
             args: --debug
             toxenv: build-release
-            name: macos-debug
+            name: macos-debug-intel
+          - os: macos-14
+            toxenv: build-release
+            name: macos-debug-apple-silicon
           - os: windows-2019
             args: --debug
             toxenv: build-release
