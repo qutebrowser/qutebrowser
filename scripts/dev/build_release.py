@@ -683,7 +683,8 @@ def main() -> None:
     parser.add_argument('--qt5', action='store_true', required=False,
                         help="Build against PyQt5")
     parser.add_argument('--experimental', action='store_true', required=False,
-                        help="Upload to experiments repo and test PyPI")
+                        default=os.environ.get("GITHUB_REPOSITORY") == "qutebrowser/experiments",
+                        help="Upload to experiments repo and test PyPI. Set automatically if on qutebrowser/experiments CI.")
     args = parser.parse_args()
     utils.change_cwd()
 
