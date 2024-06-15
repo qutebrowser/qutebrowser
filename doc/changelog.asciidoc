@@ -25,6 +25,13 @@ Added
 - There is now a separate macOS release built for Apple Silicon. A Universal
   Binary might follow with a later release.
 
+Changed
+~~~~~~~
+
+- The qute-pass userscript now has better support for internationalized domain
+  names when using the pass backend - both domain names and secret paths are
+  normalized before comparing (#8133)
+
 [[v3.2.1]]
 v3.2.1 (unreleased)
 -------------------
