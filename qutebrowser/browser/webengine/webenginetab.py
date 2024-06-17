@@ -150,6 +150,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._pending_searches = 0
         self.match = browsertab.SearchMatch()
         self._old_match = browsertab.SearchMatch()
+        self._debounce_timer = usertypes.Timer(self)
+        self._debounce_timer.setSingleShot(True)
 
     def _store_flags(self, reverse, ignore_case):
         self._flags.case_sensitive = self._is_case_sensitive(ignore_case)
@@ -212,7 +214,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         log.webview.debug(f"Active search match: {self.match}")
         self.match_changed.emit(self.match)
 
-    def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
+    def _search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
                reverse=False, result_cb=None):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
@@ -226,6 +228,20 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self.match.reset()
 
         self._find(text, self._flags, result_cb, 'search')
+
+    def search(self, *args, **kwargs):
+        delay = config.val.search.delay
+        if delay:
+            self._debounce_timer.stop()
+
+            self._debounce_timer.timeout.disconnect()
+            self._debounce_timer.timeout.connect(
+                lambda: self._search(*args, **kwargs)
+            )
+
+            self._debounce_timer.start(delay)
+        else:
+            self._search(*args, **kwargs)
 
     def clear(self):
         if self.search_displayed:
