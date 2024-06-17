@@ -32,7 +32,7 @@ jobs:
         with:
           username: qutebrowser
           password: ${{ secrets.DOCKER_TOKEN }}
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           file: scripts/dev/ci/docker/Dockerfile
           context: .
