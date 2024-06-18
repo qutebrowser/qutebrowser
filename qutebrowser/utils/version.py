@@ -548,6 +548,7 @@ class WebEngineVersions:
         108: '108.0.5359.220',  # ~2022-12-23
         112: '112.0.5615.213',  # ~2023-04-18
         118: '118.0.5993.220',  # ~2023-10-24
+        # 122: '122.?.????.???',  # ~2024-??-??
     }
 
     _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, Tuple[str, Optional[str]]]] = {
@@ -626,6 +627,10 @@ class WebEngineVersions:
         ## Qt 6.7
         utils.VersionNumber(6, 7): (_BASES[118], '122.0.6261.128'),  # 2024-03-12
         utils.VersionNumber(6, 7, 1): (_BASES[118], '124.0.6367.202'),  # ~2024-05-09
+        utils.VersionNumber(6, 7, 2): (_BASES[118], '125.0.6422.142'),  # 2024-05-30
+
+        ## Qt 6.8
+        # utils.VersionNumber(6, 8): (_BASES[122], '???'),  # 2024-03-12
     }
 
     def __post_init__(self) -> None:
