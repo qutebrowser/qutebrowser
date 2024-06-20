@@ -2,7 +2,7 @@ FROM archlinux:latest
 
 RUN pacman-key --init && pacman-key --populate
 {% if unstable %}
-RUN sed -i '/^# after the header/a[kde-unstable]\nInclude = /etc/pacman.d/mirrorlist\n\n[testing]\nInclude = /etc/pacman.d/mirrorlist\n\n[community-testing]\nInclude = /etc/pacman.d/mirrorlist' /etc/pacman.conf
+RUN sed -i '/^# after the header/a[kde-unstable]\nInclude = /etc/pacman.d/mirrorlist\n\n[core-testing]\nInclude = /etc/pacman.d/mirrorlist\n\n[extra-testing]\nInclude = /etc/pacman.d/mirrorlist' /etc/pacman.conf
 {% endif %}
 RUN pacman -Sy --noconfirm archlinux-keyring
 RUN pacman -Su --noconfirm \
