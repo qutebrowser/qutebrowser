@@ -30,6 +30,10 @@ Removed
 
 - Support for macOS 11 Big Sur is dropped. Binaries are now built on macOS 12
   Monterey and are unlikely to still run on older macOS versions.
+- Failed end2end tests will now save screenshots of the browser window when
+  run under xvfb (the default on linux). Screenshots will be under
+  `$TEMP/pytest-current/pytest-screenshots/` or attached to the GitHub actions
+  run as an artifact. (#7625)
 
 Changed
 ~~~~~~~
