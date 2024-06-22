@@ -112,7 +112,7 @@ Feature: Prompts
         Then the javascript message "notification permission granted" should be logged
         And "Added quickmark test for *" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: Async question interrupted by blocking one
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -251,6 +251,7 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
+    @qt68_beta1_xfail
     Scenario: geolocation with ask -> false
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -259,6 +260,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "geolocation permission denied" should be logged
 
+    @qt68_beta1_xfail
     Scenario: geolocation with ask -> false and save
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -268,6 +270,7 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
         And the per-domain option content.geolocation should be set to false for http://localhost:(port)
 
+    @qt68_beta1_xfail
     Scenario: geolocation with ask -> abort
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -278,7 +281,7 @@ Feature: Prompts
 
     # Notifications
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: Always rejecting notifications
         Given I have a fresh instance
         When I set content.notifications.enabled to false
@@ -286,7 +289,7 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: Always accepting notifications
         Given I have a fresh instance
         When I set content.notifications.enabled to true
@@ -294,7 +297,7 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: notifications with ask -> false
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -304,7 +307,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: notifications with ask -> false and save
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -315,7 +318,7 @@ Feature: Prompts
         Then the javascript message "notification permission denied" should be logged
         And the per-domain option content.notifications.enabled should be set to false for http://localhost:(port)
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: notifications with ask -> true
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -325,7 +328,7 @@ Feature: Prompts
         And I run :prompt-accept yes
         Then the javascript message "notification permission granted" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: notifications with ask -> true and save
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -347,7 +350,7 @@ Feature: Prompts
         And I run :mode-leave
         Then the javascript message "notification permission aborted" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: answering notification after closing tab
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
@@ -521,7 +524,7 @@ Feature: Prompts
 
     # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
-    @qtwebkit_skip
+    @qtwebkit_skip @qt68_beta1_xfail
     Scenario: Interrupting SSL prompt during a notification prompt
         Given I have a fresh instance
         When I set content.notifications.enabled to ask
