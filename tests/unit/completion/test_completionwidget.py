@@ -146,6 +146,18 @@ def test_completion_item_focus_no_model(which, completionview, model, qtbot):
         completionview.completion_item_focus(which)
 
 
+def test_models_deleted_on_clear(completionview, model, qtbot):
+    """Ensure set_model(None) deleted the model and selmodel."""
+    completionview.set_model(model)
+    selmod = completionview._selection_model()
+    completionview.set_model(None)
+
+    with qtbot.wait_signal(model.destroyed):
+        pass
+    with qtbot.wait_signal(selmod.destroyed):
+        pass
+
+
 @pytest.mark.skip("Seems to disagree with reality, see #5897")
 def test_completion_item_focus_fetch(completionview, model, qtbot):
     """Test that on_next_prev_item moves the selection properly."""
