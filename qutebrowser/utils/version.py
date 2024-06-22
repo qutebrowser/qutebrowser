@@ -630,7 +630,9 @@ class WebEngineVersions:
         utils.VersionNumber(6, 7, 2): (_BASES[118], '125.0.6422.142'),  # 2024-05-30
 
         ## Qt 6.8
-        # utils.VersionNumber(6, 8): (_BASES[122], '???'),  # 2024-03-12
+        # WORKAROUND for 6.8 chromium not being up to date yet. These numbers
+        # will need to be bumped at least once before it's released.
+        utils.VersionNumber(6, 8): (_BASES[118], '122.0.6261.128'),  # 2024-03-12
     }
 
     def __post_init__(self) -> None:
