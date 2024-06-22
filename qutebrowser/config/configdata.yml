@@ -2602,7 +2602,7 @@ url.yank_ignored_parameters:
     - utm_term
     - utm_content
     - utm_name
-  desc: URL parameters to strip with `:yank url`.
+  desc: URL parameters to strip when yanking a URL.
 
 ## window
 
@@ -3722,8 +3722,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
-      ym: yank inline [{title}]({url})
-      yM: yank inline [{title}]({url}) -s
+      ym: yank inline [{title}]({url:yank})
+      yM: yank inline [{title}]({url:yank}) -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}

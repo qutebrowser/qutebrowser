@@ -12,7 +12,7 @@ import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop)
+                          QItemSelectionModel, QObject, QEventLoop, QUrl)
 from qutebrowser.qt.widgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QTreeView, QSizePolicy,
                              QSpacerItem, QFileIconProvider)
@@ -23,7 +23,7 @@ from qutebrowser.config import config, configtypes, configexc, stylesheet
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import urlmatch
+from qutebrowser.utils import urlmatch, urlutils
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -452,8 +452,9 @@ class PromptContainer(QWidget):
         else:
             sel = False
             target = 'clipboard'
-        utils.set_clipboard(question.url, sel)
-        message.info("Yanked to {}: {}".format(target, question.url))
+        url_str = urlutils.get_url_yank_text(QUrl(question.url), pretty=False)
+        utils.set_clipboard(url_str, sel)
+        message.info("Yanked to {}: {}".format(target, url_str))
 
     @cmdutils.register(
         instance='prompt-container', scope='window',

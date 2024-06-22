@@ -13,7 +13,7 @@ from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, parser
-from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils, urlutils
 from qutebrowser.keyinput import macros, modeman
 
 if TYPE_CHECKING:
@@ -57,6 +57,8 @@ def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
             _url(tb).port()) if _url(tb).port() != -1 else "",
         'url:path': lambda tb: _url(tb).path(),
         'url:query': lambda tb: _url(tb).query(),
+        'url:yank': lambda tb: urlutils.get_url_yank_text(_url(tb),
+                                                          pretty=False),
         'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
         'clipboard': lambda _: utils.get_clipboard(),
         'primary': lambda _: utils.get_clipboard(selection=True),
