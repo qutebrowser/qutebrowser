@@ -119,6 +119,21 @@ jobs:
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
+          path: |
+            ${{ runner.temp }}/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -236,6 +251,21 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           name: "${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
+          path: |
+            ${{ runner.temp }}/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"

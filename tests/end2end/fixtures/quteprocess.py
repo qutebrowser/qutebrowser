@@ -5,8 +5,10 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import pathlib
+import os
 import re
 import sys
+import shutil
 import time
 import datetime
 import logging
@@ -15,9 +17,11 @@ import contextlib
 import itertools
 import collections
 import json
+import filelock
 
 import yaml
 import pytest
+from PIL.ImageGrab import grab
 from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
 from qutebrowser.qt.gui import QImage, QColor
 
@@ -412,7 +416,8 @@ class QuteProc(testprocess.Process):
                 '--debug-flag', 'werror',
                 '--debug-flag', 'test-notification-service',
                 '--debug-flag', 'caret',
-                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
+                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin',
+                '--qt-arg', 'geometry', '800x600+0+0']
 
         if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
             args += testutils.DISABLE_SECCOMP_BPF_ARGS
@@ -541,6 +546,8 @@ class QuteProc(testprocess.Process):
         except AttributeError:
             pass
         else:
+            if call.failed:
+                self._take_x11_screenshot_of_failed_test()
             if call.failed or hasattr(call, 'wasxfail') or call.skipped:
                 super().after_test()
                 return
@@ -867,6 +874,61 @@ class QuteProc(testprocess.Process):
         if no_scroll_filtering:
             self.send_cmd(cmd.format('no-scroll-filtering'))
         self.send_cmd(cmd.format('log-scroll-pos'))
+
+    def _get_x11_screenshot_directory(self):
+        screenshot_path = self.request.session.stash.get("screenshot_path", None)
+        if screenshot_path:
+            return screenshot_path
+
+        temp_path = os.environ.get("RUNNER_TEMP", tempfile.gettempdir())
+        screenshot_path = pathlib.Path(temp_path) / "pytest-screenshots"
+
+        lock = filelock.FileLock(screenshot_path / ".pytest.lock")
+        if screenshot_path.exists():
+            # Clean and re-create dir for a new run. Except if the lock file
+            # is being held then we are running in parallel.
+            try:
+                lock.acquire(blocking=False)
+            except filelock.Timeout:
+                pass
+            else:
+                lock.release()
+                shutil.rmtree(screenshot_path)
+                screenshot_path.mkdir()
+                lock.acquire()
+        else:
+            screenshot_path.mkdir()
+            lock.acquire()
+
+        self.request.session.stash["screenshot_path"] = screenshot_path
+        self.request.session.stash["screenshot_lock"] = lock
+        return screenshot_path
+
+    def _take_x11_screenshot_of_failed_test(self):
+        # Take a basic X11 image grab using pillow. If we want to do something
+        # fancy like autocropping see pyvirtualdisplay smartdisplay for
+        # inspiration.
+        xvfb = self.request.getfixturevalue('xvfb')
+        if not xvfb:
+            # Likely we are being run with --no-xvfb
+            return
+
+        img = grab(xdisplay=f":{xvfb.display}")
+
+        current_test = self.request.node.nodeid
+        fname = f"{datetime.datetime.now().isoformat()}-{current_test.replace('/', '_')}.png"
+        # upload-artifacts says it doesn't allow these characters if it sees
+        # one of them.
+        bad_chars = '":<>|*?\r\n'
+        for char in bad_chars:
+            fname = fname.replace(char, "_")
+
+        # TODO:
+        # 1. Log a "screenshot saved to ..." message so that people know where
+        #    to go look for them when running locally? Using pytest-print? Or
+        #    add an FYI to the report summary?
+        fpath = self._get_x11_screenshot_directory() / fname
+        img.save(fpath)
 
 
 class YamlLoader(yaml.SafeLoader):

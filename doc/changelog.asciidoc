@@ -24,6 +24,10 @@ Added
 
 - There is now a separate macOS release built for Apple Silicon. A Universal
   Binary might follow with a later release.
+- Failed end2end tests will now save screenshots of the browser window when
+  run under xvfb (the default). Screenshots will be under
+  `$TEMP/pytest-screenshots/` or attached to the GitHub actions run as an
+  artifact. (#7625)
 
 Changed
 ~~~~~~~

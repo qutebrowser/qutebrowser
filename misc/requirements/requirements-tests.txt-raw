@@ -25,6 +25,7 @@ pytest-cov
 # To avoid windows from popping up
 pytest-xvfb
 PyVirtualDisplay
+pillow
 # To run on multiple cores with -n
 pytest-xdist
 
