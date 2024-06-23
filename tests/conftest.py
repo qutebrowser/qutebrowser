@@ -11,6 +11,7 @@ import ssl
 
 import pytest
 import hypothesis
+import hypothesis.database
 
 pytest.register_assert_rewrite('helpers')
 
@@ -33,10 +34,19 @@ _qute_scheme_handler = None
 
 
 # Set hypothesis settings
+hypotheses_optional_kwargs = {}
+if "HYPOTHESIS_EXAMPLES_DIR" in os.environ:
+    hypotheses_optional_kwargs[
+        "database"
+    ] = hypothesis.database.DirectoryBasedExampleDatabase(
+        os.environ["HYPOTHESIS_EXAMPLES_DIR"]
+    )
+
 hypothesis.settings.register_profile(
     'default', hypothesis.settings(
         deadline=600,
         suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
+        **hypotheses_optional_kwargs,
     )
 )
 hypothesis.settings.register_profile(
@@ -45,7 +55,8 @@ hypothesis.settings.register_profile(
         suppress_health_check=[
             hypothesis.HealthCheck.function_scoped_fixture,
             hypothesis.HealthCheck.too_slow
-        ]
+        ],
+        **hypotheses_optional_kwargs,
     )
 )
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
