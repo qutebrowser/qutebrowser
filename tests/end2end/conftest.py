@@ -187,7 +187,7 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-        ('qt68_beta1_xfail',
+        ('qt68_beta1_skip',  # WORKAROUND: Qt6.8b1 https://bugreports.qt.io/browse/QTBUG-126595
          "Fails on Qt 6.8 beta 1",
          pytest.mark.xfail,
          machinery.IS_QT6 and version.qtwebengine_versions(
