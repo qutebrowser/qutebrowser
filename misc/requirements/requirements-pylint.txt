@@ -23,4 +23,4 @@ tomli==2.0.1
 tomlkit==0.12.5
 typing_extensions==4.12.2
 uritemplate==4.1.1
-# urllib3==2.2.1
+# urllib3==2.2.2

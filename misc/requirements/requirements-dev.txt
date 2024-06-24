@@ -11,7 +11,7 @@ docutils==0.20.1
 github3.py==4.0.1
 hunter==3.7.0
 idna==3.7
-importlib_metadata==7.1.0
+importlib_metadata==7.2.1
 importlib_resources==6.4.0
 jaraco.classes==3.4.0
 jaraco.context==5.3.0
@@ -30,7 +30,7 @@ Pygments==2.18.0
 PyJWT==2.8.0
 Pympler==1.0.1
 pyproject_hooks==1.1.0
-PyQt-builder==1.16.2
+PyQt-builder==1.16.3
 python-dateutil==2.9.0.post0
 readme_renderer==43.0
 requests==2.32.3
@@ -38,11 +38,11 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.7.1
 SecretStorage==3.3.3
-sip==6.8.3
+sip==6.8.5
 six==1.16.0
 tomli==2.0.1
 twine==5.1.0
 typing_extensions==4.12.2
 uritemplate==4.1.1
-# urllib3==2.2.1
+# urllib3==2.2.2
 zipp==3.19.2
