@@ -7,7 +7,7 @@ charset-normalizer==3.3.2
 docutils==0.20.1
 idna==3.7
 imagesize==1.4.1
-importlib_metadata==7.1.0
+importlib_metadata==7.2.1
 Jinja2==3.1.4
 MarkupSafe==2.1.5
 packaging==24.1
@@ -22,5 +22,5 @@ sphinxcontrib-htmlhelp==2.0.1
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
-urllib3==2.2.1
+urllib3==2.2.2
 zipp==3.19.2

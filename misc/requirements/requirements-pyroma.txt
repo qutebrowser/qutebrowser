@@ -5,7 +5,7 @@ certifi==2024.6.2
 charset-normalizer==3.3.2
 docutils==0.20.1
 idna==3.7
-importlib_metadata==7.1.0
+importlib_metadata==7.2.1
 packaging==24.1
 Pygments==2.18.0
 pyproject_hooks==1.1.0
@@ -13,5 +13,5 @@ pyroma==4.2
 requests==2.32.3
 tomli==2.0.1
 trove-classifiers==2024.5.22
-urllib3==2.2.1
+urllib3==2.2.2
 zipp==3.19.2
