@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.2.1 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 6.7.2, which includes security fixes
+  up to Chromium 125.0.6422.142.
+
 Fixed
 ~~~~~
 
