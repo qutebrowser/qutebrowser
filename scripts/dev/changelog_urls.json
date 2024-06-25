@@ -22,7 +22,7 @@
   "Flask": "https://flask.palletsprojects.com/en/latest/changes/",
   "Mako": "https://docs.makotemplates.org/en/latest/changelog.html",
   "hypothesis": "https://hypothesis.readthedocs.io/en/latest/changes.html",
-  "mypy": "https://mypy-lang.blogspot.com/",
+  "mypy": "https://github.com/python/mypy/blob/master/CHANGELOG.md",
   "types-PyYAML": "https://github.com/python/typeshed/commits/main/stubs/PyYAML",
   "types-colorama": "https://github.com/python/typeshed/commits/main/stubs/colorama",
   "types-docutils": "https://github.com/python/typeshed/commits/main/stubs/docutils",
