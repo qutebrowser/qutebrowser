@@ -100,7 +100,7 @@
   "PyQt-builder": "https://pyqt-builder.readthedocs.io/en/stable/releases.html",
   "PyQt5-sip": "https://www.riverbankcomputing.com/news",
   "PyQt5-stubs": "https://github.com/python-qt-tools/PyQt5-stubs/blob/master/CHANGELOG.md",
-  "sip": "https://www.riverbankcomputing.com/news",
+  "sip": "https://python-sip.readthedocs.io/en/stable/releases.html",
   "PyQt6": "https://www.riverbankcomputing.com/news",
   "PyQt6-Qt6": "https://www.riverbankcomputing.com/news",
   "PyQt6-WebEngine": "https://www.riverbankcomputing.com/news",
