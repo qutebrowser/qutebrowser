@@ -27,8 +27,7 @@ def restore_loggers():
     """
     logging.captureWarnings(False)
     logger_dict = logging.getLogger().manager.loggerDict
-    logging._acquireLock()
-    try:
+    with logging._lock:
         saved_handlers = logging._handlers.copy()
         saved_handler_list = logging._handlerList[:]
         saved_loggers = saved_loggers = logger_dict.copy()
@@ -37,8 +36,6 @@ def restore_loggers():
         logger_states = {}
         for name in saved_loggers:
             logger_states[name] = getattr(saved_loggers[name], 'disabled', None)
-    finally:
-        logging._releaseLock()
 
     root_logger = logging.getLogger("")
     root_handlers = root_logger.handlers[:]
