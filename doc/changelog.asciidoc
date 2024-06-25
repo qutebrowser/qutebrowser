@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.2.1 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- There is now a separate macOS release built for Apple Silicon. A Universal
+  Binary might follow with a later release.
+
 Changed
 ~~~~~~~
 
