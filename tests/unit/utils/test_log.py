@@ -53,8 +53,8 @@ def restore_loggers():
         if not isinstance(h, _pytest.logging.LogCaptureHandler):
             # https://github.com/qutebrowser/qutebrowser/issues/856
             root_logger.addHandler(h)
-    logging._acquireLock()
-    try:
+
+    with logging._lock:
         logging._levelToName.clear()
         logging._levelToName.update(saved_level_to_name)
         logging._nameToLevel.clear()
@@ -68,8 +68,6 @@ def restore_loggers():
         for name, state in logger_states.items():
             if state is not None:
                 saved_loggers[name].disabled = state
-    finally:
-        logging._releaseLock()
 
 
 @pytest.fixture(scope='session')
