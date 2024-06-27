@@ -173,14 +173,14 @@ jobs:
           - testenv: py312-pyqt67
             os: ubuntu-22.04
             python: "3.12"
-          ### macOS Big Sur
-          - testenv: py312-pyqt67
-            os: macos-11
-            python: "3.12"
-            args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Monterey
           - testenv: py312-pyqt67
             os: macos-12
+            python: "3.12"
+            args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Ventura
+          - testenv: py312-pyqt67
+            os: macos-13
             python: "3.12"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)

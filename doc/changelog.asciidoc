@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.3.0 (unreleased)
 -------------------
 
+Removed
+~~~~~~~
+
+- Support for macOS 11 Big Sur is dropped. Binaries are now built on macOS 12
+  Monterey and are unlikely to still run on older macOS versions.
+
 Changed
 ~~~~~~~
 

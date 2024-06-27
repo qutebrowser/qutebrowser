@@ -14,13 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
+          - os: macos-12
             toxenv: build-release-qt5
             name: qt5-macos
           - os: windows-2019
             toxenv: build-release-qt5
             name: qt5-windows
-          - os: macos-11
+          - os: macos-12
             args: --debug
             toxenv: build-release-qt5
             name: qt5-macos-debug
@@ -28,7 +28,7 @@ jobs:
             args: --debug
             toxenv: build-release-qt5
             name: qt5-windows-debug
-          - os: macos-11
+          - os: macos-12
             toxenv: build-release
             name: macos-intel
           - os: macos-14
@@ -37,7 +37,7 @@ jobs:
           - os: windows-2019
             toxenv: build-release
             name: windows
-          - os: macos-11
+          - os: macos-12
             args: --debug
             toxenv: build-release
             name: macos-debug-intel
