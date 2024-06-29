@@ -61,7 +61,8 @@ RUN cd ~ && \
     cd python310 && \
     makepkg -si --noconfirm
 USER root
-RUN python3 -m pip install tox pyqt5-sip
+RUN python3.10 -m ensurepip
+RUN python3.10 -m pip install tox pyqt5-sip
 {% endif %}
 
 {% if qt6 %}
@@ -70,9 +71,11 @@ RUN python3 -m pip install tox pyqt5-sip
   {% set pyqt_module = 'PyQt5' %}
 {% endif %}
 {% if webengine %}
-  RUN python3 -c "from {{ pyqt_module }} import QtWebEngineCore, QtWebEngineWidgets"
+  {% set python = 'python3' %}
+  RUN {{ python }} -c "from {{ pyqt_module }} import QtWebEngineCore, QtWebEngineWidgets"
 {% else %}
-  RUN python3 -c "from {{ pyqt_module }} import QtWebKit, QtWebKitWidgets"
+  {% set python = 'python3.10' %}
+  RUN {{ python }} -c "from {{ pyqt_module }} import QtWebKit, QtWebKitWidgets"
 {% endif %}
 
 USER user
@@ -81,4 +84,4 @@ RUN git config --global --add safe.directory /outside/.git
 
 CMD git clone /outside qutebrowser.git && \
     cd qutebrowser.git && \
-    tox -e {% if qt6 %}py-qt6{% else %}py-qt5{% endif %}
+    {{ python }} -m tox -e {% if qt6 %}py-qt6{% else %}py-qt5{% endif %}
