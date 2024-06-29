@@ -36,11 +36,14 @@ RUN pacman -Su --noconfirm \
     libyaml \
     xorg-xdpyinfo
 
+RUN useradd user -u 1001 && \
+    mkdir /home/user && \
+    chown user:users /home/user
+
 {% if not webengine %}
 RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-webkit/qt5-webkit-5.212.0alpha4-18-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/p/python-pyqt5/python-pyqt5-5.15.7-2-x86_64.pkg.tar.zst \
-    https://archive.archlinux.org/packages/p/python/python-3.10.10-1-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/i/icu/icu-72.1-2-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/l/libxml2/libxml2-2.10.4-4-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/q/qt5-base/qt5-base-5.15.10%2Bkde%2Br129-3-x86_64.pkg.tar.zst \
@@ -49,8 +52,15 @@ RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-sensors/qt5-sensors-5.15.10-1-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/q/qt5-location/qt5-location-5.15.10%2Bkde%2Br5-1-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/q/qt5-webchannel/qt5-webchannel-5.15.10%2Bkde%2Br3-1-x86_64.pkg.tar.zst
+RUN pacman -S --noconfirm base-devel
 
-RUN python3 -m ensurepip
+RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers  # needed for makepkg
+USER user
+RUN cd ~ && \
+    git clone https://aur.archlinux.org/python310.git && \
+    cd python310 && \
+    makepkg -si --noconfirm
+USER root
 RUN python3 -m pip install tox pyqt5-sip
 {% endif %}
 
@@ -65,9 +75,6 @@ RUN python3 -m pip install tox pyqt5-sip
   RUN python3 -c "from {{ pyqt_module }} import QtWebKit, QtWebKitWidgets"
 {% endif %}
 
-RUN useradd user -u 1001 && \
-    mkdir /home/user && \
-    chown user:users /home/user
 USER user
 WORKDIR /home/user
 RUN git config --global --add safe.directory /outside/.git
