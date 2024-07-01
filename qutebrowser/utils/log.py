@@ -547,7 +547,7 @@ class ColoredFormatter(logging.Formatter):
             log_color = LOG_COLORS[record.levelname]
             color_dict['log_color'] = COLOR_ESCAPES[log_color]
         else:
-            color_dict = {color: '' for color in COLOR_ESCAPES}
+            color_dict = dict.fromkeys(COLOR_ESCAPES, "")
             color_dict['reset'] = ''
             color_dict['log_color'] = ''
         record.__dict__.update(color_dict)

@@ -623,7 +623,7 @@ def test_path_info(monkeypatch, equal):
 @pytest.fixture
 def import_fake(stubs, monkeypatch):
     """Fixture to patch imports using ImportFake."""
-    fake = stubs.ImportFake({mod: True for mod in version.MODULE_INFO}, monkeypatch)
+    fake = stubs.ImportFake(dict.fromkeys(version.MODULE_INFO, True), monkeypatch)
     fake.patch()
     return fake
 
