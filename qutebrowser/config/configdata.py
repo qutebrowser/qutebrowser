@@ -94,7 +94,6 @@ def _parse_yaml_type(
         _raise_invalid_node(name, 'type', node)
 
     try:
-        # pylint: disable=possibly-used-before-assignment
         typ = getattr(configtypes, type_name)
     except AttributeError:
         raise AttributeError("Did not find type {} for {}".format(
@@ -183,7 +182,6 @@ def _parse_yaml_backends(
     elif isinstance(node, dict):
         return _parse_yaml_backends_dict(name, node)
     _raise_invalid_node(name, 'backends', node)
-    raise utils.Unreachable
 
 
 def _read_yaml(
