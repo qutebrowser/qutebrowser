@@ -4,7 +4,7 @@ attrs==23.2.0
 flake8==7.1.0
 flake8-bugbear==24.4.26
 flake8-builtins==2.5.0
-flake8-comprehensions==3.14.0
+flake8-comprehensions==3.15.0
 flake8-debugger==4.1.2
 flake8-deprecated==2.2.1
 flake8-docstrings==1.7.0

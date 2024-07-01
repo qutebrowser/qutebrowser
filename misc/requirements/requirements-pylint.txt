@@ -14,7 +14,7 @@ pefile==2023.2.7
 platformdirs==4.2.2
 pycparser==2.22
 PyJWT==2.8.0
-pylint==3.2.3
+pylint==3.2.5
 python-dateutil==2.9.0.post0
 ./scripts/dev/pylint_checkers
 requests==2.32.3
