@@ -4,7 +4,7 @@
 
 """Completion view for statusbar command section.
 
-Defines a CompletionView which uses CompletionFiterModel and CompletionModel
+Defines a CompletionView which uses CompletionFilterModel and CompletionModel
 subclasses to provide completions.
 """
 

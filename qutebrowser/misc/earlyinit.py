@@ -175,7 +175,7 @@ def qt_version(qversion=None, qt_version_str=None):
 
 
 def get_qt_version():
-    """Get the Qt version, or None if too old for QLibaryInfo.version()."""
+    """Get the Qt version, or None if too old for QLibraryInfo.version()."""
     try:
         from qutebrowser.qt.core import QLibraryInfo
         return QLibraryInfo.version().normalized()

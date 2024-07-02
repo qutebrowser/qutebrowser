@@ -16,7 +16,7 @@ from qutebrowser.utils import qtlog, usertypes
 
 
 class HTTPRequest(QNetworkRequest):
-    """A QNetworkRquest that follows (secure) redirects by default."""
+    """A QNetworkRequest that follows (secure) redirects by default."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

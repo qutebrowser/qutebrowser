@@ -696,7 +696,7 @@ class TabBar(QTabBar):
 
         # Re-do the text elision that the base QTabBar does, but using a text
         # rectangle computed by out TabBarStyle. With Qt6 the base class ends
-        # up using QCommonStyle directly for that which has a different opinon
+        # up using QCommonStyle directly for that which has a different opinion
         # of how vertical tabs should work.
         text_rect = self._our_style.subElementRect(
             QStyle.SubElement.SE_TabBarTabText,

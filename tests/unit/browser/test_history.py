@@ -224,7 +224,7 @@ class TestAdd:
         assert list(web_history)
         assert not list(web_history.completion)
 
-    def test_no_immedate_duplicates(self, web_history, mock_time):
+    def test_no_immediate_duplicates(self, web_history, mock_time):
         url = QUrl("http://example.com")
         url2 = QUrl("http://example2.com")
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
