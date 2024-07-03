@@ -11,7 +11,7 @@ from qutebrowser.mainwindow.statusbar import backforward
 
 @pytest.fixture
 def backforward_widget(qtbot):
-    widget = backforward.Backforward()
+    widget = backforward.BackforwardWidget()
     qtbot.add_widget(widget)
     return widget
 

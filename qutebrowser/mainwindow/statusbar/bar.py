@@ -183,7 +183,7 @@ class StatusBar(QWidget):
 
         self.url = url.UrlText()
         self.percentage = percentage.Percentage()
-        self.backforward = backforward.Backforward()
+        self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
@@ -242,6 +242,12 @@ class StatusBar(QWidget):
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
             widget = self._get_widget_from_config(segment)
+
+            # FIXME(pylbrecht): temporary workaround until we have StatusBarItem
+            # instances for all widgets.
+            if isinstance(widget, (url.UrlText, backforward.Backforward)):
+                widget = widget.widget
+
             self._hbox.addWidget(widget)
 
             if segment == 'scroll_raw':
@@ -269,10 +275,10 @@ class StatusBar(QWidget):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
-                       self.backforward, self.tabindex,
+                       self.backforward.widget, self.tabindex,
                        self.keystring, self.prog, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
-            if widget in [self.prog, self.backforward]:
+            if widget in [self.prog, self.backforward.widget]:
                 widget.enabled = False  # type: ignore[attr-defined]
             widget.hide()
             self._hbox.removeWidget(widget)
@@ -419,7 +425,7 @@ class StatusBar(QWidget):
         self.url.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
-        self.backforward.on_tab_changed(tab)
+        self.backforward.widget.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
