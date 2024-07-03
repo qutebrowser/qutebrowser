@@ -9,7 +9,7 @@ import sys
 import html
 import argparse
 import typing
-from typing import Any, Optional, List, Dict, Union
+from typing import Any, Optional, List, Dict, Union, Type
 import dataclasses
 
 import pytest
@@ -45,14 +45,14 @@ def undo_init(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.parametrize(
-    "exception",
+    "exception, base",
     [
-        machinery.Unavailable(),
-        machinery.NoWrapperAvailableError(machinery.SelectionInfo()),
+        (machinery.Unavailable(), ModuleNotFoundError),
+        (machinery.NoWrapperAvailableError(machinery.SelectionInfo()), ImportError),
     ],
 )
-def test_importerror_exceptions(exception: Exception):
-    with pytest.raises(ImportError):
+def test_importerror_exceptions(exception: Exception, base: Type[Exception]):
+    with pytest.raises(base):
         raise exception
 
 

@@ -6,7 +6,7 @@
 
 from typing import MutableSequence, Optional
 
-from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QTimer, Qt
+from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt
 from qutebrowser.qt.widgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
@@ -101,7 +101,7 @@ class MessageView(QWidget):
         self._vbox.setSpacing(0)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-        self._clear_timer = QTimer()
+        self._clear_timer = usertypes.Timer()
         self._clear_timer.timeout.connect(self.clear_messages)
         config.instance.changed.connect(self._set_clear_timer_interval)
 

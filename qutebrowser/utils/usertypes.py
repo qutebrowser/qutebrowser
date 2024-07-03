@@ -7,7 +7,9 @@
 import html
 import operator
 import enum
+import time
 import dataclasses
+import logging
 from typing import Optional, Sequence, TypeVar, Union
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer
@@ -443,6 +445,8 @@ class Timer(QTimer):
 
     def __init__(self, parent: QObject = None, name: str = None) -> None:
         super().__init__(parent)
+        self._start_time: Optional[float] = None
+        self.timeout.connect(self._validity_check_handler)
         if name is None:
             self._name = "unnamed"
         else:
@@ -452,6 +456,39 @@ class Timer(QTimer):
     def __repr__(self) -> str:
         return utils.get_repr(self, name=self._name)
 
+    @pyqtSlot()
+    def _validity_check_handler(self) -> None:
+        if not self.check_timeout_validity() and self._start_time is not None:
+            elapsed = time.monotonic() - self._start_time
+            level = logging.WARNING
+            if utils.is_windows and self._name == "ipc-timeout":
+                level = logging.DEBUG
+            log.misc.log(
+                level,
+                (
+                    f"Timer {self._name} (id {self.timerId()}) triggered too early: "
+                    f"interval {self.interval()} but only {elapsed:.3f}s passed"
+                )
+            )
+
+    def check_timeout_validity(self) -> bool:
+        """Check to see if the timeout signal was fired at the expected time.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-124496
+        """
+        if self._start_time is None:
+            # manual emission?
+            return True
+
+        elapsed = time.monotonic() - self._start_time
+        # Checking for half the interval is pretty arbitrary. In the bug case
+        # the timer typically fires immediately since the expiry event is
+        # already pending when it is created.
+        if elapsed < self.interval() / 1000 / 2:
+            return False
+
+        return True
+
     def setInterval(self, msec: int) -> None:
         """Extend setInterval to check for overflows."""
         qtutils.check_overflow(msec, 'int')
@@ -459,6 +496,7 @@ class Timer(QTimer):
 
     def start(self, msec: int = None) -> None:
         """Extend start to check for overflows."""
+        self._start_time = time.monotonic()
         if msec is not None:
             qtutils.check_overflow(msec, 'int')
             super().start(msec)

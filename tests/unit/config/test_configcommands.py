@@ -840,6 +840,8 @@ class TestBind:
             func = functools.partial(commands.bind, 0)
         elif command == 'unbind':
             func = commands.unbind
+        else:
+            raise utils.Unreachable(command)
 
         with pytest.raises(cmdutils.CommandError, match=expected):
             func(*args, **kwargs)

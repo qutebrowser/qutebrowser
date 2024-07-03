@@ -279,6 +279,7 @@ Feature: Using hints
         When I open data/hints/iframe_scroll.html
         And I wait for "* simple loaded" in the log
         And I hint with args "all normal" and follow a
+        And I wait for "Clicked non-editable element!" in the log
         And I run :scroll bottom
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello2.txt (current http://localhost:*/data/hints/iframe_scroll.html), type link_clicked, *" should be logged

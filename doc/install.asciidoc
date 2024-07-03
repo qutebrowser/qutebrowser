@@ -280,14 +280,14 @@ track down issues.
 NOTE: Due to GitHub limitations, you need to be signed in with a GitHub account
 to download the files.
 
-https://chocolatey.org/packages/qutebrowser[Chocolatey package]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Package managers
+~~~~~~~~~~~~~~~~
 
 * PackageManagement PowerShell module
 ----
 PS C:\> Install-Package qutebrowser
 ----
-* Chocolatey's client
+* https://chocolatey.org/packages/qutebrowser[Chocolatey package] with `choco`:
 ----
 C:\> choco install qutebrowser
 ----

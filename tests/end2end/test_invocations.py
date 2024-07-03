@@ -905,6 +905,7 @@ def test_sandboxing(
             f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
             f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+            # pylint: disable-next=used-before-assignment
             f"{yama_text} (Non-broker)": "Yes" if has_yama_non_broker else "No",
         }
 

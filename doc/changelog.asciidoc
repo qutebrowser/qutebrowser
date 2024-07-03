@@ -15,21 +15,108 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.2.0]]
-v3.2.0 (unreleased)
+[[v3.3.0]]
+v3.3.0 (unreleased)
 -------------------
+
+Removed
+~~~~~~~
+
+- Support for macOS 11 Big Sur is dropped. Binaries are now built on macOS 12
+  Monterey and are unlikely to still run on older macOS versions.
 
 Changed
 ~~~~~~~
 
+- The qute-pass userscript now has better support for internationalized domain
+  names when using the pass backend - both domain names and secret paths are
+  normalized before comparing (#8133)
+- Ignored URL query parameters (via `url.yank_ignored_parameters`) are now
+  respected when yanking any URL (for example, through hints with `hint links
+  yank`). The `{url:yank}` substitution has also been added as a version of
+  `{url}` that respects ignored URL query parameters. (#7879)
+
+Fixed
+~~~~~
+
+- A minor memory leak of QItemSelectionModels triggered by closing the
+  completion dialog has been resolved. (#7950)
+
+[[v3.2.1]]
+v3.2.1 (2024-06-25)
+-------------------
+
+Added
+~~~~~
+
+- There is now a separate macOS release built for Apple Silicon. A Universal
+  Binary might follow with a later release.
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 6.7.2, which includes security fixes
+  up to Chromium 125.0.6422.142.
+
+Fixed
+~~~~~
+
+- When the selected Qt wrapper is unavailable, qutebrowser now again shows a
+  GUI error message instead of only an exception in the terminal.
+
+[[v3.2.0]]
+v3.2.0 (2024-06-03)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- This will be the last feature release supporting macOS 11 Big Sur.
+  Starting with qutebrowser v3.3.0, macOS 12 Monterey will be the oldest
+  supported version.
+
+Added
+~~~~~
+
+- When qutebrowser receives a SIGHUP it will now reload any config.py file
+  in use (same as the `:config-source` command does). (#8108)
+- The Chromium security patch version is now shown in the backend string in
+  `--version` and `:version`. This reflects the latest Chromium version that
+  security fixes have been backported to the base QtWebEngine version from.
+  (#7187)
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now ship with Qt 6.7.1, which is based on Chromium
+  118.0.5993.220 with security patches up to 124.0.6367.202.
+- With QtWebEngine 6.7+, the `colors.webpage.darkmode.enabled` setting can now
+  be changed at runtime and supports URL patterns (#8182).
 - A few more completions will now match search terms in any order:
   `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
   and bookmark categories). (#7955)
+- Elements with an ARIA `role="switch"` now get hints (toggle switches like
+  e.g. on cookie banners).
+- The `tor_identity` userscript now validates that the -c|--control-port
+  argument value is an int. (#8162)
 
-[[v3.1.1]]
-v3.1.1 (unreleased)
--------------------
+Fixed
+~~~~~
 
+- `input.insert_mode.auto_load` sometimes not triggering due to a race
+  condition. (#8145)
+- Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
+  bug. (#8143)
+- Trying to use qutebrowser after it's been deleted/moved on disk (e.g. after a
+  Python upgrade) should now not crash anymore.
+- When the QtWebEngine resources dir couldn't be found, qutebrowser now doesn't
+  crash anymore (but QtWebEngine still might).
+- Fixed a rare crash in the completion widget when there was no selection model
+  when we went to clear that, probably when leaving a mode. (#7901)
+- Worked around a minor issue around QTimers on Windows where the IPC server
+  could close the socket early. (#8191)
+- The latest PDF.js release (v4.2.67) is now supported when backed by
+  QtWebEngine 6.6+ (#8170)
 
 [[v3.1.0]]
 v3.1.0 (2023-12-08)
@@ -3647,7 +3734,7 @@ Fixed
 - Continuing a search after clearing it now works correctly.
 - The tabbar and completion should now be more consistently and correctly
   styled with various system styles.
-- Applying styiles in `qt5ct` now shouldn't crash anymore.
+- Applying styles in `qt5ct` now shouldn't crash anymore.
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
 - `data:` URLs now aren't added to the history anymore.

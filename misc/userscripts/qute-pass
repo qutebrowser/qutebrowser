@@ -40,11 +40,13 @@ import argparse
 import enum
 import fnmatch
 import functools
+import idna
 import os
 import re
 import shlex
 import subprocess
 import sys
+import unicodedata
 from urllib.parse import urlparse
 
 import tldextract
@@ -116,6 +118,23 @@ def qute_command(command):
         fifo.write(command + '\n')
         fifo.flush()
 
+# Encode candidate string parts as Internationalized Domain Name, doing
+# Unicode normalization before. This allows to properly match (non-ASCII)
+# pass entries with the corresponding domain names.
+def idna_encode(name):
+    # Do Unicode normalization first, we use form NFKC because:
+    # 1. Use the compatibility normalization because these sequences have "the same meaning in some contexts"
+    # 2. idna.encode() below requires the Unicode strings to be in normalization form C
+    # See https://en.wikipedia.org/wiki/Unicode_equivalence#Normal_forms
+    unicode_normalized = unicodedata.normalize("NFKC", name)
+    # Empty strings can not be encoded, they appear for example as empty
+    # parts in split_path. If something like this happens, we just fall back
+    # to the unicode representation (which may already be ASCII then).
+    try:
+        idna_encoded = idna.encode(unicode_normalized)
+    except idna.IDNAError:
+        idna_encoded = unicode_normalized
+    return idna_encoded
 
 def find_pass_candidates(domain, unfiltered=False):
     candidates = []
@@ -130,6 +149,7 @@ def find_pass_candidates(domain, unfiltered=False):
             if unfiltered or domain in password:
                 candidates.append(password)
     else:
+        idna_domain = idna_encode(domain)
         for path, directories, file_names in os.walk(arguments.password_store, followlinks=True):
             secrets = fnmatch.filter(file_names, '*.gpg')
             if not secrets:
@@ -138,11 +158,14 @@ def find_pass_candidates(domain, unfiltered=False):
             # Strip password store path prefix to get the relative pass path
             pass_path = path[len(arguments.password_store):]
             split_path = pass_path.split(os.path.sep)
+            idna_split_path = [idna_encode(part) for part in split_path]
             for secret in secrets:
                 secret_base = os.path.splitext(secret)[0]
-                if not unfiltered and domain not in (split_path + [secret_base]):
+                idna_secret_base = idna_encode(secret_base)
+                if not unfiltered and idna_domain not in (idna_split_path + [idna_secret_base]):
                     continue
 
+                # Append the unencoded Unicode path/name since this is how pass uses them
                 candidates.append(os.path.join(pass_path, secret_base))
     return candidates
 

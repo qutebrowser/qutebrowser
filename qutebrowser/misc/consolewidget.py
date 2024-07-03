@@ -6,7 +6,7 @@
 
 import sys
 import code
-from typing import MutableSequence
+from typing import MutableSequence, Optional
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt
 from qutebrowser.qt.widgets import QTextEdit, QWidget, QVBoxLayout, QApplication
@@ -17,7 +17,7 @@ from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
 
 
-console_widget = None
+console_widget: Optional["ConsoleWidget"] = None
 
 
 class ConsoleLineEdit(miscwidgets.CommandLineEdit):

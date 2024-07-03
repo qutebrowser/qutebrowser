@@ -1558,7 +1558,7 @@ class FormatString(BaseType):
         _validate_encoding(self.encoding, value)
 
         try:
-            value.format(**{k: '' for k in self.fields})
+            value.format(**dict.fromkeys(self.fields, ""))
         except (KeyError, IndexError, AttributeError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))

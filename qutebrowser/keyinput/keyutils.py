@@ -26,7 +26,7 @@ from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 if machinery.IS_QT6:
     from qutebrowser.qt.core import QKeyCombination
 else:
-    QKeyCombination = None  # QKeyCombination was added in Qt 6
+    QKeyCombination: None = None  # QKeyCombination was added in Qt 6
 
 from qutebrowser.utils import utils, qtutils, debug
 
@@ -359,6 +359,8 @@ class KeyInfo:
             modifier_classes = (Qt.KeyboardModifier, Qt.KeyboardModifiers)
         elif machinery.IS_QT6:
             modifier_classes = Qt.KeyboardModifier
+        else:
+            raise utils.Unreachable()
         assert isinstance(self.key, Qt.Key), self.key
         assert isinstance(self.modifiers, modifier_classes), self.modifiers
 

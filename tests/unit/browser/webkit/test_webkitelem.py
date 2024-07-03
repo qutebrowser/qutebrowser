@@ -82,7 +82,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     if attributes is None:
         pass
     elif not isinstance(attributes, collections.abc.Mapping):
-        attribute_dict.update({e: None for e in attributes})
+        attribute_dict.update(dict.fromkeys(attributes))
     else:
         attribute_dict.update(attributes)
 

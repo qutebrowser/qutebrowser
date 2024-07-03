@@ -32,7 +32,7 @@ except ImportError:
 
 if __name__ == '__main__':
     parser = ArgumentParser(prog='tor_identity')
-    parser.add_argument('-c', '--control-port', default=9051,
+    parser.add_argument('-c', '--control-port', type=int, default=9051,
                         help='Tor control port (default 9051).')
     parser.add_argument('-p', '--password', type=str, default=None,
                         help='Tor control port password.')

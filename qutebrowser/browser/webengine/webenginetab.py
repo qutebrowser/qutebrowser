@@ -12,7 +12,7 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -292,6 +292,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
         flags = set()
         if utils.is_windows:
             flags.add('windows')
+        if 'caret' in objects.debug_flags:
+            flags.add('debug')
         return list(flags)
 
     @pyqtSlot(usertypes.KeyMode)
@@ -814,7 +816,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         # Implements the intended two-second delay specified at
         # https://doc.qt.io/archives/qt-5.14/qwebenginepage.html#recentlyAudibleChanged
         delay_ms = 2000
-        self._silence_timer = QTimer(self)
+        self._silence_timer = usertypes.Timer(self)
         self._silence_timer.setSingleShot(True)
         self._silence_timer.setInterval(delay_ms)
 
@@ -1475,9 +1477,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.network.debug("Asking for credentials")
             answer = shared.authentication_required(
                 url, authenticator, abort_on=[self.abort_questions])
-        if not netrc_success and answer is None:
-            log.network.debug("Aborting auth")
-            sip.assign(authenticator, QAuthenticator())
+            if answer is None:
+                log.network.debug("Aborting auth")
+                sip.assign(authenticator, QAuthenticator())
 
     @pyqtSlot()
     def _on_load_started(self):

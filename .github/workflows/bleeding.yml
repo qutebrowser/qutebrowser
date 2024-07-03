@@ -37,6 +37,9 @@ jobs:
           persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
+      - name: Upgrade 3rd party assets
+        run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
+        if: "endsWith(matrix.image, '-qt6')"
       - name: Run tox
         run: dbus-run-session tox -e ${{ matrix.testenv }}
   irc:

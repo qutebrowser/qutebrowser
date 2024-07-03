@@ -75,7 +75,7 @@ class BlocklistDownloads(QObject):
         if not self._in_progress and not self._finished:
             # The in-progress list is empty but we still haven't called the
             # completion callback yet. This happens when all downloads finish
-            # before we've set `_finished_registering_dowloads` to False.
+            # before we've set `_finished_registering_downloads` to False.
             self._finished = True
             self.all_downloads_finished.emit(self._done_count)
 

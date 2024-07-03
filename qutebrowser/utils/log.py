@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
 
 _log_inited = False
-_args = None
+_args: Optional[argparse.Namespace] = None
 
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
@@ -146,7 +146,7 @@ LOGGER_NAMES = [
 
 ram_handler: Optional['RAMHandler'] = None
 console_handler: Optional[logging.Handler] = None
-console_filter = None
+console_filter: Optional["LogFilter"] = None
 
 
 def stub(suffix: str = '') -> None:
@@ -547,7 +547,7 @@ class ColoredFormatter(logging.Formatter):
             log_color = LOG_COLORS[record.levelname]
             color_dict['log_color'] = COLOR_ESCAPES[log_color]
         else:
-            color_dict = {color: '' for color in COLOR_ESCAPES}
+            color_dict = dict.fromkeys(COLOR_ESCAPES, "")
             color_dict['reset'] = ''
             color_dict['log_color'] = ''
         record.__dict__.update(color_dict)

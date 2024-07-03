@@ -16,6 +16,7 @@ import pytest
 from qutebrowser.qt.core import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
+from helpers import testutils
 
 
 class Request(testprocess.Line):
@@ -111,6 +112,17 @@ class ExpectedRequest:
             return NotImplemented
 
 
+def is_ignored_webserver_message(line: str) -> bool:
+    return testutils.pattern_match(
+        pattern=(
+            "Client ('127.0.0.1', *) lost * peer dropped the TLS connection suddenly, "
+            "during handshake: (1, '[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] * "
+            "alert certificate unknown (_ssl.c:*)')"
+        ),
+        value=line,
+    )
+
+
 class WebserverProcess(testprocess.Process):
 
     """Abstraction over a running Flask server process.
@@ -151,7 +163,13 @@ class WebserverProcess(testprocess.Process):
         if started_re.fullmatch(line):
             self.ready.emit()
             return None
-        return Request(line)
+
+        try:
+            return Request(line)
+        except testprocess.InvalidLine:
+            if is_ignored_webserver_message(line):
+                return None
+            raise
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):

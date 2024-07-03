@@ -14,7 +14,7 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint, QRect)
+                          QEvent, QPoint, QRect, QTimer)
 from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
 from qutebrowser.qt.widgets import QApplication, QWidget
 from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
@@ -902,7 +902,13 @@ class AbstractTabPrivate:
                 modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
                               'load finished', only_if_normal=True)
 
-        self._tab.elements.find_focused(_auto_insert_mode_cb)
+        # There seems to be a race between loadFinished being called,
+        # and the autoload attribute on websites actually focusing anything.
+        # Thus, we delay this by a bit. Locally, a delay of 13ms caused no races
+        # with 5000 test reruns (even with simultaneous CPU stress testing),
+        # so 65ms should be a safe bet and still not be too noticeable.
+        QTimer.singleShot(
+            65, lambda: self._tab.elements.find_focused(_auto_insert_mode_cb))
 
     def clear_ssl_errors(self) -> None:
         raise NotImplementedError

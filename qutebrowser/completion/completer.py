@@ -7,12 +7,12 @@
 import dataclasses
 from typing import TYPE_CHECKING
 
-from qutebrowser.qt.core import pyqtSlot, QObject, QTimer
+from qutebrowser.qt.core import pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.commands import parser, cmdexc
 from qutebrowser.misc import objects, split
-from qutebrowser.utils import log, utils, debug, objreg
+from qutebrowser.utils import log, utils, debug, objreg, usertypes
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.completion import completionwidget
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ class Completer(QObject):
         super().__init__(parent)
         self._cmd = cmd
         self._win_id = win_id
-        self._timer = QTimer()
+        self._timer = usertypes.Timer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
         self._timer.timeout.connect(self._update_completion)

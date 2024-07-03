@@ -209,7 +209,7 @@ def import_html_bookmarks(bookmarks_file, bookmark_types, output_format):
     }
     bookmarks = []
     for typ in bookmark_types:
-        tags = soup.findAll(bookmark_query[typ])
+        tags = soup.find_all(bookmark_query[typ])
         for tag in tags:
             if typ == 'search':
                 tag['href'] = search_escape(tag['href']).replace('%s', '{}')

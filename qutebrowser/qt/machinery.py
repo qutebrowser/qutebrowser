@@ -34,7 +34,7 @@ from qutebrowser.utils import log
 # sed -i 's/_WRAPPER_OVERRIDE = .*/_WRAPPER_OVERRIDE = "PyQt6"/' qutebrowser/qt/machinery.py
 #
 # Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
-_WRAPPER_OVERRIDE = None
+_WRAPPER_OVERRIDE = None  # type: ignore[var-annotated]
 
 WRAPPERS = [
     "PyQt6",
@@ -48,7 +48,7 @@ class Error(Exception):
     """Base class for all exceptions in this module."""
 
 
-class Unavailable(Error, ImportError):
+class Unavailable(Error, ModuleNotFoundError):
 
     """Raised when a module is unavailable with the given wrapper."""
 
@@ -168,9 +168,9 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
     - Otherwise, try the wrappers in WRAPPER in order (PyQt6 -> PyQt5)
     """
     # If any Qt wrapper has been imported before this, something strange might
-    # be happening.
+    # be happening. With PyInstaller, it imports the Qt bindings early.
     for name in WRAPPERS:
-        if name in sys.modules:
+        if name in sys.modules and not hasattr(sys, "frozen"):
             warnings.warn(f"{name} already imported", stacklevel=1)
 
     if args is not None and args.qt_wrapper is not None:
@@ -190,7 +190,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
     if _WRAPPER_OVERRIDE is not None:
-        assert _WRAPPER_OVERRIDE in WRAPPERS  # type: ignore[unreachable]
+        assert _WRAPPER_OVERRIDE in WRAPPERS
         return SelectionInfo(wrapper=_WRAPPER_OVERRIDE, reason=SelectionReason.override)
 
     return _autoselect_wrapper()

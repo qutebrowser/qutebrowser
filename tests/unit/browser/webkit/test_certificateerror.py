@@ -18,15 +18,15 @@ class FakeError:
         return self.msg
 
 
-@pytest.mark.parametrize('errors, expected', [
+@pytest.mark.parametrize('error_factories, expected', [
     (
-        [QSslError(QSslError.SslError.UnableToGetIssuerCertificate)],
+        [lambda: QSslError(QSslError.SslError.UnableToGetIssuerCertificate)],
         ['<p>The issuer certificate could not be found</p>'],
     ),
     (
         [
-            QSslError(QSslError.SslError.UnableToGetIssuerCertificate),
-            QSslError(QSslError.SslError.UnableToDecryptCertificateSignature),
+            lambda: QSslError(QSslError.SslError.UnableToGetIssuerCertificate),
+            lambda: QSslError(QSslError.SslError.UnableToDecryptCertificateSignature),
         ],
         [
             '<ul>',
@@ -37,13 +37,13 @@ class FakeError:
     ),
 
     (
-        [FakeError('Escaping test: <>')],
+        [lambda: FakeError('Escaping test: <>')],
         ['<p>Escaping test: &lt;&gt;</p>'],
     ),
     (
         [
-            FakeError('Escaping test 1: <>'),
-            FakeError('Escaping test 2: <>'),
+            lambda: FakeError('Escaping test 1: <>'),
+            lambda: FakeError('Escaping test 2: <>'),
         ],
         [
             '<ul>',
@@ -53,8 +53,9 @@ class FakeError:
         ],
     ),
 ])
-def test_html(stubs, errors, expected):
+def test_html(stubs, error_factories, expected):
     reply = stubs.FakeNetworkReply(url=QUrl("https://example.com"))
+    errors = [factory() for factory in error_factories]
     wrapper = certificateerror.CertificateErrorWrapper(reply=reply, errors=errors)
     lines = [line.strip() for line in wrapper.html().splitlines() if line.strip()]
     assert lines == expected

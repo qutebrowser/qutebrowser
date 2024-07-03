@@ -6,7 +6,7 @@ import logging
 
 import pytest
 
-from qutebrowser.browser.webkit import http
+from qutebrowser.browser.webkit import httpheaders
 
 
 DEFAULT_NAME = 'qutebrowser-download'
@@ -30,7 +30,7 @@ class HeaderChecker:
         """Check if the passed header has the given filename."""
         reply = self.stubs.FakeNetworkReply(
             headers={'Content-Disposition': header})
-        cd_inline, cd_filename = http.parse_content_disposition(reply)
+        cd_inline, cd_filename = httpheaders.parse_content_disposition(reply)
         assert cd_filename is not None
         assert cd_filename == filename
         assert cd_inline == expected_inline
@@ -40,7 +40,7 @@ class HeaderChecker:
         reply = self.stubs.FakeNetworkReply(
             headers={'Content-Disposition': header})
         with self.caplog.at_level(logging.ERROR, 'network'):
-            cd_inline, cd_filename = http.parse_content_disposition(reply)
+            cd_inline, cd_filename = httpheaders.parse_content_disposition(reply)
         assert cd_filename == DEFAULT_NAME
         assert cd_inline
 
@@ -48,7 +48,7 @@ class HeaderChecker:
         """Check if the passed header results in an unnamed attachment."""
         reply = self.stubs.FakeNetworkReply(
             headers={'Content-Disposition': header})
-        cd_inline, cd_filename = http.parse_content_disposition(reply)
+        cd_inline, cd_filename = httpheaders.parse_content_disposition(reply)
         assert cd_filename == DEFAULT_NAME
         assert not cd_inline
 
@@ -164,7 +164,7 @@ class TestAttachment:
         """
         reply = stubs.FakeNetworkReply(
             headers={'Content-Disposition': 'attachment'})
-        cd_inline, cd_filename = http.parse_content_disposition(reply)
+        cd_inline, cd_filename = httpheaders.parse_content_disposition(reply)
         assert not cd_inline
         assert cd_filename == DEFAULT_NAME
 

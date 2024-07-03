@@ -32,6 +32,7 @@ Feature: Keyboard input
 
     Scenario: :fake-key sending key to the website
         When I open data/keyinput/log.html
+        And I wait 0.01s
         And I run :fake-key x
         Then the javascript message "key press: 88" should be logged
         And the javascript message "key release: 88" should be logged
@@ -48,12 +49,14 @@ Feature: Keyboard input
 
     Scenario: :fake-key sending special key to the website
         When I open data/keyinput/log.html
+        And I wait 0.01s
         And I run :fake-key <Escape>
         Then the javascript message "key press: 27" should be logged
         And the javascript message "key release: 27" should be logged
 
     Scenario: :fake-key sending keychain to the website
         When I open data/keyinput/log.html
+        And I wait 0.01s
         And I run :fake-key x<greater>y<less>" "
         Then the javascript message "key press: 88" should be logged
         And the javascript message "key release: 88" should be logged

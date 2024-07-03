@@ -399,6 +399,7 @@ class TestYaml:
         yaml._save()
 
         if not insert and old_config is None:
+            data = {}   # unused
             lines = []
         else:
             data = autoconfig.read()

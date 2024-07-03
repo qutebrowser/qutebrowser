@@ -27,6 +27,7 @@ else:
 
 
 if machinery.IS_QT5:
+    # pylint: disable=undefined-variable
     # moved to WebEngineCore in Qt 6
     del QWebEngineSettings
     del QWebEngineProfile

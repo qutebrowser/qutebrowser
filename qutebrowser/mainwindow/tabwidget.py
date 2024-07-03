@@ -398,7 +398,7 @@ class TabBar(QTabBar):
         self.setStyle(self._our_style)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.vertical = False
-        self._auto_hide_timer = QTimer()
+        self._auto_hide_timer = usertypes.Timer()
         self._auto_hide_timer.setSingleShot(True)
         self._auto_hide_timer.timeout.connect(self.maybe_hide)
         self._on_show_switching_delay_changed()
@@ -696,7 +696,7 @@ class TabBar(QTabBar):
 
         # Re-do the text elision that the base QTabBar does, but using a text
         # rectangle computed by out TabBarStyle. With Qt6 the base class ends
-        # up using QCommonStyle directly for that which has a different opinon
+        # up using QCommonStyle directly for that which has a different opinion
         # of how vertical tabs should work.
         text_rect = self._our_style.subElementRect(
             QStyle.SubElement.SE_TabBarTabText,

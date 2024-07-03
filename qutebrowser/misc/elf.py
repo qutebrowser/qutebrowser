@@ -235,7 +235,7 @@ def _find_versions(data: bytes) -> Versions:
     # Here it gets even more crazy: Sometimes, we don't have the full UA in one piece
     # in the string table somehow (?!). However, Qt 6.2 added a separate
     # qWebEngineChromiumVersion(), with PyQt wrappers following later. And *that*
-    # apperently stores the full version in the string table separately from the UA.
+    # apparently stores the full version in the string table separately from the UA.
     # As we clearly didn't have enough crazy heuristics yet so far, let's hunt for it!
 
     # We first get the partial Chromium version from the UA:

@@ -188,6 +188,8 @@ Feature: Opening external editors
         And I run :cmd-edit
         Then the error "command must start with one of :/?" should be shown
         And "Leaving mode KeyMode.command *" should not be logged
+        And I run :mode-leave
+        And "Leaving mode KeyMode.command *" should be logged
 
     ## select single file
 

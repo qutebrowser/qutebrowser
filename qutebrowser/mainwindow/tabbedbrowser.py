@@ -1011,16 +1011,11 @@ class TabbedBrowser(QWidget):
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
         versions = version.qtwebengine_versions()
-        is_qtbug_91715 = (
+        if (
             status == browsertab.TerminationStatus.unknown and
             code == 1002 and
-            versions.webengine == utils.VersionNumber(5, 15, 3))
-
-        def show_error_page(html):
-            tab.set_html(html)
-            log.webview.error(msg)
-
-        if is_qtbug_91715:
+            versions.webengine == utils.VersionNumber(5, 15, 3)
+        ):
             log.webview.error(msg)
             log.webview.error('')
             log.webview.error(
@@ -1034,12 +1029,17 @@ class TabbedBrowser(QWidget):
                 'A proper fix is likely available in QtWebEngine soon (which is why '
                 'the workaround is disabled by default).')
             log.webview.error('')
-        else:
-            url_string = tab.url(requested=True).toDisplayString()
-            error_page = jinja.render(
-                'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg)
-            QTimer.singleShot(100, lambda: show_error_page(error_page))
+            return
+
+        def show_error_page(html):
+            tab.set_html(html)
+            log.webview.error(msg)
+
+        url_string = tab.url(requested=True).toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading {}".format(url_string),
+            url=url_string, error=msg)
+        QTimer.singleShot(100, lambda: show_error_page(error_page))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -17,8 +17,6 @@ import sys
 
 sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-from scripts import dictcli
-from qutebrowser.config import configdata
 
 
 def download_nsis_plugins():
@@ -160,6 +158,8 @@ def update_ace():
 
 def test_dicts():
     """Test available dictionaries."""
+    from scripts import dictcli
+    from qutebrowser.config import configdata
     configdata.init()
     for lang in dictcli.available_languages():
         print('Testing dictionary {}... '.format(lang.code), end='')

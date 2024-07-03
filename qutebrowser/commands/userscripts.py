@@ -330,7 +330,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
                 self._filepath = handle.name
         except OSError as e:
             message.error("Error while creating tempfile: {}".format(e))
-            return
 
 
 class Error(Exception):

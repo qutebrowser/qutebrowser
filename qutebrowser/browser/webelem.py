@@ -22,9 +22,9 @@ if TYPE_CHECKING:
 JsValueType = Union[int, float, str, None]
 
 if machinery.IS_QT6:
-    KeybordModifierType = Qt.KeyboardModifier
+    KeyboardModifierType = Qt.KeyboardModifier
 else:
-    KeybordModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    KeyboardModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
 
 
 class Error(Exception):
@@ -336,7 +336,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        target_modifiers: Dict[usertypes.ClickTarget, KeybordModifierType] = {
+        target_modifiers: Dict[usertypes.ClickTarget, KeyboardModifierType] = {
             usertypes.ClickTarget.normal: Qt.KeyboardModifier.NoModifier,
             usertypes.ClickTarget.window: Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.ShiftModifier,
             usertypes.ClickTarget.tab: Qt.KeyboardModifier.ControlModifier,
@@ -355,10 +355,14 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
             QMouseEvent(QEvent.Type.MouseButtonRelease, pos, button, Qt.MouseButton.NoButton, modifiers),
         ]
 
-        for evt in events:
-            self._tab.send_event(evt)
+        def _send_events_after_delay() -> None:
+            """Delay clicks to workaround timing issue in e2e tests on 6.7."""
+            for evt in events:
+                self._tab.send_event(evt)
 
-        QTimer.singleShot(0, self._move_text_cursor)
+            QTimer.singleShot(0, self._move_text_cursor)
+
+        QTimer.singleShot(10, _send_events_after_delay)
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an editable input field."""

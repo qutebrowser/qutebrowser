@@ -117,7 +117,7 @@ jobs:
             git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
       - name: Create GitHub draft release
         id: create-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.bump.outputs.version }}
           draft: true
@@ -126,7 +126,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-11
+          - os: macos-12
+          - os: macos-14
           - os: windows-2019
           - os: ubuntu-20.04
     runs-on: "${{ matrix.os }}"

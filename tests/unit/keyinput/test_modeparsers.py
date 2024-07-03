@@ -115,10 +115,12 @@ class TestHintKeyParser:
         seq = keyutils.KeySequence.parse(keychain)
         assert len(seq) == 2
 
+        # pylint: disable-next=no-member
         match = keyparser.handle(seq[0].to_event())
         assert match == QKeySequence.SequenceMatch.PartialMatch
         assert hintmanager.keystr == prefix
 
+        # pylint: disable-next=no-member
         match = keyparser.handle(seq[1].to_event())
         assert match == QKeySequence.SequenceMatch.ExactMatch
         assert hintmanager.keystr == hint
@@ -132,10 +134,12 @@ class TestHintKeyParser:
         seq = keyutils.KeySequence.parse('ασ')
         assert len(seq) == 2
 
+        # pylint: disable-next=no-member
         match = keyparser.handle(seq[0].to_event())
         assert match == QKeySequence.SequenceMatch.PartialMatch
         assert hintmanager.keystr == 'a'
 
+        # pylint: disable-next=no-member
         match = keyparser.handle(seq[1].to_event())
         assert match == QKeySequence.SequenceMatch.ExactMatch
         assert hintmanager.keystr == 'as'

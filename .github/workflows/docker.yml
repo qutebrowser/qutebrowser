@@ -10,6 +10,7 @@ jobs:
     if: "github.repository == 'qutebrowser/qutebrowser'"
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         image:
           - archlinux-webkit
@@ -31,7 +32,7 @@ jobs:
         with:
           username: qutebrowser
           password: ${{ secrets.DOCKER_TOKEN }}
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           file: scripts/dev/ci/docker/Dockerfile
           context: .

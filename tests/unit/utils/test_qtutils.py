@@ -208,6 +208,18 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
      "The data stream has read corrupt data."),
     (QDataStream.Status.WriteFailed, True,
      "The data stream cannot write to the underlying device."),
+    pytest.param(
+        getattr(QDataStream.Status, "SizeLimitExceeded", None),
+        True,
+        (
+            "The data stream cannot read or write the data because its size is larger "
+            "than supported by the current platform."
+        ),
+        marks=pytest.mark.skipif(
+            not hasattr(QDataStream.Status, "SizeLimitExceeded"),
+            reason="Added in Qt 6.7"
+        )
+    ),
 ])
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
@@ -226,10 +238,25 @@ def test_check_qdatastream(status, raising, message):
         qtutils.check_qdatastream(stream)
 
 
-def test_qdatastream_status_count():
-    """Make sure no new members are added to QDataStream.Status."""
-    status_vals = testutils.enum_members(QDataStream, QDataStream.Status)
-    assert len(status_vals) == 4
+def test_qdatastream_status_members():
+    """Make sure no new members are added to QDataStream.Status.
+
+    If this fails, qtutils.check_qdatastream will need to be updated with the
+    respective error documentation.
+    """
+    status_vals = set(testutils.enum_members(QDataStream, QDataStream.Status).values())
+    expected = {
+        QDataStream.Status.Ok,
+        QDataStream.Status.ReadPastEnd,
+        QDataStream.Status.ReadCorruptData,
+        QDataStream.Status.WriteFailed,
+    }
+    try:
+        expected.add(QDataStream.Status.SizeLimitExceeded)
+    except AttributeError:
+        # Added in Qt 6.7
+        pass
+    assert status_vals == expected
 
 
 @pytest.mark.parametrize('color, expected', [
@@ -731,8 +758,10 @@ class TestPyQIODevice:
         # pylint: enable=no-member,useless-suppression
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
+
         pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         with pytest.raises(io.UnsupportedOperation):
+            # pylint: disable=possibly-used-before-assignment
             pyqiodev.seek(0, whence)
 
     @pytest.mark.flaky
@@ -1089,13 +1118,13 @@ class TestQObjRepr:
         assert qtutils.qobj_repr(obj) == expected
 
     def test_class_name(self):
-        obj = QTimer()
+        obj = QTimer()  # misc: ignore
         hidden = sip.cast(obj, QObject)
         expected = f"<{self._py_repr(hidden)}, className='QTimer'>"
         assert qtutils.qobj_repr(hidden) == expected
 
     def test_both(self):
-        obj = QTimer()
+        obj = QTimer()  # misc: ignore
         obj.setObjectName("Pomodoro")
         hidden = sip.cast(obj, QObject)
         expected = f"<{self._py_repr(hidden)}, objectName='Pomodoro', className='QTimer'>"

@@ -22,8 +22,9 @@ from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
 from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.api import cmdutils
+from qutebrowser.config import configfiles, configexc
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
+from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils, message
 from qutebrowser.qt import sip
 if TYPE_CHECKING:
     from qutebrowser.misc import quitter
@@ -322,6 +323,17 @@ class SignalHandler(QObject):
         self._activated = False
         self._orig_wakeup_fd: Optional[int] = None
 
+        self._handlers = {
+            signal.SIGINT: self.interrupt,
+            signal.SIGTERM: self.interrupt,
+        }
+        platform_dependant_handlers = {
+            "SIGHUP": self.reload_config,
+        }
+        for sig_str, handler in platform_dependant_handlers.items():
+            if hasattr(signal.Signals, sig_str):
+                self._handlers[signal.Signals[sig_str]] = handler
+
     def activate(self):
         """Set up signal handlers.
 
@@ -331,10 +343,8 @@ class SignalHandler(QObject):
         On Unix, it uses a QSocketNotifier with os.set_wakeup_fd to get
         notified.
         """
-        self._orig_handlers[signal.SIGINT] = signal.signal(
-            signal.SIGINT, self.interrupt)
-        self._orig_handlers[signal.SIGTERM] = signal.signal(
-            signal.SIGTERM, self.interrupt)
+        for sig, handler in self._handlers.items():
+            self._orig_handlers[sig] = signal.signal(sig, handler)
 
         if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
@@ -429,6 +439,15 @@ class SignalHandler(QObject):
         """
         print("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
+
+    def reload_config(self, _signum, _frame):
+        """Reload the config."""
+        log.signals.info("SIGHUP received, reloading config.")
+        filename = standarddir.config_py()
+        try:
+            configfiles.read_config_py(filename)
+        except configexc.ConfigFileErrors as e:
+            message.error(str(e))
 
 
 def init(q_app: QApplication,

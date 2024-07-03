@@ -10,7 +10,7 @@ import sys
 import contextlib
 import enum
 import argparse
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Dict
 
 from qutebrowser.qt.core import QStandardPaths
 from qutebrowser.qt.widgets import QApplication
@@ -18,7 +18,7 @@ from qutebrowser.qt.widgets import QApplication
 from qutebrowser.utils import log, debug, utils, version, qtutils
 
 # The cached locations
-_locations = {}
+_locations: Dict["_Location", str] = {}
 
 
 class _Location(enum.Enum):

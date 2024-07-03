@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Tests for qutebrowser.browser.webkit.http."""
+"""Tests for qutebrowser.browser.webkit.httpheaders."""
 
 import logging
 
@@ -11,7 +11,7 @@ import hypothesis
 from hypothesis import strategies
 from qutebrowser.qt.core import QUrl
 
-from qutebrowser.browser.webkit import http
+from qutebrowser.browser.webkit import httpheaders
 
 
 @pytest.mark.parametrize('url, expected', [
@@ -24,7 +24,7 @@ from qutebrowser.browser.webkit import http
 ])
 def test_no_content_disposition(stubs, url, expected):
     reply = stubs.FakeNetworkReply(url=QUrl(url))
-    inline, filename = http.parse_content_disposition(reply)
+    inline, filename = httpheaders.parse_content_disposition(reply)
     assert inline
     assert filename == expected
 
@@ -40,8 +40,8 @@ def test_no_content_disposition(stubs, url, expected):
     # dropping QtWebKit.
 ])
 def test_parse_content_disposition_invalid(value):
-    with pytest.raises(http.ContentDispositionError):
-        http.ContentDisposition.parse(value)
+    with pytest.raises(httpheaders.ContentDispositionError):
+        httpheaders.ContentDisposition.parse(value)
 
 
 @pytest.mark.parametrize('template', [
@@ -58,16 +58,16 @@ def test_parse_content_disposition_hypothesis(caplog, template, stubs, s):
     header = template.format(s)
     reply = stubs.FakeNetworkReply(headers={'Content-Disposition': header})
     with caplog.at_level(logging.ERROR, 'network'):
-        http.parse_content_disposition(reply)
+        httpheaders.parse_content_disposition(reply)
 
 
 @hypothesis.given(strategies.binary())
 def test_content_disposition_directly_hypothesis(s):
     """Test rfc6266 parsing directly with binary data."""
     try:
-        cd = http.ContentDisposition.parse(s)
+        cd = httpheaders.ContentDisposition.parse(s)
         cd.filename()
-    except http.ContentDispositionError:
+    except httpheaders.ContentDispositionError:
         pass
 
 
@@ -83,7 +83,7 @@ def test_parse_content_type(stubs, content_type, expected_mimetype,
         reply = stubs.FakeNetworkReply()
     else:
         reply = stubs.FakeNetworkReply(headers={'Content-Type': content_type})
-    mimetype, rest = http.parse_content_type(reply)
+    mimetype, rest = httpheaders.parse_content_type(reply)
     assert mimetype == expected_mimetype
     assert rest == expected_rest
 
@@ -91,4 +91,4 @@ def test_parse_content_type(stubs, content_type, expected_mimetype,
 @hypothesis.given(strategies.text())
 def test_parse_content_type_hypothesis(stubs, s):
     reply = stubs.FakeNetworkReply(headers={'Content-Type': s})
-    http.parse_content_type(reply)
+    httpheaders.parse_content_type(reply)

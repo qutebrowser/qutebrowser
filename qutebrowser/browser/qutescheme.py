@@ -32,10 +32,10 @@ from qutebrowser.qt import sip
 
 
 pyeval_output = ":pyeval was never called"
-csrf_token = None
+csrf_token: Optional[str] = None
 
 
-_HANDLERS = {}
+_HANDLERS: Dict[str, "_HandlerCallable"] = {}
 
 
 class Error(Exception):

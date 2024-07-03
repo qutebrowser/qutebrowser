@@ -20,7 +20,7 @@ from qutebrowser.utils import log
 
 
 # Needs to be saved to avoid garbage collection
-_instance = None
+_instance: Optional["NativeEventFilter"] = None
 
 # Using C-style naming for C structures in this file
 # pylint: disable=invalid-name

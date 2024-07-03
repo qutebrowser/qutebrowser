@@ -16,6 +16,7 @@ import subprocess
 import argparse
 import tarfile
 import tempfile
+import platform
 import collections
 import dataclasses
 import re
@@ -171,6 +172,9 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt5: bool) -> None:
                 r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
                 (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
                 r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
+                # Qt 6.7, only seen on macos for some reason
+                (r'.*Path override failed for key base::DIR_APP_DICTIONARIES '
+                 r"and path '.*/qtwebengine_dictionaries'"),
             ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
@@ -298,8 +302,10 @@ def build_mac(
     dmg_makefile_path = REPO_ROOT / "scripts" / "dev" / "Makefile-dmg"
     subprocess.run(['make', '-f', dmg_makefile_path], check=True)
 
+    arch = platform.machine()
     suffix = "-debug" if debug else ""
     suffix += "-qt5" if qt5 else ""
+    suffix += f"-{arch}"
     dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
     pathlib.Path('qutebrowser.dmg').rename(dmg_path)
 
@@ -319,11 +325,14 @@ def build_mac(
     except PermissionError as e:
         print(f"Failed to remove tempdir: {e}")
 
+    arch_to_desc = {"x86_64": "Intel", "arm64": "Apple Silicon"}
+    desc_arch = arch_to_desc[arch]
+
     return [
         Artifact(
             path=dmg_path,
             mimetype='application/x-apple-diskimage',
-            description='macOS .dmg'
+            description=f'macOS .dmg ({desc_arch})'
         )
     ]
 
@@ -674,7 +683,8 @@ def main() -> None:
     parser.add_argument('--qt5', action='store_true', required=False,
                         help="Build against PyQt5")
     parser.add_argument('--experimental', action='store_true', required=False,
-                        help="Upload to experiments repo and test PyPI")
+                        default=os.environ.get("GITHUB_REPOSITORY") == "qutebrowser/experiments",
+                        help="Upload to experiments repo and test PyPI. Set automatically if on qutebrowser/experiments CI.")
     args = parser.parse_args()
     utils.change_cwd()
 

@@ -192,6 +192,28 @@ specific one you can set either of a) the environment variable QUTE_TESTS_BACKEN
 , or b) the command line argument --qute-backend, to the desired backend
 (webkit/webengine).
 
+If you need an environment with webkit installed to do testing while we still
+support it (see #4039) you can re-use the docker container used for the CI
+test runs which has PyQt5Webkit installed from the archlinux package archives.
+Examples:
+
+----
+# Get a bash shell in the docker container with
+# a) the current directory mounted at /work in the container
+# b) the container using the X11 display :27 (for example, a Xephyr instance) from the host
+# c) the tox and hypothesis dirs set to somewhere in the container that it can write to
+# d) the system site packages available in the tox venv so you can use PyQt
+#    from the OS without having to run the link_pyqt script
+docker run -it -v $PWD:/work:ro -w /work -e QUTE_TESTS_BACKEND=webkit -e DISPLAY=:27 -v /tmp/.X11-unix:/tmp/.X11-unix -e TOX_WORK_DIR="/home/user/.tox" -e HYPOTHESIS_EXAMPLES_DIR="/home/user/.hypothesis/examples" -e VIRTUALENV_SYSTEM_SITE_PACKAGES=True qutebrowser/ci:archlinux-webkit bash
+
+# Start a qutebrowser temporary basedir in the appropriate tox environment to
+# play with
+tox exec -e py-qt5 -- python3 -m qutebrowser -T --backend webkit
+
+# Run tests, passing positional args through to pytest.
+tox -e py-qt5 -- tests/unit
+----
+
 Profiling
 ~~~~~~~~~
 

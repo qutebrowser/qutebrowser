@@ -75,7 +75,7 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
         with open(outfile, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
-                if line.startswith('#') or not line:
+                if line.startswith(('#', '--')) or not line:
                     continue
                 req, _version = recompile_requirements.parse_versioned_line(line)
                 if req.startswith('./'):
@@ -273,6 +273,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         (
             re.compile(r'qutebrowser is free software: you can redistribute'),
             "use 'SPDX-License-Identifier: GPL-3.0-or-later' instead",
+        ),
+        (
+            re.compile(r'QTimer\(.*\)$'),
+            "use usertypes.Timer() instead of a plain QTimer",
         ),
     ]
 

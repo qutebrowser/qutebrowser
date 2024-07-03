@@ -28,7 +28,7 @@ PROTOCOL_VERSION = 1
 
 
 # The ipc server instance
-server = None
+server: Optional["IPCServer"] = None
 
 
 def _get_socketname_windows(basedir):
@@ -391,6 +391,11 @@ class IPCServer(QObject):
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
         assert self._socket is not None
+        if not self._timer.check_timeout_validity():
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-124496
+            log.ipc.debug("Ignoring early on_timeout call")
+            return
+
         log.ipc.error("IPC connection timed out "
                       "(socket 0x{:x}).".format(id(self._socket)))
         self._socket.disconnectFromServer()

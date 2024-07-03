@@ -17,6 +17,7 @@ import traceback
 import functools
 import contextlib
 import shlex
+import sysconfig
 import mimetypes
 from typing import (Any, Callable, IO, Iterator,
                     Optional, Sequence, Tuple, List, Type, Union,
@@ -38,7 +39,7 @@ except ImportError:  # pragma: no cover
 
 from qutebrowser.utils import log
 
-fake_clipboard = None
+fake_clipboard: Optional[str] = None
 log_clipboard = False
 
 is_mac = sys.platform.startswith('darwin')
@@ -636,7 +637,7 @@ def expand_windows_drive(path: str) -> str:
         path: The path to expand.
     """
     # Usually, "E:" on Windows refers to the current working directory on drive
-    # E:\. The correct way to specifify drive E: is "E:\", but most users
+    # E:\. The correct way to specify drive E: is "E:\", but most users
     # probably don't use the "multiple working directories" feature and expect
     # "E:" and "E:\" to be equal.
     if re.fullmatch(r'[A-Z]:', path, re.IGNORECASE):
@@ -666,7 +667,10 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
-    deadline = 10 if 'CI' in os.environ else 2
+    if "CI" in os.environ or sysconfig.get_config_var("Py_DEBUG"):
+        deadline = 10
+    else:
+        deadline = 2
     if delta > deadline:  # pragma: no cover
         log.misc.warning(
             "YAML load took unusually long, please report this at "
