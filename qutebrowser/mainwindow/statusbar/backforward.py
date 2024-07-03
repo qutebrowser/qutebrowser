@@ -7,7 +7,7 @@
 from qutebrowser.mainwindow.statusbar import textbase
 
 
-class Backforward(textbase.TextBase):
+class BackforwardWidget(textbase.TextBase):
 
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
@@ -35,3 +35,14 @@ class Backforward(textbase.TextBase):
             text = '[' + text + ']'
         self.setText(text)
         self.setVisible(bool(text) and self.enabled)
+
+
+class Backforward:
+    def __init__(self, widget: BackforwardWidget):
+        self.widget = widget
+
+    def enable(self):
+        self.widget.enabled = True
+
+    def disable(self):
+        self.widget.enabled = False
