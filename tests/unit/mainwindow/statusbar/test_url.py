@@ -15,7 +15,7 @@ from qutebrowser.mainwindow.statusbar import url
 @pytest.fixture
 def url_widget(qtbot, monkeypatch, config_stub):
     """Fixture providing a Url widget."""
-    widget = url.UrlText()
+    widget = url.UrlTextWidget()
     qtbot.add_widget(widget)
     assert not widget.isVisible()
     return widget

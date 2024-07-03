@@ -28,7 +28,7 @@ class UrlType(enum.Enum):
     normal = enum.auto()
 
 
-class UrlText(textbase.TextBase):
+class UrlTextWidget(textbase.TextBase):
 
     """URL displayed in the statusbar.
 
@@ -169,3 +169,14 @@ class UrlText(textbase.TextBase):
             self._normal_url = ''
         self.on_load_status_changed(tab.load_status())
         self._update_url()
+
+
+class UrlText:
+    def __init__(self, widget: UrlTextWidget):
+        self.widget = widget
+
+    def enable(self):
+        self.widget.show()
+
+    def disable(self):
+        self.widget.hide()

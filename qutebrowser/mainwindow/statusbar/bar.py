@@ -181,7 +181,7 @@ class StatusBar(QWidget):
 
         self.search_match = searchmatch.SearchMatch()
 
-        self.url = url.UrlText()
+        self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage()
         self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
         self.tabindex = tabindex.TabIndex()
@@ -274,7 +274,7 @@ class StatusBar(QWidget):
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
-        for widget in [self.url, self.percentage,
+        for widget in [self.url.widget, self.percentage,
                        self.backforward.widget, self.tabindex,
                        self.keystring, self.prog, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
@@ -422,7 +422,7 @@ class StatusBar(QWidget):
     @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
-        self.url.on_tab_changed(tab)
+        self.url.widget.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.widget.on_tab_changed(tab)
