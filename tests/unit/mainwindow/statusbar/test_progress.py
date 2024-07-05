@@ -13,7 +13,7 @@ from qutebrowser.utils import usertypes, utils
 @pytest.fixture
 def progress_widget(qtbot, config_stub):
     """Create a Progress widget and checks its initial state."""
-    widget = progress.Progress()
+    widget = progress.ProgressWidget()
     widget.enabled = True
     qtbot.add_widget(widget)
     assert not widget.isVisible()

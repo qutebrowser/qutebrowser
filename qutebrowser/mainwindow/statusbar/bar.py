@@ -186,7 +186,7 @@ class StatusBar(QWidget):
         self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
-        self.prog = progress.Progress(self)
+        self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock()
         self._text_widgets = []
         self._draw_widgets()
@@ -245,7 +245,8 @@ class StatusBar(QWidget):
 
             # FIXME(pylbrecht): temporary workaround until we have StatusBarItem
             # instances for all widgets.
-            if isinstance(widget, (url.UrlText, backforward.Backforward)):
+            if isinstance(widget, (url.UrlText, backforward.Backforward,
+                                   progress.Progress)):
                 widget = widget.widget
 
             self._hbox.addWidget(widget)
@@ -276,9 +277,9 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url.widget, self.percentage,
                        self.backforward.widget, self.tabindex,
-                       self.keystring, self.prog, self.clock, *self._text_widgets]:
+                       self.keystring, self.prog.widget, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
-            if widget in [self.prog, self.backforward.widget]:
+            if widget in [self.prog.widget, self.backforward.widget]:
                 widget.enabled = False  # type: ignore[attr-defined]
             widget.hide()
             self._hbox.removeWidget(widget)
@@ -423,7 +424,7 @@ class StatusBar(QWidget):
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
         self.url.widget.on_tab_changed(tab)
-        self.prog.on_tab_changed(tab)
+        self.prog.widget.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.widget.on_tab_changed(tab)
         self.maybe_hide()
