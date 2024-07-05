@@ -11,7 +11,7 @@ from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
 
 
-class Progress(QProgressBar):
+class ProgressWidget(QProgressBar):
 
     """The progress bar part of the status bar."""
 
@@ -74,3 +74,14 @@ class Progress(QProgressBar):
 
     def minimumSizeHint(self):
         return self.sizeHint()
+
+
+class Progress:
+    def __init__(self, widget: ProgressWidget):
+        self.widget = widget
+
+    def enable(self):
+        self.widget.enabled = True
+
+    def disable(self):
+        self.widget.enabled = False
