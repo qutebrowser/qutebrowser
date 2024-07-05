@@ -523,7 +523,7 @@ class MainWindow(QWidget):
             self.status.prog.widget.on_load_started)
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
-            self.status.percentage.set_perc)
+            self.status.percentage.widget.set_perc)
         self.tabbed_browser.widget.tab_index_changed.connect(
             self.status.tabindex.on_tab_index_changed)
 

@@ -182,7 +182,7 @@ class StatusBar(QWidget):
         self.search_match = searchmatch.SearchMatch()
 
         self.url = url.UrlText(widget=url.UrlTextWidget())
-        self.percentage = percentage.Percentage()
+        self.percentage = percentage.Percentage(widget=percentage.PercentageWidget())
         self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
@@ -246,7 +246,7 @@ class StatusBar(QWidget):
             # FIXME(pylbrecht): temporary workaround until we have StatusBarItem
             # instances for all widgets.
             if isinstance(widget, (url.UrlText, backforward.Backforward,
-                                   progress.Progress)):
+                                   progress.Progress, percentage.Percentage)):
                 widget = widget.widget
 
             self._hbox.addWidget(widget)
@@ -275,7 +275,7 @@ class StatusBar(QWidget):
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
-        for widget in [self.url.widget, self.percentage,
+        for widget in [self.url.widget, self.percentage.widget,
                        self.backforward.widget, self.tabindex,
                        self.keystring, self.prog.widget, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
@@ -425,7 +425,7 @@ class StatusBar(QWidget):
         """Notify sub-widgets when the tab has been changed."""
         self.url.widget.on_tab_changed(tab)
         self.prog.widget.on_tab_changed(tab)
-        self.percentage.on_tab_changed(tab)
+        self.percentage.widget.on_tab_changed(tab)
         self.backforward.widget.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
