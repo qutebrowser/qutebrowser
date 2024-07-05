@@ -6,13 +6,13 @@
 
 import pytest
 
-from qutebrowser.mainwindow.statusbar.percentage import Percentage
+from qutebrowser.mainwindow.statusbar.percentage import PercentageWidget
 
 
 @pytest.fixture
 def percentage(qtbot):
     """Fixture providing a Percentage widget."""
-    widget = Percentage()
+    widget = PercentageWidget()
     # Force immediate update of percentage widget
     widget._set_text.set_delay(-1)
     qtbot.add_widget(widget)
