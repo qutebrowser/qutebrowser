@@ -6,6 +6,7 @@
 
 import enum
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -171,12 +172,5 @@ class UrlTextWidget(textbase.TextBase):
         self._update_url()
 
 
-class UrlText:
-    def __init__(self, widget: UrlTextWidget):
-        self.widget = widget
-
-    def enable(self):
-        self.widget.show()
-
-    def disable(self):
-        self.widget.hide()
+class UrlText(StatusBarItem):
+    pass
