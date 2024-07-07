@@ -11,7 +11,7 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
 
 
-class Clock(textbase.TextBase):
+class ClockWidget(textbase.TextBase):
 
     """Shows current time and date in the statusbar."""
 
@@ -35,6 +35,17 @@ class Clock(textbase.TextBase):
 
     def showEvent(self, event):
         """Override showEvent to show time and start self.timer for updating."""
-        self.timer.start(Clock.UPDATE_DELAY)
+        self.timer.start(ClockWidget.UPDATE_DELAY)
         self._show_time()
         super().showEvent(event)
+
+
+class Clock:
+    def __init__(self, widget: ClockWidget):
+        self.widget = widget
+
+    def enable(self):
+        self.widget.show()
+
+    def disable(self):
+        self.widget.hide()
