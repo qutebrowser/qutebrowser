@@ -497,7 +497,7 @@ class MainWindow(QWidget):
 
         # commands
         mode_manager.keystring_updated.connect(
-            self.status.keystring.on_keystring_updated)
+            self.status.keystring.widget.on_keystring_updated)
         self.status.cmd.got_cmd[str].connect(self._commandrunner.run_safely)
         self.status.cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
         self.status.cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
