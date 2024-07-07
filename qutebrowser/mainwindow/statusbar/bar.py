@@ -184,7 +184,7 @@ class StatusBar(QWidget):
         self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage(widget=percentage.PercentageWidget())
         self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
-        self.tabindex = tabindex.TabIndex()
+        self.tabindex = tabindex.TabIndex(widget=tabindex.TabIndexWidget())
         self.keystring = keystring.KeyString(widget=keystring.KeyStringWidget())
         self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock(widget=clock.ClockWidget())
@@ -247,7 +247,7 @@ class StatusBar(QWidget):
             # instances for all widgets.
             if isinstance(widget, (url.UrlText, backforward.Backforward,
                                    progress.Progress, percentage.Percentage,
-                                   clock.Clock, keystring.KeyString)):
+                                   clock.Clock, keystring.KeyString, tabindex.TabIndex)):
                 widget = widget.widget
 
             self._hbox.addWidget(widget)
@@ -277,7 +277,7 @@ class StatusBar(QWidget):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
         for widget in [self.url.widget, self.percentage.widget,
-                       self.backforward.widget, self.tabindex,
+                       self.backforward.widget, self.tabindex.widget,
                        self.keystring.widget, self.prog.widget, self.clock.widget, *self._text_widgets]:
             assert isinstance(widget, QWidget)
             if widget in [self.prog.widget, self.backforward.widget]:
