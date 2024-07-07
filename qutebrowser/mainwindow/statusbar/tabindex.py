@@ -4,6 +4,7 @@
 
 """TabIndex displayed in the statusbar."""
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSlot
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -19,12 +20,5 @@ class TabIndexWidget(textbase.TextBase):
         self.setText('[{}/{}]'.format(current + 1, count))
 
 
-class TabIndex:
-    def __init__(self, widget: TabIndexWidget):
-        self.widget = widget
-
-    def enable(self):
-        self.widget.show()
-
-    def disable(self):
-        self.widget.hide()
+class TabIndex(StatusBarItem):
+    pass
