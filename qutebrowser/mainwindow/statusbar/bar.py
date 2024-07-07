@@ -179,7 +179,7 @@ class StatusBar(QWidget):
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
 
-        self.search_match = searchmatch.SearchMatch()
+        self.search_match = searchmatch.SearchMatch(widget=searchmatch.SearchMatchWidget())
 
         self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage(widget=percentage.PercentageWidget())
@@ -247,7 +247,8 @@ class StatusBar(QWidget):
             # instances for all widgets.
             if isinstance(widget, (url.UrlText, backforward.Backforward,
                                    progress.Progress, percentage.Percentage,
-                                   clock.Clock, keystring.KeyString, tabindex.TabIndex)):
+                                   clock.Clock, keystring.KeyString, tabindex.TabIndex,
+                                   searchmatch.SearchMatch)):
                 widget = widget.widget
 
             self._hbox.addWidget(widget)
