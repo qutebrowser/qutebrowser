@@ -5,6 +5,7 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -40,12 +41,5 @@ class ClockWidget(textbase.TextBase):
         super().showEvent(event)
 
 
-class Clock:
-    def __init__(self, widget: ClockWidget):
-        self.widget = widget
-
-    def enable(self):
-        self.widget.show()
-
-    def disable(self):
-        self.widget.hide()
+class Clock(StatusBarItem):
+    pass
