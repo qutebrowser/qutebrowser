@@ -4,6 +4,7 @@
 
 """Keychain string displayed in the statusbar."""
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSlot
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -19,12 +20,5 @@ class KeyStringWidget(textbase.TextBase):
         self.setText(keystr)
 
 
-class KeyString:
-    def __init__(self, widget: KeyStringWidget):
-        self.widget = widget
-
-    def enable(self):
-        self.widget.show()
-
-    def disable(self):
-        self.widget.hide()
+class KeyString(StatusBarItem):
+    pass
