@@ -12,7 +12,7 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import log
 
 
-class SearchMatch(textbase.TextBase):
+class SearchMatchWidget(textbase.TextBase):
 
     """The part of the statusbar that displays the search match counter."""
 
@@ -31,3 +31,14 @@ class SearchMatch(textbase.TextBase):
         else:
             self.setText(f'Match [{search_match}]')
             log.statusbar.debug(f'Setting search match text to {search_match}')
+
+
+class SearchMatch:
+    def __init__(self, widget: SearchMatchWidget):
+        self.widget = widget
+
+    def enable(self):
+        self.widget.show()
+
+    def disable(self):
+        self.widget.hide()
