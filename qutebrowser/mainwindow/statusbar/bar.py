@@ -185,7 +185,7 @@ class StatusBar(QWidget):
         self.percentage = percentage.Percentage(widget=percentage.PercentageWidget())
         self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
         self.tabindex = tabindex.TabIndex()
-        self.keystring = keystring.KeyString()
+        self.keystring = keystring.KeyString(widget=keystring.KeyStringWidget())
         self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock(widget=clock.ClockWidget())
         self._text_widgets = []
@@ -247,7 +247,7 @@ class StatusBar(QWidget):
             # instances for all widgets.
             if isinstance(widget, (url.UrlText, backforward.Backforward,
                                    progress.Progress, percentage.Percentage,
-                                   clock.Clock)):
+                                   clock.Clock, keystring.KeyString)):
                 widget = widget.widget
 
             self._hbox.addWidget(widget)
@@ -278,7 +278,7 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url.widget, self.percentage.widget,
                        self.backforward.widget, self.tabindex,
-                       self.keystring, self.prog.widget, self.clock.widget, *self._text_widgets]:
+                       self.keystring.widget, self.prog.widget, self.clock.widget, *self._text_widgets]:
             assert isinstance(widget, QWidget)
             if widget in [self.prog.widget, self.backforward.widget]:
                 widget.enabled = False  # type: ignore[attr-defined]
