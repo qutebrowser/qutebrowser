@@ -3,7 +3,7 @@
 backports.tarfile==1.2.0
 build==1.2.1
 bump2version==1.0.1
-certifi==2024.6.2
+certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer==3.3.2
 cryptography==42.0.8
@@ -18,11 +18,11 @@ jaraco.context==5.3.0
 jaraco.functools==4.0.1
 jeepney==0.8.0
 keyring==25.2.1
-manhole==1.8.0
+manhole==1.8.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.3.0
-nh3==0.2.17
+nh3==0.2.18
 packaging==24.1
 pkginfo==1.10.0
 pycparser==2.22
