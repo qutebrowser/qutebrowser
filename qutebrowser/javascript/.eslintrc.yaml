@@ -14,6 +14,9 @@ env:
     browser: true
     es6: true
 
+parserOptions:
+    ecmaVersion: 11
+
 extends:
     "eslint:all"
 
@@ -34,7 +37,7 @@ rules:
     max-statements: ["error", {"max": 40}]
     quotes: ["error", "double", {"avoidEscape": true}]
     object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
-    comma-dangle: ["error", "always-multiline"]
+    comma-dangle: ["error", {"arrays": "always-multiline", "objects": "always-multiline"}]
     no-magic-numbers: "off"
     no-undefined: "off"
     wrap-iife: ["error", "inside"]
