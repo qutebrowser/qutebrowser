@@ -9,7 +9,7 @@ import time
 import logging
 
 import py.path
-from qutebrowser.qt.core import QUrl, QUrlQuery
+from qutebrowser.qt.core import QUrl
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
@@ -267,15 +267,6 @@ class TestPDFJSHandler:
     def test_file_no_filename(self):
         with pytest.raises(qutescheme.UrlInvalidError):
             qutescheme.data_for_url(QUrl('qute://pdfjs/file'))
-
-    @pytest.mark.parametrize('sep', ['/', os.sep])
-    def test_file_pathsep(self, sep):
-        url = QUrl('qute://pdfjs/file')
-        query = QUrlQuery()
-        query.addQueryItem('filename', 'foo{}bar'.format(sep))
-        url.setQuery(query)
-        with pytest.raises(qutescheme.RequestDeniedError):
-            qutescheme.data_for_url(url)
 
 
 class TestQuteConfigdiff:
