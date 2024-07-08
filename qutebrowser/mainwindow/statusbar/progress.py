@@ -41,7 +41,7 @@ class Progress(QProgressBar):
 
     @pyqtSlot()
     def on_load_started(self):
-        """Clear old error and show progress, used as slot to loadStarted."""
+        """Reset the value, and show the bar if enabled. Used as slot to loadStarted."""
         self.setValue(0)
         self.setVisible(self.enabled)
 
