@@ -404,6 +404,19 @@ qt.workarounds.disable_accelerated_2d_canvas:
 
     So far these glitches only occur on some Intel graphics devices.
 
+qt.workarounds.disable_hangouts_extension:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Disable the Hangouts extension.
+
+    The Hangouts extension provides additional APIs for Google domains only.
+
+    Hangouts has been replaced with Meet,
+    which appears to work without this extension.
+
 ## auto_save
 
 auto_save.interval:

@@ -208,6 +208,8 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
             and versions.webengine < utils.VersionNumber(6, 5, 3)
             and config.val.colors.webpage.darkmode.enabled
         )
+        # https://github.com/qutebrowser/qutebrowser/issues/8257
+        or config.val.qt.workarounds.disable_hangouts_extension
     ):
         # No patching needed
         return None

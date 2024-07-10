@@ -302,6 +302,7 @@
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.workarounds.disable_accelerated_2d_canvas,qt.workarounds.disable_accelerated_2d_canvas>>|Disable accelerated 2d canvas to avoid graphical glitches.
+|<<qt.workarounds.disable_hangouts_extension,qt.workarounds.disable_hangouts_extension>>|Disable the Hangouts extension.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
@@ -3992,6 +3993,20 @@ Valid values:
  * +never+: Enable accelerated 2d canvas
 
 Default: +pass:[auto]+
+
+[[qt.workarounds.disable_hangouts_extension]]
+=== qt.workarounds.disable_hangouts_extension
+Disable the Hangouts extension.
+The Hangouts extension provides additional APIs for Google domains only.
+Hangouts has been replaced with Meet, which appears to work without this extension.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[qt.workarounds.locale]]
 === qt.workarounds.locale
