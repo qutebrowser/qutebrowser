@@ -25,17 +25,6 @@ pytestmark = pytest.mark.usefixtures("cache_tmpdir")
 versions = version.qtwebengine_versions(avoid_init=True)
 
 
-# Used to skip happy path tests with the real resources file.
-#
-# Since we don't know how reliably the Google Meet hangouts extensions is
-# reliably in the resource files, and this quirk is only targeting 6.6
-# anyway.
-skip_if_unsupported = pytest.mark.skipif(
-    versions.webengine != utils.VersionNumber(6, 6),
-    reason="Code under test only runs on 6.6",
-)
-
-
 @pytest.fixture(autouse=True)
 def prepare_env(qapp, monkeypatch):
     monkeypatch.setattr(pakjoy.objects, "qapp", qapp)
@@ -206,7 +195,6 @@ def read_patched_manifest():
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
 
-    @skip_if_unsupported
     def test_happy_path(self):
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
@@ -265,6 +253,19 @@ class TestWithRealResourcesFile:
             "Resource pak doesn't exist at expected location! "
             "Not applying quirks. Expected location: "
         )
+
+    def test_hardcoded_ids(self):
+        """Make sure we hardcoded the currently valid ID.
+
+        This avoids users having to iterate through the whole resource file on
+        every start. It will probably break on every QtWebEngine upgrade and can
+        be fixed by adding the respective ID to HANGOUTS_IDS.
+        """
+        resources_dir = pakjoy._find_webengine_resources()
+        file_to_patch = resources_dir / pakjoy.PAK_FILENAME
+        with open(file_to_patch, "rb") as f:
+            parser = pakjoy.PakParser(f)
+        assert parser.manifest_entry.resource_id in pakjoy.HANGOUTS_IDS
 
 
 def json_manifest_factory(extension_id=pakjoy.HANGOUTS_MARKER, url=pakjoy.TARGET_URL):
