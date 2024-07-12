@@ -195,6 +195,7 @@ def read_patched_manifest():
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
 
+    @pytest.mark.qt6_only
     def test_happy_path(self):
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
@@ -254,6 +255,7 @@ class TestWithRealResourcesFile:
             "Not applying quirks. Expected location: "
         )
 
+    @pytest.mark.qt6_only
     def test_hardcoded_ids(self):
         """Make sure we hardcoded the currently valid ID.
 
