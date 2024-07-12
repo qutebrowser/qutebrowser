@@ -3999,6 +3999,7 @@ Default: +pass:[auto]+
 Disable the Hangouts extension.
 The Hangouts extension provides additional APIs for Google domains only.
 Hangouts has been replaced with Meet, which appears to work without this extension.
+Note this setting gets ignored and the Hangouts extension is always disabled to avoid crashes on Qt 6.5.0 to 6.5.3 if dark mode is enabled, as well as on Qt 6.6.0.
 
 This setting requires a restart.
 
