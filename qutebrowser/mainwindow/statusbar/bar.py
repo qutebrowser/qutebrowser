@@ -204,6 +204,7 @@ class StatusBar(QWidget):
         elif key == 'scroll':
             return self.percentage
         elif key == 'scroll_raw':
+            self.percentage.set_raw()
             return self.percentage
         elif key == 'history':
             return self.backforward
@@ -253,9 +254,7 @@ class StatusBar(QWidget):
 
             self._hbox.addWidget(widget)
 
-            if segment == 'scroll_raw':
-                widget.set_raw()
-            elif segment in ('history', 'progress'):
+            if segment in ('history', 'progress'):
                 widget.enabled = True
                 if tab:
                     widget.on_tab_changed(tab)

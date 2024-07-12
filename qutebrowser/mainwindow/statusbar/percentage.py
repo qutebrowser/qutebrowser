@@ -50,4 +50,5 @@ class PercentageWidget(textbase.TextBase):
 
 
 class Percentage(StatusBarItem):
-    pass
+    def set_raw(self):
+        self.widget.set_raw()
