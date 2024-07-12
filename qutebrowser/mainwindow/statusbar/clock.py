@@ -42,4 +42,10 @@ class ClockWidget(textbase.TextBase):
 
 
 class Clock(StatusBarItem):
-    pass
+    @property
+    def format(self):
+        return self.widget.format
+
+    @format.setter
+    def format(self, value: str):
+        self.widget.format = value

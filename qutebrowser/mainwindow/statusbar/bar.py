@@ -222,6 +222,11 @@ class StatusBar(QWidget):
             self._text_widgets.append(new_text_widget)
             return new_text_widget
         elif key.startswith('clock:') or key == 'clock':
+            split_segment = key.split(':', maxsplit=1)
+            if len(split_segment) == 2 and split_segment[1]:
+                self.clock.format = split_segment[1]
+            else:
+                self.clock.format = '%X'
             return self.clock
         else:
             raise utils.Unreachable(key)
@@ -263,12 +268,6 @@ class StatusBar(QWidget):
                 # Do not call .show() for these widgets. They are not always shown, and
                 # dynamically show/hide themselves in their on_tab_changed() methods.
                 continue
-            elif segment.startswith('clock:') or segment == 'clock':
-                split_segment = segment.split(':', maxsplit=1)
-                if len(split_segment) == 2 and split_segment[1]:
-                    widget.format = split_segment[1]
-                else:
-                    widget.format = '%X'
 
             widget.show()
 
