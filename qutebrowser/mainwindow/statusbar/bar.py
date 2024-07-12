@@ -218,6 +218,7 @@ class StatusBar(QWidget):
             return self.search_match
         elif key.startswith('text:'):
             new_text_widget = textbase.TextBase()
+            new_text_widget.setText(key.split(':', maxsplit=1)[1])
             self._text_widgets.append(new_text_widget)
             return new_text_widget
         elif key.startswith('clock:') or key == 'clock':
@@ -262,8 +263,6 @@ class StatusBar(QWidget):
                 # Do not call .show() for these widgets. They are not always shown, and
                 # dynamically show/hide themselves in their on_tab_changed() methods.
                 continue
-            elif segment.startswith('text:'):
-                widget.setText(segment.split(':', maxsplit=1)[1])
             elif segment.startswith('clock:') or segment == 'clock':
                 split_segment = segment.split(':', maxsplit=1)
                 if len(split_segment) == 2 and split_segment[1]:
