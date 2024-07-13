@@ -6,7 +6,7 @@
 from qutebrowser.qt.core import Qt
 import pytest
 
-from qutebrowser.mainwindow.statusbar.textbase import TextBase
+from qutebrowser.mainwindow.statusbar.textbase import TextBaseWidget
 
 
 @pytest.mark.parametrize('elidemode, check', [
@@ -30,7 +30,7 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
     """
     fake_statusbar.container.expose()
 
-    label = TextBase(elidemode=elidemode)
+    label = TextBaseWidget(elidemode=elidemode)
     qtbot.add_widget(label)
     fake_statusbar.hbox.addWidget(label)
 
@@ -43,7 +43,7 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
 
 def test_resize(qtbot):
     """Make sure the elided text is updated when resizing."""
-    label = TextBase()
+    label = TextBaseWidget()
     qtbot.add_widget(label)
     long_string = 'Hello world! ' * 20
     label.setText(long_string)
@@ -60,11 +60,11 @@ def test_resize(qtbot):
 
 def test_text_elide_none(mocker, qtbot):
     """Make sure the text doesn't get elided if it's empty."""
-    label = TextBase()
+    label = TextBaseWidget()
     qtbot.add_widget(label)
     label.setText('')
     mock = mocker.patch(
-        'qutebrowser.mainwindow.statusbar.textbase.TextBase.fontMetrics')
+        'qutebrowser.mainwindow.statusbar.textbase.TextBaseWidget.fontMetrics')
     label._update_elided_text(20)
 
     assert not mock.called
@@ -72,7 +72,7 @@ def test_text_elide_none(mocker, qtbot):
 
 def test_unset_text(qtbot):
     """Make sure the text is cleared properly."""
-    label = TextBase()
+    label = TextBaseWidget()
     qtbot.add_widget(label)
     label.setText('foo')
     label.setText('')

@@ -29,7 +29,7 @@ class UrlType(enum.Enum):
     normal = enum.auto()
 
 
-class UrlTextWidget(textbase.TextBase):
+class UrlTextWidget(textbase.TextBaseWidget):
 
     """URL displayed in the statusbar.
 

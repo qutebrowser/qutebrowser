@@ -172,7 +172,7 @@ class StatusBar(QWidget):
         objreg.register('status-command', self.cmd, scope='window',
                         window=win_id)
 
-        self.txt = textbase.TextBase()
+        self.txt = textbase.TextBaseWidget()
         self._stack.addWidget(self.txt)
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
@@ -217,7 +217,7 @@ class StatusBar(QWidget):
         elif key == 'search_match':
             return self.search_match
         elif key.startswith('text:'):
-            new_text_widget = textbase.TextBase()
+            new_text_widget = textbase.TextBaseWidget()
             new_text_widget.setText(key.split(':', maxsplit=1)[1])
             self._text_widgets.append(new_text_widget)
             return new_text_widget

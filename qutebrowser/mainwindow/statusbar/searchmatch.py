@@ -13,7 +13,7 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import log
 
 
-class SearchMatchWidget(textbase.TextBase):
+class SearchMatchWidget(textbase.TextBaseWidget):
 
     """The part of the statusbar that displays the search match counter."""
 

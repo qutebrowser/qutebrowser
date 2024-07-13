@@ -10,7 +10,7 @@ from qutebrowser.qt.core import pyqtSlot
 from qutebrowser.mainwindow.statusbar import textbase
 
 
-class TabIndexWidget(textbase.TextBase):
+class TabIndexWidget(textbase.TextBaseWidget):
 
     """Shows current tab index and number of tabs in the statusbar."""
 

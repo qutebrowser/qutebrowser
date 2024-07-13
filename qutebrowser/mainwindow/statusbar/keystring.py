@@ -11,7 +11,7 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
 
 
-class KeyStringWidget(textbase.TextBase):
+class KeyStringWidget(textbase.TextBaseWidget):
 
     """Keychain string displayed in the statusbar."""
 
