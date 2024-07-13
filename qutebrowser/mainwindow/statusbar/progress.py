@@ -4,6 +4,7 @@
 
 """The progress bar in the statusbar."""
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSlot, QSize
 from qutebrowser.qt.widgets import QProgressBar, QSizePolicy
 
@@ -76,7 +77,7 @@ class ProgressWidget(QProgressBar):
         return self.sizeHint()
 
 
-class Progress:
+class Progress(StatusBarItem):
     def __init__(self, widget: ProgressWidget):
         self.widget = widget
 
