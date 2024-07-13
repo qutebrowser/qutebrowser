@@ -7,6 +7,7 @@
 import enum
 import dataclasses
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSignal, pyqtProperty, pyqtSlot, Qt, QSize, QTimer
 from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
@@ -197,7 +198,7 @@ class StatusBar(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _get_widget_from_config(self, key):
+    def _get_widget_from_config(self, key) -> StatusBarItem:
         """Return the widget that fits with config string key."""
         if key == 'url':
             return self.url
@@ -217,8 +218,8 @@ class StatusBar(QWidget):
         elif key == 'search_match':
             return self.search_match
         elif key.startswith('text:'):
-            new_text_widget = textbase.TextBaseWidget()
-            new_text_widget.setText(key.split(':', maxsplit=1)[1])
+            new_text_widget = textbase.TextBase(widget=textbase.TextBaseWidget())
+            new_text_widget.widget.setText(key.split(':', maxsplit=1)[1])
             self._text_widgets.append(new_text_widget)
             return new_text_widget
         elif key.startswith('clock:') or key == 'clock':
@@ -250,20 +251,12 @@ class StatusBar(QWidget):
         for segment in config.val.statusbar.widgets:
             widget = self._get_widget_from_config(segment)
 
-            # FIXME(pylbrecht): temporary workaround until we have StatusBarItem
-            # instances for all widgets.
-            if isinstance(widget, (url.UrlText, backforward.Backforward,
-                                   progress.Progress, percentage.Percentage,
-                                   clock.Clock, keystring.KeyString, tabindex.TabIndex,
-                                   searchmatch.SearchMatch)):
-                widget = widget.widget
-
-            self._hbox.addWidget(widget)
+            self._hbox.addWidget(widget.widget)
 
             if segment in ('history', 'progress'):
-                widget.enabled = True
+                widget.widget.enabled = True
                 if tab:
-                    widget.on_tab_changed(tab)
+                    widget.widget.on_tab_changed(tab)
 
                 # Do not call .show() for these widgets. They are not always shown, and
                 # dynamically show/hide themselves in their on_tab_changed() methods.
@@ -276,7 +269,8 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url.widget, self.percentage.widget,
                        self.backforward.widget, self.tabindex.widget,
-                       self.keystring.widget, self.prog.widget, self.clock.widget, *self._text_widgets]:
+                       self.keystring.widget, self.prog.widget, self.clock.widget,
+                       *[widget.widget for widget in self._text_widgets]]:
             assert isinstance(widget, QWidget)
             if widget in [self.prog.widget, self.backforward.widget]:
                 widget.enabled = False  # type: ignore[attr-defined]
