@@ -253,16 +253,10 @@ class StatusBar(QWidget):
 
             self._hbox.addWidget(widget.widget)
 
-            if segment in ('history', 'progress'):
-                widget.widget.enabled = True
-                if tab:
-                    widget.widget.on_tab_changed(tab)
+            if isinstance(widget, (backforward.Backforward, progress.Progress)) and tab:
+                widget.widget.on_tab_changed(tab)
 
-                # Do not call .show() for these widgets. They are not always shown, and
-                # dynamically show/hide themselves in their on_tab_changed() methods.
-                continue
-
-            widget.show()
+            widget.enable()
 
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
