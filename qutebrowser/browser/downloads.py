@@ -500,6 +500,9 @@ class AbstractDownloadItem(QObject):
         """
         assert self._filename is not None
         path, file = os.path.split(self._filename)
+        # Pull out filename extension which could be a two part one like
+        # `tar.gz`. Use a more restrictive character set for the first part of
+        # a two part extension to avoid matching numbers.
         match = re.fullmatch(r'(.+?)((\.[a-z]+)?\.[^.]+)', file)
         if match:
             base, suffix = match[1], match[2]
