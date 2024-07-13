@@ -4,6 +4,7 @@
 
 """Base text widgets for statusbar."""
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import Qt
 from qutebrowser.qt.widgets import QLabel, QSizePolicy
 from qutebrowser.qt.gui import QPainter
@@ -11,7 +12,7 @@ from qutebrowser.qt.gui import QPainter
 from qutebrowser.utils import qtutils, utils
 
 
-class TextBase(QLabel):
+class TextBaseWidget(QLabel):
 
     """A text in the statusbar.
 
@@ -74,3 +75,8 @@ class TextBase(QLabel):
             qtutils.ensure_valid(geom)
             painter.drawText(0, 0, geom.width(), geom.height(),
                              int(self.alignment()), self._elided_text)
+
+
+class TextBase(StatusBarItem):
+    def __init__(self, widget: TextBaseWidget):
+        self.widget = widget

@@ -12,7 +12,7 @@ from qutebrowser.misc import throttle
 from qutebrowser.utils import utils
 
 
-class PercentageWidget(textbase.TextBase):
+class PercentageWidget(textbase.TextBaseWidget):
 
     """Reading percentage displayed in the statusbar."""
 

@@ -12,7 +12,7 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
 
 
-class ClockWidget(textbase.TextBase):
+class ClockWidget(textbase.TextBaseWidget):
 
     """Shows current time and date in the statusbar."""
 
