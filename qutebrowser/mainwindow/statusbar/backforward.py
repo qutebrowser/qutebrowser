@@ -5,6 +5,7 @@
 """Navigation (back/forward) indicator displayed in the statusbar."""
 
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 
 
 class BackforwardWidget(textbase.TextBaseWidget):
@@ -37,7 +38,7 @@ class BackforwardWidget(textbase.TextBaseWidget):
         self.setVisible(bool(text) and self.enabled)
 
 
-class Backforward:
+class Backforward(StatusBarItem):
     def __init__(self, widget: BackforwardWidget):
         self.widget = widget
 
