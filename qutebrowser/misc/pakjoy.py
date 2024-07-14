@@ -34,7 +34,7 @@ from typing import ClassVar, IO, Optional, Dict, Tuple, Iterator
 
 from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
-from qutebrowser.utils import qtutils, standarddir, version, utils, log
+from qutebrowser.utils import qtutils, standarddir, version, utils, log, message
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_IDS = [
@@ -234,7 +234,8 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
 def _patch(file_to_patch: pathlib.Path) -> None:
     """Apply any patches to the given pak file."""
     if not file_to_patch.exists():
-        log.misc.error(
+        _error(
+            None,
             "Resource pak doesn't exist at expected location! "
             f"Not applying quirks. Expected location: {file_to_patch}"
         )
@@ -247,8 +248,22 @@ def _patch(file_to_patch: pathlib.Path) -> None:
             offset = parser.find_patch_offset()
             binparsing.safe_seek(f, offset)
             f.write(REPLACEMENT_URL)
-        except binparsing.ParseError:
-            log.misc.exception("Failed to apply quirk to resources pak.")
+        except binparsing.ParseError as e:
+            _error(e, "Failed to apply quirk to resources pak.")
+
+
+def _error(exc: Optional[BaseException], text: str) -> None:
+    if config.val.qt.workarounds.disable_hangouts_extension:
+        # Explicitly requested -> hard error
+        lines = ["Failed to disable Hangouts extension"]
+        if exc is None:
+            lines.append(str(exc))
+        message.error("\n".join(lines))
+    elif exc is None:
+        # Best effort -> just log
+        log.misc.error(text)
+    else:
+        log.misc.exception(text)
 
 
 @contextlib.contextmanager
@@ -263,8 +278,8 @@ def patch_webengine() -> Iterator[None]:
         # Still calling this on Qt != 6.6 so that the directory is cleaned up
         # when not needed anymore.
         webengine_resources_path = copy_webengine_resources()
-    except OSError:
-        log.misc.exception("Failed to copy webengine resources, not applying quirk")
+    except OSError as e:
+        _error(e, "Failed to copy webengine resources, not applying quirk")
         yield
         return
 
