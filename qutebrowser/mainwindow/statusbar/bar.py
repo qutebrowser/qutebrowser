@@ -198,7 +198,7 @@ class StatusBar(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _get_widget_from_config(self, key) -> StatusBarItem:
+    def _get_widget_from_config(self, key, tab) -> StatusBarItem:
         """Return the widget that fits with config string key."""
         if key == 'url':
             return self.url
@@ -208,12 +208,16 @@ class StatusBar(QWidget):
             self.percentage.set_raw()
             return self.percentage
         elif key == 'history':
+            if tab:
+                self.backforward.widget.on_tab_changed(tab)
             return self.backforward
         elif key == 'tabs':
             return self.tabindex
         elif key == 'keypress':
             return self.keystring
         elif key == 'progress':
+            if tab:
+                self.prog.widget.on_tab_changed(tab)
             return self.prog
         elif key == 'search_match':
             return self.search_match
@@ -249,12 +253,9 @@ class StatusBar(QWidget):
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
-            widget = self._get_widget_from_config(segment)
+            widget = self._get_widget_from_config(segment, tab)
 
             self._hbox.addWidget(widget.widget)
-
-            if isinstance(widget, (backforward.Backforward, progress.Progress)) and tab:
-                widget.widget.on_tab_changed(tab)
 
             widget.enable()
 
