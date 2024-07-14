@@ -67,7 +67,7 @@ def affected_version(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureReq
 
 
 @pytest.mark.parametrize("workdir_exists", [True, False])
-def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
+def test_version_gate(cache_tmpdir, unaffected_version, mocker, config_stub, workdir_exists):
     workdir = cache_tmpdir / pakjoy.CACHE_DIR_NAME
     if workdir_exists:
         workdir.mkdir()
@@ -81,7 +81,9 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
     assert not workdir.exists()
 
 
-def test_escape_hatch(affected_version, mocker, monkeypatch):
+@pytest.mark.parametrize("explicit", [True, False])
+def test_escape_hatch(affected_version, mocker, monkeypatch, config_stub, explicit):
+    config_stub.val.qt.workarounds.disable_hangouts_extension = explicit
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
     monkeypatch.setenv(pakjoy.DISABLE_ENV_VAR, "1")
 
@@ -449,6 +451,12 @@ class TestWithConstructedResourcesFile:
             in json_manifest["externally_connectable"]["matches"]
         )
         assert pakjoy.RESOURCES_ENV_VAR not in os.environ
+
+    def test_explicitly_enabled(self, monkeypatch: pytest.MonkeyPatch, config_stub):
+        patch_version(monkeypatch, utils.VersionNumber(6, 7))  # unaffected
+        config_stub.val.qt.workarounds.disable_hangouts_extension = True
+        with pakjoy.patch_webengine():
+            assert pakjoy.RESOURCES_ENV_VAR in os.environ
 
     def test_preset_env_var(
         self,
