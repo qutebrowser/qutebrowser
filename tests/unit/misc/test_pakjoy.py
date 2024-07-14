@@ -13,7 +13,7 @@ import shutil
 import pytest
 
 from qutebrowser.misc import pakjoy, binparsing
-from qutebrowser.utils import utils, version, standarddir
+from qutebrowser.utils import utils, version, standarddir, usertypes
 
 
 pytest.importorskip("qutebrowser.qt.webenginecore")
@@ -397,7 +397,9 @@ class TestWithConstructedResourcesFile:
         ):
             parser.find_patch_offset()
 
-    def test_url_not_found_high_level(self, cache_tmpdir, caplog, affected_version):
+    @pytest.mark.parametrize("explicit", [True, False])
+    def test_url_not_found_high_level(self, cache_tmpdir, caplog, affected_version, config_stub, message_mock, explicit):
+        config_stub.val.qt.workarounds.disable_hangouts_extension = explicit
         buffer = pak_factory(entries=[json_manifest_factory(url=b"example.com")])
 
         # Write bytes to file so we can test pakjoy._patch()
@@ -405,10 +407,18 @@ class TestWithConstructedResourcesFile:
         with open(tmpfile, "wb") as fd:
             fd.write(buffer.read())
 
-        with caplog.at_level(logging.ERROR, "misc"):
+        logger = "message" if explicit else "misc"
+        with caplog.at_level(logging.ERROR, logger):
             pakjoy._patch(tmpfile)
 
-        assert caplog.messages == ["Failed to apply quirk to resources pak."]
+        if explicit:
+            msg = message_mock.getmsg(usertypes.MessageLevel.error)
+            assert msg.text == (
+                "Failed to disable Hangouts extension:\n"
+                "Failed to apply quirk to resources pak."
+            )
+        else:
+            assert caplog.messages[-1] == "Failed to apply quirk to resources pak."
 
     @pytest.fixture
     def resources_path(

@@ -255,7 +255,7 @@ def _patch(file_to_patch: pathlib.Path) -> None:
 def _error(exc: Optional[BaseException], text: str) -> None:
     if config.val.qt.workarounds.disable_hangouts_extension:
         # Explicitly requested -> hard error
-        lines = ["Failed to disable Hangouts extension"]
+        lines = ["Failed to disable Hangouts extension:", text]
         if exc is None:
             lines.append(str(exc))
         message.error("\n".join(lines))
