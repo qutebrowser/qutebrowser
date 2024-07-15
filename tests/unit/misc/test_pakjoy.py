@@ -452,6 +452,7 @@ class TestWithConstructedResourcesFile:
         )
         assert pakjoy.RESOURCES_ENV_VAR not in os.environ
 
+    @pytest.mark.qt6_only
     def test_explicitly_enabled(self, monkeypatch: pytest.MonkeyPatch, config_stub):
         patch_version(monkeypatch, utils.VersionNumber(6, 7))  # unaffected
         config_stub.val.qt.workarounds.disable_hangouts_extension = True
