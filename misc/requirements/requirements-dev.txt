@@ -30,7 +30,7 @@ Pygments==2.18.0
 PyJWT==2.8.0
 Pympler==1.1
 pyproject_hooks==1.1.0
-PyQt-builder==1.16.3
+PyQt-builder==1.16.4
 python-dateutil==2.9.0.post0
 readme_renderer==43.0
 requests==2.32.3
@@ -38,7 +38,7 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.7.1
 SecretStorage==3.3.3
-sip==6.8.5
+sip==6.8.6
 six==1.16.0
 tomli==2.0.1
 twine==5.1.1
