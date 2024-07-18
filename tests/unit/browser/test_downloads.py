@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
+
 import pytest
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
@@ -111,6 +113,33 @@ def test_sanitized_filenames(raw, expected,
     manager._init_item(item, True, raw)
     item.set_target(target)
     assert item._filename.endswith(expected)
+
+
+@pytest.mark.parametrize('filename, expected', [
+    ("noext", "noext_2"),
+    ("simple.gif", "simple_2.gif"),
+    ("twoparts.tar.gz", "twoparts_2.tar.gz"),
+    ("many.dots.in.the.name", "many.dots.in_2.the.name"),
+    ("a. space.gif", "a. space_2.gif"),
+    ("non-ascii-📍.gif", "non-ascii-📍_2.gif"),
+    ("non-ascii.📍", "non-ascii_2.📍"),
+    ("non-ascii.📍.gif", "non-ascii.📍_2.gif"),
+    ("numbers_22.10.05.jpeg", "numbers_22.10.05_2.jpeg"),
+    ("Sentance..gif", "Sentance._2.gif"),
+])
+def test_generated_filename_suffix(
+    filename, expected, config_stub, download_tmpdir, monkeypatch
+):
+    manager = downloads.AbstractDownloadManager()
+    item = downloads.AbstractDownloadItem(manager=manager)
+
+    # Abstract methods
+    item._ensure_can_set_filename = lambda *args: True
+    item._after_set_filename = lambda *args: True
+
+    item._set_filename(filename)
+    item._find_next_filename()
+    assert os.path.basename(item._filename) == expected
 
 
 class TestConflictingDownloads:
