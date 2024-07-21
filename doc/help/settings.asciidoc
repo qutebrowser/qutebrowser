@@ -4874,6 +4874,6 @@ See the setting's valid values for more information on allowed values.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.
 
-See https://developer.chrome.com/apps/match_patterns for the allowed syntax.
+See https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns for the allowed syntax.
 |VerticalPosition|The position of the download bar.
 |==============

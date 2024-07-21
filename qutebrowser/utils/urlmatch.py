@@ -5,7 +5,7 @@
 """A Chromium-like URL matching pattern.
 
 See:
-https://developer.chrome.com/apps/match_patterns
+https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 

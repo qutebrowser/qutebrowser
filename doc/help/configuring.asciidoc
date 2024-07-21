@@ -31,7 +31,7 @@ patterns. The link:settings{outfilesuffix}[settings documentation] marks such
 settings with "This setting supports URL patterns.
 
 The syntax is based on Chromium's
-https://developer.chrome.com/docs/extensions/mv3/match_patterns/[URL pattern syntax].
+https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns/[URL pattern syntax].
 As an extension, the scheme and path can be left off as a short-hand syntax, so
 `example.com` is equivalent to `*://example.com/*`.
 
