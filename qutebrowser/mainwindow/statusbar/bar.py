@@ -209,7 +209,7 @@ class StatusBar(QWidget):
             return self.percentage
         elif key == 'history':
             if tab:
-                self.backforward.widget.on_tab_changed(tab)
+                self.backforward.on_tab_changed(tab)
             return self.backforward
         elif key == 'tabs':
             return self.tabindex
@@ -412,7 +412,7 @@ class StatusBar(QWidget):
         self.url.widget.on_tab_changed(tab)
         self.prog.widget.on_tab_changed(tab)
         self.percentage.widget.on_tab_changed(tab)
-        self.backforward.widget.on_tab_changed(tab)
+        self.backforward.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
