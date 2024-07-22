@@ -11,8 +11,8 @@ from qutebrowser.mainwindow.statusbar import backforward
 
 @pytest.fixture
 def backforward_widget(qtbot):
-    widget = backforward.BackforwardWidget()
-    qtbot.add_widget(widget)
+    widget = backforward.Backforward(widget=backforward.BackforwardWidget())
+    qtbot.add_widget(widget.widget)
     return widget
 
 
@@ -37,8 +37,8 @@ def test_widget_state(backforward_widget, tabs,
     tabs.widget.tabs = [tab]
     backforward_widget.enabled = True
     backforward_widget.on_tab_cur_url_changed(tabs)
-    assert backforward_widget.text() == expected_text
-    assert backforward_widget.isVisible() == bool(expected_text)
+    assert backforward_widget.widget.text() == expected_text
+    assert backforward_widget.widget.isVisible() == bool(expected_text)
 
 
 def test_state_changes_on_tab_change(backforward_widget, tabs, fake_web_tab):
@@ -49,12 +49,12 @@ def test_state_changes_on_tab_change(backforward_widget, tabs, fake_web_tab):
     backforward_widget.enabled = True
 
     backforward_widget.on_tab_cur_url_changed(tabs)
-    assert backforward_widget.isVisible()
+    assert backforward_widget.widget.isVisible()
 
     tabs.widget.tabs = [tab_without_history]
     backforward_widget.on_tab_cur_url_changed(tabs)
-    assert backforward_widget.text() == ''
-    assert not backforward_widget.isVisible()
+    assert backforward_widget.widget.text() == ''
+    assert not backforward_widget.widget.isVisible()
 
 
 def test_none_tab(backforward_widget, tabs, fake_web_tab):
@@ -64,14 +64,14 @@ def test_none_tab(backforward_widget, tabs, fake_web_tab):
     backforward_widget.enabled = True
     backforward_widget.on_tab_cur_url_changed(tabs)
 
-    assert backforward_widget.text() == '[<>]'
-    assert backforward_widget.isVisible()
+    assert backforward_widget.widget.text() == '[<>]'
+    assert backforward_widget.widget.isVisible()
 
     tabs.widget.current_index = -1
     backforward_widget.on_tab_cur_url_changed(tabs)
 
-    assert backforward_widget.text() == ''
-    assert not backforward_widget.isVisible()
+    assert backforward_widget.widget.text() == ''
+    assert not backforward_widget.widget.isVisible()
 
 
 def test_not_shown_when_disabled(backforward_widget, tabs, fake_web_tab):
@@ -81,7 +81,7 @@ def test_not_shown_when_disabled(backforward_widget, tabs, fake_web_tab):
 
     backforward_widget.enabled = False
     backforward_widget.on_tab_cur_url_changed(tabs)
-    assert not backforward_widget.isVisible()
+    assert not backforward_widget.widget.isVisible()
 
     backforward_widget.on_tab_changed(tab)
-    assert not backforward_widget.isVisible()
+    assert not backforward_widget.widget.isVisible()
