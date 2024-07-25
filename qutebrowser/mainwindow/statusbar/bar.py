@@ -217,7 +217,7 @@ class StatusBar(QWidget):
             return self.keystring
         elif key == 'progress':
             if tab:
-                self.prog.widget.on_tab_changed(tab)
+                self.prog.on_tab_changed(tab)
             return self.prog
         elif key == 'search_match':
             return self.search_match
@@ -410,7 +410,7 @@ class StatusBar(QWidget):
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
         self.url.widget.on_tab_changed(tab)
-        self.prog.widget.on_tab_changed(tab)
+        self.prog.on_tab_changed(tab)
         self.percentage.widget.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()
