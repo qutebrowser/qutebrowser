@@ -13,11 +13,11 @@ from qutebrowser.utils import usertypes, utils
 @pytest.fixture
 def progress_widget(qtbot, config_stub):
     """Create a Progress widget and checks its initial state."""
-    widget = progress.ProgressWidget()
+    widget = progress.Progress(widget=progress.ProgressWidget())
     widget.enabled = True
-    qtbot.add_widget(widget)
-    assert not widget.isVisible()
-    assert not widget.isTextVisible()
+    qtbot.add_widget(widget.widget)
+    assert not widget.widget.isVisible()
+    assert not widget.widget.isTextVisible()
     return widget
 
 
@@ -28,8 +28,8 @@ def test_load_started(progress_widget):
         progress_widget: Progress widget that will be tested.
     """
     progress_widget.on_load_started()
-    assert progress_widget.value() == 0
-    assert progress_widget.isVisible()
+    assert progress_widget.widget.value() == 0
+    assert progress_widget.widget.isVisible()
 
 
 @pytest.mark.parametrize('progress, load_status, expected_visible', [
@@ -48,7 +48,7 @@ def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
     """
     tab = fake_web_tab(progress=progress, load_status=load_status)
     progress_widget.on_tab_changed(tab)
-    actual = progress_widget.value(), progress_widget.isVisible()
+    actual = progress_widget.widget.value(), progress_widget.widget.isVisible()
     expected = tab.progress(), expected_visible
     assert actual == expected
 
@@ -58,7 +58,7 @@ def test_not_shown_when_disabled(progress_widget, fake_web_tab):
     tab = fake_web_tab(progress=15, load_status=usertypes.LoadStatus.loading)
     progress_widget.enabled = False
     progress_widget.on_tab_changed(tab)
-    assert not progress_widget.isVisible()
+    assert not progress_widget.widget.isVisible()
 
 
 def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
@@ -78,8 +78,8 @@ def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height
 
-    fake_statusbar.hbox.addWidget(progress_widget)
-    progress_widget.show()
+    fake_statusbar.hbox.addWidget(progress_widget.widget)
+    progress_widget.widget.show()
 
     assert fake_statusbar.height() == expected_height
 
@@ -89,8 +89,8 @@ def test_progress_big_statusbar(qtbot, fake_statusbar, progress_widget):
 
     https://github.com/qutebrowser/qutebrowser/commit/46d1760798b730852e2207e2cdc05a9308e44f80
     """
-    fake_statusbar.hbox.addWidget(progress_widget)
-    progress_widget.show()
-    expected_height = progress_widget.height()
+    fake_statusbar.hbox.addWidget(progress_widget.widget)
+    progress_widget.widget.show()
+    expected_height = progress_widget.widget.height()
     fake_statusbar.hbox.addStrut(50)
-    assert progress_widget.height() == expected_height
+    assert progress_widget.widget.height() == expected_height
