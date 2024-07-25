@@ -411,7 +411,7 @@ class StatusBar(QWidget):
         """Notify sub-widgets when the tab has been changed."""
         self.url.widget.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
-        self.percentage.widget.on_tab_changed(tab)
+        self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
