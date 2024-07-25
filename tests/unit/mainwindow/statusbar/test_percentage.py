@@ -6,16 +6,16 @@
 
 import pytest
 
-from qutebrowser.mainwindow.statusbar.percentage import PercentageWidget
+from qutebrowser.mainwindow.statusbar.percentage import Percentage, PercentageWidget
 
 
 @pytest.fixture
 def percentage(qtbot):
     """Fixture providing a Percentage widget."""
-    widget = PercentageWidget()
+    widget = Percentage(widget=PercentageWidget())
     # Force immediate update of percentage widget
     widget._set_text.set_delay(-1)
-    qtbot.add_widget(widget)
+    qtbot.add_widget(widget.widget)
     return widget
 
 
@@ -44,7 +44,7 @@ def test_percentage_text(percentage, y, raw, expected):
     if raw:
         percentage.set_raw()
     percentage.set_perc(x=None, y=y)
-    assert percentage.text() == expected
+    assert percentage.widget.text() == expected
 
 
 def test_tab_change(percentage, fake_web_tab):
@@ -52,4 +52,4 @@ def test_tab_change(percentage, fake_web_tab):
     percentage.set_perc(x=None, y=10)
     tab = fake_web_tab(scroll_pos_perc=(0, 20))
     percentage.on_tab_changed(tab)
-    assert percentage.text() == '[20%]'
+    assert percentage.widget.text() == '[20%]'
