@@ -1984,8 +1984,9 @@ class UrlPattern(BaseType):
 
     """A match pattern for a URL.
 
-    See https://developer.chrome.com/apps/match_patterns for the allowed
-    syntax.
+    See
+    https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
+    for the allowed syntax.
     """
 
     def to_py(
