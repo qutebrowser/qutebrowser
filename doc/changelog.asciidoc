@@ -47,6 +47,8 @@ Fixed
 
 - A minor memory leak of QItemSelectionModels triggered by closing the
   completion dialog has been resolved. (#7950)
+- The link to the chrome https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns/[URL match pattern]
+  documentation in our settings docs now loads a live page again. (#8268)
 
 [[v3.2.1]]
 v3.2.1 (2024-06-25)
