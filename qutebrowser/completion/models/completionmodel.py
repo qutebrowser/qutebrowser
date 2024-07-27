@@ -10,6 +10,7 @@ from qutebrowser.qt.core import Qt, QModelIndex, QAbstractItemModel, QObject
 
 from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
+from qutebrowser.completion.models import BaseCategory
 
 
 class CompletionModel(QAbstractItemModel):
@@ -28,9 +29,9 @@ class CompletionModel(QAbstractItemModel):
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
-        self._categories: MutableSequence[QAbstractItemModel] = []
+        self._categories: MutableSequence[BaseCategory] = []
 
-    def _cat_from_idx(self, index: QModelIndex):
+    def _cat_from_idx(self, index: QModelIndex) -> Optional[BaseCategory]:
         """Return the category pointed to by the given index.
 
         Args:
@@ -44,7 +45,7 @@ class CompletionModel(QAbstractItemModel):
             return self._categories[index.row()]
         return None
 
-    def add_category(self, cat):
+    def add_category(self, cat: BaseCategory) -> None:
         """Add a completion category to the model."""
         self._categories.append(cat)
 

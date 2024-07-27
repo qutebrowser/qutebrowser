@@ -6,10 +6,9 @@
 
 from typing import Dict, Sequence
 
-from qutebrowser.qt.core import QAbstractItemModel
-
 from qutebrowser.completion.models import (completionmodel, filepathcategory,
-                                           listcategory, histcategory)
+                                           listcategory, histcategory,
+                                           BaseCategory)
 from qutebrowser.browser import history
 from qutebrowser.utils import log, objreg
 from qutebrowser.config import config
@@ -59,7 +58,7 @@ def url(*, info):
                      in sorted(config.val.url.searchengines.items())
                      if k != 'DEFAULT']
     categories = config.val.completion.open_categories
-    models: Dict[str, QAbstractItemModel] = {}
+    models: Dict[str, BaseCategory] = {}
 
     if searchengines and 'searchengines' in categories:
         models['searchengines'] = listcategory.ListCategory(
