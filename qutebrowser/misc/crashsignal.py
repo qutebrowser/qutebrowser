@@ -178,7 +178,7 @@ class CrashHandler(QObject):
         if sys.__stderr__ is not None:
             faulthandler.enable(sys.__stderr__)
         else:
-            faulthandler.disable()  # type: ignore[unreachable]
+            faulthandler.disable()
         try:
             self._crash_log_file.close()
             os.remove(self._crash_log_file.name)
