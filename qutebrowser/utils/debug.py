@@ -38,7 +38,7 @@ def log_events(klass: Type[QObject]) -> Type[QObject]:
     return klass
 
 
-def log_signals(obj: QObject) -> QObject:
+def log_signals(obj: Union[QObject, Type[QObject]]) -> Union[QObject, Type[QObject]]:
     """Log all signals of an object or class.
 
     Can be used as class decorator.
@@ -80,6 +80,7 @@ def log_signals(obj: QObject) -> QObject:
 
         obj.__init__ = new_init
     else:
+        assert isinstance(obj, QObject)
         connect_log_slot(obj)
 
     return obj
