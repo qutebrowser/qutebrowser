@@ -4,9 +4,9 @@
 
 """A model that proxies access to one or more completion categories."""
 
-from typing import MutableSequence
+from typing import MutableSequence, overload, Optional, Any
 
-from qutebrowser.qt.core import Qt, QModelIndex, QAbstractItemModel
+from qutebrowser.qt.core import Qt, QModelIndex, QAbstractItemModel, QObject
 
 from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
@@ -30,7 +30,7 @@ class CompletionModel(QAbstractItemModel):
         self.column_widths = column_widths
         self._categories: MutableSequence[QAbstractItemModel] = []
 
-    def _cat_from_idx(self, index):
+    def _cat_from_idx(self, index: QModelIndex):
         """Return the category pointed to by the given index.
 
         Args:
@@ -48,7 +48,7 @@ class CompletionModel(QAbstractItemModel):
         """Add a completion category to the model."""
         self._categories.append(cat)
 
-    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
         """Return the item data for index.
 
         Override QAbstractItemModel::data.
@@ -74,7 +74,7 @@ class CompletionModel(QAbstractItemModel):
         idx = cat.index(index.row(), index.column())
         return cat.data(idx)
 
-    def flags(self, index):
+    def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         """Return the item flags for index.
 
         Override QAbstractItemModel::flags.
@@ -91,7 +91,7 @@ class CompletionModel(QAbstractItemModel):
             # category
             return Qt.ItemFlag.NoItemFlags
 
-    def index(self, row, col, parent=QModelIndex()):
+    def index(self, row: int, col: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
         """Get an index into the model.
 
         Override QAbstractItemModel::index.
@@ -108,7 +108,15 @@ class CompletionModel(QAbstractItemModel):
             return self.createIndex(row, col, self._categories[parent.row()])
         return self.createIndex(row, col, None)
 
-    def parent(self, index):
+    @overload
+    def parent(self, index: QModelIndex) -> QModelIndex:
+        ...
+
+    @overload
+    def parent(self) -> Optional[QObject]:
+        ...
+
+    def parent(self, index=None):
         """Get an index to the parent of the given index.
 
         Override QAbstractItemModel::parent.
@@ -116,6 +124,9 @@ class CompletionModel(QAbstractItemModel):
         Args:
             index: The QModelIndex to get the parent index for.
         """
+        if not index:
+            return QObject.parent(self)
+
         parent_cat = index.internalPointer()
         if not parent_cat:
             # categories have no parent
