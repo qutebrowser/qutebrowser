@@ -77,7 +77,7 @@ class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
 
         super().__setitem__(name, obj)
 
-    def __delitem__(self, name: str) -> None:
+    def __delitem__(self, name: _IndexType) -> None:
         """Extend __delitem__ to disconnect the destroyed signal."""
         self._disconnect_destroyed(name)
         super().__delitem__(name)
@@ -101,7 +101,7 @@ class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
                 pass
             del partial_objs[name]
 
-    def on_destroyed(self, name: str) -> None:
+    def on_destroyed(self, name: _IndexType) -> None:
         """Schedule removing of a destroyed QObject.
 
         We don't remove the destroyed object immediately because it might still
@@ -111,7 +111,7 @@ class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
         log.destroy.debug("schedule removal: {}".format(name))
         QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
 
-    def _on_destroyed(self, name: str) -> None:
+    def _on_destroyed(self, name: _IndexType) -> None:
         """Remove a destroyed QObject."""
         log.destroy.debug("removed: {}".format(name))
         if not hasattr(self, 'data'):
