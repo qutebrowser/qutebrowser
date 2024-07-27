@@ -4,13 +4,20 @@
 
 """A model that proxies access to one or more completion categories."""
 
-from typing import MutableSequence, overload, Optional, Any
+from typing import MutableSequence, overload, Optional, Any, cast
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QModelIndex, QAbstractItemModel, QObject
 
 from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import BaseCategory
+
+
+if machinery.IS_QT5:
+    _FlagType = Qt.ItemFlags
+else:
+    _FlagType = Qt.ItemFlag
 
 
 class CompletionModel(QAbstractItemModel):
@@ -75,7 +82,7 @@ class CompletionModel(QAbstractItemModel):
         idx = cat.index(index.row(), index.column())
         return cat.data(idx)
 
-    def flags(self, index: QModelIndex) -> Qt.ItemFlag:
+    def flags(self, index: QModelIndex) -> _FlagType:
         """Return the item flags for index.
 
         Override QAbstractItemModel::flags.
@@ -83,14 +90,14 @@ class CompletionModel(QAbstractItemModel):
         Return: The item flags, or Qt.ItemFlag.NoItemFlags on error.
         """
         if not index.isValid():
-            return Qt.ItemFlag.NoItemFlags
+            return cast(_FlagType, Qt.ItemFlag.NoItemFlags)
         if index.parent().isValid():
             # item
             return (Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable |
                     Qt.ItemFlag.ItemNeverHasChildren)
         else:
             # category
-            return Qt.ItemFlag.NoItemFlags
+            return cast(_FlagType, Qt.ItemFlag.NoItemFlags)
 
     def index(self, row: int, col: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
         """Get an index into the model.
@@ -113,9 +120,15 @@ class CompletionModel(QAbstractItemModel):
     def parent(self, index: QModelIndex) -> QModelIndex:
         ...
 
-    @overload
-    def parent(self) -> Optional[QObject]:
-        ...
+    if machinery.IS_QT5:
+        @overload
+        def parent(self) -> QObject:
+            ...
+
+    else:
+        @overload
+        def parent(self) -> Optional[QObject]:
+            ...
 
     def parent(self, index=None):
         """Get an index to the parent of the given index.
