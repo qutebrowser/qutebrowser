@@ -9,7 +9,6 @@
 
 import os
 import signal
-import functools
 import logging
 import pathlib
 from typing import Optional, Sequence, Callable
@@ -60,10 +59,6 @@ def stop(tab: Optional[apitypes.Tab]) -> None:
 
 def _print_preview(tab: apitypes.Tab) -> None:
     """Show a print preview."""
-    def print_callback(ok: bool) -> None:
-        if not ok:
-            message.error("Printing failed!")
-
     tab.printing.check_preview_support()
     diag = QPrintPreviewDialog(tab)
     diag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
@@ -71,8 +66,7 @@ def _print_preview(tab: apitypes.Tab) -> None:
         diag.windowFlags() |
         Qt.WindowType.WindowMaximizeButtonHint |
         Qt.WindowType.WindowMinimizeButtonHint)
-    diag.paintRequested.connect(functools.partial(
-        tab.printing.to_printer, callback=print_callback))
+    diag.paintRequested.connect(tab.printing.to_printer)
     diag.exec()
 
 
