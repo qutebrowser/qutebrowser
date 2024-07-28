@@ -39,6 +39,7 @@ from qutebrowser.utils import qtutils, standarddir, version, utils, log, message
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_IDS = [
     # Linux
+    43722,  # QtWebEngine 6.8
     41262,  # QtWebEngine 6.7
     36197,  # QtWebEngine 6.6
     34897,  # QtWebEngine 6.5

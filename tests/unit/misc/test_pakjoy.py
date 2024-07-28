@@ -269,7 +269,12 @@ class TestWithRealResourcesFile:
         file_to_patch = resources_dir / pakjoy.PAK_FILENAME
         with open(file_to_patch, "rb") as f:
             parser = pakjoy.PakParser(f)
-        assert parser.manifest_entry.resource_id in pakjoy.HANGOUTS_IDS
+        error_msg = (
+            "Encountered hangouts extension with resource ID which isn't in pakjoy.HANGOUTS_IDS: "
+            f"found_resource_id={parser.manifest_entry.resource_id} "
+            f"webengine_version={versions.webengine}"
+        )
+        assert parser.manifest_entry.resource_id in pakjoy.HANGOUTS_IDS, error_msg
 
 
 def json_manifest_factory(extension_id=pakjoy.HANGOUTS_MARKER, url=pakjoy.TARGET_URL):
