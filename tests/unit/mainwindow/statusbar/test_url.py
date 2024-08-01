@@ -15,9 +15,9 @@ from qutebrowser.mainwindow.statusbar import url
 @pytest.fixture
 def url_widget(qtbot, monkeypatch, config_stub):
     """Fixture providing a Url widget."""
-    widget = url.UrlTextWidget()
-    qtbot.add_widget(widget)
-    assert not widget.isVisible()
+    widget = url.UrlText(widget=url.UrlTextWidget())
+    qtbot.add_widget(widget.widget)
+    assert not widget.widget.isVisible()
     return widget
 
 
@@ -71,12 +71,12 @@ def test_set_url(url_widget, url_text, expected, which):
     else:
         url_widget.set_hover_url(url_text)
 
-    assert url_widget.text() == expected
+    assert url_widget.widget.text() == expected
 
     if which == 'hover' and expected:
-        assert url_widget._urltype == url.UrlType.hover
+        assert url_widget.widget._urltype == url.UrlType.hover
     else:
-        assert url_widget._urltype == url.UrlType.normal
+        assert url_widget.widget._urltype == url.UrlType.normal
 
 
 @pytest.mark.parametrize('status, expected', [
@@ -91,7 +91,7 @@ def test_on_load_status_changed(url_widget, status, expected):
     """Test text when status is changed."""
     url_widget.set_url(QUrl('www.example.com'))
     url_widget.on_load_status_changed(status)
-    assert url_widget._urltype == expected
+    assert url_widget.widget._urltype == expected
 
 
 @pytest.mark.parametrize('load_status, qurl', [
@@ -116,12 +116,12 @@ def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
     tab_widget = fake_web_tab(load_status=load_status, url=qurl)
     url_widget.on_tab_changed(tab_widget)
 
-    assert url_widget._urltype.name == load_status.name
+    assert url_widget.widget._urltype.name == load_status.name
     if not qurl.isValid():
         expected = ''
     else:
         expected = urlutils.safe_display_string(qurl)
-    assert url_widget.text() == expected
+    assert url_widget.widget.text() == expected
 
 
 @pytest.mark.parametrize('qurl, load_status, expected_status', [
@@ -151,5 +151,5 @@ def test_normal_url(url_widget, qurl, load_status, expected_status):
     url_widget.on_load_status_changed(load_status)
     url_widget.set_hover_url(qurl.toDisplayString())
     url_widget.set_hover_url("")
-    assert url_widget.text() == qurl.toDisplayString()
-    assert url_widget._urltype == expected_status
+    assert url_widget.widget.text() == qurl.toDisplayString()
+    assert url_widget.widget._urltype == expected_status
