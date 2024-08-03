@@ -30,12 +30,23 @@ CHANGELOG_URLS_PATH = pathlib.Path(__file__).parent / "changelog_urls.json"
 CHANGELOG_URLS = json.loads(CHANGELOG_URLS_PATH.read_text())
 
 
+def normalize_pkg(name):
+    """Normalize a package name for comparisons.
+
+    From https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
+    `pip freeze` passes file names through in whatever case they are in in the
+    package, pip-compile will normalize them.
+    """
+    if "/" in name:  # don't change file paths
+        return name
+    return re.sub(r"[-_.]+", "-", name).lower()
+
 def convert_line(line, comments):
     """Convert the given requirement line to place into the output."""
     for pattern, repl in comments['replace'].items():
         line = re.sub(pattern, repl, line)
 
-    pkgname = line.split('=')[0]
+    pkgname = normalize_pkg(line.split('=')[0])
 
     if pkgname in comments['ignore']:
         line = '# ' + line
@@ -89,18 +100,18 @@ def read_comments(fobj):
 
             if command == 'filter':
                 pkg, filt = args.split(' ', maxsplit=1)
-                comments['filter'][pkg] = filt
+                comments['filter'][normalize_pkg(pkg)] = filt
             elif command == 'comment':
                 pkg, comment = args.split(' ', maxsplit=1)
-                comments['comment'][pkg] = comment
+                comments['comment'][normalize_pkg(pkg)] = comment
             elif command == 'ignore':
-                comments['ignore'] += args.split(', ')
+                comments['ignore'] += [normalize_pkg(a) for a in args.split(', ')]
             elif command == 'replace':
                 pattern, replacement = args.split(' ', maxsplit=1)
                 comments['replace'][pattern] = replacement
             elif command == 'markers':
                 pkg, markers = args.split(' ', maxsplit=1)
-                comments['markers'][pkg] = markers
+                comments['markers'][normalize_pkg(pkg)] = markers
             elif command == 'add':
                 comments['add'].append(args)
             elif command == 'pre':
@@ -182,8 +193,9 @@ class Change:
         self.old = None
         self.new = None
         self.base = extract_requirement_name(base_path)
-        if CHANGELOG_URLS.get(name):
-            self.url = CHANGELOG_URLS[name]
+        urls = {normalize_pkg(name): url for name, url in CHANGELOG_URLS.items()}
+        if urls.get(name):
+            self.url = urls[name]
             self.link = '[{}]({})'.format(self.name, self.url)
         else:
             self.url = '(no changelog)'
@@ -264,7 +276,7 @@ def parse_versioned_line(line):
     if name.startswith('#'):  # duplicate requirements
         name = name[1:].strip()
 
-    return name, version
+    return normalize_pkg(name), version
 
 
 def _get_changes(diff):
@@ -315,6 +327,12 @@ def print_changed_files():
     files_text = '\n'.join('- ' + line for line in changed_files)
 
     changes = _get_changes(diff)
+    # Ignore changes in name only (eg change in case or _ -> -).
+    changes = [
+        change
+        for change in changes
+        if change.old != change.new
+    ]
     changes_text = '\n'.join(str(change) for change in changes)
 
     utils.print_subtitle('Files')
@@ -348,9 +366,55 @@ def get_outfile(name):
         return os.path.join(REPO_DIR, 'requirements.txt')
     return os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
+def build_requirements_compile(name):
+    """Build a requirements file using uv pip compile."""
+    utils.print_subtitle("Building")
+    filename = os.path.join(REQ_DIR, 'requirements-{}.txt-raw'.format(name))
+
+    with open(filename, 'r', encoding='utf-8') as f:
+        comments = read_comments(f)
+
+    with tempfile.TemporaryDirectory() as venv_dir:
+        with utils.gha_group('Creating virtualenv'):
+            utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
+            subprocess.run([sys.executable, '-m', 'venv', venv_dir], check=True)
+
+            run_pip(venv_dir, 'install', '-U', 'uv', quiet=not utils.ON_CI)
+
+        with utils.gha_group('Compiling requirements (uv)'):
+            venv_python = get_venv_python(venv_dir)
+            uv_command = "uv pip compile -U".split()
+            if comments["pre"]:
+                uv_command.extend("--prerelease allow".split())
+            # Other interesting options:
+            # --generate-hashes
+            # --no-strip-markers
+            uv_command.append("--no-annotate")  # XXX just for comparison, add this when things stablize!
+            uv_command.append(filename)
+            utils.print_col(f'$ python3 -m {" ".join(uv_command)}', 'blue')
+            proc = subprocess.run([venv_python, '-m'] + uv_command, check=True, stdout=subprocess.PIPE)
+            reqs = proc.stdout.decode('utf-8')
+
+        if utils.ON_CI:
+            print(reqs.strip())
+
+    outfile = get_outfile(name)
+
+    with open(outfile, 'w', encoding='utf-8') as f:
+        f.write("# This file is automatically generated by "
+                "scripts/dev/recompile_requirements.py\n\n")
+        for line in reqs.splitlines()[2:]:
+            if line.startswith('qutebrowser=='):
+                continue
+            f.write(convert_line(line, comments) + '\n')
+
+        for line in comments['add']:
+            f.write(line + '\n')
+
+    return outfile
 
 def build_requirements(name):
-    """Build a requirements file."""
+    """Build a requirements file using pip freeze."""
     utils.print_subtitle("Building")
     filename = os.path.join(REQ_DIR, 'requirements-{}.txt-raw'.format(name))
 
@@ -445,7 +509,7 @@ def main():
     utils.print_col('Rebuilding requirements: ' + ', '.join(names), 'green')
     for name in names:
         utils.print_title(name)
-        outfile = build_requirements(name)
+        outfile = build_requirements_compile(name)
         install_requirements(name, outfile, force=args.force_test)
         if name == 'pylint':
             cleanup_pylint_build()
