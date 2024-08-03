@@ -41,6 +41,10 @@ def normalize_pkg(name):
         return name
     return re.sub(r"[-_.]+", "-", name).lower()
 
+
+CHANGELOG_URLS = {normalize_pkg(name): url for name, url in CHANGELOG_URLS.items()}
+
+
 def convert_line(line, comments):
     """Convert the given requirement line to place into the output."""
     for pattern, repl in comments['replace'].items():
@@ -193,9 +197,8 @@ class Change:
         self.old = None
         self.new = None
         self.base = extract_requirement_name(base_path)
-        urls = {normalize_pkg(name): url for name, url in CHANGELOG_URLS.items()}
-        if urls.get(name):
-            self.url = urls[name]
+        if CHANGELOG_URLS.get(name):
+            self.url = CHANGELOG_URLS[name]
             self.link = '[{}]({})'.format(self.name, self.url)
         else:
             self.url = '(no changelog)'
