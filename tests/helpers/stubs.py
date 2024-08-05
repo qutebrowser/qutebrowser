@@ -324,6 +324,7 @@ class FakeCommand:
     hide: bool = False
     debug: bool = False
     deprecated: bool = False
+    tree_tab: bool = False
     completion: Any = None
     maxsplit: int = None
     takes_count: Callable[[], bool] = lambda: False
