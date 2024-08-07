@@ -443,6 +443,7 @@ class FileSelectionMode(enum.Enum):
     single_file = enum.auto()
     multiple_files = enum.auto()
     folder = enum.auto()
+    download = enum.auto()
 
 
 def choose_file(qb_mode: FileSelectionMode) -> List[str]:
@@ -459,6 +460,7 @@ def choose_file(qb_mode: FileSelectionMode) -> List[str]:
         FileSelectionMode.single_file: config.val.fileselect.single_file.command,
         FileSelectionMode.multiple_files: config.val.fileselect.multiple_files.command,
         FileSelectionMode.folder: config.val.fileselect.folder.command,
+        FileSelectionMode.download: config.val.fileselect.download.command,
     }[qb_mode]
     use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
@@ -542,7 +544,7 @@ def _validated_selected_files(
             message.warning("More than one file/folder chosen, using only the first")
             selected_files = selected_files[:1]
     for selected_file in selected_files:
-        if not os.path.exists(selected_file):
+        if not os.path.exists(selected_file) and qb_mode != FileSelectionMode.download:
             message.warning(f"Ignoring non-existent file '{selected_file}'")
             continue
         if qb_mode == FileSelectionMode.folder:
@@ -553,7 +555,7 @@ def _validated_selected_files(
                 continue
         else:
             # pylint: disable=else-if-used
-            if not os.path.isfile(selected_file):
+            if qb_mode != FileSelectionMode.download and not os.path.isfile(selected_file):
                 message.warning(
                     f"Expected file but got folder, ignoring '{selected_file}'"
                 )
