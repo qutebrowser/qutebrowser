@@ -485,7 +485,7 @@ You can create a simple wrapper script to start qutebrowser somewhere in your
 Updating
 ~~~~~~~~
 
-If you cloned the git repository, run `mkvenv.py --update` which will take care
+If you cloned the git repository, run `python3 scripts/mkvenv.py --update` which will take care
 of updating the code (via `git pull`) and recreating the environment with the
 newest dependencies.
 
