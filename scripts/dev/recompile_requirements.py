@@ -47,6 +47,15 @@ def normalize_pkg(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
+def normalize_line(line):
+    """Normalize the package name in a line of a requirements file."""
+    if "==" not in line:
+        return line
+
+    pkg, version = line.split("==", maxsplit=1)
+    return "==".join([normalize_pkg(pkg), version])
+
+
 CHANGELOG_URLS = {normalize_pkg(name): url for name, url in CHANGELOG_URLS.items()}
 
 
@@ -387,7 +396,8 @@ def get_updated_requirements_freeze(filename, venv_dir, comments):
     with utils.gha_group('Freezing requirements'):
         args = ['--all'] if '-tox.txt-raw' in filename else []
         proc = run_pip(venv_dir, 'freeze', *args, stdout=subprocess.PIPE)
-        return proc.stdout.decode('utf-8')
+        lines = proc.stdout.decode('utf-8').splitlines()
+        return "\n".join([normalize_line(line) for line in lines])
 
 
 def get_updated_requirements_compile(filename, venv_dir, comments):
