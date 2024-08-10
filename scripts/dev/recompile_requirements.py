@@ -24,7 +24,7 @@ from scripts import utils
 
 REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         '..', '..')  # /scripts/dev -> /scripts -> /
-REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
+REQ_DIR = os.path.realpath(os.path.join(REPO_DIR, 'misc', 'requirements'))
 
 CHANGELOG_URLS_PATH = pathlib.Path(__file__).parent / "changelog_urls.json"
 CHANGELOG_URLS = json.loads(CHANGELOG_URLS_PATH.read_text())
@@ -299,7 +299,7 @@ def parse_versioned_line(line):
     return normalize_pkg(name), version
 
 
-def _get_changes(diff):
+def _get_changes(diff):  # noqa: C901 pragma: no mccabe
     """Get a list of changed versions from git."""
     changes_dict = {}
     current_path = None
@@ -326,6 +326,13 @@ def _get_changes(diff):
             continue
         elif line[1:].startswith('# The following packages '):
             # Pip compile excluded package list header
+            continue
+        elif line[1:].startswith('    # '):
+            # Pip compile lineage data, eg
+            # tomli==2.0.1
+            #    # via
+            #    #   build
+            #    #   check-manifest
             continue
 
         name, version = parse_versioned_line(line[1:])
@@ -423,7 +430,6 @@ def get_updated_requirements_compile(filename, venv_dir, comments):
         # Other interesting options:
         # --generate-hashes
         # --no-strip-markers
-        uv_command.append("--no-annotate")  # XXX just for comparison, add this when things stabilize!
         uv_command.append(filename)
 
         utils.print_col(f'$ python3 -m {" ".join(uv_command)}', 'blue')
