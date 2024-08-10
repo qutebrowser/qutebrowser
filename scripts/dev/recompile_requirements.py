@@ -305,6 +305,8 @@ def _get_changes(diff):
     current_path = None
 
     for line in diff:
+        if len(line) == 1:
+            continue
         if not line.startswith('-') and not line.startswith('+'):
             continue
         elif line.startswith('--- '):
@@ -321,6 +323,9 @@ def _get_changes(diff):
             continue
         elif line[1:].startswith('# This file is automatically'):
             # Could be newline changes on Windows
+            continue
+        elif line[1:].startswith('# The following packages '):
+            # Pip compile excluded package list header
             continue
 
         name, version = parse_versioned_line(line[1:])
@@ -409,6 +414,9 @@ def get_updated_requirements_compile(filename, venv_dir, comments):
 
         run_pip(venv_dir, 'install', '-U', 'uv', quiet=not utils.ON_CI)
         uv_command = "uv pip compile -U".split()
+        # Ignore pip dependencies to match pip freeze.
+        for package in ["pip", "setuptools"]:
+            uv_command.extend(f"--no-emit-package {package}".split())
         if comments["pre"]:
             uv_command.extend("--prerelease allow".split())
         # Other interesting options:
