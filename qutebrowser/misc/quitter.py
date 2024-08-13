@@ -177,10 +177,17 @@ class Quitter(QObject):
         assert ipc.server is not None
         ipc.server.shutdown()
 
+        if hasattr(sys, 'frozen'):
+            # https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html#independent-subprocess
+            env = os.environ.copy()
+            env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"
+        else:
+            env = None
+
         # Open a new process and immediately shutdown the existing one
         try:
             args = self._get_restart_args(pages, session, override_args)
-            proc = subprocess.Popen(args)  # pylint: disable=consider-using-with
+            proc = subprocess.Popen(args, env=env)  # pylint: disable=consider-using-with
         except OSError:
             log.destroy.exception("Failed to restart")
             return False
