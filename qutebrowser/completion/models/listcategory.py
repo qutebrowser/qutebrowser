@@ -11,11 +11,11 @@ from qutebrowser.qt.core import QSortFilterProxyModel, QRegularExpression
 from qutebrowser.qt.gui import QStandardItem, QStandardItemModel
 from qutebrowser.qt.widgets import QWidget
 
-from qutebrowser.completion.models import util
+from qutebrowser.completion.models import util, BaseCategory
 from qutebrowser.utils import qtutils, log
 
 
-class ListCategory(QSortFilterProxyModel):
+class ListCategory(QSortFilterProxyModel, BaseCategory):
 
     """Expose a list of items as a category for the CompletionModel."""
 

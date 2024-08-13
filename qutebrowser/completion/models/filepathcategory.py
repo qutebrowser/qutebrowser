@@ -18,11 +18,12 @@ from typing import List, Optional, Iterable
 
 from qutebrowser.qt.core import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
+from qutebrowser.completion.models import BaseCategory
 from qutebrowser.config import config
 from qutebrowser.utils import log
 
 
-class FilePathCategory(QAbstractListModel):
+class FilePathCategory(QAbstractListModel, BaseCategory):
     """Represent filesystem paths matching a pattern."""
 
     def __init__(self, name: str, parent: QObject = None) -> None:

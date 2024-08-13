@@ -240,7 +240,7 @@ def _init_handlers(
         force_color: bool,
         json_logging: bool,
         ram_capacity: int
-) -> Tuple["logging.StreamHandler[TextIO]", Optional['RAMHandler']]:
+) -> Tuple[Optional["logging.StreamHandler[TextIO]"], Optional['RAMHandler']]:
     """Init log handlers.
 
     Args:
@@ -255,7 +255,7 @@ def _init_handlers(
         level, color, force_color, json_logging)
 
     if sys.stderr is None:
-        console_handler = None  # type: ignore[unreachable]
+        console_handler = None
     else:
         strip = False if force_color else None
         if use_colorama:
@@ -293,9 +293,13 @@ def _init_formatters(
         level: int,
         color: bool,
         force_color: bool,
-        json_logging: bool
-) -> Tuple[Union['JSONFormatter', 'ColoredFormatter'],
-           'ColoredFormatter', 'HTMLFormatter', bool]:
+        json_logging: bool,
+) -> Tuple[
+    Union['JSONFormatter', Optional['ColoredFormatter']],
+    'ColoredFormatter',
+    'HTMLFormatter',
+    bool,
+]:
     """Init log formatters.
 
     Args:
@@ -318,7 +322,7 @@ def _init_formatters(
     use_colorama = False
 
     if sys.stderr is None:
-        console_formatter = None  # type: ignore[unreachable]
+        console_formatter = None
         return console_formatter, ram_formatter, html_formatter, use_colorama
 
     if json_logging:

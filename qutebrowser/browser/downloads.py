@@ -1264,7 +1264,7 @@ class DownloadModel(QAbstractListModel):
         else:
             return ""
 
-    def data(self, index, role):
+    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
         """Download data from DownloadManager."""
         if not index.isValid():
             return None

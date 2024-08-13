@@ -4,10 +4,10 @@
 
 """Handling of proxies."""
 
-from typing import Optional
+from typing import Optional, List
 
 from qutebrowser.qt.core import QUrl, pyqtSlot
-from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory
+from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory, QNetworkProxyQuery
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.utils import message, usertypes, urlutils, utils, qtutils
@@ -71,7 +71,7 @@ class ProxyFactory(QNetworkProxyFactory):
             capabilities &= ~lookup_cap
         proxy.setCapabilities(capabilities)
 
-    def queryProxy(self, query):
+    def queryProxy(self, query: QNetworkProxyQuery = QNetworkProxyQuery()) -> List[QNetworkProxy]:
         """Get the QNetworkProxies for a query.
 
         Args:

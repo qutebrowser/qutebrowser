@@ -265,16 +265,16 @@ def fake_io(write_func: Callable[[str], int]) -> Iterator[None]:
     old_stderr = sys.stderr
     fake_stderr = FakeIOStream(write_func)
     fake_stdout = FakeIOStream(write_func)
-    sys.stderr = fake_stderr  # type: ignore[assignment]
-    sys.stdout = fake_stdout  # type: ignore[assignment]
+    sys.stderr = fake_stderr
+    sys.stdout = fake_stdout
     try:
         yield
     finally:
         # If the code we did run did change sys.stdout/sys.stderr, we leave it
         # unchanged. Otherwise, we reset it.
-        if sys.stdout is fake_stdout:  # type: ignore[comparison-overlap]
+        if sys.stdout is fake_stdout:
             sys.stdout = old_stdout
-        if sys.stderr is fake_stderr:  # type: ignore[comparison-overlap]
+        if sys.stderr is fake_stderr:
             sys.stderr = old_stderr
 
 
