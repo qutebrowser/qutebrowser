@@ -295,7 +295,7 @@ def _init_formatters(
         force_color: bool,
         json_logging: bool,
 ) -> Tuple[
-    Union['JSONFormatter', Optional['ColoredFormatter']],
+    Union['JSONFormatter', 'ColoredFormatter', None],
     'ColoredFormatter',
     'HTMLFormatter',
     bool,
