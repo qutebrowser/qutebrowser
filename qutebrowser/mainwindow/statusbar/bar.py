@@ -180,7 +180,7 @@ class StatusBar(QWidget):
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
 
-        self.search_match = searchmatch.SearchMatch(widget=searchmatch.SearchMatchWidget())
+        self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
 
         self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage(widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone))
