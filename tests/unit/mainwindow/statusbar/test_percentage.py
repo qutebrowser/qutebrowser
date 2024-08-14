@@ -6,13 +6,15 @@
 
 import pytest
 
-from qutebrowser.mainwindow.statusbar.percentage import Percentage, PercentageWidget
+from qutebrowser.qt.core import Qt
+from qutebrowser.mainwindow.statusbar.percentage import Percentage
+from qutebrowser.mainwindow.statusbar import textbase
 
 
 @pytest.fixture
 def percentage(qtbot):
     """Fixture providing a Percentage widget."""
-    widget = Percentage(widget=PercentageWidget())
+    widget = Percentage(widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone))
     # Force immediate update of percentage widget
     widget._set_text.set_delay(-1)
     qtbot.add_widget(widget.widget)

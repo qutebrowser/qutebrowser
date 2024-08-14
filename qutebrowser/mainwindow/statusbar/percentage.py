@@ -5,23 +5,16 @@
 """Scroll percentage displayed in the statusbar."""
 
 from qutebrowser.mainwindow.statusbar.item import StatusBarItem
-from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle
 from qutebrowser.utils import utils
 
 
-class PercentageWidget(textbase.TextBaseWidget):
-
+class Percentage(StatusBarItem):
     """Reading percentage displayed in the statusbar."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
-
-
-class Percentage(StatusBarItem):
-    def __init__(self, widget: PercentageWidget):
+    def __init__(self, widget: textbase.TextBaseWidget):
         """Constructor. Set percentage to 0%."""
         super().__init__(widget)
         self._strings = self._calc_strings()
