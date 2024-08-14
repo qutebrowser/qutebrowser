@@ -185,7 +185,7 @@ class StatusBar(QWidget):
         self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage(widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone))
         self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
-        self.tabindex = tabindex.TabIndex(widget=tabindex.TabIndexWidget())
+        self.tabindex = tabindex.TabIndex(widget=textbase.TextBaseWidget())
         self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
         self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock(widget=clock.ClockWidget())

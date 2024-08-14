@@ -6,12 +6,13 @@
 
 import pytest
 
-from qutebrowser.mainwindow.statusbar.tabindex import TabIndex, TabIndexWidget
+from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.mainwindow.statusbar.tabindex import TabIndex
 
 
 @pytest.fixture
 def tabindex(qtbot):
-    widget = TabIndex(widget=TabIndexWidget())
+    widget = TabIndex(widget=textbase.TextBaseWidget())
     qtbot.add_widget(widget.widget)
     return widget
 
