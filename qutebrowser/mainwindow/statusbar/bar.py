@@ -186,7 +186,7 @@ class StatusBar(QWidget):
         self.percentage = percentage.Percentage(widget=percentage.PercentageWidget())
         self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
         self.tabindex = tabindex.TabIndex(widget=tabindex.TabIndexWidget())
-        self.keystring = keystring.KeyString(widget=keystring.KeyStringWidget())
+        self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
         self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock(widget=clock.ClockWidget())
         self._text_widgets = []

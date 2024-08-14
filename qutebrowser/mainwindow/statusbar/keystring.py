@@ -10,11 +10,11 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
 
 
-class KeyStringWidget(textbase.TextBaseWidget):
-
+class KeyString(StatusBarItem):
     """Keychain string displayed in the statusbar."""
 
+    def __init__(self, widget: textbase.TextBaseWidget):
+        super().__init__(widget)
 
-class KeyString(StatusBarItem):
     def on_keystring_updated(self, _mode: usertypes.KeyMode, keystr: str):
         self.widget.setText(keystr)
