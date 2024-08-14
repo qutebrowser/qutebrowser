@@ -8,13 +8,10 @@ from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 
 
-class BackforwardWidget(textbase.TextBaseWidget):
-
+class Backforward(StatusBarItem):
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
-
-class Backforward(StatusBarItem):
-    def __init__(self, widget: BackforwardWidget):
+    def __init__(self, widget: textbase.TextBaseWidget):
         super().__init__(widget)
         self.enabled = False
 

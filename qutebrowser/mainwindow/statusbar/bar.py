@@ -184,7 +184,7 @@ class StatusBar(QWidget):
 
         self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage(widget=percentage.PercentageWidget())
-        self.backforward = backforward.Backforward(widget=backforward.BackforwardWidget())
+        self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
         self.tabindex = tabindex.TabIndex(widget=tabindex.TabIndexWidget())
         self.keystring = keystring.KeyString(widget=keystring.KeyStringWidget())
         self.prog = progress.Progress(widget=progress.ProgressWidget(self))

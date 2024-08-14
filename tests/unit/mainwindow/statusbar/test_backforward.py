@@ -6,12 +6,12 @@
 
 import pytest
 
-from qutebrowser.mainwindow.statusbar import backforward
+from qutebrowser.mainwindow.statusbar import backforward, textbase
 
 
 @pytest.fixture
 def backforward_widget(qtbot):
-    widget = backforward.Backforward(widget=backforward.BackforwardWidget())
+    widget = backforward.Backforward(widget=textbase.TextBaseWidget())
     qtbot.add_widget(widget.widget)
     return widget
 
