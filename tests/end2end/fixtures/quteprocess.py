@@ -8,7 +8,6 @@ import pathlib
 import os
 import re
 import sys
-import shutil
 import time
 import datetime
 import logging
@@ -17,7 +16,6 @@ import contextlib
 import itertools
 import collections
 import json
-import filelock
 
 import yaml
 import pytest
@@ -875,60 +873,9 @@ class QuteProc(testprocess.Process):
             self.send_cmd(cmd.format('no-scroll-filtering'))
         self.send_cmd(cmd.format('log-scroll-pos'))
 
-    def _get_x11_screenshot_directory(self):
-        screenshot_path = self.request.session.stash.get("screenshot_path", None)
-        if screenshot_path:
-            return screenshot_path
-
-        temp_path = os.environ.get("RUNNER_TEMP", tempfile.gettempdir())
-        screenshot_path = pathlib.Path(temp_path) / "pytest-screenshots"
-
-        lock = filelock.FileLock(screenshot_path / ".pytest.lock")
-        if screenshot_path.exists():
-            # Clean and re-create dir for a new run. Except if the lock file
-            # is being held then we are running in parallel.
-            try:
-                lock.acquire(blocking=False)
-            except filelock.Timeout:
-                pass
-            else:
-                lock.release()
-                shutil.rmtree(screenshot_path)
-                screenshot_path.mkdir()
-                lock.acquire()
-        else:
-            screenshot_path.mkdir()
-            lock.acquire()
-
-        self.request.session.stash["screenshot_path"] = screenshot_path
-        self.request.session.stash["screenshot_lock"] = lock
-        return screenshot_path
-
     def _take_x11_screenshot_of_failed_test(self):
-        # Take a basic X11 image grab using pillow. If we want to do something
-        # fancy like autocropping see pyvirtualdisplay smartdisplay for
-        # inspiration.
-        xvfb = self.request.getfixturevalue('xvfb')
-        if not xvfb:
-            # Likely we are being run with --no-xvfb
-            return
-
-        img = grab(xdisplay=f":{xvfb.display}")
-
-        current_test = self.request.node.nodeid
-        fname = f"{datetime.datetime.now().isoformat()}-{current_test.replace('/', '_')}.png"
-        # upload-artifacts says it doesn't allow these characters if it sees
-        # one of them.
-        bad_chars = '":<>|*?\r\n'
-        for char in bad_chars:
-            fname = fname.replace(char, "_")
-
-        # TODO:
-        # 1. Log a "screenshot saved to ..." message so that people know where
-        #    to go look for them when running locally? Using pytest-print? Or
-        #    add an FYI to the report summary?
-        fpath = self._get_x11_screenshot_directory() / fname
-        img.save(fpath)
+        fixture = self.request.getfixturevalue('take_x11_screenshot')
+        fixture()
 
 
 class YamlLoader(yaml.SafeLoader):
@@ -970,6 +917,51 @@ def _xpath_escape(text):
     return 'concat({})'.format(', '.join(parts))
 
 
+@pytest.fixture
+def screenshot_dir(request, tmp_path_factory):
+    """Return the path of a directory to save e2e screenshots in."""
+    path = tmp_path_factory.getbasetemp()
+    if "PYTEST_XDIST_WORKER" in os.environ:
+        # If we are running under xdist remove the per-worker directory
+        # (like "popen-gw0") so the user doesn't have to search through
+        # multiple folders for the screenshot they are looking for.
+        path = path.parent
+    path /= "pytest-screenshots"
+    path.mkdir(exist_ok=True)
+    return path
+
+
+@pytest.fixture
+def take_x11_screenshot(request, screenshot_dir, xvfb):
+    """Take a screenshot of the current pytest-xvfb display.
+
+    Screenshots are saved to the location of the `screenshot_dir` fixture.
+    """
+    def doit():
+        if not xvfb:
+            # Likely we are being run with --no-xvfb
+            return
+
+        img = grab(xdisplay=f":{xvfb.display}")
+
+        current_test = request.node.nodeid
+        fname = f"{datetime.datetime.now().isoformat()}-{current_test.replace('/', '_')}.png"
+        # upload-artifacts says it doesn't allow these characters if it sees
+        # one of them.
+        bad_chars = '":<>|*?\r\n'
+        for char in bad_chars:
+            fname = fname.replace(char, "_")
+
+        # TODO:
+        # 1. Log a "screenshot saved to ..." message so that people know where
+        #    to go look for them when running locally? Using pytest-print? Or
+        #    add an FYI to the report summary?
+        fpath = screenshot_dir / fname
+        img.save(fpath)
+
+    return doit
+
+
 @pytest.fixture(scope='module')
 def quteproc_process(qapp, server, request):
     """Fixture for qutebrowser process which is started once per file."""
@@ -981,7 +973,7 @@ def quteproc_process(qapp, server, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, server, request):
+def quteproc(quteproc_process, server, request, take_x11_screenshot):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
