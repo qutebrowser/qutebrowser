@@ -932,7 +932,7 @@ def screenshot_dir(request, tmp_path_factory):
 
 
 @pytest.fixture
-def take_x11_screenshot(request, screenshot_dir, xvfb):
+def take_x11_screenshot(request, screenshot_dir, record_property, xvfb):
     """Take a screenshot of the current pytest-xvfb display.
 
     Screenshots are saved to the location of the `screenshot_dir` fixture.
@@ -952,13 +952,10 @@ def take_x11_screenshot(request, screenshot_dir, xvfb):
         for char in bad_chars:
             fname = fname.replace(char, "_")
 
-        # TODO:
-        # 1. Log a "screenshot saved to ..." message so that people know where
-        #    to go look for them when running locally? Using pytest-print? Or
-        #    add an FYI to the report summary?
         fpath = screenshot_dir / fname
         img.save(fpath)
 
+        record_property("screenshot", str(fpath))
     return doit
 
 
