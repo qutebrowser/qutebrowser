@@ -27,6 +27,7 @@ jobs:
         PY_COLORS: "1"
         DOCKER: "${{ matrix.image }}"
         CI: true
+        TMPDIR: "${{ runner.temp }}"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
@@ -54,7 +55,7 @@ jobs:
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
           path: |
-            ${{ runner.temp }}/pytest-screenshots/*.png
+            ${{ runner.temp }}/pytest-of-user/pytest-current/pytest-screenshots/*.png
           if-no-files-found: ignore
         if: failure()
   irc:

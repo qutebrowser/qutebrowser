@@ -107,6 +107,7 @@ jobs:
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
+        TMPDIR: "${{ runner.temp }}"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
@@ -131,7 +132,7 @@ jobs:
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
           path: |
-            ${{ runner.temp }}/pytest-screenshots/*.png
+            ${{ runner.temp }}/pytest-of-user/pytest-current/pytest-screenshots/*.png
           if-no-files-found: ignore
         if: failure()
 
@@ -237,6 +238,8 @@ jobs:
       - name: Upgrade 3rd party assets
         run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
         if: "startsWith(matrix.os, 'windows-')"
+      - name: "Set TMPDIR for pytest"
+        run: 'echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"'
       - name: "Run ${{ matrix.testenv }}"
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
@@ -263,7 +266,7 @@ jobs:
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
           path: |
-            ${{ runner.temp }}/pytest-screenshots/*.png
+            ${{ runner.temp }}/pytest-of-runner/pytest-current/pytest-screenshots/*.png
           if-no-files-found: ignore
         if: failure()
 
