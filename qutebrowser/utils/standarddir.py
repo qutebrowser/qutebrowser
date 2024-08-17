@@ -10,6 +10,7 @@ import sys
 import contextlib
 import enum
 import argparse
+import tempfile
 from typing import Iterator, Optional, Dict
 
 from qutebrowser.qt.core import QStandardPaths
@@ -311,14 +312,15 @@ def _create(path: str) -> None:
         0700. If the destination directory exists already the permissions
         should not be changed.
     """
-    if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
-        for k, v in os.environ.items():
-            if k == 'HOME' or k.startswith('XDG_'):
-                log.init.debug(f"{k} = {v}")
-        raise AssertionError(
-            "Trying to create directory inside /home during "
-            "tests, this should not happen."
-        )
+    if APPNAME == 'qute_test':
+        if path.startswith('/home') and not path.startswith(tempfile.gettempdir()):  # pragma: no cover
+            for k, v in os.environ.items():
+                if k == 'HOME' or k.startswith('XDG_'):
+                    log.init.debug(f"{k} = {v}")
+            raise AssertionError(
+                "Trying to create directory inside /home during "
+                "tests, this should not happen."
+            )
     os.makedirs(path, 0o700, exist_ok=True)
 
 
