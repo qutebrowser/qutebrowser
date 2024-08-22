@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """WORKAROUND for missing pyqtProperty typing, ported from PyQt5-stubs:
 
 FIXME:mypy PyQt6-stubs issue
