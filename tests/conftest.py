@@ -399,5 +399,3 @@ def pytest_terminal_summary(terminalreporter):
         terminalreporter.ensure_newline()
         screenshot_dir = screenshots[0].parent
         terminalreporter.section(f"End2end screenshots available in: {screenshot_dir}", sep="-", blue=True, bold=True)
-        for screenshot in screenshots:
-            terminalreporter.line(screenshot.parts[-1])
