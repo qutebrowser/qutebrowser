@@ -943,16 +943,7 @@ def take_x11_screenshot(request, screenshot_dir, record_property, xvfb):
             return
 
         img = grab(xdisplay=f":{xvfb.display}")
-
-        current_test = request.node.nodeid
-        fname = f"{datetime.datetime.now().isoformat()}-{current_test.replace('/', '_')}.png"
-        # upload-artifacts says it doesn't allow these characters if it sees
-        # one of them.
-        bad_chars = '":<>|*?\r\n'
-        for char in bad_chars:
-            fname = fname.replace(char, "_")
-
-        fpath = screenshot_dir / fname
+        fpath = screenshot_dir / f"{request.node.name}.png"
         img.save(fpath)
 
         record_property("screenshot", str(fpath))
