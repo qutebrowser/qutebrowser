@@ -31,4 +31,11 @@ pytest-xdist
 # Needed to test misc/userscripts/qute-lastpass
 tldextract
 
+# importlib_resources==6.4.0 is being included in the lock file via
+# setuptools' vendored dependencies and conflicting with the more up to date
+# one pulled down by other requirements files. Include it here even though we
+# don't need to to make sure we at least get an up to date one.
+importlib_resources
+#@ markers: importlib_resources python_version=="3.8.*"
+
 #@ ignore: Jinja2, MarkupSafe, colorama
