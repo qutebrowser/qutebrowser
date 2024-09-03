@@ -4,19 +4,19 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 build==1.2.1
 bump2version==1.0.1
-certifi==2024.7.4
+certifi==2024.8.30
 cffi==1.17.0
 charset-normalizer==3.3.2
 cryptography==43.0.0
 docutils==0.20.1
 github3.py==4.0.1
 hunter==3.7.0
-idna==3.7
-importlib_metadata==8.2.0
-importlib_resources==6.4.0
+idna==3.8
+importlib_metadata==8.4.0
+importlib_resources==6.4.4
 inflect==7.3.1
 jaraco.classes==3.4.0
-jaraco.context==5.3.0
+jaraco.context==6.0.1
 jaraco.functools==4.0.2
 jaraco.text==3.12.1
 jeepney==0.8.0
@@ -26,7 +26,6 @@ markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.4.0
 nh3==0.2.18
-ordered-set==4.1.0
 packaging==24.1
 pkginfo==1.10.0
 platformdirs==4.2.2
@@ -41,7 +40,7 @@ readme_renderer==43.0
 requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.7.1
+rich==13.8.0
 SecretStorage==3.3.3
 sip==6.8.6
 six==1.16.0
@@ -51,4 +50,4 @@ typeguard==4.3.0
 typing_extensions==4.12.2
 uritemplate==4.1.1
 # urllib3==2.2.2
-zipp==3.20.0
+zipp==3.20.1
