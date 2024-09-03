@@ -88,16 +88,17 @@ class AbstractWebInspector(QWidget):
         self._splitter = splitter
         self._position: Optional[Position] = None
         self._win_id = win_id
-
+        
         self._event_filter = _EventFilter(parent=self)
         self._event_filter.clicked.connect(self._on_clicked)
         self._child_event_filter = eventfilter.ChildEventFilter(
             eventfilter=self._event_filter,
             parent=self)
+        self.setWindowTitle("Web Inspector")
+
 
     def _set_widget(self, widget: _WidgetType) -> None:
         self._widget = widget
-        self.setWindowTitle("Web Inspector")
         self._widget.installEventFilter(self._child_event_filter)
         self._layout.wrap(self, self._widget)
 
