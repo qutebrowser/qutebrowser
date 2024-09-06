@@ -2,8 +2,8 @@
 
 build==1.2.1
 check-manifest==0.49
-importlib_metadata==8.2.0
+importlib_metadata==8.4.0
 packaging==24.1
 pyproject_hooks==1.1.0
 tomli==2.0.1
-zipp==3.20.0
+zipp==3.20.1
