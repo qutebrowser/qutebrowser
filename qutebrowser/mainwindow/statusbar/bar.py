@@ -287,11 +287,10 @@ class StatusBar(QWidget):
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
-        for widget in [self.url, self.percentage,
-                       self.backforward, self.tabindex,
-                       self.keystring, self.prog, self.clock,
-                       *self._text_widgets]:
-            assert isinstance(widget, StatusBarItem)
+
+        # FIXME(pylbrecht): add proper interface to get all items
+        global _ITEMS
+        for widget in _ITEMS.values():
             widget.disable()
             self._hbox.removeWidget(widget.widget)
         self._text_widgets.clear()
