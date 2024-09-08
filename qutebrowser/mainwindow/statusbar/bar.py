@@ -248,7 +248,6 @@ class StatusBar(QWidget):
         self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
         self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock(widget=clock.ClockWidget())
-        self._text_widgets = []
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
@@ -276,10 +275,6 @@ class StatusBar(QWidget):
         for segment in config.val.statusbar.widgets:
             item = _create_item_from_config(segment, tab=tab, parent=self)
 
-            # FIXME(pylbrecht): get rid of this special case
-            if segment.startswith("text:"):
-                self._text_widgets.append(item)
-
             self._hbox.addWidget(item.widget)
 
             item.enable()
@@ -293,7 +288,6 @@ class StatusBar(QWidget):
         for widget in _ITEMS.values():
             widget.disable()
             self._hbox.removeWidget(widget.widget)
-        self._text_widgets.clear()
 
     @pyqtSlot()
     def maybe_hide(self):
