@@ -285,9 +285,9 @@ class StatusBar(QWidget):
 
         # FIXME(pylbrecht): add proper interface to get all items
         global _ITEMS
-        for widget in _ITEMS.values():
-            widget.disable()
-            self._hbox.removeWidget(widget.widget)
+        for item in _ITEMS.values():
+            item.disable()
+            self._hbox.removeWidget(item.widget)
 
     @pyqtSlot()
     def maybe_hide(self):
