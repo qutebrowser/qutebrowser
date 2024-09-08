@@ -6,6 +6,8 @@
 
 import enum
 import dataclasses
+import functools
+from typing import Optional
 
 from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSignal, pyqtProperty, pyqtSlot, Qt, QSize, QTimer
@@ -118,6 +120,63 @@ def _generate_stylesheet():
     return qss
 
 
+_ITEMS: dict[str, StatusBarItem] = {}
+
+
+def register_item(name: str, item: StatusBarItem):
+    global _ITEMS
+
+    # TODO(pylbrecht): add sanity checks (e.g. duplicate registers)
+    _ITEMS[name] = item
+
+
+def _create_item_from_config(
+    key: str,
+    tab: Optional[browsertab.AbstractTab] = None,
+    parent: Optional[QWidget] = None,
+) -> StatusBarItem:
+    if key == "url":
+        item = url.UrlText(widget=url.UrlTextWidget())
+    elif key == "scroll":
+        item = percentage.Percentage(
+            widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone)
+        )
+    elif key == "scroll_raw":
+        item = percentage.Percentage(
+            widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone)
+        )
+        item.set_raw()
+    elif key == "history":
+        item = backforward.Backforward(widget=textbase.TextBaseWidget())
+        if tab:
+            item.on_tab_changed(tab)
+    elif key == "tabs":
+        item = tabindex.TabIndex(widget=textbase.TextBaseWidget())
+    elif key == "keypress":
+        item = keystring.KeyString(widget=textbase.TextBaseWidget())
+    elif key == "progress":
+        item = progress.Progress(widget=progress.ProgressWidget(parent))
+        if tab:
+            item.on_tab_changed(tab)
+    elif key == "search_match":
+        item = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
+    elif key.startswith("text:"):
+        item = textbase.TextBase(widget=textbase.TextBaseWidget())
+        item.widget.setText(key.split(":", maxsplit=1)[1])
+    elif key.startswith("clock:") or key == "clock":
+        item = clock.Clock(widget=clock.ClockWidget())
+        split_segment = key.split(":", maxsplit=1)
+        if len(split_segment) == 2 and split_segment[1]:
+            item.format = split_segment[1]
+        else:
+            item.format = "%X"
+    else:
+        raise utils.Unreachable(key)
+
+    register_item(key, item)
+    return item
+
+
 class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow.
@@ -198,44 +257,6 @@ class StatusBar(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _get_widget_from_config(self, key, tab) -> StatusBarItem:
-        """Return the widget that fits with config string key."""
-        if key == 'url':
-            return self.url
-        elif key == 'scroll':
-            return self.percentage
-        elif key == 'scroll_raw':
-            self.percentage.set_raw()
-            return self.percentage
-        elif key == 'history':
-            if tab:
-                self.backforward.on_tab_changed(tab)
-            return self.backforward
-        elif key == 'tabs':
-            return self.tabindex
-        elif key == 'keypress':
-            return self.keystring
-        elif key == 'progress':
-            if tab:
-                self.prog.on_tab_changed(tab)
-            return self.prog
-        elif key == 'search_match':
-            return self.search_match
-        elif key.startswith('text:'):
-            new_text_widget = textbase.TextBase(widget=textbase.TextBaseWidget())
-            new_text_widget.widget.setText(key.split(':', maxsplit=1)[1])
-            self._text_widgets.append(new_text_widget)
-            return new_text_widget
-        elif key.startswith('clock:') or key == 'clock':
-            split_segment = key.split(':', maxsplit=1)
-            if len(split_segment) == 2 and split_segment[1]:
-                self.clock.format = split_segment[1]
-            else:
-                self.clock.format = '%X'
-            return self.clock
-        else:
-            raise utils.Unreachable(key)
-
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option == 'statusbar.show':
@@ -253,11 +274,15 @@ class StatusBar(QWidget):
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
-            widget = self._get_widget_from_config(segment, tab)
+            item = _create_item_from_config(segment, tab=tab, parent=self)
 
-            self._hbox.addWidget(widget.widget)
+            # FIXME(pylbrecht): get rid of this special case
+            if segment.startswith("text:"):
+                self._text_widgets.append(item)
 
-            widget.enable()
+            self._hbox.addWidget(item.widget)
+
+            item.enable()
 
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
