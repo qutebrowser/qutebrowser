@@ -6,6 +6,7 @@
 
 import collections
 import dataclasses
+import functools
 from typing import Union
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
@@ -124,10 +125,30 @@ class TreeTabbedBrowser(TabbedBrowser):
         """Return the tab widget that can display a tree structure."""
         return TreeTabWidget(self._win_id, parent=self)
 
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
+    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False, recursive=False):
         """Handle children positioning after a tab is removed."""
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             self._add_undo_entry(tab, new_undo)
+
+        if recursive:
+            for descendent in tab.node.traverse(
+                order=notree.TraverseOrder.POST_R,
+                render_collapsed=False
+            ):
+                self.tab_close_prompt_if_pinned(
+                    descendent.value,
+                    False,
+                    functools.partial(
+                        self._remove_tab,
+                        descendent.value,
+                        add_undo=add_undo,
+                        new_undo=new_undo,
+                        crashed=crashed,
+                        recursive=False,
+                    )
+                )
+                new_undo = False
+            return
 
         node = tab.node
         parent = node.parent

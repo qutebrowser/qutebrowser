@@ -220,7 +220,7 @@ class CommandDispatcher:
         return None
 
     def _tab_close(self, tab, prev=False, next_=False,
-                   opposite=False, new_undo=True):
+                   opposite=False, new_undo=True, recursive=False):
         """Helper function for tab_close be able to handle message.async.
 
         Args:
@@ -236,11 +236,11 @@ class CommandDispatcher:
                                                           opposite)
 
         if selection_override is None:
-            self._tabbed_browser.close_tab(tab, new_undo=new_undo)
+            self._tabbed_browser.close_tab(tab, new_undo=new_undo, recursive=recursive)
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            self._tabbed_browser.close_tab(tab, new_undo=new_undo)
+            self._tabbed_browser.close_tab(tab, new_undo=new_undo, recursive=recursive)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -263,23 +263,9 @@ class CommandDispatcher:
         if tab is None:
             return
 
-        if (recursive and tabbed_browser.is_treetabbedbrowser):
-            new_undo = True
-            for descendent in tab.node.traverse(
-                notree.TraverseOrder.POST_R,
-                render_collapsed=False,
-            ):
-                close = functools.partial(self._tab_close,
-                                          descendent.value, prev, next_,
-                                          opposite, new_undo)
-                tabbed_browser.tab_close_prompt_if_pinned(descendent.value, force,
-                                                          close)
-                new_undo = False
-
-        else:
-            close = functools.partial(self._tab_close, tab, prev,
-                                      next_, opposite)
-            tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+        close = functools.partial(self._tab_close, tab, prev,
+                                  next_, opposite, True, recursive)
+        tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
