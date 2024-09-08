@@ -255,33 +255,28 @@ class CommandDispatcher:
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs.select_on_remove'.
             force: Avoid confirmation for pinned tabs.
-            recursive: Close all descendents (tree-tabs) as well as current tab
+            recursive: Close all descendants (tree-tabs) as well as current tab
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
         tabbed_browser = self._tabbed_browser
         if tab is None:
             return
-        if (tabbed_browser.is_treetabbedbrowser and recursive and not
-                tab.node.collapsed):
-            # if collapsed, recursive is the same as normal close
-            new_undo = True  # only for first one
-            for descendent in tab.node.traverse(notree.TraverseOrder.POST_R,
-                                                True):
-                if self._tabbed_browser.widget.indexOf(descendent.value) > -1:
-                    close = functools.partial(self._tab_close,
-                                              descendent.value, prev, next_,
-                                              opposite, new_undo)
-                    tabbed_browser.tab_close_prompt_if_pinned(descendent.value, force,
-                                                              close)
-                    new_undo = False
-                else:
-                    tab = descendent.value
-                    tab.private_api.shutdown()
-                    tab.deleteLater()
+
+        if (recursive and tabbed_browser.is_treetabbedbrowser):
+            new_undo = True
+            for descendent in tab.node.traverse(
+                notree.TraverseOrder.POST_R,
+                render_collapsed=False,
+            ):
+                close = functools.partial(self._tab_close,
+                                          descendent.value, prev, next_,
+                                          opposite, new_undo)
+                tabbed_browser.tab_close_prompt_if_pinned(descendent.value, force,
+                                                          close)
+                new_undo = False
+
         else:
-            # this also applied to closing collapsed tabs
-            # logic for that is in TreeTabbedBrowser
             close = functools.partial(self._tab_close, tab, prev,
                                       next_, opposite)
             tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)

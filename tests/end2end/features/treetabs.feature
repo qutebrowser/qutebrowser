@@ -72,6 +72,31 @@ Feature: Tree tab management
             - data/numbers/4.txt
             """
 
+    Scenario: :tab-close --recursive with pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 1
+        And I run :cmd-run-with-count 2 tab-pin
+        And I run :tab-close --recursive
+        And I wait for "Asking question *" in the log
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            - data/numbers/4.txt
+
+    Scenario: :tab-close --recursive with collapsed subtree
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tree-tab-toggle-hide
+        And I run :tab-focus 1
+        And I run :tab-close --recursive
+        Then the following tabs should be open:
+            - data/numbers/4.txt
+
     Scenario: Open a child tab
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
