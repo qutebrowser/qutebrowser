@@ -239,7 +239,6 @@ class StatusBar(QWidget):
 
         self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
 
-        self.clock = clock.Clock(widget=clock.ClockWidget())
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
