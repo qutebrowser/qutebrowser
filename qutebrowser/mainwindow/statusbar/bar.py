@@ -416,12 +416,9 @@ class StatusBar(QWidget):
     @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
-        objects.statusbar_items["url"].on_tab_changed(tab)
-        objects.statusbar_items["progress"].on_tab_changed(tab)
-        # FIXME(pylbrecht): there might be only one scroll item
-        objects.statusbar_items["scroll"].on_tab_changed(tab)
-        objects.statusbar_items["scroll_raw"].on_tab_changed(tab)
-        objects.statusbar_items["history"].on_tab_changed(tab)
+        for item in objects.statusbar_items.values():
+            item.on_tab_changed(tab)
+
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 

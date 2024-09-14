@@ -1,3 +1,4 @@
+from qutebrowser.browser.browsertab import AbstractTab
 from qutebrowser.qt.widgets import QWidget
 
 
@@ -10,3 +11,7 @@ class StatusBarItem:
 
     def disable(self):
         self.widget.hide()
+
+    def on_tab_changed(self, tab: AbstractTab):
+        # subclasses may use this
+        pass
