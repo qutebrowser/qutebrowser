@@ -10,6 +10,7 @@ import functools
 from typing import Optional
 
 from qutebrowser.mainwindow.statusbar.item import StatusBarItem
+from qutebrowser.misc import objects
 from qutebrowser.qt.core import pyqtSignal, pyqtProperty, pyqtSlot, Qt, QSize, QTimer
 from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
@@ -120,14 +121,11 @@ def _generate_stylesheet():
     return qss
 
 
-_ITEMS: dict[str, StatusBarItem] = {}
-
-
 def register_item(name: str, item: StatusBarItem):
-    global _ITEMS
+    if name in objects.statusbar_items:
+        raise ValueError(f"{name} already registered")
 
-    # TODO(pylbrecht): add sanity checks (e.g. duplicate registers)
-    _ITEMS[name] = item
+    objects.statusbar_items[name] = item
 
 
 def _create_item_from_config(
@@ -282,10 +280,7 @@ class StatusBar(QWidget):
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
-
-        # FIXME(pylbrecht): add proper interface to get all items
-        global _ITEMS
-        for item in _ITEMS.values():
+        for item in objects.statusbar_items.values():
             item.disable()
             self._hbox.removeWidget(item.widget)
 

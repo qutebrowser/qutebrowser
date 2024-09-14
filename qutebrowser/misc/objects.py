@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from qutebrowser import app
     from qutebrowser.utils import usertypes
     from qutebrowser.commands import command
+    from qutebrowser.mainwindow.statusbar import item
 
 
 class NoBackend:
@@ -30,6 +31,7 @@ class NoBackend:
 
 backend: Union['usertypes.Backend', NoBackend] = NoBackend()
 commands: Dict[str, 'command.Command'] = {}
+statusbar_items: Dict[str, 'item.StatusBarItem'] = {}
 debug_flags: Set[str] = set()
 args = cast(argparse.Namespace, None)
 qapp = cast('app.Application', None)
