@@ -97,6 +97,24 @@ Feature: Tree tab management
         Then the following tabs should be open:
             - data/numbers/4.txt
 
+    Scenario: :tab-give --recursive with collapsed subtree
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new sibling tab
+        And I open data/numbers/4.txt in a new related tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tree-tab-toggle-hide
+        And I run :tab-focus 1
+        And I run :tab-give --recursive
+        And I run :window-only
+        And I wait until data/numbers/4.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+              - data/numbers/3.txt (collapsed)
+                - data/numbers/4.txt
+              - data/numbers/2.txt
+
     Scenario: Open a child tab
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab

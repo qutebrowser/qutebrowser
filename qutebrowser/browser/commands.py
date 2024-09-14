@@ -466,6 +466,61 @@ class CommandDispatcher:
         if not keep:
             tabbed_browser.close_tab(tab, add_undo=False, transfer=True)
 
+    def _tree_tab_give_onepass(self, tabbed_browser, keep):
+        """Recursive tab-give, move current tab and children to tabbed_browser."""
+        seen_nodes = []
+        new_tabs = []
+        root_idx = None
+        for idx, node in enumerate(
+            self._current_widget().node.traverse(
+                notree.TraverseOrder.PRE,
+                render_collapsed=True
+            )
+        ):
+            related=False
+            sibling=False
+
+            if not seen_nodes:  # first node, top level
+                pass
+            elif node.parent == seen_nodes[-1].parent:  # going through siblings
+                sibling = True
+            elif node.parent == seen_nodes[-1]:  # first child, going down a level
+                related = True
+            else:  # next subtree, walk back up to find the parent
+                related = True
+                for count, parent in enumerate(reversed(seen_nodes), start=1):
+                    if node.parent == parent:
+                        tabbed_browser.widget.setCurrentWidget(new_tabs[-count])
+                        break
+                else:
+                    assert False, f"Unknown tree structure in tab-give: node={node}"
+
+            # Open each new tab in the foreground so that the sibling and
+            # related settings above will apply to the previously opened one.
+            tab = tabbed_browser.tabopen(
+                node.value.url(),
+                background=False,
+                idx=None if root_idx is None else root_idx + idx,
+                related=related,
+                sibling=sibling,
+            )
+            if node.collapsed:
+                tab.node.collapsed = True
+            if root_idx == None:
+                root_idx = tabbed_browser.widget.currentIndex()
+
+            seen_nodes.append(node)
+            new_tabs.append(tab)
+
+        if not keep:
+            self._tabbed_browser.close_tab(
+                self._current_widget(),
+                add_undo=False,
+                transfer=True,
+                recursive=True,
+            )
+        tabbed_browser.widget.setCurrentWidget(new_tabs[0])
+
     def _tree_tab_give(self, tabbed_browser, keep):
         """Helper function to simplify tab-give."""
         # first pass: open tabs and save the uids of the new nodes
@@ -546,7 +601,7 @@ class CommandDispatcher:
                     "The window with id {} is not private".format(win_id))
 
         if recursive and tabbed_browser.is_treetabbedbrowser:
-            self._tree_tab_give(tabbed_browser, keep)
+            self._tree_tab_give_onepass(tabbed_browser, keep)
         else:
             tabbed_browser.tabopen(self._current_url())
             if not keep:
