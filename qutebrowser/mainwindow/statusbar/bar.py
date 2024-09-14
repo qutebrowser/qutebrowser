@@ -239,7 +239,6 @@ class StatusBar(QWidget):
 
         self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
 
-        self.url = url.UrlText(widget=url.UrlTextWidget())
         self.percentage = percentage.Percentage(widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone))
         self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
         self.tabindex = tabindex.TabIndex(widget=textbase.TextBaseWidget())
@@ -422,7 +421,7 @@ class StatusBar(QWidget):
     @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
-        self.url.on_tab_changed(tab)
+        objects.statusbar_items["url"].on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
