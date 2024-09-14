@@ -283,7 +283,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
-        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling, related, background)
+        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling,
+                           related, background, idx)
 
         return tab
 
@@ -296,6 +297,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         sibling: bool = False,
         related: bool = True,
         background: bool = None,
+        idx: int = None,
     ) -> None:
         toplevel = not sibling and not related
         siblings = list(parent.children)
@@ -304,7 +306,14 @@ class TreeTabbedBrowser(TabbedBrowser):
             # potentially adding it as a duplicate later.
             siblings.remove(new_node)
 
-        if pos == 'first':
+        if idx:
+            sibling_indices = [self.widget.indexOf(node.value) for node in siblings]
+            assert sibling_indices == sorted(sibling_indices)
+            sibling_indices.append(idx)
+            sibling_indices = sorted(sibling_indices)
+            rel_idx = sibling_indices.index(idx)
+            siblings.insert(rel_idx, new_node)
+        elif pos == 'first':
             rel_idx = 0
             if config.val.tabs.new_position.stacking and related:
                 rel_idx += self._tree_tab_child_rel_idx
