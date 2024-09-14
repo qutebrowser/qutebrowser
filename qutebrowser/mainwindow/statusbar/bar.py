@@ -239,7 +239,6 @@ class StatusBar(QWidget):
 
         self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
 
-        self.tabindex = tabindex.TabIndex(widget=textbase.TextBaseWidget())
         self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
         self.clock = clock.Clock(widget=clock.ClockWidget())
         self._draw_widgets()
