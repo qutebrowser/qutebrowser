@@ -239,7 +239,6 @@ class StatusBar(QWidget):
 
         self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
 
-        self.percentage = percentage.Percentage(widget=textbase.TextBaseWidget(elidemode=Qt.TextElideMode.ElideNone))
         self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
         self.tabindex = tabindex.TabIndex(widget=textbase.TextBaseWidget())
         self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
@@ -423,7 +422,8 @@ class StatusBar(QWidget):
         """Notify sub-widgets when the tab has been changed."""
         objects.statusbar_items["url"].on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
-        self.percentage.on_tab_changed(tab)
+        objects.statusbar_items["scroll"].on_tab_changed(tab)
+        objects.statusbar_items["scroll_raw"].on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
