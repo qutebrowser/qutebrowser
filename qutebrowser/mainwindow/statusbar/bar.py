@@ -128,6 +128,9 @@ def register_item(name: str, item: StatusBarItem):
     objects.statusbar_items[name] = item
 
 
+# TODO(pylbrecht): maybe we can move initializing and globally registering
+# statusbar items to some general "init" place. No need do the setup in statusbar.py any
+# longer, as the items are stored globally anyway.
 def _create_item_from_config(
     key: str,
     tab: Optional[browsertab.AbstractTab] = None,
