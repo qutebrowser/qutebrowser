@@ -242,7 +242,6 @@ class StatusBar(QWidget):
         self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
         self.tabindex = tabindex.TabIndex(widget=textbase.TextBaseWidget())
         self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
-        self.prog = progress.Progress(widget=progress.ProgressWidget(self))
         self.clock = clock.Clock(widget=clock.ClockWidget())
         self._draw_widgets()
 
@@ -421,7 +420,8 @@ class StatusBar(QWidget):
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
         objects.statusbar_items["url"].on_tab_changed(tab)
-        self.prog.on_tab_changed(tab)
+        objects.statusbar_items["progress"].on_tab_changed(tab)
+        # FIXME(pylbrecht): there might be only one scroll item
         objects.statusbar_items["scroll"].on_tab_changed(tab)
         objects.statusbar_items["scroll_raw"].on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)

@@ -518,9 +518,9 @@ class MainWindow(QWidget):
             self.status.on_tab_changed)
 
         self.tabbed_browser.cur_progress.connect(
-            self.status.prog.on_load_progress)
+            objects.statusbar_items["progress"].on_load_progress)
         self.tabbed_browser.cur_load_started.connect(
-            self.status.prog.on_load_started)
+            objects.statusbar_items["progress"].on_load_started)
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
             self.status.percentage.set_perc)
