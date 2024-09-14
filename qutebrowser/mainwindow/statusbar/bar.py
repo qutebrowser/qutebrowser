@@ -239,7 +239,6 @@ class StatusBar(QWidget):
 
         self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
 
-        self.backforward = backforward.Backforward(widget=textbase.TextBaseWidget())
         self.tabindex = tabindex.TabIndex(widget=textbase.TextBaseWidget())
         self.keystring = keystring.KeyString(widget=textbase.TextBaseWidget())
         self.clock = clock.Clock(widget=clock.ClockWidget())
@@ -424,7 +423,7 @@ class StatusBar(QWidget):
         # FIXME(pylbrecht): there might be only one scroll item
         objects.statusbar_items["scroll"].on_tab_changed(tab)
         objects.statusbar_items["scroll_raw"].on_tab_changed(tab)
-        self.backforward.on_tab_changed(tab)
+        objects.statusbar_items["history"].on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 

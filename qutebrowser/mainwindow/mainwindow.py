@@ -530,7 +530,7 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_url_changed.connect(
             objects.statusbar_items["url"].set_url)
         self.tabbed_browser.cur_url_changed.connect(functools.partial(
-            self.status.backforward.on_tab_cur_url_changed,
+            objects.statusbar_items["history"].on_tab_cur_url_changed,
             tabs=self.tabbed_browser))
         self.tabbed_browser.cur_link_hovered.connect(
             objects.statusbar_items["url"].set_hover_url)
