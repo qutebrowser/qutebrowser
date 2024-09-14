@@ -237,8 +237,6 @@ class StatusBar(QWidget):
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
 
-        self.search_match = searchmatch.SearchMatch(widget=textbase.TextBaseWidget())
-
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
