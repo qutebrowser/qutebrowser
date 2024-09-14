@@ -522,37 +522,34 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(new_tabs[0])
 
     def _tree_tab_give(self, tabbed_browser, keep):
-        """Helper function to simplify tab-give."""
-        # first pass: open tabs and save the uids of the new nodes
-        uid_map = {}  # old_uid -> new_uid
-        traversed = list(self._current_widget().node.traverse())
-        for node in traversed:
+        """Recursive tab-give, move current tab and children to tabbed_browser."""
+        new_tab_map = {}  # old_uid -> new tab
+        current_node = self._current_widget().node
+        for node in current_node.traverse(
+            notree.TraverseOrder.PRE,
+            render_collapsed=True
+        ):
             tab = tabbed_browser.tabopen(
                 node.value.url(),
                 related=False,
+                background=True,
             )
-            uid_map[node.uid] = tab.node.uid
+            new_tab_map[node.uid] = tab
 
-        # second pass: copy tree structure over
-        newroot = tabbed_browser.widget.tree_root
-        for node in traversed:
-            if node.parent.uid in uid_map:
-                uid = uid_map[node.uid]
-                new_node = newroot.get_descendent_by_uid(uid)
-                parent_uid = uid_map[node.parent.uid]
-                new_parent = newroot.get_descendent_by_uid(parent_uid)
-                new_node.parent = new_parent
+            if node.collapsed:
+                tab.node.collapsed = True
+            if node != current_node:  # top level node has no parent
+                parent = new_tab_map[node.parent.uid].node
+                parent.children += (tab.node,)
 
-        # third pass: remove tabs from old window, children first this time to
-        # avoid having to re-parent things when traversing.
+        tabbed_browser.widget.setCurrentWidget(new_tab_map[current_node.uid])
         if not keep:
-            for node in self._current_widget().node.traverse(
-                notree.TraverseOrder.POST_R,
-                render_collapsed=False,
-            ):
-                self._tabbed_browser.close_tab(node.value,
-                                               add_undo=False,
-                                               transfer=True)
+            self._tabbed_browser.close_tab(
+                node.value,
+                add_undo=False,
+                transfer=True,
+                recursive=True,
+            )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
@@ -601,7 +598,7 @@ class CommandDispatcher:
                     "The window with id {} is not private".format(win_id))
 
         if recursive and tabbed_browser.is_treetabbedbrowser:
-            self._tree_tab_give_onepass(tabbed_browser, keep)
+            self._tree_tab_give(tabbed_browser, keep)
         else:
             tabbed_browser.tabopen(self._current_url())
             if not keep:
