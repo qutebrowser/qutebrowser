@@ -10,6 +10,7 @@ import os.path
 import shlex
 import functools
 import urllib.parse
+import inspect
 from typing import cast, Union, Optional
 from collections.abc import Callable
 
@@ -129,15 +130,11 @@ class CommandDispatcher:
             tabbed_browser.tabopen(url)
             tabbed_browser.window().show()
         elif tab or background:
-            if tabbed_browser.is_treetabbedbrowser:
-                tabbed_browser.tabopen(url, background=background,
-                                       related=related, sibling=sibling)
-            elif sibling:
-                raise cmdutils.CommandError("--sibling flag only works with \
-                                            tree-tab enabled")
-            else:
-                tabbed_browser.tabopen(url, background=background,
-                                       related=related)
+            if sibling:
+                self._ensure_tree_tabs("--sibling")
+
+            tabbed_browser.tabopen(url, background=background,
+                                   related=related, sibling=sibling)
         else:
             widget = self._current_widget()
             widget.load_url(url)
@@ -1094,7 +1091,8 @@ class CommandDispatcher:
             assert isinstance(index, str)
             self._tab_focus_stack(index)
             return
-        elif index == 'parent' and self._tabbed_browser.is_treetabbedbrowser:
+        elif index == 'parent':
+            self._ensure_tree_tabs("parent")
             node = self._current_widget().node
             path = node.path
             if count:
@@ -2035,6 +2033,35 @@ class CommandDispatcher:
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
+    def _ensure_tree_tabs(self, arg_name: Optional[str] = None):
+        """Check if we are on a tree tabs enabled browser."""
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            # Potentially fragile code to get the name of the command the user
+            # called. Get the calling functions via inspect, lookup the
+            # command object by looking for a command with the related unbound
+            # functions as its handler.
+            # Alternate options:
+            # 1. stash the cmd object on the function
+            # 2. duplicate the slugification of the function name (it's just _->-)
+            # 3. move this check into the Command object somehow (easy for
+            #    disallowed commands, hard for disallowed args)
+            # 4. save the currently executing command somewhere
+            bound_func = getattr(self, inspect.stack()[1].function)
+            cmds = [
+                name
+                for name, cmd
+                in objects.commands.items()
+                if cmd.handler == bound_func.__func__
+            ]
+            assert len(cmds) == 1
+            cmd_name = cmds[0]
+
+            arg_part = ""
+            if arg_name:
+                arg_part = f"argument `{arg_name}` "
+            msg = f"{cmd_name}: {arg_part}requires a window with tree tabs"
+            raise cmdutils.CommandError(msg)
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        tree_tab=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
@@ -2047,8 +2074,7 @@ class CommandDispatcher:
         Args:
             count: How many levels the tabs should be promoted to
         """
-        if not self._tabbed_browser.is_treetabbedbrowser:
-            raise cmdutils.CommandError('Tree-tabs are disabled')
+        self._ensure_tree_tabs()
         config_position = config.val.tabs.new_position.tree.promote
         try:
             self._current_widget().node.promote(count, config_position)
@@ -2065,8 +2091,7 @@ class CommandDispatcher:
         Observes tabs.new_position.tree.demote in positioning the tab among new
         siblings.
         """
-        if not self._tabbed_browser.is_treetabbedbrowser:
-            raise cmdutils.CommandError('Tree-tabs are disabled')
+        self._ensure_tree_tabs()
         cur_node = self._current_widget().node
 
         config_position = config.val.tabs.new_position.tree.demote
@@ -2088,8 +2113,7 @@ class CommandDispatcher:
         Args:
             count: Which tab to collapse
         """
-        if not self._tabbed_browser.is_treetabbedbrowser:
-            raise cmdutils.CommandError('Tree-tabs are disabled')
+        self._ensure_tree_tabs()
         tab = self._cntwidget(count)
         if not tab.node.children:
             return
@@ -2106,8 +2130,7 @@ class CommandDispatcher:
         Args:
             count: How many levels to hide.
         """
-        if not self._tabbed_browser.is_treetabbedbrowser:
-            raise cmdutils.CommandError('Tree-tabs are disabled')
+        self._ensure_tree_tabs()
         while count > 0:
             tab = self._current_widget()
             self._tabbed_browser.cycle_hide_tab(tab.node)
@@ -2145,6 +2168,7 @@ class CommandDispatcher:
         Args:
             count: Target tab.
         """
+        self._ensure_tree_tabs()
         tab = self._cntwidget(count)
         for descendent in tab.node.traverse():
             cur_tab = descendent.value
