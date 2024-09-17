@@ -1196,28 +1196,26 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
 
         if self._tabbed_browser.is_treetabbedbrowser:
-            # self._tree_tab_move(new_idx)
-            new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
             tab = self._current_widget()
-
-            # traverse order is the same as display order
-            # so indexing works correctly
             tree_root = self._tabbed_browser.widget.tree_root
-            tabs = list(tree_root.traverse(render_collapsed=False))
-            target_node = tabs[new_idx]
+            # Lookup target nodes from display order list to match what the
+            # user sees in the tab bar.
+            nodes = list(tree_root.traverse(render_collapsed=False))[1:]
+            target_node = nodes[new_idx]
             if tab.node in target_node.path:
                 raise cmdutils.CommandError("Can't move tab to a descendent"
                                             " of itself")
 
-            new_parent = target_node.parent
-            # we need index relative to parent for correct placement
-            dest_tab = tabs[new_idx]
-            new_idx_relative = new_parent.children.index(dest_tab)
+            tab.node.parent = None  # detach the node now to avoid duplicate errors
+            target_siblings = list(target_node.parent.children)
+            new_idx_relative = target_siblings.index(target_node)
+            if cur_idx < new_idx:
+                # If moving the tab to a higher number, insert if after the
+                # target node to account for all the tabs shifting down.
+                new_idx_relative += 1
 
-            tab.node.parent = None  # avoid duplicate errors
-            siblings = list(new_parent.children)
-            siblings.insert(new_idx_relative, tab.node)
-            new_parent.children = siblings
+            target_siblings.insert(new_idx_relative, tab.node)
+            target_node.parent.children = target_siblings
 
             self._tabbed_browser.widget.tree_tab_update()
         else:

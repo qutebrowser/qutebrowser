@@ -124,7 +124,7 @@ Feature: Tree tab management
               - data/numbers/2.txt (active)
             """
 
-    Scenario: Move a tab to the given index
+    Scenario: Move a tab down to the given index
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
         And I open data/numbers/3.txt in a new tab
@@ -138,6 +138,53 @@ Feature: Tree tab management
             - data/numbers/1.txt
               - data/numbers/2.txt
             """
+
+    Scenario: Move a tab up to given index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-move 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+              - data/numbers/4.txt
+              - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: Move a tab within siblings
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new sibling tab
+        And I run :tab-move +
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+              - data/numbers/2.txt
+              - data/numbers/3.txt
+
+    Scenario: Move a tab to end
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-focus 2
+        And I run :tab-move end
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt
+              - data/numbers/4.txt
+              - data/numbers/2.txt
+
+    Scenario: Move a tab to start
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-move start
+        Then the following tabs should be open:
+            - data/numbers/4.txt
+            - data/numbers/1.txt
+              - data/numbers/2.txt
+            - data/numbers/3.txt
 
     Scenario: Collapse a subtree
         When I open data/numbers/1.txt
