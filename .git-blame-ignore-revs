@@ -1,0 +1,6 @@
+# Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` to configure
+# your local git to support this file.
+# See https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-view
+
+# Normalize package names in all compiled requirements files.
+a7936564790a122f08f197ead6ec48e0ce0398bd

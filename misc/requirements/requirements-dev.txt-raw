@@ -7,9 +7,5 @@ pyqt-builder
 build
 twine
 
-# Included to override setuptools' vendored version that is being included in
-# the lock file by pip freeze.
-platformdirs
-
 # Already included via test requirements
 #@ ignore: urllib3
