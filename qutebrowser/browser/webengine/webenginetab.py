@@ -1316,6 +1316,8 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._scripts.init()
+        self._lifecycle_timer = usertypes.Timer(self)
+        self._lifecycle_timer.setSingleShot(True)
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         self._needs_qtbug65223_workaround = (
             version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5))
@@ -1423,6 +1425,14 @@ class WebEngineTab(browsertab.AbstractTab):
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
+
+    def _set_lifecycle_state(
+        self,
+        new_state: QWebEnginePage.LifecycleState,
+    ) -> None:
+        """Set the lifecycle state of the current tab."""
+        log.webview.debug(f"Setting page lifecycle state of {self} to {new_state}")
+        self._widget.page().setLifecycleState(new_state)
 
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
@@ -1724,6 +1734,30 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
+    @pyqtSlot(QWebEnginePage.LifecycleState)
+    def _on_recommended_state_changed(
+            self,
+            recommended_state: QWebEnginePage.LifecycleState,
+    ) -> None:
+        disabled = not config.val.qt.chromium.use_recommended_page_lifecycle_state
+
+        # If the config is changed at runtime, stop freezing/discarding pages, but do
+        # recover pages that become active again.
+        if disabled and recommended_state != QWebEnginePage.LifecycleState.Active:
+            return
+
+        if recommended_state == QWebEnginePage.LifecycleState.Frozen:
+            delay = config.val.qt.chromium.lifecycle_state_freeze_delay
+        elif recommended_state == QWebEnginePage.LifecycleState.Discarded:
+            delay = config.val.qt.chromium.lifecycle_state_discard_delay
+        else:
+            delay = 0
+
+        self._lifecycle_timer.timeout.disconnect()
+        log.webview.debug(f"Setting lifecycle state {recommended_state} in {delay}ms")
+        self._lifecycle_timer.timeout.connect(lambda: self._set_lifecycle_state(recommended_state))
+        self._lifecycle_timer.start(delay)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1741,6 +1775,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
+
+        page.recommendedStateChanged.connect(self._on_recommended_state_changed)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
