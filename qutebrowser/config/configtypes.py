@@ -226,7 +226,7 @@ class BaseType:
     @functools.lru_cache(maxsize=2**9)
     def _basic_str_validation_cache(value: str) -> None:
         """Cache validation result to prevent looping over strings."""
-        if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
+        if any(ord(c) != 10 and (ord(c) < 32 or ord(c) == 0x7f) for c in value):
             raise configexc.ValidationError(
                 value, "may not contain unprintable chars!")
 
