@@ -21,7 +21,7 @@ jaraco.context==6.0.1
 jaraco.functools==4.0.2
 jaraco.text==3.12.1
 jeepney==0.8.0
-keyring==25.3.0
+keyring==25.4.1
 manhole==1.8.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
@@ -29,7 +29,7 @@ more-itertools==10.5.0
 nh3==0.2.18
 packaging==24.1
 pkginfo==1.10.0
-platformdirs==4.3.3
+platformdirs==4.3.6
 pycparser==2.22
 Pygments==2.18.0
 PyJWT==2.9.0
