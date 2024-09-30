@@ -162,6 +162,13 @@ need to turn off the `bindist` flag for `dev-qt/qtwebengine`.
 See the https://wiki.gentoo.org/wiki/Qutebrowser#USE_flags[Gentoo Wiki] for
 more information.
 
+To be able to use Kerberos authentication, you will need to turn on the
+`kerberos` USE-flag system-wide and re-emerge `dev-qt/qtwebengine` after that.
+
+See the
+https://wiki.gentoo.org/wiki/Qutebrowser#Kerberos_authentication_does_not_work[
+Troubleshooting section in Gentoo Wiki] for more information.
+
 On Void Linux
 -------------
 
