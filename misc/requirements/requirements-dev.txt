@@ -18,7 +18,7 @@ inflect==7.3.1
 jaraco.classes==3.4.0
 jaraco.collections==5.1.0
 jaraco.context==6.0.1
-jaraco.functools==4.0.2
+jaraco.functools==4.1.0
 jaraco.text==3.12.1
 jeepney==0.8.0
 keyring==25.4.1
@@ -34,7 +34,7 @@ pycparser==2.22
 Pygments==2.18.0
 PyJWT==2.9.0
 Pympler==1.1
-pyproject_hooks==1.1.0
+pyproject_hooks==1.2.0
 PyQt-builder==1.16.4
 python-dateutil==2.9.0.post0
 readme_renderer==43.0
