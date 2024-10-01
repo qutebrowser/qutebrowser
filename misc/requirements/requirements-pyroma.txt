@@ -8,7 +8,7 @@ idna==3.10
 importlib_metadata==8.5.0
 packaging==24.1
 Pygments==2.18.0
-pyproject_hooks==1.1.0
+pyproject_hooks==1.2.0
 pyroma==4.2
 requests==2.32.3
 tomli==2.0.1

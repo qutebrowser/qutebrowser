@@ -13,5 +13,5 @@ pyproject-api==1.8.0
 setuptools==75.1.0
 tomli==2.0.1
 tox==4.20.0
-virtualenv==20.26.5
+virtualenv==20.26.6
 wheel==0.44.0
