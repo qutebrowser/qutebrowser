@@ -82,6 +82,7 @@ class CompletionMetaInfo(sql.SqlTable):
     KEYS = {
         'excluded_patterns': '',
         'force_rebuild': False,
+        'frecency_bonus': -1,
     }
 
     def __init__(self, database: sql.Database,
@@ -132,14 +133,22 @@ class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
 
-    def __init__(self, database: sql.Database,
-                 parent: Optional[QObject] = None) -> None:
-        super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime'],
+    def __init__(self, database: sql.Database, parent: Optional[QObject] = None,
+                 force_creation: bool = False) -> None:
+        super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime',
+                                                         'visits', 'frecency'],
                          constraints={'url': 'PRIMARY KEY',
                                       'title': 'NOT NULL',
-                                      'last_atime': 'NOT NULL'},
-                         parent=parent)
-        self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
+                                      'last_atime': 'NOT NULL',
+                                      'visits': 'NOT NULL',
+                                      'frecency': 'NOT NULL'},
+                         parent=parent, force_creation=force_creation)
+        self.create_index('CompletionHistoryAtimeIndex', 'last_atime',
+                          force=force_creation)
+        self.create_index('CompletionHistoryVisitsIndex', 'visits',
+                          force=force_creation)
+        self.create_index('CompletionHistoryFrecencyIndex', 'frecency',
+                          force=force_creation)
 
 
 class WebHistory(sql.SqlTable):
@@ -169,7 +178,6 @@ class WebHistory(sql.SqlTable):
         # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
 
-        self.completion = CompletionHistory(database, parent=self)
         self.metainfo = CompletionMetaInfo(database, parent=self)
 
         try:
@@ -201,10 +209,22 @@ class WebHistory(sql.SqlTable):
             self.metainfo['excluded_patterns'] = patterns
             rebuild_completion = True
 
-        if rebuild_completion and self:
-            # If no history exists, we don't need to spawn a dialog for
-            # cleaning it up.
-            self._rebuild_completion()
+        frecency_bonus = config.val.completion.web_history.frecency_bonus
+        if self.metainfo['frecency_bonus'] != frecency_bonus:
+            rebuild_completion = True
+
+        if rebuild_completion:
+            self.database.query("DROP TABLE IF EXISTS CompletionHistory").run()
+            self.completion = CompletionHistory(database, parent=self,
+                                                force_creation=True)
+            if self:
+                # If no history exists, we don't need to spawn a dialog for
+                # cleaning it up.
+                self._rebuild_completion()
+            self.metainfo['frecency_bonus'] = frecency_bonus
+            self.metainfo['force_rebuild'] = False
+        else:
+            self.completion = CompletionHistory(database, parent=self)
 
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
@@ -281,29 +301,32 @@ class WebHistory(sql.SqlTable):
         data: Mapping[str, MutableSequence[str]] = {
             'url': [],
             'title': [],
-            'last_atime': []
+            'last_atime': [],
+            'visits': [],
+            'frecency': [],
         }
 
         self._progress.start(
             "<b>Rebuilding completion...</b><br>"
-            "This is a one-time operation and happens because the database version "
-            "or <i>completion.web_history.exclude</i> was changed."
+            "This is a one-time operation and happens because the database version, "
+            "<i>completion.web_history.exclude</i>, or "
+            "<i>completion.web_history.frecency_bonus</i> were changed."
         )
 
-        # Delete old entries
-        self.completion.delete_all()
-        QApplication.processEvents()
-
         # Select the latest entry for each url
-        q = self.database.query('SELECT url, title, max(atime) AS atime FROM History '
-                                'WHERE NOT redirect '
-                                'GROUP BY url ORDER BY atime asc')
+        q = self.database.query('''
+            SELECT url, title, max(atime) AS atime, count(*) AS visits
+            FROM History
+            WHERE NOT redirect
+            GROUP BY url ORDER BY atime asc
+        ''')
         result = q.run()
         QApplication.processEvents()
         entries = list(result)
 
         self._progress.set_maximum(len(entries))
 
+        frecency_bonus = config.val.completion.web_history.frecency_bonus
         for entry in entries:
             self._progress.tick()
 
@@ -313,6 +336,8 @@ class WebHistory(sql.SqlTable):
             data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
+            data['visits'].append(entry.visits)
+            data['frecency'].append((entry.visits - 1) * frecency_bonus + entry.atime)
 
         self._progress.set_maximum(0)
 
@@ -324,7 +349,6 @@ class WebHistory(sql.SqlTable):
         QApplication.processEvents()
 
         self._progress.finish()
-        self.metainfo['force_rebuild'] = False
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -420,11 +444,24 @@ class WebHistory(sql.SqlTable):
             if redirect or self._is_excluded_from_completion(url):
                 return
 
-            self.completion.insert({
-                'url': self._format_completion_url(url),
+            f_url = self._format_completion_url(url)
+            result = self.completion.insert({
+                'url': f_url,
                 'title': title,
-                'last_atime': atime
-            }, replace=True)
+                'last_atime': atime,
+                'visits': 1,
+                'frecency': atime,
+            }, ignore=True)
+
+            if not result.rows_affected():
+                frecency_bonus = config.val.completion.web_history.frecency_bonus
+                update = {
+                    'visits': 'visits + 1',
+                    'frecency': f'{atime} + visits * {frecency_bonus}',
+                    'last_atime': atime
+                }
+
+                self.completion.update(update, {'url': f_url})
 
     def _format_url(self, url):
         return url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)

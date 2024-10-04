@@ -180,7 +180,7 @@ class Database:
 
     """A wrapper over a QSqlDatabase connection."""
 
-    _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
+    _USER_VERSION = UserVersion(1, 0)  # The current / newest user version
 
     def __init__(self, path: str) -> None:
         if QSqlDatabase.database(path).isValid():
@@ -428,7 +428,8 @@ class SqlTable(QObject):
 
     def __init__(self, database: Database, name: str, fields: List[str],
                  constraints: Optional[Dict[str, str]] = None,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: Optional[QObject] = None,
+                 force_creation: bool = False) -> None:
         """Wrapper over a table in the SQL database.
 
         Args:
@@ -436,11 +437,12 @@ class SqlTable(QObject):
             name: Name of the table.
             fields: A list of field names.
             constraints: A dict mapping field names to constraint strings.
+            force_creation: Force the creation of the table.
         """
         super().__init__(parent)
         self._name = name
         self.database = database
-        self._create_table(fields, constraints)
+        self._create_table(fields, constraints, force=force_creation)
 
     def _create_table(self, fields: List[str], constraints: Optional[Dict[str, str]],
                       *, force: bool = False) -> None:
@@ -460,14 +462,15 @@ class SqlTable(QObject):
         )
         q.run()
 
-    def create_index(self, name: str, field: str) -> None:
+    def create_index(self, name: str, field: str, force: bool = False) -> None:
         """Create an index over this table if the database is uninitialized.
 
         Args:
             name: Name of the index, should be unique.
             field: Name of the field to index.
+            force: If true, create the index even if the database is uninitialized.
         """
-        if not self.database.user_version_changed():
+        if not self.database.user_version_changed() and not force:
             return
 
         q = self.database.query(
@@ -516,36 +519,66 @@ class SqlTable(QObject):
             raise KeyError(f'No row with {field} = {value!r}')
         self.changed.emit()
 
-    def _insert_query(self, values: Mapping[str, Any], replace: bool) -> Query:
+    def _insert_query(self, values: Mapping[str, Any], replace: bool,
+                      ignore: bool) -> Query:
+        if replace and ignore:
+            raise ValueError('replace and ignore cannot be True at the same time')
+
         params = ', '.join(f':{key}' for key in values)
         columns = ', '.join(values)
-        verb = "REPLACE" if replace else "INSERT"
+        verb = 'INSERT'
+        if replace:
+            verb += ' OR REPLACE'
+        elif ignore:
+            verb += ' OR IGNORE'
         return self.database.query(
             f"{verb} INTO {self._name} ({columns}) values({params})"
         )
 
-    def insert(self, values: Mapping[str, Any], replace: bool = False) -> None:
+    def insert(self, values: Mapping[str, Any], replace: bool = False,
+               ignore: bool = False) -> Query:
         """Append a row to the table.
 
         Args:
             values: A dict with a value to insert for each field name.
             replace: If set, replace existing values.
+            ignore: If set, ignore constraint errors.
         """
-        q = self._insert_query(values, replace)
-        q.run(**values)
+        q = self._insert_query(values, replace, ignore)
+        result = q.run(**values)
         self.changed.emit()
+        return result
 
     def insert_batch(self, values: Mapping[str, MutableSequence[Any]],
-                     replace: bool = False) -> None:
+                     replace: bool = False, ignore: bool = False) -> None:
         """Performantly append multiple rows to the table.
 
         Args:
             values: A dict with a list of values to insert for each field name.
             replace: If true, overwrite rows with a primary key match.
+            ignore: If true, ignore constraint errors.
         """
-        q = self._insert_query(values, replace)
+        q = self._insert_query(values, replace, ignore)
         q.run_batch(values)
         self.changed.emit()
+
+    def update(self, update: Mapping[str, Any], where: Mapping[str, Any]) -> Query:
+        """Execute update rows statement.
+
+        Args:
+            update: column:value dict with new values to set
+            where: column:value dict for filtering
+        """
+        u = ', '.join(f'{k} = {v}' for k, v in update.items())
+        s = f'UPDATE {self._name} SET {u}'
+
+        if where:
+            w = ' AND '.join(f'{k} = :{k}' for k in where.keys())
+            s += f' WHERE {w}'
+
+        result = self.database.query(s).run(**where)
+        self.changed.emit()
+        return result
 
     def delete_all(self) -> None:
         """Remove all rows from the table."""

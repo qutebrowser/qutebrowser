@@ -137,7 +137,9 @@
 |<<completion.timestamp_format,completion.timestamp_format>>|Format of timestamps (e.g. for the history completion).
 |<<completion.use_best_match,completion.use_best_match>>|Execute the best-matching command on a partial match.
 |<<completion.web_history.exclude,completion.web_history.exclude>>|A list of patterns which should not be shown in the history.
+|<<completion.web_history.frecency_bonus,completion.web_history.frecency_bonus>>|How many seconds to award as a bonus per visit for frecency.
 |<<completion.web_history.max_items,completion.web_history.max_items>>|Number of URLs to show in the web history.
+|<<completion.web_history.sort_criterion,completion.web_history.sort_criterion>>|How to sort URLs in the web history.
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs to ABP-style adblocking rulesets.
@@ -1918,6 +1920,15 @@ Type: <<types,List of UrlPattern>>
 
 Default: empty
 
+[[completion.web_history.frecency_bonus]]
+=== completion.web_history.frecency_bonus
+How many seconds to award as a bonus per visit for frecency.
+Frecency is calculated as `last_visit_timestamp + (visits - 1) * frecency_bonus`, where `last_visit_timestamp` is measured in seconds since the Epoch. This value defines how much the frecency for a URL will increase with each visit.
+
+Type: <<types,Int>>
+
+Default: +pass:[43200]+
+
 [[completion.web_history.max_items]]
 === completion.web_history.max_items
 Number of URLs to show in the web history.
@@ -1926,6 +1937,20 @@ Number of URLs to show in the web history.
 Type: <<types,Int>>
 
 Default: +pass:[-1]+
+
+[[completion.web_history.sort_criterion]]
+=== completion.web_history.sort_criterion
+How to sort URLs in the web history.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +recency+: Entries are sorted from most recently visited to least recently visited.
+ * +frequency+: Entries are sorted from most visited to least visited.
+ * +frecency+: Entries are sorted using a combination of recency and frequency.
+
+Default: +pass:[recency]+
 
 [[confirm_quit]]
 === confirm_quit

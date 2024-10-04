@@ -1306,7 +1306,9 @@ def test_url_completion_benchmark(benchmark, info,
     entries = {
         'last_atime': list(r),
         'url': ['http://example.com/{}'.format(i) for i in r],
-        'title': ['title{}'.format(i) for i in r]
+        'title': ['title{}'.format(i) for i in r],
+        'visits': list(r),
+        'frecency': list(r),
     }
 
     web_history.completion.insert_batch(entries)
