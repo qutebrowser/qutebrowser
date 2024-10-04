@@ -98,14 +98,26 @@ def test_quteproc_error_message(qtbot, quteproc, cmd, request_mock):
         quteproc.after_test()
 
 
-def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock):
+def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock, monkeypatch):
     """Make sure the test does not fail on teardown if the main test failed."""
+    monkeypatch.setattr(quteproc, "_take_x11_screenshot_of_failed_test", lambda: None)
     request_mock.node.rep_call.failed = True
     with qtbot.wait_signal(quteproc.got_error):
         quteproc.send_cmd(':message-error test')
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
     quteproc.after_test()
+
+
+def test_quteproc_screenshot_on_fail(qtbot, quteproc, request_mock, monkeypatch, mocker):
+    """Make sure we call the method to take a screenshot to test failure."""
+    take_screenshot_spy = mocker.Mock()
+    monkeypatch.setattr(
+        quteproc, "_take_x11_screenshot_of_failed_test", take_screenshot_spy
+    )
+    request_mock.node.rep_call.failed = True
+    quteproc.after_test()
+    take_screenshot_spy.assert_called_once()
 
 
 def test_quteproc_skip_via_js(qtbot, quteproc):

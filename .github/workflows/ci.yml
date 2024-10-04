@@ -107,6 +107,7 @@ jobs:
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
+        TMPDIR: "${{ runner.temp }}"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
@@ -119,6 +120,21 @@ jobs:
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-user/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -222,6 +238,8 @@ jobs:
       - name: Upgrade 3rd party assets
         run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
         if: "startsWith(matrix.os, 'windows-')"
+      - name: "Set TMPDIR for pytest"
+        run: 'echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"'
       - name: "Run ${{ matrix.testenv }}"
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
@@ -236,6 +254,21 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           name: "${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-runner/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"

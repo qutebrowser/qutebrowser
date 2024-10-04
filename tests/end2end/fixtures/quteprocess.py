@@ -5,6 +5,7 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import pathlib
+import os
 import re
 import sys
 import time
@@ -18,6 +19,7 @@ import json
 
 import yaml
 import pytest
+from PIL.ImageGrab import grab
 from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
 from qutebrowser.qt.gui import QImage, QColor
 
@@ -416,7 +418,8 @@ class QuteProc(testprocess.Process):
                 '--debug-flag', 'werror',
                 '--debug-flag', 'test-notification-service',
                 '--debug-flag', 'caret',
-                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
+                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin',
+                '--qt-arg', 'geometry', '800x600+0+0']
 
         if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
             args += testutils.DISABLE_SECCOMP_BPF_ARGS
@@ -545,6 +548,8 @@ class QuteProc(testprocess.Process):
         except AttributeError:
             pass
         else:
+            if call.failed:
+                self._take_x11_screenshot_of_failed_test()
             if call.failed or hasattr(call, 'wasxfail') or call.skipped:
                 super().after_test()
                 return
@@ -872,6 +877,10 @@ class QuteProc(testprocess.Process):
             self.send_cmd(cmd.format('no-scroll-filtering'))
         self.send_cmd(cmd.format('log-scroll-pos'))
 
+    def _take_x11_screenshot_of_failed_test(self):
+        fixture = self.request.getfixturevalue('take_x11_screenshot')
+        fixture()
+
 
 class YamlLoader(yaml.SafeLoader):
 
@@ -912,6 +921,39 @@ def _xpath_escape(text):
     return 'concat({})'.format(', '.join(parts))
 
 
+@pytest.fixture
+def screenshot_dir(request, tmp_path_factory):
+    """Return the path of a directory to save e2e screenshots in."""
+    path = tmp_path_factory.getbasetemp()
+    if "PYTEST_XDIST_WORKER" in os.environ:
+        # If we are running under xdist remove the per-worker directory
+        # (like "popen-gw0") so the user doesn't have to search through
+        # multiple folders for the screenshot they are looking for.
+        path = path.parent
+    path /= "pytest-screenshots"
+    path.mkdir(exist_ok=True)
+    return path
+
+
+@pytest.fixture
+def take_x11_screenshot(request, screenshot_dir, record_property, xvfb):
+    """Take a screenshot of the current pytest-xvfb display.
+
+    Screenshots are saved to the location of the `screenshot_dir` fixture.
+    """
+    def doit():
+        if not xvfb:
+            # Likely we are being run with --no-xvfb
+            return
+
+        img = grab(xdisplay=f":{xvfb.display}")
+        fpath = screenshot_dir / f"{request.node.name}.png"
+        img.save(fpath)
+
+        record_property("screenshot", str(fpath))
+    return doit
+
+
 @pytest.fixture(scope='module')
 def quteproc_process(qapp, server, request):
     """Fixture for qutebrowser process which is started once per file."""
@@ -923,7 +965,7 @@ def quteproc_process(qapp, server, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, server, request):
+def quteproc(quteproc_process, server, request, take_x11_screenshot):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()

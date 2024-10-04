@@ -18,10 +18,15 @@ from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 pytest.register_assert_rewrite('end2end.fixtures')
 
 # pylint: disable=unused-import
+# Import fixtures that the bdd tests rely on.
 from end2end.fixtures.notificationserver import notification_server
 from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
-from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
-                                          quteproc_new)
+from end2end.fixtures.quteprocess import (
+    quteproc_process, quteproc,
+    quteproc_new,
+    screenshot_dir,
+    take_x11_screenshot,
+)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils, version
