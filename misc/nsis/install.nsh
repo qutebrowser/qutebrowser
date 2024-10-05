@@ -435,29 +435,18 @@ Function .onInit
   ${If} ${RunningX64}
     ; https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-osversioninfoa#remarks
     GetWinVer $R0 Major
-    !if "${QT5}" == "True"
-      IntCmpU $R0 6 0 _os_check_fail _os_check_pass
-      GetWinVer $R1 Minor
-      IntCmpU $R1 2 _os_check_pass _os_check_fail _os_check_pass
-    !else
-      IntCmpU $R0 10 0 _os_check_fail _os_check_pass
-      GetWinVer $R1 Build
-      ${If} $R1 >= 22000 ; Windows 11 21H2
-        Goto _os_check_pass
-      ${ElseIf} $R1 >= 14393 ; Windows 10 1607
-      ${AndIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
-        Goto _os_check_pass
-      ${EndIf}
-    !endif
+    IntCmpU $R0 10 0 _os_check_fail _os_check_pass
+    GetWinVer $R1 Build
+    ${If} $R1 >= 22000 ; Windows 11 21H2
+      Goto _os_check_pass
+    ${ElseIf} $R1 >= 14393 ; Windows 10 1607
+    ${AndIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
+      Goto _os_check_pass
+    ${EndIf}
   ${EndIf}
   _os_check_fail:
-  !if "${QT5}" == "True"
-    MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
-      version of Windows 8 or later."
-  !else
-    MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
-      version of Windows 10 1607 or later."
-  !endif
+  MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
+    version of Windows 10 1607 or later."
   Abort
   _os_check_pass:
 
