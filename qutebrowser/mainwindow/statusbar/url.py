@@ -6,6 +6,7 @@
 
 import enum
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -28,7 +29,7 @@ class UrlType(enum.Enum):
     normal = enum.auto()
 
 
-class UrlText(textbase.TextBase):
+class UrlTextWidget(textbase.TextBaseWidget):
 
     """URL displayed in the statusbar.
 
@@ -42,27 +43,27 @@ class UrlText(textbase.TextBase):
     """
 
     STYLESHEET = """
-        QLabel#UrlText[urltype="normal"] {
+        QLabel#UrlTextWidget[urltype="normal"] {
             color: {{ conf.colors.statusbar.url.fg }};
         }
 
-        QLabel#UrlText[urltype="success"] {
+        QLabel#UrlTextWidget[urltype="success"] {
             color: {{ conf.colors.statusbar.url.success.http.fg }};
         }
 
-        QLabel#UrlText[urltype="success_https"] {
+        QLabel#UrlTextWidget[urltype="success_https"] {
             color: {{ conf.colors.statusbar.url.success.https.fg }};
         }
 
-        QLabel#UrlText[urltype="error"] {
+        QLabel#UrlTextWidget[urltype="error"] {
             color: {{ conf.colors.statusbar.url.error.fg }};
         }
 
-        QLabel#UrlText[urltype="warn"] {
+        QLabel#UrlTextWidget[urltype="warn"] {
             color: {{ conf.colors.statusbar.url.warn.fg }};
         }
 
-        QLabel#UrlText[urltype="hover"] {
+        QLabel#UrlTextWidget[urltype="hover"] {
             color: {{ conf.colors.statusbar.url.hover.fg }};
         }
     """
@@ -70,11 +71,6 @@ class UrlText(textbase.TextBase):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._urltype = None
-        self.setObjectName(self.__class__.__name__)
-        stylesheet.set_register(self)
-        self._hover_url = None
-        self._normal_url = None
-        self._normal_url_type = UrlType.normal
 
     @pyqtProperty(str)  # type: ignore[type-var]
     def urltype(self):
@@ -88,44 +84,27 @@ class UrlText(textbase.TextBase):
         else:
             return self._urltype.name
 
-    def _update_url(self):
-        """Update the displayed URL if the url or the hover url changed."""
-        old_urltype = self._urltype
-        if self._hover_url is not None:
-            self.setText(self._hover_url)
-            self._urltype = UrlType.hover
-        elif self._normal_url is not None:
-            self.setText(self._normal_url)
-            self._urltype = self._normal_url_type
-        else:
-            self.setText('')
-            self._urltype = UrlType.normal
-        if old_urltype != self._urltype:
-            # We can avoid doing an unpolish here because the new style will
-            # always override the old one.
-            style = self.style()
-            assert style is not None
-            style.polish(self)
 
-    @pyqtSlot(usertypes.LoadStatus)
-    def on_load_status_changed(self, status):
-        """Slot for load_status_changed. Sets URL color accordingly.
+class UrlText(StatusBarItem):
+    def __init__(self, widget: UrlTextWidget):
+        super().__init__(widget)
+        self.widget.setObjectName(self.widget.__class__.__name__)
+        stylesheet.set_register(self.widget)
+        self._hover_url = None
+        self._normal_url = None
+        self._normal_url_type = UrlType.normal
 
-        Args:
-            status: The usertypes.LoadStatus.
-        """
-        assert isinstance(status, usertypes.LoadStatus), status
-        if status in [usertypes.LoadStatus.success,
-                      usertypes.LoadStatus.success_https,
-                      usertypes.LoadStatus.error,
-                      usertypes.LoadStatus.warn]:
-            self._normal_url_type = UrlType[status.name]
+    def on_tab_changed(self, tab):
+        """Update URL if the tab changed."""
+        self._hover_url = None
+        if tab.url().isValid():
+            self._normal_url = urlutils.safe_display_string(tab.url())
         else:
-            self._normal_url_type = UrlType.normal
+            self._normal_url = ''
+        self.on_load_status_changed(tab.load_status())
         self._update_url()
 
-    @pyqtSlot(QUrl)
-    def set_url(self, url):
+    def set_url(self, url: QUrl):
         """Setter to be used as a Qt slot.
 
         Args:
@@ -140,8 +119,7 @@ class UrlText(textbase.TextBase):
         self._normal_url_type = UrlType.normal
         self._update_url()
 
-    @pyqtSlot(str)
-    def set_hover_url(self, link):
+    def set_hover_url(self, link: str):
         """Setter to be used as a Qt slot.
 
         Saves old shown URL in self._old_url and restores it later if a link is
@@ -160,12 +138,37 @@ class UrlText(textbase.TextBase):
             self._hover_url = None
         self._update_url()
 
-    def on_tab_changed(self, tab):
-        """Update URL if the tab changed."""
-        self._hover_url = None
-        if tab.url().isValid():
-            self._normal_url = urlutils.safe_display_string(tab.url())
+    def on_load_status_changed(self, status: usertypes.LoadStatus):
+        """Slot for load_status_changed. Sets URL color accordingly.
+
+        Args:
+            status: The usertypes.LoadStatus.
+        """
+        assert isinstance(status, usertypes.LoadStatus), status
+        if status in [usertypes.LoadStatus.success,
+                      usertypes.LoadStatus.success_https,
+                      usertypes.LoadStatus.error,
+                      usertypes.LoadStatus.warn]:
+            self._normal_url_type = UrlType[status.name]
         else:
-            self._normal_url = ''
-        self.on_load_status_changed(tab.load_status())
+            self._normal_url_type = UrlType.normal
         self._update_url()
+
+    def _update_url(self):
+        """Update the displayed URL if the url or the hover url changed."""
+        old_urltype = self.widget._urltype
+        if self._hover_url is not None:
+            self.widget.setText(self._hover_url)
+            self.widget._urltype = UrlType.hover
+        elif self._normal_url is not None:
+            self.widget.setText(self._normal_url)
+            self.widget._urltype = self._normal_url_type
+        else:
+            self.widget.setText('')
+            self.widget._urltype = UrlType.normal
+        if old_urltype != self.widget._urltype:
+            # We can avoid doing an unpolish here because the new style will
+            # always override the old one.
+            style = self.widget.style()
+            assert style is not None
+            style.polish(self.widget)

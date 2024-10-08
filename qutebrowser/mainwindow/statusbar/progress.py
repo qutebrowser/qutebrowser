@@ -4,14 +4,15 @@
 
 """The progress bar in the statusbar."""
 
-from qutebrowser.qt.core import pyqtSlot, QSize
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
+from qutebrowser.qt.core import QSize
 from qutebrowser.qt.widgets import QProgressBar, QSizePolicy
 
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
 
 
-class Progress(QProgressBar):
+class ProgressWidget(QProgressBar):
 
     """The progress bar part of the status bar."""
 
@@ -28,43 +29,8 @@ class Progress(QProgressBar):
         }
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        stylesheet.set_register(self)
-        self.enabled = False
-        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.setTextVisible(False)
-        self.hide()
-
     def __repr__(self):
         return utils.get_repr(self, value=self.value())
-
-    @pyqtSlot()
-    def on_load_started(self):
-        """Clear old error and show progress, used as slot to loadStarted."""
-        self.setValue(0)
-        self.setVisible(self.enabled)
-
-    @pyqtSlot(int)
-    def on_load_progress(self, value):
-        """Hide the statusbar when loading finished.
-
-        We use this instead of loadFinished because we sometimes get
-        loadStarted and loadProgress(100) without loadFinished from Qt.
-
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        """
-        self.setValue(value)
-        if value == 100:
-            self.hide()
-
-    def on_tab_changed(self, tab):
-        """Set the correct value when the current tab changed."""
-        self.setValue(tab.progress())
-        if self.enabled and tab.load_status() == usertypes.LoadStatus.loading:
-            self.show()
-        else:
-            self.hide()
 
     def sizeHint(self):
         """Set the height to the text height."""
@@ -74,3 +40,44 @@ class Progress(QProgressBar):
 
     def minimumSizeHint(self):
         return self.sizeHint()
+
+
+class Progress(StatusBarItem):
+    def __init__(self, widget: ProgressWidget):
+        super().__init__(widget)
+        self.enabled = False
+        stylesheet.set_register(self.widget)
+        self.widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.widget.setTextVisible(False)
+        self.widget.hide()
+
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
+
+    def on_load_started(self):
+        """Clear old error and show progress, used as slot to loadStarted."""
+        self.widget.setValue(0)
+        self.widget.setVisible(self.enabled)
+
+    def on_tab_changed(self, tab):
+        """Set the correct value when the current tab changed."""
+        self.widget.setValue(tab.progress())
+        if self.enabled and tab.load_status() == usertypes.LoadStatus.loading:
+            self.widget.show()
+        else:
+            self.widget.hide()
+
+    def on_load_progress(self, value):
+        """Hide the statusbar when loading finished.
+
+        We use this instead of loadFinished because we sometimes get
+        loadStarted and loadProgress(100) without loadFinished from Qt.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        """
+        self.widget.setValue(value)
+        if value == 100:
+            self.widget.hide()

@@ -497,7 +497,7 @@ class MainWindow(QWidget):
 
         # commands
         mode_manager.keystring_updated.connect(
-            self.status.keystring.on_keystring_updated)
+            objects.statusbar_items["keypress"].on_keystring_updated)
         self.status.cmd.got_cmd[str].connect(self._commandrunner.run_safely)
         self.status.cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
         self.status.cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
@@ -518,27 +518,27 @@ class MainWindow(QWidget):
             self.status.on_tab_changed)
 
         self.tabbed_browser.cur_progress.connect(
-            self.status.prog.on_load_progress)
+            objects.statusbar_items["progress"].on_load_progress)
         self.tabbed_browser.cur_load_started.connect(
-            self.status.prog.on_load_started)
+            objects.statusbar_items["progress"].on_load_started)
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
             self.status.percentage.set_perc)
         self.tabbed_browser.widget.tab_index_changed.connect(
-            self.status.tabindex.on_tab_index_changed)
+            objects.statusbar_items["tabs"].on_tab_index_changed)
 
         self.tabbed_browser.cur_url_changed.connect(
-            self.status.url.set_url)
+            objects.statusbar_items["url"].set_url)
         self.tabbed_browser.cur_url_changed.connect(functools.partial(
-            self.status.backforward.on_tab_cur_url_changed,
+            objects.statusbar_items["history"].on_tab_cur_url_changed,
             tabs=self.tabbed_browser))
         self.tabbed_browser.cur_link_hovered.connect(
-            self.status.url.set_hover_url)
+            objects.statusbar_items["url"].set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
-            self.status.url.on_load_status_changed)
+            objects.statusbar_items["url"].on_load_status_changed)
 
         self.tabbed_browser.cur_search_match_changed.connect(
-            self.status.search_match.set_match)
+            objects.statusbar_items["search_match"].set_match)
 
         self.tabbed_browser.cur_caret_selection_toggled.connect(
             self.status.on_caret_selection_toggled)

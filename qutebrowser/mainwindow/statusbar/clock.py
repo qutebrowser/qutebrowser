@@ -5,13 +5,14 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
+from qutebrowser.mainwindow.statusbar.item import StatusBarItem
 from qutebrowser.qt.core import Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
 
 
-class Clock(textbase.TextBase):
+class ClockWidget(textbase.TextBaseWidget):
 
     """Shows current time and date in the statusbar."""
 
@@ -35,6 +36,16 @@ class Clock(textbase.TextBase):
 
     def showEvent(self, event):
         """Override showEvent to show time and start self.timer for updating."""
-        self.timer.start(Clock.UPDATE_DELAY)
+        self.timer.start(ClockWidget.UPDATE_DELAY)
         self._show_time()
         super().showEvent(event)
+
+
+class Clock(StatusBarItem):
+    @property
+    def format(self):
+        return self.widget.format
+
+    @format.setter
+    def format(self, value: str):
+        self.widget.format = value
