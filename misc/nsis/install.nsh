@@ -432,19 +432,16 @@ Function .onInit
   StrCpy $KeepReg 1
 
 ; OS version check
-  ${If} ${RunningX64}
-    ; https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-osversioninfoa#remarks
-    GetWinVer $R0 Major
-    IntCmpU $R0 10 0 _os_check_fail _os_check_pass
-    GetWinVer $R1 Build
-    ${If} $R1 >= 22000 ; Windows 11 21H2
-      Goto _os_check_pass
-    ${ElseIf} $R1 >= 14393 ; Windows 10 1607
-    ${AndIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
-      Goto _os_check_pass
-    ${EndIf}
+  ; https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-osversioninfoa#remarks
+  ; https://learn.microsoft.com/en-us/windows/release-health/release-information
+  ; https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information
+  ${If} ${AtLeastWin11}
+    Goto _os_check_pass
+  ${ElseIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
+  ${AndIf} ${AtLeastWin10}
+  ${AndIf} ${AtLeastBuild} 14393 ; Windows 10 1607 (also in error message below)
+    Goto _os_check_pass
   ${EndIf}
-  _os_check_fail:
   MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
     version of Windows 10 1607 or later."
   Abort
