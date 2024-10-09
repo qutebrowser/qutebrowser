@@ -125,7 +125,7 @@ def _smoke_test_run(
     return subprocess.run(argv, check=True, capture_output=True)
 
 
-def smoke_test(executable: pathlib.Path, debug: bool, qt5: bool) -> None:
+def smoke_test(executable: pathlib.Path, debug: bool) -> None:
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
@@ -164,18 +164,15 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt5: bool) -> None:
             (r'\[.*:ERROR:command_buffer_proxy_impl.cc\([0-9]*\)\] '
             r'ContextResult::kTransientFailure: Failed to send '
             r'.*CreateCommandBuffer\.'),
+            # FIXME:qt6 Qt 6.3 on macOS
+            r'[0-9:]* WARNING: Incompatible version of OpenSSL',
+            r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
+            (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
+            r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
+            # Qt 6.7, only seen on macos for some reason
+            (r'.*Path override failed for key base::DIR_APP_DICTIONARIES '
+             r"and path '.*/qtwebengine_dictionaries'"),
         ])
-        if not qt5:
-            stderr_whitelist.extend([
-                # FIXME:qt6 Qt 6.3 on macOS
-                r'[0-9:]* WARNING: Incompatible version of OpenSSL',
-                r'[0-9:]* WARNING: Qt WebEngine resources not found at .*',
-                (r'[0-9:]* WARNING: Installed Qt WebEngine locales directory not found at '
-                r'location /qtwebengine_locales\. Trying application directory\.\.\.'),
-                # Qt 6.7, only seen on macos for some reason
-                (r'.*Path override failed for key base::DIR_APP_DICTIONARIES '
-                 r"and path '.*/qtwebengine_dictionaries'"),
-            ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
             # Windows N:
@@ -267,7 +264,6 @@ def _mac_bin_path(base: pathlib.Path) -> pathlib.Path:
 def build_mac(
     *,
     gh_token: Optional[str],
-    qt5: bool,
     skip_packaging: bool,
     debug: bool,
 ) -> List[Artifact]:
@@ -282,18 +278,18 @@ def build_mac(
         shutil.rmtree(d, ignore_errors=True)
 
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=qt5, fancy_dmg=False,
+    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=False, fancy_dmg=False,
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
-    call_tox(f'pyinstaller{"-qt5" if qt5 else ""}', '-r', debug=debug)
+    call_tox('pyinstaller', '-r', debug=debug)
     utils.print_title("Verifying .app")
     verify_mac_app()
 
     dist_path = pathlib.Path("dist")
 
     utils.print_title("Running pre-dmg smoke test")
-    smoke_test(_mac_bin_path(dist_path), debug=debug, qt5=qt5)
+    smoke_test(_mac_bin_path(dist_path), debug=debug)
 
     if skip_packaging:
         return []
@@ -304,7 +300,6 @@ def build_mac(
 
     arch = platform.machine()
     suffix = "-debug" if debug else ""
-    suffix += "-qt5" if qt5 else ""
     suffix += f"-{arch}"
     dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
     pathlib.Path('qutebrowser.dmg').rename(dmg_path)
@@ -317,7 +312,7 @@ def build_mac(
             subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmp_path], check=True)
             try:
-                smoke_test(_mac_bin_path(tmp_path), debug=debug, qt5=qt5)
+                smoke_test(_mac_bin_path(tmp_path), debug=debug)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
@@ -355,7 +350,6 @@ def _get_windows_python_path() -> pathlib.Path:
 
 def _build_windows_single(
     *,
-    qt5: bool,
     skip_packaging: bool,
     debug: bool,
 ) -> List[Artifact]:
@@ -367,9 +361,7 @@ def _build_windows_single(
     _maybe_remove(out_path)
 
     python = _get_windows_python_path()
-    # FIXME:qt6 does this regress 391623d5ec983ecfc4512c7305c4b7a293ac3872?
-    suffix = "-qt5" if qt5 else ""
-    call_tox(f'pyinstaller{suffix}', '-r', python=python, debug=debug)
+    call_tox('pyinstaller', '-r', python=python, debug=debug)
 
     out_pyinstaller = dist_path / "qutebrowser"
     shutil.move(out_pyinstaller, out_path)
@@ -379,7 +371,7 @@ def _build_windows_single(
     verify_windows_exe(exe_path)
 
     utils.print_title("Running smoke test")
-    smoke_test(exe_path, debug=debug, qt5=qt5)
+    smoke_test(exe_path, debug=debug)
 
     if skip_packaging:
         return []
@@ -388,19 +380,17 @@ def _build_windows_single(
     return _package_windows_single(
         out_path=out_path,
         debug=debug,
-        qt5=qt5,
     )
 
 
 def build_windows(
     *, gh_token: str,
     skip_packaging: bool,
-    qt5: bool,
     debug: bool,
 ) -> List[Artifact]:
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=qt5,
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=False,
                         fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
@@ -412,7 +402,6 @@ def build_windows(
     artifacts = _build_windows_single(
         skip_packaging=skip_packaging,
         debug=debug,
-        qt5=qt5,
     )
     return artifacts
 
@@ -421,7 +410,6 @@ def _package_windows_single(
     *,
     out_path: pathlib.Path,
     debug: bool,
-    qt5: bool,
 ) -> List[Artifact]:
     """Build the given installer/zip for windows."""
     artifacts = []
@@ -430,7 +418,6 @@ def _package_windows_single(
     utils.print_subtitle("Building installer...")
     subprocess.run(['makensis.exe',
                     f'/DVERSION={qutebrowser.__version__}',
-                    f'/DQT5={qt5}',
                     'misc/nsis/qutebrowser.nsi'], check=True)
 
     name_parts = [
@@ -439,8 +426,6 @@ def _package_windows_single(
     ]
     if debug:
         name_parts.append('debug')
-    if qt5:
-        name_parts.append('qt5')
 
     name_parts.append('amd64')  # FIXME:qt6 temporary until new installer
     name = '-'.join(name_parts) + '.exe'
@@ -460,8 +445,6 @@ def _package_windows_single(
     ]
     if debug:
         zip_name_parts.append('debug')
-    if qt5:
-        zip_name_parts.append('qt5')
     zip_name = '-'.join(zip_name_parts) + '.zip'
 
     zip_path = dist_path / zip_name
@@ -680,8 +663,6 @@ def main() -> None:
                         help="Skip Windows installer/zip generation or macOS DMG.")
     parser.add_argument('--debug', action='store_true', required=False,
                         help="Build a debug build.")
-    parser.add_argument('--qt5', action='store_true', required=False,
-                        help="Build against PyQt5")
     parser.add_argument('--experimental', action='store_true', required=False,
                         default=os.environ.get("GITHUB_REPOSITORY") == "qutebrowser/experiments",
                         help="Upload to experiments repo and test PyPI. Set automatically if on qutebrowser/experiments CI.")
@@ -712,14 +693,12 @@ def main() -> None:
         artifacts = build_windows(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
-            qt5=args.qt5,
             debug=args.debug,
         )
     elif IS_MACOS:
         artifacts = build_mac(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
-            qt5=args.qt5,
             debug=args.debug,
         )
     else:
