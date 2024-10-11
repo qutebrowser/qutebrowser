@@ -1048,7 +1048,7 @@ class CommandDispatcher:
                 new_idx += delta
 
             if config.val.tabs.wrap:
-                new_idx %= self._count()
+                new_idx %= max(1, self._count())
         else:
             # pylint: disable=else-if-used
             # absolute moving
