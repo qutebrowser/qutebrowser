@@ -15,6 +15,27 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.4.0]]
+v3.4.0 (unreleased)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- **In either this (v3.4.0) or the next release (v3.5.0)**, support for Python
+  3.8 will be dropped, and Python 3.9 will be required.
+- **In the next release (v3.5.0)**, support for macOS 12 Monterey will be
+  dropped, and binaries will be built on macOS 13 Ventura.
+
+Added
+~~~~~
+
+- **Planned:** Full support for Qt 6.8, with Windows/macOS binaries being built
+  on Qt 6.8.0.
+- **Planned:** Full support for Python 3.13, with Windows/macOS binaries using
+  it if possible.
+
+
 [[v3.3.1]]
 v3.3.1 (2024-10-12)
 -------------------
