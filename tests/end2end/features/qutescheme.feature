@@ -190,7 +190,7 @@ Feature: Special qute:// pages
         And I set downloads.location.prompt to true
         And I open data/misc/test.pdf without waiting
         And I wait until PDF.js is ready
-        And I run :jseval document.getElementById("download").click()
+        And I run :jseval (document.getElementById("downloadButton") || document.getElementById("download")).click()
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         And I run :mode-leave
         Then no crash should happen
