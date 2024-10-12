@@ -45,6 +45,8 @@ Changed
   respected when yanking any URL (for example, through hints with `hint links
   yank`). The `{url:yank}` substitution has also been added as a version of
   `{url}` that respects ignored URL query parameters. (#7879)
+- Windows and macOS releases now bundle Qt 6.7.3, which includes security fixes
+  up to Chromium 129.0.6668.58.
 
 Fixed
 ~~~~~
