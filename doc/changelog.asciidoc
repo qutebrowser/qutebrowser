@@ -55,6 +55,7 @@ Fixed
   documentation in our settings docs now loads a live page again. (#8268)
 - A rare crash when on Qt 6, a renderer process terminates with an unknown
   termination reason.
+- Updated the workaround for Google sign-in issues.
 
 [[v3.2.1]]
 v3.2.1 (2024-06-25)

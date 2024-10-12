@@ -452,7 +452,7 @@ def _init_site_specific_quirks():
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
                   "{upstream_browser_key}/{upstream_browser_version} "
                   "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:131.0) Gecko/20100101 Firefox/131.0"
 
     def maybe_newer_chrome_ua(at_least_version):
         """Return a new UA if our current chrome version isn't at least at_least_version."""
