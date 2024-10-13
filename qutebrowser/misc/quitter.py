@@ -15,7 +15,8 @@ import tokenize
 import functools
 import warnings
 import subprocess
-from typing import Iterable, Mapping, MutableSequence, Sequence, cast
+from typing import cast
+from collections.abc import Iterable, Mapping, MutableSequence, Sequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal, QTimer
 try:

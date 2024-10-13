@@ -4,7 +4,8 @@
 
 """Utilities related to QWebHistory."""
 
-from typing import Any, List, Mapping
+from typing import Any, List
+from collections.abc import Mapping
 
 from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
 

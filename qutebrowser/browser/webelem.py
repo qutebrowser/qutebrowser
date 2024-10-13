@@ -4,7 +4,8 @@
 
 """Generic web element related code."""
 
-from typing import Iterator, Optional, Set, TYPE_CHECKING, Union, Dict
+from typing import Optional, Set, TYPE_CHECKING, Union, Dict
+from collections.abc import Iterator
 import collections.abc
 
 from qutebrowser.qt import machinery

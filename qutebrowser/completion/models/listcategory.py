@@ -5,7 +5,8 @@
 """Completion category that uses a list of tuples as a data source."""
 
 import re
-from typing import Iterable, Tuple
+from typing import Tuple
+from collections.abc import Iterable
 
 from qutebrowser.qt.core import QSortFilterProxyModel, QRegularExpression
 from qutebrowser.qt.gui import QStandardItem, QStandardItemModel

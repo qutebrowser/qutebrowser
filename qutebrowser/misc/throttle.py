@@ -6,7 +6,8 @@
 
 import dataclasses
 import time
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Optional
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt.core import QObject
 

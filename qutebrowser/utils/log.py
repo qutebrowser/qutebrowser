@@ -15,8 +15,9 @@ import warnings
 import json
 import inspect
 import argparse
-from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
+from typing import (TYPE_CHECKING, Any,
                     Optional, Set, Tuple, Union, TextIO, Literal, cast)
+from collections.abc import Iterator, Mapping, MutableSequence
 
 # NOTE: This is a Qt-free zone! All imports related to Qt logging should be done in
 # qutebrowser.utils.qtlog (see https://github.com/qutebrowser/qutebrowser/issues/7769).

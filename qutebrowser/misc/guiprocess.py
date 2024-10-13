@@ -9,7 +9,8 @@ import locale
 import shlex
 import shutil
 import signal
-from typing import Mapping, Sequence, Dict, Optional
+from typing import Dict, Optional
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl, Qt)

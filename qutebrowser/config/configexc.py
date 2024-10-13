@@ -6,7 +6,8 @@
 
 import difflib
 import dataclasses
-from typing import Any, Mapping, Optional, Sequence, Union, List
+from typing import Any, Optional, Union, List
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.utils import usertypes, log
 

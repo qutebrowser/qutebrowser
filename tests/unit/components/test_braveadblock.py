@@ -5,7 +5,8 @@
 import pathlib
 import logging
 import csv
-from typing import Iterable, Tuple
+from typing import Tuple
+from collections.abc import Iterable
 
 from qutebrowser.qt.core import QUrl
 

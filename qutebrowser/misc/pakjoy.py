@@ -30,7 +30,8 @@ import shutil
 import pathlib
 import dataclasses
 import contextlib
-from typing import ClassVar, IO, Optional, Dict, Tuple, Iterator
+from typing import ClassVar, IO, Optional, Dict, Tuple
+from collections.abc import Iterator
 
 from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects

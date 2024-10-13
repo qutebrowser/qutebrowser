@@ -125,8 +125,8 @@ import copy
 import enum
 import dataclasses
 import collections
-from typing import (Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple, Union,
-                    Sequence, List)
+from typing import (Any, Optional, Set, Tuple, Union, List)
+from collections.abc import Iterator, Mapping, MutableMapping, Sequence
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils, log, version

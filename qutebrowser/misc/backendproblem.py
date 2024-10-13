@@ -13,7 +13,8 @@ import shutil
 import os.path
 import argparse
 import dataclasses
-from typing import Any, Optional, Sequence, Tuple
+from typing import Any, Optional, Tuple
+from collections.abc import Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt

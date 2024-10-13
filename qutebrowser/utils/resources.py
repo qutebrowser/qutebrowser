@@ -10,7 +10,8 @@ import contextlib
 import posixpath
 import pathlib
 import importlib.resources
-from typing import Iterator, Iterable, Union, Dict
+from typing import Union, Dict
+from collections.abc import Iterator, Iterable
 
 if sys.version_info >= (3, 11):  # pragma: no cover
     # https://github.com/python/cpython/issues/90276

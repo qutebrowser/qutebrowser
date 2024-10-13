@@ -6,7 +6,8 @@
 
 import datetime
 import itertools
-from typing import List, Sequence, Tuple
+from typing import List, Tuple
+from collections.abc import Sequence
 
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, utils

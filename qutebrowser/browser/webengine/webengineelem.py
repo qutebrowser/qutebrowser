@@ -5,7 +5,8 @@
 """QtWebEngine specific part of the web element API."""
 
 from typing import (
-    TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
+    TYPE_CHECKING, Any, Callable, Dict, Optional, Set, Tuple, Union)
+from collections.abc import Iterator
 
 from qutebrowser.qt.core import QRect, QEventLoop
 from qutebrowser.qt.widgets import QApplication

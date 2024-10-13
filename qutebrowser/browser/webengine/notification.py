@@ -33,7 +33,8 @@ import dataclasses
 import itertools
 import functools
 import subprocess
-from typing import Any, List, Dict, Optional, Iterator, Type, TYPE_CHECKING
+from typing import Any, List, Dict, Optional, Type, TYPE_CHECKING
+from collections.abc import Iterator
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,

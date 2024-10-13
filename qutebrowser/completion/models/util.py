@@ -4,7 +4,8 @@
 
 """Utility functions for completion models."""
 
-from typing import Callable, Sequence
+from typing import Callable
+from collections.abc import Sequence
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects

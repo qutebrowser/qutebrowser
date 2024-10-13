@@ -15,7 +15,8 @@ import functools
 import threading
 import faulthandler
 import dataclasses
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
+from typing import TYPE_CHECKING, Optional, cast, List
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)

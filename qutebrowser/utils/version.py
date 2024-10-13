@@ -19,8 +19,9 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, Any,
+from typing import (Optional, Tuple, ClassVar, Dict, Any,
                     TYPE_CHECKING)
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import PYQT_VERSION_STR

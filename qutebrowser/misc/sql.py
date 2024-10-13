@@ -9,7 +9,8 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
+from collections.abc import Iterator, Mapping, MutableSequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.sql import QSqlDatabase, QSqlError, QSqlQuery

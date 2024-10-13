@@ -9,8 +9,8 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
-    MutableMapping)
+    TYPE_CHECKING, Any, Dict, List, Optional, Set, Union)
+from collections.abc import Iterator, Sequence, MutableMapping
 
 from qutebrowser.qt.core import QUrl
 from qutebrowser.qt.gui import QFontDatabase

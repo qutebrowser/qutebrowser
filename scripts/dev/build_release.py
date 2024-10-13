@@ -20,7 +20,8 @@ import platform
 import collections
 import dataclasses
 import re
-from typing import Iterable, List, Optional
+from typing import List, Optional
+from collections.abc import Iterable
 
 try:
     import winreg

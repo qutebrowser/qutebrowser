@@ -7,7 +7,8 @@
 import os
 import os.path
 import tempfile
-from typing import cast, Any, MutableMapping, Tuple
+from typing import cast, Any, Tuple
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 

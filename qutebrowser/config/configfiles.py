@@ -14,8 +14,8 @@ import traceback
 import configparser
 import contextlib
 import re
-from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
-                    MutableMapping, Optional, Tuple, cast)
+from typing import (TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast)
+from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 
 import yaml
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion

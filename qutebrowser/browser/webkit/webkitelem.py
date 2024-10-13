@@ -4,7 +4,8 @@
 
 """QtWebKit specific part of the web element API."""
 
-from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
+from typing import cast, TYPE_CHECKING, List, Optional, Set
+from collections.abc import Iterator
 
 from qutebrowser.qt.core import QRect, Qt
 # pylint: disable=no-name-in-module

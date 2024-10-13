@@ -7,8 +7,8 @@
 import copy
 import contextlib
 import functools
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
-                    MutableMapping, MutableSequence, Optional, Tuple, cast)
+from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast)
+from collections.abc import Iterator, Mapping, MutableMapping, MutableSequence
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 

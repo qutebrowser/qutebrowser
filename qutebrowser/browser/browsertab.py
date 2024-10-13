@@ -9,8 +9,8 @@ import pathlib
 import itertools
 import functools
 import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union, Tuple)
+from typing import (cast, TYPE_CHECKING, Any, Callable, List, Optional, Set, Type, Union, Tuple)
+from collections.abc import Iterable, Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,

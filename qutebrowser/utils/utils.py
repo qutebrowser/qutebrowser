@@ -19,9 +19,10 @@ import contextlib
 import shlex
 import sysconfig
 import mimetypes
-from typing import (Any, Callable, IO, Iterator,
-                    Optional, Sequence, Tuple, List, Type, Union,
+from typing import (Any, Callable, IO,
+                    Optional, Tuple, List, Type, Union,
                     TypeVar, Protocol)
+from collections.abc import Iterator, Sequence
 
 from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
 from qutebrowser.qt.gui import QClipboard, QDesktopServices

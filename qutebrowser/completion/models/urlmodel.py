@@ -4,7 +4,8 @@
 
 """Function to return the url completion model for the `open` command."""
 
-from typing import Dict, Sequence
+from typing import Dict
+from collections.abc import Sequence
 
 from qutebrowser.completion.models import (completionmodel, filepathcategory,
                                            listcategory, histcategory,

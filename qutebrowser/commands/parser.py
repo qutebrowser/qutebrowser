@@ -5,7 +5,8 @@
 """Module for parsing commands entered into the browser."""
 
 import dataclasses
-from typing import List, Iterator
+from typing import List
+from collections.abc import Iterator
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects

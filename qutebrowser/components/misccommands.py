@@ -11,7 +11,8 @@ import os
 import signal
 import logging
 import pathlib
-from typing import Optional, Sequence, Callable
+from typing import Optional, Callable
+from collections.abc import Sequence
 
 try:
     import hunter

@@ -12,7 +12,8 @@ import functools
 import datetime
 import types
 from typing import (
-    Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
+    Any, Callable, List, Optional, Type, Union)
+from collections.abc import Mapping, MutableSequence, Sequence
 
 from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 

@@ -18,7 +18,8 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Iterator, Iterable, List, Mapping, Optional, Union, overload, cast
+from typing import List, Optional, Union, overload, cast
+from collections.abc import Iterator, Iterable, Mapping
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent

@@ -10,7 +10,8 @@ import html
 import enum
 import netrc
 import tempfile
-from typing import Callable, Mapping, List, Optional, Iterable, Iterator
+from typing import Callable, List, Optional
+from collections.abc import Mapping, Iterable, Iterator
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 

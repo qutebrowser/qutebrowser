@@ -10,7 +10,8 @@ import posixpath
 import functools
 import contextlib
 import html
-from typing import Any, Callable, FrozenSet, Iterator, List, Set, Tuple
+from typing import Any, Callable, FrozenSet, List, Set, Tuple
+from collections.abc import Iterator
 
 import jinja2
 import jinja2.nodes

@@ -18,8 +18,9 @@ import enum
 import pathlib
 import operator
 import contextlib
-from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Iterator, Literal,
+from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Literal,
                     Optional, Union, Tuple, Protocol, cast, overload, TypeVar)
+from collections.abc import Iterator
 
 from qutebrowser.qt import machinery, sip
 from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,

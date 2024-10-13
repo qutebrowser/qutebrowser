@@ -29,7 +29,8 @@ import tempfile
 import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional, List, Tuple
+from typing import Optional, List, Tuple
+from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.widgets import QApplication, QWidget

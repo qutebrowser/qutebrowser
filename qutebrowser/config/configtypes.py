@@ -36,8 +36,10 @@ import functools
 import operator
 import json
 import dataclasses
-from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
-                    List as ListType, Optional, Pattern, Sequence, Tuple, Union)
+from typing import (Any, Callable, Dict as DictType,
+                    List as ListType, Optional, Tuple, Union)
+from re import Pattern
+from collections.abc import Iterable, Iterator, Sequence
 
 import yaml
 from qutebrowser.qt.core import QUrl, Qt

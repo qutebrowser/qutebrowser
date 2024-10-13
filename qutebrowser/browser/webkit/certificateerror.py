@@ -4,7 +4,8 @@
 
 """A wrapper over a list of QSslErrors."""
 
-from typing import Sequence, Optional
+from typing import Optional
+from collections.abc import Sequence
 
 from qutebrowser.qt.network import QSslError, QNetworkReply
 

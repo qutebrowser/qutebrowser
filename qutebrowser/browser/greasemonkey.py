@@ -12,7 +12,8 @@ import functools
 import glob
 import textwrap
 import dataclasses
-from typing import cast, List, Sequence, Tuple, Optional
+from typing import cast, List, Tuple, Optional
+from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
