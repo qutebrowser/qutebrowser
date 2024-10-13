@@ -439,11 +439,11 @@ Function .onInit
     Goto _os_check_pass
   ${ElseIf} ${IsNativeAMD64} ; Windows 10 has no x86_64 emulation on arm64
   ${AndIf} ${AtLeastWin10}
-  ${AndIf} ${AtLeastBuild} 14393 ; Windows 10 1607 (also in error message below)
+  ${AndIf} ${AtLeastBuild} 17763 ; Windows 10 1809 (also in error message below)
     Goto _os_check_pass
   ${EndIf}
   MessageBox MB_OK|MB_ICONSTOP "This version of ${PRODUCT_NAME} requires a 64-bit$\r$\n\
-    version of Windows 10 1607 or later."
+    version of Windows 10 1809 or later."
   Abort
   _os_check_pass:
 
