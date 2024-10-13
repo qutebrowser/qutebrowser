@@ -38,6 +38,12 @@ Added
 - **Planned:** Full support for Python 3.13, with Windows/macOS binaries using
   it if possible.
 
+Changed
+~~~~~~~
+
+- Updated mimetype information for getting a suitable extension when downloading
+  a `data:` URL.
+
 
 [[v3.3.1]]
 v3.3.1 (2024-10-12)

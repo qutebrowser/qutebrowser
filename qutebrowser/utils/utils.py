@@ -777,14 +777,38 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
 
     This mostly delegates to Python's mimetypes.guess_extension(), but backports some
     changes (via a simple override dict) which are missing from earlier Python versions.
-    Most likely, this can be dropped once the minimum Python version is raised to 3.10.
     """
-    overrides = {
-        # Added in 3.10.0
-        "application/x-hdf5": ".h5",
-        # Added in 3.9.0
-        "application/manifest+json": ".webmanifest",
-    }
+    overrides = {}
+    if sys.version_info[:2] < (3, 13):
+        overrides.update({
+            "text/rtf": ".rtf",
+            "text/markdown": ".md",
+            "text/x-rst": ".rst",
+        })
+    if sys.version_info[:2] < (3, 12):
+        overrides.update({
+            "text/javascript": ".js",
+        })
+    if sys.version_info[:2] < (3, 11):
+        overrides.update({
+            "application/n-quads": ".nq",
+            "application/n-triples": ".nt",
+            "application/trig": ".trig",
+            "image/avif": ".avif",
+            "image/webp": ".webp",
+            "text/n3": ".n3",
+            "text/vtt": ".vtt",
+        })
+    if sys.version_info[:2] < (3, 10):
+        overrides.update({
+            "application/x-hdf5": ".h5",
+            "audio/3gpp": ".3gp",
+            "audio/3gpp2": ".3g2",
+            "audio/aac": ".aac",
+            "audio/opus": ".opus",
+            "image/heic": ".heic",
+            "image/heif": ".heif",
+        })
     if mimetype in overrides:
         return overrides[mimetype]
     return mimetypes.guess_extension(mimetype, strict=False)
