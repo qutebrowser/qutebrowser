@@ -6,6 +6,3 @@ PyQt5-stubs
 types-PyYAML
 types-colorama
 types-Pygments
-
-# So stubs are available even on newer Python versions
-importlib_resources
