@@ -12,7 +12,7 @@ import json
 import hashlib
 import dataclasses
 from unittest import mock
-from typing import Optional, List
+from typing import Optional
 
 import pytest
 from qutebrowser.qt.core import pyqtSignal, QObject
@@ -631,7 +631,7 @@ class TestSendOrListen:
 
         no_err_windows: bool
         basedir: str
-        command: List[str]
+        command: list[str]
         target: Optional[str]
 
     @pytest.fixture

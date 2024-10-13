@@ -6,7 +6,7 @@
 
 import os.path
 import contextlib
-from typing import TYPE_CHECKING, List, Optional, Any, Tuple
+from typing import TYPE_CHECKING, Optional, Any
 from collections.abc import Iterator
 
 from qutebrowser.qt.core import QUrl, QUrlQuery
@@ -474,7 +474,7 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options: List[Tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
+        options: list[tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]

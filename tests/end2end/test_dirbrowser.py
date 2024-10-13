@@ -7,7 +7,6 @@
 
 import pathlib
 import dataclasses
-from typing import List
 
 import pytest
 import bs4
@@ -97,8 +96,8 @@ class Parsed:
 
     path: str
     parent: str
-    folders: List[str]
-    files: List[str]
+    folders: list[str]
+    files: list[str]
 
 
 @dataclasses.dataclass

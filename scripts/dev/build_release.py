@@ -20,7 +20,7 @@ import platform
 import collections
 import dataclasses
 import re
-from typing import List, Optional
+from typing import Optional
 from collections.abc import Iterable
 
 try:
@@ -271,7 +271,7 @@ def build_mac(
     qt5: bool,
     skip_packaging: bool,
     debug: bool,
-) -> List[Artifact]:
+) -> list[Artifact]:
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -359,7 +359,7 @@ def _build_windows_single(
     qt5: bool,
     skip_packaging: bool,
     debug: bool,
-) -> List[Artifact]:
+) -> list[Artifact]:
     """Build on Windows for a single build type."""
     utils.print_title("Running pyinstaller")
     dist_path = pathlib.Path("dist")
@@ -398,7 +398,7 @@ def build_windows(
     skip_packaging: bool,
     qt5: bool,
     debug: bool,
-) -> List[Artifact]:
+) -> list[Artifact]:
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=qt5,
@@ -423,7 +423,7 @@ def _package_windows_single(
     out_path: pathlib.Path,
     debug: bool,
     qt5: bool,
-) -> List[Artifact]:
+) -> list[Artifact]:
     """Build the given installer/zip for windows."""
     artifacts = []
 
@@ -476,7 +476,7 @@ def _package_windows_single(
     return artifacts
 
 
-def build_sdist() -> List[Artifact]:
+def build_sdist() -> list[Artifact]:
     """Build an sdist and list the contents."""
     utils.print_title("Building sdist")
 
@@ -566,7 +566,7 @@ def read_github_token(
 
 
 def github_upload(
-    artifacts: List[Artifact],
+    artifacts: list[Artifact],
     tag: str,
     gh_token: str,
     experimental: bool,
@@ -644,7 +644,7 @@ def github_upload(
                 break
 
 
-def pypi_upload(artifacts: List[Artifact], experimental: bool) -> None:
+def pypi_upload(artifacts: list[Artifact], experimental: bool) -> None:
     """Upload the given artifacts to PyPI using twine."""
     # https://blog.pypi.org/posts/2023-05-23-removing-pgp/
     artifacts = [a for a in artifacts if a.mimetype != 'application/pgp-signature']
@@ -656,13 +656,13 @@ def pypi_upload(artifacts: List[Artifact], experimental: bool) -> None:
         run_twine('upload', artifacts)
 
 
-def twine_check(artifacts: List[Artifact]) -> None:
+def twine_check(artifacts: list[Artifact]) -> None:
     """Check packages using 'twine check'."""
     utils.print_title("Running twine check...")
     run_twine('check', artifacts, '--strict')
 
 
-def run_twine(command: str, artifacts: List[Artifact], *args: str) -> None:
+def run_twine(command: str, artifacts: list[Artifact], *args: str) -> None:
     paths = [a.path for a in artifacts]
     subprocess.run([sys.executable, '-m', 'twine', command, *args, *paths], check=True)
 

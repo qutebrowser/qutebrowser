@@ -6,7 +6,7 @@
 
 import functools
 import dataclasses
-from typing import Callable, Union, Set, cast
+from typing import Callable, Union, cast
 from collections.abc import Mapping, MutableMapping
 
 from qutebrowser.qt import machinery
@@ -253,7 +253,7 @@ class ModeManager(QObject):
         self.parsers: ParserDictType = {}
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
-        self._releaseevents_to_pass: Set[KeyEvent] = set()
+        self._releaseevents_to_pass: set[KeyEvent] = set()
         # Set after __init__
         self.hintmanager = cast(hints.HintManager, None)
 

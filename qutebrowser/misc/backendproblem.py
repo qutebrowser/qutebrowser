@@ -13,7 +13,7 @@ import shutil
 import os.path
 import argparse
 import dataclasses
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 from collections.abc import Sequence
 
 from qutebrowser.qt import machinery
@@ -49,7 +49,7 @@ class _Button:
     default: bool = False
 
 
-def _other_backend(backend: usertypes.Backend) -> Tuple[usertypes.Backend, str]:
+def _other_backend(backend: usertypes.Backend) -> tuple[usertypes.Backend, str]:
     """Get the other backend enum/setting for a given backend."""
     other_backend = {
         usertypes.Backend.QtWebKit: usertypes.Backend.QtWebEngine,

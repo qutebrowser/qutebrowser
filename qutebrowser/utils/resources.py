@@ -10,7 +10,7 @@ import contextlib
 import posixpath
 import pathlib
 import importlib.resources
-from typing import Union, Dict
+from typing import Union
 from collections.abc import Iterator, Iterable
 
 if sys.version_info >= (3, 11):  # pragma: no cover
@@ -20,8 +20,8 @@ else:
     from importlib.abc import Traversable
 
 import qutebrowser
-_cache: Dict[str, str] = {}
-_bin_cache: Dict[str, bytes] = {}
+_cache: dict[str, str] = {}
+_bin_cache: dict[str, bytes] = {}
 
 
 _ResourceType = Union[Traversable, pathlib.Path]

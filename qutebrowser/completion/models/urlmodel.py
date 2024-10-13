@@ -4,7 +4,6 @@
 
 """Function to return the url completion model for the `open` command."""
 
-from typing import Dict
 from collections.abc import Sequence
 
 from qutebrowser.completion.models import (completionmodel, filepathcategory,
@@ -59,7 +58,7 @@ def url(*, info):
                      in sorted(config.val.url.searchengines.items())
                      if k != 'DEFAULT']
     categories = config.val.completion.open_categories
-    models: Dict[str, BaseCategory] = {}
+    models: dict[str, BaseCategory] = {}
 
     if searchengines and 'searchengines' in categories:
         models['searchengines'] = listcategory.ListCategory(

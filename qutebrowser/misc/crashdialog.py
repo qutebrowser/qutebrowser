@@ -13,7 +13,6 @@ import fnmatch
 import traceback
 import datetime
 import enum
-from typing import List, Tuple
 
 from qutebrowser.qt.core import pyqtSlot, Qt, QSize
 from qutebrowser.qt.widgets import (QDialog, QLabel, QTextEdit, QPushButton,
@@ -103,7 +102,7 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._crash_info: List[Tuple[str, str]] = []
+        self._crash_info: list[tuple[str, str]] = []
         self._btn_box = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")

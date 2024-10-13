@@ -20,7 +20,7 @@ import shlex
 import sysconfig
 import mimetypes
 from typing import (Any, Callable, IO,
-                    Optional, Tuple, List, Type, Union,
+                    Optional, Union,
                     TypeVar, Protocol)
 from collections.abc import Iterator, Sequence
 
@@ -408,7 +408,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType = Union[Type[BaseException], Tuple[Type[BaseException]]]
+_ExceptionType = Union[type[BaseException], tuple[type[BaseException]]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:
@@ -847,7 +847,7 @@ def parse_point(s: str) -> QPoint:
         raise ValueError(e)
 
 
-def match_globs(patterns: List[str], value: str) -> Optional[str]:
+def match_globs(patterns: list[str], value: str) -> Optional[str]:
     """Match a list of glob-like patterns against a value.
 
     Return:

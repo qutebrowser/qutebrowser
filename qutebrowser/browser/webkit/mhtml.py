@@ -19,7 +19,7 @@ import email.mime.multipart
 import email.message
 import quopri
 import dataclasses
-from typing import Set, Tuple, Callable
+from typing import Callable
 from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import QUrl
@@ -178,7 +178,7 @@ class MHTMLWriter:
         return msg
 
 
-_PendingDownloadType = Set[Tuple[QUrl, downloads.AbstractDownloadItem]]
+_PendingDownloadType = set[tuple[QUrl, downloads.AbstractDownloadItem]]
 
 
 class _Downloader:

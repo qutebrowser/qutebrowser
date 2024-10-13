@@ -6,7 +6,6 @@
 
 import datetime
 import itertools
-from typing import List, Tuple
 from collections.abc import Sequence
 
 from qutebrowser.config import config, configdata
@@ -114,7 +113,7 @@ def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, cur_win_id=Non
 
     tabs_are_windows = config.val.tabs.tabs_are_windows
     # list storing all single-tabbed windows when tabs_are_windows
-    windows: List[Tuple[str, str, str, str]] = []
+    windows: list[tuple[str, str, str, str]] = []
 
     for win_id in objreg.window_registry:
         if not win_id_filter(win_id):
@@ -124,7 +123,7 @@ def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True, cur_win_id=Non
                                     window=win_id)
         if tabbed_browser.is_shutting_down:
             continue
-        tab_entries: List[Tuple[str, str, str, str]] = []
+        tab_entries: list[tuple[str, str, str, str]] = []
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
             tab_str = ("{}/{}".format(win_id, idx + 1) if add_win_id

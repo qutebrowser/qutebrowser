@@ -8,7 +8,7 @@ import os
 import sys
 import argparse
 import pathlib
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+from typing import Any, Optional, Union, Callable
 from collections.abc import Iterator, Sequence
 
 from qutebrowser.qt import machinery
@@ -24,7 +24,7 @@ _DISABLE_FEATURES = '--disable-features='
 _BLINK_SETTINGS = '--blink-settings='
 
 
-def qt_args(namespace: argparse.Namespace) -> List[str]:
+def qt_args(namespace: argparse.Namespace) -> list[str]:
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -78,7 +78,7 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
 def _qtwebengine_features(
         versions: version.WebEngineVersions,
         special_flags: Sequence[str],
-) -> Tuple[Sequence[str], Sequence[str]]:
+) -> tuple[Sequence[str], Sequence[str]]:
     """Get a tuple of --enable-features/--disable-features flags for QtWebEngine.
 
     Args:
@@ -286,7 +286,7 @@ _SettingValueType = Union[
         Optional[str],
     ],
 ]
-_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
+_WEBENGINE_SETTINGS: dict[str, dict[Any, Optional[_SettingValueType]]] = {
     'qt.force_software_rendering': {
         'software-opengl': None,
         'qt-quick': None,

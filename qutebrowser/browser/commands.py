@@ -7,7 +7,7 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Callable, Dict, Union, Optional
+from typing import cast, Callable, Union, Optional
 
 from qutebrowser.qt.widgets import QApplication, QTabBar
 from qutebrowser.qt.core import Qt, QUrl, QEvent, QUrlQuery
@@ -636,7 +636,7 @@ class CommandDispatcher:
         widget = self._current_widget()
         url = self._current_url()
 
-        handlers: Dict[str, Callable[..., QUrl]] = {
+        handlers: dict[str, Callable[..., QUrl]] = {
             'prev': functools.partial(navigate.prevnext, prev=True),
             'next': functools.partial(navigate.prevnext, prev=False),
             'up': navigate.path_up,

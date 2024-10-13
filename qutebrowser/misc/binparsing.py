@@ -8,7 +8,7 @@ Used by elf.py as well as pakjoy.py.
 """
 
 import struct
-from typing import Any, IO, Tuple
+from typing import Any, IO
 
 
 class ParseError(Exception):
@@ -16,7 +16,7 @@ class ParseError(Exception):
     """Raised when the file can't be parsed."""
 
 
-def unpack(fmt: str, fobj: IO[bytes]) -> Tuple[Any, ...]:
+def unpack(fmt: str, fobj: IO[bytes]) -> tuple[Any, ...]:
     """Unpack the given struct format from the given file."""
     size = struct.calcsize(fmt)
     data = safe_read(fobj, size)

@@ -16,7 +16,7 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any,
-                    Optional, Set, Tuple, Union, TextIO, Literal, cast)
+                    Optional, Union, TextIO, Literal, cast)
 from collections.abc import Iterator, Mapping, MutableSequence
 
 # NOTE: This is a Qt-free zone! All imports related to Qt logging should be done in
@@ -241,7 +241,7 @@ def _init_handlers(
         force_color: bool,
         json_logging: bool,
         ram_capacity: int
-) -> Tuple[Optional["logging.StreamHandler[TextIO]"], Optional['RAMHandler']]:
+) -> tuple[Optional["logging.StreamHandler[TextIO]"], Optional['RAMHandler']]:
     """Init log handlers.
 
     Args:
@@ -295,7 +295,7 @@ def _init_formatters(
         color: bool,
         force_color: bool,
         json_logging: bool,
-) -> Tuple[
+) -> tuple[
     Union['JSONFormatter', 'ColoredFormatter', None],
     'ColoredFormatter',
     'HTMLFormatter',
@@ -397,7 +397,7 @@ class InvalidLogFilterError(Exception):
 
     """Raised when an invalid filter string is passed to LogFilter.parse()."""
 
-    def __init__(self, names: Set[str]):
+    def __init__(self, names: set[str]):
         invalid = names - set(LOGGER_NAMES)
         super().__init__("Invalid log category {} - valid categories: {}"
                          .format(', '.join(sorted(invalid)),
@@ -418,7 +418,7 @@ class LogFilter(logging.Filter):
                     than debug.
     """
 
-    def __init__(self, names: Set[str], *, negated: bool = False,
+    def __init__(self, names: set[str], *, negated: bool = False,
                  only_debug: bool = True) -> None:
         super().__init__()
         self.names = names

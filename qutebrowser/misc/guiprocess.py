@@ -9,7 +9,7 @@ import locale
 import shlex
 import shutil
 import signal
-from typing import Dict, Optional
+from typing import Optional
 from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QObject, QProcess,
@@ -20,7 +20,7 @@ from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
 
 
-all_processes: Dict[int, Optional['GUIProcess']] = {}
+all_processes: dict[int, Optional['GUIProcess']] = {}
 last_pid: Optional[int] = None
 
 

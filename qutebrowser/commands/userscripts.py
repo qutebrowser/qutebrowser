@@ -7,7 +7,7 @@
 import os
 import os.path
 import tempfile
-from typing import cast, Any, Tuple
+from typing import cast, Any
 from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
@@ -107,7 +107,7 @@ class _BaseUserscriptRunner(QObject):
         self._env: MutableMapping[str, str] = {}
         self._text_stored = False
         self._html_stored = False
-        self._args: Tuple[Any, ...] = ()
+        self._args: tuple[Any, ...] = ()
         self._kwargs = {}
 
     def store_text(self, text):

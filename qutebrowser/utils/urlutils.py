@@ -11,7 +11,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union, cast
+from typing import Optional, Union, cast
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
@@ -112,7 +112,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
+def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -465,7 +465,7 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
         return fallback
 
 
-HostTupleType = Tuple[str, str, int]
+HostTupleType = tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:

@@ -19,7 +19,7 @@ import pathlib
 import operator
 import contextlib
 from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Literal,
-                    Optional, Union, Tuple, Protocol, cast, overload, TypeVar)
+                    Optional, Union, Protocol, cast, overload, TypeVar)
 from collections.abc import Iterator
 
 from qutebrowser.qt import machinery, sip
@@ -34,7 +34,6 @@ except ImportError:  # pragma: no cover
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory
     from qutebrowser.qt.webenginecore import QWebEngineHistory
-    from typing_extensions import TypeGuard  # added in Python 3.10
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
@@ -532,7 +531,7 @@ class EventLoop(QEventLoop):
 
 def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
                           x2: int, y2: int, z2: int, a2: int,
-                          percent: int) -> Tuple[int, int, int, int]:
+                          percent: int) -> tuple[int, int, int, int]:
     """Get a color which is percent% interpolated between start and end.
 
     Args:
