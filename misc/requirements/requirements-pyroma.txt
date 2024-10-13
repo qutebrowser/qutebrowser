@@ -2,7 +2,7 @@
 
 build==1.2.2.post1
 certifi==2024.8.30
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
 docutils==0.20.1
 idna==3.10
 importlib_metadata==8.5.0
@@ -12,6 +12,6 @@ pyproject_hooks==1.2.0
 pyroma==4.2
 requests==2.32.3
 tomli==2.0.2
-trove-classifiers==2024.9.12
+trove-classifiers==2024.10.13
 urllib3==2.2.3
 zipp==3.20.2

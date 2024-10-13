@@ -6,7 +6,7 @@ backports.tarfile==1.2.0
 beautifulsoup4==4.12.3
 blinker==1.8.2
 certifi==2024.8.30
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
 cheroot==10.0.1
 click==8.1.7
 coverage==7.6.1
@@ -15,7 +15,7 @@ execnet==2.1.1
 filelock==3.16.1
 Flask==3.0.3
 hunter==3.7.0
-hypothesis==6.112.4
+hypothesis==6.113.0
 idna==3.10
 importlib_metadata==8.5.0
 importlib_resources==6.4.5 ; python_version=="3.8.*"

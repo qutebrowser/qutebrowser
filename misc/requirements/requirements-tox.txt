@@ -3,7 +3,7 @@
 cachetools==5.5.0
 chardet==5.2.0
 colorama==0.4.6
-distlib==0.3.8
+distlib==0.3.9
 filelock==3.16.1
 packaging==24.1
 pip==24.2
