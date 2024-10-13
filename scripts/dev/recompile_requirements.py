@@ -161,8 +161,11 @@ def parse_args():
 
 def git_diff(*args):
     """Run a git diff command."""
-    command = (['git', '--no-pager', 'diff'] + list(args) + [
-        '--', 'requirements.txt', 'misc/requirements/requirements-*.txt'])
+    command = (
+        ["git", "--no-pager", "-c", "diff.mnemonicPrefix=false", "diff"]
+        + list(args)
+        + ["--", "requirements.txt", "misc/requirements/requirements-*.txt"]
+    )
     proc = subprocess.run(command,
                           stdout=subprocess.PIPE,
                           encoding='utf-8',
