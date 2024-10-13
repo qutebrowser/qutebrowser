@@ -779,9 +779,9 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
     Most likely, this can be dropped once the minimum Python version is raised to 3.10.
     """
     overrides = {
-        # Added in 3.10
+        # Added in 3.10.0
         "application/x-hdf5": ".h5",
-        # Added around 3.8
+        # Added in 3.9.0
         "application/manifest+json": ".webmanifest",
     }
     if mimetype in overrides:

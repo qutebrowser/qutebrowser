@@ -46,7 +46,7 @@ def _keyerror_workaround() -> Iterator[None]:
     WORKAROUND for zipfile.Path resources raising KeyError when a file was notfound:
     https://bugs.python.org/issue43063
 
-    Only needed for Python 3.8 and 3.9.
+    Only needed for Python 3.9.
     """
     try:
         yield
