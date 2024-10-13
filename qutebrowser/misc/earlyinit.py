@@ -246,10 +246,6 @@ def check_libraries():
         package = f'{machinery.INFO.wrapper}.{subpkg}'
         modules[package] = _missing_str(package)
 
-    if sys.version_info < (3, 9):
-        # Backport required
-        modules['importlib_resources'] = _missing_str("importlib_resources")
-
     if sys.platform.startswith('darwin'):
         from qutebrowser.qt.core import QVersionNumber
         qt_ver = get_qt_version()
