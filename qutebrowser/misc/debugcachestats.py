@@ -10,13 +10,13 @@ dependencies as possible to avoid cyclic dependencies.
 
 import weakref
 from typing import Any, Optional, TypeVar
-from collections.abc import Mapping, Callable
+from collections.abc import MutableMapping, Callable
 
 from qutebrowser.utils import log
 
 
 # The callable should be a lru_cache wrapped function
-_CACHE_FUNCTIONS: Mapping[str, Any] = weakref.WeakValueDictionary()
+_CACHE_FUNCTIONS: MutableMapping[str, Any] = weakref.WeakValueDictionary()
 
 
 _T = TypeVar('_T', bound=Callable[..., Any])
