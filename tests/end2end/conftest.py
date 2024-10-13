@@ -192,8 +192,8 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-        ('qt68_beta4_skip',  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8242#issuecomment-2184542226
-         "Fails on Qt 6.8 beta 4",
+        ('qt68_no_permission_api',  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8242#issuecomment-2184542226
+         "Fails on Qt 6.8 with PyQt<6.8",
          pytest.mark.xfail,
          machinery.IS_QT6 and version.qtwebengine_versions(
              avoid_init=True
