@@ -6,7 +6,8 @@
 
 """Fake objects/stubs."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from unittest import mock
 import contextlib
 import shutil

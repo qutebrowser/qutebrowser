@@ -9,9 +9,8 @@ import collections
 import traceback
 import typing
 import dataclasses
-from typing import (Any, Union, Optional,
-                    Callable)
-from collections.abc import MutableMapping, MutableSequence
+from typing import (Any, Union, Optional)
+from collections.abc import MutableMapping, MutableSequence, Callable
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser

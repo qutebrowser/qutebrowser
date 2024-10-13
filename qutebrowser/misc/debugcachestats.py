@@ -9,8 +9,8 @@ dependencies as possible to avoid cyclic dependencies.
 """
 
 import weakref
-from typing import Any, Callable, Optional, TypeVar
-from collections.abc import Mapping
+from typing import Any, Optional, TypeVar
+from collections.abc import Mapping, Callable
 
 from qutebrowser.utils import log
 

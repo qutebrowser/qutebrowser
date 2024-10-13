@@ -7,7 +7,8 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Callable, Union, Optional
+from typing import cast, Union, Optional
+from collections.abc import Callable
 
 from qutebrowser.qt.widgets import QApplication, QTabBar
 from qutebrowser.qt.core import Qt, QUrl, QEvent, QUrlQuery

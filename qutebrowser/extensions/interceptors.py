@@ -6,7 +6,8 @@
 
 import enum
 import dataclasses
-from typing import Callable, Optional
+from typing import Optional
+from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl
 

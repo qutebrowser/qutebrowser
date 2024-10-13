@@ -5,8 +5,8 @@
 """The ListView to display downloads in."""
 
 import functools
-from typing import Callable, Union
-from collections.abc import MutableSequence
+from typing import Union
+from collections.abc import MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QSize, Qt
 from qutebrowser.qt.widgets import QListView, QSizePolicy, QMenu, QStyleFactory

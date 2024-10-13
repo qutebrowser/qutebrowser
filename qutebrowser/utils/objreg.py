@@ -7,9 +7,9 @@
 
 import collections
 import functools
-from typing import (TYPE_CHECKING, Any, Callable,
+from typing import (TYPE_CHECKING, Any,
                     Optional, Union)
-from collections.abc import MutableMapping, MutableSequence, Sequence
+from collections.abc import MutableMapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import QObject, QTimer
 from qutebrowser.qt.widgets import QApplication

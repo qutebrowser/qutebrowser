@@ -19,8 +19,7 @@ import email.mime.multipart
 import email.message
 import quopri
 import dataclasses
-from typing import Callable
-from collections.abc import MutableMapping
+from collections.abc import MutableMapping, Callable
 
 from qutebrowser.qt.core import QUrl
 

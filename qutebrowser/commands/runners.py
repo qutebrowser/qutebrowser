@@ -7,8 +7,8 @@
 import traceback
 import re
 import contextlib
-from typing import TYPE_CHECKING, Callable
-from collections.abc import Iterator, Mapping, MutableMapping
+from typing import TYPE_CHECKING
+from collections.abc import Iterator, Mapping, MutableMapping, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
 

@@ -4,7 +4,7 @@
 
 """Scrolling-related commands."""
 
-from typing import Callable
+from collections.abc import Callable
 from qutebrowser.api import cmdutils, apitypes
 
 

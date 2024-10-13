@@ -35,8 +35,8 @@ Possible values:
 
 
 import inspect
-from typing import Any, Callable, Protocol, Optional, cast
-from collections.abc import Iterable
+from typing import Any, Protocol, Optional, cast
+from collections.abc import Iterable, Callable
 
 from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc

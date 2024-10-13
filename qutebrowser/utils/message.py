@@ -10,8 +10,8 @@
 
 import dataclasses
 import traceback
-from typing import Any, Callable, Union, Optional
-from collections.abc import Iterable
+from typing import Any, Union, Optional
+from collections.abc import Iterable, Callable
 
 from qutebrowser.qt.core import pyqtSignal, pyqtBoundSignal, QObject
 

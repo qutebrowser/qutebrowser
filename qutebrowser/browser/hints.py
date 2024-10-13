@@ -12,8 +12,15 @@ import html
 import enum
 import dataclasses
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Callable, Optional)
-from collections.abc import Iterable, Iterator, Mapping, MutableSequence, Sequence
+from typing import (TYPE_CHECKING, Optional)
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableSequence,
+    Sequence,
+    Callable,
+)
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from qutebrowser.qt.widgets import QLabel

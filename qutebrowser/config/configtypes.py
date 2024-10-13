@@ -36,9 +36,9 @@ import functools
 import operator
 import json
 import dataclasses
-from typing import (Any, Callable, Optional, Union)
+from typing import Any, Optional, Union
 from re import Pattern
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence, Callable
 
 import yaml
 from qutebrowser.qt.core import QUrl, Qt
