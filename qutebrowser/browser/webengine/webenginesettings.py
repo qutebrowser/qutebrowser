@@ -392,6 +392,26 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     _global_settings.init_settings()
 
 
+def _clear_webengine_permissions_json():
+    """Remove QtWebEngine's persistent permissions file, if present.
+
+    We have our own permissions feature and don't integrate with their one.
+    This only needs to be called when you are on Qt6.8 but PyQt<6.8, since if
+    we have access to the `setPersistentPermissionsPolicy()` we will use that
+    to disable the Qt feature.
+    This needs to be called before we call `setPersistentStoragePath()`
+    because Qt will load the file during that.
+    """
+    permissions_file = pathlib.Path(standarddir.data()) / "webengine" / "permissions.json"
+    if permissions_file.exists():
+        try:
+            permissions_file.unlink()
+        except OSError as err:
+            log.init.warning(
+                f"Error while cleaning up webengine permissions file: {err}"
+            )
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
@@ -414,6 +434,7 @@ def _init_default_profile():
             f"  Early version: {non_ua_version}\n"
             f"  Real version:  {ua_version}")
 
+    _clear_webengine_permissions_json()
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(

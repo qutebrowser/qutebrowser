@@ -636,7 +636,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     quteproc_new.wait_for_quit()
 
 
-@pytest.mark.qt68_beta4_skip
 def test_permission_prompt_across_restart(quteproc_new, request, short_tmpdir):
     # Start test process
     args = _base_args(request.config) + [
