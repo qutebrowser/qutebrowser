@@ -2,7 +2,7 @@
 
 autocommand==2.2.2
 backports.tarfile==1.2.0
-build==1.2.2
+build==1.2.2.post1
 bump2version==1.0.1
 certifi==2024.8.30
 cffi==1.17.1
@@ -41,11 +41,11 @@ readme_renderer==43.0
 requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.8.1
+rich==13.9.2
 SecretStorage==3.3.3
 sip==6.8.6
 six==1.16.0
-tomli==2.0.1
+tomli==2.0.2
 twine==5.1.1
 typeguard==4.3.0
 typing_extensions==4.12.2
