@@ -1137,8 +1137,7 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
-                                         output_messages=output_messages,
-                                         parent=self._tabbed_browser)
+                                         output_messages=output_messages)
             if detach:
                 ok = proc.start_detached(cmd, args)
                 if not ok:

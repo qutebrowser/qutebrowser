@@ -156,7 +156,7 @@ class _BaseUserscriptRunner(QObject):
 
         self.proc = guiprocess.GUIProcess(
             'userscript', additional_env=self._env,
-            output_messages=output_messages, verbose=verbose, parent=self)
+            output_messages=output_messages, verbose=verbose)
         self.proc.finished.connect(self.on_proc_finished)
         self.proc.error.connect(self.on_proc_error)
         self.proc.start(cmd, args)

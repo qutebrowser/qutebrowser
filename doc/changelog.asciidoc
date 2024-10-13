@@ -44,6 +44,12 @@ Changed
 - Updated mimetype information for getting a suitable extension when downloading
   a `data:` URL.
 
+Fixed
+~~~~~
+
+- Crash with recent Jinja/Markupsafe versions when viewing a finished userscript
+  (or potentially editor) process via `:process`.
+
 
 [[v3.3.1]]
 v3.3.1 (2024-10-12)

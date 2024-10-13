@@ -177,9 +177,10 @@ class GUIProcess(QObject):
             verbose: bool = False,
             additional_env: Mapping[str, str] = None,
             output_messages: bool = False,
-            parent: QObject = None,
     ):
-        super().__init__(parent)
+        # We do not accept a parent, as GUIProcesses keep track of themselves
+        # (see all_processes and _post_start() / _on_cleanup_timer())
+        super().__init__()
         self.what = what
         self.verbose = verbose
         self._output_messages = output_messages
