@@ -35,6 +35,10 @@ RUN pacman -Su --noconfirm \
     gcc \
     libyaml \
     xorg-xdpyinfo
+{% if unstable and qt6 %}
+# WORKAROUND: 6.7.1-3 in [extra-testing] removes QSignalSpy
+RUN pacman -U --noconfirm https://mirror.pkgbuild.com/extra/os/x86_64/python-pyqt6-6.7.1-2-x86_64.pkg.tar.zst
+{% endif %}
 
 RUN useradd user -u 1001 && \
     mkdir /home/user && \
