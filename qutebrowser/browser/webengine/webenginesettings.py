@@ -26,7 +26,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version)
+                               urlmatch, usertypes, objreg, version, utils)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -281,6 +281,7 @@ class ProfileSetter:
         self._set_hardcoded_settings()
         self.set_persistent_cookie_policy()
         self.set_dictionary_language()
+        self.disable_persistent_permissions_policy()
 
     def _set_hardcoded_settings(self):
         """Set up settings with a fixed value."""
@@ -344,6 +345,14 @@ class ProfileSetter:
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)
         self._profile.setSpellCheckEnabled(bool(filenames))
+
+    def disable_persistent_permissions_policy(self):
+        """Disable webengine's permission persistence."""
+        pyqt_version = utils.VersionNumber.parse(version.PYQT_WEBENGINE_VERSION_STR)
+        if pyqt_version >= utils.VersionNumber(6, 8):
+            self._profile.setPersistentPermissionsPolicy(
+                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime
+            )
 
 
 def _update_settings(option):

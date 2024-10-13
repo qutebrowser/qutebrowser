@@ -251,7 +251,7 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
-    @qt68_beta4_skip
+    @qt68_no_permission_api
     Scenario: geolocation with ask -> false
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -260,7 +260,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "geolocation permission denied" should be logged
 
-    @qt68_beta4_skip
+    @qt68_no_permission_api
     Scenario: geolocation with ask -> false and save
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -270,7 +270,7 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
         And the per-domain option content.geolocation should be set to false for http://localhost:(port)
 
-    @qt68_beta4_skip
+    @qt68_no_permission_api
     Scenario: geolocation with ask -> abort
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
