@@ -91,10 +91,10 @@ def _qtwebengine_features(
 
     for flag in special_flags:
         if flag.startswith(_ENABLE_FEATURES):
-            flag = flag[len(_ENABLE_FEATURES):]
+            flag = flag.removeprefix(_ENABLE_FEATURES)
             enabled_features += flag.split(',')
         elif flag.startswith(_DISABLE_FEATURES):
-            flag = flag[len(_DISABLE_FEATURES):]
+            flag = flag.removeprefix(_DISABLE_FEATURES)
             disabled_features += flag.split(',')
         elif flag.startswith(_BLINK_SETTINGS):
             pass

@@ -104,8 +104,7 @@ def update_pdfjs(target_version=None, legacy=False, gh_token=None):
     else:
         # We need target_version as x.y.z, without the 'v' prefix, though the
         # user might give it on the command line
-        if target_version.startswith('v'):
-            target_version = target_version[1:]
+        target_version = target_version.removeprefix('v')
         # version should have the prefix to be consistent with the return value
         # of get_latest_pdfjs_url()
         version = 'v' + target_version

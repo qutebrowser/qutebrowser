@@ -418,7 +418,7 @@ def settings(
     blink_settings_flag = f'--{_BLINK_SETTINGS}='
     for flag in special_flags:
         if flag.startswith(blink_settings_flag):
-            for pair in flag[len(blink_settings_flag):].split(','):
+            for pair in flag.removeprefix(blink_settings_flag).split(','):
                 key, val = pair.split('=', maxsplit=1)
                 result[_BLINK_SETTINGS].append((key, val))
 

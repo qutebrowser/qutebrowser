@@ -128,7 +128,7 @@ class UrlPattern:
         # FIXME This doesn't actually strip the hostname correctly.
         if (pattern.startswith('file://') and
                 not pattern.startswith('file:///')):
-            pattern = 'file:///' + pattern[len("file://"):]
+            pattern = 'file:///' + pattern.removeprefix("file://")
 
         return pattern
 

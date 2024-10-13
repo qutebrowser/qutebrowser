@@ -114,7 +114,7 @@ def get_all_names():
     """Get all requirement names based on filenames."""
     for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*.txt-raw')):
         basename = os.path.basename(filename)
-        yield basename[len('requirements-'):-len('.txt-raw')]
+        yield basename.removeprefix('requirements-').removesuffix('.txt-raw')
 
 
 def run_pip(venv_dir, *args, quiet=False, **kwargs):
@@ -231,7 +231,7 @@ def extract_requirement_name(path: pathlib.Path) -> str:
     prefix = "requirements-"
     assert path.suffix == ".txt", path
     assert path.stem.startswith(prefix), path
-    return path.stem[len(prefix):]
+    return path.stem.removeprefix(prefix)
 
 
 def parse_versioned_line(line):
@@ -274,11 +274,11 @@ def _get_changes(diff):
             continue
         elif line.startswith('--- '):
             prefix = '--- a/'
-            current_path = pathlib.Path(line[len(prefix):])
+            current_path = pathlib.Path(line.removeprefix(prefix))
             continue
         elif line.startswith('+++ '):
             prefix = '+++ b/'
-            new_path = pathlib.Path(line[len(prefix):])
+            new_path = pathlib.Path(line.removeprefix(prefix))
             assert current_path == new_path, (current_path, new_path)
             continue
         elif not line.strip():

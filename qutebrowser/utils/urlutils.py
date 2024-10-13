@@ -553,8 +553,8 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     if suffix1 != suffix2:
         return False
 
-    domain1 = url1.host()[:-len(suffix1)].split('.')[-1]
-    domain2 = url2.host()[:-len(suffix2)].split('.')[-1]
+    domain1 = url1.host().removesuffix(suffix1).split('.')[-1]
+    domain2 = url2.host().removesuffix(suffix2).split('.')[-1]
     return domain1 == domain2
 
 
@@ -668,7 +668,7 @@ def parse_javascript_url(url: QUrl) -> str:
     urlstr = url.toString(FormatOption.ENCODED)
     urlstr = urllib.parse.unquote(urlstr)
 
-    code = urlstr[len('javascript:'):]
+    code = urlstr.removeprefix('javascript:')
     if not code:
         raise Error("Resulted in empty JavaScript code")
 

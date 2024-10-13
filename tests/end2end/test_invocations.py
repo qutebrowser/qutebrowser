@@ -988,7 +988,7 @@ def test_restart(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
     assert line.message.startswith(prefix)
-    pid = int(line.message[len(prefix):])
+    pid = int(line.message.removeprefix(prefix))
     os.kill(pid, signal.SIGTERM)
 
     try:
