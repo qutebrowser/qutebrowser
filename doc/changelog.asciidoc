@@ -22,10 +22,13 @@ v3.4.0 (unreleased)
 Deprecated
 ~~~~~~~~~~
 
-- **In either this (v3.4.0) or the next release (v3.5.0)**, support for Python
-  3.8 will be dropped, and Python 3.9 will be required.
 - **In the next release (v3.5.0)**, support for macOS 12 Monterey will be
   dropped, and binaries will be built on macOS 13 Ventura.
+
+Removed
+~~~~~~~
+
+- Support for Python 3.8 is dropped, and Python 3.9 is now required.
 
 Added
 ~~~~~
