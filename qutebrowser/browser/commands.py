@@ -59,7 +59,10 @@ class CommandDispatcher:
 
     def _count(self) -> int:
         """Convenience method to get the widget count."""
-        return self._tabbed_browser.widget.count()
+        count = self._tabbed_browser.widget.count()
+        if count <= 0:
+            raise cmdutils.CommandError("No WebView available yet!")
+        return count
 
     def _set_current_index(self, idx):
         """Convenience method to set the current widget index."""
@@ -68,7 +71,10 @@ class CommandDispatcher:
 
     def _current_index(self):
         """Convenience method to get the current widget index."""
-        return self._tabbed_browser.widget.currentIndex()
+        current_index = self._tabbed_browser.widget.currentIndex()
+        if current_index <= 0:
+            raise cmdutils.CommandError("No WebView available yet!")
+        return current_index
 
     def _current_url(self):
         """Convenience method to get the current url."""
@@ -1048,7 +1054,7 @@ class CommandDispatcher:
                 new_idx += delta
 
             if config.val.tabs.wrap:
-                new_idx %= max(1, self._count())
+                new_idx %= self._count()
         else:
             # pylint: disable=else-if-used
             # absolute moving
