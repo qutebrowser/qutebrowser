@@ -123,9 +123,11 @@ Feature: Notifications
         And I click the notification
         Then the javascript message "notification clicked" should be logged
         And the following tabs should be open:
+         """
          - about:blank
          - data/javascript/notifications.html (active)
          - about:blank
+         """
 
     @pyqtwebengine<5.15.0
     Scenario: User clicks presented notification (old Qt)

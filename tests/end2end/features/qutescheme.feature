@@ -43,8 +43,10 @@ Feature: Special qute:// pages
         And I run :help -t
         And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - qute://help/index.html (active)
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/2513
     Scenario: Opening link with qute:help
@@ -103,8 +105,10 @@ Feature: Special qute:// pages
         And I run :history -t
         And I wait until qute://history/ is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - qute://history/ (active)
+            """
 
     # qute://settings
 

@@ -372,10 +372,12 @@ Feature: Prompts
         And I run :prompt-accept
         And I wait until basic-auth/user1/password1 is loaded
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user1"
             }
+            """
 
     Scenario: Authentication with :prompt-accept value
         When I open about:blank in a new tab
@@ -384,10 +386,12 @@ Feature: Prompts
         And I run :prompt-accept user2:password2
         And I wait until basic-auth/user2/password2 is loaded
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user2"
             }
+            """
 
     Scenario: Authentication with invalid :prompt-accept value
         When I open about:blank in a new tab
@@ -410,10 +414,12 @@ Feature: Prompts
         And I run :prompt-accept
         And I wait until basic-auth/user4/password4 is loaded
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user4"
             }
+            """
 
     @qtwebengine_skip
     Scenario: Cancelling webpage authentication with QtWebKit
@@ -517,10 +523,12 @@ Feature: Prompts
         And I wait until basic-auth/user5/password5 is loaded
         # We're on the second page
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user6"
             }
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544

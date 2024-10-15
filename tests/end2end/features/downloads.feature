@@ -186,8 +186,10 @@ Feature: Downloading things from a website.
         And I run :download-retry
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then the requests should be:
+            """
             does-not-exist
             does-not-exist
+            """
 
     @flaky
     Scenario: Retrying with count
@@ -197,9 +199,11 @@ Feature: Downloading things from a website.
         And I run :download-retry with count 2
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then the requests should be:
+            """
             data/downloads/download.bin
             does-not-exist
             does-not-exist
+            """
 
     Scenario: Retrying with two failed downloads
         When I run :download http://localhost:(port)/does-not-exist
@@ -209,9 +213,11 @@ Feature: Downloading things from a website.
         And I run :download-retry
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then the requests should be:
+            """
             does-not-exist
             does-not-exist-2
             does-not-exist
+            """
 
     Scenario: Retrying a download which does not exist
         When I run :download-retry with count 42

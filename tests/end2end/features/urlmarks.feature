@@ -42,8 +42,10 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-load -t http://localhost:(port)/data/numbers/2.txt
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
+            """
             - about:blank
             - data/numbers/2.txt (active)
+            """
 
     Scenario: Loading a bookmark in a background tab
         Given I open about:blank
@@ -51,8 +53,10 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-load -b http://localhost:(port)/data/numbers/3.txt
         Then data/numbers/3.txt should be loaded
         And the following tabs should be open:
+            """
             - about:blank (active)
             - data/numbers/3.txt
+            """
 
     Scenario: Loading a bookmark in a new window
         Given I open about:blank
@@ -60,6 +64,7 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-load -w http://localhost:(port)/data/numbers/4.txt
         And I wait until data/numbers/4.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -71,6 +76,7 @@ Feature: quickmarks and bookmarks
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/4.txt
+            """
 
     Scenario: Loading a bookmark with -t and -b
         When I run :bookmark-load -t -b about:blank
@@ -177,8 +183,10 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-load -t fourteen
         Then data/numbers/14.txt should be loaded
         And the following tabs should be open:
+            """
             - about:blank
             - data/numbers/14.txt (active)
+            """
 
     Scenario: Loading a quickmark in a background tab
         Given I open about:blank
@@ -187,8 +195,10 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-load -b fifteen
         Then data/numbers/15.txt should be loaded
         And the following tabs should be open:
+            """
             - about:blank (active)
             - data/numbers/15.txt
+            """
 
     Scenario: Loading a quickmark in a new window
         Given I open about:blank
@@ -197,6 +207,7 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-load -w sixteen
         And I wait until data/numbers/16.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -208,6 +219,7 @@ Feature: quickmarks and bookmarks
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/16.txt
+            """
 
     Scenario: Loading a quickmark which does not exist
         When I run :quickmark-load -b doesnotexist
