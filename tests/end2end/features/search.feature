@@ -28,7 +28,7 @@ Feature: Searching on a page
     Scenario: Searching without matches
         When I run :search doesnotmatch
         And I wait for "search didn't find doesnotmatch" in the log
-        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+        Then the message "Text 'doesnotmatch' not found on page!" should be shown
 
     @xfail_norun
     Scenario: Searching with / and spaces at the end (issue 874)
@@ -63,7 +63,7 @@ Feature: Searching on a page
     Scenario: Searching text with umlauts
         When I run :search blub
         And I wait for "search didn't find blub" in the log
-        Then the warning "Text 'blub' not found on page!" should be shown
+        Then the message "Text 'blub' not found on page!" should be shown
 
     Scenario: Searching text duplicates
         When I run :search foo
@@ -151,9 +151,9 @@ Feature: Searching on a page
     @qtwebkit_skip
     Scenario: Jumping to next without matches
         When I run :search doesnotmatch
-        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I wait for the message "Text 'doesnotmatch' not found on page!"
         And I run :search-next
-        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+        Then the message "Text 'doesnotmatch' not found on page!" should be shown
 
     Scenario: Repeating search in a second tab (issue #940)
         When I open data/search.html in a new tab
@@ -234,9 +234,9 @@ Feature: Searching on a page
     @qtwebkit_skip
     Scenario: Jumping to previous without matches
         When I run :search doesnotmatch
-        And I wait for the warning "Text 'doesnotmatch' not found on page!"
+        And I wait for the message "Text 'doesnotmatch' not found on page!"
         And I run :search-prev
-        Then the warning "Text 'doesnotmatch' not found on page!" should be shown
+        Then the message "Text 'doesnotmatch' not found on page!" should be shown
 
     ## wrapping
 
