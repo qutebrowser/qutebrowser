@@ -35,6 +35,12 @@ Added
 - **Planned:** Full support for Python 3.13, with Windows/macOS binaries using
   it if possible.
 
+Changed
+~~~~~~~
+
+- The `.desktop` file now also declares qutebrowser as a valid viewer for
+  `image/webp`.
+
 
 [[v3.3.1]]
 v3.3.1 (2024-10-12)
