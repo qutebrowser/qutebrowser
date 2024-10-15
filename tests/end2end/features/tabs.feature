@@ -14,8 +14,10 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
+            """
 
     Scenario: :tab-close with count
         When I open data/numbers/1.txt
@@ -23,8 +25,10 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close with count 1
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-close with invalid count
         When I open data/numbers/1.txt
@@ -32,9 +36,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close with count 23
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = next
         When I set tabs.select_on_remove to next
@@ -44,8 +50,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = prev
         When I set tabs.select_on_remove to prev
@@ -55,8 +63,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = last-used
         When I set tabs.select_on_remove to last-used
@@ -67,9 +77,11 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt
             - data/numbers/4.txt (active)
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = prev and --next
         When I set tabs.select_on_remove to prev
@@ -79,8 +91,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close --next
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = next and --prev
         When I set tabs.select_on_remove to next
@@ -90,8 +104,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close --prev
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = prev and --opposite
         When I set tabs.select_on_remove to prev
@@ -101,8 +117,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close --opposite
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = next and --opposite
         When I set tabs.select_on_remove to next
@@ -112,8 +130,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close --opposite
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-close with tabs.select_on_remove = last-used and --opposite
         When I set tabs.select_on_remove to last-used
@@ -131,8 +151,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-close
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/4.txt (active)
+            """
 
     # :tab-only
 
@@ -151,8 +173,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-only --prev
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
+            """
 
     Scenario: :tab-only with --next
         When I open data/numbers/1.txt
@@ -161,8 +185,10 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :tab-only --next
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-only with --prev and --next
         When I run :tab-only --prev --next
@@ -180,9 +206,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-focus without index/count
         When I open data/numbers/1.txt
@@ -192,9 +220,11 @@ Feature: Tab management
         And I run :tab-focus
         Then the warning "Using :tab-focus without count is deprecated, use :tab-next instead." should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-focus with invalid index
         When I run :tab-focus 23
@@ -210,9 +240,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-focus with count and index
         When I open data/numbers/1.txt
@@ -220,9 +252,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 4 with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-focus last
         When I open data/numbers/1.txt
@@ -232,9 +266,11 @@ Feature: Tab management
         And I run :tab-focus 3
         And I run :tab-focus last
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-focus with current tab number
         When I open data/numbers/1.txt
@@ -244,9 +280,11 @@ Feature: Tab management
         And I run :tab-focus 3
         And I run :tab-focus 3
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-focus with current tab number and --no-last
         When I open data/numbers/1.txt
@@ -256,9 +294,11 @@ Feature: Tab management
         And I run :tab-focus 3
         And I run :tab-focus --no-last 3
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-focus with -1
         When I open data/numbers/1.txt
@@ -267,9 +307,11 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-focus -1
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-focus negative index
         When I open data/numbers/1.txt
@@ -277,9 +319,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus -2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-focus with invalid negative index
         When I open data/numbers/1.txt
@@ -305,11 +349,13 @@ Feature: Tab management
         And I run :tab-focus 3
         And I run :cmd-repeat 2 tab-focus stack-prev
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
             - data/numbers/4.txt
             - data/numbers/5.txt
+            """
 
     Scenario: :tab-focus next stacking
         When I open data/numbers/1.txt
@@ -325,11 +371,13 @@ Feature: Tab management
         And I run :cmd-repeat 3 tab-focus stack-prev
         And I run :cmd-repeat 2 tab-focus stack-next
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt
             - data/numbers/4.txt (active)
             - data/numbers/5.txt
+            """
 
     Scenario: :tab-focus stacking limit
         When I set tabs.focus_stack_size to 1
@@ -349,11 +397,13 @@ Feature: Tab management
         And I run :cmd-repeat 4 tab-focus stack-prev
         Then the error "Could not find requested tab!" should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
             - data/numbers/4.txt
             - data/numbers/5.txt
+            """
 
     Scenario: :tab-focus stacking and last
         When I open data/numbers/1.txt
@@ -369,11 +419,13 @@ Feature: Tab management
         And I run :cmd-repeat 2 tab-focus stack-prev
         And I run :cmd-repeat 3 tab-focus last
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt
             - data/numbers/4.txt (active)
             - data/numbers/5.txt
+            """
 
 
     Scenario: :tab-focus last after moving current tab
@@ -383,9 +435,11 @@ Feature: Tab management
         And I run :tab-move 2
         And I run :tab-focus last
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt
             - data/numbers/2.txt (active)
+            """
 
     Scenario: :tab-focus last after closing a lower number tab
         When I open data/numbers/1.txt
@@ -394,8 +448,10 @@ Feature: Tab management
         And I run :tab-close with count 1
         And I run :tab-focus last
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     # tab-prev/tab-next
 
@@ -404,8 +460,10 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I run :tab-prev
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-next
         When I open data/numbers/1.txt
@@ -413,8 +471,10 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-next
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
+            """
 
     Scenario: :tab-prev with count
         When I open data/numbers/1.txt
@@ -422,9 +482,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-prev with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-next with count
         When I open data/numbers/1.txt
@@ -433,9 +495,11 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-next with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-prev on first tab without wrap
         When I set tabs.wrap to false
@@ -457,9 +521,11 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-prev
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-next with last tab with wrap
         When I set tabs.wrap to true
@@ -468,9 +534,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-next
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-next with last tab, wrap and count
         When I set tabs.wrap to true
@@ -479,9 +547,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-next with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+            """
 
     # :tab-move
 
@@ -491,9 +561,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt (active)
             - data/numbers/1.txt
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with absolute position and count.
         When I open data/numbers/1.txt
@@ -501,9 +573,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with absolute position and invalid count.
         When I open data/numbers/1.txt
@@ -512,9 +586,11 @@ Feature: Tab management
         And I run :tab-move with count 23
         Then the error "Can't move tab to position 23!" should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-move with index.
         When I open data/numbers/1.txt
@@ -522,9 +598,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with negative index.
         When I open data/numbers/1.txt
@@ -532,9 +610,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move -3
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt (active)
             - data/numbers/1.txt
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with invalid index.
         When I open data/numbers/1.txt
@@ -543,9 +623,11 @@ Feature: Tab management
         And I run :tab-move -5
         Then the error "Can't move tab to position -1!" should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-move with index and count.
         When I open data/numbers/1.txt
@@ -553,9 +635,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move 1 with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with index and invalid count.
         When I open data/numbers/1.txt
@@ -564,9 +648,11 @@ Feature: Tab management
         And I run :tab-move -2 with count 4
         Then the error "Can't move tab to position 4!" should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-move with relative position (negative).
         When I open data/numbers/1.txt
@@ -574,9 +660,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move -
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with relative position (positive).
         When I open data/numbers/1.txt
@@ -585,9 +673,11 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-move +
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-move with relative position (negative) and count.
         When I open data/numbers/1.txt
@@ -595,9 +685,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move - with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt (active)
             - data/numbers/1.txt
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with relative position and too big count.
         When I set tabs.wrap to false
@@ -615,9 +707,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move +
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt (active)
             - data/numbers/1.txt
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-move with relative position (negative), wrap and count
         When I set tabs.wrap to true
@@ -627,9 +721,11 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-move - with count 8
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
+            """
 
     Scenario: :tab-move with absolute position
         When I open data/numbers/1.txt
@@ -638,9 +734,11 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-move end
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt
             - data/numbers/3.txt
             - data/numbers/1.txt (active)
+            """
 
     Scenario: :tab-move with absolute position
         When I open data/numbers/1.txt
@@ -648,9 +746,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move start
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt (active)
             - data/numbers/1.txt
             - data/numbers/2.txt
+            """
 
     Scenario: Make sure :tab-move retains metadata
         When I open data/title.html
@@ -658,6 +758,7 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-move +
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -667,6 +768,7 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
+            """
 
     # :tab-clone
 
@@ -679,6 +781,7 @@ Feature: Tab management
         And I run :tab-clone
         And I wait until data/title.html is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -690,6 +793,7 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
+            """
 
     Scenario: Cloning zoom value
         When I open data/hello.txt
@@ -697,6 +801,7 @@ Feature: Tab management
         And I run :tab-clone
         And I wait until data/hello.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -708,20 +813,24 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/hello.txt
                   zoom: 1.2
+            """
 
     Scenario: Cloning to background tab
         When I open data/hello2.txt
         And I run :tab-clone -b
         And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello2.txt (active)
             - data/hello2.txt
+            """
 
     Scenario: Cloning to new window
         When I open data/title.html
         And I run :tab-clone -w
         And I wait until data/title.html is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -735,6 +844,7 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
+            """
 
     Scenario: Cloning with tabs_are_windows = true
         When I open data/title.html
@@ -742,6 +852,7 @@ Feature: Tab management
         And I run :tab-clone
         And I wait until data/title.html is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -755,12 +866,14 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
+            """
 
     Scenario: Cloning to private window
         When I open data/title.html
         And I run :tab-clone -p
         And I wait until data/title.html is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -775,6 +888,7 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
@@ -801,6 +915,7 @@ Feature: Tab management
         And I run :undo
         And I wait until data/numbers/3.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -810,6 +925,7 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/numbers/2.txt
                 - url: http://localhost:*/data/numbers/3.txt
+            """
 
     @qtwebengine_flaky
     Scenario: Undo with auto-created last tab
@@ -878,9 +994,11 @@ Feature: Tab management
         And I run :tab-close with count 1
         And I run :undo
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: Undo a tab closed after switching tabs
         When I open data/numbers/1.txt
@@ -890,9 +1008,11 @@ Feature: Tab management
         And I run :tab-focus 2
         And I run :undo
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: Undo a tab closed after rearranging tabs
         When I open data/numbers/1.txt
@@ -902,9 +1022,11 @@ Feature: Tab management
         And I run :tab-move with count 1
         And I run :undo
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
             - data/numbers/2.txt
+            """
 
     @flaky
     Scenario: Undo a tab closed after new tab opened
@@ -915,9 +1037,11 @@ Feature: Tab management
         And I run :undo
         And I wait until data/numbers/1.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: Undo the closing of tabs using :tab-only
         When I open data/numbers/1.txt
@@ -927,9 +1051,11 @@ Feature: Tab management
         And I run :tab-only
         And I run :undo
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     # :undo --window
 
@@ -942,6 +1068,7 @@ Feature: Tab management
         And I run :undo -w
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -953,6 +1080,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/numbers/2.txt
+            """
 
     Scenario: Undo the closing of a window with multiple tabs
         Given I clear the log
@@ -964,6 +1092,7 @@ Feature: Tab management
         And I run :undo -w
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -977,6 +1106,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/numbers/3.txt
+            """
 
     Scenario: Undo the closing of a window with multiple tabs with undo stack
         Given I clear the log
@@ -990,6 +1120,7 @@ Feature: Tab management
         And I run :undo
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -1003,6 +1134,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/numbers/3.txt
+            """
 
     Scenario: Undo the closing of a window with tabs are windows
         Given I clear the log
@@ -1015,6 +1147,7 @@ Feature: Tab management
         And I run :undo -w
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -1025,6 +1158,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/numbers/2.txt
+            """
 
     # :undo with count
 
@@ -1036,8 +1170,10 @@ Feature: Tab management
         And I run :tab-close
         And I run :undo with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: Undo with a too-high count
         When I open data/numbers/1.txt
@@ -1076,8 +1212,10 @@ Feature: Tab management
         And I wait until data/numbers/7.txt is loaded
         And I wait until data/numbers/8.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/7.txt
             - data/numbers/8.txt (active)
+            """
 
     Scenario: tabs.last_close = default-page
         When I set url.default_page to http://localhost:(port)/data/numbers/9.txt
@@ -1104,8 +1242,10 @@ Feature: Tab management
         And I hint with args "all tab" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hints/html/simple.html (active)
             - data/hello.txt
+            """
 
     Scenario: opening tab with tabs.new_position.related prev
         When I set tabs.new_position.related to prev
@@ -1115,9 +1255,11 @@ Feature: Tab management
         And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/hello.txt (active)
             - data/hints/html/simple.html
+            """
 
     Scenario: opening tab with tabs.new_position.related next
         When I set tabs.new_position.related to next
@@ -1127,9 +1269,11 @@ Feature: Tab management
         And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/hints/html/simple.html
             - data/hello.txt (active)
+            """
 
     Scenario: opening tab with tabs.new_position.related first
         When I set tabs.new_position.related to first
@@ -1139,9 +1283,11 @@ Feature: Tab management
         And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
             - about:blank
             - data/hints/html/simple.html
+            """
 
     Scenario: opening tab with tabs.new_position.related last
         When I set tabs.new_position.related to last
@@ -1152,9 +1298,11 @@ Feature: Tab management
         And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hints/html/simple.html
             - about:blank
             - data/hello.txt (active)
+            """
 
     # stacking tabs
     Scenario: stacking tabs opening tab with tabs.new_position.related next
@@ -1168,10 +1316,12 @@ Feature: Tab management
         And I wait until data/navigate/prev.html is loaded
         And I wait until data/navigate/next.html is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/navigate/index.html (active)
             - data/navigate/prev.html
             - data/navigate/next.html
+            """
 
     Scenario: stacking tabs opening tab with tabs.new_position.related prev
         When I set tabs.new_position.related to prev
@@ -1184,10 +1334,12 @@ Feature: Tab management
         And I wait until data/navigate/prev.html is loaded
         And I wait until data/navigate/next.html is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/navigate/next.html
             - data/navigate/prev.html
             - data/navigate/index.html (active)
+            """
 
     Scenario: no stacking tabs opening tab with tabs.new_position.related next
         When I set tabs.new_position.related to next
@@ -1200,10 +1352,12 @@ Feature: Tab management
         And I wait until data/navigate/prev.html is loaded
         And I wait until data/navigate/next.html is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/navigate/index.html (active)
             - data/navigate/next.html
             - data/navigate/prev.html
+            """
 
     Scenario: no stacking tabs opening tab with tabs.new_position.related prev
         When I set tabs.new_position.related to prev
@@ -1216,10 +1370,12 @@ Feature: Tab management
         And I wait until data/navigate/prev.html is loaded
         And I wait until data/navigate/next.html is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/navigate/prev.html
             - data/navigate/next.html
             - data/navigate/index.html (active)
+            """
 
     # :tab-select
 
@@ -1234,9 +1390,11 @@ Feature: Tab management
         And I run :tab-select Searching text
         And I wait for "Current tab changed, focusing <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the following tabs should be open:
+            """
             - data/title.html
             - data/search.html (active)
             - data/scroll/simple.html
+            """
 
     Scenario: :tab-select with no matching title
         When I run :tab-select invalid title
@@ -1252,6 +1410,7 @@ Feature: Tab management
         And I run :tab-select Scrolling
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
+            """
             windows:
             - active: true
               tabs:
@@ -1269,6 +1428,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/paste_primary.html
+            """
 
     Scenario: :tab-select with no matching index
         When I open data/title.html
@@ -1292,6 +1452,7 @@ Feature: Tab management
         And I run :tab-select 0/2
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
+            """
             windows:
             - active: true
               tabs:
@@ -1309,6 +1470,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/paste_primary.html
+            """
 
     Scenario: :tab-select with wrong argument (-1)
         When I open data/title.html
@@ -1346,6 +1508,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new window
         And I run :tab-take 0/1
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -1355,6 +1518,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/2.txt
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
+            """
 
     Scenario: Take a tab from the same window
         Given I have a fresh instance
@@ -1379,6 +1543,7 @@ Feature: Tab management
         And I run :tab-take 1/1
         And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -1387,6 +1552,7 @@ Feature: Tab management
               - active: true
                 history:
                 - url: http://localhost:*/data/numbers/2.txt
+            """
 
     # :tab-give
 
@@ -1397,6 +1563,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new window
         And I run :tab-give 0
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -1406,6 +1573,7 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: about:blank
+            """
 
     Scenario: Give a tab to the same window
         Given I have a fresh instance
@@ -1419,6 +1587,7 @@ Feature: Tab management
         And I run :tab-give
         And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -1427,6 +1596,7 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
+            """
 
     Scenario: Give a tab from window with only one tab
         When I open data/hello.txt
@@ -1455,6 +1625,7 @@ Feature: Tab management
         And I run :tab-give 1
         And I wait until data/numbers/1.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -1462,6 +1633,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/2.txt
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
+            """
 
     # Other
 
@@ -1485,6 +1657,7 @@ Feature: Tab management
         And I hint with args "all tab-fg" and follow a
         And I wait until data/hello.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -1493,6 +1666,7 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+            """
 
     Scenario: Closing tab with tabs_are_windows
         When I set tabs.tabs_are_windows to true
@@ -1502,12 +1676,14 @@ Feature: Tab management
         And I run :tab-close
         And I wait for "removed: tabbed-browser" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
                 history:
                 - url: about:blank
                 - url: http://localhost:*/data/numbers/1.txt
+            """
 
     # :tab-pin
 
@@ -1517,9 +1693,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-pin
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active) (pinned)
+            """
 
     Scenario: :tab-pin unpin
         When I open data/numbers/1.txt
@@ -1529,9 +1707,11 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-pin
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (pinned)
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-pin to index 2
         When I open data/numbers/1.txt
@@ -1539,9 +1719,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-pin with count 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (pinned)
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-pin with an invalid count
         When I open data/numbers/1.txt
@@ -1549,9 +1731,11 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-pin with count 23
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: Pinned :tab-close prompt yes
         When I open data/numbers/1.txt
@@ -1573,8 +1757,10 @@ Feature: Tab management
         And I wait for "*want to close a pinned tab*" in the log
         And I run :prompt-accept no
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (pinned)
             - data/numbers/2.txt (active) (pinned)
+            """
 
     Scenario: Pinned :tab-only prompt yes
         When I open data/numbers/1.txt
@@ -1598,8 +1784,10 @@ Feature: Tab management
         And I wait for "*want to close pinned tabs*" in the log
         And I run :prompt-accept no
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
             - data/numbers/2.txt (pinned)
+            """
 
     Scenario: Pinned :tab-only close all but pinned tab
         When I open data/numbers/1.txt
@@ -1627,8 +1815,10 @@ Feature: Tab management
         And I run :tab-next
         And I run :tab-only --pinned keep
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
             - data/numbers/2.txt (pinned)
+            """
 
     Scenario: Pinned :tab-only --pinned prompt
         When I open data/numbers/1.txt
@@ -1645,8 +1835,10 @@ Feature: Tab management
         And I open data/numbers/2.txt
         Then the message "Tab is pinned! Opening in new tab." should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
             - data/numbers/2.txt
+            """
 
     Scenario: :tab-pin open url with tabs.pinned.frozen = false
         When I set tabs.pinned.frozen to false
@@ -1680,8 +1872,10 @@ Feature: Tab management
         And I run :tab-clone
         And I wait until data/numbers/1.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (pinned)
             - data/numbers/1.txt (pinned) (active)
+            """
 
     Scenario: Undo a pinned tab
         When I open data/numbers/1.txt
@@ -1691,8 +1885,10 @@ Feature: Tab management
         And I run :undo
         And I wait until data/numbers/2.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (pinned) (active)
+            """
 
 
     Scenario: Focused webview after clicking link in bg

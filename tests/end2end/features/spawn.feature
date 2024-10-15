@@ -54,8 +54,10 @@ Feature: :spawn
         And I run :spawn -u (testdata)/userscripts/open_current_url
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt
             - data/hello.txt (active)
+            """
 
     @posix
     Scenario: Running :spawn with userscript and count
@@ -75,8 +77,10 @@ Feature: :spawn
         And I run :spawn -u (testdata)/userscripts/open_current_url.bat
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+           """
             - data/hello.txt
             - data/hello.txt (active)
+           """
 
     @posix
     Scenario: Running :spawn with userscript that expects the stdin getting closed

@@ -9,8 +9,10 @@ Feature: Page history
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt
         Then the history should contain:
+	    """
             http://localhost:(port)/data/numbers/1.txt
             http://localhost:(port)/data/numbers/2.txt
+	    """
 
     Scenario: History item with title
         When I open data/title.html
@@ -21,8 +23,10 @@ Feature: Page history
         When I open redirect-to?url=data/title.html without waiting
         And I wait until data/title.html is loaded
         Then the history should contain:
+	    """
             r http://localhost:(port)/redirect-to?url=data/title.html Test title
             http://localhost:(port)/data/title.html Test title
+	    """
 
     Scenario: History item with spaces in URL
         When I open data/title with spaces.html
@@ -72,8 +76,10 @@ Feature: Page history
         When I open data/hints/html/simple.html
         And I hint with args "--add-history links yank" and follow a
         Then the history should contain:
+	    """
             http://localhost:(port)/data/hints/html/simple.html Simple link
             http://localhost:(port)/data/hello.txt
+	    """
 
     @flaky
     Scenario: Listing history
