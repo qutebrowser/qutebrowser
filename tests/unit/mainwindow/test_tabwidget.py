@@ -11,6 +11,7 @@ import pytest
 from unittest.mock import Mock
 
 from qutebrowser.qt.gui import QIcon, QPixmap
+from qutebrowser.qt.widgets import QWidget
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.utils import usertypes
 
@@ -21,7 +22,14 @@ class TestTabWidget:
 
     @pytest.fixture
     def widget(self, qtbot, monkeypatch, config_stub):
-        w = tabwidget.TabWidget(0)
+        class DummyParent(QWidget):
+            def __init__(self):
+                super().__init__()
+                self.is_shutting_down = False
+                self.show()
+
+        w = tabwidget.TabWidget(0, parent=DummyParent())
+        w.resize(640, 480)
         qtbot.add_widget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
