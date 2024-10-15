@@ -241,6 +241,7 @@ def get(name: str,
 
 def register(name: str,
              obj: Any,
+             *,
              update: bool = False,
              scope: str = None,
              registry: ObjectRegistry = None,

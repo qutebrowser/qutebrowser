@@ -529,9 +529,11 @@ class EventLoop(QEventLoop):
         return status
 
 
-def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
-                          x2: int, y2: int, z2: int, a2: int,
-                          percent: int) -> tuple[int, int, int, int]:
+def _get_color_percentage(  # pylint: disable=too-many-positional-arguments
+    x1: int, y1: int, z1: int, a1: int,
+    x2: int, y2: int, z2: int, a2: int,
+    percent: int
+) -> tuple[int, int, int, int]:
     """Get a color which is percent% interpolated between start and end.
 
     Args:

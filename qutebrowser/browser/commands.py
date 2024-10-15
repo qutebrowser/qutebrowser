@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# pylint: disable=too-many-positional-arguments
+
 """Command dispatcher for TabbedBrowser."""
 
 import os.path

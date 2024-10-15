@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
     )
 
     class pyqtProperty:
-        def __init__(
+        def __init__(  # pylint: disable=too-many-positional-arguments
             self,
             type: typing.Union[type, str],
             fget: typing.Optional[typing.Callable[[QObjectT], TPropertyTypeVal]] = None,

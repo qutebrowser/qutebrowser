@@ -171,7 +171,7 @@ def test_dicts():
                 print('ERROR: {}'.format(response.status))
 
 
-def run(nsis=False, ace=False, pdfjs=True, legacy_pdfjs=False, fancy_dmg=False,
+def run(*, nsis=False, ace=False, pdfjs=True, legacy_pdfjs=False, fancy_dmg=False,
         pdfjs_version=None, dicts=False, gh_token=None):
     """Update components based on the given arguments."""
     if nsis:
