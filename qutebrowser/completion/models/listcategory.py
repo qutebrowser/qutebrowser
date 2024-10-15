@@ -5,7 +5,7 @@
 """Completion category that uses a list of tuples as a data source."""
 
 import re
-from typing import Iterable, Tuple
+from collections.abc import Iterable
 
 from qutebrowser.qt.core import QSortFilterProxyModel, QRegularExpression
 from qutebrowser.qt.gui import QStandardItem, QStandardItemModel
@@ -21,7 +21,7 @@ class ListCategory(QSortFilterProxyModel, BaseCategory):
 
     def __init__(self,
                  name: str,
-                 items: Iterable[Tuple[str, ...]],
+                 items: Iterable[tuple[str, ...]],
                  sort: bool = True,
                  delete_func: util.DeleteFuncType = None,
                  parent: QWidget = None):

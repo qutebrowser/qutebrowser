@@ -2,10 +2,9 @@
 
 chardet==5.2.0
 diff_cover==9.2.0
-importlib_resources==6.4.5
 Jinja2==3.1.4
 lxml==5.3.0
-MarkupSafe==2.1.5
+MarkupSafe==3.0.1
 mypy==1.11.2
 mypy-extensions==1.0.0
 pluggy==1.5.0
@@ -18,4 +17,3 @@ types-Pygments==2.18.0.20240506
 types-PyYAML==6.0.12.20240917
 types-setuptools==75.1.0.20241014
 typing_extensions==4.12.2
-zipp==3.20.2

@@ -7,7 +7,8 @@
 import collections
 import html
 import dataclasses
-from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
+from typing import TYPE_CHECKING, Optional
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-_proxy_auth_cache: Dict['ProxyId', 'prompt.AuthInfo'] = {}
+_proxy_auth_cache: dict['ProxyId', 'prompt.AuthInfo'] = {}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -110,7 +111,7 @@ def init():
 
 _SavedErrorsType = MutableMapping[
     urlutils.HostTupleType,
-    Set[certificateerror.CertificateErrorWrapper],
+    set[certificateerror.CertificateErrorWrapper],
 ]
 
 

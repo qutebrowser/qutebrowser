@@ -4,7 +4,8 @@
 
 """Models for the command completion."""
 
-from typing import Sequence, Optional
+from typing import Optional
+from collections.abc import Sequence
 from qutebrowser.completion.models.util import DeleteFuncType
 from qutebrowser.qt.core import QAbstractItemModel
 

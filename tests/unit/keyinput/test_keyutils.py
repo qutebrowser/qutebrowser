@@ -57,7 +57,7 @@ def qtest_key(request):
 
 def test_key_data_keys():
     """Make sure all possible keys are in key_data.KEYS."""
-    key_names = {name[len("Key_"):]
+    key_names = {name.removeprefix("Key_")
                  for name in testutils.enum_members(Qt, Qt.Key)}
     key_data_names = {key.attribute for key in sorted(key_data.KEYS)}
     diff = key_names - key_data_names
@@ -66,7 +66,7 @@ def test_key_data_keys():
 
 def test_key_data_modifiers():
     """Make sure all possible modifiers are in key_data.MODIFIERS."""
-    mod_names = {name[:-len("Modifier")]
+    mod_names = {name.removesuffix("Modifier")
                  for name, value in testutils.enum_members(Qt, Qt.KeyboardModifier).items()
                  if value not in [Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.KeyboardModifierMask]}
     mod_data_names = {mod.attribute for mod in sorted(key_data.MODIFIERS)}

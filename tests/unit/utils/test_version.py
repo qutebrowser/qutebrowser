@@ -737,7 +737,6 @@ class TestModuleVersions:
         ('yaml', True),
         ('adblock', True),
         ('dataclasses', False),
-        ('importlib_resources', False),
         ('objc', True),
     ])
     def test_existing_attributes(self, name, has_version):

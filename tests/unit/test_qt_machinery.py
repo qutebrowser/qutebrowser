@@ -9,7 +9,7 @@ import sys
 import html
 import argparse
 import typing
-from typing import Any, Optional, List, Dict, Union, Type
+from typing import Any, Optional, Union
 import dataclasses
 
 import pytest
@@ -51,7 +51,7 @@ def undo_init(monkeypatch: pytest.MonkeyPatch) -> None:
         (machinery.NoWrapperAvailableError(machinery.SelectionInfo()), ImportError),
     ],
 )
-def test_importerror_exceptions(exception: Exception, base: Type[Exception]):
+def test_importerror_exceptions(exception: Exception, base: type[Exception]):
     with pytest.raises(base):
         raise exception
 
@@ -118,7 +118,7 @@ def test_selectioninfo_str(info: machinery.SelectionInfo, expected: str):
 
 
 @pytest.mark.parametrize("order", [["PyQt5", "PyQt6"], ["PyQt6", "PyQt5"]])
-def test_selectioninfo_str_wrapper_precedence(order: List[str]):
+def test_selectioninfo_str_wrapper_precedence(order: list[str]):
     """The order of the wrappers should be the same as in machinery.WRAPPERS."""
     info = machinery.SelectionInfo(
         wrapper="PyQt6",
@@ -210,7 +210,7 @@ def modules():
 )
 def test_autoselect(
     stubs: Any,
-    available: Dict[str, Union[bool, Exception]],
+    available: dict[str, Union[bool, Exception]],
     expected: machinery.SelectionInfo,
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -417,7 +417,7 @@ class TestInit:
     def test_none_available_implicit(
         self,
         stubs: Any,
-        modules: Dict[str, bool],
+        modules: dict[str, bool],
         monkeypatch: pytest.MonkeyPatch,
         qt_auto_env: None,
     ):
@@ -441,7 +441,7 @@ class TestInit:
     def test_none_available_explicit(
         self,
         stubs: Any,
-        modules: Dict[str, bool],
+        modules: dict[str, bool],
         monkeypatch: pytest.MonkeyPatch,
         empty_args: argparse.Namespace,
         qt_auto_env: None,

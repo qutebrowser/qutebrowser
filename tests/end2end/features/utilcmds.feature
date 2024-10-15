@@ -92,7 +92,6 @@ Feature: Miscellaneous utility commands exposed to the user.
 
     ## :debug-cache-stats
 
-    @python>=3.9.0
     Scenario: :debug-cache-stats
         When I run :debug-cache-stats
         Then "is_valid_prefix: CacheInfo(*)" should be logged

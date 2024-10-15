@@ -7,7 +7,8 @@
 import os
 import os.path
 import tempfile
-from typing import cast, Any, MutableMapping, Tuple
+from typing import cast, Any
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
@@ -106,7 +107,7 @@ class _BaseUserscriptRunner(QObject):
         self._env: MutableMapping[str, str] = {}
         self._text_stored = False
         self._html_stored = False
-        self._args: Tuple[Any, ...] = ()
+        self._args: tuple[Any, ...] = ()
         self._kwargs = {}
 
     def store_text(self, text):
@@ -155,7 +156,7 @@ class _BaseUserscriptRunner(QObject):
 
         self.proc = guiprocess.GUIProcess(
             'userscript', additional_env=self._env,
-            output_messages=output_messages, verbose=verbose, parent=self)
+            output_messages=output_messages, verbose=verbose)
         self.proc.finished.connect(self.on_proc_finished)
         self.proc.error.connect(self.on_proc_error)
         self.proc.start(cmd, args)

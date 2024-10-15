@@ -19,8 +19,9 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, Any,
+from typing import (Optional, ClassVar, Any,
                     TYPE_CHECKING)
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import PYQT_VERSION_STR
@@ -105,7 +106,7 @@ class Distribution(enum.Enum):
     solus = enum.auto()
 
 
-def _parse_os_release() -> Optional[Dict[str, str]]:
+def _parse_os_release() -> Optional[dict[str, str]]:
     """Parse an /etc/os-release file."""
     filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
     info = {}
@@ -250,7 +251,7 @@ def _git_str_subprocess(gitpath: str) -> Optional[str]:
         return None
 
 
-def _release_info() -> Sequence[Tuple[str, str]]:
+def _release_info() -> Sequence[tuple[str, str]]:
     """Try to gather distribution release information.
 
     Return:
@@ -379,7 +380,7 @@ class ModuleInfo:
         return text
 
 
-def _create_module_info() -> Dict[str, ModuleInfo]:
+def _create_module_info() -> dict[str, ModuleInfo]:
     packages = [
         ('colorama', ['VERSION', '__version__']),
         ('jinja2', ['__version__']),
@@ -538,7 +539,7 @@ class WebEngineVersions:
     chromium_security: Optional[str] = None
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
-    _BASES: ClassVar[Dict[int, str]] = {
+    _BASES: ClassVar[dict[int, str]] = {
         83: '83.0.4103.122',  # ~2020-06-24
         87: '87.0.4280.144',  # ~2020-12-02
         90: '90.0.4430.228',  # 2021-06-22
@@ -551,7 +552,7 @@ class WebEngineVersions:
         122: '122.0.6261.171',  # ~2024-??-??
     }
 
-    _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, Tuple[str, Optional[str]]]] = {
+    _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
         # ====== UNSUPPORTED =====
 
         # Qt 5.12: Chromium 69
@@ -707,7 +708,7 @@ class WebEngineVersions:
     def _infer_chromium_version(
             cls,
             pyqt_webengine_version: utils.VersionNumber,
-    ) -> Tuple[Optional[str], Optional[str]]:
+    ) -> tuple[Optional[str], Optional[str]]:
         """Infer the Chromium version based on the PyQtWebEngine version.
 
         Returns:
@@ -1017,7 +1018,7 @@ class OpenGLInfo:
     version_str: Optional[str] = None
 
     # The parsed version as a (major, minor) tuple of ints
-    version: Optional[Tuple[int, ...]] = None
+    version: Optional[tuple[int, ...]] = None
 
     # The vendor specific information following the version number
     vendor_specific: Optional[str] = None

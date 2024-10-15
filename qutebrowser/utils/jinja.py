@@ -10,7 +10,8 @@ import posixpath
 import functools
 import contextlib
 import html
-from typing import Any, Callable, FrozenSet, Iterator, List, Set, Tuple
+from typing import Any
+from collections.abc import Iterator, Callable
 
 import jinja2
 import jinja2.nodes
@@ -54,7 +55,7 @@ class Loader(jinja2.BaseLoader):
             self,
             _env: jinja2.Environment,
             template: str
-    ) -> Tuple[str, str, Callable[[], bool]]:
+    ) -> tuple[str, str, Callable[[], bool]]:
         path = os.path.join(self._subdir, template)
         try:
             source = resources.read_file(path)
@@ -128,10 +129,10 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 
 @debugcachestats.register()
 @functools.lru_cache
-def template_config_variables(template: str) -> FrozenSet[str]:
+def template_config_variables(template: str) -> frozenset[str]:
     """Return the config variables used in the template."""
-    unvisted_nodes: List[jinja2.nodes.Node] = [environment.parse(template)]
-    result: Set[str] = set()
+    unvisted_nodes: list[jinja2.nodes.Node] = [environment.parse(template)]
+    result: set[str] = set()
     while unvisted_nodes:
         node = unvisted_nodes.pop()
         if not isinstance(node, jinja2.nodes.Getattr):
@@ -140,7 +141,7 @@ def template_config_variables(template: str) -> FrozenSet[str]:
 
         # List of attribute names in reverse order.
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
-        attrlist: List[str] = []
+        attrlist: list[str] = []
         while isinstance(node, jinja2.nodes.Getattr):
             attrlist.append(node.attr)
             node = node.node

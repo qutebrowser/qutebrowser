@@ -18,7 +18,8 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Iterator, Iterable, List, Mapping, Optional, Union, overload, cast
+from typing import Optional, Union, overload, cast
+from collections.abc import Iterator, Iterable, Mapping
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QEvent
@@ -523,7 +524,7 @@ class KeySequence:
     _MAX_LEN = 4
 
     def __init__(self, *keys: KeyInfo) -> None:
-        self._sequences: List[QKeySequence] = []
+        self._sequences: list[QKeySequence] = []
         for sub in utils.chunk(keys, self._MAX_LEN):
             try:
                 args = [info.to_qt() for info in sub]
@@ -546,7 +547,7 @@ class KeySequence:
         """Iterate over KeyInfo objects."""
         # FIXME:mypy Stubs seem to be unaware that iterating a QKeySequence produces
         # _KeyInfoType
-        sequences = cast(List[Iterable[_KeyInfoType]], self._sequences)
+        sequences = cast(list[Iterable[_KeyInfoType]], self._sequences)
         for combination in itertools.chain.from_iterable(sequences):
             yield KeyInfo.from_qt(combination)
 
@@ -719,7 +720,7 @@ class KeySequence:
             mappings: Mapping['KeySequence', 'KeySequence']
     ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
-        infos: List[KeyInfo] = []
+        infos: list[KeyInfo] = []
         for info in self:
             key_seq = KeySequence(info)
             if key_seq in mappings:

@@ -25,10 +25,10 @@ class Naming:
 def camel_to_snake(naming, name):
     if naming.prefix:
         assert name.startswith(naming.prefix)
-        name = name[len(naming.prefix):]
+        name = name.removeprefix(naming.prefix)
     if naming.suffix:
         assert name.endswith(naming.suffix)
-        name = name[:-len(naming.suffix)]
+        name = name.removesuffix(naming.suffix)
     # https://stackoverflow.com/a/1176023
     return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
 

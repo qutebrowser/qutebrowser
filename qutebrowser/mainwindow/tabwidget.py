@@ -7,7 +7,7 @@
 import functools
 import contextlib
 import dataclasses
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
@@ -169,7 +169,7 @@ class TabWidget(QTabWidget):
 
         page_title = self.page_title(idx)
 
-        fields: Dict[str, Any] = {}
+        fields: dict[str, Any] = {}
         fields['id'] = tab.tab_id
         fields['current_title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
