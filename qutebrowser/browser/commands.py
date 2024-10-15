@@ -1580,7 +1580,7 @@ class CommandDispatcher:
             found: Whether the text was found.
         """
         if not found:
-            message.warning(f"Text '{text}' not found on page!",
+            message.info(f"Text '{text}' not found on page!",
                             replace='find-in-page')
 
     def _search_navigation_cb(self, result):
