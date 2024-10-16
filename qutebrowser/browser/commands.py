@@ -871,10 +871,6 @@ class CommandDispatcher:
         Args:
             count: How many tabs to switch back.
         """
-        if self._count() == 0:
-            # Running :tab-prev after last tab was closed
-            # See https://github.com/qutebrowser/qutebrowser/issues/1448
-            return
         newidx = self._current_index() - count
         if newidx >= 0:
             self._set_current_index(newidx)
@@ -891,10 +887,6 @@ class CommandDispatcher:
         Args:
             count: How many tabs to switch forward.
         """
-        if self._count() == 0:
-            # Running :tab-next after last tab was closed
-            # See https://github.com/qutebrowser/qutebrowser/issues/1448
-            return
         newidx = self._current_index() + count
         if newidx < self._count():
             self._set_current_index(newidx)
@@ -1174,7 +1166,7 @@ class CommandDispatcher:
         if count is not None:
             env['QUTE_COUNT'] = str(count)
 
-        idx = self._current_index()
+        idx = self._tabbed_browser.widget.currentIndex()
         if idx != -1:
             env['QUTE_TAB_INDEX'] = str(idx + 1)
             env['QUTE_TITLE'] = self._tabbed_browser.widget.page_title(idx)
