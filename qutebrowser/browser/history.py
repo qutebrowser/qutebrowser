@@ -8,7 +8,8 @@ import os
 import time
 import contextlib
 import pathlib
-from typing import cast, Mapping, MutableSequence, Optional
+from typing import cast, Optional
+from collections.abc import Mapping, MutableSequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, pyqtSignal

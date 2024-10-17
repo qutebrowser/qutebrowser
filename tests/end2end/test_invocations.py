@@ -335,7 +335,7 @@ def test_launching_with_old_python(python):
     except FileNotFoundError:
         pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.8 is required to run qutebrowser"
+    error = "At least Python 3.9 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
@@ -988,7 +988,7 @@ def test_restart(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
     assert line.message.startswith(prefix)
-    pid = int(line.message[len(prefix):])
+    pid = int(line.message.removeprefix(prefix))
     os.kill(pid, signal.SIGTERM)
 
     try:

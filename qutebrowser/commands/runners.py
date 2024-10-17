@@ -7,7 +7,8 @@
 import traceback
 import re
 import contextlib
-from typing import TYPE_CHECKING, Callable, Dict, Tuple, Iterator, Mapping, MutableMapping
+from typing import TYPE_CHECKING
+from collections.abc import Iterator, Mapping, MutableMapping, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
 
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
 _ReplacementFunction = Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 
-last_command: Dict[usertypes.KeyMode, Tuple[str, int]] = {}
+last_command: dict[usertypes.KeyMode, tuple[str, int]] = {}
 
 
 def _url(tabbed_browser):
@@ -38,7 +39,7 @@ def _url(tabbed_browser):
 
 def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
-    replacements: Dict[str, _ReplacementFunction] = {
+    replacements: dict[str, _ReplacementFunction] = {
         'url': lambda tb: _url(tb).toString(
             QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword),
         'url:pretty': lambda tb: _url(tb).toString(

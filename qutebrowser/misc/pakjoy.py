@@ -30,7 +30,8 @@ import shutil
 import pathlib
 import dataclasses
 import contextlib
-from typing import ClassVar, IO, Optional, Dict, Tuple, Iterator
+from typing import ClassVar, IO, Optional
+from collections.abc import Iterator
 
 from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
@@ -128,7 +129,7 @@ class PakParser:
 
         return data
 
-    def _read_header(self) -> Dict[int, PakEntry]:
+    def _read_header(self) -> dict[int, PakEntry]:
         """Read the header and entry index from the .pak file."""
         entries = []
 
@@ -147,7 +148,7 @@ class PakParser:
 
         return {entry.resource_id: entry for entry in entries}
 
-    def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, bytes]:
+    def _find_manifest(self, entries: dict[int, PakEntry]) -> tuple[PakEntry, bytes]:
         to_check = list(entries.values())
         for hangouts_id in HANGOUTS_IDS:
             if hangouts_id in entries:
@@ -175,7 +176,7 @@ def _find_webengine_resources() -> pathlib.Path:
     qt_data_path = qtutils.library_path(qtutils.LibraryPath.data)
     if utils.is_mac:  # pragma: no cover
         # I'm not sure how to arrive at this path without hardcoding it
-        # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
+        # ourselves. importlib.resources.files("PyQt6.Qt6") can serve as a
         # replacement for the qtutils bit but it doesn't seem to help find the
         # actual Resources folder.
         candidates.append(

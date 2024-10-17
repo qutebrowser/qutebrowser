@@ -9,7 +9,8 @@ import html
 import collections
 import functools
 import dataclasses
-from typing import Deque, MutableSequence, Optional, cast
+from typing import Optional, cast
+from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop, QUrl)
@@ -89,7 +90,7 @@ class PromptQueue(QObject):
         self._question = None
         self._shutting_down = False
         self._loops: MutableSequence[qtutils.EventLoop] = []
-        self._queue: Deque[usertypes.Question] = collections.deque()
+        self._queue: collections.deque[usertypes.Question] = collections.deque()
         message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):

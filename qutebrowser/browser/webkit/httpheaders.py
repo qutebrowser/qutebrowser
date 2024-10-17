@@ -8,7 +8,6 @@ import email.headerregistry
 import email.errors
 import dataclasses
 import os.path
-from typing import Type
 
 from qutebrowser.qt.network import QNetworkRequest
 
@@ -25,7 +24,7 @@ class DefectWrapper:
 
     """Wrapper around a email.error for comparison."""
 
-    error_class: Type[email.errors.MessageDefect]
+    error_class: type[email.errors.MessageDefect]
     line: str
 
     def __eq__(self, other):

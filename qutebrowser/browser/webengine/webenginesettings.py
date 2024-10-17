@@ -12,7 +12,7 @@ Module attributes:
 import os
 import operator
 import pathlib
-from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import cast, Any, Optional, Union, TYPE_CHECKING
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.gui import QFont
@@ -452,7 +452,7 @@ def _init_site_specific_quirks():
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
                   "{upstream_browser_key}/{upstream_browser_version} "
                   "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:131.0) Gecko/20100101 Firefox/131.0"
 
     def maybe_newer_chrome_ua(at_least_version):
         """Return a new UA if our current chrome version isn't at least at_least_version."""
@@ -509,7 +509,7 @@ def _init_default_settings():
     - Make sure the devtools always get images/JS permissions.
     - On Qt 6, make sure files in the data path can load external resources.
     """
-    devtools_settings: List[Tuple[str, Any]] = [
+    devtools_settings: list[tuple[str, Any]] = [
         ('content.javascript.enabled', True),
         ('content.images', True),
         ('content.cookies.accept', 'all'),
@@ -522,7 +522,7 @@ def _init_default_settings():
                                     hide_userconfig=True)
 
     if machinery.IS_QT6:
-        userscripts_settings: List[Tuple[str, Any]] = [
+        userscripts_settings: list[tuple[str, Any]] = [
             ("content.local_content_can_access_remote_urls", True),
             ("content.local_content_can_access_file_urls", False),
         ]

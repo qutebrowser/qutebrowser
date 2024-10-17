@@ -29,7 +29,8 @@ import tempfile
 import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional, List, Tuple
+from typing import Optional
+from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.widgets import QApplication, QWidget
@@ -330,7 +331,7 @@ def _open_special_pages(args):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
-    pages: List[Tuple[str, bool, str]] = [
+    pages: list[tuple[str, bool, str]] = [
         # state, condition, URL
         ('quickstart-done',
          True,

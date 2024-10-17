@@ -15,8 +15,58 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.4.0]]
+v3.4.0 (unreleased)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- **In the next release (v3.5.0)**, support for macOS 12 Monterey will be
+  dropped, and binaries will be built on macOS 13 Ventura.
+
+Removed
+~~~~~~~
+
+- Support for Python 3.8 is dropped, and Python 3.9 is now required.
+- When using the installer on Windows 10, build 1809 or newer is now required
+  (previous versions required 1607 or newer, but that's not officialy supported by
+  Qt upstream).
+
+Added
+~~~~~
+
+- **Planned:** Full support for Qt 6.8, with Windows/macOS binaries being built
+  on Qt 6.8.0.
+- **Planned:** Full support for Python 3.13, with Windows/macOS binaries using
+  it if possible.
+
+Changed
+~~~~~~~
+
+- The `.desktop` file now also declares qutebrowser as a valid viewer for
+  `image/webp`.
+- Updated mimetype information for getting a suitable extension when downloading
+  a `data:` URL.
+
+Fixed
+~~~~~
+
+- Crash with recent Jinja/Markupsafe versions when viewing a finished userscript
+  (or potentially editor) process via `:process`.
+
+
+[[v3.3.1]]
+v3.3.1 (2024-10-12)
+-------------------
+
+Fixed
+~~~~~
+
+- Updated the workaround for Google sign-in issues.
+
 [[v3.3.0]]
-v3.3.0 (unreleased)
+v3.3.0 (2024-10-12)
 -------------------
 
 Added
@@ -30,6 +80,10 @@ Removed
 
 - Support for macOS 11 Big Sur is dropped. Binaries are now built on macOS 12
   Monterey and are unlikely to still run on older macOS versions.
+- Failed end2end tests will now save screenshots of the browser window when
+  run under xvfb (the default on linux). Screenshots will be under
+  `$TEMP/pytest-current/pytest-screenshots/` or attached to the GitHub actions
+  run as an artifact. (#7625)
 
 Changed
 ~~~~~~~
@@ -41,6 +95,8 @@ Changed
   respected when yanking any URL (for example, through hints with `hint links
   yank`). The `{url:yank}` substitution has also been added as a version of
   `{url}` that respects ignored URL query parameters. (#7879)
+- Windows and macOS releases now bundle Qt 6.7.3, which includes security fixes
+  up to Chromium 129.0.6668.58.
 
 Fixed
 ~~~~~
@@ -51,6 +107,7 @@ Fixed
   documentation in our settings docs now loads a live page again. (#8268)
 - A rare crash when on Qt 6, a renderer process terminates with an unknown
   termination reason.
+- Updated the workaround for Google sign-in issues.
 
 [[v3.2.1]]
 v3.2.1 (2024-06-25)

@@ -55,7 +55,7 @@ def test_js_quirks(config_stub, js_tester_webengine, base_url, source, expected)
 def test_js_quirks_match_files(webengine_tab):
     quirks_path = pathlib.Path(qutebrowser.__file__).parent / "javascript" / "quirks"
     suffix = ".user.js"
-    quirks_files = {p.name[:-len(suffix)] for p in quirks_path.glob(f"*{suffix}")}
+    quirks_files = {p.name.removesuffix(suffix) for p in quirks_path.glob(f"*{suffix}")}
     quirks_code = {q.filename for q in webengine_tab._scripts._get_quirks()}
     assert quirks_code == quirks_files
 
@@ -66,7 +66,7 @@ def test_js_quirks_match_settings(webengine_tab, configdata_init):
     valid_values = opt.typ.get_valid_values()
     assert valid_values is not None
     quirks_config = {
-        val[len(prefix):].replace("-", "_")
+        val.removeprefix(prefix).replace("-", "_")
         for val in valid_values
         if val.startswith(prefix)
     }

@@ -125,8 +125,8 @@ import copy
 import enum
 import dataclasses
 import collections
-from typing import (Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple, Union,
-                    Sequence, List)
+from typing import (Any, Optional, Union)
+from collections.abc import Iterator, Mapping, MutableMapping, Sequence
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils, log, version
@@ -212,7 +212,7 @@ class _Setting:
             return str(value)
         return str(self.mapping[value])
 
-    def chromium_tuple(self, value: Any) -> Optional[Tuple[str, str]]:
+    def chromium_tuple(self, value: Any) -> Optional[tuple[str, str]]:
         """Get the Chromium key and value, or None if no value should be set."""
         if self.mapping is not None and self.mapping[value] is None:
             return None
@@ -242,7 +242,7 @@ class _Definition:
     def __init__(
             self,
             *args: _Setting,
-            mandatory: Set[str],
+            mandatory: set[str],
             prefix: str,
             switch_names: Mapping[Optional[str], str] = None,
     ) -> None:
@@ -255,7 +255,7 @@ class _Definition:
         else:
             self._switch_names = {None: _BLINK_SETTINGS}
 
-    def prefixed_settings(self) -> Iterator[Tuple[str, _Setting]]:
+    def prefixed_settings(self) -> Iterator[tuple[str, _Setting]]:
         """Get all "prepared" settings.
 
         Yields tuples which contain the Chromium setting key (e.g. 'blink-settings' or
@@ -399,7 +399,7 @@ def settings(
         *,
         versions: version.WebEngineVersions,
         special_flags: Sequence[str],
-) -> Mapping[str, Sequence[Tuple[str, str]]]:
+) -> Mapping[str, Sequence[tuple[str, str]]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine.
 
     Args:
@@ -413,12 +413,12 @@ def settings(
     variant = _variant(versions)
     log.init.debug(f"Darkmode variant: {variant.name}")
 
-    result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
+    result: Mapping[str, list[tuple[str, str]]] = collections.defaultdict(list)
 
     blink_settings_flag = f'--{_BLINK_SETTINGS}='
     for flag in special_flags:
         if flag.startswith(blink_settings_flag):
-            for pair in flag[len(blink_settings_flag):].split(','):
+            for pair in flag.removeprefix(blink_settings_flag).split(','):
                 key, val = pair.split('=', maxsplit=1)
                 result[_BLINK_SETTINGS].append((key, val))
 

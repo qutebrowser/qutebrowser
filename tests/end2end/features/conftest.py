@@ -216,22 +216,22 @@ def open_path(quteproc, server, path):
 
     while True:
         if path.endswith(new_tab_suffix):
-            path = path[:-len(new_tab_suffix)]
+            path = path.removesuffix(new_tab_suffix)
             new_tab = True
         elif path.endswith(new_bg_tab_suffix):
-            path = path[:-len(new_bg_tab_suffix)]
+            path = path.removesuffix(new_bg_tab_suffix)
             new_bg_tab = True
         elif path.endswith(new_window_suffix):
-            path = path[:-len(new_window_suffix)]
+            path = path.removesuffix(new_window_suffix)
             new_window = True
         elif path.endswith(private_suffix):
-            path = path[:-len(private_suffix)]
+            path = path.removesuffix(private_suffix)
             private = True
         elif path.endswith(as_url_suffix):
-            path = path[:-len(as_url_suffix)]
+            path = path.removesuffix(as_url_suffix)
             as_url = True
         elif path.endswith(do_not_wait_suffix):
-            path = path[:-len(do_not_wait_suffix)]
+            path = path.removesuffix(do_not_wait_suffix)
             wait = False
         else:
             break
@@ -264,7 +264,7 @@ def run_command(quteproc, server, tmpdir, command):
 
     invalid_tag = ' (invalid command)'
     if command.endswith(invalid_tag):
-        command = command[:-len(invalid_tag)]
+        command = command.removesuffix(invalid_tag)
         invalid = True
     else:
         invalid = False
@@ -639,11 +639,11 @@ def check_open_tabs(quteproc, request, tabs):
         while line.endswith(active_suffix) or line.endswith(pinned_suffix):
             if line.endswith(active_suffix):
                 # active
-                line = line[:-len(active_suffix)]
+                line = line.removesuffix(active_suffix)
                 active = True
             else:
                 # pinned
-                line = line[:-len(pinned_suffix)]
+                line = line.removesuffix(pinned_suffix)
                 pinned = True
 
         session_tab = session['windows'][0]['tabs'][i]
@@ -739,7 +739,7 @@ def set_up_fileselector(quteproc, py_proc, tmpdir, kind, files, output_type):
         tmp_file = None
         for i, arg in enumerate(sys.argv):
             if arg.startswith('--file='):
-                tmp_file = arg[len('--file='):]
+                tmp_file = arg.removeprefix('--file=')
                 sys.argv.pop(i)
                 break
         selected_files = sys.argv[1:]

@@ -10,7 +10,8 @@ import html
 import enum
 import netrc
 import tempfile
-from typing import Callable, Mapping, List, Optional, Iterable, Iterator
+from typing import Optional
+from collections.abc import Mapping, Iterable, Iterator, Callable
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 
@@ -445,7 +446,7 @@ class FileSelectionMode(enum.Enum):
     folder = enum.auto()
 
 
-def choose_file(qb_mode: FileSelectionMode) -> List[str]:
+def choose_file(qb_mode: FileSelectionMode) -> list[str]:
     """Select file(s)/folder for up-/downloading, using an external command.
 
     Args:
@@ -485,10 +486,10 @@ def choose_file(qb_mode: FileSelectionMode) -> List[str]:
 
 
 def _execute_fileselect_command(
-    command: List[str],
+    command: list[str],
     qb_mode: FileSelectionMode,
     tmpfilename: Optional[str] = None
-) -> List[str]:
+) -> list[str]:
     """Execute external command to choose file.
 
     Args:
@@ -522,7 +523,7 @@ def _execute_fileselect_command(
 
 def _validated_selected_files(
     qb_mode: FileSelectionMode,
-    selected_files: List[str],
+    selected_files: list[str],
 ) -> Iterator[str]:
     """Validates selected files if they are.
 

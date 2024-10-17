@@ -6,7 +6,8 @@
 
 import difflib
 import dataclasses
-from typing import Any, Mapping, Optional, Sequence, Union, List
+from typing import Any, Optional, Union
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.utils import usertypes, log
 
@@ -77,7 +78,7 @@ class NoOptionError(Error):
     """Raised when an option was not found."""
 
     def __init__(self, option: str, *,
-                 all_names: List[str] = None,
+                 all_names: list[str] = None,
                  deleted: bool = False,
                  renamed: str = None) -> None:
         if deleted:

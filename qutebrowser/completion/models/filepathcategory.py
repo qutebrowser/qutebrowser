@@ -14,7 +14,8 @@ is harder to achieve via pathlib.
 import glob
 import os
 import os.path
-from typing import List, Optional, Iterable
+from typing import Optional
+from collections.abc import Iterable
 
 from qutebrowser.qt.core import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
@@ -28,7 +29,7 @@ class FilePathCategory(QAbstractListModel, BaseCategory):
 
     def __init__(self, name: str, parent: QObject = None) -> None:
         super().__init__(parent)
-        self._paths: List[str] = []
+        self._paths: list[str] = []
         self.name = name
         self.columns_to_filter = [0]
 

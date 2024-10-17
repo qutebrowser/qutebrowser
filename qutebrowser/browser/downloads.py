@@ -13,7 +13,8 @@ import functools
 import pathlib
 import tempfile
 import enum
-from typing import Any, Dict, IO, List, MutableSequence, Optional, Union
+from typing import Any, IO, Optional, Union
+from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
@@ -447,7 +448,7 @@ class AbstractDownloadItem(QObject):
             UnsupportedAttribute, IO[bytes], None
         ] = UnsupportedAttribute()
         self.raw_headers: Union[
-            UnsupportedAttribute, Dict[bytes, bytes]
+            UnsupportedAttribute, dict[bytes, bytes]
         ] = UnsupportedAttribute()
 
         self._filename: Optional[str] = None
@@ -899,7 +900,7 @@ class AbstractDownloadManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.downloads: List[AbstractDownloadItem] = []
+        self.downloads: list[AbstractDownloadItem] = []
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)

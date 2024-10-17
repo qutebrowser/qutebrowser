@@ -10,7 +10,8 @@ import weakref
 import datetime
 import dataclasses
 from typing import (
-    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+    Any, Optional)
+from collections.abc import Mapping, MutableMapping, MutableSequence
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
@@ -58,10 +59,10 @@ class TabDeque:
         size = config.val.tabs.focus_stack_size
         if size < 0:
             size = None
-        self._stack: Deque[weakref.ReferenceType[browsertab.AbstractTab]] = (
+        self._stack: collections.deque[weakref.ReferenceType[browsertab.AbstractTab]] = (
             collections.deque(maxlen=size))
         # Items that have been removed from the primary stack.
-        self._stack_deleted: List[weakref.ReferenceType[browsertab.AbstractTab]] = []
+        self._stack_deleted: list[weakref.ReferenceType[browsertab.AbstractTab]] = []
         self._ignore_next = False
         self._keep_deleted_next = False
 
@@ -235,7 +236,7 @@ class TabbedBrowser(QWidget):
         self.search_text = None
         self.search_options: Mapping[str, Any] = {}
         self._local_marks: MutableMapping[QUrl, MutableMapping[str, QPoint]] = {}
-        self._global_marks: MutableMapping[str, Tuple[QPoint, QUrl]] = {}
+        self._global_marks: MutableMapping[str, tuple[QPoint, QUrl]] = {}
         self.default_window_icon = self._window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()

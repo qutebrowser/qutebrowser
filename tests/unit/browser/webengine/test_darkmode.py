@@ -4,7 +4,6 @@
 
 
 import logging
-from typing import List, Tuple
 
 import pytest
 QWebEngineSettings = pytest.importorskip("qutebrowser.qt.webenginecore").QWebEngineSettings
@@ -70,7 +69,7 @@ class TestDefinition:
     ) -> darkmode._Definition:
         return darkmode._Definition(setting1, setting2, mandatory=set(), prefix="")
 
-    def _get_settings(self, definition: darkmode._Definition) -> List[darkmode._Setting]:
+    def _get_settings(self, definition: darkmode._Definition) -> list[darkmode._Setting]:
         return [setting for _key, setting in definition.prefixed_settings()]
 
     @pytest.mark.parametrize("prefix", ["", "prefix"])
@@ -365,7 +364,7 @@ def test_customization(config_stub, setting, value, exp_key, exp_val):
     ('6.5.3', 'policy.images', 'smart', [('ImagePolicy', '2')]),
     ('6.5.3', 'policy.images', 'smart-simple', [('ImagePolicy', '2')]),
 ])
-def test_image_policy(config_stub, qtwe_version: str, setting: str, value: str, expected: List[Tuple[str, str]]):
+def test_image_policy(config_stub, qtwe_version: str, setting: str, value: str, expected: list[tuple[str, str]]):
     config_stub.val.colors.webpage.darkmode.enabled = True
     config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
 

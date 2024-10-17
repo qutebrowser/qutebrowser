@@ -40,6 +40,7 @@ def main():
         'redefined-outer-name',
         'unused-argument',
         'too-many-arguments',
+        'too-many-positional-arguments',
         # things which are okay in tests
         'missing-docstring',
         'protected-access',

@@ -2,12 +2,15 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# pylint: disable=too-many-positional-arguments
+
 """Command dispatcher for TabbedBrowser."""
 
 import os.path
 import shlex
 import functools
-from typing import cast, Callable, Dict, Union, Optional
+from typing import cast, Union, Optional
+from collections.abc import Callable
 
 from qutebrowser.qt.widgets import QApplication, QTabBar
 from qutebrowser.qt.core import Qt, QUrl, QEvent, QUrlQuery
@@ -636,7 +639,7 @@ class CommandDispatcher:
         widget = self._current_widget()
         url = self._current_url()
 
-        handlers: Dict[str, Callable[..., QUrl]] = {
+        handlers: dict[str, Callable[..., QUrl]] = {
             'prev': functools.partial(navigate.prevnext, prev=True),
             'next': functools.partial(navigate.prevnext, prev=False),
             'up': navigate.path_up,
@@ -1136,8 +1139,7 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
-                                         output_messages=output_messages,
-                                         parent=self._tabbed_browser)
+                                         output_messages=output_messages)
             if detach:
                 ok = proc.start_detached(cmd, args)
                 if not ok:

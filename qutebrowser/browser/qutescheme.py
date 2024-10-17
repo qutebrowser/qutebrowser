@@ -18,7 +18,8 @@ import textwrap
 import urllib
 import collections
 import secrets
-from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple
+from typing import TypeVar, Optional, Union
+from collections.abc import Sequence, Callable
 
 from qutebrowser.qt.core import QUrlQuery, QUrl
 
@@ -35,7 +36,7 @@ pyeval_output = ":pyeval was never called"
 csrf_token: Optional[str] = None
 
 
-_HANDLERS: Dict[str, "_HandlerCallable"] = {}
+_HANDLERS: dict[str, "_HandlerCallable"] = {}
 
 
 class Error(Exception):
@@ -77,7 +78,7 @@ class Redirect(Exception):
 
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
-_HandlerRet = Tuple[str, Union[str, bytes]]
+_HandlerRet = tuple[str, Union[str, bytes]]
 _HandlerCallable = Callable[[QUrl], _HandlerRet]
 _Handler = TypeVar('_Handler', bound=_HandlerCallable)
 
@@ -105,7 +106,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         return self._function(url)
 
 
-def data_for_url(url: QUrl) -> Tuple[str, bytes]:
+def data_for_url(url: QUrl) -> tuple[str, bytes]:
     """Get the data to show for the given URL.
 
     Args:
@@ -180,7 +181,7 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 @add_handler('tabs')
 def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
+    tabs: dict[str, list[tuple[str, str]]] = collections.defaultdict(list)
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
@@ -201,7 +202,7 @@ def qute_tabs(_url: QUrl) -> _HandlerRet:
 def history_data(
         start_time: float,
         offset: int = None
-) -> Sequence[Dict[str, Union[str, int]]]:
+) -> Sequence[dict[str, Union[str, int]]]:
     """Return history data.
 
     Arguments:

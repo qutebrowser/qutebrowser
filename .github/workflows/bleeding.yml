@@ -27,6 +27,7 @@ jobs:
         PY_COLORS: "1"
         DOCKER: "${{ matrix.image }}"
         CI: true
+        TMPDIR: "${{ runner.temp }}"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
@@ -42,6 +43,21 @@ jobs:
         if: "endsWith(matrix.image, '-qt6')"
       - name: Run tox
         run: dbus-run-session tox -e ${{ matrix.testenv }}
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-user/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
   irc:
     timeout-minutes: 2
     continue-on-error: true

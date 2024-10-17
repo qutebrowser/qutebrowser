@@ -6,7 +6,8 @@
 
 import collections
 import dataclasses
-from typing import MutableSequence, cast, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
+from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import QObject, QByteArray
 

@@ -16,7 +16,7 @@
   "Werkzeug": "https://werkzeug.palletsprojects.com/en/latest/changes/",
   "click": "https://click.palletsprojects.com/en/latest/changes/",
   "itsdangerous": "https://itsdangerous.palletsprojects.com/en/latest/changes/",
-  "parse-type": "https://github.com/jenisys/parse_type/blob/main/CHANGES.txt",
+  "parse_type": "https://github.com/jenisys/parse_type/blob/main/CHANGES.txt",
   "sortedcontainers": "https://github.com/grantjenks/python-sortedcontainers/blob/master/HISTORY.rst",
   "soupsieve": "https://facelessuser.github.io/soupsieve/about/changelog/",
   "Flask": "https://flask.palletsprojects.com/en/latest/changes/",
@@ -71,7 +71,6 @@
   "babel": "https://github.com/python-babel/babel/blob/master/CHANGES.rst",
   "alabaster": "https://alabaster.readthedocs.io/en/latest/changelog.html",
   "imagesize": "https://github.com/shibukawa/imagesize_py/commits/master",
-  "pytz": "https://mm.icann.org/pipermail/tz-announce/",
   "sphinxcontrib-applehelp": "https://www.sphinx-doc.org/en/master/changes.html",
   "sphinxcontrib-devhelp": "https://www.sphinx-doc.org/en/master/changes.html",
   "sphinxcontrib-htmlhelp": "https://www.sphinx-doc.org/en/master/changes.html",
@@ -147,9 +146,9 @@
   "jaraco.context": "https://jaracocontext.readthedocs.io/en/latest/history.html",
   "jaraco.functools": "https://jaracofunctools.readthedocs.io/en/latest/history.html",
   "jaraco.text": "https://jaracotext.readthedocs.io/en/latest/history.html",
+  "jaraco.collections": "https://jaracocollections.readthedocs.io/en/latest/history.html",
   "autocommand": "https://github.com/Lucretiel/autocommand/releases",
   "inflect": "https://inflect.readthedocs.io/en/latest/history.html",
-  "ordered-set": "https://github.com/rspeer/ordered-set/blob/master/CHANGELOG.md",
   "typeguard": "https://typeguard.readthedocs.io/en/latest/versionhistory.html",
   "backports.tarfile": "https://github.com/jaraco/backports.tarfile/blob/main/NEWS.rst",
   "pkginfo": "https://bazaar.launchpad.net/~tseaver/pkginfo/trunk/view/head:/CHANGES.txt",
@@ -168,5 +167,6 @@
   "mdurl": "https://github.com/executablebooks/mdurl/commits/master",
   "blinker": "https://blinker.readthedocs.io/en/stable/#changes",
   "exceptiongroup": "https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst",
-  "nh3": "https://github.com/messense/nh3/commits/main"
+  "nh3": "https://github.com/messense/nh3/commits/main",
+  "pillow": "https://github.com/python-pillow/Pillow/blob/main/CHANGES.rst"
 }

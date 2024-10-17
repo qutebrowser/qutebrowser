@@ -18,10 +18,15 @@ from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 pytest.register_assert_rewrite('end2end.fixtures')
 
 # pylint: disable=unused-import
+# Import fixtures that the bdd tests rely on.
 from end2end.fixtures.notificationserver import notification_server
 from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
-from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
-                                          quteproc_new)
+from end2end.fixtures.quteprocess import (
+    quteproc_process, quteproc,
+    quteproc_new,
+    screenshot_dir,
+    take_x11_screenshot,
+)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils, version
@@ -187,8 +192,8 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-        ('qt68_beta1_skip',  # WORKAROUND: Qt6.8b1 https://bugreports.qt.io/browse/QTBUG-126595
-         "Fails on Qt 6.8 beta 1",
+        ('qt68_beta4_skip',  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8242#issuecomment-2184542226
+         "Fails on Qt 6.8 beta 4",
          pytest.mark.xfail,
          machinery.IS_QT6 and version.qtwebengine_versions(
              avoid_init=True
