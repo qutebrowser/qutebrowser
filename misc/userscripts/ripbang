@@ -9,18 +9,16 @@
 #   :spawn --userscript ripbang amazon maps
 #
 
-import os, re, requests, sys
-from urllib.parse import urlparse, parse_qs
+import os, requests, sys
 
 for argument in sys.argv[1:]:
     bang = '!' + argument
-    r = requests.get('https://duckduckgo.com/',
+    r = requests.get('https://html.duckduckgo.com/html/',
+                     allow_redirects=False,
                      params={'q': bang + ' SEARCHTEXT'},
                      headers={'user-agent': 'qutebrowser ripbang'})
 
-    searchengine = re.search("url=([^']+)", r.text).group(1)
-    searchengine = urlparse(searchengine).query
-    searchengine = parse_qs(searchengine)['uddg'][0]
+    searchengine = r.headers['location']
     searchengine = searchengine.replace('SEARCHTEXT', '{}')
 
     if os.getenv('QUTE_FIFO'):
