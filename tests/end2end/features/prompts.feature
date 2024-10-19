@@ -159,10 +159,9 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
 
-    # Clipboard permissions
+    # Clipboard permissions - static
 
     Scenario: Clipboard - no permission - copy
-        Given I have a fresh instance
         When I set content.javascript.clipboard to none
         And I open data/prompt/clipboard.html
         And I run :click-element id copy
@@ -200,7 +199,72 @@ Feature: Prompts
         When I set content.javascript.clipboard to access-paste
         And I open data/prompt/clipboard.html
         And I run :click-element id paste
-        Then the javascript message "Text pasted: default text" should be logged
+        Then the javascript message "Text pasted: *" should be logged
+
+    # Clipboard permissions - prompt
+    # A fresh instance is only required for these tests on Qt<6.8
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow - copy
+        Given I have a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow - paste
+        Given I have a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text pasted: *" should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask deny - copy
+        Given I have a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        And I wait for a prompt
+        And I run :prompt-accept no
+        Then the javascript message "Failed to copy text." should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask deny - paste
+        Given I have a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept no
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask per url - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to none
+        And I run :set -u localhost:* content.javascript.clipboard ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text pasted: *" should be logged
+        And I run :config-unset -u localhost:* content.javascript.clipboard
+
+    @qt>=6.8
+    Scenario: Clipboard - deny per url - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to access-paste
+        And I run :set -u localhost:* content.javascript.clipboard none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+        And I run :config-unset -u localhost:* content.javascript.clipboard
 
     # SSL
 

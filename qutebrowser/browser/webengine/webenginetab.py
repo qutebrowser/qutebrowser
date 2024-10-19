@@ -886,6 +886,8 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
         QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
         QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
+        # 8 == ClipboardReadWrite, new in 6.8
+        QWebEnginePage.Feature(8): 'content.javascript.clipboard',
     }
 
     _messages = {
@@ -897,6 +899,7 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
         QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
         QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
+        QWebEnginePage.Feature(8): 'read and write your clipboard',
     }
 
     def __init__(self, tab, parent=None):

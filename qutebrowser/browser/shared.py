@@ -328,10 +328,20 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 cancel_action=no_action, abort_on=abort_on,
                 title='Permission request', text=text, url=urlstr,
                 option=option)
-    elif config_val:
+    elif config_val is True:
         yes_action()
         return None
+    elif config_val is False:
+        no_action()
+        return None
     else:
+        if option not in {
+            "content.javascript.clipboard"  # String type option with 'ask' value
+        }:
+            log.misc.warning(
+                f"Unsupported value for permission prompt setting ({option}), expected boolean or "
+                f"'ask', got: {config_val} ({type(config_val)})"
+            )
         no_action()
         return None
 

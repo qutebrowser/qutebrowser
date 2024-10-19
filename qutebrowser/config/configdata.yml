@@ -930,6 +930,7 @@ content.javascript.clipboard:
       - none: Disable access to clipboard.
       - access: Allow reading from and writing to the clipboard.
       - access-paste: Allow accessing the clipboard and pasting clipboard content.
+      - ask: Prompt when requested - grants 'access-paste' permission
   supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
