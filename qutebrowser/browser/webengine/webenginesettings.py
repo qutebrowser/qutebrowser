@@ -351,7 +351,7 @@ class ProfileSetter:
         pyqt_version = utils.VersionNumber.parse(version.PYQT_WEBENGINE_VERSION_STR)
         if pyqt_version >= utils.VersionNumber(6, 8):
             self._profile.setPersistentPermissionsPolicy(
-                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime
+                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime  # type: ignore[attr-defined]
             )
 
 
