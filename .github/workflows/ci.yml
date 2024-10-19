@@ -100,6 +100,9 @@ jobs:
           - testenv: py
             image: archlinux-webengine-qt6
           - testenv: py
+            image: archlinux-webengine-qt6
+            patch: true
+          - testenv: py
             image: archlinux-webengine-unstable-qt6
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
@@ -118,6 +121,25 @@ jobs:
           persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
+      - name: Apply pyqt patches
+        if: matrix.patch
+        run: |
+          qt_ver="$(pacman -Q qt6-webengine | cut -d' ' -f2)"
+          pyqt_ver="$(python -c 'import PyQt6.QtWebEngineCore; print(PyQt6.QtWebEngineCore.PYQT_WEBENGINE_VERSION_STR)')"
+          if [[ "$qt_ver" =~ ^6.8.* ]] && [[ "$pyqt_ver" =~ 6.7.* ]] ;then
+            # Scrape pypi.org for the source link since pip isn't capable of downloading
+            # source without also building a wheel.
+            # # Parsing: '<a href="https://files.pythonhosted.org/..." data-requires-python="&gt;=3.8" >PyQt6_WebEngine-6.7.0.tar.gz</a><br />
+            href="$(curl "https://pypi.org/simple/pyqt6-webengine/" | grep tar.gz | tail -n1 | cut -d'"' -f2)"
+            curl -LO "$href"
+            tar -xaf PyQt6_WebEngine-*.tar.gz
+            cd PyQt6_WebEngine-*/
+            git apply /home/runner/work/misc/pyqt_patches/6.8_persistant_permissions_minimal.patch
+            sip-build --no-make --jobs 2 --qmake "$(command -v qmake6)"
+            cd build
+            make -j8
+            make install
+          fi
       - name: Run tox
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
       - name: Gather info

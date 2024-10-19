@@ -1,0 +1,33 @@
+diff -ur a/sip/QtWebEngineCore/QtWebEngineCoremod.sip b/sip/QtWebEngineCore/QtWebEngineCoremod.sip
+--- a/sip/QtWebEngineCore/QtWebEngineCoremod.sip      2024-04-21 04:04:26.392469400 +1200
++++ b/sip/QtWebEngineCore/QtWebEngineCoremod.sip  2024-10-19 13:05:20.701153903 +1300
+@@ -54,8 +54,8 @@
+ const char *PYQT_WEBENGINE_VERSION_STR;
+
+ %ModuleCode
+-static int PYQT_WEBENGINE_VERSION = 0x060700;
+-static const char *PYQT_WEBENGINE_VERSION_STR = "6.7.0";
++static int PYQT_WEBENGINE_VERSION = 0x060800;
++static const char *PYQT_WEBENGINE_VERSION_STR = "6.8.0";
+ %End
+
+ %Include qtwebenginecoreglobal.sip
+diff -ur a/sip/QtWebEngineCore/qwebengineprofile.sip b/sip/QtWebEngineCore/qwebengineprofile.sip
+--- a/sip/QtWebEngineCore/qwebengineprofile.sip       2024-04-21 04:04:26.388211700 +1200
++++ b/sip/QtWebEngineCore/qwebengineprofile.sip   2024-08-11 21:12:11.538660187 +1200
+@@ -89,6 +89,15 @@
+         NoCache,
+     };
+
++    enum class PersistentPermissionsPolicy
++    {
++        AskEveryTime,
++        StoreInMemory,
++        StoreOnDisk,
++    };
++    void setPersistentPermissionsPolicy(QWebEngineProfile::PersistentPermissionsPolicy newPersistentPermissionsPolicy);
++    QWebEngineProfile::PersistentPermissionsPolicy persistentPermissionsPolicy() const;
++
+     enum PersistentCookiesPolicy
+     {
+         NoPersistentCookies,
