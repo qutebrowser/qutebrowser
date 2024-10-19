@@ -216,6 +216,10 @@ class WebEngineSettings(websettings.AbstractSettings):
             QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: True,
             QWebEngineSettings.WebAttribute.JavascriptCanPaste: True,
         },
+        'ask': {
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: False,
+            QWebEngineSettings.WebAttribute.JavascriptCanPaste: False,
+        },
     }
 
     def set_unknown_url_scheme_policy(
