@@ -159,6 +159,49 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
 
+    # Clipboard permissions
+
+    Scenario: Clipboard - no permission - copy
+        Given I have a fresh instance
+        When I set content.javascript.clipboard to none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Failed to copy text." should be logged
+
+    Scenario: Clipboard - no permission - paste
+        When I set content.javascript.clipboard to none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    # access permission no longer allows copy permission on 6.8 because it
+    # falls back to a permission prompt that we don't support
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-130599
+    @qt<6.8
+    Scenario: Clipboard - access permission - copy
+        When I set content.javascript.clipboard to access
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Text copied: default text" should be logged
+
+    Scenario: Clipboard - access permission - paste
+        When I set content.javascript.clipboard to access
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    Scenario: Clipboard - full permission - copy
+        When I set content.javascript.clipboard to access-paste
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Text copied: default text" should be logged
+
+    Scenario: Clipboard - full permission - paste
+        When I set content.javascript.clipboard to access-paste
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Text pasted: default text" should be logged
+
     # SSL
 
     Scenario: SSL error with content.tls.certificate_errors = load-insecurely
