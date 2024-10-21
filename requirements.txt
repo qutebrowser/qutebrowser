@@ -3,7 +3,7 @@
 adblock==0.6.0
 colorama==0.4.6
 Jinja2==3.1.4
-MarkupSafe==3.0.1
+MarkupSafe==3.0.2
 Pygments==2.18.0
 PyYAML==6.0.2
 # Unpinned due to recompile_requirements.py limitations
