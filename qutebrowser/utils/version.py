@@ -539,19 +539,21 @@ class WebEngineVersions:
     chromium_security: Optional[str] = None
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
+    # Dates based on https://chromium.googlesource.com/chromium/src/+refs
     _BASES: ClassVar[dict[int, str]] = {
-        83: '83.0.4103.122',  # ~2020-06-24
-        87: '87.0.4280.144',  # ~2020-12-02
-        90: '90.0.4430.228',  # 2021-06-22
-        94: '94.0.4606.126',  # 2021-11-17
-        102: '102.0.5005.177',  # ~2022-05-24
+        83: '83.0.4103.122',  # 2020-06-27, Qt 5.15.2
+        87: '87.0.4280.144',  # 2021-01-08, Qt 5.15
+        90: '90.0.4430.228',  # 2021-06-22, Qt 6.2
+        94: '94.0.4606.126',  # 2021-11-17, Qt 6.3
+        102: '102.0.5005.177',  # 2022-09-01, Qt 6.4
         # (.220 claimed by code, .181 claimed by CHROMIUM_VERSION)
-        108: '108.0.5359.220',  # ~2022-12-23
-        112: '112.0.5615.213',  # ~2023-04-18
-        118: '118.0.5993.220',  # ~2023-10-24
-        122: '122.0.6261.171',  # ~2024-??-??
+        108: '108.0.5359.220',  # 2023-01-27, Qt 6.5
+        112: '112.0.5615.213',  # 2023-05-24, Qt 6.6
+        118: '118.0.5993.220',  # 2024-01-25, Qt 6.7
+        122: '122.0.6261.171',  # 2024-04-15, Qt 6.8
     }
 
+    # Dates based on https://chromereleases.googleblog.com/
     _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
         # ====== UNSUPPORTED =====
 
