@@ -34,7 +34,10 @@ RUN pacman -Su --noconfirm \
     ttf-bitstream-vera \
     gcc \
     libyaml \
-    xorg-xdpyinfo
+    xorg-xdpyinfo \
+    make \
+    pyqt-builder \
+    sip
 
 RUN useradd user -u 1001 && \
     mkdir /home/user && \
