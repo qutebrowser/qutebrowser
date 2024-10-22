@@ -350,12 +350,8 @@ def apply_fake_os(monkeypatch, request):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on CI.
-
-    Not available yet with a nightly Python, see:
-    https://github.com/yaml/pyyaml/issues/630
-    """
-    if testutils.ON_CI and sys.version_info[:2] != (3, 11):
+    """Make sure PyYAML C extensions are available on CI."""
+    if testutils.ON_CI:
         from yaml import CLoader  # pylint: disable=unused-import
 
 
