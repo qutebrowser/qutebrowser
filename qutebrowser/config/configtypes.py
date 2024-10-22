@@ -2017,3 +2017,51 @@ class StatusbarWidget(String):
         if value.startswith("text:") or value.startswith("clock:"):
             return
         super()._validate_valid_values(value)
+
+
+ConfigType = Union[
+    MappingType,
+    String,
+    UniqueCharString,
+    List,
+    ListOrValue,
+    FlagList,
+    Bool,
+    BoolAsk,
+    Int,
+    Float,
+    Perc,
+    PercOrInt,
+    Command,
+    ColorSystem,
+    IgnoreCase,
+    QtColor,
+    QssColor,
+    Font,
+    FontFamily,
+    Regex,
+    Dict,
+    File,
+    Directory,
+    FormatString,
+    ShellCommand,
+    Proxy,
+    SearchEngineUrl,
+    FuzzyUrl,
+    Padding,
+    Encoding,
+    Position,
+    TextAlignment,
+    ElidePosition,
+    VerticalPosition,
+    Url,
+    SessionName,
+    SelectOnRemove,
+    ConfirmQuit,
+    NewTabPosition,
+    LogLevel,
+    Key,
+    UrlPattern,
+    StatusbarWidget
+]
+"""A union of all possible parsed config types."""
