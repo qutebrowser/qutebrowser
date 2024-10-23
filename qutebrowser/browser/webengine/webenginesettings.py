@@ -26,7 +26,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version)
+                               urlmatch, usertypes, objreg, version, utils)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -216,6 +216,10 @@ class WebEngineSettings(websettings.AbstractSettings):
             QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: True,
             QWebEngineSettings.WebAttribute.JavascriptCanPaste: True,
         },
+        'ask': {
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: False,
+            QWebEngineSettings.WebAttribute.JavascriptCanPaste: False,
+        },
     }
 
     def set_unknown_url_scheme_policy(
@@ -281,6 +285,7 @@ class ProfileSetter:
         self._set_hardcoded_settings()
         self.set_persistent_cookie_policy()
         self.set_dictionary_language()
+        self.disable_persistent_permissions_policy()
 
     def _set_hardcoded_settings(self):
         """Set up settings with a fixed value."""
@@ -345,6 +350,14 @@ class ProfileSetter:
         self._profile.setSpellCheckLanguages(filenames)
         self._profile.setSpellCheckEnabled(bool(filenames))
 
+    def disable_persistent_permissions_policy(self):
+        """Disable webengine's permission persistence."""
+        pyqt_version = utils.VersionNumber.parse(version.PYQT_WEBENGINE_VERSION_STR)
+        if pyqt_version >= utils.VersionNumber(6, 8):
+            self._profile.setPersistentPermissionsPolicy(
+                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime  # type: ignore[attr-defined]
+            )
+
 
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
@@ -392,6 +405,26 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     _global_settings.init_settings()
 
 
+def _clear_webengine_permissions_json():
+    """Remove QtWebEngine's persistent permissions file, if present.
+
+    We have our own permissions feature and don't integrate with their one.
+    This only needs to be called when you are on Qt6.8 but PyQt<6.8, since if
+    we have access to the `setPersistentPermissionsPolicy()` we will use that
+    to disable the Qt feature.
+    This needs to be called before we call `setPersistentStoragePath()`
+    because Qt will load the file during that.
+    """
+    permissions_file = pathlib.Path(standarddir.data()) / "webengine" / "permissions.json"
+    if permissions_file.exists():
+        try:
+            permissions_file.unlink()
+        except OSError as err:
+            log.init.warning(
+                f"Error while cleaning up webengine permissions file: {err}"
+            )
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
@@ -414,6 +447,7 @@ def _init_default_profile():
             f"  Early version: {non_ua_version}\n"
             f"  Real version:  {ua_version}")
 
+    _clear_webengine_permissions_json()
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
