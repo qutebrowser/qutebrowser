@@ -162,12 +162,14 @@ Feature: Various utility commands.
         And I run :debug-webaction Back
         And I wait until data/backforward/1.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
+            """
 
     Scenario: :debug-webaction with invalid value
         When I open data/hello.txt
@@ -212,8 +214,10 @@ Feature: Various utility commands.
         And I open redirect-later-continue in a new tab
         And I wait 1s
         Then the unordered requests should be:
+            """
             redirect-later-continue
             redirect-later?delay=-1
+            """
         # no request on / because we stopped the redirect
 
     Scenario: :stop with wrong count
@@ -227,8 +231,10 @@ Feature: Various utility commands.
         And I run :reload
         And I wait until data/reload.txt is loaded
         Then the requests should be:
+            """
             data/reload.txt
             data/reload.txt
+            """
 
     Scenario: :reload with force
         When I open headers
@@ -251,6 +257,7 @@ Feature: Various utility commands.
         When I run :tab-only
         And I run :view-source
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -258,6 +265,7 @@ Feature: Various utility commands.
                   url: http://localhost:*/data/hello.txt
               - active: true
                 history: []
+            """
         And the page should contain the html "/* Literal.Number.Integer */"
 
     # Flaky due to :view-source being async?
@@ -438,11 +446,13 @@ Feature: Various utility commands.
         And I wait for "Closing window *" in the log
         And I wait for "removed: main-window" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
                 history:
                 - url: http://localhost:*/data/hello3.txt
+            """
 
     ## :click-element
 
@@ -467,8 +477,10 @@ Feature: Various utility commands.
         And I run :click-element id link --target=tab
         Then data/hello.txt should be loaded
         And the following tabs should be open:
+            """
             - data/click_element.html
             - data/hello.txt (active)
+            """
 
     Scenario: Clicking an element by CSS selector
         When I open data/click_element.html

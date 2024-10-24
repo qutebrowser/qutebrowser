@@ -53,8 +53,10 @@ Feature: Caret mode
         And I run :selection-follow --tab
         Then data/hello.txt should be loaded
         And the following tabs should be open:
+            """
             - data/caret.html
             - data/hello.txt (active)
+            """
 
     Scenario: :selection-follow with --tab (without JS)
         When I set content.javascript.enabled to false
@@ -65,8 +67,10 @@ Feature: Caret mode
         And I run :selection-follow --tab
         Then data/hello.txt should be loaded
         And the following tabs should be open:
+            """
             - data/caret.html
             - data/hello.txt
+            """
 
     @flaky
     Scenario: :selection-follow with link tabbing (without JS)

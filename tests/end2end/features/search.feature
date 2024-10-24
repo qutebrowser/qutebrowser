@@ -344,8 +344,10 @@ Feature: Searching on a page
         And I run :selection-follow -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/search.html
             - data/hello.txt (active)
+            """
 
     Scenario: Don't follow searched text
         When I run :window-only
@@ -374,8 +376,10 @@ Feature: Searching on a page
         And I run :selection-follow -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/search.html
             - data/hello.txt (active)
+            """
 
     @qtwebkit_skip: Not supported in qtwebkit @skip
     Scenario: Follow a searched link in an iframe
@@ -397,8 +401,10 @@ Feature: Searching on a page
         And I run :selection-follow -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/iframe_search.html
             - data/hello.txt (active)
+            """
 
     Scenario: Closing a tab during a search
         When I run :open -b about:blank
