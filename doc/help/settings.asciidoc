@@ -3693,6 +3693,19 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[input.better_input_detection]]
+=== input.better_input_detection
+Use experimental better input detection.
+
+Try setting this to `true` if
+you sometimes click into input elements in a web page and qutebrowser doesn't automatically switch to input mode.
+
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[keyhint.blacklist]]
 === keyhint.blacklist
 Keychains that shouldn't be shown in the keyhint dialog.
