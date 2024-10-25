@@ -36,6 +36,7 @@ import functools
 import operator
 import json
 import dataclasses
+from abc import abstractmethod
 from typing import Any, Optional, Union
 from re import Pattern
 from collections.abc import Iterable, Iterator, Sequence, Callable
@@ -130,6 +131,13 @@ class ValidValues:
             self.values.append(val)
             if desc is not None:
                 self.descriptions[val] = desc
+
+    def py_type(self) -> str:
+        """Generate a `Literal` Python type annotation for the valid values."""
+        typ = f'Literal[{", ".join(repr(k) for k in self.values)}]'
+        if self.others_permitted:
+            return f'Union[{typ}, str]'
+        return typ
 
     def __contains__(self, val: str) -> bool:
         return val in self.values
@@ -294,6 +302,21 @@ class BaseType:
         """
         raise NotImplementedError
 
+    def py_type(self) -> str:
+        """Generate a Python type annotation for this type."""
+        typ = self.valid_values.py_type() if self.valid_values else self._py_type()
+        if self.none_ok:
+            return f'Optional[{typ}]'
+        return typ
+
+    @abstractmethod
+    def _py_type(self) -> str:
+        """An internal version of `.py_type()` so that we don't have to handle `None` everywhere.
+
+        This must be implemented by all subclasses of `BaseType`.
+        """
+        raise NotImplementedError
+
     def to_str(self, value: Any) -> str:
         """Get a string from the setting value.
 
@@ -356,6 +379,9 @@ class MappingType(BaseType):
         self.valid_values = ValidValues(
             *[(key, doc) for (key, (_val, doc)) in self.MAPPING.items()])
 
+    def _py_type(self) -> str:
+        return f'Literal[{", ".join(repr(k) for k in self.MAPPING)}]'
+
     def to_py(self, value: Any) -> Any:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -412,6 +438,9 @@ class String(BaseType):
         self.forbidden = forbidden
         self.encoding = encoding
         self.regex = regex
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -487,6 +516,9 @@ class List(BaseType):
         super().__init__(none_ok=none_ok, completions=completions)
         self.valtype = valtype
         self.length = length
+
+    def _py_type(self) -> str:
+        return f'list[{self.valtype.py_type()}]'
 
     def get_name(self) -> str:
         name = super().get_name()
@@ -585,6 +617,9 @@ class ListOrValue(BaseType):
         assert not isinstance(valtype, (List, ListOrValue)), valtype
         self.listtype = List(valtype=valtype, none_ok=none_ok, **kwargs)
         self.valtype = valtype
+
+    def _py_type(self) -> str:
+        return f'Union[{self.valtype.py_type()}, {self.listtype.py_type()}]'
 
     def _val_and_type(self, value: Any) -> tuple[Any, BaseType]:
         """Get the value and type to use for to_str/to_doc/from_str."""
@@ -726,6 +761,15 @@ class Bool(BaseType):
         super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
+    def py_type(self) -> str:
+        typ = self._py_type()
+        if self.none_ok:
+            return f'Optional[{typ}]'
+        return typ
+
+    def _py_type(self) -> str:
+        return 'bool'
+
     def to_py(self, value: Union[bool, str, None]) -> Optional[bool]:
         self._basic_py_validation(value, bool)
         assert not isinstance(value, str)
@@ -761,6 +805,9 @@ class BoolAsk(Bool):
     ) -> None:
         super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues('true', 'false', 'ask')
+
+    def _py_type(self) -> str:
+        return "Union[bool, Literal['ask']]"
 
     def to_py(self,  # type: ignore[override]
               value: Union[bool, str]) -> Union[bool, str, None]:
@@ -858,6 +905,9 @@ class Int(_Numeric):
 
     """Base class for an integer setting."""
 
+    def _py_type(self) -> str:
+        return 'int'
+
     def from_str(self, value: str) -> Optional[int]:
         self._basic_str_validation(value)
         if not value:
@@ -879,6 +929,9 @@ class Int(_Numeric):
 class Float(_Numeric):
 
     """Base class for a float setting."""
+
+    def _py_type(self) -> str:
+        return 'float'
 
     def from_str(self, value: str) -> Optional[float]:
         self._basic_str_validation(value)
@@ -904,6 +957,9 @@ class Float(_Numeric):
 class Perc(_Numeric):
 
     """A percentage."""
+
+    def _py_type(self) -> str:
+        return 'Union[float, int, str]'
 
     def to_py(
             self,
@@ -967,6 +1023,9 @@ class PercOrInt(_Numeric):
             raise ValueError("minperc ({}) needs to be <= maxperc "
                              "({})!".format(self.minperc, self.maxperc))
 
+    def _py_type(self) -> str:
+        return 'Union[int, str]'
+
     def from_str(self, value: str) -> Union[None, str, int]:
         self._basic_str_validation(value)
         if not value:
@@ -1029,6 +1088,9 @@ class Command(BaseType):
     invalid commands (in bindings/aliases) fail when used.
     """
 
+    def _py_type(self) -> str:
+        return 'str'
+
     def complete(self) -> _Completions:
         if self._completions is not None:
             return self._completions
@@ -1082,6 +1144,9 @@ class QtColor(BaseType):
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     """
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def _parse_value(self, kind: str, val: str) -> int:
         try:
@@ -1157,6 +1222,9 @@ class QssColor(BaseType):
       under ``Gradient''
     """
 
+    def _py_type(self) -> str:
+        return 'str'
+
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1199,6 +1267,9 @@ class FontBase(BaseType):
             )\           # size/weight/style are space-separated
         )*               # 0-inf size/weight/style tags
         (?P<family>.+)  # mandatory font family""", re.VERBOSE)
+
+    def _py_type(self) -> str:
+        return 'str'
 
     @classmethod
     def set_defaults(cls, default_family: list[str], default_size: str) -> None:
@@ -1302,6 +1373,9 @@ class Regex(BaseType):
                 operator.or_,
                 (getattr(re, flag.strip()) for flag in flags.split(' | ')))
 
+    def _py_type(self) -> str:
+        return 'Union[str, re.Pattern[str]]'
+
     def _compile_regex(self, pattern: str) -> Pattern[str]:
         """Check if the given regex is valid.
 
@@ -1373,6 +1447,9 @@ class Dict(BaseType):
         self.valtype = valtype
         self.fixed_keys = fixed_keys
         self.required_keys = required_keys
+
+    def _py_type(self) -> str:
+        return f"Mapping[{self.keytype.py_type()}, {self.valtype.py_type()}]"
 
     def _validate_keys(self, value: dict) -> None:
         if (self.fixed_keys is not None and not
@@ -1473,6 +1550,9 @@ class File(BaseType):
         super().__init__(none_ok=none_ok, completions=completions)
         self.required = required
 
+    def _py_type(self) -> str:
+        return 'str'
+
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1504,6 +1584,9 @@ class File(BaseType):
 class Directory(BaseType):
 
     """A directory on the local filesystem."""
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -1548,6 +1631,9 @@ class FormatString(BaseType):
         self.fields = fields
         self.encoding = encoding
         self._completions = completions
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -1632,6 +1718,11 @@ class Proxy(BaseType):
             others_permitted=True,
         )
 
+    def _py_type(self) -> str:
+        # this should always be set as it is assigned in __init__
+        assert self.valid_values is not None
+        return f'Union[{self.valid_values.py_type()}, str]'
+
     def to_py(
             self,
             value: _StrUnset
@@ -1678,6 +1769,9 @@ class SearchEngineUrl(BaseType):
 
     """A search engine URL."""
 
+    def _py_type(self) -> str:
+        return 'str'
+
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1707,6 +1801,9 @@ class SearchEngineUrl(BaseType):
 class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(self, value: _StrUnset) -> Union[QUrl, _UnsetNone]:
         self._basic_py_validation(value, str)
@@ -1765,6 +1862,9 @@ class Padding(Dict):
 class Encoding(BaseType):
 
     """Setting for a python encoding."""
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -1831,6 +1931,9 @@ class Url(BaseType):
 
     """A URL as a string."""
 
+    def _py_type(self) -> str:
+        return 'str'
+
     def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QUrl]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1848,6 +1951,9 @@ class Url(BaseType):
 class SessionName(BaseType):
 
     """The name of a session."""
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -1965,6 +2071,9 @@ class Key(BaseType):
         """Make sure key sequences are always normalized."""
         return str(keyutils.KeySequence.parse(value))
 
+    def _py_type(self) -> str:
+        return 'str'
+
     def to_py(
             self,
             value: _StrUnset
@@ -1989,6 +2098,9 @@ class UrlPattern(BaseType):
     https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
     for the allowed syntax.
     """
+
+    def _py_type(self) -> str:
+        return 'str'
 
     def to_py(
             self,
