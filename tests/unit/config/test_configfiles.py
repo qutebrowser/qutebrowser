@@ -1008,6 +1008,28 @@ class TestConfigPy:
                      'assert directory.exists()')
         confpy.read()
 
+    def test_c_import(self, confpy):
+        confpy.write('from qutebrowser.api.configpy import c',
+                     'c.colors.hints.bg = "red"')
+        confpy.read()
+        assert config.instance.get_obj('colors.hints.bg') == 'red'
+
+    def test_config_import(self, confpy):
+        confpy.write('from qutebrowser.api.configpy import config',
+                     'config.set("colors.hints.bg", "red")')
+        confpy.read()
+        assert config.instance.get_obj('colors.hints.bg') == 'red'
+
+    def test_c_import_id(self, confpy):
+        confpy.write('from qutebrowser.api import configpy',
+                     'assert configpy.c is c')
+        confpy.read()
+
+    def test_config_import_id(self, confpy):
+        confpy.write('from qutebrowser.api import configpy',
+                     'assert configpy.config is config')
+        confpy.read()
+
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',
         'config.set("colors.hints.bg", "red")',
@@ -1426,6 +1448,8 @@ class TestConfigPyWriter:
             # Documentation:
             #   qute://help/configuring.html
             #   qute://help/settings.html
+
+            from qutebrowser.api.configpy import c, config
 
             # Change the argument to True to still load settings configured via autoconfig.yml
             config.load_autoconfig(False)

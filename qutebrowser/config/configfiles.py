@@ -21,12 +21,14 @@ import yaml
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
+from qutebrowser.api import configpy
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
 
 if TYPE_CHECKING:
+    from qutebrowser.config.configcontainer_types import ConfigContainer
     from qutebrowser.misc import savemanager
 
 
@@ -860,6 +862,8 @@ class ConfigPyWriter:
         yield self._line("#   qute://help/configuring.html")
         yield self._line("#   qute://help/settings.html")
         yield ''
+        yield 'from qutebrowser.api.configpy import c, config'
+        yield ''
         if self._commented:
             # When generated from an autoconfig.yml with commented=False,
             # we don't want to load that autoconfig.yml anymore.
@@ -950,8 +954,13 @@ def read_config_py(
         config.key_instance,
         warn_autoconfig=warn_autoconfig,
     )
+
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
+
+    # used for `from qutebrowser.api.configpy import c, config`
+    configpy.config = api
+    configpy.c = cast('ConfigContainer', container)
 
     module = types.ModuleType('config')
     module.config = api  # type: ignore[attr-defined]

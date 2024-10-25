@@ -57,15 +57,7 @@ def generate_config_types(config_data: Mapping[str, Option]) -> Iterator[str]:
 
             Example usage:
             ```py
-            from typing import TYPE_CHECKING, cast
-
-            if TYPE_CHECKING:
-                from qutebrowser.config.configfiles import ConfigAPI
-                from qutebrowser.config.configcontainer import ConfigContainer
-
-                # note: these expressions aren't executed at runtime
-                c = cast(ConfigContainer, ...)
-                config = cast(ConfigAPI, ...)
+            from qutebrowser.api.configpy import c, config
             ```
         """).lstrip()
     )

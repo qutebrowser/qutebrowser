@@ -18,9 +18,13 @@ from qutebrowser.utils import utils, log, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
+# alias to the generated type for back-compat
+from qutebrowser.config.configcontainer_types import ConfigContainer  # pylint: disable=unused-import
+
 if TYPE_CHECKING:
     from qutebrowser.config import configcache, configfiles
     from qutebrowser.misc import savemanager
+
 
 # An easy way to access the config from other code via config.val.foo
 val = cast('ConfigContainer', None)
