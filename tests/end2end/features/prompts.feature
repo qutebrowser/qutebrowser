@@ -206,7 +206,7 @@ Feature: Prompts
 
     @qt>=6.8
     Scenario: Clipboard - ask allow - copy
-        Given I have a fresh instance
+        Given I may need a fresh instance
         When I set content.javascript.clipboard to ask
         And I open data/prompt/clipboard.html
         And I run :click-element id copy
@@ -216,7 +216,7 @@ Feature: Prompts
 
     @qt>=6.8
     Scenario: Clipboard - ask allow - paste
-        Given I have a fresh instance
+        Given I may need a fresh instance
         When I set content.javascript.clipboard to ask
         And I open data/prompt/clipboard.html
         And I run :click-element id paste
@@ -226,7 +226,7 @@ Feature: Prompts
 
     @qt>=6.8
     Scenario: Clipboard - ask deny - copy
-        Given I have a fresh instance
+        Given I may need a fresh instance
         When I set content.javascript.clipboard to ask
         And I open data/prompt/clipboard.html
         And I run :click-element id copy
@@ -236,7 +236,7 @@ Feature: Prompts
 
     @qt>=6.8
     Scenario: Clipboard - ask deny - paste
-        Given I have a fresh instance
+        Given I may need a fresh instance
         When I set content.javascript.clipboard to ask
         And I open data/prompt/clipboard.html
         And I run :click-element id paste
@@ -358,8 +358,8 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
-    @qt68_no_permission_api
     Scenario: geolocation with ask -> false
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -367,8 +367,8 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "geolocation permission denied" should be logged
 
-    @qt68_no_permission_api
     Scenario: geolocation with ask -> false and save
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -377,8 +377,8 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
         And the per-domain option content.geolocation should be set to false for http://localhost:(port)
 
-    @qt68_no_permission_api
     Scenario: geolocation with ask -> abort
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
