@@ -789,12 +789,12 @@ class ConfigAPI:
             self.errors += e.errors
 
     @contextlib.contextmanager
-    def pattern(self, pattern: str) -> Iterator[config.ConfigContainer]:
+    def pattern(self, pattern: str) -> Iterator[config.ConfigContainerInternal]:
         """Get a ConfigContainer for the given pattern."""
         # We need to propagate the exception so we don't need to return
         # something.
         urlpattern = urlmatch.UrlPattern(pattern)
-        container = config.ConfigContainer(config=self._config, configapi=self,
+        container = config.ConfigContainerInternal(config=self._config, configapi=self,
                                            pattern=urlpattern)
         yield container
 
@@ -955,7 +955,7 @@ def read_config_py(
         warn_autoconfig=warn_autoconfig,
     )
 
-    container = config.ConfigContainer(config.instance, configapi=api)
+    container = config.ConfigContainerInternal(config.instance, configapi=api)
     basename = os.path.basename(filename)
 
     # used for `from qutebrowser.api.configpy import c, config`

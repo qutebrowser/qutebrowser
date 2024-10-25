@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 # An easy way to access the config from other code via config.val.foo
-val = cast('ConfigContainer', None)
+val = cast('ConfigContainerInternal', None)
 instance = cast('Config', None)
 key_instance = cast('KeyConfig', None)
 cache = cast('configcache.ConfigCache', None)
@@ -568,7 +568,7 @@ class Config(QObject):
         return '\n'.join(lines)
 
 
-class ConfigContainer:
+class ConfigContainerInternal:
 
     """An object implementing config access via __getattr__.
 
@@ -606,9 +606,9 @@ class ConfigContainer:
             text = f"While {action}"
             self._configapi.errors.append(configexc.ConfigErrorDesc(text, e))
 
-    def _with_prefix(self, prefix: str) -> 'ConfigContainer':
+    def _with_prefix(self, prefix: str) -> 'ConfigContainerInternal':
         """Get a new ConfigContainer for the given prefix."""
-        return ConfigContainer(
+        return ConfigContainerInternal(
             config=self._config,
             configapi=self._configapi,
             pattern=self._pattern,
