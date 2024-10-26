@@ -923,7 +923,7 @@ content.javascript.alert:
   desc: Show javascript alerts.
 
 content.javascript.clipboard:
-  default: none
+  default: ask
   type:
     name: String
     valid_values:

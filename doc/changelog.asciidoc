@@ -35,6 +35,11 @@ Added
 - **Planned:** Full support for Python 3.13, with Windows/macOS binaries using
   it if possible.
 
+Changed
+~~~~~~~
+
+- The `content.javascript.clipboard` setting now defaults to "ask".
+
 
 [[v3.3.1]]
 v3.3.1 (2024-10-12)
