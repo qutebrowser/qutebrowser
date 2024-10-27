@@ -5,7 +5,8 @@
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
 import os
-from typing import Iterable, Optional, MutableMapping, Any, Callable
+from typing import Optional, Any
+from collections.abc import Iterable, MutableMapping, Callable
 
 from qutebrowser.qt.widgets import QApplication, QLineEdit
 

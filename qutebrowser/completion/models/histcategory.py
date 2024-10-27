@@ -12,10 +12,10 @@ from qutebrowser.qt.widgets import QWidget
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log
 from qutebrowser.config import config
-from qutebrowser.completion.models import util
+from qutebrowser.completion.models import util, BaseCategory
 
 
-class HistoryCategory(QSqlQueryModel):
+class HistoryCategory(QSqlQueryModel, BaseCategory):
 
     """A completion category that queries the SQL history store."""
 

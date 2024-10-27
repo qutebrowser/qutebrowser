@@ -9,8 +9,8 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
-    MutableMapping)
+    TYPE_CHECKING, Any, Optional, Union)
+from collections.abc import Iterator, Sequence, MutableMapping
 
 from qutebrowser.qt.core import QUrl
 from qutebrowser.qt.gui import QFontDatabase
@@ -78,8 +78,8 @@ class Values:
         self._vmap: MutableMapping[
             Values._VmapKeyType, ScopedValue] = collections.OrderedDict()
         # A map from domain parts to rules that fall under them.
-        self._domain_map: Dict[
-            Optional[str], Set[ScopedValue]] = collections.defaultdict(set)
+        self._domain_map: dict[
+            Optional[str], set[ScopedValue]] = collections.defaultdict(set)
 
         for scoped in values:
             self._add_scoped(scoped)
@@ -203,7 +203,7 @@ class Values:
             return self._get_fallback(fallback)
         qtutils.ensure_valid(url)
 
-        candidates: List[ScopedValue] = []
+        candidates: list[ScopedValue] = []
         # Urls trailing with '.' are equivalent to non-trailing types.
         # urlutils strips them, so in order to match we will need to as well.
         widened_hosts = urlutils.widened_hostnames(url.host().rstrip('.'))

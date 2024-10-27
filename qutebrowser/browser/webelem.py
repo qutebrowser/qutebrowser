@@ -4,7 +4,8 @@
 
 """Generic web element related code."""
 
-from typing import Iterator, Optional, Set, TYPE_CHECKING, Union, Dict
+from typing import Optional, TYPE_CHECKING, Union
+from collections.abc import Iterator
 import collections.abc
 
 from qutebrowser.qt import machinery
@@ -93,7 +94,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def classes(self) -> Set[str]:
+    def classes(self) -> set[str]:
         """Get a set of classes assigned to this element."""
         raise NotImplementedError
 
@@ -336,7 +337,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        target_modifiers: Dict[usertypes.ClickTarget, KeyboardModifierType] = {
+        target_modifiers: dict[usertypes.ClickTarget, KeyboardModifierType] = {
             usertypes.ClickTarget.normal: Qt.KeyboardModifier.NoModifier,
             usertypes.ClickTarget.window: Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.ShiftModifier,
             usertypes.ClickTarget.tab: Qt.KeyboardModifier.ControlModifier,

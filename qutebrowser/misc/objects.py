@@ -8,7 +8,7 @@
 # earlyinit.
 
 import argparse
-from typing import TYPE_CHECKING, Any, Dict, Set, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 
 if TYPE_CHECKING:
     from qutebrowser import app
@@ -29,7 +29,7 @@ class NoBackend:
 
 
 backend: Union['usertypes.Backend', NoBackend] = NoBackend()
-commands: Dict[str, 'command.Command'] = {}
-debug_flags: Set[str] = set()
+commands: dict[str, 'command.Command'] = {}
+debug_flags: set[str] = set()
 args = cast(argparse.Namespace, None)
 qapp = cast('app.Application', None)

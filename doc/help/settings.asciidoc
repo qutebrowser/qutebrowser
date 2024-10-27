@@ -302,6 +302,7 @@
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.workarounds.disable_accelerated_2d_canvas,qt.workarounds.disable_accelerated_2d_canvas>>|Disable accelerated 2d canvas to avoid graphical glitches.
+|<<qt.workarounds.disable_hangouts_extension,qt.workarounds.disable_hangouts_extension>>|Disable the Hangouts extension.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
@@ -3890,7 +3891,7 @@ Chromium has various sandboxing layers, which should be enabled for normal brows
 Open `chrome://sandbox` to see the current sandbox status.
 Changing this setting is only recommended if you know what you're doing, as it **disables one of Chromium's security layers**. To avoid sandboxing being accidentally disabled persistently, this setting can only be set via `config.py`, not via `:set`.
 See the Chromium documentation for more details:
-- https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
+- https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/linux/README.md[Linux] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows] - https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/mac/README.md[Mac] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
 
 This setting requires a restart.
 
@@ -3992,6 +3993,21 @@ Valid values:
  * +never+: Enable accelerated 2d canvas
 
 Default: +pass:[auto]+
+
+[[qt.workarounds.disable_hangouts_extension]]
+=== qt.workarounds.disable_hangouts_extension
+Disable the Hangouts extension.
+The Hangouts extension provides additional APIs for Google domains only.
+Hangouts has been replaced with Meet, which appears to work without this extension.
+Note this setting gets ignored and the Hangouts extension is always disabled to avoid crashes on Qt 6.5.0 to 6.5.3 if dark mode is enabled, as well as on Qt 6.6.0.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[qt.workarounds.locale]]
 === qt.workarounds.locale
@@ -4866,6 +4882,6 @@ See the setting's valid values for more information on allowed values.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.
 
-See https://developer.chrome.com/apps/match_patterns for the allowed syntax.
+See https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns for the allowed syntax.
 |VerticalPosition|The position of the download bar.
 |==============

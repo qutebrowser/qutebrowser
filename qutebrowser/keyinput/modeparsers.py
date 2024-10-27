@@ -10,7 +10,8 @@ Module attributes:
 
 import traceback
 import enum
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSlot, Qt, QObject
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent

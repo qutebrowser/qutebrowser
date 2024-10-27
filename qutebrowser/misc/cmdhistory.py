@@ -4,7 +4,7 @@
 
 """Command history for the status bar."""
 
-from typing import MutableSequence
+from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QObject
 

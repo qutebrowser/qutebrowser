@@ -6,7 +6,7 @@
 
 import functools
 import urllib.parse
-from typing import MutableMapping
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QTimer
 from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkRequest,

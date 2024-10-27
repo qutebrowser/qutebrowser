@@ -49,7 +49,7 @@ import re
 import dataclasses
 import mmap
 import pathlib
-from typing import IO, ClassVar, Dict, Optional, cast
+from typing import IO, ClassVar, Optional, cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.utils import log, version, qtutils
@@ -131,7 +131,7 @@ class Header:
     shnum: int
     shstrndx: int
 
-    _FORMATS: ClassVar[Dict[Bitness, str]] = {
+    _FORMATS: ClassVar[dict[Bitness, str]] = {
         Bitness.x64: '<HHIQQQIHHHHHH',
         Bitness.x32: '<HHIIIIIHHHHHH',
     }
@@ -162,7 +162,7 @@ class SectionHeader:
     addralign: int
     entsize: int
 
-    _FORMATS: ClassVar[Dict[Bitness, str]] = {
+    _FORMATS: ClassVar[dict[Bitness, str]] = {
         Bitness.x64: '<IIQQQQIIQQ',
         Bitness.x32: '<IIIIIIIIII',
     }

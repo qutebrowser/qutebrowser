@@ -30,16 +30,26 @@ import shutil
 import pathlib
 import dataclasses
 import contextlib
-from typing import ClassVar, IO, Optional, Dict, Tuple, Iterator
+from typing import ClassVar, IO, Optional
+from collections.abc import Iterator
 
 from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
-from qutebrowser.utils import qtutils, standarddir, version, utils, log
+from qutebrowser.utils import qtutils, standarddir, version, utils, log, message
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
 HANGOUTS_IDS = [
-    36197,  # QtWebEngine 6.5, as found by toofar
-    34897,  # QtWebEngine 6.4
+    # Linux
+    43722,  # QtWebEngine 6.8
+    41262,  # QtWebEngine 6.7
+    36197,  # QtWebEngine 6.6
+    34897,  # QtWebEngine 6.5
+    32707,  # QtWebEngine 6.4
+    27537,  # QtWebEngine 6.3
+    23607,  # QtWebEngine 6.2
+
+    248,  # macOS
+    381,  # Windows
 ]
 PAK_VERSION = 5
 RESOURCES_ENV_VAR = "QTWEBENGINE_RESOURCES_PATH"
@@ -119,7 +129,7 @@ class PakParser:
 
         return data
 
-    def _read_header(self) -> Dict[int, PakEntry]:
+    def _read_header(self) -> dict[int, PakEntry]:
         """Read the header and entry index from the .pak file."""
         entries = []
 
@@ -138,7 +148,7 @@ class PakParser:
 
         return {entry.resource_id: entry for entry in entries}
 
-    def _find_manifest(self, entries: Dict[int, PakEntry]) -> Tuple[PakEntry, bytes]:
+    def _find_manifest(self, entries: dict[int, PakEntry]) -> tuple[PakEntry, bytes]:
         to_check = list(entries.values())
         for hangouts_id in HANGOUTS_IDS:
             if hangouts_id in entries:
@@ -166,7 +176,7 @@ def _find_webengine_resources() -> pathlib.Path:
     qt_data_path = qtutils.library_path(qtutils.LibraryPath.data)
     if utils.is_mac:  # pragma: no cover
         # I'm not sure how to arrive at this path without hardcoding it
-        # ourselves. importlib_resources("PyQt6.Qt6") can serve as a
+        # ourselves. importlib.resources.files("PyQt6.Qt6") can serve as a
         # replacement for the qtutils bit but it doesn't seem to help find the
         # actual Resources folder.
         candidates.append(
@@ -208,6 +218,8 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
             and versions.webengine < utils.VersionNumber(6, 5, 3)
             and config.val.colors.webpage.darkmode.enabled
         )
+        # https://github.com/qutebrowser/qutebrowser/issues/8257
+        or config.val.qt.workarounds.disable_hangouts_extension
     ):
         # No patching needed
         return None
@@ -224,7 +236,8 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
 def _patch(file_to_patch: pathlib.Path) -> None:
     """Apply any patches to the given pak file."""
     if not file_to_patch.exists():
-        log.misc.error(
+        _error(
+            None,
             "Resource pak doesn't exist at expected location! "
             f"Not applying quirks. Expected location: {file_to_patch}"
         )
@@ -237,8 +250,22 @@ def _patch(file_to_patch: pathlib.Path) -> None:
             offset = parser.find_patch_offset()
             binparsing.safe_seek(f, offset)
             f.write(REPLACEMENT_URL)
-        except binparsing.ParseError:
-            log.misc.exception("Failed to apply quirk to resources pak.")
+        except binparsing.ParseError as e:
+            _error(e, "Failed to apply quirk to resources pak.")
+
+
+def _error(exc: Optional[BaseException], text: str) -> None:
+    if config.val.qt.workarounds.disable_hangouts_extension:
+        # Explicitly requested -> hard error
+        lines = ["Failed to disable Hangouts extension:", text]
+        if exc is None:
+            lines.append(str(exc))
+        message.error("\n".join(lines))
+    elif exc is None:
+        # Best effort -> just log
+        log.misc.error(text)
+    else:
+        log.misc.exception(text)
 
 
 @contextlib.contextmanager
@@ -253,8 +280,8 @@ def patch_webengine() -> Iterator[None]:
         # Still calling this on Qt != 6.6 so that the directory is cleaned up
         # when not needed anymore.
         webengine_resources_path = copy_webengine_resources()
-    except OSError:
-        log.misc.exception("Failed to copy webengine resources, not applying quirk")
+    except OSError as e:
+        _error(e, "Failed to copy webengine resources, not applying quirk")
         yield
         return
 

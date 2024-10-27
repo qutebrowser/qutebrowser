@@ -242,7 +242,7 @@ class PACFetcher(QObject):
         pac_prefix = "pac+"
 
         assert url.scheme().startswith(pac_prefix)
-        url.setScheme(url.scheme()[len(pac_prefix):])
+        url.setScheme(url.scheme().removeprefix(pac_prefix))
 
         self._pac_url = url
         with qtlog.disable_qt_msghandler():

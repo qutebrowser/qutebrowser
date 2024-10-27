@@ -127,7 +127,7 @@ class Completer(QObject):
         Return:
             ([parts_before_cursor], 'part_under_cursor', [parts_after_cursor])
         """
-        text = self._cmd.text()[len(self._cmd.prefix()):]
+        text = self._cmd.text().removeprefix(self._cmd.prefix())
         if not text or not text.strip():
             # Only ":", empty part under the cursor with nothing before/after
             return [], '', []

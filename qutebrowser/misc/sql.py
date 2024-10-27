@@ -9,7 +9,8 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type, Union
+from typing import Any, Optional, Union
+from collections.abc import Iterator, Mapping, MutableSequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.sql import QSqlDatabase, QSqlError, QSqlQuery
@@ -226,8 +227,8 @@ class Database:
         """Return a Query instance linked to this Database."""
         return Query(self, querystr, forward_only)
 
-    def table(self, name: str, fields: List[str],
-              constraints: Optional[Dict[str, str]] = None,
+    def table(self, name: str, fields: list[str],
+              constraints: Optional[dict[str, str]] = None,
               parent: Optional[QObject] = None) -> 'SqlTable':
         """Return a SqlTable instance linked to this Database."""
         return SqlTable(self, name, fields, constraints, parent)
@@ -276,7 +277,7 @@ class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
             raise_sqlite_error(msg, error)
 
     def __exit__(self,
-                 _exc_type: Optional[Type[BaseException]],
+                 _exc_type: Optional[type[BaseException]],
                  exc_val: Optional[BaseException],
                  _exc_tb: Optional[types.TracebackType]) -> None:
         db = self._database.qt_database()
@@ -313,7 +314,7 @@ class Query:
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
-        self._placeholders: List[str] = []
+        self._placeholders: list[str] = []
 
     def __iter__(self) -> Iterator[Any]:
         if not self.query.isActive():
@@ -348,7 +349,7 @@ class Query:
         if None in values:
             raise BugError("Missing bound values!")
 
-    def _bind_values(self, values: Mapping[str, Any]) -> Dict[str, Any]:
+    def _bind_values(self, values: Mapping[str, Any]) -> dict[str, Any]:
         self._placeholders = list(values)
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
@@ -404,7 +405,7 @@ class Query:
         assert rows != -1
         return rows
 
-    def bound_values(self) -> Dict[str, Any]:
+    def bound_values(self) -> dict[str, Any]:
         return {
             f":{key}": self.query.boundValue(f":{key}")
             for key in self._placeholders
@@ -426,8 +427,8 @@ class SqlTable(QObject):
     changed = pyqtSignal()
     database: Database
 
-    def __init__(self, database: Database, name: str, fields: List[str],
-                 constraints: Optional[Dict[str, str]] = None,
+    def __init__(self, database: Database, name: str, fields: list[str],
+                 constraints: Optional[dict[str, str]] = None,
                  parent: Optional[QObject] = None) -> None:
         """Wrapper over a table in the SQL database.
 
@@ -442,7 +443,7 @@ class SqlTable(QObject):
         self.database = database
         self._create_table(fields, constraints)
 
-    def _create_table(self, fields: List[str], constraints: Optional[Dict[str, str]],
+    def _create_table(self, fields: list[str], constraints: Optional[dict[str, str]],
                       *, force: bool = False) -> None:
         """Create the table if the database is uninitialized.
 

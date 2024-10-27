@@ -13,7 +13,7 @@ import shutil
 import pytest
 
 from qutebrowser.misc import pakjoy, binparsing
-from qutebrowser.utils import utils, version, standarddir
+from qutebrowser.utils import utils, version, standarddir, usertypes
 
 
 pytest.importorskip("qutebrowser.qt.webenginecore")
@@ -23,17 +23,6 @@ pytestmark = pytest.mark.usefixtures("cache_tmpdir")
 
 
 versions = version.qtwebengine_versions(avoid_init=True)
-
-
-# Used to skip happy path tests with the real resources file.
-#
-# Since we don't know how reliably the Google Meet hangouts extensions is
-# reliably in the resource files, and this quirk is only targeting 6.6
-# anyway.
-skip_if_unsupported = pytest.mark.skipif(
-    versions.webengine != utils.VersionNumber(6, 6),
-    reason="Code under test only runs on 6.6",
-)
 
 
 @pytest.fixture(autouse=True)
@@ -78,7 +67,7 @@ def affected_version(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureReq
 
 
 @pytest.mark.parametrize("workdir_exists", [True, False])
-def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
+def test_version_gate(cache_tmpdir, unaffected_version, mocker, config_stub, workdir_exists):
     workdir = cache_tmpdir / pakjoy.CACHE_DIR_NAME
     if workdir_exists:
         workdir.mkdir()
@@ -92,7 +81,9 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, workdir_exists):
     assert not workdir.exists()
 
 
-def test_escape_hatch(affected_version, mocker, monkeypatch):
+@pytest.mark.parametrize("explicit", [True, False])
+def test_escape_hatch(affected_version, mocker, monkeypatch, config_stub, explicit):
+    config_stub.val.qt.workarounds.disable_hangouts_extension = explicit
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
     monkeypatch.setenv(pakjoy.DISABLE_ENV_VAR, "1")
 
@@ -206,7 +197,7 @@ def read_patched_manifest():
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
 
-    @skip_if_unsupported
+    @pytest.mark.qt6_only
     def test_happy_path(self):
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
@@ -265,6 +256,25 @@ class TestWithRealResourcesFile:
             "Resource pak doesn't exist at expected location! "
             "Not applying quirks. Expected location: "
         )
+
+    @pytest.mark.qt6_only
+    def test_hardcoded_ids(self):
+        """Make sure we hardcoded the currently valid ID.
+
+        This avoids users having to iterate through the whole resource file on
+        every start. It will probably break on every QtWebEngine upgrade and can
+        be fixed by adding the respective ID to HANGOUTS_IDS.
+        """
+        resources_dir = pakjoy._find_webengine_resources()
+        file_to_patch = resources_dir / pakjoy.PAK_FILENAME
+        with open(file_to_patch, "rb") as f:
+            parser = pakjoy.PakParser(f)
+        error_msg = (
+            "Encountered hangouts extension with resource ID which isn't in pakjoy.HANGOUTS_IDS: "
+            f"found_resource_id={parser.manifest_entry.resource_id} "
+            f"webengine_version={versions.webengine}"
+        )
+        assert parser.manifest_entry.resource_id in pakjoy.HANGOUTS_IDS, error_msg
 
 
 def json_manifest_factory(extension_id=pakjoy.HANGOUTS_MARKER, url=pakjoy.TARGET_URL):
@@ -394,7 +404,9 @@ class TestWithConstructedResourcesFile:
         ):
             parser.find_patch_offset()
 
-    def test_url_not_found_high_level(self, cache_tmpdir, caplog, affected_version):
+    @pytest.mark.parametrize("explicit", [True, False])
+    def test_url_not_found_high_level(self, cache_tmpdir, caplog, affected_version, config_stub, message_mock, explicit):
+        config_stub.val.qt.workarounds.disable_hangouts_extension = explicit
         buffer = pak_factory(entries=[json_manifest_factory(url=b"example.com")])
 
         # Write bytes to file so we can test pakjoy._patch()
@@ -402,10 +414,18 @@ class TestWithConstructedResourcesFile:
         with open(tmpfile, "wb") as fd:
             fd.write(buffer.read())
 
-        with caplog.at_level(logging.ERROR, "misc"):
+        logger = "message" if explicit else "misc"
+        with caplog.at_level(logging.ERROR, logger):
             pakjoy._patch(tmpfile)
 
-        assert caplog.messages == ["Failed to apply quirk to resources pak."]
+        if explicit:
+            msg = message_mock.getmsg(usertypes.MessageLevel.error)
+            assert msg.text == (
+                "Failed to disable Hangouts extension:\n"
+                "Failed to apply quirk to resources pak."
+            )
+        else:
+            assert caplog.messages[-1] == "Failed to apply quirk to resources pak."
 
     @pytest.fixture
     def resources_path(
@@ -436,6 +456,13 @@ class TestWithConstructedResourcesFile:
             in json_manifest["externally_connectable"]["matches"]
         )
         assert pakjoy.RESOURCES_ENV_VAR not in os.environ
+
+    @pytest.mark.qt6_only
+    def test_explicitly_enabled(self, monkeypatch: pytest.MonkeyPatch, config_stub):
+        patch_version(monkeypatch, utils.VersionNumber(6, 7))  # unaffected
+        config_stub.val.qt.workarounds.disable_hangouts_extension = True
+        with pakjoy.patch_webengine():
+            assert pakjoy.RESOURCES_ENV_VAR in os.environ
 
     def test_preset_env_var(
         self,

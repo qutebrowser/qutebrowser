@@ -645,7 +645,7 @@ Feature: Downloading things from a website.
         And I set content.pdfjs to true
         And I open data/misc/test.pdf without waiting
         And I wait until PDF.js is ready
-        And I run :click-element id download
+        And I run :jseval (document.getElementById("downloadButton") || document.getElementById("download")).click()
         And I clear the log
         And I wait until the download is finished
         # We get viewer.html as name on QtWebKit...

@@ -163,7 +163,7 @@ class TestFileHandling:
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         prefix = 'Editor backup at '
         assert msg.text.startswith(prefix)
-        fname = msg.text[len(prefix):]
+        fname = msg.text.removeprefix(prefix)
 
         with qtbot.wait_signal(editor.editing_finished):
             editor._proc._proc.finished.emit(0, QProcess.ExitStatus.NormalExit)

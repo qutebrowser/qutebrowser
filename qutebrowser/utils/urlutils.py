@@ -11,7 +11,8 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union, Iterable, cast
+from typing import Optional, Union, cast
+from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QUrl, QUrlQuery
@@ -111,7 +112,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
+def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -464,7 +465,7 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
         return fallback
 
 
-HostTupleType = Tuple[str, str, int]
+HostTupleType = tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:
@@ -553,8 +554,8 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     if suffix1 != suffix2:
         return False
 
-    domain1 = url1.host()[:-len(suffix1)].split('.')[-1]
-    domain2 = url2.host()[:-len(suffix2)].split('.')[-1]
+    domain1 = url1.host().removesuffix(suffix1).split('.')[-1]
+    domain2 = url2.host().removesuffix(suffix2).split('.')[-1]
     return domain1 == domain2
 
 
@@ -668,7 +669,7 @@ def parse_javascript_url(url: QUrl) -> str:
     urlstr = url.toString(FormatOption.ENCODED)
     urlstr = urllib.parse.unquote(urlstr)
 
-    code = urlstr[len('javascript:'):]
+    code = urlstr.removeprefix('javascript:')
     if not code:
         raise Error("Resulted in empty JavaScript code")
 

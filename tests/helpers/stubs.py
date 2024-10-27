@@ -6,7 +6,8 @@
 
 """Fake objects/stubs."""
 
-from typing import Any, Callable, Tuple
+from typing import Any
+from collections.abc import Callable
 from unittest import mock
 import contextlib
 import shutil
@@ -327,7 +328,7 @@ class FakeCommand:
     completion: Any = None
     maxsplit: int = None
     takes_count: Callable[[], bool] = lambda: False
-    modes: Tuple[usertypes.KeyMode] = (usertypes.KeyMode.normal, )
+    modes: tuple[usertypes.KeyMode] = (usertypes.KeyMode.normal, )
 
 
 class FakeTimer(QObject):

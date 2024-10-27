@@ -350,12 +350,8 @@ def apply_fake_os(monkeypatch, request):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on CI.
-
-    Not available yet with a nightly Python, see:
-    https://github.com/yaml/pyyaml/issues/630
-    """
-    if testutils.ON_CI and sys.version_info[:2] != (3, 11):
+    """Make sure PyYAML C extensions are available on CI."""
+    if testutils.ON_CI:
         from yaml import CLoader  # pylint: disable=unused-import
 
 
@@ -372,7 +368,8 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_terminal_summary(terminalreporter):
-    """Group benchmark results on CI."""
+    """Add custom pytest summary sections."""
+    # Group benchmark results on CI.
     if testutils.ON_CI:
         terminalreporter.write_line(
             testutils.gha_group_begin('Benchmark results'))
@@ -380,3 +377,21 @@ def pytest_terminal_summary(terminalreporter):
         terminalreporter.write_line(testutils.gha_group_end())
     else:
         yield
+
+    # List any screenshots of failed end2end tests that were generated during
+    # the run. Screenshots are captured from QuteProc.after_test()
+    properties = lambda report: dict(report.user_properties)
+    reports = [
+        report
+        for report in terminalreporter.getreports("")
+        if "screenshot" in properties(report)
+    ]
+    screenshots = [
+        pathlib.Path(properties(report)["screenshot"])
+        for report in reports
+    ]
+
+    if screenshots:
+        terminalreporter.ensure_newline()
+        screenshot_dir = screenshots[0].parent
+        terminalreporter.section(f"End2end screenshots available in: {screenshot_dir}", sep="-", blue=True, bold=True)

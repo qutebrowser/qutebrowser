@@ -1513,7 +1513,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 browsertab.TerminationStatus.crashed,
             QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus:
                 browsertab.TerminationStatus.killed,
-            -1:
+            QWebEnginePage.RenderProcessTerminationStatus(-1):
                 browsertab.TerminationStatus.unknown,
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)

@@ -7,7 +7,6 @@
 Defined here to avoid circular dependency hell.
 """
 
-from typing import List
 import difflib
 
 
@@ -21,7 +20,7 @@ class NoSuchCommandError(Error):
     """Raised when a command isn't found."""
 
     @classmethod
-    def for_cmd(cls, cmd: str, all_commands: List[str] = None) -> "NoSuchCommandError":
+    def for_cmd(cls, cmd: str, all_commands: list[str] = None) -> "NoSuchCommandError":
         """Raise an exception for the given command."""
         suffix = ''
         if all_commands:

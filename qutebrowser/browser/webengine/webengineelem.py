@@ -5,7 +5,8 @@
 """QtWebEngine specific part of the web element API."""
 
 from typing import (
-    TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
+    TYPE_CHECKING, Any, Optional, Union)
+from collections.abc import Iterator, Callable
 
 from qutebrowser.qt.core import QRect, QEventLoop
 from qutebrowser.qt.widgets import QApplication
@@ -24,11 +25,11 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     _tab: "webenginetab.WebEngineTab"
 
-    def __init__(self, js_dict: Dict[str, Any],
+    def __init__(self, js_dict: dict[str, Any],
                  tab: 'webenginetab.WebEngineTab') -> None:
         super().__init__(tab)
         # Do some sanity checks on the data we get from JS
-        js_dict_types: Dict[str, Union[type, Tuple[type, ...]]] = {
+        js_dict_types: dict[str, Union[type, tuple[type, ...]]] = {
             'id': int,
             'text': str,
             'value': (str, int, float),
@@ -105,7 +106,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return QRect()
 
-    def classes(self) -> Set[str]:
+    def classes(self) -> set[str]:
         """Get a list of classes assigned to this element."""
         return set(self._js_dict['class_name'].split())
 

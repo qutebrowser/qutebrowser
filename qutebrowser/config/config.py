@@ -7,8 +7,8 @@
 import copy
 import contextlib
 import functools
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
-                    MutableMapping, MutableSequence, Optional, Tuple, cast)
+from typing import (TYPE_CHECKING, Any, Optional, cast)
+from collections.abc import Iterator, Mapping, MutableMapping, MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
@@ -29,7 +29,7 @@ key_instance = cast('KeyConfig', None)
 cache = cast('configcache.ConfigCache', None)
 
 # Keeping track of all change filters to validate them later.
-change_filters: List["change_filter"] = []
+change_filters: list["change_filter"] = []
 
 # Sentinel
 UNSET = object()
@@ -131,7 +131,7 @@ class KeyConfig:
         _config: The Config object to be used.
     """
 
-    _ReverseBindings = Dict[str, MutableSequence[str]]
+    _ReverseBindings = dict[str, MutableSequence[str]]
 
     def __init__(self, config: 'Config') -> None:
         self._config = config
@@ -143,7 +143,7 @@ class KeyConfig:
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
 
-    def get_bindings_for(self, mode: str) -> Dict[keyutils.KeySequence, str]:
+    def get_bindings_for(self, mode: str) -> dict[keyutils.KeySequence, str]:
         """Get the combined bindings for the given mode."""
         bindings = dict(val.bindings.default[mode])
         for key, binding in val.bindings.commands[mode].items():
@@ -291,7 +291,7 @@ class Config(QObject):
                  yaml_config: 'configfiles.YamlConfig',
                  parent: QObject = None) -> None:
         super().__init__(parent)
-        self._mutables: MutableMapping[str, Tuple[Any, Any]] = {}
+        self._mutables: MutableMapping[str, tuple[Any, Any]] = {}
         self._yaml = yaml_config
         self._init_values()
         self.yaml_loaded = False
@@ -554,7 +554,7 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        lines: List[str] = []
+        lines: list[str] = []
         for values in sorted(self, key=lambda v: v.opt.name):
             lines += values.dump(include_hidden=include_hidden)
 

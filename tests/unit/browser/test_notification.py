@@ -7,7 +7,7 @@
 import logging
 import itertools
 import inspect
-from typing import List, Dict, Any, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 import pytest
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject
@@ -36,7 +36,7 @@ class FakeDBusMessage:
         self._type = typ
         self._error_name = error_name
 
-    def arguments(self) -> List[Any]:
+    def arguments(self) -> list[Any]:
         return self._arguments
 
     def signature(self) -> str:
@@ -107,8 +107,8 @@ class FakeDBusInterface:
         icon: str,
         title: str,
         body: str,
-        actions: List[str],
-        hints: Dict[str, Any],
+        actions: list[str],
+        hints: dict[str, Any],
         timeout: int,
     ) -> FakeDBusMessage:
         assert self.notify_reply is not None

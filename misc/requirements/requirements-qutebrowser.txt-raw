@@ -12,12 +12,7 @@ PyYAML
 #@ add: pyobjc-core ; sys_platform=="darwin"  
 #@ add: pyobjc-framework-Cocoa ; sys_platform=="darwin"
 
-## stdlib backports
-importlib_resources
-
 ## Optional dependencies
 Pygments  # For :view-source --pygments or on QtWebKit
 colorama  # Colored log output on Windows
 adblock  # Improved adblocking
-
-#@ markers: importlib_resources python_version=="3.8.*"

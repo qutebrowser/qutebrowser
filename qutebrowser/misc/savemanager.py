@@ -6,7 +6,7 @@
 
 import os.path
 import collections
-from typing import MutableMapping
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSlot, QObject, QTimer
 

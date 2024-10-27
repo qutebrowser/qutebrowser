@@ -7,7 +7,6 @@
 
 import pathlib
 import dataclasses
-from typing import List
 
 import pytest
 import bs4
@@ -97,8 +96,8 @@ class Parsed:
 
     path: str
     parent: str
-    folders: List[str]
-    files: List[str]
+    folders: list[str]
+    files: list[str]
 
 
 @dataclasses.dataclass
@@ -124,7 +123,7 @@ def parse(quteproc):
     title_prefix = 'Browse directory: '
     # Strip off the title prefix to obtain the path of the folder that
     # we're browsing
-    path = pathlib.Path(soup.title.string[len(title_prefix):])
+    path = pathlib.Path(soup.title.string.removeprefix(title_prefix))
 
     container = soup('div', id='dirbrowserContainer')[0]
 

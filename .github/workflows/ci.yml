@@ -50,7 +50,7 @@ jobs:
           python-version: '3.10'
       - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version: '20.x'
         if: "matrix.testenv == 'eslint'"
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
@@ -107,6 +107,7 @@ jobs:
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
+        TMPDIR: "${{ runner.temp }}"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
@@ -119,6 +120,21 @@ jobs:
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-user/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -128,10 +144,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.15.2 (Python 3.8)
-          - testenv: py38-pyqt5152
+          ### PyQt 5.15.2 (Python 3.9)
+          - testenv: py39-pyqt5152
             os: ubuntu-20.04
-            python: "3.8"
+            python: "3.9"
           ### PyQt 5.15 (Python 3.10, with coverage)
           # FIXME:qt6
           # - testenv: py310-pyqt515-cov
@@ -141,14 +157,14 @@ jobs:
           - testenv: py311-pyqt515
             os: ubuntu-20.04
             python: "3.11"
-          ### PyQt 6.2 (Python 3.8)
-          - testenv: py38-pyqt62
+          ### PyQt 6.2 (Python 3.9)
+          - testenv: py39-pyqt62
             os: ubuntu-20.04
-            python: "3.8"
-          ### PyQt 6.3 (Python 3.8)
-          - testenv: py38-pyqt63
+            python: "3.9"
+          ### PyQt 6.3 (Python 3.9)
+          - testenv: py39-pyqt63
             os: ubuntu-20.04
-            python: "3.8"
+            python: "3.9"
           ## PyQt 6.4 (Python 3.9)
           - testenv: py39-pyqt64
             os: ubuntu-20.04
@@ -222,6 +238,8 @@ jobs:
       - name: Upgrade 3rd party assets
         run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
         if: "startsWith(matrix.os, 'windows-')"
+      - name: "Set TMPDIR for pytest"
+        run: 'echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"'
       - name: "Run ${{ matrix.testenv }}"
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
@@ -236,6 +254,21 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           name: "${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-runner/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # pyright: reportConstantRedefinition=false
 
 """Qt wrapper selection.
@@ -26,7 +30,7 @@ import argparse
 import warnings
 import importlib
 import dataclasses
-from typing import Optional, Dict
+from typing import Optional
 
 from qutebrowser.utils import log
 
@@ -102,7 +106,7 @@ class SelectionInfo:
     """Information about outcomes of importing Qt wrappers."""
 
     wrapper: Optional[str] = None
-    outcomes: Dict[str, str] = dataclasses.field(default_factory=dict)
+    outcomes: dict[str, str] = dataclasses.field(default_factory=dict)
     reason: SelectionReason = SelectionReason.unknown
 
     def set_module_error(self, name: str, error: Exception) -> None:

@@ -14,20 +14,22 @@ is harder to achieve via pathlib.
 import glob
 import os
 import os.path
-from typing import List, Optional, Iterable
+from typing import Optional
+from collections.abc import Iterable
 
 from qutebrowser.qt.core import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
+from qutebrowser.completion.models import BaseCategory
 from qutebrowser.config import config
 from qutebrowser.utils import log
 
 
-class FilePathCategory(QAbstractListModel):
+class FilePathCategory(QAbstractListModel, BaseCategory):
     """Represent filesystem paths matching a pattern."""
 
     def __init__(self, name: str, parent: QObject = None) -> None:
         super().__init__(parent)
-        self._paths: List[str] = []
+        self._paths: list[str] = []
         self.name = name
         self.columns_to_filter = [0]
 

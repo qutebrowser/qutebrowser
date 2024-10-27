@@ -7,7 +7,6 @@ pefile
 
 # fix qute-pylint location
 #@ replace: qute[_-]pylint.* ./scripts/dev/pylint_checkers
-#@ markers: typed-ast python_version<"3.8"
 
 # Already included via test requirements
 #@ ignore: urllib3

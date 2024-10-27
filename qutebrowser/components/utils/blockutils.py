@@ -6,7 +6,7 @@
 
 import os
 import functools
-from typing import IO, List, Optional
+from typing import IO, Optional
 
 from qutebrowser.qt.core import QUrl, QObject, pyqtSignal
 
@@ -47,11 +47,11 @@ class BlocklistDownloads(QObject):
     single_download_finished = pyqtSignal(object)  # arg: the file object
     all_downloads_finished = pyqtSignal(int)  # arg: download count
 
-    def __init__(self, urls: List[QUrl], parent: Optional[QObject] = None) -> None:
+    def __init__(self, urls: list[QUrl], parent: Optional[QObject] = None) -> None:
         super().__init__(parent)
         self._urls = urls
 
-        self._in_progress: List[downloads.TempDownload] = []
+        self._in_progress: list[downloads.TempDownload] = []
         self._done_count = 0
         self._finished_registering_downloads = False
         self._started = False

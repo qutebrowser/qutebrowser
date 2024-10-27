@@ -7,7 +7,8 @@
 """Hooks for extensions."""
 
 import importlib
-from typing import Callable, Any
+from typing import Any
+from collections.abc import Callable
 
 
 from qutebrowser.extensions import loader

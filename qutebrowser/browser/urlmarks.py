@@ -15,7 +15,7 @@ import os.path
 import html
 import functools
 import collections
-from typing import MutableMapping
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSignal, QUrl, QObject
 

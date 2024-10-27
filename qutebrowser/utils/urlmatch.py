@@ -5,7 +5,7 @@
 """A Chromium-like URL matching pattern.
 
 See:
-https://developer.chrome.com/apps/match_patterns
+https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
@@ -17,7 +17,7 @@ https://chromium.googlesource.com/chromium/src/+/6f4a6681eae01c2036336c18b06303e
 import ipaddress
 import fnmatch
 import urllib.parse
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 from qutebrowser.qt.core import QUrl
 
@@ -89,7 +89,7 @@ class UrlPattern:
         self._init_path(parsed)
         self._init_port(parsed)
 
-    def _to_tuple(self) -> Tuple[
+    def _to_tuple(self) -> tuple[
         bool,  # _match_all
         bool,  # _match_subdomains
         Optional[str],  # _scheme
@@ -128,7 +128,7 @@ class UrlPattern:
         # FIXME This doesn't actually strip the hostname correctly.
         if (pattern.startswith('file://') and
                 not pattern.startswith('file:///')):
-            pattern = 'file:///' + pattern[len("file://"):]
+            pattern = 'file:///' + pattern.removeprefix("file://")
 
         return pattern
 

@@ -180,7 +180,7 @@ class ExternalEditor(QObject):
             line: the line number to pass to the editor
             column: the column number to pass to the editor
         """
-        self._proc = guiprocess.GUIProcess(what='editor', parent=self)
+        self._proc = guiprocess.GUIProcess(what='editor')
         self._proc.finished.connect(self._on_proc_closed)
         self._proc.error.connect(self._on_proc_error)
         editor = config.val.editor.command

@@ -9,8 +9,8 @@ import collections
 import traceback
 import typing
 import dataclasses
-from typing import (Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional,
-                    Callable)
+from typing import (Any, Union, Optional)
+from collections.abc import MutableMapping, MutableSequence, Callable
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
@@ -30,7 +30,7 @@ class ArgInfo:
     metavar: Optional[str] = None
     flag: Optional[str] = None
     completion: Optional[Callable[..., completionmodel.CompletionModel]] = None
-    choices: Optional[List[str]] = None
+    choices: Optional[list[str]] = None
 
 
 class Command:
@@ -105,10 +105,10 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self.opt_args: MutableMapping[str, Tuple[str, str]] = collections.OrderedDict()
+        self.opt_args: MutableMapping[str, tuple[str, str]] = collections.OrderedDict()
         self.namespace = None
         self._count = None
-        self.pos_args: MutableSequence[Tuple[str, str]] = []
+        self.pos_args: MutableSequence[tuple[str, str]] = []
         self.flags_with_args: MutableSequence[str] = []
         self._has_vararg = False
 

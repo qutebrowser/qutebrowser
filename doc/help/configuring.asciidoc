@@ -31,7 +31,7 @@ patterns. The link:settings{outfilesuffix}[settings documentation] marks such
 settings with "This setting supports URL patterns.
 
 The syntax is based on Chromium's
-https://developer.chrome.com/docs/extensions/mv3/match_patterns/[URL pattern syntax].
+https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns/[URL pattern syntax].
 As an extension, the scheme and path can be left off as a short-hand syntax, so
 `example.com` is equivalent to `*://example.com/*`.
 
@@ -452,7 +452,7 @@ Various emacs/conkeror-like keybinding configs exist:
 - https://gitlab.com/Kaligule/qutebrowser-emacs-config/blob/master/config.py[Kaligule]
 - https://web.archive.org/web/20210512185023/https://me0w.net/pit/1540882719[nm0i]
 - https://www.reddit.com/r/qutebrowser/comments/eh10i7/config_share_qute_with_emacs_keybindings/[jasonsun0310]
-- https://git.sr.ht/~willvaughn/dots/tree/mjolnir/item/.config/qutebrowser/qutemacs.py[willvaughn]
+- https://git.sr.ht/~willvaughn/dots/tree/main/item/.config/qutebrowser/qutemacs.py[willvaughn]
 
 It's also mostly possible to get rid of modal keybindings by setting
 `input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to

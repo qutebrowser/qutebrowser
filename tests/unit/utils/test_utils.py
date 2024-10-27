@@ -474,7 +474,7 @@ def test_get_repr(constructor, attrs, expected):
     assert utils.get_repr(Obj(), constructor, **attrs) == expected
 
 
-class QualnameObj():
+class QualnameObj:
 
     """Test object for test_qualname."""
 

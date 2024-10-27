@@ -9,7 +9,8 @@ import locale
 import shlex
 import shutil
 import signal
-from typing import Mapping, Sequence, Dict, Optional
+from typing import Optional
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl, Qt)
@@ -19,7 +20,7 @@ from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
 
 
-all_processes: Dict[int, Optional['GUIProcess']] = {}
+all_processes: dict[int, Optional['GUIProcess']] = {}
 last_pid: Optional[int] = None
 
 
@@ -176,9 +177,10 @@ class GUIProcess(QObject):
             verbose: bool = False,
             additional_env: Mapping[str, str] = None,
             output_messages: bool = False,
-            parent: QObject = None,
     ):
-        super().__init__(parent)
+        # We do not accept a parent, as GUIProcesses keep track of themselves
+        # (see all_processes and _post_start() / _on_cleanup_timer())
+        super().__init__()
         self.what = what
         self.verbose = verbose
         self._output_messages = output_messages

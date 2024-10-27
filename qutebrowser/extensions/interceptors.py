@@ -6,7 +6,8 @@
 
 import enum
 import dataclasses
-from typing import Callable, List, Optional
+from typing import Optional
+from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl
 
@@ -89,7 +90,7 @@ class Request:
 InterceptorType = Callable[[Request], None]
 
 
-_interceptors: List[InterceptorType] = []
+_interceptors: list[InterceptorType] = []
 
 
 def register(interceptor: InterceptorType) -> None:

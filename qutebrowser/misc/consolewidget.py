@@ -6,7 +6,8 @@
 
 import sys
 import code
-from typing import MutableSequence, Optional
+from typing import Optional
+from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt
 from qutebrowser.qt.widgets import QTextEdit, QWidget, QVBoxLayout, QApplication

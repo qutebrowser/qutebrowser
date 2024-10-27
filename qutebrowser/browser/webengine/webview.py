@@ -5,7 +5,8 @@
 """The main browser widget for QtWebEngine."""
 
 import mimetypes
-from typing import List, Iterable, Optional
+from typing import Optional
+from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl
@@ -316,7 +317,7 @@ class WebEnginePage(QWebEnginePage):
         mode: QWebEnginePage.FileSelectionMode,
         old_files: Iterable[Optional[str]],
         accepted_mimetypes: Iterable[Optional[str]],
-    ) -> List[str]:
+    ) -> list[str]:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
         accepted_mimetypes_filtered = [m for m in accepted_mimetypes if m is not None]
         old_files_filtered = [f for f in old_files if f is not None]
