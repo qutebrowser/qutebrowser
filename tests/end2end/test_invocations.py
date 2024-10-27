@@ -662,6 +662,9 @@ def test_permission_prompt_across_restart(quteproc_new, request, short_tmpdir):
     # We should be re-prompted in the new instance
     notification_prompt('no')
 
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
 
 # The 'colors' dictionaries in the parametrize decorator below have (QtWebEngine
 # version, CPU architecture) as keys. Either of those (or both) can be None to
