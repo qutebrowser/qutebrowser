@@ -161,12 +161,14 @@ Feature: Prompts
 
     # Clipboard permissions - static
 
+    @qtwebkit_skip
     Scenario: Clipboard - no permission - copy
         When I set content.javascript.clipboard to none
         And I open data/prompt/clipboard.html
         And I run :click-element id copy
         Then the javascript message "Failed to copy text." should be logged
 
+    @qtwebkit_skip
     Scenario: Clipboard - no permission - paste
         When I set content.javascript.clipboard to none
         And I open data/prompt/clipboard.html
@@ -176,25 +178,28 @@ Feature: Prompts
     # access permission no longer allows copy permission on 6.8 because it
     # falls back to a permission prompt that we don't support
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-130599
-    @qt<6.8
+    @qt<6.8 @qtwebkit_skip
     Scenario: Clipboard - access permission - copy
         When I set content.javascript.clipboard to access
         And I open data/prompt/clipboard.html
         And I run :click-element id copy
         Then the javascript message "Text copied: default text" should be logged
 
+    @qtwebkit_skip
     Scenario: Clipboard - access permission - paste
         When I set content.javascript.clipboard to access
         And I open data/prompt/clipboard.html
         And I run :click-element id paste
         Then the javascript message "Failed to read from clipboard." should be logged
 
+    @qtwebkit_skip
     Scenario: Clipboard - full permission - copy
         When I set content.javascript.clipboard to access-paste
         And I open data/prompt/clipboard.html
         And I run :click-element id copy
         Then the javascript message "Text copied: default text" should be logged
 
+    @qtwebkit_skip
     Scenario: Clipboard - full permission - paste
         When I set content.javascript.clipboard to access-paste
         And I open data/prompt/clipboard.html
