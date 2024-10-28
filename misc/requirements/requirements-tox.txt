@@ -6,13 +6,13 @@ colorama==0.4.6
 distlib==0.3.9
 filelock==3.16.1
 packaging==24.1
-pip==24.2
+pip==24.3.1
 platformdirs==4.3.6
 pluggy==1.5.0
 pyproject-api==1.8.0
 setuptools==75.2.0
 tomli==2.0.2
-tox==4.23.0
+tox==4.23.2
 typing_extensions==4.12.2
 virtualenv==20.27.0
 wheel==0.44.0
