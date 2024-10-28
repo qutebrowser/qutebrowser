@@ -980,13 +980,12 @@ class YesNoPrompt(_BasePrompt):
             opt = config.instance.get_opt(self.question.option)
             if isinstance(opt.typ, configtypes.Bool):
                 pass
-            elif hasattr(opt.typ, "from_bool"):
+            elif isinstance(opt.typ, configtypes.AsBool):
                 value = opt.typ.from_bool(value)
             else:
                 raise AssertionError(
-                    "Cannot save prompt answer. Expected 'Bool' option or "
-                    "option with 'from_bool()'. "
-                    f"option={opt.name} type={type(opt.typ)}"
+                    f"Cannot save prompt answer ({opt.name}). Expected 'Bool' or 'AsBool' "
+                    f"type option, got: value={value} type={type(opt.typ)}"
                 )
 
             pattern = urlmatch.UrlPattern(self.question.url)

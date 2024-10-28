@@ -14,7 +14,7 @@ from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configtypes
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
                                qtutils, version, urlutils)
 from qutebrowser.mainwindow import mainwindow
@@ -330,7 +330,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 title='Permission request', text=text, url=urlstr,
                 option=option)
 
-    if hasattr(opt.typ, "to_bool"):
+    if isinstance(opt.typ, configtypes.AsBool):
         config_val = opt.typ.to_bool(config_val)
 
     if config_val is True:
