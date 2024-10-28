@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Recompile requirements
         run: "python3 scripts/dev/recompile_requirements.py ${{ github.event.input.environments }}"
         id: requirements
@@ -41,7 +41,7 @@ jobs:
       - name: Run qutebrowser smoke test
         run: "xvfb-run .venv/bin/python3 -m qutebrowser --no-err-windows --nowindow --temp-basedir about:blank ':later 500 quit'"
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           committer: qutebrowser bot <bot@qutebrowser.org>
           author: qutebrowser bot <bot@qutebrowser.org>

@@ -71,7 +71,6 @@
   "babel": "https://github.com/python-babel/babel/blob/master/CHANGES.rst",
   "alabaster": "https://alabaster.readthedocs.io/en/latest/changelog.html",
   "imagesize": "https://github.com/shibukawa/imagesize_py/commits/master",
-  "pytz": "https://mm.icann.org/pipermail/tz-announce/",
   "sphinxcontrib-applehelp": "https://www.sphinx-doc.org/en/master/changes.html",
   "sphinxcontrib-devhelp": "https://www.sphinx-doc.org/en/master/changes.html",
   "sphinxcontrib-htmlhelp": "https://www.sphinx-doc.org/en/master/changes.html",

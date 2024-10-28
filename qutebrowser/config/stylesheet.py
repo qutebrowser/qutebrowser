@@ -5,7 +5,7 @@
 """Handling of Qt qss stylesheets."""
 
 import functools
-from typing import Optional, FrozenSet
+from typing import Optional
 
 from qutebrowser.qt.core import pyqtSlot, QObject
 from qutebrowser.qt.widgets import QWidget
@@ -72,7 +72,7 @@ class _StyleSheetObserver(QObject):
             self._stylesheet = stylesheet
 
         if update:
-            self._options: Optional[FrozenSet[str]] = jinja.template_config_variables(
+            self._options: Optional[frozenset[str]] = jinja.template_config_variables(
                 self._stylesheet)
         else:
             self._options = None

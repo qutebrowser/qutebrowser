@@ -15,7 +15,8 @@ import subprocess
 import tokenize
 import traceback
 import pathlib
-from typing import List, Iterator, Optional, Tuple
+from typing import Optional
+from collections.abc import Iterator
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -30,7 +31,7 @@ BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
 def _get_files(
         *,
         verbose: bool,
-        ignored: List[pathlib.Path] = None
+        ignored: list[pathlib.Path] = None
 ) -> Iterator[pathlib.Path]:
     """Iterate over all files and yield filenames."""
     filenames = subprocess.run(
@@ -142,8 +143,8 @@ def _check_spelling_file(path, fobj, patterns):
 
 def _check_spelling_all(
     args: argparse.Namespace,
-    ignored: List[pathlib.Path],
-    patterns: List[Tuple[re.Pattern, str]],
+    ignored: list[pathlib.Path],
+    patterns: list[tuple[re.Pattern, str]],
 ) -> Optional[bool]:
     try:
         ok = True

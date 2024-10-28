@@ -438,7 +438,7 @@ This installs all needed Python dependencies in a `.venv` subfolder
 This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
 binary, but has a few caveats:
 
-- Make sure your `python3` is Python 3.8 or newer, otherwise you'll get a "No
+- Make sure your `python3` is Python 3.9 or newer, otherwise you'll get a "No
   matching distribution found" error and/or qutebrowser will not run.
 - It only works on 64-bit x86 systems, with other architectures you'll get the
   same error.

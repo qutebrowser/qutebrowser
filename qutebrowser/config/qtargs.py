@@ -8,7 +8,11 @@ import os
 import sys
 import argparse
 import pathlib
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union, Callable
+# Using deprecated typing.Callable as a WORKAROUND because
+# collections.abc.Callable inside Optional[...]/Union[...]
+# is broken on Python 3.9.0 and 3.9.1
+from typing import Any, Optional, Union, Callable
+from collections.abc import Iterator, Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QLocale
@@ -23,7 +27,7 @@ _DISABLE_FEATURES = '--disable-features='
 _BLINK_SETTINGS = '--blink-settings='
 
 
-def qt_args(namespace: argparse.Namespace) -> List[str]:
+def qt_args(namespace: argparse.Namespace) -> list[str]:
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -77,7 +81,7 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
 def _qtwebengine_features(
         versions: version.WebEngineVersions,
         special_flags: Sequence[str],
-) -> Tuple[Sequence[str], Sequence[str]]:
+) -> tuple[Sequence[str], Sequence[str]]:
     """Get a tuple of --enable-features/--disable-features flags for QtWebEngine.
 
     Args:
@@ -91,10 +95,10 @@ def _qtwebengine_features(
 
     for flag in special_flags:
         if flag.startswith(_ENABLE_FEATURES):
-            flag = flag[len(_ENABLE_FEATURES):]
+            flag = flag.removeprefix(_ENABLE_FEATURES)
             enabled_features += flag.split(',')
         elif flag.startswith(_DISABLE_FEATURES):
-            flag = flag[len(_DISABLE_FEATURES):]
+            flag = flag.removeprefix(_DISABLE_FEATURES)
             disabled_features += flag.split(',')
         elif flag.startswith(_BLINK_SETTINGS):
             pass
@@ -285,7 +289,7 @@ _SettingValueType = Union[
         Optional[str],
     ],
 ]
-_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
+_WEBENGINE_SETTINGS: dict[str, dict[Any, Optional[_SettingValueType]]] = {
     'qt.force_software_rendering': {
         'software-opengl': None,
         'qt-quick': None,

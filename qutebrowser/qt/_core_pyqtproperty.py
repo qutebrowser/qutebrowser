@@ -9,7 +9,7 @@ https://github.com/python-qt-tools/PyQt5-stubs/blob/5.15.6.0/PyQt5-stubs/QtCore.
 """
 
 # flake8: noqa
-# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument
+# pylint: disable=invalid-name,missing-class-docstring,too-many-arguments,redefined-builtin,unused-argument,deprecated-typing-alias
 
 import typing
 from PyQt6.QtCore import QObject, pyqtSignal
@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
     )
 
     class pyqtProperty:
-        def __init__(
+        def __init__(  # pylint: disable=too-many-positional-arguments
             self,
             type: typing.Union[type, str],
             fget: typing.Optional[typing.Callable[[QObjectT], TPropertyTypeVal]] = None,

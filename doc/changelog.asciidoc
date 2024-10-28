@@ -22,10 +22,16 @@ v3.4.0 (unreleased)
 Deprecated
 ~~~~~~~~~~
 
-- **In either this (v3.4.0) or the next release (v3.5.0)**, support for Python
-  3.8 will be dropped, and Python 3.9 will be required.
 - **In the next release (v3.5.0)**, support for macOS 12 Monterey will be
   dropped, and binaries will be built on macOS 13 Ventura.
+
+Removed
+~~~~~~~
+
+- Support for Python 3.8 is dropped, and Python 3.9 is now required.
+- When using the installer on Windows 10, build 1809 or newer is now required
+  (previous versions required 1607 or newer, but that's not officialy supported by
+  Qt upstream).
 
 Added
 ~~~~~
@@ -38,7 +44,17 @@ Added
 Changed
 ~~~~~~~
 
+- The `.desktop` file now also declares qutebrowser as a valid viewer for
+  `image/webp`.
+- Updated mimetype information for getting a suitable extension when downloading
+  a `data:` URL.
 - The `content.javascript.clipboard` setting now defaults to "ask".
+
+Fixed
+~~~~~
+
+- Crash with recent Jinja/Markupsafe versions when viewing a finished userscript
+  (or potentially editor) process via `:process`.
 
 
 [[v3.3.1]]

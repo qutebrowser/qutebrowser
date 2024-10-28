@@ -16,7 +16,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.dunder
 
 persistent=n
-py-version=3.8
+py-version=3.9
 
 [MESSAGES CONTROL]
 enable=all
@@ -71,7 +71,8 @@ argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
 docstring-min-length=3
 no-docstring-rgx=(^_|^main$)
-class-const-naming-style = snake_case
+class-const-naming-style=snake_case
+max-positional-arguments=7
 
 [FORMAT]
 # FIXME:v4 (lint) down to 88 again once we use black

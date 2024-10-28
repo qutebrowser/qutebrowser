@@ -19,8 +19,9 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, Any,
+from typing import (Optional, ClassVar, Any,
                     TYPE_CHECKING)
+from collections.abc import Mapping, Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import PYQT_VERSION_STR
@@ -105,7 +106,7 @@ class Distribution(enum.Enum):
     solus = enum.auto()
 
 
-def _parse_os_release() -> Optional[Dict[str, str]]:
+def _parse_os_release() -> Optional[dict[str, str]]:
     """Parse an /etc/os-release file."""
     filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
     info = {}
@@ -250,7 +251,7 @@ def _git_str_subprocess(gitpath: str) -> Optional[str]:
         return None
 
 
-def _release_info() -> Sequence[Tuple[str, str]]:
+def _release_info() -> Sequence[tuple[str, str]]:
     """Try to gather distribution release information.
 
     Return:
@@ -379,7 +380,7 @@ class ModuleInfo:
         return text
 
 
-def _create_module_info() -> Dict[str, ModuleInfo]:
+def _create_module_info() -> dict[str, ModuleInfo]:
     packages = [
         ('colorama', ['VERSION', '__version__']),
         ('jinja2', ['__version__']),
@@ -538,20 +539,22 @@ class WebEngineVersions:
     chromium_security: Optional[str] = None
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
-    _BASES: ClassVar[Dict[int, str]] = {
-        83: '83.0.4103.122',  # ~2020-06-24
-        87: '87.0.4280.144',  # ~2020-12-02
-        90: '90.0.4430.228',  # 2021-06-22
-        94: '94.0.4606.126',  # 2021-11-17
-        102: '102.0.5005.177',  # ~2022-05-24
+    # Dates based on https://chromium.googlesource.com/chromium/src/+refs
+    _BASES: ClassVar[dict[int, str]] = {
+        83: '83.0.4103.122',  # 2020-06-27, Qt 5.15.2
+        87: '87.0.4280.144',  # 2021-01-08, Qt 5.15
+        90: '90.0.4430.228',  # 2021-06-22, Qt 6.2
+        94: '94.0.4606.126',  # 2021-11-17, Qt 6.3
+        102: '102.0.5005.177',  # 2022-09-01, Qt 6.4
         # (.220 claimed by code, .181 claimed by CHROMIUM_VERSION)
-        108: '108.0.5359.220',  # ~2022-12-23
-        112: '112.0.5615.213',  # ~2023-04-18
-        118: '118.0.5993.220',  # ~2023-10-24
-        122: '122.0.6261.171',  # ~2024-??-??
+        108: '108.0.5359.220',  # 2023-01-27, Qt 6.5
+        112: '112.0.5615.213',  # 2023-05-24, Qt 6.6
+        118: '118.0.5993.220',  # 2024-01-25, Qt 6.7
+        122: '122.0.6261.171',  # 2024-04-15, Qt 6.8
     }
 
-    _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, Tuple[str, Optional[str]]]] = {
+    # Dates based on https://chromereleases.googleblog.com/
+    _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
         # ====== UNSUPPORTED =====
 
         # Qt 5.12: Chromium 69
@@ -707,7 +710,7 @@ class WebEngineVersions:
     def _infer_chromium_version(
             cls,
             pyqt_webengine_version: utils.VersionNumber,
-    ) -> Tuple[Optional[str], Optional[str]]:
+    ) -> tuple[Optional[str], Optional[str]]:
         """Infer the Chromium version based on the PyQtWebEngine version.
 
         Returns:
@@ -1017,7 +1020,7 @@ class OpenGLInfo:
     version_str: Optional[str] = None
 
     # The parsed version as a (major, minor) tuple of ints
-    version: Optional[Tuple[int, ...]] = None
+    version: Optional[tuple[int, ...]] = None
 
     # The vendor specific information following the version number
     vendor_specific: Optional[str] = None

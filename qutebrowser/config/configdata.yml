@@ -322,8 +322,9 @@ qt.chromium.sandboxing:
 
     See the Chromium documentation for more details:
 
-    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/linux/README.md[Linux]
     - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/mac/README.md[Mac]
     - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
   # yamllint enable rule:line-length
 

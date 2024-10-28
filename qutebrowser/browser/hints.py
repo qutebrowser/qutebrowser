@@ -12,8 +12,15 @@ import html
 import enum
 import dataclasses
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
+from typing import (TYPE_CHECKING, Optional)
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableSequence,
+    Sequence,
+    Callable,
+)
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from qutebrowser.qt.widgets import QLabel
@@ -175,11 +182,11 @@ class HintContext:
     add_history: bool
     first: bool
     baseurl: QUrl
-    args: List[str]
+    args: list[str]
     group: str
 
-    all_labels: List[HintLabel] = dataclasses.field(default_factory=list)
-    labels: Dict[str, HintLabel] = dataclasses.field(default_factory=dict)
+    all_labels: list[HintLabel] = dataclasses.field(default_factory=list)
+    labels: dict[str, HintLabel] = dataclasses.field(default_factory=dict)
     to_follow: Optional[str] = None
     first_run: bool = True
     filterstr: Optional[str] = None
@@ -1033,7 +1040,7 @@ class WordHinter:
 
     def __init__(self) -> None:
         # will be initialized on first use.
-        self.words: Set[str] = set()
+        self.words: set[str] = set()
         self.dictionary = None
 
     def ensure_initialized(self) -> None:
@@ -1143,7 +1150,7 @@ class WordHinter:
         """
         self.ensure_initialized()
         hints = []
-        used_hints: Set[str] = set()
+        used_hints: set[str] = set()
         words = iter(self.words)
         for elem in elems:
             hint = self.new_hint_for(elem, used_hints, words)

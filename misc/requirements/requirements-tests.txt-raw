@@ -39,7 +39,6 @@ tldextract
 # Include them here even though we don't need them to make sure we at least
 # get an up to date version.
 importlib_resources
-#@ markers: importlib_resources python_version=="3.8.*"
 jaraco.context
 platformdirs
 

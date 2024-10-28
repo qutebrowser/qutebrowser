@@ -7,8 +7,9 @@
 
 import collections
 import functools
-from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
-                    Optional, Sequence, Union)
+from typing import (TYPE_CHECKING, Any,
+                    Optional, Union)
+from collections.abc import MutableMapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import QObject, QTimer
 from qutebrowser.qt.widgets import QApplication
@@ -240,6 +241,7 @@ def get(name: str,
 
 def register(name: str,
              obj: Any,
+             *,
              update: bool = False,
              scope: str = None,
              registry: ObjectRegistry = None,

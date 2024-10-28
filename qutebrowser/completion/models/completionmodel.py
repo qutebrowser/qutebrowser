@@ -4,7 +4,8 @@
 
 """A model that proxies access to one or more completion categories."""
 
-from typing import MutableSequence, overload, Optional, Any, cast
+from typing import overload, Optional, Any, cast
+from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import Qt, QModelIndex, QAbstractItemModel, QObject

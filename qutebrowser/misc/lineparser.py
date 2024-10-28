@@ -7,7 +7,7 @@
 import os
 import os.path
 import contextlib
-from typing import Sequence
+from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QObject
 

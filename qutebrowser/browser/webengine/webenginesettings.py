@@ -12,7 +12,7 @@ Module attributes:
 import os
 import operator
 import pathlib
-from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import cast, Any, Optional, Union, TYPE_CHECKING
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.gui import QFont
@@ -543,7 +543,7 @@ def _init_default_settings():
     - Make sure the devtools always get images/JS permissions.
     - On Qt 6, make sure files in the data path can load external resources.
     """
-    devtools_settings: List[Tuple[str, Any]] = [
+    devtools_settings: list[tuple[str, Any]] = [
         ('content.javascript.enabled', True),
         ('content.images', True),
         ('content.cookies.accept', 'all'),
@@ -556,7 +556,7 @@ def _init_default_settings():
                                     hide_userconfig=True)
 
     if machinery.IS_QT6:
-        userscripts_settings: List[Tuple[str, Any]] = [
+        userscripts_settings: list[tuple[str, Any]] = [
             ("content.local_content_can_access_remote_urls", True),
             ("content.local_content_can_access_file_urls", False),
         ]

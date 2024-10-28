@@ -12,7 +12,8 @@ import functools
 import datetime
 import types
 from typing import (
-    Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
+    Any, Optional, Union)
+from collections.abc import Mapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 
@@ -21,7 +22,7 @@ from qutebrowser.misc import objects
 from qutebrowser.qt import sip, machinery
 
 
-def log_events(klass: Type[QObject]) -> Type[QObject]:
+def log_events(klass: type[QObject]) -> type[QObject]:
     """Class decorator to log Qt events."""
     old_event = klass.event
 
@@ -38,7 +39,7 @@ def log_events(klass: Type[QObject]) -> Type[QObject]:
     return klass
 
 
-def log_signals(obj: Union[QObject, Type[QObject]]) -> Union[QObject, Type[QObject]]:
+def log_signals(obj: Union[QObject, type[QObject]]) -> Union[QObject, type[QObject]]:
     """Log all signals of an object or class.
 
     Can be used as class decorator.
@@ -94,7 +95,7 @@ else:
 
 def _qenum_key_python(
     value: _EnumValueType,
-    klass: Type[_EnumValueType],
+    klass: type[_EnumValueType],
 ) -> Optional[str]:
     """New-style PyQt6: Try getting value from Python enum."""
     if isinstance(value, enum.Enum) and value.name:
@@ -114,9 +115,9 @@ def _qenum_key_python(
 
 
 def _qenum_key_qt(
-    base: Type[sip.simplewrapper],
+    base: type[sip.simplewrapper],
     value: _EnumValueType,
-    klass: Type[_EnumValueType],
+    klass: type[_EnumValueType],
 ) -> Optional[str]:
     # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
     # However, not every Qt enum value has a staticMetaObject
@@ -139,9 +140,9 @@ def _qenum_key_qt(
 
 
 def qenum_key(
-    base: Type[sip.simplewrapper],
+    base: type[sip.simplewrapper],
     value: _EnumValueType,
-    klass: Type[_EnumValueType] = None,
+    klass: type[_EnumValueType] = None,
 ) -> str:
     """Convert a Qt Enum value to its key as a string.
 
@@ -173,9 +174,9 @@ def qenum_key(
     return '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
 
 
-def qflags_key(base: Type[sip.simplewrapper],
+def qflags_key(base: type[sip.simplewrapper],
                value: _EnumValueType,
-               klass: Type[_EnumValueType] = None) -> str:
+               klass: type[_EnumValueType] = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
     Note: Passing a combined value (such as Qt.AlignmentFlag.AlignCenter) will get the names
@@ -325,7 +326,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
         self._started = datetime.datetime.now()
 
     def __exit__(self,
-                 _exc_type: Optional[Type[BaseException]],
+                 _exc_type: Optional[type[BaseException]],
                  _exc_val: Optional[BaseException],
                  _exc_tb: Optional[types.TracebackType]) -> None:
         assert self._started is not None
@@ -372,7 +373,7 @@ def get_all_objects(start_obj: QObject = None) -> str:
     if start_obj is None:
         start_obj = objects.qapp
 
-    pyqt_lines: List[str] = []
+    pyqt_lines: list[str] = []
     _get_pyqt_objects(pyqt_lines, start_obj)
     pyqt_lines = ['    ' + e for e in pyqt_lines]
     pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(len(pyqt_lines)))

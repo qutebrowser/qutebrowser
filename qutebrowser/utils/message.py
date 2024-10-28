@@ -10,7 +10,8 @@
 
 import dataclasses
 import traceback
-from typing import Any, Callable, Iterable, List, Union, Optional
+from typing import Any, Union, Optional
+from collections.abc import Iterable, Callable
 
 from qutebrowser.qt.core import pyqtSignal, pyqtBoundSignal, QObject
 
@@ -239,7 +240,7 @@ class GlobalMessageBridge(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
-        self._cache: List[MessageInfo] = []
+        self._cache: list[MessageInfo] = []
 
     def ask(self, question: usertypes.Question,
             blocking: bool, *,
