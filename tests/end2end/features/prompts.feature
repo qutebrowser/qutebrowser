@@ -271,6 +271,19 @@ Feature: Prompts
         Then the javascript message "Failed to read from clipboard." should be logged
         And I run :config-unset -u localhost:* content.javascript.clipboard
 
+    @qt>=6.8
+    Scenario: Clipboard - ask allow persistent - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept --save yes
+        And I wait for "*Text pasted: *" in the log
+        And I reload
+        And I run :click-element id paste
+        Then the javascript message "Text pasted: *" should be logged
+
     # SSL
 
     Scenario: SSL error with content.tls.certificate_errors = load-insecurely

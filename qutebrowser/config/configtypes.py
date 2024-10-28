@@ -2016,3 +2016,20 @@ class StatusbarWidget(String):
         if value.startswith("text:") or value.startswith("clock:"):
             return
         super()._validate_valid_values(value)
+
+
+class JSClipboardPermission(String):
+
+    """Permission for page JS to access the system clipboard.
+
+    String + BoolAsk
+    """
+
+    def to_bool(self, value: str) -> bool:
+        return value == "access-paste"
+
+    def from_bool(self, value: bool) -> str:
+        if value is True:
+            return "access-paste"
+        else:
+            return "none"

@@ -925,7 +925,7 @@ content.javascript.alert:
 content.javascript.clipboard:
   default: ask
   type:
-    name: String
+    name: JSClipboardPermission
     valid_values:
       - none: Disable access to clipboard.
       - access: Allow reading from and writing to the clipboard.
