@@ -15,7 +15,7 @@ execnet==2.1.1
 filelock==3.16.1
 Flask==3.0.3
 hunter==3.7.0
-hypothesis==6.115.5
+hypothesis==6.116.0
 idna==3.10
 importlib_metadata==8.5.0
 importlib_resources==6.4.5
@@ -41,8 +41,8 @@ py-cpuinfo==9.0.0
 Pygments==2.18.0
 pytest==8.3.3
 pytest-bdd==7.3.0
-pytest-benchmark==4.0.0
-pytest-cov==5.0.0
+pytest-benchmark==5.1.0
+pytest-cov==6.0.0
 pytest-instafail==0.5.0
 pytest-mock==3.14.0
 pytest-qt==4.4.0
@@ -62,5 +62,5 @@ typeguard==4.3.0
 typing_extensions==4.12.2
 urllib3==2.2.3
 vulture==2.13
-Werkzeug==3.0.6
+Werkzeug==3.1.1
 zipp==3.20.2
