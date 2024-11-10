@@ -418,13 +418,12 @@ def _clear_webengine_permissions_json():
     because Qt will load the file during that.
     """
     permissions_file = pathlib.Path(standarddir.data()) / "webengine" / "permissions.json"
-    if permissions_file.exists():
-        try:
-            permissions_file.unlink()
-        except OSError as err:
-            log.init.warning(
-                f"Error while cleaning up webengine permissions file: {err}"
-            )
+    try:
+        permissions_file.unlink(missing_ok=True)
+    except OSError as err:
+        log.init.warning(
+            f"Error while cleaning up webengine permissions file: {err}"
+        )
 
 
 def _init_default_profile():
