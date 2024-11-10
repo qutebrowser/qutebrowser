@@ -26,7 +26,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version, utils)
+                               urlmatch, usertypes, objreg, version)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -352,11 +352,13 @@ class ProfileSetter:
 
     def disable_persistent_permissions_policy(self):
         """Disable webengine's permission persistence."""
-        pyqt_version = utils.VersionNumber.parse(version.PYQT_WEBENGINE_VERSION_STR)
-        if pyqt_version >= utils.VersionNumber(6, 8):
+        try:
+            # New in WebEngine 6.8.0
             self._profile.setPersistentPermissionsPolicy(
                 QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime  # type: ignore[attr-defined]
             )
+        except AttributeError:
+            pass
 
 
 def _update_settings(option):
