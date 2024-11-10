@@ -341,12 +341,10 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
         no_action()
         return None
     else:
-        log.misc.warning(
+        raise AssertionError(
             f"Unsupported value for permission prompt setting ({option}), expected boolean or "
             f"'ask', got: {config_val} ({type(config_val)})"
         )
-        no_action()
-        return None
 
 
 def get_tab(win_id, target):
