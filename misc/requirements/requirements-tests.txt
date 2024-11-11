@@ -4,7 +4,7 @@ attrs==24.2.0
 autocommand==2.2.2
 backports.tarfile==1.2.0
 beautifulsoup4==4.12.3
-blinker==1.8.2
+blinker==1.9.0
 certifi==2024.8.30
 charset-normalizer==3.4.0
 cheroot==10.0.1
@@ -15,7 +15,7 @@ execnet==2.1.1
 filelock==3.16.1
 Flask==3.0.3
 hunter==3.7.0
-hypothesis==6.116.0
+hypothesis==6.118.7
 idna==3.10
 importlib_metadata==8.5.0
 importlib_resources==6.4.5
@@ -31,7 +31,7 @@ Mako==1.3.6
 manhole==1.8.1
 # MarkupSafe==3.0.2
 more-itertools==10.5.0
-packaging==24.1
+packaging==24.2
 parse==1.20.2
 parse_type==0.6.4
 pillow==11.0.0
@@ -56,11 +56,11 @@ requests-file==2.1.0
 six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.6
-tldextract==5.1.2
+tldextract==5.1.3
 tomli==2.0.2
 typeguard==4.3.0
 typing_extensions==4.12.2
 urllib3==2.2.3
 vulture==2.13
-Werkzeug==3.1.1
-zipp==3.20.2
+Werkzeug==3.1.3
+zipp==3.21.0
