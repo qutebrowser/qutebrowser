@@ -231,6 +231,12 @@ def is_ignored_chromium_message(line):
         # Some MojoDiscardableSharedMemoryManagerImpls are still alive. They
         # will be leaked.
         "Some MojoDiscardableSharedMemoryManagerImpls are still alive. They will be leaked.",
+
+        # Qt 6.7 on GitHub Actions
+        # [3456:5752:1111/103609.929:ERROR:block_files.cc(443)] Failed to open
+        # C:\Users\RUNNER~1\AppData\Local\Temp\qutebrowser-basedir-ruvn1lys\data\webengine\DawnCache\data_0
+        "Failed to open *webengine*DawnCache*data_*",
+
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
