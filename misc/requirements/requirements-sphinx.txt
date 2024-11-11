@@ -10,7 +10,7 @@ imagesize==1.4.1
 importlib_metadata==8.5.0
 Jinja2==3.1.4
 MarkupSafe==3.0.2
-packaging==24.1
+packaging==24.2
 Pygments==2.18.0
 requests==2.32.3
 snowballstemmer==2.2.0
@@ -23,4 +23,4 @@ sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
 tomli==2.0.2
 urllib3==2.2.3
-zipp==3.20.2
+zipp==3.21.0
