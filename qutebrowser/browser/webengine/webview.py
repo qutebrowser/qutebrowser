@@ -136,8 +136,7 @@ class WebEngineView(QWebEngineView):
     def page(self) -> "WebEnginePage":
         """Return the page for this view."""
         maybe_page = super().page()
-        assert maybe_page is not None
-        assert isinstance(maybe_page, WebEnginePage)
+        assert isinstance(maybe_page, WebEnginePage), maybe_page
         return maybe_page
 
     def settings(self) -> "QWebEngineSettings":
