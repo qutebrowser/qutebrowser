@@ -2038,7 +2038,4 @@ class JSClipboardPermission(String, AsBool):
         return value == "access-paste"
 
     def from_bool(self, value: bool) -> str:
-        if value is True:
-            return "access-paste"
-        else:
-            return "none"
+        return "access-paste" if value else "none"
