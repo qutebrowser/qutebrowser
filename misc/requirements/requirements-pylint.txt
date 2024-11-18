@@ -13,13 +13,13 @@ mccabe==0.7.0
 pefile==2024.8.26
 platformdirs==4.3.6
 pycparser==2.22
-PyJWT==2.9.0
+PyJWT==2.10.0
 pylint==3.3.1
 python-dateutil==2.9.0.post0
 ./scripts/dev/pylint_checkers
 requests==2.32.3
 six==1.16.0
-tomli==2.0.2
+tomli==2.1.0
 tomlkit==0.13.2
 typing_extensions==4.12.2
 uritemplate==4.1.1

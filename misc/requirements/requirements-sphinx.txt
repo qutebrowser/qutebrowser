@@ -21,6 +21,6 @@ sphinxcontrib-htmlhelp==2.1.0
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
-tomli==2.0.2
+tomli==2.1.0
 urllib3==2.2.3
 zipp==3.21.0
