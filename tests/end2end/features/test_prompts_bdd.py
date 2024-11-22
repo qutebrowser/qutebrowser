@@ -8,7 +8,10 @@ import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
 from qutebrowser.utils import qtutils
-from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
+try:
+    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
+except ImportError:
+    PYQT_WEBENGINE_VERSION = None
 
 
 @bdd.when("I load an SSL page")
@@ -48,6 +51,7 @@ def fresh_instance(quteproc):
     # browser to make it forget previous prompts.
     if (
         qtutils.version_check("6.8", compiled=False)
+        and PYQT_WEBENGINE_VERSION
         and PYQT_WEBENGINE_VERSION < 0x60800
     ):
         quteproc.terminate()
