@@ -4,7 +4,8 @@ coverage
 Flask
 hypothesis
 pytest
-pytest-bdd
+# https://github.com/qutebrowser/qutebrowser/issues/8342
+pytest-bdd<8
 pytest-benchmark
 pytest-instafail
 pytest-mock

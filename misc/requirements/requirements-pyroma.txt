@@ -11,7 +11,7 @@ Pygments==2.18.0
 pyproject_hooks==1.2.0
 pyroma==4.2
 requests==2.32.3
-tomli==2.0.2
+tomli==2.1.0
 trove-classifiers==2024.10.21.16
 urllib3==2.2.3
 zipp==3.21.0
