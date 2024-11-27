@@ -187,7 +187,9 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         if request.is_blocked:
             info.block(True)
 
-        for header, value in shared.custom_headers(url=url):
+        for header, value in shared.custom_headers(
+            url=url, fallback_accept_language=not is_xhr
+        ):
             if header.lower() == b'accept' and is_xhr:
                 # https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader
                 # says: "If no Accept header has been set using this, an Accept header
