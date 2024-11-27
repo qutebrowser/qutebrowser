@@ -42,8 +42,8 @@ def custom_headers(url):
         headers[encoded_header] = encoded_value
 
     accept_language = config.instance.get('content.headers.accept_language',
-                                          url=url)
-    if accept_language is not None:
+                                          url=url, fallback=False)
+    if accept_language is not None and not isinstance(accept_language, usertypes.Unset):
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 
     return sorted(headers.items())

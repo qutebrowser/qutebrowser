@@ -48,6 +48,11 @@ Changed
   `image/webp`.
 - Updated mimetype information for getting a suitable extension when downloading
   a `data:` URL.
+- If a XHR request made via JS sets a custom `Accept-Language` header, it now
+  correctly has precedence over the global `content.headers.accept_language`
+  setting (but not per-domain overrides). This fixes subtle JS issues on
+  websites that rely on the custom header being sent for those requests, and
+  e.g. block the requests server-side otherwise. (#8370)
 
 Fixed
 ~~~~~
