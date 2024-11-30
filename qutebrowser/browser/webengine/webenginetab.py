@@ -1635,27 +1635,67 @@ class WebEngineTab(browsertab.AbstractTab):
         Currently, we simply pick the first available certificate and show an
         additional note if there are multiple matches.
         """
-        certificate = selection.certificates()[0]
-        text = ('<b>Subject:</b> {subj}<br/>'
-                '<b>Issuer:</b> {issuer}<br/>'
-                '<b>Serial:</b> {serial}'.format(
-                    subj=html_utils.escape(certificate.subjectDisplayName()),
-                    issuer=html_utils.escape(certificate.issuerDisplayName()),
-                    serial=bytes(certificate.serialNumber()).decode('ascii')))
-        if len(selection.certificates()) > 1:
-            text += ('<br/><br/><b>Note:</b> Multiple matching certificates '
-                     'were found, but certificate selection is not '
-                     'implemented yet!')
         urlstr = selection.host().host()
+        if len(selection.certificates()) > 1:
+            errmsg = ""
+            while True:
+                text = "Multiple matching certificates were found, select the one to present.<br/><br/>"
+                for index, cert in enumerate(selection.certificates()):
+                    text += ('<b>Certificate #{index}</b><br/>'
+                             '<b>Subject:</b> {subj}<br/>'
+                             '<b>Issuer:</b> {issuer}<br/>'
+                             '<b>Serial:</b> {serial}<br/><br/>'.format(
+                                index=index+1,
+                                subj=html_utils.escape(cert.subjectDisplayName()),
+                                issuer=html_utils.escape(cert.issuerDisplayName()),
+                                serial=bytes(cert.serialNumber()).decode('ascii')))
 
-        present = message.ask(
-            title='Present client certificate to {}?'.format(urlstr),
-            text=text,
-            mode=usertypes.PromptMode.yesno,
-            abort_on=[self.abort_questions],
-            url=urlstr)
+                text += errmsg + "Enter the number of the certificate to present."
 
-        if present:
+                select = message.ask(
+                        title='Select client certificate',
+                        text=text,
+                        mode=usertypes.PromptMode.text,
+                        abort_on=[self.abort_questions],
+                        url=urlstr)
+
+                if select is not None and select.startswith("#"):
+                    select = select[1:]
+
+                if select is None:
+                    index = None
+                    break
+                elif select.isdigit():
+                    index = int(select)
+                    if index > 0 and index <= len(selection.certificates()):
+                        break
+
+                errmsg = "Invalid selection, try again. "
+
+            if index is not None:
+                certificate = selection.certificates()[index - 1]
+            else:
+                certificate = None
+
+        else:
+            certificate = selection.certificates()[0]
+            text = ('<b>Subject:</b> {subj}<br/>'
+                    '<b>Issuer:</b> {issuer}<br/>'
+                    '<b>Serial:</b> {serial}'.format(
+                        subj=html_utils.escape(certificate.subjectDisplayName()),
+                        issuer=html_utils.escape(certificate.issuerDisplayName()),
+                        serial=bytes(certificate.serialNumber()).decode('ascii')))
+
+            present = message.ask(
+                title='Present client certificate to {}?'.format(urlstr),
+                text=text,
+                mode=usertypes.PromptMode.yesno,
+                abort_on=[self.abort_questions],
+                url=urlstr)
+
+            certificate = None if not present else certificate
+
+        if certificate is not None:
             selection.select(certificate)
         else:
             selection.selectNone()
