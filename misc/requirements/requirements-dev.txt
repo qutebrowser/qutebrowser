@@ -7,7 +7,7 @@ bump2version==1.0.1
 certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==3.4.0
-cryptography==43.0.3
+cryptography==44.0.0
 docutils==0.21.2
 github3.py==4.0.1
 hunter==3.7.0
@@ -26,13 +26,13 @@ manhole==1.8.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.5.0
-nh3==0.2.18
+nh3==0.2.19
 packaging==24.2
-pkginfo==1.10.0
+pkginfo==1.11.2
 platformdirs==4.3.6
 pycparser==2.22
 Pygments==2.18.0
-PyJWT==2.10.0
+PyJWT==2.10.1
 Pympler==1.1
 pyproject_hooks==1.2.0
 PyQt-builder==1.16.4
@@ -45,8 +45,8 @@ rich==13.9.4
 SecretStorage==3.3.3
 sip==6.8.6
 six==1.16.0
-tomli==2.1.0
-twine==5.1.1
+tomli==2.2.1
+twine==6.0.1
 typeguard==4.3.0
 typing_extensions==4.12.2
 uritemplate==4.1.1
