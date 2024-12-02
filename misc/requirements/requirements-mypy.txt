@@ -10,10 +10,10 @@ mypy-extensions==1.0.0
 pluggy==1.5.0
 Pygments==2.18.0
 PyQt5-stubs==5.15.6.0
-tomli==2.1.0
+tomli==2.2.1
 types-colorama==0.4.15.20240311
-types-docutils==0.21.0.20241005
+types-docutils==0.21.0.20241128
 types-Pygments==2.18.0.20240506
 types-PyYAML==6.0.12.20240917
-types-setuptools==75.5.0.20241122
+types-setuptools==75.6.0.20241126
 typing_extensions==4.12.2
