@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!-- largely copied from https://googlechrome.github.io/samples/async-clipboard/
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: 2014 Google Inc
+-->
+<html>
+    <head>
+        <style type="text/css">
+          textarea {
+            display: block;
+            border: 1px solid #555;
+            padding: 5px;
+            width: 16em;
+            height: 3em;
+            margin: 0 0 5px;
+            font-size: 100%;
+          }
+          h4 {
+            margin: 1em 0 0;
+          }
+          button {
+            padding: 5px 10px;
+            background: #666;
+            border: 1px solid #333;
+            border-radius: 5px;
+            font-size: 100%;
+            color: #fff;
+            cursor: pointer;
+          }
+          button[data-permission] {
+            position: relative;
+            padding-left: 30px;
+            text-align: left;
+          }
+          button[data-permission]:before {
+            content: '...';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 120%;
+            text-shadow: 0 0 1px rgba(0,0,0,0.5);
+          }
+
+          button[data-permission][data-state="granted"] {
+            background: #495;
+            border-color: #051;
+          }
+          button[data-permission][data-state="granted"]:before {
+            content: '\2705';
+          }
+
+          button[data-permission][data-state="denied"] {
+            background: #945;
+            border-color: #501;
+          }
+          button[data-permission][data-state="denied"]:before,
+          button[data-permission][disabled]:before {
+            content: '\1f6ab';
+          }
+
+          button[data-permission][data-state="unavailable"] {
+            background: #886a33;
+            border-color: #493b21;
+            opacity: .7;
+          }
+          button[data-permission][data-state="unavailable"]:before {
+            content: '\1f47b';
+          }
+        </style>
+    </head>
+    <body>
+      <div id="output" class="output">
+        <div id="content">
+        <textarea id="out" placeholder="Text to copy">default text</textarea>
+        <button id="copy">Copy</button>
+        <button id="paste">Paste</button>
+        <h4>Permissions:</h4>
+        <button data-permission="clipboard-read" data-state="granted">Read</button>
+        <button data-permission="clipboard-write" data-state="granted">Write</button>
+      </div>
+      <div id="status"></div>
+        <pre id="log">
+        </pre>
+      </div>
+        <script type="text/javascript">
+          /** Write contents of the textarea to the clipboard when clicking "Copy" */
+          document.querySelector('#copy').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.querySelector('#out').value)
+              .then(() => {
+                console.log('Text copied: ' + document.querySelector('#out').value);
+              })
+              .catch(() => {
+                console.log('Failed to copy text.');
+              });
+          });
+
+          /** Read from clipboard when clicking the Paste button */
+          document.querySelector('#paste').addEventListener('click', () => {
+            navigator.clipboard.readText()
+              .then(text => {
+                document.querySelector('#out').value = text;
+                console.log('Text pasted: ' + text);
+              })
+              .catch(() => {
+                console.log('Failed to read from clipboard.');
+              });
+          });
+
+          /** Watch for pastes */
+          document.addEventListener('paste', e => {
+            // e.preventDefault();
+            navigator.clipboard.readText().then(text => {
+              console.log('Updated clipboard contents: ' + text);
+            });
+          });
+
+          /** Set up buttons to request permissions and display status: */
+          document.querySelectorAll('[data-permission]').forEach(btn => {
+            const permission = btn.getAttribute('data-permission');
+            navigator.permissions.query({name: permission})
+              .then(status => {
+                status.onchange = () => {
+                  btn.setAttribute('data-state', status.state);
+                };
+                status.onchange();
+              })
+              .catch(() => {
+                btn.setAttribute('data-state', 'unavailable');
+                btn.title = 'Permissions API unavailable.';
+              });
+          });
+        </script>
+    </body>
+</html>
+

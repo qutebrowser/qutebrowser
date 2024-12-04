@@ -48,6 +48,7 @@ Changed
   `image/webp`.
 - Updated mimetype information for getting a suitable extension when downloading
   a `data:` URL.
+- The `content.javascript.clipboard` setting now defaults to "ask".
 
 Fixed
 ~~~~~

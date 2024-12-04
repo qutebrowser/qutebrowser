@@ -159,6 +159,131 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
 
+    # Clipboard permissions - static
+
+    @qtwebkit_skip
+    Scenario: Clipboard - no permission - copy
+        When I set content.javascript.clipboard to none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Failed to copy text." should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - no permission - paste
+        When I set content.javascript.clipboard to none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    # access permission no longer allows copy permission on 6.8 because it
+    # falls back to a permission prompt that we don't support
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-130599
+    @qt<6.8 @qtwebkit_skip
+    Scenario: Clipboard - access permission - copy
+        When I set content.javascript.clipboard to access
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - access permission - paste
+        When I set content.javascript.clipboard to access
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - full permission - copy
+        When I set content.javascript.clipboard to access-paste
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - full permission - paste
+        When I set content.javascript.clipboard to access-paste
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Text pasted: *" should be logged
+
+    # Clipboard permissions - prompt
+    # A fresh instance is only required for these tests on Qt<6.8
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow - copy
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text pasted: *" should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask deny - copy
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        And I wait for a prompt
+        And I run :prompt-accept no
+        Then the javascript message "Failed to copy text." should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask deny - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept no
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask per url - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to none
+        And I run :set -u localhost:* content.javascript.clipboard ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text pasted: *" should be logged
+        And I run :config-unset -u localhost:* content.javascript.clipboard
+
+    @qt>=6.8
+    Scenario: Clipboard - deny per url - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to access-paste
+        And I run :set -u localhost:* content.javascript.clipboard none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+        And I run :config-unset -u localhost:* content.javascript.clipboard
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow persistent - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept --save yes
+        And I wait for "*Text pasted: *" in the log
+        And I reload
+        And I run :click-element id paste
+        Then the javascript message "Text pasted: *" should be logged
+
     # SSL
 
     Scenario: SSL error with content.tls.certificate_errors = load-insecurely
@@ -251,8 +376,8 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
-    @qt68_beta4_skip
     Scenario: geolocation with ask -> false
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -260,8 +385,8 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "geolocation permission denied" should be logged
 
-    @qt68_beta4_skip
     Scenario: geolocation with ask -> false and save
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -270,8 +395,8 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
         And the per-domain option content.geolocation should be set to false for http://localhost:(port)
 
-    @qt68_beta4_skip
     Scenario: geolocation with ask -> abort
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button

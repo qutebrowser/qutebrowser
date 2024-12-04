@@ -147,6 +147,17 @@ class ValidValues:
                 self.descriptions == other.descriptions)
 
 
+class AsBool:
+
+    """A non-Bool type that can be converted to bool."""
+
+    def to_bool(self, value: Any) -> bool:
+        raise NotImplementedError
+
+    def from_bool(self, value: bool) -> Any:
+        raise NotImplementedError
+
+
 class BaseType:
 
     """A type used for a setting value.
@@ -2017,3 +2028,14 @@ class StatusbarWidget(String):
         if value.startswith("text:") or value.startswith("clock:"):
             return
         super()._validate_valid_values(value)
+
+
+class JSClipboardPermission(String, AsBool):
+
+    """Permission for page JS to access the system clipboard."""
+
+    def to_bool(self, value: str) -> bool:
+        return value == "access-paste"
+
+    def from_bool(self, value: bool) -> str:
+        return "access-paste" if value else "none"

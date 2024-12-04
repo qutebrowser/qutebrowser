@@ -12,7 +12,6 @@ import pstats
 import operator
 
 import pytest
-from qutebrowser.qt import machinery
 from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
@@ -29,7 +28,7 @@ from end2end.fixtures.quteprocess import (
 )
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
-from qutebrowser.utils import qtutils, utils, version
+from qutebrowser.utils import qtutils, utils
 
 
 def pytest_configure(config):
@@ -192,12 +191,6 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-        ('qt68_beta4_skip',  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8242#issuecomment-2184542226
-         "Fails on Qt 6.8 beta 4",
-         pytest.mark.xfail,
-         machinery.IS_QT6 and version.qtwebengine_versions(
-             avoid_init=True
-         ).webengine == utils.VersionNumber(6, 8) and version.PYQT_WEBENGINE_VERSION_STR < '6.8.0'),
     ]
 
     for item in items:

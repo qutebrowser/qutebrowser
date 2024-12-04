@@ -977,12 +977,22 @@ class YesNoPrompt(_BasePrompt):
             raise Error("Invalid value {} - expected yes/no!".format(value))
 
         if save:
+            value = self.question.answer
             opt = config.instance.get_opt(self.question.option)
-            assert isinstance(opt.typ, configtypes.Bool)
+            if isinstance(opt.typ, configtypes.Bool):
+                pass
+            elif isinstance(opt.typ, configtypes.AsBool):
+                value = opt.typ.from_bool(value)
+            else:
+                raise AssertionError(
+                    f"Cannot save prompt answer ({opt.name}). Expected 'Bool' or 'AsBool' "
+                    f"type option, got: value={value} type={type(opt.typ)}"
+                )
+
             pattern = urlmatch.UrlPattern(self.question.url)
 
             try:
-                config.instance.set_obj(opt.name, self.question.answer,
+                config.instance.set_obj(opt.name, value,
                                         pattern=pattern, save_yaml=True)
             except configexc.Error as e:
                 raise Error(str(e))

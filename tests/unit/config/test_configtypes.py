@@ -2145,3 +2145,29 @@ def test_regex_eq(first, second, equal):
     else:
         assert first != second
         assert second != first
+
+
+class TestJSClipboardPermission:
+
+    @pytest.fixture
+    def typ(self):
+        return configtypes.JSClipboardPermission()
+
+    @pytest.mark.parametrize('value, expected', [
+        ("access-paste", True),
+        ("none", False),
+        ("asdf", False),
+        ("access", False),
+        ("paste", False),
+        (None, False),
+    ])
+    def test_to_bool(self, typ, value, expected):
+        assert typ.to_bool(value) == expected
+
+    @pytest.mark.parametrize('value, expected', [
+        (True, "access-paste"),
+        (False, "none"),
+        (None, "none"),
+    ])
+    def test_from_bool(self, typ, value, expected):
+        assert typ.from_bool(value) == expected

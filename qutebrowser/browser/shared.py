@@ -15,7 +15,7 @@ from collections.abc import Mapping, Iterable, Iterator, Callable
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configtypes
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
                                qtutils, version, urlutils)
 from qutebrowser.mainwindow import mainwindow
@@ -304,6 +304,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
         None otherwise.
     """
     config_val = config.instance.get(option, url=url)
+    opt = config.instance.get_opt(option)
     if config_val == 'ask':
         if url.isValid():
             urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
@@ -329,12 +330,21 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 cancel_action=no_action, abort_on=abort_on,
                 title='Permission request', text=text, url=urlstr,
                 option=option)
-    elif config_val:
+
+    if isinstance(opt.typ, configtypes.AsBool):
+        config_val = opt.typ.to_bool(config_val)
+
+    if config_val is True:
         yes_action()
         return None
-    else:
+    elif config_val is False:
         no_action()
         return None
+    else:
+        raise AssertionError(
+            f"Unsupported value for permission prompt setting ({option}), expected boolean or "
+            f"'ask', got: {config_val} ({type(config_val)})"
+        )
 
 
 def get_tab(win_id, target):
