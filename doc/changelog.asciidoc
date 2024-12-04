@@ -22,13 +22,12 @@ v3.4.0 (unreleased)
 Deprecated
 ~~~~~~~~~~
 
-- **In the next release (v3.5.0)**, support for macOS 12 Monterey will be
-  dropped, and binaries will be built on macOS 13 Ventura.
-
 Removed
 ~~~~~~~
 
 - Support for Python 3.8 is dropped, and Python 3.9 is now required.
+- Support for macOS 12 Monterey is now dropped, and binaries will be built on
+  macOS 13 Ventura.
 - When using the installer on Windows 10, build 1809 or newer is now required
   (previous versions required 1607 or newer, but that's not officialy supported by
   Qt upstream).
@@ -48,7 +47,9 @@ Changed
   `image/webp`.
 - Updated mimetype information for getting a suitable extension when downloading
   a `data:` URL.
-- The `content.javascript.clipboard` setting now defaults to "ask".
+- The `content.javascript.clipboard` setting now defaults to "ask", which on
+  Qt 6.8+ will prompt the user to grant clipboard access. On older Qt versions,
+  this is still equivalent to `"none"` and needs to be set manually.
 
 Fixed
 ~~~~~

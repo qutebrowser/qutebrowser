@@ -2345,18 +2345,20 @@ Default: +pass:[false]+
 === content.javascript.clipboard
 Allow JavaScript to read from or write to the clipboard.
 With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
+On Qt < 6.8, the `ask` setting is equivalent to `none` and permission needs to be granted manually via this setting.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-Type: <<types,String>>
+Type: <<types,JSClipboardPermission>>
 
 Valid values:
 
  * +none+: Disable access to clipboard.
  * +access+: Allow reading from and writing to the clipboard.
  * +access-paste+: Allow accessing the clipboard and pasting clipboard content.
+ * +ask+: Prompt when requested (grants 'access-paste' permission).
 
-Default: +pass:[none]+
+Default: +pass:[ask]+
 
 [[content.javascript.enabled]]
 === content.javascript.enabled
@@ -4844,6 +4846,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |FuzzyUrl|A URL which gets interpreted as search if needed.
 |IgnoreCase|Whether to search case insensitively.
 |Int|Base class for an integer setting.
+|JSClipboardPermission|Permission for page JS to access the system clipboard.
 |Key|A name of a key.
 |List|A list of values.
 

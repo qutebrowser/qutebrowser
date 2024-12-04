@@ -931,13 +931,16 @@ content.javascript.clipboard:
       - none: Disable access to clipboard.
       - access: Allow reading from and writing to the clipboard.
       - access-paste: Allow accessing the clipboard and pasting clipboard content.
-      - ask: Prompt when requested - grants 'access-paste' permission
+      - ask: Prompt when requested (grants 'access-paste' permission).
   supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
 
     With QtWebEngine, writing the clipboard as response to a user interaction
     is always allowed.
+
+    On Qt < 6.8, the `ask` setting is equivalent to `none` and permission needs
+    to be granted manually via this setting.
 
 content.javascript.can_close_tabs:
   default: false
