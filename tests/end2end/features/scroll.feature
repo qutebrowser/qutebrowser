@@ -223,7 +223,7 @@ Feature: Scrolling
         When I run :scroll-to-perc with count 50
         Then the page should be scrolled vertically
 
-    @qtwebengine_skip: Causes memory leak...
+    @qtwebengine_skip  # Causes memory leak...
     Scenario: :scroll-to-perc with a very big value
         When I run :scroll-to-perc 99999999999
         Then no crash should happen
@@ -311,7 +311,7 @@ Feature: Scrolling
         When I run :scroll-page --top-navigate prev 0 -1
         Then data/hello3.txt should be loaded
 
-    @qtwebengine_skip: Causes memory leak...
+    @qtwebengine_skip  # Causes memory leak...
     Scenario: :scroll-page with a very big value
         When I run :scroll-page 99999999999 99999999999
         Then the error "Numeric argument is too large for internal int representation." should be shown

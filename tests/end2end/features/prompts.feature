@@ -62,7 +62,7 @@ Feature: Prompts
 
     # Multiple prompts
 
-    @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
+    @qtwebengine_skip  # QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by blocking one
         When I set content.javascript.alert to true
         And I open data/prompt/jsalert.html
@@ -78,7 +78,7 @@ Feature: Prompts
         Then the javascript message "confirm reply: true" should be logged
         And the javascript message "Alert done" should be logged
 
-    @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
+    @qtwebengine_skip  # QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by async one
         Given I have a fresh instance
         When I set content.javascript.alert to true
@@ -503,7 +503,7 @@ Feature: Prompts
         Then "Added quickmark prompt-in-command-mode for *" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/1093
-    @qtwebengine_skip: QtWebEngine doesn't open the second page/prompt
+    @qtwebengine_skip  # QtWebEngine doesn't open the second page/prompt
     Scenario: Keyboard focus with multiple auth prompts
         When I open basic-auth/user5/password5 without waiting
         And I open basic-auth/user6/password6 in a new tab without waiting

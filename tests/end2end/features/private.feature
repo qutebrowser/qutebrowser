@@ -153,7 +153,7 @@ Feature: Using private browsing
         Then the javascript message "console.log works!" should not be logged
 
     # Probably needs qutewm to work properly...
-    @qtwebkit_skip: Only applies to QtWebEngine @xfail_norun
+    @qtwebkit_skip  # Only applies to QtWebEngine @xfail_norun
     Scenario: Make sure local storage is isolated with private browsing
         When I open data/hello.txt in a private window
         And I run :jseval localStorage.qute_private_test = 42

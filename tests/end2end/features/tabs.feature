@@ -1193,7 +1193,7 @@ Feature: Tab management
     # tabs.last_close
 
     # FIXME:qtwebengine
-    @qtwebengine_skip: Waits for an earlier about:blank and fails
+    @qtwebengine_skip  # Waits for an earlier about:blank and fails
     Scenario: tabs.last_close = blank
         When I open data/hello.txt
         And I set tabs.last_close to blank
