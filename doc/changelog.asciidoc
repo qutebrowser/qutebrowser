@@ -50,6 +50,11 @@ Changed
 - The `content.javascript.clipboard` setting now defaults to "ask", which on
   Qt 6.8+ will prompt the user to grant clipboard access. On older Qt versions,
   this is still equivalent to `"none"` and needs to be set manually.
+- If a XHR request made via JS sets a custom `Accept-Language` header, it now
+  correctly has precedence over the global `content.headers.accept_language`
+  setting (but not per-domain overrides). This fixes subtle JS issues on
+  websites that rely on the custom header being sent for those requests, and
+  e.g. block the requests server-side otherwise. (#8370)
 
 Fixed
 ~~~~~
