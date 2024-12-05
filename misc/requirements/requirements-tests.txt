@@ -14,6 +14,7 @@ exceptiongroup==1.2.2
 execnet==2.1.1
 filelock==3.16.1
 Flask==3.0.3
+gherkin-official==29.0.0
 hunter==3.7.0
 hypothesis==6.115.0
 idna==3.10
@@ -40,7 +41,7 @@ pluggy==1.5.0
 py-cpuinfo==9.0.0
 Pygments==2.18.0
 pytest==8.3.3
-pytest-bdd==7.3.0
+pytest-bdd==8.0.0
 pytest-benchmark==4.0.0
 pytest-cov==5.0.0
 pytest-instafail==0.5.0
