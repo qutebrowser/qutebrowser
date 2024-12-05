@@ -50,7 +50,7 @@ Feature: Going back and forward.
         When I run :tab-only
         And I run :back -t
         Then the error "At beginning of history." should be shown
-        Then the session should look like:
+        And the session should look like:
             """
                 windows:
                 - tabs:

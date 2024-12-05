@@ -278,12 +278,12 @@ Feature: Yanking and pasting.
             """
 
     Scenario: Pasting multiple urls with an empty one
-        And I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        When I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
         And I run :open -t {clipboard}
         Then no crash should happen
 
     Scenario: Pasting multiple urls with an almost empty one
-        And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        When I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
         And I run :open -t {clipboard}
         Then no crash should happen
 

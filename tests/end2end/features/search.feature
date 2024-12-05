@@ -113,7 +113,8 @@ Feature: Searching on a page
         When I set search.ignore_case to smart
         And I run :search Foo
         And I wait for "search found Foo with flags FindCaseSensitively" in the log
-        Then "Foo" should be found  # even though foo was first
+        # even though foo was first
+        Then "Foo" should be found
 
     ## :search-next
 
