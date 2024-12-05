@@ -13,14 +13,14 @@ Feature: Going back and forward.
         And I wait until data/backforward/2.txt is loaded
         And I reload
         Then the session should look like:
-	    """
+        """
             windows:
             - tabs:
               - history:
                 - url: http://localhost:*/data/backforward/1.txt
                 - active: true
                   url: http://localhost:*/data/backforward/2.txt
-	    """
+        """
 
     # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
     @qtwebengine_flaky
@@ -31,7 +31,7 @@ Feature: Going back and forward.
         And I run :back -t
         And I wait until data/backforward/1.txt is loaded
         Then the session should look like:
-	    """
+        """
             windows:
             - tabs:
               - history:
@@ -43,7 +43,7 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
-	    """
+        """
 
     Scenario: Going back in a new tab without history
         Given I open data/backforward/1.txt
@@ -51,14 +51,14 @@ Feature: Going back and forward.
         And I run :back -t
         Then the error "At beginning of history." should be shown
         Then the session should look like:
-	    """
+        """
             windows:
             - tabs:
               - active: true
                 history:
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
-	    """
+        """
 
     Scenario: Going back in a new background tab
         Given I open data/backforward/1.txt
@@ -67,7 +67,7 @@ Feature: Going back and forward.
         And I run :back -b
         And I wait until data/backforward/1.txt is loaded
         Then the session should look like:
-	    """
+        """
             windows:
             - tabs:
               - active: true
@@ -79,7 +79,7 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
-	    """
+        """
 
     @flaky
     Scenario: Going back with count.
@@ -91,7 +91,7 @@ Feature: Going back and forward.
         And I wait until data/backforward/1.txt is loaded
         And I reload
         Then the session should look like:
-	    """
+        """
             windows:
             - tabs:
               - history:
@@ -99,7 +99,7 @@ Feature: Going back and forward.
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
                 - url: http://localhost:*/data/backforward/3.txt
-	    """
+        """
 
     Scenario: Going back too much with count.
         Given I open data/backforward/1.txt
@@ -124,7 +124,7 @@ Feature: Going back and forward.
         And I run :back -w
         And I wait until data/backforward/1.txt is loaded
         Then the session should look like:
-	    """
+        """
             windows:
             - tabs:
               - active: true
@@ -140,7 +140,7 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
-	    """
+        """
 
     Scenario: Going back without history
         Given I open data/backforward/1.txt
