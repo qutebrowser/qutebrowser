@@ -9,8 +9,10 @@ Feature: Invoking a new process
         And I open data/title.html
         And I open data/search.html as a URL
         Then the following tabs should be open:
+            """
             - data/title.html
             - data/search.html (active)
+            """
 
     Scenario: Using new_instance_open_target = tab-bg
         When I set new_instance_open_target to tab-bg

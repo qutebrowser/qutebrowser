@@ -34,7 +34,9 @@ Feature: Using hints
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
@@ -58,7 +60,9 @@ Feature: Using hints
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     Scenario: Entering and leaving hinting mode (issue 1464)
         When I open data/hints/html/simple.html

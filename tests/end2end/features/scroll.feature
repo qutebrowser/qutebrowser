@@ -305,7 +305,9 @@ Feature: Scrolling
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
         Then the following tabs should be open:
+            """
             - data/scroll/simple.html
+            """
 
     Scenario: :scroll-page with --top-navigate
         When I run :scroll-page --top-navigate prev 0 -1

@@ -34,7 +34,9 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-load http://localhost:(port)/data/numbers/1.txt
         Then data/numbers/1.txt should be loaded
         And the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
+            """
 
     Scenario: Loading a bookmark in a new tab
         Given I open about:blank
@@ -174,7 +176,9 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-load thirteen
         Then data/numbers/13.txt should be loaded
         And the following tabs should be open:
+            """
             - data/numbers/13.txt (active)
+            """
 
     Scenario: Loading a quickmark in a new tab
         Given I open about:blank

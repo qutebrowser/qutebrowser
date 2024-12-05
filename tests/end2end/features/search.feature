@@ -355,7 +355,9 @@ Feature: Searching on a page
         And I wait for "search found foo" in the log
         And I run :selection-follow
         Then the following tabs should be open:
+            """
             - data/search.html (active)
+            """
 
     Scenario: Don't follow searched text in a new tab
         When I run :window-only
@@ -363,7 +365,9 @@ Feature: Searching on a page
         And I wait for "search found foo" in the log
         And I run :selection-follow -t
         Then the following tabs should be open:
+            """
             - data/search.html (active)
+            """
 
     Scenario: Follow a manually selected link
         When I run :jseval --file (testdata)/search_select.js

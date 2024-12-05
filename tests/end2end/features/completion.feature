@@ -80,7 +80,9 @@ Feature: Using completion
         And I wait for "setting text = ':tab-select 0/2', *" in the log
         And I run :completion-item-del
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     Scenario: Go to tab after moving a tab
         Given I have a fresh instance

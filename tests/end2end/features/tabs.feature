@@ -164,7 +164,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-only
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt (active)
+            """
 
     Scenario: :tab-only with --prev
         When I open data/numbers/1.txt
@@ -937,7 +939,9 @@ Feature: Tab management
         And I run :undo
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     @qtwebengine_flaky
     Scenario: Undo with auto-created last tab, with history
@@ -950,7 +954,9 @@ Feature: Tab management
         And I run :undo
         And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello2.txt (active)
+            """
 
     Scenario: Undo with auto-created last tab (startpage)
         When I open data/hello.txt
@@ -962,7 +968,9 @@ Feature: Tab management
         And I run :undo
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     Scenario: Undo with auto-created last tab (default-page)
         When I open data/hello.txt
@@ -974,7 +982,9 @@ Feature: Tab management
         And I run :undo
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     @skip  # Too flaky
     Scenario: Double-undo with single tab on tabs.last_close default page
@@ -1201,7 +1211,9 @@ Feature: Tab management
         And I run :tab-close
         And I wait until about:blank is loaded
         Then the following tabs should be open:
+            """
             - about:blank (active)
+            """
 
     Scenario: tabs.last_close = startpage
         When I set url.start_pages to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
@@ -1225,7 +1237,9 @@ Feature: Tab management
         And I run :tab-close
         And I wait until data/numbers/9.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/9.txt (active)
+            """
 
     Scenario: tabs.last_close = close
         When I open data/hello.txt
@@ -1481,13 +1495,17 @@ Feature: Tab management
         When I open data/title.html
         And I run :tab-select /
         Then the following tabs should be open:
+            """
             - data/title.html (active)
+            """
 
     Scenario: :tab-select with wrong argument (//)
         When I open data/title.html
         And I run :tab-select //
         Then the following tabs should be open:
+            """
             - data/title.html (active)
+            """
 
     Scenario: :tab-select with wrong argument (0/x)
         When I open data/title.html
@@ -1746,7 +1764,9 @@ Feature: Tab management
         And I wait for "*want to close a pinned tab*" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
+            """
 
     Scenario: Pinned :tab-close prompt no
         When I open data/numbers/1.txt
@@ -1772,7 +1792,9 @@ Feature: Tab management
         And I wait for "*want to close pinned tabs*" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
+            """
 
     Scenario: Pinned :tab-only prompt no
         When I open data/numbers/1.txt
@@ -1795,7 +1817,9 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-only
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt (active) (pinned)
+            """
 
     Scenario: Pinned :tab-only --pinned close
         When I open data/numbers/1.txt
@@ -1805,7 +1829,9 @@ Feature: Tab management
         And I run :tab-next
         And I run :tab-only --pinned close
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
+            """
 
     Scenario: Pinned :tab-only --pinned keep
         When I open data/numbers/1.txt
@@ -1846,7 +1872,9 @@ Feature: Tab management
         And I run :tab-pin
         And I open data/numbers/2.txt
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt (active) (pinned)
+            """
 
     Scenario: :home on a pinned tab
         When I open data/numbers/1.txt
@@ -1854,7 +1882,9 @@ Feature: Tab management
         And I run :home
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
+            """
             - data/numbers/1.txt (active) (pinned)
+            """
 
     Scenario: :home on a pinned tab with tabs.pinned.frozen = false
         When I set url.start_pages to ["http://localhost:(port)/data/numbers/2.txt"]
@@ -1864,7 +1894,9 @@ Feature: Tab management
         And I run :home
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
+            """
             - data/numbers/2.txt (active) (pinned)
+            """
 
     Scenario: Cloning a pinned tab
         When I open data/numbers/1.txt
