@@ -48,6 +48,13 @@ def custom_headers(
         encoded_value = b"" if value is None else value.encode('ascii')
         headers[encoded_header] = encoded_value
 
+    # On QtWebEngine, we have fallback_accept_language set to False here for XHR
+    # requests, so that we don't end up overriding headers that are set via the XHR API.
+    #
+    # The global Accept-Language header is set via
+    # QWebEngineProfile::setHttpAcceptLanguage already anyways, so we only need
+    # to take care of URL pattern overrides here.
+    #
     # note: Once we drop QtWebKit, we could hardcode fallback_accept_language to False.
     accept_language = config.instance.get('content.headers.accept_language',
                                           url=url, fallback=fallback_accept_language)
