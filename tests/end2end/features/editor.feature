@@ -15,10 +15,10 @@ Feature: Opening external editors
         And I run :edit-url -t
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
-        """
+            """
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
-        """
+            """
 
     Scenario: Editing a URL with -rt
         When I set tabs.new_position.related to prev
@@ -28,10 +28,10 @@ Feature: Opening external editors
         And I run :edit-url -rt
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
-        """
+            """
             - data/numbers/2.txt (active)
             - data/numbers/1.txt
-        """
+            """
 
     Scenario: Editing a URL with -b
         When I run :tab-only
@@ -40,10 +40,10 @@ Feature: Opening external editors
         And I run :edit-url -b
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
-        """
+            """
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
-        """
+            """
 
     Scenario: Editing a URL with -w
         When I run :window-only
@@ -53,7 +53,7 @@ Feature: Opening external editors
         And I run :edit-url -w
         Then data/numbers/2.txt should be loaded
         And the session should look like:
-        """
+            """
             windows:
             - tabs:
               - active: true
@@ -65,7 +65,7 @@ Feature: Opening external editors
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/2.txt
-        """
+            """
 
     Scenario: Editing a URL with -p
         When I open data/numbers/1.txt in a new tab
@@ -75,7 +75,7 @@ Feature: Opening external editors
         And I run :edit-url -p
         Then data/numbers/2.txt should be loaded
         And the session should look like:
-        """
+            """
             windows:
             - tabs:
               - active: true
@@ -88,7 +88,7 @@ Feature: Opening external editors
                 - active: true
                   url: http://localhost:*/data/numbers/2.txt
               private: true
-        """
+            """
 
     Scenario: Editing a URL with -t and -b
         When I run :edit-url -t -b

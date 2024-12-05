@@ -91,10 +91,10 @@ Feature: Using completion
         And I run :tab-move 1
         And I run :tab-select hello2.txt
         Then the following tabs should be open:
-        """
+            """
             - data/hello2.txt (active)
             - data/hello.txt
-        """
+            """
 
     Scenario: Space updates completion model after selecting full command
         When I run :cmd-set-text :set
