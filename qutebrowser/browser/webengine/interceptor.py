@@ -109,6 +109,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         }
         new_types = {
             "WebSocket": interceptors.ResourceType.websocket,  # added in Qt 6.4
+            "Json": interceptors.ResourceType.json,  # added in Qt 6.8
         }
         for qt_name, qb_value in new_types.items():
             qt_value = getattr(

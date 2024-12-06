@@ -96,6 +96,7 @@ _RESOURCE_TYPE_STRINGS = {
     ResourceType.preload_main_frame: "other",
     ResourceType.preload_sub_frame: "other",
     ResourceType.websocket: "websocket",
+    ResourceType.json: "other",
     ResourceType.unknown: "other",
     None: "",
 }

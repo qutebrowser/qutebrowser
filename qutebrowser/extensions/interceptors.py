@@ -40,6 +40,7 @@ class ResourceType(enum.Enum):
     # 18 is "preload", deprecated in Chromium
     preload_main_frame = 19
     preload_sub_frame = 20
+    json = 21
     websocket = 254
     unknown = 255
 
