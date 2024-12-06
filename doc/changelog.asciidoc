@@ -25,31 +25,31 @@ Deprecated
 Removed
 ~~~~~~~
 
-- Support for Python 3.8 is dropped, and Python 3.9 is now required.
+- Support for Python 3.8 is dropped, and Python 3.9 is now required. (#8325)
 - Support for macOS 12 Monterey is now dropped, and binaries will be built on
-  macOS 13 Ventura.
+  macOS 13 Ventura. (#8327)
 - When using the installer on Windows 10, build 1809 or newer is now required
   (previous versions required 1607 or newer, but that's not officialy supported by
-  Qt upstream).
+  Qt upstream). (#8336)
 
 Added
 ~~~~~
 
 - **Planned:** Full support for Qt 6.8, with Windows/macOS binaries being built
-  on Qt 6.8.0.
+  on Qt 6.8.0. (#8242)
 - **Planned:** Full support for Python 3.13, with Windows/macOS binaries using
-  it if possible.
+  it if possible. (#8205)
 
 Changed
 ~~~~~~~
 
 - The `.desktop` file now also declares qutebrowser as a valid viewer for
-  `image/webp`.
+  `image/webp`. (#8340)
 - Updated mimetype information for getting a suitable extension when downloading
   a `data:` URL.
 - The `content.javascript.clipboard` setting now defaults to "ask", which on
   Qt 6.8+ will prompt the user to grant clipboard access. On older Qt versions,
-  this is still equivalent to `"none"` and needs to be set manually.
+  this is still equivalent to `"none"` and needs to be set manually. (#8348)
 - If a XHR request made via JS sets a custom `Accept-Language` header, it now
   correctly has precedence over the global `content.headers.accept_language`
   setting (but not per-domain overrides). This fixes subtle JS issues on
@@ -61,6 +61,8 @@ Fixed
 
 - Crash with recent Jinja/Markupsafe versions when viewing a finished userscript
   (or potentially editor) process via `:process`.
+- `scripts/open_url_in_instance.sh` now avoids `echo -n`, thus running
+  correctly on POSIX sh. (#8409)
 
 
 [[v3.3.1]]
