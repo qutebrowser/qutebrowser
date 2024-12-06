@@ -34,15 +34,19 @@ Feature: Using hints
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
         And I hint with args "links normal" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hints/link_blank.html
             - data/hello.txt
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/7842
     @qtwebkit_skip
@@ -56,7 +60,9 @@ Feature: Using hints
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hello.txt (active)
+            """
 
     Scenario: Entering and leaving hinting mode (issue 1464)
         When I open data/hints/html/simple.html
@@ -160,6 +166,7 @@ Feature: Using hints
         # We should check what the active tab is, but for some reason that makes
         # the test flaky
         Then the session should look like:
+          """
           windows:
           - tabs:
             - history:
@@ -168,6 +175,7 @@ Feature: Using hints
               - url: http://localhost:*/data/hello.txt
             - history:
               - url: http://localhost:*/data/hello2.txt
+          """
 
     Scenario: Using hint --rapid to hit multiple buttons
         When I open data/hints/buttons.html
@@ -295,8 +303,10 @@ Feature: Using hints
         And I hint with args "links tab" and follow s
         And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
+          """
             - data/hints/iframe_target.html (active)
             - data/hello2.txt
+          """
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html

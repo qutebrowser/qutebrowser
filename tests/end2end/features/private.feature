@@ -73,6 +73,7 @@ Feature: Using private browsing
         And I run :navigate -w increment
         And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
+            """
             windows:
             - private: True
               tabs:
@@ -82,6 +83,7 @@ Feature: Using private browsing
               tabs:
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
+            """
 
     Scenario: Opening private window with :navigate next
         # Private window handled in navigate.py
@@ -90,6 +92,7 @@ Feature: Using private browsing
         And I run :navigate -w next
         And I wait until data/navigate/next.html is loaded
         Then the session should look like:
+            """
             windows:
             - private: True
               tabs:
@@ -99,6 +102,7 @@ Feature: Using private browsing
               tabs:
               - history:
                 - url: http://localhost:*/data/navigate/next.html
+            """
 
     Scenario: Opening private window with :tab-clone
         When I open data/hello.txt in a private window
@@ -106,6 +110,7 @@ Feature: Using private browsing
         And I run :tab-clone -w
         And I wait until data/hello.txt is loaded
         Then the session should look like:
+            """
             windows:
             - private: True
               tabs:
@@ -115,6 +120,7 @@ Feature: Using private browsing
               tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+            """
 
     Scenario: Opening private window via :click-element
         When I open data/click_element.html in a private window
@@ -122,6 +128,7 @@ Feature: Using private browsing
         And I run :click-element --target window id link
         And I wait until data/hello.txt is loaded
         Then the session should look like:
+            """
             windows:
             - private: True
               tabs:
@@ -131,6 +138,7 @@ Feature: Using private browsing
               tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+            """
 
     Scenario: Skipping private window when saving session
         When I open data/hello.txt in a private window
@@ -145,7 +153,7 @@ Feature: Using private browsing
         Then the javascript message "console.log works!" should not be logged
 
     # Probably needs qutewm to work properly...
-    @qtwebkit_skip: Only applies to QtWebEngine @xfail_norun
+    @qtwebkit_skip  @xfail_norun  # Only applies to QtWebEngine 
     Scenario: Make sure local storage is isolated with private browsing
         When I open data/hello.txt in a private window
         And I run :jseval localStorage.qute_private_test = 42
@@ -163,12 +171,14 @@ Feature: Using private browsing
         And I run :quickmark-load two
         And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
+            """
             windows:
             - private: True
               tabs:
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
                 - url: http://localhost:*/data/numbers/2.txt
+            """
 
   @skip  # Too flaky
   Scenario: Saving a private session with only-active-window
@@ -188,6 +198,7 @@ Feature: Using private browsing
         And I run :session-load -c window_session_name
         And I wait until data/numbers/5.txt is loaded
         Then the session should look like:
+            """
             windows:
                 - tabs:
                     - history:
@@ -197,6 +208,7 @@ Feature: Using private browsing
                     - history:
                         - active: true
                           url: http://localhost:*/data/numbers/5.txt
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/5810
 

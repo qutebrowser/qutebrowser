@@ -7,6 +7,7 @@ Feature: Saving and loading sessions
     When I open data/hello.txt
     And I open data/title.html in a new tab
     Then the session should look like:
+      """
       windows:
         - active: true
           tabs:
@@ -19,12 +20,14 @@ Feature: Saving and loading sessions
               - active: true
                 url: http://localhost:*/data/title.html
                 title: Test title
+      """
 
   @qtwebengine_skip
   Scenario: Zooming (qtwebkit)
     When I open data/hello.txt
     And I run :zoom 50
     Then the session should look like:
+      """
       windows:
         - tabs:
           - history:
@@ -32,6 +35,7 @@ Feature: Saving and loading sessions
               zoom: 1.0
             - url: http://localhost:*/data/hello.txt
               zoom: 0.5
+      """
 
   # The zoom level is only stored for the newest element for QtWebEngine.
   @qtwebkit_skip
@@ -39,18 +43,21 @@ Feature: Saving and loading sessions
     When I open data/hello.txt
     And I run :zoom 50
     Then the session should look like:
+      """
       windows:
         - tabs:
           - history:
             - url: about:blank
             - url: http://localhost:*/data/hello.txt
               zoom: 0.5
+      """
 
   @qtwebengine_skip
   Scenario: Scrolling (qtwebkit)
     When I open data/scroll/simple.html
     And I run :scroll-px 10 20
     Then the session should look like:
+      """
       windows:
         - tabs:
           - history:
@@ -62,6 +69,7 @@ Feature: Saving and loading sessions
               scroll-pos:
                 x: 10
                 y: 20
+      """
 
   # The scroll position is only stored for the newest element for QtWebEngine.
   @qtwebkit_skip
@@ -70,6 +78,7 @@ Feature: Saving and loading sessions
     And I run :scroll-px 10 20
     And I wait until the scroll position changed to 10/20
     Then the session should look like:
+      """
       windows:
         - tabs:
           - history:
@@ -78,10 +87,12 @@ Feature: Saving and loading sessions
               scroll-pos:
                 x: 10
                 y: 20
+      """
   Scenario: Redirect
     When I open redirect-to?url=data/title.html without waiting
     And I wait until data/title.html is loaded
     Then the session should look like:
+      """
       windows:
         - tabs:
           - history:
@@ -90,16 +101,19 @@ Feature: Saving and loading sessions
               url: http://localhost:*/data/title.html
               original-url: http://localhost:*/redirect-to?url=data/title.html
               title: Test title
+      """
 
   Scenario: Valid UTF-8 data
     When I open data/sessions/snowman.html
     Then the session should look like:
+      """
       windows:
       - tabs:
         - history:
           - url: about:blank
           - url: http://localhost:*/data/sessions/snowman.html
             title: snow☃man
+      """
 
   @qtwebengine_skip
   Scenario: Long output comparison (qtwebkit)
@@ -109,6 +123,7 @@ Feature: Saving and loading sessions
     And I open data/numbers/3.txt in a new window
     # Full output apart from "geometry:" and the active window (needs qutewm)
     Then the session should look like:
+      """
       windows:
       - tabs:
         - history:
@@ -150,6 +165,7 @@ Feature: Saving and loading sessions
             title: ''
             url: http://localhost:*/data/numbers/3.txt
             zoom: 1.0
+      """
 
   # FIXME:qtwebengine what's up with the titles there?
   @qtwebkit_skip
@@ -160,6 +176,7 @@ Feature: Saving and loading sessions
     And I open data/numbers/3.txt in a new window
     # Full output apart from "geometry:" and the active window (needs qutewm)
     Then the session should look like:
+      """
       windows:
       - tabs:
         - history:
@@ -193,26 +210,31 @@ Feature: Saving and loading sessions
             title: localhost:*/data/numbers/3.txt
             url: http://localhost:*/data/numbers/3.txt
             zoom: 1.0
+      """
 
   Scenario: Saving with --no-history
     When I open data/numbers/1.txt
     And I open data/numbers/2.txt
     And I open data/numbers/3.txt
     Then the session saved with --no-history should look like:
+      """
       windows:
       - tabs:
         - history:
           - url: http://localhost:*/data/numbers/3.txt
+      """
 
   Scenario: Saving with --no-history and --only-active-window
     When I open data/numbers/1.txt
     And I open data/numbers/2.txt
     And I open data/numbers/3.txt
     Then the session saved with --no-history --only-active-window should look like:
+      """
       windows:
       - tabs:
         - history:
           - url: http://localhost:*/data/numbers/3.txt
+      """
 
   # https://github.com/qutebrowser/qutebrowser/issues/879
 
@@ -220,6 +242,7 @@ Feature: Saving and loading sessions
     When I open data/sessions/history_replace_state.html without waiting
     Then the javascript message "Called history.replaceState" should be logged
     And the session should look like:
+      """
       windows:
       - tabs:
         - history:
@@ -227,6 +250,7 @@ Feature: Saving and loading sessions
           - active: true
             url: http://localhost:*/data/sessions/history_replace_state.html?state=2
             title: Test title
+      """
 
   @qtwebengine_skip
   Scenario: Saving a session with a page using history.replaceState() and navigating away (qtwebkit)
@@ -234,6 +258,7 @@ Feature: Saving and loading sessions
     And I open data/hello.txt
     Then the javascript message "Called history.replaceState" should be logged
     And the session should look like:
+      """
       windows:
       - tabs:
         - history:
@@ -244,6 +269,7 @@ Feature: Saving and loading sessions
             title: http://localhost:*/data/sessions/history_replace_state.html?state=2
           - active: true
             url: http://localhost:*/data/hello.txt
+      """
 
   # Seems like that bug is fixed upstream in QtWebEngine
   @skip  # Too flaky
@@ -252,6 +278,7 @@ Feature: Saving and loading sessions
     And I wait for "* Called history.replaceState" in the log
     And I open data/hello.txt
     Then the session should look like:
+      """
       windows:
       - tabs:
         - history:
@@ -260,6 +287,7 @@ Feature: Saving and loading sessions
             title: Test title
           - active: true
             url: http://localhost:*/data/hello.txt
+      """
 
   # :session-save
 
@@ -314,6 +342,7 @@ Feature: Saving and loading sessions
     And I wait until data/numbers/4.txt is loaded
     And I wait until data/numbers/5.txt is loaded
     Then the session should look like:
+      """
       windows:
         - tabs:
             - history:
@@ -327,6 +356,7 @@ Feature: Saving and loading sessions
             - history:
                 - active: true
                   url: http://localhost:*/data/numbers/5.txt
+      """
 
   # https://github.com/qutebrowser/qutebrowser/issues/7696
   @qtwebkit_skip
@@ -339,6 +369,7 @@ Feature: Saving and loading sessions
     And I run :session-load --clear current
     And I wait until data/downloads/downloads.html is loaded
     Then the session should look like:
+      """
       windows:
         - tabs:
           - history:
@@ -347,6 +378,7 @@ Feature: Saving and loading sessions
               url: http://localhost:*/data/downloads/downloads.html
           - active: true
             history: []
+      """
 
   # :session-delete
 
@@ -436,7 +468,9 @@ Feature: Saving and loading sessions
       And I open data/numbers/4.txt
       Then the message "Tab is pinned! Opening in new tab." should be shown
       And the following tabs should be open:
+        """
         - data/numbers/1.txt
         - data/numbers/2.txt (active) (pinned)
         - data/numbers/4.txt
         - data/numbers/3.txt
+        """

@@ -35,6 +35,7 @@
   "pyproject-api": "https://github.com/tox-dev/pyproject-api/releases",
   "PyYAML": "https://github.com/yaml/pyyaml/blob/master/CHANGES",
   "pytest-bdd": "https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst",
+  "gherkin-official": "https://github.com/cucumber/gherkin/releases",
   "snowballstemmer": "https://github.com/snowballstem/snowball/blob/master/NEWS",
   "virtualenv": "https://github.com/pypa/virtualenv/blob/main/docs/changelog.rst",
   "packaging": "https://packaging.pypa.io/en/latest/changelog.html",
