@@ -51,24 +51,6 @@ def private_profile(monkeypatch):
     return profile
 
 
-@pytest.fixture(scope="session", autouse=True)
-def init_qtwe_dict_path(
-    tmp_path_factory: pytest.TempPathFactory, qapp: QApplication
-) -> None:
-    """Initialize spell checking dictionaries for QtWebEngine.
-
-    QtWebEngine stores the dictionary path in a static variable, so we can't do
-    this per-test. Hence the session-scope on this fixture. However, we also don't
-    want to do this in conftest.py, because that would mean even just running non-GUI
-    tests now requires a QApplication.
-    """
-    # Set an empty directory path, this is enough for QtWebEngine to not complain.
-    dictionary_dir = tmp_path_factory.mktemp("qtwebengine_dictionaries")
-    os.environ["QTWEBENGINE_DICTIONARIES_PATH"] = str(dictionary_dir)
-    # Make sure it's been initialized correctly
-    profile = QWebEngineProfile()
-    profile.setSpellCheckEnabled(True)
-
 
 @pytest.mark.parametrize("setting, value, getter, expected", [
     # attribute

@@ -354,6 +354,21 @@ def check_yaml_c_exts():
         from yaml import CLoader  # pylint: disable=unused-import
 
 
+@pytest.fixture(scope="session", autouse=True)
+def init_qtwe_dict_path(
+    tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest,
+) -> None:
+    """Initialize spell checking dictionaries for QtWebEngine.
+
+    QtWebEngine stores the dictionary path in a static variable, so we can't do
+    this per-test. Hence the session-scope on this fixture.
+    """
+    if request.config.webengine:  # type: ignore[att-defined]
+        # Set an empty directory path, this is enough for QtWebEngine to not complain.
+        dictionary_dir = tmp_path_factory.mktemp("qtwebengine_dictionaries")
+        os.environ["QTWEBENGINE_DICTIONARIES_PATH"] = str(dictionary_dir)
+
+
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Make test information available in fixtures.
