@@ -189,20 +189,24 @@ jobs:
           - testenv: py312-pyqt67
             os: ubuntu-22.04
             python: "3.12"
+          ### PyQt 6.7 (Python 3.13, placeholder for PyQt 6.8)
+          - testenv: py313-pyqt67
+            os: ubuntu-22.04
+            python: "3.13"
           ### macOS Ventura
           - testenv: py312-pyqt67
             os: macos-13
-            python: "3.12"
+            python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
           - testenv: py312-pyqt67
             os: macos-14
-            python: "3.12"
+            python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
           - testenv: py312-pyqt67
             os: windows-2019
-            python: "3.12"
+            python: "3.13"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v4
