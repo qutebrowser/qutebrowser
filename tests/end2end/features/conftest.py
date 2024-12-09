@@ -273,6 +273,7 @@ def run_command(quteproc, server, tmpdir, command):
     command = testutils.substitute_testdata(command)
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
+    command = command.replace('(rootpath)', 'C:\\' if utils.is_windows else '/')
     command = command.replace('(echo-exe)', _get_echo_exe_path())
 
     quteproc.send_cmd(command, count=count, invalid=invalid)

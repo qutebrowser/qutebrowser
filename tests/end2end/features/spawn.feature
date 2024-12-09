@@ -13,8 +13,8 @@ Feature: :spawn
         Then the error "Userscript 'this_does_not_exist' not found in userscript directories *" should be shown
 
     Scenario: Starting a userscript with absolute path which doesn't exist
-        When I run :spawn -u /this_does_not_exist
-        Then the error "Userscript '/this_does_not_exist' not found" should be shown
+        When I run :spawn -u (rootpath)this_does_not_exist
+        Then the error "Userscript '*this_does_not_exist' not found" should be shown
 
     Scenario: Running :spawn with invalid quoting
         When I run :spawn ""'""
