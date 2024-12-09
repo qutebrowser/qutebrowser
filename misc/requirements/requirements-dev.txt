@@ -28,14 +28,14 @@ mdurl==0.1.2
 more-itertools==10.5.0
 nh3==0.2.19
 packaging==24.2
-pkginfo==1.11.2
+pkginfo==1.12.0
 platformdirs==4.3.6
 pycparser==2.22
 Pygments==2.18.0
 PyJWT==2.10.1
 Pympler==1.1
 pyproject_hooks==1.2.0
-PyQt-builder==1.16.4
+PyQt-builder==1.17.0
 python-dateutil==2.9.0.post0
 readme_renderer==44.0
 requests==2.32.3
@@ -43,8 +43,8 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.9.4
 SecretStorage==3.3.3
-sip==6.8.6
-six==1.16.0
+sip==6.9.0
+six==1.17.0
 tomli==2.2.1
 twine==6.0.1
 typeguard==4.3.0
