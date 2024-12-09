@@ -280,7 +280,7 @@ Feature: Prompts
         And I wait for a prompt
         And I run :prompt-accept --save yes
         And I wait for "*Text pasted: *" in the log
-        And I reload
+        And I reload data/prompt/clipboard.html
         And I run :click-element id paste
         Then the javascript message "Text pasted: *" should be logged
 
