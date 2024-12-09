@@ -51,7 +51,6 @@ def private_profile(monkeypatch):
     return profile
 
 
-
 @pytest.mark.parametrize("setting, value, getter, expected", [
     # attribute
     (
