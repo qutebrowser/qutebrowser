@@ -347,6 +347,7 @@ def unraisable_hook(unraisable: "sys.UnraisableHookArgs") -> None:
             unraisable.exc_value.errno == errno.EBADF
             or (
                 sys.platform == "win32"
+                # pylint: disable-next=no-member
                 and unraisable.exc_value.winerror == errno.WSAENOTSOCK
             )
         )
