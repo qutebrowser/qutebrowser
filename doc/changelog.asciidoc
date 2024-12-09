@@ -63,6 +63,8 @@ Fixed
   (or potentially editor) process via `:process`.
 - `scripts/open_url_in_instance.sh` now avoids `echo -n`, thus running
   correctly on POSIX sh. (#8409)
+- Added a workaround for a bogus QtWebEngine warning about missing spell
+  checking dictionaries. (#8330)
 
 
 [[v3.3.1]]
