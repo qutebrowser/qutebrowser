@@ -343,7 +343,13 @@ def unraisable_hook(unraisable: "sys.UnraisableHookArgs") -> None:
     if (
         sys.version_info[:2] == (3, 13)
         and isinstance(unraisable.exc_value, OSError)
-        and unraisable.exc_value.errno == errno.EBADF
+        and (
+            unraisable.exc_value.errno == errno.EBADF
+            or (
+                sys.platform == "win32"
+                and unraisable.exc_value.winerror == errno.WSAENOTSOCK
+            )
+        )
         and unraisable.object.__qualname__ == "IOBase.__del__"
     ):
         # WORKAROUND for bogus exceptions with cheroot:
