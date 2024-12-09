@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os
 import logging
 
 import pytest
@@ -11,7 +10,6 @@ QtWebEngineCore = pytest.importorskip('qutebrowser.qt.webenginecore')
 QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
 
-from qutebrowser.qt.widgets import QApplication
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
 from qutebrowser.config import configdata
