@@ -2,13 +2,16 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
 import logging
 
 import pytest
 
 QtWebEngineCore = pytest.importorskip('qutebrowser.qt.webenginecore')
+QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
 
+from qutebrowser.qt.widgets import QApplication
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
 from qutebrowser.config import configdata
@@ -46,6 +49,25 @@ def private_profile(monkeypatch):
     profile.setter = webenginesettings.ProfileSetter(profile)
     monkeypatch.setattr(webenginesettings, 'private_profile', profile)
     return profile
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_qtwe_dict_path(
+    tmp_path_factory: pytest.TempPathFactory, qapp: QApplication
+) -> None:
+    """Initialize spell checking dictionaries for QtWebEngine.
+
+    QtWebEngine stores the dictionary path in a static variable, so we can't do
+    this per-test. Hence the session-scope on this fixture. However, we also don't
+    want to do this in conftest.py, because that would mean even just running non-GUI
+    tests now requires a QApplication.
+    """
+    # Set an empty directory path, this is enough for QtWebEngine to not complain.
+    dictionary_dir = tmp_path_factory.mktemp("qtwebengine_dictionaries")
+    os.environ["QTWEBENGINE_DICTIONARIES_PATH"] = str(dictionary_dir)
+    # Make sure it's been initialized correctly
+    profile = QWebEngineProfile()
+    profile.setSpellCheckEnabled(True)
 
 
 @pytest.mark.parametrize("setting, value, getter, expected", [
@@ -128,17 +150,19 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog,
 
 def test_existing_dict(config_stub, monkeypatch, global_settings,
                        default_profile, private_profile):
+    """With a language set, spell check should get enabled."""
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
     config_stub.val.spellcheck.languages = ['en-US']
     webenginesettings._update_settings('spellcheck.languages')
     for profile in [default_profile, private_profile]:
-        #assert profile.isSpellCheckEnabled()
+        assert profile.isSpellCheckEnabled()
         assert profile.spellCheckLanguages() == ['en-US-8-0']
 
 
 def test_spell_check_disabled(config_stub, monkeypatch, global_settings,
                               default_profile, private_profile):
+    """With no language set, spell check should get disabled."""
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')
     for profile in [default_profile, private_profile]:
