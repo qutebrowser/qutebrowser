@@ -12,7 +12,7 @@ Currently importing bookmarks from Netscape HTML Bookmark files, Chrome
 profiles, and Mozilla profiles is supported.
 """
 
-
+import contextlib
 import argparse
 import textwrap
 import sqlite3
@@ -267,14 +267,15 @@ def import_moz_places(profile, bookmark_types, output_format):
     def search_conv(url):
         return search_escape(url).replace('%s', '{}')
 
-    places = sqlite3.connect(os.path.join(profile, "places.sqlite"))
-    places.create_function('search_conv', 1, search_conv)
-    places.row_factory = sqlite3.Row
-    c = places.cursor()
-    for typ in bookmark_types:
-        c.execute(place_query[typ])
-        for row in c:
-            print(out_template[output_format][typ].format(**row))
+    places_sqlite = os.path.join(profile, "places.sqlite")
+    with contextlib.closing(sqlite3.connect(places_sqlite)) as places:
+        places.create_function('search_conv', 1, search_conv)
+        places.row_factory = sqlite3.Row
+        c = places.cursor()
+        for typ in bookmark_types:
+            c.execute(place_query[typ])
+            for row in c:
+                print(out_template[output_format][typ].format(**row))
 
 
 def import_chrome(profile, bookmark_types, output_format):
@@ -292,17 +293,18 @@ def import_chrome(profile, bookmark_types, output_format):
     }
 
     if 'search' in bookmark_types:
-        webdata = sqlite3.connect(os.path.join(profile, 'Web Data'))
-        c = webdata.cursor()
-        c.execute('SELECT keyword,url FROM keywords;')
-        for keyword, url in c:
-            try:
-                url = opensearch_convert(url)
-                print(out_template[output_format].format(
-                    keyword=keyword, url=url))
-            except KeyError:
-                print('# Unsupported parameter in url for {}; skipping....'.
-                      format(keyword))
+        webdata_db = os.path.join(profile, 'Web Data')
+        with contextlib.closing(sqlite3.connect(webdata_db)) as webdata:
+            c = webdata.cursor()
+            c.execute('SELECT keyword,url FROM keywords;')
+            for keyword, url in c:
+                try:
+                    url = opensearch_convert(url)
+                    print(out_template[output_format].format(
+                        keyword=keyword, url=url))
+                except KeyError:
+                    print('# Unsupported parameter in url for {}; skipping....'.
+                        format(keyword))
 
     else:
         with open(os.path.join(profile, 'Bookmarks'), encoding='utf-8') as f:
