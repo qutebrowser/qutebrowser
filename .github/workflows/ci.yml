@@ -194,17 +194,17 @@ jobs:
             os: ubuntu-22.04
             python: "3.13"
           ### macOS Ventura
-          - testenv: py312-pyqt67
+          - testenv: py313-pyqt67
             os: macos-13
             python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
-          - testenv: py312-pyqt67
+          - testenv: py313-pyqt67
             os: macos-14
             python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py312-pyqt67
+          - testenv: py313-pyqt67
             os: windows-2019
             python: "3.13"
     runs-on: "${{ matrix.os }}"
