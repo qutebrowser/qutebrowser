@@ -237,6 +237,10 @@ def is_ignored_chromium_message(line):
         # C:\Users\RUNNER~1\AppData\Local\Temp\qutebrowser-basedir-ruvn1lys\data\webengine\DawnCache\data_0
         "Failed to open *webengine*DawnCache*data_*",
 
+        # Qt 6.8 on GitHub Actions
+        # [7072:3412:1209/220659.527:ERROR:simple_index_file.cc(322)] Failed to
+        # write the temporary index file
+        "Failed to write the temporary index file",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
