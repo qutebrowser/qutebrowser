@@ -348,7 +348,12 @@ class ProfileSetter:
 
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)
-        self._profile.setSpellCheckEnabled(bool(filenames))
+
+        should_enable = bool(filenames)
+        if self._profile.isSpellCheckEnabled() != should_enable:
+            # Only setting conditionally as a WORKAROUND for a bogus Qt error message:
+            # https://bugreports.qt.io/browse/QTBUG-131969
+            self._profile.setSpellCheckEnabled(should_enable)
 
     def disable_persistent_permissions_policy(self):
         """Disable webengine's permission persistence."""
