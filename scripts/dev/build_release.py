@@ -279,7 +279,7 @@ def build_mac(
         shutil.rmtree(d, ignore_errors=True)
 
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=False, fancy_dmg=False,
+    update_3rdparty.run(ace=False, pdfjs=True, modern_pdfjs=False, fancy_dmg=False,
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
@@ -391,7 +391,7 @@ def build_windows(
 ) -> list[Artifact]:
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=False,
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, modern_pdfjs=False,
                         fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")

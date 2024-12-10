@@ -89,14 +89,15 @@ def get_latest_pdfjs_url(gh_token, legacy):
     return (version_name, download_url)
 
 
-def update_pdfjs(target_version=None, legacy=False, gh_token=None):
+def update_pdfjs(target_version=None, legacy=True, gh_token=None):
     """Download and extract the latest pdf.js version.
 
     If target_version is not None, download the given version instead.
 
     Args:
         target_version: None or version string ('x.y.z')
-        legacy: Whether to download the legacy build for 83-based.
+        legacy: Whether to download the "legacy" build (the normal build only
+                supports the latest Chromium release).
         gh_token: GitHub token to use for the API. Optional except on CI.
     """
     if target_version is None:
@@ -115,7 +116,8 @@ def update_pdfjs(target_version=None, legacy=False, gh_token=None):
     os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           '..', '..'))
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
-    print(f"=> Downloading pdf.js {version}{' (legacy)' if legacy else ''}")
+    version_suffix = '' if legacy else ' (modern browsers version)'
+    print(f"=> Downloading pdf.js {version}{version_suffix}")
     try:
         (archive_path, _headers) = urllib.request.urlretrieve(url)
     except urllib.error.HTTPError as error:
@@ -171,13 +173,13 @@ def test_dicts():
                 print('ERROR: {}'.format(response.status))
 
 
-def run(*, nsis=False, ace=False, pdfjs=True, legacy_pdfjs=False, fancy_dmg=False,
+def run(*, nsis=False, ace=False, pdfjs=True, modern_pdfjs=False, fancy_dmg=False,
         pdfjs_version=None, dicts=False, gh_token=None):
     """Update components based on the given arguments."""
     if nsis:
         download_nsis_plugins()
     if pdfjs:
-        update_pdfjs(pdfjs_version, legacy=legacy_pdfjs, gh_token=gh_token)
+        update_pdfjs(pdfjs_version, legacy=not modern_pdfjs, gh_token=gh_token)
     if ace:
         update_ace()
     if fancy_dmg:
@@ -195,8 +197,8 @@ def main():
         help='Specify pdfjs version. If not given, '
         'the latest version is used.',
         required=False, metavar='VERSION')
-    parser.add_argument("--legacy-pdfjs",
-                        help="Use legacy PDF.js build (for 83-based)",
+    parser.add_argument("--modern-pdfjs",
+                        help="Use PDF.js modern build (only supports latest Chromium)",
                         action='store_true')
     parser.add_argument('--fancy-dmg', help="Update fancy-dmg Makefile",
                         action='store_true')
@@ -209,7 +211,7 @@ def main():
         '--gh-token', help="GitHub token to use.", nargs='?')
     args = parser.parse_args()
     run(nsis=False, ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
-        pdfjs_version=args.pdfjs, legacy_pdfjs=args.legacy_pdfjs,
+        pdfjs_version=args.pdfjs, modern_pdfjs=args.modern_pdfjs,
         dicts=args.dicts, gh_token=args.gh_token)
 
 

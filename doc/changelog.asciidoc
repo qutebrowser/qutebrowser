@@ -54,6 +54,11 @@ Changed
   setting (but not per-domain overrides). This fixes subtle JS issues on
   websites that rely on the custom header being sent for those requests, and
   e.g. block the requests server-side otherwise. (#8370)
+- Our packaging scripts now prefer the "legacy"/"for older browsers" PDF.js
+  build as their normal release only supports the latest Chromium version and
+  might break in qutebrowser on updates. **Note to packagers:** If there's a
+  PDF.js package in your distribution as an (optional) qutebrowser dependency,
+  consider also switching to this variant (same code, built differently).
 
 Fixed
 ~~~~~
