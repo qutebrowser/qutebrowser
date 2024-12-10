@@ -592,6 +592,7 @@ class WebEngineVersions:
         # 5.15.15: unknown security fixes
         utils.VersionNumber(5, 15, 16): (_BASES[87], '119.0.6045.123'),  # 2023-11-07
         utils.VersionNumber(5, 15, 17): (_BASES[87], '123.0.6312.58'),  # 2024-03-19
+        utils.VersionNumber(5, 15, 18): (_BASES[87], '130.0.6723.59'),  # 2024-10-14
 
 
         ## Qt 6.2
@@ -629,7 +630,7 @@ class WebEngineVersions:
 
         ## Qt 6.7
         utils.VersionNumber(6, 7): (_BASES[118], '122.0.6261.128'),  # 2024-03-12
-        utils.VersionNumber(6, 7, 1): (_BASES[118], '124.0.6367.202'),  # ~2024-05-09
+        utils.VersionNumber(6, 7, 1): (_BASES[118], '124.0.6367.202'),  # 2024-05-09
         utils.VersionNumber(6, 7, 2): (_BASES[118], '125.0.6422.142'),  # 2024-05-30
         utils.VersionNumber(6, 7, 3): (_BASES[118], '129.0.6668.58'),  # 2024-09-17
 
