@@ -1129,7 +1129,7 @@ window._qutebrowser.caret = (function() {
         const sel = window.getSelection();
         sel.setBaseAndExtent(
             sel.extentNode, sel.extentOffset, sel.baseNode,
-            sel.baseOffset
+            sel.baseOffset,
         );
     };
 

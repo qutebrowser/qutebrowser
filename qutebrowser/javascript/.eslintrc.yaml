@@ -14,6 +14,9 @@ env:
     browser: true
     es6: true
 
+parserOptions:
+    ecmaVersion: 2020
+
 extends:
     "eslint:all"
 
@@ -63,3 +66,4 @@ rules:
     no-negated-condition: "off"
     no-console: "off"
     sort-vars: "off"
+    no-continue: "off"

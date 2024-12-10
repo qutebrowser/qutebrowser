@@ -163,7 +163,7 @@ window.loadHistory = (function() {
             // python's time.time returns seconds, but js Date expects ms
             const currentItemDate = new Date(item.time * 1000);
             getSessionNode(currentItemDate).appendChild(makeHistoryRow(
-                item.url, item.title, currentItemDate.toLocaleTimeString()
+                item.url, item.title, currentItemDate.toLocaleTimeString(),
             ));
             lastItemDate = currentItemDate;
             if (item.time === nextTime) {

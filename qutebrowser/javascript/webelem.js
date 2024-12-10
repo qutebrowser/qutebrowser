@@ -122,7 +122,7 @@ window._qutebrowser.webelem = (function() {
         for (let k = 0; k < client_rects.length; ++k) {
             const rect = client_rects[k];
             out.rects.push(
-                add_offset_rect(rect, frame_offset_rect)
+                add_offset_rect(rect, frame_offset_rect),
             );
         }
 
