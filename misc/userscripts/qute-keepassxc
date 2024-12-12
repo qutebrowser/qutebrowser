@@ -365,18 +365,35 @@ def make_js_code(username, password):
             }
         };
 
-        function fillFirstForm() {
-            var forms = document.getElementsByTagName("form");
+        function checkForIframeForms(doc, recursive = true) {
+            doc || (doc = document);
+            const iframes = doc.getElementsByTagName('iframe');
+            const success = [];
+            for (const frame of iframes) {
+                success.push(fillFirstForm(frame.contentDocument, false));
+            }
+            return !!success.filter(Boolean).length;
+        }
+
+        function fillFirstForm(doc, recursive = true) {
+            doc || (doc = document);
+            var forms = doc.getElementsByTagName("form");
+            let success = false;
             for (i = 0; i < forms.length; i++) {
                 if (hasPasswordField(forms[i])) {
                     loadData2Form(forms[i]);
-                    return;
+                    return true;
                 }
             }
-            alert("No Credentials Form found");
+            if (recursive) success = checkForIframeForms(doc, false);
+            return success;
         };
 
-        fillFirstForm()
+        function findAndFillFirstForm () {
+            if (!fillFirstForm()) { alert("No Credentials Form found"); }
+        };
+
+        findAndFillFirstForm()
     """.splitlines()) % (json.dumps(username), json.dumps(password))
 
 
