@@ -368,11 +368,10 @@ def make_js_code(username, password):
         function checkForIframeForms(doc, recursive = true) {
             doc || (doc = document);
             const iframes = doc.getElementsByTagName('iframe');
-            const success = [];
             for (const frame of iframes) {
-                success.push(fillFirstForm(frame.contentDocument, false));
+                if (fillFirstForm(frame.contentDocument, false)) return true; // stop filling forms
             }
-            return !!success.filter(Boolean).length;
+            return false;
         }
 
         function fillFirstForm(doc, recursive = true) {
