@@ -360,7 +360,7 @@ class ProfileSetter:
         try:
             # New in WebEngine 6.8.0
             self._profile.setPersistentPermissionsPolicy(
-                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime  # type: ignore[attr-defined]
+                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime
             )
         except AttributeError:
             pass
