@@ -357,13 +357,14 @@ class ProfileSetter:
 
     def disable_persistent_permissions_policy(self):
         """Disable webengine's permission persistence."""
-        try:
-            # New in WebEngine 6.8.0
-            self._profile.setPersistentPermissionsPolicy(
-                QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime
-            )
-        except AttributeError:
-            pass
+        if machinery.IS_QT6:  # for mypy
+            try:
+                # New in WebEngine 6.8.0
+                self._profile.setPersistentPermissionsPolicy(
+                    QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime
+                )
+            except AttributeError:
+                pass
 
 
 def _update_settings(option):
