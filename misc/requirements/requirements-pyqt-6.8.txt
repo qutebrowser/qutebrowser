@@ -4,7 +4,5 @@ PyQt6==6.8.0
 PyQt6-Qt6==6.8.1
 PyQt6-WebEngine==6.8.0
 PyQt6-WebEngine-Qt6==6.8.1
-PyQt6_sip==13.9.0
-setuptools==75.6.0
-wheel==0.45.1
+PyQt6_sip==13.9.1
 --index-url https://www.riverbankcomputing.com/pypi/simple/
