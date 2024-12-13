@@ -52,7 +52,7 @@ SOFTWARE.
                 "writable": true,
                 "enumerable": false,
                 "configurable": true,
-            },
+            }
         );
     }
 })();
