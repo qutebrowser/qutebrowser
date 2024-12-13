@@ -20,7 +20,7 @@ from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
 # WORKAROUND for
 # https://www.riverbankcomputing.com/pipermail/pyqt/2024-December/046096.html
 if TYPE_CHECKING and machinery.IS_QT6:
-    from PyQt6.QtCore import QChar
+    from qutebrowser.qt.core import QChar
 else:
     QChar = str
 
