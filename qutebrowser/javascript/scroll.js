@@ -15,13 +15,13 @@ window._qutebrowser.scroll = (function() {
             document.body.scrollWidth,
             document.body.offsetWidth,
             document.documentElement.scrollWidth,
-            document.documentElement.offsetWidth,
+            document.documentElement.offsetWidth
         );
         const height = Math.max(
             document.body.scrollHeight,
             document.body.offsetHeight,
             document.documentElement.scrollHeight,
-            document.documentElement.offsetHeight,
+            document.documentElement.offsetHeight
         );
 
         if (x !== undefined) {
