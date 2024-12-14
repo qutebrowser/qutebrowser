@@ -369,7 +369,7 @@ def make_js_code(username, password):
             doc || (doc = document);
             const iframes = doc.getElementsByTagName('iframe');
             for (const frame of iframes) {
-                if (fillFirstForm(frame.contentDocument, false)) return true; // stop filling forms
+                if (fillFirstForm(frame.contentDocument, false)) return true;
             }
             return false;
         }
