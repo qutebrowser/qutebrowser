@@ -19,9 +19,6 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.4.0 (unreleased)
 -------------------
 
-Deprecated
-~~~~~~~~~~
-
 Removed
 ~~~~~~~
 
@@ -32,15 +29,12 @@ Removed
   (previous versions required 1607 or newer, but that's not officialy supported by
   Qt upstream). (#8336)
 
-Added
-~~~~~
-
-- **Planned:** Full support for Qt 6.8, with Windows/macOS binaries being built
-  on Qt 6.8.0. (#8242)
-
 Changed
 ~~~~~~~
 
+- Windows/macOS binaries are now built with Qt 6.8.1. (#8242)
+    - Based on Chromium 122.0.6261.171
+    - With security patches up to 131.0.6778.70
 - Windows/macOS binaries are now using Python 3.13. (#8205)
 - The `.desktop` file now also declares qutebrowser as a valid viewer for
   `image/webp`. (#8340)
