@@ -4,7 +4,7 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 build==1.2.2.post1
 bump2version==1.0.1
-certifi==2024.8.30
+certifi==2024.12.14
 cffi==1.17.1
 charset-normalizer==3.4.0
 cryptography==44.0.0
