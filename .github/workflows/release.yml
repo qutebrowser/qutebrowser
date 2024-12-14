@@ -159,7 +159,7 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libegl1-mesa libxml2-utils docbook-xml xsltproc docbook-xsl
+            sudo apt-get install --no-install-recommends libegl1 libxml2-utils docbook-xml xsltproc docbook-xsl
       - name: Install dependencies
         run: |
             python -m pip install -U pip

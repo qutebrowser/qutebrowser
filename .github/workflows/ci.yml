@@ -57,8 +57,8 @@ jobs:
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g 'eslint@<9.0.0'
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1-mesa
-            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1-mesa
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1
+            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
@@ -228,7 +228,7 @@ jobs:
       - name: Install apt dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
