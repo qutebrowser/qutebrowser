@@ -26,7 +26,7 @@ on:
           - '3.13'
 jobs:
   prepare:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       version: ${{ steps.bump.outputs.version }}
@@ -129,7 +129,7 @@ jobs:
           - os: macos-13
           - os: macos-14
           - os: windows-2019
-          - os: ubuntu-20.04
+          - os: ubuntu-24.04
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 45
     needs: [prepare]
@@ -173,7 +173,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.QUTEBROWSER_BOT_PYPI_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   finalize:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     needs: [prepare, release]
     permissions:
@@ -193,7 +193,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [prepare, release, finalize]
     if: "${{ always() }}"
     steps:

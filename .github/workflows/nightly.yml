@@ -75,7 +75,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [pyinstaller]
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:

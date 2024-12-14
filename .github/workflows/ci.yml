@@ -155,7 +155,7 @@ jobs:
           #   python: "3.10"
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.11"
           ### PyQt 6.2 (Python 3.9)
           - testenv: py39-pyqt62
@@ -163,11 +163,11 @@ jobs:
             python: "3.9"
           ### PyQt 6.3 (Python 3.9)
           - testenv: py39-pyqt63
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ## PyQt 6.4 (Python 3.9)
           - testenv: py39-pyqt64
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ### PyQt 6.5 (Python 3.10)
           - testenv: py310-pyqt65
@@ -191,7 +191,7 @@ jobs:
             python: "3.12"
           ### PyQt 6.8 (Python 3.13)
           - testenv: py313-pyqt68
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             python: "3.13"
           ### macOS Ventura
           - testenv: py313-pyqt68
