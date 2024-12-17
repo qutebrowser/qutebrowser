@@ -34,11 +34,11 @@ Feature: Caret mode
 
     Scenario: :yank selection with --keep
         When I run :selection-toggle
-        And I run :move-to-end-of-word
+        And I run :move-to-next-word
         And I run :yank selection --keep
         And I run :move-to-end-of-word
         And I run :yank selection --keep
-        Then the message "3 chars yanked to clipboard" should be shown
+        Then the message "4 chars yanked to clipboard" should be shown
         And the message "7 chars yanked to clipboard" should be shown
         And the clipboard should contain "one two"
 
@@ -53,8 +53,10 @@ Feature: Caret mode
         And I run :selection-follow --tab
         Then data/hello.txt should be loaded
         And the following tabs should be open:
+            """
             - data/caret.html
             - data/hello.txt (active)
+            """
 
     Scenario: :selection-follow with --tab (without JS)
         When I set content.javascript.enabled to false
@@ -65,8 +67,10 @@ Feature: Caret mode
         And I run :selection-follow --tab
         Then data/hello.txt should be loaded
         And the following tabs should be open:
+            """
             - data/caret.html
             - data/hello.txt
+            """
 
     @flaky
     Scenario: :selection-follow with link tabbing (without JS)

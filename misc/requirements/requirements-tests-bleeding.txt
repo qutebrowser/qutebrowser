@@ -20,6 +20,7 @@ git+https://github.com/pygments/pygments.git
 git+https://github.com/pytest-dev/pytest-repeat.git
 git+https://github.com/pytest-dev/pytest-cov.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
+git+https://github.com/python-pillow/Pillow.git
 git+https://github.com/pytest-dev/pytest-xdist.git
 git+https://github.com/john-kurkowski/tldextract
 

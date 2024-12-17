@@ -9,12 +9,12 @@ import pathlib
 import itertools
 import functools
 import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union, Tuple)
+from typing import (cast, TYPE_CHECKING, Any, Optional, Union)
+from collections.abc import Iterable, Sequence, Callable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint, QRect)
+                          QEvent, QPoint, QRect, QTimer)
 from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
 from qutebrowser.qt.widgets import QApplication, QWidget
 from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
@@ -60,7 +60,7 @@ def create(win_id: int,
     mode_manager = modeman.instance(win_id)
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
-        tab_class: Type[AbstractTab] = webenginetab.WebEngineTab
+        tab_class: type[AbstractTab] = webenginetab.WebEngineTab
     elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
@@ -142,7 +142,7 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
+    action_base: type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = cast(_WidgetType, None)
@@ -639,7 +639,7 @@ class AbstractScroller(QObject):
     def pos_px(self) -> QPoint:
         raise NotImplementedError
 
-    def pos_perc(self) -> Tuple[int, int]:
+    def pos_perc(self) -> tuple[int, int]:
         raise NotImplementedError
 
     def to_perc(self, x: float = None, y: float = None) -> None:
@@ -765,10 +765,10 @@ class AbstractHistory:
     def _go_to_item(self, item: Any) -> None:
         raise NotImplementedError
 
-    def back_items(self) -> List[Any]:
+    def back_items(self) -> list[Any]:
         raise NotImplementedError
 
-    def forward_items(self) -> List[Any]:
+    def forward_items(self) -> list[Any]:
         raise NotImplementedError
 
 
@@ -902,7 +902,13 @@ class AbstractTabPrivate:
                 modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
                               'load finished', only_if_normal=True)
 
-        self._tab.elements.find_focused(_auto_insert_mode_cb)
+        # There seems to be a race between loadFinished being called,
+        # and the autoload attribute on websites actually focusing anything.
+        # Thus, we delay this by a bit. Locally, a delay of 13ms caused no races
+        # with 5000 test reruns (even with simultaneous CPU stress testing),
+        # so 65ms should be a safe bet and still not be too noticeable.
+        QTimer.singleShot(
+            65, lambda: self._tab.elements.find_focused(_auto_insert_mode_cb))
 
     def clear_ssl_errors(self) -> None:
         raise NotImplementedError
@@ -1012,7 +1018,7 @@ class AbstractTab(QWidget):
     # Note that we remember hosts here, without scheme/port:
     # QtWebEngine/Chromium also only remembers hostnames, and certificates are
     # for a given hostname anyways.
-    _insecure_hosts: Set[str] = set()
+    _insecure_hosts: set[str] = set()
 
     # Sub-APIs initialized by subclasses
     history: AbstractHistory

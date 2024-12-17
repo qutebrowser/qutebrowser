@@ -11,6 +11,7 @@ import ssl
 
 import pytest
 import hypothesis
+import hypothesis.database
 
 pytest.register_assert_rewrite('helpers')
 
@@ -33,19 +34,28 @@ _qute_scheme_handler = None
 
 
 # Set hypothesis settings
+hypothesis_optional_kwargs = {}
+if "HYPOTHESIS_EXAMPLES_DIR" in os.environ:
+    hypothesis_optional_kwargs[
+        "database"
+    ] = hypothesis.database.DirectoryBasedExampleDatabase(
+        os.environ["HYPOTHESIS_EXAMPLES_DIR"]
+    )
+
 hypothesis.settings.register_profile(
     'default', hypothesis.settings(
         deadline=600,
         suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
+        **hypothesis_optional_kwargs,
     )
 )
 hypothesis.settings.register_profile(
     'ci', hypothesis.settings(
-        deadline=None,
+        hypothesis.settings.get_profile('ci'),
         suppress_health_check=[
             hypothesis.HealthCheck.function_scoped_fixture,
-            hypothesis.HealthCheck.too_slow
-        ]
+        ],
+        **hypothesis_optional_kwargs,
     )
 )
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
@@ -339,13 +349,24 @@ def apply_fake_os(monkeypatch, request):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on CI.
-
-    Not available yet with a nightly Python, see:
-    https://github.com/yaml/pyyaml/issues/630
-    """
-    if testutils.ON_CI and sys.version_info[:2] != (3, 11):
+    """Make sure PyYAML C extensions are available on CI."""
+    if testutils.ON_CI:
         from yaml import CLoader  # pylint: disable=unused-import
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_qtwe_dict_path(
+    tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest,
+) -> None:
+    """Initialize spell checking dictionaries for QtWebEngine.
+
+    QtWebEngine stores the dictionary path in a static variable, so we can't do
+    this per-test. Hence the session-scope on this fixture.
+    """
+    if request.config.webengine:  # type: ignore[att-defined]
+        # Set an empty directory path, this is enough for QtWebEngine to not complain.
+        dictionary_dir = tmp_path_factory.mktemp("qtwebengine_dictionaries")
+        os.environ["QTWEBENGINE_DICTIONARIES_PATH"] = str(dictionary_dir)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -361,7 +382,8 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_terminal_summary(terminalreporter):
-    """Group benchmark results on CI."""
+    """Add custom pytest summary sections."""
+    # Group benchmark results on CI.
     if testutils.ON_CI:
         terminalreporter.write_line(
             testutils.gha_group_begin('Benchmark results'))
@@ -369,3 +391,21 @@ def pytest_terminal_summary(terminalreporter):
         terminalreporter.write_line(testutils.gha_group_end())
     else:
         yield
+
+    # List any screenshots of failed end2end tests that were generated during
+    # the run. Screenshots are captured from QuteProc.after_test()
+    properties = lambda report: dict(report.user_properties)
+    reports = [
+        report
+        for report in terminalreporter.getreports("")
+        if "screenshot" in properties(report)
+    ]
+    screenshots = [
+        pathlib.Path(properties(report)["screenshot"])
+        for report in reports
+    ]
+
+    if screenshots:
+        terminalreporter.ensure_newline()
+        screenshot_dir = screenshots[0].parent
+        terminalreporter.section(f"End2end screenshots available in: {screenshot_dir}", sep="-", blue=True, bold=True)

@@ -17,7 +17,7 @@ import shutil
 import venv as pyvenv
 import subprocess
 import platform
-from typing import List, Tuple, Dict, Union
+from typing import Union
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -49,7 +49,7 @@ def print_command(*cmd: Union[str, pathlib.Path], venv: bool) -> None:
     utils.print_col(prefix + ' '.join([str(e) for e in cmd]), 'blue')
 
 
-def parse_args(argv: List[str] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] = None) -> argparse.Namespace:
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--update',
@@ -105,7 +105,7 @@ def _version_key(v):
         return (999,)
 
 
-def pyqt_versions() -> List[str]:
+def pyqt_versions() -> list[str]:
     """Get a list of all available PyQt versions.
 
     The list is based on the filenames of misc/requirements/ files.
@@ -227,8 +227,8 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
 
     if _is_qt6_version(version):
         supported_archs = {
-            'linux': {'x86_64'},
-            'win32': {'AMD64'},
+            'linux': {'x86_64', 'aarch64'},  # ARM since PyQt 6.8
+            'win32': {'AMD64', 'arm64'},  # ARM since PyQt 6.8
             'darwin': {'x86_64', 'arm64'},
         }
     else:
@@ -276,7 +276,7 @@ def install_pyqt_wheels(venv_dir: pathlib.Path,
     pip_install(venv_dir, *wheels)
 
 
-def install_pyqt_snapshot(venv_dir: pathlib.Path, packages: List[str]) -> None:
+def install_pyqt_snapshot(venv_dir: pathlib.Path, packages: list[str]) -> None:
     """Install PyQt packages from the snapshot server."""
     utils.print_title("Installing PyQt snapshots")
     pip_install(venv_dir, '-U', *packages, '--no-deps', '--pre',
@@ -348,9 +348,9 @@ def apply_xcb_util_workaround(
     link_path.symlink_to(libxcb_util_path)
 
 
-def _find_libs() -> Dict[Tuple[str, str], List[str]]:
+def _find_libs() -> dict[tuple[str, str], list[str]]:
     """Find all system-wide .so libraries."""
-    all_libs: Dict[Tuple[str, str], List[str]] = {}
+    all_libs: dict[tuple[str, str], list[str]] = {}
 
     if pathlib.Path("/sbin/ldconfig").exists():
         # /sbin might not be in PATH on e.g. Debian

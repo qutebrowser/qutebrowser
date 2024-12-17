@@ -230,3 +230,17 @@ class TestFindFlags:
             backward=backward,
         )
         assert str(flags) == expected
+
+
+class TestWebEnginePermissions:
+
+    def test_clipboard_value(self):
+        # Ensure the ClipboardReadWrite permission is in the permission map,
+        # despite us specifying it by number.
+        permissions_cls = webenginetab._WebEnginePermissions
+        try:
+            clipboard = QWebEnginePage.Feature.ClipboardReadWrite
+        except AttributeError:
+            pytest.skip("enum member not available")
+        assert clipboard in permissions_cls._options
+        assert clipboard in permissions_cls._messages

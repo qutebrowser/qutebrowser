@@ -13,7 +13,8 @@ import functools
 import pathlib
 import tempfile
 import enum
-from typing import Any, Dict, IO, List, MutableSequence, Optional, Union
+from typing import Any, IO, Optional, Union
+from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
@@ -187,15 +188,22 @@ def transform_path(path):
     """
     if not utils.is_windows:
         return path
+
     path = utils.expand_windows_drive(path)
     # Drive dependent working directories are not supported, e.g.
     # E:filename is invalid
     if re.search(r'^[A-Z]:[^\\]', path, re.IGNORECASE):
         return None
+
     # Paths like COM1, ...
     # See https://github.com/qutebrowser/qutebrowser/issues/82
-    if pathlib.Path(path).is_reserved():
-        return None
+    if sys.version_info[:2] >= (3, 13):
+        if os.path.isreserved(path):  # pylint: disable=no-member
+            return None
+    else:
+        if pathlib.Path(path).is_reserved():  # pylint: disable=else-if-used
+            return None
+
     return path
 
 
@@ -447,7 +455,7 @@ class AbstractDownloadItem(QObject):
             UnsupportedAttribute, IO[bytes], None
         ] = UnsupportedAttribute()
         self.raw_headers: Union[
-            UnsupportedAttribute, Dict[bytes, bytes]
+            UnsupportedAttribute, dict[bytes, bytes]
         ] = UnsupportedAttribute()
 
         self._filename: Optional[str] = None
@@ -899,7 +907,7 @@ class AbstractDownloadManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.downloads: List[AbstractDownloadItem] = []
+        self.downloads: list[AbstractDownloadItem] = []
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)
@@ -1264,7 +1272,7 @@ class DownloadModel(QAbstractListModel):
         else:
             return ""
 
-    def data(self, index, role):
+    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
         """Download data from DownloadManager."""
         if not index.isValid():
             return None

@@ -6,7 +6,7 @@
 
 import re
 import posixpath
-from typing import Optional, Set
+from typing import Optional
 
 from qutebrowser.qt.core import QUrl
 
@@ -79,7 +79,7 @@ def incdec(url, count, inc_or_dec):
         inc_or_dec: Either 'increment' or 'decrement'.
     """
     urlutils.ensure_valid(url)
-    segments: Optional[Set[str]] = (
+    segments: Optional[set[str]] = (
         set(config.val.url.incdec_segments)
     )
 

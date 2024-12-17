@@ -25,24 +25,66 @@ INFO_PLIST_UPDATES = {
         "CFBundleURLName": "local file URL",
         "CFBundleURLSchemes": ["file"]
     }],
-    'CFBundleDocumentTypes': [{
-        "CFBundleTypeExtensions": ["html", "htm"],
-        "CFBundleTypeMIMETypes": ["text/html"],
-        "CFBundleTypeName": "HTML document",
-        "CFBundleTypeOSTypes": ["HTML"],
-        "CFBundleTypeRole": "Viewer",
-    }, {
-        "CFBundleTypeExtensions": ["xhtml"],
-        "CFBundleTypeMIMETypes": ["text/xhtml"],
-        "CFBundleTypeName": "XHTML document",
-        "CFBundleTypeRole": "Viewer",
-    }, {
-        "CFBundleTypeExtensions": ["mhtml"],
-        "CFBundleTypeMIMETypes": ["multipart/related", "application/x-mimearchive", "message/rfc822"],
-        "CFBundleTypeName": "MHTML document",
-        "CFBundleTypeRole": "Viewer",
-    }],
-
+    'CFBundleDocumentTypes': [
+        {
+            "CFBundleTypeIconFile": "document.icns",
+            "CFBundleTypeName": name,
+            "CFBundleTypeRole": "Viewer",
+            "LSItemContentTypes": [content_type],
+        }
+        for name, content_type in [
+            ("GIF image", "com.compuserve.gif"),
+            ("HTML document", "public.html"),
+            ("XHTML document", "public.xhtml"),
+            ("JavaScript script", "com.netscape.javascript-source"),
+            ("JPEG image", "public.jpeg"),
+            ("MHTML document", "org.ietf.mhtml"),
+            ("HTML5 Audio (Ogg)", "org.xiph.ogg-audio"),
+            ("HTML5 Video (Ogg)", "org.xiph.oggv"),
+            ("PNG image", "public.png"),
+            ("SVG document", "public.svg-image"),
+            ("Plain text document", "public.text"),
+            ("HTML5 Video (WebM)", "org.webmproject.webm"),
+            ("WebP image", "org.webmproject.webp"),
+            ("PDF Document", "com.adobe.pdf"),
+        ]
+    ],
+    'UTImportedTypeDeclarations': [
+        {
+            "UTTypeConformsTo": ["public.data", "public.content"],
+            "UTTypeDescription": "MIME HTML document",
+            "UTTypeIconFile": "document.icns",
+            "UTTypeIdentifier": "org.ietf.mhtml",
+            "UTTypeReferenceURL": "https://www.ietf.org/rfc/rfc2557",
+            "UTTypeTagSpecification": {
+                "com.apple.ostype": "MHTM",
+                "public.filename-extension": ["mht", "mhtml"],
+                "public.mime-type": ["multipart/related", "application/x-mimearchive"],
+            },
+        },
+        {
+            "UTTypeConformsTo": ["public.audio"],
+            "UTTypeDescription": "Ogg Audio",
+            "UTTypeIconFile": "document.icns",
+            "UTTypeIdentifier": "org.xiph.ogg-audio",
+            "UTTypeReferenceURL": "https://xiph.org/ogg/",
+            "UTTypeTagSpecification": {
+                "public.filename-extension": ["ogg", "oga"],
+                "public.mime-type": ["audio/ogg"],
+            },
+        },
+        {
+            "UTTypeConformsTo": ["public.movie"],
+            "UTTypeDescription": "Ogg Video",
+            "UTTypeIconFile": "document.icns",
+            "UTTypeIdentifier": "org.xiph.ogv",
+            "UTTypeReferenceURL": "https://xiph.org/ogg/",
+            "UTTypeTagSpecification": {
+                "public.filename-extension": ["ogm", "ogv"],
+                "public.mime-type": ["video/ogg"],
+            },
+        },
+    ],
     # https://developer.apple.com/documentation/avfoundation/cameras_and_media_capture/requesting_authorization_for_media_capture_on_macos
     #
     # Keys based on Google Chrome's .app, except Bluetooth keys which seem to

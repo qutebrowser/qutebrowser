@@ -29,7 +29,8 @@ import tempfile
 import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional, List, Tuple
+from typing import Optional
+from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.widgets import QApplication, QWidget
@@ -132,6 +133,9 @@ def init(*, args: argparse.Namespace) -> None:
     crashsignal.crash_handler.init_faulthandler()
 
     objects.qapp.setQuitOnLastWindowClosed(False)
+    # WORKAROUND for KDE file dialogs / QEventLoopLocker quitting:
+    # https://bugreports.qt.io/browse/QTBUG-124386
+    objects.qapp.setQuitLockEnabled(False)
     quitter.instance.shutting_down.connect(QApplication.closeAllWindows)
 
     _init_icon()
@@ -327,7 +331,7 @@ def _open_special_pages(args):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
-    pages: List[Tuple[str, bool, str]] = [
+    pages: list[tuple[str, bool, str]] = [
         # state, condition, URL
         ('quickstart-done',
          True,

@@ -7,7 +7,7 @@
 from unittest import mock
 
 import pytest
-from qutebrowser.qt.core import QRect
+from qutebrowser.qt.core import QRect, QItemSelectionModel
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
@@ -144,6 +144,18 @@ def test_completion_item_focus_no_model(which, completionview, model, qtbot):
     completionview.set_model(None)
     with qtbot.assert_not_emitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
+
+
+def test_models_deleted_on_clear(completionview, model, qtbot):
+    """Ensure set_model(None) deleted the model and selmodel."""
+    completionview.set_model(model)
+    selmod = completionview._selection_model()
+    completionview.set_model(None)
+
+    with qtbot.wait_signal(model.destroyed):
+        pass
+    with qtbot.wait_signal(selmod.destroyed):
+        pass
 
 
 @pytest.mark.skip("Seems to disagree with reality, see #5897")
@@ -283,6 +295,23 @@ def test_completion_show(show, rows, quick_complete, completionview, model,
     completionview.set_model(None)
     completionview.completion_item_focus('next')
     assert not completionview.isVisible()
+
+
+def test_completion_selection_clear_no_model(completionview):
+    completionview.show()
+    completionview.on_clear_completion_selection()
+    assert completionview.isVisible() is False
+
+
+def test_completion_selection_clear_with_model(completionview, mocker):
+    selmod = mock.Mock(spec=QItemSelectionModel)
+    mocker.patch.object(completionview, "selectionModel", return_value=selmod)
+    completionview.show()
+    completionview.on_clear_completion_selection()
+
+    assert completionview.isVisible() is False
+    selmod.clearSelection.assert_called_once()
+    selmod.clearCurrentIndex.assert_called_once()
 
 
 def test_completion_item_del(completionview, model):

@@ -14,8 +14,8 @@ import traceback
 import configparser
 import contextlib
 import re
-from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
-                    MutableMapping, Optional, Tuple, cast)
+from typing import (TYPE_CHECKING, Any, Optional, cast)
+from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 
 import yaml
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 state = cast('StateConfig', None)
 
 
-_SettingsType = Dict[str, Dict[str, Any]]
+_SettingsType = dict[str, dict[str, Any]]
 
 
 class VersionChange(enum.Enum):
@@ -55,7 +55,7 @@ class VersionChange(enum.Enum):
         This is intended to use filters like "major" (show major only), "minor" (show
         major/minor) or "patch" (show all changes).
         """
-        allowed_values: Dict[str, List[VersionChange]] = {
+        allowed_values: dict[str, list[VersionChange]] = {
             'major': [VersionChange.major],
             'minor': [VersionChange.major, VersionChange.minor],
             'patch': [VersionChange.major, VersionChange.minor, VersionChange.patch],
@@ -250,7 +250,7 @@ class YamlConfig(QObject):
                                       'autoconfig.yml')
         self._dirty = False
 
-        self._values: Dict[str, configutils.Values] = {}
+        self._values: dict[str, configutils.Values] = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
@@ -702,7 +702,7 @@ class ConfigAPI:
     ):
         self._config = conf
         self._keyconfig = keyconfig
-        self.errors: List[configexc.ConfigErrorDesc] = []
+        self.errors: list[configexc.ConfigErrorDesc] = []
         self.configdir = pathlib.Path(standarddir.config())
         self.datadir = pathlib.Path(standarddir.data())
         self._warn_autoconfig = warn_autoconfig
@@ -803,8 +803,8 @@ class ConfigPyWriter:
 
     def __init__(
             self,
-            options: List[
-                Tuple[
+            options: list[
+                tuple[
                     Optional[urlmatch.UrlPattern],
                     configdata.Option,
                     Any

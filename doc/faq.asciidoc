@@ -430,7 +430,7 @@ allowing him to work part-time on qutebrowser. If you keep your donation level
 for long enough, you can get some qutebrowser stickers!
 
 Why GitHub Sponsors?::
-    GitHub Sponsors is a crowdfundign platform nicely integrated with
+    GitHub Sponsors is a crowdfunding platform nicely integrated with
     qutebrowser's existing GitHub page and a better offering than alternatives such
     as Patreon or Liberapay.
 +

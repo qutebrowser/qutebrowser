@@ -5,7 +5,7 @@
 
 """Keyboard macro system."""
 
-from typing import cast, Dict, List, Optional, Tuple
+from typing import cast, Optional
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -13,7 +13,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
 
-_CommandType = Tuple[str, int]  # command, type
+_CommandType = tuple[str, int]  # command, type
 
 macro_recorder = cast('MacroRecorder', None)
 
@@ -32,9 +32,9 @@ class MacroRecorder:
     """
 
     def __init__(self) -> None:
-        self._macros: Dict[str, List[_CommandType]] = {}
+        self._macros: dict[str, list[_CommandType]] = {}
         self._recording_macro: Optional[str] = None
-        self._macro_count: Dict[int, int] = {}
+        self._macro_count: dict[int, int] = {}
         self._last_register: Optional[str] = None
 
     @cmdutils.register(instance='macro-recorder')

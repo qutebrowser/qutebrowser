@@ -69,6 +69,10 @@ def generate_pdfjs_page(filename, url):
     return html
 
 
+def _get_polyfills() -> str:
+    return resources.read_file("javascript/pdfjs_polyfills.js")
+
+
 def _generate_pdfjs_script(filename):
     """Generate the script that shows the pdf with pdf.js.
 
@@ -83,6 +87,8 @@ def _generate_pdfjs_script(filename):
     js_url = javascript.to_js(url.toString(urlutils.FormatOption.ENCODED))
 
     return jinja.js_environment.from_string("""
+        {{ polyfills }}
+
         document.addEventListener("DOMContentLoaded", function() {
             if (typeof window.PDFJS !== 'undefined') {
                 // v1.x
@@ -104,7 +110,7 @@ def _generate_pdfjs_script(filename):
                 });
             }
         });
-    """).render(url=js_url)
+    """).render(url=js_url, polyfills=_get_polyfills())
 
 
 def get_pdfjs_res_and_path(path):
@@ -147,6 +153,14 @@ def get_pdfjs_res_and_path(path):
         except OSError as e:
             log.misc.warning("OSError while reading PDF.js file: {}".format(e))
             raise PDFJSNotFound(path) from None
+
+    if path == "build/pdf.worker.mjs":
+        content = b"\n".join(
+            [
+                _get_polyfills().encode("ascii"),
+                content,
+            ]
+        )
 
     return content, file_path
 

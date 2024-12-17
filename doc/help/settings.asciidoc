@@ -302,6 +302,7 @@
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.workarounds.disable_accelerated_2d_canvas,qt.workarounds.disable_accelerated_2d_canvas>>|Disable accelerated 2d canvas to avoid graphical glitches.
+|<<qt.workarounds.disable_hangouts_extension,qt.workarounds.disable_hangouts_extension>>|Disable the Hangouts extension.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
@@ -355,7 +356,7 @@
 |<<url.open_base_url,url.open_base_url>>|Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
 |<<url.searchengines,url.searchengines>>|Search engines which can be used via the address bar.
 |<<url.start_pages,url.start_pages>>|Page(s) to open at the start.
-|<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
+|<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip when yanking a URL.
 |<<window.hide_decoration,window.hide_decoration>>|Hide the window decoration.
 |<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
 |<<window.transparent,window.transparent>>|Set the main window background to transparent.
@@ -739,12 +740,12 @@ Default:
 * +pass:[xO]+: +pass:[cmd-set-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[cmd-set-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
-* +pass:[yM]+: +pass:[yank inline [{title}\]({url}) -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}\]({url:yank}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
-* +pass:[ym]+: +pass:[yank inline [{title}\]({url})]+
+* +pass:[ym]+: +pass:[yank inline [{title}\]({url:yank})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -1678,6 +1679,7 @@ Default: +pass:[0.0]+
 [[colors.webpage.darkmode.enabled]]
 === colors.webpage.darkmode.enabled
 Render all web contents using a dark theme.
+On QtWebEngine < 6.7, this setting requires a restart and does not support URL patterns, only the global setting is applied.
 Example configurations from Chromium's `chrome://flags`:
 - "With simple HSL/CIELAB/RGB-based inversion": Set
   `colors.webpage.darkmode.algorithm` accordingly, and
@@ -1685,7 +1687,7 @@ Example configurations from Chromium's `chrome://flags`:
 
 - "With selective image inversion": qutebrowser default settings.
 
-This setting requires a restart.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2343,18 +2345,20 @@ Default: +pass:[false]+
 === content.javascript.clipboard
 Allow JavaScript to read from or write to the clipboard.
 With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
+On Qt < 6.8, the `ask` setting is equivalent to `none` and permission needs to be granted manually via this setting.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-Type: <<types,String>>
+Type: <<types,JSClipboardPermission>>
 
 Valid values:
 
  * +none+: Disable access to clipboard.
  * +access+: Allow reading from and writing to the clipboard.
  * +access-paste+: Allow accessing the clipboard and pasting clipboard content.
+ * +ask+: Prompt when requested (grants 'access-paste' permission).
 
-Default: +pass:[none]+
+Default: +pass:[ask]+
 
 [[content.javascript.enabled]]
 === content.javascript.enabled
@@ -3476,6 +3480,7 @@ Default:
 * +pass:[[role=&quot;button&quot;\]]+
 * +pass:[[role=&quot;tab&quot;\]]+
 * +pass:[[role=&quot;checkbox&quot;\]]+
+* +pass:[[role=&quot;switch&quot;\]]+
 * +pass:[[role=&quot;menuitem&quot;\]]+
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+
@@ -3888,7 +3893,7 @@ Chromium has various sandboxing layers, which should be enabled for normal brows
 Open `chrome://sandbox` to see the current sandbox status.
 Changing this setting is only recommended if you know what you're doing, as it **disables one of Chromium's security layers**. To avoid sandboxing being accidentally disabled persistently, this setting can only be set via `config.py`, not via `:set`.
 See the Chromium documentation for more details:
-- https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
+- https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/linux/README.md[Linux] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows] - https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/mac/README.md[Mac] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
 
 This setting requires a restart.
 
@@ -3990,6 +3995,21 @@ Valid values:
  * +never+: Enable accelerated 2d canvas
 
 Default: +pass:[auto]+
+
+[[qt.workarounds.disable_hangouts_extension]]
+=== qt.workarounds.disable_hangouts_extension
+Disable the Hangouts extension.
+The Hangouts extension provides additional APIs for Google domains only.
+Hangouts has been replaced with Meet, which appears to work without this extension.
+Note this setting gets ignored and the Hangouts extension is always disabled to avoid crashes on Qt 6.5.0 to 6.5.3 if dark mode is enabled, as well as on Qt 6.6.0.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[qt.workarounds.locale]]
 === qt.workarounds.locale
@@ -4691,7 +4711,7 @@ Default: +pass:[https://start.duckduckgo.com]+
 
 [[url.yank_ignored_parameters]]
 === url.yank_ignored_parameters
-URL parameters to strip with `:yank url`.
+URL parameters to strip when yanking a URL.
 
 Type: <<types,List of String>>
 
@@ -4826,6 +4846,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |FuzzyUrl|A URL which gets interpreted as search if needed.
 |IgnoreCase|Whether to search case insensitively.
 |Int|Base class for an integer setting.
+|JSClipboardPermission|Permission for page JS to access the system clipboard.
 |Key|A name of a key.
 |List|A list of values.
 
@@ -4864,6 +4885,6 @@ See the setting's valid values for more information on allowed values.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.
 
-See https://developer.chrome.com/apps/match_patterns for the allowed syntax.
+See https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns for the allowed syntax.
 |VerticalPosition|The position of the download bar.
 |==============

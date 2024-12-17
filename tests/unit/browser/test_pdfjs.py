@@ -9,7 +9,7 @@ import pytest
 from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.utils import urlmatch
+from qutebrowser.utils import urlmatch, utils
 
 
 pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
@@ -154,6 +154,8 @@ def test_read_from_system(names, expected_name, tmpdir):
         expected = (b'text2', str(file2))
     elif expected_name is None:
         expected = (None, None)
+    else:
+        raise utils.Unreachable(expected_name)
 
     assert pdfjs._read_from_system(str(tmpdir), names) == expected
 

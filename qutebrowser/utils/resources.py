@@ -9,23 +9,19 @@ import sys
 import contextlib
 import posixpath
 import pathlib
-from typing import Iterator, Iterable, Union
+import importlib.resources
+from typing import Union
+from collections.abc import Iterator, Iterable
 
-
-# We cannot use the stdlib version on 3.8 because we need the files() API.
 if sys.version_info >= (3, 11):  # pragma: no cover
     # https://github.com/python/cpython/issues/90276
-    import importlib.resources as importlib_resources
     from importlib.resources.abc import Traversable
-elif sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
+else:
     from importlib.abc import Traversable
-else:  # pragma: no cover
-    import importlib_resources
-    from importlib_resources.abc import Traversable
 
 import qutebrowser
-_cache = {}
+_cache: dict[str, str] = {}
+_bin_cache: dict[str, bytes] = {}
 
 
 _ResourceType = Union[Traversable, pathlib.Path]
@@ -36,7 +32,7 @@ def _path(filename: str) -> _ResourceType:
     assert not posixpath.isabs(filename), filename
     assert os.path.pardir not in filename.split(posixpath.sep), filename
 
-    return importlib_resources.files(qutebrowser) / filename
+    return importlib.resources.files(qutebrowser) / filename
 
 @contextlib.contextmanager
 def _keyerror_workaround() -> Iterator[None]:
@@ -45,7 +41,7 @@ def _keyerror_workaround() -> Iterator[None]:
     WORKAROUND for zipfile.Path resources raising KeyError when a file was notfound:
     https://bugs.python.org/issue43063
 
-    Only needed for Python 3.8 and 3.9.
+    Only needed for Python 3.9.
     """
     try:
         yield
@@ -70,7 +66,7 @@ def _glob(
         assert isinstance(glob_path, pathlib.Path)
         for full_path in glob_path.glob(f'*{ext}'):  # . is contained in ext
             yield full_path.relative_to(resource_path).as_posix()
-    else:  # zipfile.Path or other importlib_resources.abc.Traversable
+    else:  # zipfile.Path or other importlib.resources.abc.Traversable
         assert glob_path.is_dir(), glob_path
         for subpath in glob_path.iterdir():
             if subpath.name.endswith(ext):
@@ -87,6 +83,10 @@ def preload() -> None:
     ]:
         for name in _glob(resource_path, subdir, ext):
             _cache[name] = read_file(name)
+
+    for name in _glob(resource_path, 'img', '.png'):
+        # e.g. broken_qutebrowser_logo.png
+        _bin_cache[name] = read_file_binary(name)
 
 
 def read_file(filename: str) -> str:
@@ -115,6 +115,9 @@ def read_file_binary(filename: str) -> bytes:
     Return:
         The file contents as a bytes object.
     """
+    if filename in _bin_cache:
+        return _bin_cache[filename]
+
     path = _path(filename)
     with _keyerror_workaround():
         return path.read_bytes()

@@ -740,6 +740,12 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isWindows = null;
 
     /**
+     * Whether we should log debug outputs.
+     * @type {boolean}
+     */
+    CaretBrowsing.isDebug = null;
+
+    /**
      * The id returned by window.setInterval for our stopAnimation function, so
      * we can cancel it when we call stopAnimation again.
      * @type {number?}
@@ -1150,6 +1156,8 @@ window._qutebrowser.caret = (function() {
             action = "extend";
         }
 
+        CaretBrowsing.debug(`(move) ${action} ${count} ${granularity} ${direction}, selection ${CaretBrowsing.selectionState}`);
+
         for (let i = 0; i < count; i++) {
             if (CaretBrowsing.selectionState === CaretBrowsing.SelectionState.LINE) {
                 CaretBrowsing.updateLineSelection(direction, granularity);
@@ -1180,6 +1188,8 @@ window._qutebrowser.caret = (function() {
         if (CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE) {
             action = "extend";
         }
+        CaretBrowsing.debug(`(moveToBlock) ${action} paragraph ${paragraph}, boundary ${boundary}, count ${count}, selection ${CaretBrowsing.selectionState}`);
+
         for (let i = 0; i < count; i++) {
             window.
                 getSelection().
@@ -1196,6 +1206,7 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.toggle = function(value) {
+        CaretBrowsing.debug(`(toggle) enabled ${CaretBrowsing.isEnabled}, force ${CaretBrowsing.forceEnabled}`);
         if (CaretBrowsing.forceEnabled) {
             CaretBrowsing.recreateCaretElement();
             return;
@@ -1231,6 +1242,7 @@ window._qutebrowser.caret = (function() {
      * is enabled and whether this window / iframe has focus.
      */
     CaretBrowsing.updateIsCaretVisible = function() {
+        CaretBrowsing.debug(`(updateIsCaretVisible) isEnabled ${CaretBrowsing.isEnabled}, isWindowFocused ${CaretBrowsing.isWindowFocused}, isCaretVisible ${CaretBrowsing.isCaretVisible}, caretElement ${CaretBrowsing.caretElement}`);
         CaretBrowsing.isCaretVisible =
             (CaretBrowsing.isEnabled && CaretBrowsing.isWindowFocused);
         if (CaretBrowsing.isCaretVisible && !CaretBrowsing.caretElement) {
@@ -1274,6 +1286,12 @@ window._qutebrowser.caret = (function() {
         }
     };
 
+    CaretBrowsing.debug = (text) => {
+        if (CaretBrowsing.isDebug) {
+            console.debug(`caret: ${text}`);
+        }
+    }
+
     CaretBrowsing.init = function() {
         CaretBrowsing.isWindowFocused = document.hasFocus();
 
@@ -1313,6 +1331,7 @@ window._qutebrowser.caret = (function() {
 
     funcs.setFlags = (flags) => {
         CaretBrowsing.isWindows = flags.includes("windows");
+        CaretBrowsing.isDebug = flags.includes("debug");
     };
 
     funcs.disableCaret = () => {

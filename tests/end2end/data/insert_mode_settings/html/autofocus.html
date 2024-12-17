@@ -10,6 +10,9 @@
               elem.addEventListener('input', function() {
                   console.log("contents: " + elem.value);
               });
+              elem.addEventListener('focus', function() {
+                  console.log("autofocus element focused");
+              });
           }
         </script>
     </head>

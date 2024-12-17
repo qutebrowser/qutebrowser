@@ -10,7 +10,8 @@ import pathlib
 import functools
 import contextlib
 import subprocess
-from typing import Optional, IO, Iterator
+from typing import Optional, IO
+from collections.abc import Iterator
 
 from qutebrowser.qt.core import QUrl
 
@@ -95,6 +96,7 @@ _RESOURCE_TYPE_STRINGS = {
     ResourceType.preload_main_frame: "other",
     ResourceType.preload_sub_frame: "other",
     ResourceType.websocket: "websocket",
+    ResourceType.json: "other",
     ResourceType.unknown: "other",
     None: "",
 }

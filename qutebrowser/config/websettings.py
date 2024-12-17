@@ -8,7 +8,8 @@ import re
 import argparse
 import functools
 import dataclasses
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Optional, Union
+from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl, pyqtSlot, qVersion
 from qutebrowser.qt.gui import QFont
@@ -86,10 +87,10 @@ class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
 
-    _ATTRIBUTES: Dict[str, AttributeInfo] = {}
-    _FONT_SIZES: Dict[str, Any] = {}
-    _FONT_FAMILIES: Dict[str, Any] = {}
-    _FONT_TO_QFONT: Dict[Any, QFont.StyleHint] = {}
+    _ATTRIBUTES: dict[str, AttributeInfo] = {}
+    _FONT_SIZES: dict[str, Any] = {}
+    _FONT_FAMILIES: dict[str, Any] = {}
+    _FONT_TO_QFONT: dict[Any, QFont.StyleHint] = {}
 
     def __init__(self, settings: Any) -> None:
         self._settings = settings
@@ -246,7 +247,7 @@ def clear_private_data() -> None:
     elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import cookies
         assert cookies.ram_cookie_jar is not None
-        cookies.ram_cookie_jar.setAllCookies([])  # type: ignore[unreachable]
+        cookies.ram_cookie_jar.setAllCookies([])
     else:
         raise utils.Unreachable(objects.backend)
 

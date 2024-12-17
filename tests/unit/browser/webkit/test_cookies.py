@@ -14,8 +14,8 @@ from qutebrowser.misc import lineparser, objects
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 
 
-COOKIE1 = b'foo1=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
-COOKIE2 = b'foo2=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
+COOKIE1 = b'foo1=bar; expires=Tue, 01-Jan-2999 08:00:01 GMT'
+COOKIE2 = b'foo2=bar; expires=Tue, 01-Jan-2999 08:00:01 GMT'
 SESSION_COOKIE = b'foo3=bar'
 EXPIRED_COOKIE = b'foo4=bar; expires=Sat, 01-Jan-2000 08:00:01 GMT'
 

@@ -29,7 +29,7 @@ from qutebrowser.completion import completer
 from qutebrowser.completion.models import (
     configmodel, listcategory, miscmodels, urlmodel, filepathcategory)
 from qutebrowser.config import configdata, configtypes
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 from qutebrowser.mainwindow import tabbedbrowser
 
 
@@ -417,6 +417,8 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         base = '~'
         expected_1 = str(pathlib.Path('~') / 'file1.txt')
         expected_2 = str(pathlib.Path('~') / 'file2.txt')
+    else:
+        raise utils.Unreachable(method)
 
     config_stub.val.completion.open_categories = ['filesystem']
     model = urlmodel.url(info=info)

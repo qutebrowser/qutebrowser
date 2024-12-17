@@ -15,7 +15,8 @@ import functools
 import threading
 import faulthandler
 import dataclasses
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
+from typing import TYPE_CHECKING, Optional, cast
+from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
@@ -35,8 +36,8 @@ class ExceptionInfo:
 
     """Information stored when there was an exception."""
 
-    pages: List[List[str]]
-    cmd_history: List[str]
+    pages: list[list[str]]
+    cmd_history: list[str]
     objects: str
 
 
@@ -178,7 +179,7 @@ class CrashHandler(QObject):
         if sys.__stderr__ is not None:
             faulthandler.enable(sys.__stderr__)
         else:
-            faulthandler.disable()  # type: ignore[unreachable]
+            faulthandler.disable()
         try:
             self._crash_log_file.close()
             os.remove(self._crash_log_file.name)

@@ -4,7 +4,8 @@
 
 """Utilities related to QWebHistory."""
 
-from typing import Any, List, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
 
@@ -66,7 +67,7 @@ def serialize(items):
     """
     data = QByteArray()
     stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
-    user_data: List[Mapping[str, Any]] = []
+    user_data: list[Mapping[str, Any]] = []
 
     current_idx = None
 

@@ -73,7 +73,7 @@ Feature: Using :navigate
 
     # increment/decrement
 
-    @qtwebengine_todo: Doesn't find any elements
+    @qtwebengine_todo  # Doesn't find any elements
     Scenario: Navigating multiline links
         When I open data/navigate/multilinelinks.html
         And I run :navigate next

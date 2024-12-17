@@ -4,7 +4,6 @@
 
 import dataclasses
 import itertools
-from typing import Dict, List
 
 from qutebrowser.qt.core import QObject, QByteArray, QUrl, pyqtSlot
 from qutebrowser.qt.gui import QImage
@@ -43,7 +42,7 @@ class TestNotificationServer(QObject):
         self._bus = QDBusConnection.sessionBus()
         self._message_id_gen = itertools.count(1)
         # A dict mapping notification IDs to currently-displayed notifications.
-        self.messages: Dict[int, NotificationProperties] = {}
+        self.messages: dict[int, NotificationProperties] = {}
         self.supports_body_markup = True
         self.last_id = None
 
@@ -195,7 +194,7 @@ class TestNotificationServer(QObject):
         return message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")
-    def GetCapabilities(self, message: QDBusMessage) -> List[str]:
+    def GetCapabilities(self, message: QDBusMessage) -> list[str]:
         assert not message.signature()
         assert not message.arguments()
         assert message.type() == QDBusMessage.MessageType.MethodCallMessage

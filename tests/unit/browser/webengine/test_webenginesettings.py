@@ -7,6 +7,7 @@ import logging
 import pytest
 
 QtWebEngineCore = pytest.importorskip('qutebrowser.qt.webenginecore')
+QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
 
 from qutebrowser.browser.webengine import webenginesettings
@@ -128,6 +129,7 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog,
 
 def test_existing_dict(config_stub, monkeypatch, global_settings,
                        default_profile, private_profile):
+    """With a language set, spell check should get enabled."""
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
     config_stub.val.spellcheck.languages = ['en-US']
@@ -139,6 +141,7 @@ def test_existing_dict(config_stub, monkeypatch, global_settings,
 
 def test_spell_check_disabled(config_stub, monkeypatch, global_settings,
                               default_profile, private_profile):
+    """With no language set, spell check should get disabled."""
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')
     for profile in [default_profile, private_profile]:

@@ -137,8 +137,8 @@ Feature: Various utility commands.
         And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
-        When I run :jseval --file /nonexistentfile
-        Then the error "[Errno 2] *: '/nonexistentfile'" should be shown
+        When I run :jseval --file (rootpath)nonexistentfile
+        Then the error "[Errno 2] *: '*nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
     @qtwebkit_skip
@@ -151,7 +151,7 @@ Feature: Various utility commands.
         When I load a third-party iframe
         # rerun set_css in stylesheet.js
         And I set content.user_stylesheets to []
-        Then the javascript message "Failed to style frame: Blocked a frame with origin * from accessing *" should be logged
+        Then the javascript message "Failed to style frame:* Blocked a frame with origin * from accessing *" should be logged
 
     # :debug-webaction
 
@@ -162,12 +162,14 @@ Feature: Various utility commands.
         And I run :debug-webaction Back
         And I wait until data/backforward/1.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
+            """
 
     Scenario: :debug-webaction with invalid value
         When I open data/hello.txt
@@ -212,8 +214,10 @@ Feature: Various utility commands.
         And I open redirect-later-continue in a new tab
         And I wait 1s
         Then the unordered requests should be:
+            """
             redirect-later-continue
             redirect-later?delay=-1
+            """
         # no request on / because we stopped the redirect
 
     Scenario: :stop with wrong count
@@ -227,8 +231,10 @@ Feature: Various utility commands.
         And I run :reload
         And I wait until data/reload.txt is loaded
         Then the requests should be:
+            """
             data/reload.txt
             data/reload.txt
+            """
 
     Scenario: :reload with force
         When I open headers
@@ -251,6 +257,7 @@ Feature: Various utility commands.
         When I run :tab-only
         And I run :view-source
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -258,6 +265,7 @@ Feature: Various utility commands.
                   url: http://localhost:*/data/hello.txt
               - active: true
                 history: []
+            """
         And the page should contain the html "/* Literal.Number.Integer */"
 
     # Flaky due to :view-source being async?
@@ -387,9 +395,11 @@ Feature: Various utility commands.
     @qtwebkit_skip
     Scenario: Custom headers via XHR
         When I set content.headers.custom to {"Accept": "config-value", "X-Qute-Test": "config-value"}
+        When I set content.headers.accept_language to "config-value"
         And I open data/misc/xhr_headers.html
         And I wait for the javascript message "Got headers via XHR"
         Then the header Accept should be set to '*/*'
+        And the header Accept-Language should be set to 'from XHR'
         And the header X-Qute-Test should be set to config-value
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
@@ -438,11 +448,13 @@ Feature: Various utility commands.
         And I wait for "Closing window *" in the log
         And I wait for "removed: main-window" in the log
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
                 history:
                 - url: http://localhost:*/data/hello3.txt
+            """
 
     ## :click-element
 
@@ -467,8 +479,10 @@ Feature: Various utility commands.
         And I run :click-element id link --target=tab
         Then data/hello.txt should be loaded
         And the following tabs should be open:
+            """
             - data/click_element.html
             - data/hello.txt (active)
+            """
 
     Scenario: Clicking an element by CSS selector
         When I open data/click_element.html
@@ -502,14 +516,13 @@ Feature: Various utility commands.
 
     Scenario: Clicking on focused element when there is none
         When I open data/click_element.html
-        # Need to loose focus on input element
-        And I run :click-element position 20,42
-        And I wait for the javascript message "click_element position"
         And I run :click-element focused
         Then the error "No element found with focus!" should be shown
 
     Scenario: Clicking on focused element
         When I open data/click_element.html
+        And I run :jseval document.getElementById("qute-input").focus()
+        And I wait for the javascript message "qute-input focused"
         And I run :click-element focused
         Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
 

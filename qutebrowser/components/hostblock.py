@@ -9,7 +9,7 @@ import posixpath
 import zipfile
 import logging
 import pathlib
-from typing import cast, IO, Set
+from typing import cast, IO
 
 from qutebrowser.qt.core import QUrl
 
@@ -92,8 +92,8 @@ class HostBlocker:
     ) -> None:
         self.enabled = _should_be_used()
         self._has_basedir = has_basedir
-        self._blocked_hosts: Set[str] = set()
-        self._config_blocked_hosts: Set[str] = set()
+        self._blocked_hosts: set[str] = set()
+        self._config_blocked_hosts: set[str] = set()
 
         self._local_hosts_file = str(data_dir / "blocked-hosts")
         self.update_files()
@@ -139,7 +139,7 @@ class HostBlocker:
             )
             info.block()
 
-    def _read_hosts_line(self, raw_line: bytes) -> Set[str]:
+    def _read_hosts_line(self, raw_line: bytes) -> set[str]:
         """Read hosts from the given line.
 
         Args:
@@ -175,7 +175,7 @@ class HostBlocker:
 
         return filtered_hosts
 
-    def _read_hosts_file(self, filename: str, target: Set[str]) -> bool:
+    def _read_hosts_file(self, filename: str, target: set[str]) -> bool:
         """Read hosts from the given filename.
 
         Args:

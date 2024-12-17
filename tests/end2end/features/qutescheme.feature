@@ -11,7 +11,9 @@ Feature: Special qute:// pages
         And I run :help
         And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
+            """
             - qute://help/index.html (active)
+            """
 
     Scenario: :help with invalid topic
         When I run :help foo
@@ -23,7 +25,9 @@ Feature: Special qute:// pages
         And I run :help :back
         And I wait until qute://help/commands.html#back is loaded
         Then the following tabs should be open:
+            """
             - qute://help/commands.html#back (active)
+            """
 
     Scenario: :help with invalid command
         When I run :help :foo
@@ -35,7 +39,9 @@ Feature: Special qute:// pages
         And I run :help editor.command
         And I wait until qute://help/settings.html#editor.command is loaded
         Then the following tabs should be open:
+            """
             - qute://help/settings.html#editor.command (active)
+            """
 
     Scenario: :help with -t
         When the documentation is up to date
@@ -43,8 +49,10 @@ Feature: Special qute:// pages
         And I run :help -t
         And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - qute://help/index.html (active)
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/2513
     Scenario: Opening link with qute:help
@@ -96,15 +104,19 @@ Feature: Special qute:// pages
         And I run :history
         And I wait until qute://history/ is loaded
         Then the following tabs should be open:
+            """
             - qute://history/ (active)
+            """
 
     Scenario: :history with -t
         When I run :tab-only
         And I run :history -t
         And I wait until qute://history/ is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - qute://history/ (active)
+            """
 
     # qute://settings
 
@@ -190,7 +202,7 @@ Feature: Special qute:// pages
         And I set downloads.location.prompt to true
         And I open data/misc/test.pdf without waiting
         And I wait until PDF.js is ready
-        And I run :jseval document.getElementById("download").click()
+        And I run :jseval (document.getElementById("downloadButton") || document.getElementById("download")).click()
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         And I run :mode-leave
         Then no crash should happen

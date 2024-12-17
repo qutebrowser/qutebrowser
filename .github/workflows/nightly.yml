@@ -14,30 +14,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
-            toxenv: build-release-qt5
-            name: qt5-macos
-          - os: windows-2019
-            toxenv: build-release-qt5
-            name: qt5-windows
-          - os: macos-11
-            args: --debug
-            toxenv: build-release-qt5
-            name: qt5-macos-debug
-          - os: windows-2019
-            args: --debug
-            toxenv: build-release-qt5
-            name: qt5-windows-debug
-          - os: macos-11
+          - os: macos-13
             toxenv: build-release
-            name: macos
+            name: macos-intel
+          - os: macos-14
+            toxenv: build-release
+            name: macos-apple-silicon
           - os: windows-2019
             toxenv: build-release
             name: windows
-          - os: macos-11
+          - os: macos-13
             args: --debug
             toxenv: build-release
-            name: macos-debug
+            name: macos-debug-intel
+          - os: macos-14
+            toxenv: build-release
+            name: macos-debug-apple-silicon
           - os: windows-2019
             args: --debug
             toxenv: build-release
@@ -51,7 +43,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.13"
       - name: Install dependencies
         run: |
             python -m pip install -U pip
@@ -83,7 +75,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [pyinstaller]
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:

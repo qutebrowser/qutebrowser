@@ -10,12 +10,13 @@ import faulthandler
 import logging
 import sys
 import traceback
-from typing import Iterator, Optional
+from typing import Optional
+from collections.abc import Iterator
 
 from qutebrowser.qt import core as qtcore
 from qutebrowser.utils import log
 
-_args = None
+_args: Optional[argparse.Namespace] = None
 
 
 def init(args: argparse.Namespace) -> None:

@@ -10,7 +10,8 @@ import weakref
 import datetime
 import dataclasses
 from typing import (
-    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+    Any, Optional)
+from collections.abc import Mapping, MutableMapping, MutableSequence
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
@@ -58,10 +59,10 @@ class TabDeque:
         size = config.val.tabs.focus_stack_size
         if size < 0:
             size = None
-        self._stack: Deque[weakref.ReferenceType[browsertab.AbstractTab]] = (
+        self._stack: collections.deque[weakref.ReferenceType[browsertab.AbstractTab]] = (
             collections.deque(maxlen=size))
         # Items that have been removed from the primary stack.
-        self._stack_deleted: List[weakref.ReferenceType[browsertab.AbstractTab]] = []
+        self._stack_deleted: list[weakref.ReferenceType[browsertab.AbstractTab]] = []
         self._ignore_next = False
         self._keep_deleted_next = False
 
@@ -235,7 +236,7 @@ class TabbedBrowser(QWidget):
         self.search_text = None
         self.search_options: Mapping[str, Any] = {}
         self._local_marks: MutableMapping[QUrl, MutableMapping[str, QPoint]] = {}
-        self._global_marks: MutableMapping[str, Tuple[QPoint, QUrl]] = {}
+        self._global_marks: MutableMapping[str, tuple[QPoint, QUrl]] = {}
         self.default_window_icon = self._window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()
@@ -1011,16 +1012,11 @@ class TabbedBrowser(QWidget):
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
         versions = version.qtwebengine_versions()
-        is_qtbug_91715 = (
+        if (
             status == browsertab.TerminationStatus.unknown and
             code == 1002 and
-            versions.webengine == utils.VersionNumber(5, 15, 3))
-
-        def show_error_page(html):
-            tab.set_html(html)
-            log.webview.error(msg)
-
-        if is_qtbug_91715:
+            versions.webengine == utils.VersionNumber(5, 15, 3)
+        ):
             log.webview.error(msg)
             log.webview.error('')
             log.webview.error(
@@ -1034,12 +1030,17 @@ class TabbedBrowser(QWidget):
                 'A proper fix is likely available in QtWebEngine soon (which is why '
                 'the workaround is disabled by default).')
             log.webview.error('')
-        else:
-            url_string = tab.url(requested=True).toDisplayString()
-            error_page = jinja.render(
-                'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg)
-            QTimer.singleShot(100, lambda: show_error_page(error_page))
+            return
+
+        def show_error_page(html):
+            tab.set_html(html)
+            log.webview.error(msg)
+
+        url_string = tab.url(requested=True).toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading {}".format(url_string),
+            url=url_string, error=msg)
+        QTimer.singleShot(100, lambda: show_error_page(error_page))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

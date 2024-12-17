@@ -9,7 +9,7 @@ import logging
 import signal
 
 import pytest
-from qutebrowser.qt.core import QProcess, QUrl
+from qutebrowser.qt.core import QProcess, QUrl, Qt
 
 from qutebrowser.misc import guiprocess
 from qutebrowser.utils import usertypes, utils, version
@@ -534,6 +534,7 @@ def test_str(proc, py_proc):
 
 
 def test_cleanup(proc, py_proc, qtbot):
+    proc._cleanup_timer.setTimerType(Qt.TimerType.CoarseTimer)
     proc._cleanup_timer.setInterval(100)
 
     with qtbot.wait_signal(proc._cleanup_timer.timeout):

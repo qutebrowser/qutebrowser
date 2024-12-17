@@ -4,7 +4,8 @@
 
 """QtWebKit specific part of the web element API."""
 
-from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
+from typing import cast, TYPE_CHECKING, Optional
+from collections.abc import Iterator
 
 from qutebrowser.qt.core import QRect, Qt
 # pylint: disable=no-name-in-module
@@ -90,7 +91,7 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def classes(self) -> Set[str]:
+    def classes(self) -> set[str]:
         self._check_vanished()
         return set(self._elem.classes())
 
@@ -364,7 +365,7 @@ class WebKitElement(webelem.AbstractWebElement):
         super()._click_fake_event(click_target)
 
 
-def get_child_frames(startframe: QWebFrame) -> List[QWebFrame]:
+def get_child_frames(startframe: QWebFrame) -> list[QWebFrame]:
     """Get all children recursively of a given QWebFrame.
 
     Loosely based on https://blog.nextgenetics.net/?e=64
@@ -378,7 +379,7 @@ def get_child_frames(startframe: QWebFrame) -> List[QWebFrame]:
     results = []
     frames = [startframe]
     while frames:
-        new_frames: List[QWebFrame] = []
+        new_frames: list[QWebFrame] = []
         for frame in frames:
             results.append(frame)
             new_frames += frame.childFrames()

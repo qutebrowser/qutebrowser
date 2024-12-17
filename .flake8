@@ -58,7 +58,7 @@ ignore =
     PT004,
     PT011,
     PT012
-min-version = 3.8.0
+min-version = 3.9.0
 max-complexity = 12
 per-file-ignores =
     qutebrowser/api/hook.py : N801
@@ -70,6 +70,4 @@ per-file-ignores =
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*
 copyright-min-file-size = 110
-pytest-fixture-no-parentheses = True
-pytest-mark-no-parentheses = True
 pytest-parametrize-names-type = csv

@@ -5,7 +5,7 @@
 """Module for parsing commands entered into the browser."""
 
 import dataclasses
-from typing import List, Iterator
+from collections.abc import Iterator
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects
@@ -18,8 +18,8 @@ class ParseResult:
     """The result of parsing a commandline."""
 
     cmd: command.Command
-    args: List[str]
-    cmdline: List[str]
+    args: list[str]
+    cmdline: list[str]
 
 
 class CommandParser:
@@ -107,7 +107,7 @@ class CommandParser:
         for sub in sub_texts:
             yield self.parse(sub, **kwargs)
 
-    def parse_all(self, text: str, **kwargs: bool) -> List[ParseResult]:
+    def parse_all(self, text: str, **kwargs: bool) -> list[ParseResult]:
         """Wrapper over _parse_all_gen."""
         return list(self._parse_all_gen(text, **kwargs))
 
@@ -161,7 +161,7 @@ class CommandParser:
             cmdstr = matches[0]
         return cmdstr
 
-    def _split_args(self, cmd: command.Command, argstr: str, keep: bool) -> List[str]:
+    def _split_args(self, cmd: command.Command, argstr: str, keep: bool) -> list[str]:
         """Split the arguments from an arg string.
 
         Args:

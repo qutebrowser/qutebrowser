@@ -4,7 +4,7 @@
 
 """Implementation of a basic config cache."""
 
-from typing import Any, Dict
+from typing import Any
 
 from qutebrowser.config import config
 
@@ -22,7 +22,7 @@ class ConfigCache:
     """
 
     def __init__(self) -> None:
-        self._cache: Dict[str, Any] = {}
+        self._cache: dict[str, Any] = {}
         config.instance.changed.connect(self._on_config_changed)
 
     def _on_config_changed(self, attr: str) -> None:

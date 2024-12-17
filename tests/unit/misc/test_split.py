@@ -5,7 +5,6 @@
 """Tests for qutebrowser.misc.split."""
 
 import dataclasses
-from typing import List
 
 import pytest
 
@@ -100,8 +99,8 @@ def _parse_split_test_data_str():
     class TestCase:
 
         inp: str
-        keep: List[str]
-        no_keep: List[str]
+        keep: list[str]
+        no_keep: list[str]
 
     for line in test_data_str.splitlines():
         if not line:

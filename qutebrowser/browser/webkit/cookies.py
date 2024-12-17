@@ -4,7 +4,7 @@
 
 """Handling of HTTP cookies."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from qutebrowser.qt.network import QNetworkCookie, QNetworkCookieJar
 from qutebrowser.qt.core import pyqtSignal, QDateTime

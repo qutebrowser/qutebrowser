@@ -36,8 +36,9 @@ import functools
 import operator
 import json
 import dataclasses
-from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
-                    List as ListType, Optional, Pattern, Sequence, Tuple, Union)
+from typing import Any, Optional, Union
+from re import Pattern
+from collections.abc import Iterable, Iterator, Sequence, Callable
 
 import yaml
 from qutebrowser.qt.core import QUrl, Qt
@@ -65,7 +66,7 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions = Optional[Iterable[Tuple[str, str]]]
+_Completions = Optional[Iterable[tuple[str, str]]]
 _StrUnset = Union[str, usertypes.Unset]
 _UnsetNone = Union[None, usertypes.Unset]
 _StrUnsetNone = Union[str, _UnsetNone]
@@ -102,16 +103,16 @@ class ValidValues:
             self,
             *values: Union[
                 str,
-                DictType[str, Optional[str]],
-                Tuple[str, Optional[str]],
+                dict[str, Optional[str]],
+                tuple[str, Optional[str]],
             ],
             generate_docs: bool = True,
             others_permitted: bool = False
     ) -> None:
         if not values:
             raise ValueError("ValidValues with no values makes no sense!")
-        self.descriptions: DictType[str, str] = {}
-        self.values: ListType[str] = []
+        self.descriptions: dict[str, str] = {}
+        self.values: list[str] = []
         self.generate_docs = generate_docs
         self.others_permitted = others_permitted
         for value in values:
@@ -146,6 +147,17 @@ class ValidValues:
                 self.descriptions == other.descriptions)
 
 
+class AsBool:
+
+    """A non-Bool type that can be converted to bool."""
+
+    def to_bool(self, value: Any) -> bool:
+        raise NotImplementedError
+
+    def from_bool(self, value: bool) -> Any:
+        raise NotImplementedError
+
+
 class BaseType:
 
     """A type used for a setting value.
@@ -178,7 +190,7 @@ class BaseType:
 
     def _basic_py_validation(
             self, value: Any,
-            pytype: Union[type, Tuple[type, ...]]) -> None:
+            pytype: Union[type, tuple[type, ...]]) -> None:
         """Do some basic validation for Python values (emptyness, type).
 
         Arguments:
@@ -344,7 +356,7 @@ class MappingType(BaseType):
         MAPPING: A mapping from config values to (translated_value, docs) tuples.
     """
 
-    MAPPING: DictType[str, Tuple[Any, Optional[str]]] = {}
+    MAPPING: dict[str, tuple[Any, Optional[str]]] = {}
 
     def __init__(
             self, *,
@@ -496,7 +508,7 @@ class List(BaseType):
     def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
 
-    def from_str(self, value: str) -> Optional[ListType]:
+    def from_str(self, value: str) -> Optional[list]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -511,15 +523,15 @@ class List(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
-    def from_obj(self, value: Optional[ListType]) -> ListType:
+    def from_obj(self, value: Optional[list]) -> list:
         if value is None:
             return []
         return [self.valtype.from_obj(v) for v in value]
 
     def to_py(
             self,
-            value: Union[ListType, usertypes.Unset]
-    ) -> Union[ListType, usertypes.Unset]:
+            value: Union[list, usertypes.Unset]
+    ) -> Union[list, usertypes.Unset]:
         self._basic_py_validation(value, list)
         if isinstance(value, usertypes.Unset):
             return value
@@ -534,13 +546,13 @@ class List(BaseType):
                                             "be set!".format(self.length))
         return [self.valtype.to_py(v) for v in value]
 
-    def to_str(self, value: ListType) -> str:
+    def to_str(self, value: list) -> str:
         if not value:
             # An empty list is treated just like None -> empty string
             return ''
         return json.dumps(value)
 
-    def to_doc(self, value: ListType, indent: int = 0) -> str:
+    def to_doc(self, value: list, indent: int = 0) -> str:
         if not value:
             return 'empty'
 
@@ -585,7 +597,7 @@ class ListOrValue(BaseType):
         self.listtype = List(valtype=valtype, none_ok=none_ok, **kwargs)
         self.valtype = valtype
 
-    def _val_and_type(self, value: Any) -> Tuple[Any, BaseType]:
+    def _val_and_type(self, value: Any) -> tuple[Any, BaseType]:
         """Get the value and type to use for to_str/to_doc/from_str."""
         if isinstance(value, list):
             if len(value) == 1:
@@ -666,15 +678,15 @@ class FlagList(List):
         )
         self.valtype.valid_values = valid_values
 
-    def _check_duplicates(self, values: ListType) -> None:
+    def _check_duplicates(self, values: list) -> None:
         if len(set(values)) != len(values):
             raise configexc.ValidationError(
                 values, "List contains duplicate values!")
 
     def to_py(
             self,
-            value: Union[usertypes.Unset, ListType],
-    ) -> Union[usertypes.Unset, ListType]:
+            value: Union[usertypes.Unset, list],
+    ) -> Union[usertypes.Unset, list]:
         vals = super().to_py(value)
         if not isinstance(vals, usertypes.Unset):
             self._check_duplicates(vals)
@@ -1110,7 +1122,7 @@ class QtColor(BaseType):
             kind = value[:openparen]
             vals = value[openparen+1:-1].split(',')
 
-            converters: DictType[str, Callable[..., QColor]] = {
+            converters: dict[str, Callable[..., QColor]] = {
                 'rgba': QColor.fromRgb,
                 'rgb': QColor.fromRgb,
                 'hsva': QColor.fromHsv,
@@ -1200,7 +1212,7 @@ class FontBase(BaseType):
         (?P<family>.+)  # mandatory font family""", re.VERBOSE)
 
     @classmethod
-    def set_defaults(cls, default_family: ListType[str], default_size: str) -> None:
+    def set_defaults(cls, default_family: list[str], default_size: str) -> None:
         """Make sure default_family/default_size are available.
 
         If the given family value (fonts.default_family in the config) is
@@ -1373,7 +1385,7 @@ class Dict(BaseType):
         self.fixed_keys = fixed_keys
         self.required_keys = required_keys
 
-    def _validate_keys(self, value: DictType) -> None:
+    def _validate_keys(self, value: dict) -> None:
         if (self.fixed_keys is not None and not
                 set(value.keys()).issubset(self.fixed_keys)):
             raise configexc.ValidationError(
@@ -1384,7 +1396,7 @@ class Dict(BaseType):
             raise configexc.ValidationError(
                 value, "Required keys {}".format(self.required_keys))
 
-    def from_str(self, value: str) -> Optional[DictType]:
+    def from_str(self, value: str) -> Optional[dict]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -1399,14 +1411,14 @@ class Dict(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
-    def from_obj(self, value: Optional[DictType]) -> DictType:
+    def from_obj(self, value: Optional[dict]) -> dict:
         if value is None:
             return {}
 
         return {self.keytype.from_obj(key): self.valtype.from_obj(val)
                 for key, val in value.items()}
 
-    def _fill_fixed_keys(self, value: DictType) -> DictType:
+    def _fill_fixed_keys(self, value: dict) -> dict:
         """Fill missing fixed keys with a None-value."""
         if self.fixed_keys is None:
             return value
@@ -1417,8 +1429,8 @@ class Dict(BaseType):
 
     def to_py(
             self,
-            value: Union[DictType, _UnsetNone]
-    ) -> Union[DictType, usertypes.Unset]:
+            value: Union[dict, _UnsetNone]
+    ) -> Union[dict, usertypes.Unset]:
         self._basic_py_validation(value, dict)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1434,13 +1446,13 @@ class Dict(BaseType):
              for key, val in value.items()}
         return self._fill_fixed_keys(d)
 
-    def to_str(self, value: DictType) -> str:
+    def to_str(self, value: dict) -> str:
         if not value:
             # An empty Dict is treated just like None -> empty string
             return ''
         return json.dumps(value, sort_keys=True)
 
-    def to_doc(self, value: DictType, indent: int = 0) -> str:
+    def to_doc(self, value: dict, indent: int = 0) -> str:
         if not value:
             return 'empty'
         lines = ['\n']
@@ -1558,7 +1570,7 @@ class FormatString(BaseType):
         _validate_encoding(self.encoding, value)
 
         try:
-            value.format(**{k: '' for k in self.fields})
+            value.format(**dict.fromkeys(self.fields, ""))
         except (KeyError, IndexError, AttributeError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))
@@ -1594,8 +1606,8 @@ class ShellCommand(List):
 
     def to_py(
             self,
-            value: Union[ListType, usertypes.Unset],
-    ) -> Union[ListType, usertypes.Unset]:
+            value: Union[list, usertypes.Unset],
+    ) -> Union[list, usertypes.Unset]:
         py_value = super().to_py(value)
         if isinstance(py_value, usertypes.Unset):
             return py_value
@@ -1752,7 +1764,7 @@ class Padding(Dict):
 
     def to_py(  # type: ignore[override]
             self,
-            value: Union[DictType, _UnsetNone],
+            value: Union[dict, _UnsetNone],
     ) -> Union[usertypes.Unset, PaddingValues]:
         d = super().to_py(value)
         if isinstance(d, usertypes.Unset):
@@ -1905,8 +1917,8 @@ class ConfirmQuit(FlagList):
 
     def to_py(
             self,
-            value: Union[usertypes.Unset, ListType],
-    ) -> Union[ListType, usertypes.Unset]:
+            value: Union[usertypes.Unset, list],
+    ) -> Union[list, usertypes.Unset]:
         values = super().to_py(value)
         if isinstance(values, usertypes.Unset):
             return values
@@ -1984,8 +1996,9 @@ class UrlPattern(BaseType):
 
     """A match pattern for a URL.
 
-    See https://developer.chrome.com/apps/match_patterns for the allowed
-    syntax.
+    See
+    https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
+    for the allowed syntax.
     """
 
     def to_py(
@@ -2015,3 +2028,14 @@ class StatusbarWidget(String):
         if value.startswith("text:") or value.startswith("clock:"):
             return
         super()._validate_valid_values(value)
+
+
+class JSClipboardPermission(String, AsBool):
+
+    """Permission for page JS to access the system clipboard."""
+
+    def to_bool(self, value: str) -> bool:
+        return value == "access-paste"
+
+    def from_bool(self, value: bool) -> str:
+        return "access-paste" if value else "none"

@@ -41,7 +41,7 @@ Feature: Yanking and pasting.
 
     Scenario: Yanking inline to clipboard
         When I open data/title.html
-        And I run :yank inline '[[{url}][qutebrowser</3org]]'
+        And I run :yank inline '[[{url:yank}][qutebrowser</3org]]'
         Then the message "Yanked inline block to clipboard: [[http://localhost:(port)/data/title.html][qutebrowser</3org]]" should be shown
         And the clipboard should contain "[[http://localhost:(port)/data/title.html][qutebrowser</3org]]"
 
@@ -63,23 +63,23 @@ Feature: Yanking and pasting.
         Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
 
-	Scenario: Yanking URL that has = and & in its query string
-		When I open data/title.html?a=b&c=d
-		And I run :yank
-		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b&c=d" should be shown
-		And the clipboard should contain "http://localhost:(port)/data/title.html?a=b&c=d"
+    Scenario: Yanking URL that has = and & in its query string
+        When I open data/title.html?a=b&c=d
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b&c=d" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title.html?a=b&c=d"
 
-	Scenario: Yanking URL that has = and ; in its query string
-		When I open data/title.html?a=b;c=d
-		And I run :yank
-		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b;c=d" should be shown
-		And the clipboard should contain "http://localhost:(port)/data/title.html?a=b;c=d"
+    Scenario: Yanking URL that has = and ; in its query string
+        When I open data/title.html?a=b;c=d
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b;c=d" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title.html?a=b;c=d"
 
-	Scenario: Yanking URL with both & and ; in its query string
-		When I open data/title.html?a;b&c=d
-		And I run :yank
-		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a;b&c=d" should be shown
-		And the clipboard should contain "http://localhost:(port)/data/title.html?a;b&c=d"
+    Scenario: Yanking URL with both & and ; in its query string
+        When I open data/title.html?a;b&c=d
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a;b&c=d" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title.html?a;b&c=d"
 
     Scenario: Yanking with --quiet
         When I open data/title.html
@@ -125,22 +125,27 @@ Feature: Yanking and pasting.
         And I run :open -t {clipboard}
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/hello.txt (active)
+            """
 
     Scenario: Pasting in a background tab
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :open -b {clipboard}
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank (active)
             - data/hello.txt
+            """
 
     Scenario: Pasting in a new window
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :open -w {clipboard}
         And I wait until data/hello.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -152,6 +157,7 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello.txt
+            """
 
     Scenario: Pasting an invalid URL
         When I set url.auto_search to never
@@ -163,72 +169,91 @@ Feature: Yanking and pasting.
     @qtwebengine_flaky
     Scenario: Pasting multiple urls in a new tab
         When I put the following lines into the clipboard:
+            """
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
+            """
         And I run :open -t {clipboard}
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         And I wait until data/hello3.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/hello.txt (active)
             - data/hello2.txt
             - data/hello3.txt
+            """
 
     Scenario: Pasting multiline text
         When I set url.auto_search to naive
         And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/hello.txt?q={}"}
         And I put the following lines into the clipboard:
+            """
             this url:
             http://qutebrowser.org
             should not open
+            """
         And I run :open -t {clipboard}
         And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
+            """
 
     Scenario: Pasting multiline whose first line looks like a URI
         When I set url.auto_search to naive
         And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/hello.txt?q={}"}
         And I put the following lines into the clipboard:
+            """
             text:
             should open
             as search
+            """
         And I run :open -t {clipboard}
         And I wait until data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
+            """
 
     # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941726
     @qtwebengine_flaky
     Scenario: Pasting multiple urls in a background tab
         When I put the following lines into the clipboard:
+            """
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
+            """
         And I run :open -b {clipboard}
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         And I wait until data/hello3.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank (active)
             - data/hello.txt
             - data/hello2.txt
             - data/hello3.txt
+            """
 
     Scenario: Pasting multiple urls in new windows
         When I put the following lines into the clipboard:
+            """
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
+            """
         And I run :open -w {clipboard}
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         And I wait until data/hello3.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -250,14 +275,15 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello3.txt
+            """
 
     Scenario: Pasting multiple urls with an empty one
-        And I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        When I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
         And I run :open -t {clipboard}
         Then no crash should happen
 
     Scenario: Pasting multiple urls with an almost empty one
-        And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        When I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
         And I run :open -t {clipboard}
         Then no crash should happen
 

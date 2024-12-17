@@ -5,7 +5,7 @@
 import pathlib
 import logging
 import csv
-from typing import Iterable, Tuple
+from collections.abc import Iterable
 
 from qutebrowser.qt.core import QUrl
 
@@ -165,7 +165,7 @@ def assert_only_one_success_message(messages):
 
 def assert_urls(
     ad_blocker: braveadblock.BraveAdBlocker,
-    urls: Iterable[Tuple[str, str, ResourceType]],
+    urls: Iterable[tuple[str, str, ResourceType]],
     should_be_blocked: bool,
 ) -> None:
     for (str_url, source_str_url, request_type) in urls:

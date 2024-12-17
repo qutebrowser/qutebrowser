@@ -11,11 +11,18 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union, Iterable, cast
+from typing import Optional, Union, cast, TYPE_CHECKING
+from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt.core import QUrl, QUrlQuery
 from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
+# WORKAROUND for
+# https://www.riverbankcomputing.com/pipermail/pyqt/2024-December/046096.html
+if TYPE_CHECKING and machinery.IS_QT6:
+    from qutebrowser.qt.core import QChar
+else:
+    QChar = str
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
@@ -111,7 +118,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
+def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -464,7 +471,7 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
         return fallback
 
 
-HostTupleType = Tuple[str, str, int]
+HostTupleType = tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:
@@ -553,8 +560,8 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     if suffix1 != suffix2:
         return False
 
-    domain1 = url1.host()[:-len(suffix1)].split('.')[-1]
-    domain2 = url2.host()[:-len(suffix2)].split('.')[-1]
+    domain1 = url1.host().removesuffix(suffix1).split('.')[-1]
+    domain2 = url2.host().removesuffix(suffix2).split('.')[-1]
     return domain1 == domain2
 
 
@@ -668,7 +675,7 @@ def parse_javascript_url(url: QUrl) -> str:
     urlstr = url.toString(FormatOption.ENCODED)
     urlstr = urllib.parse.unquote(urlstr)
 
-    code = urlstr[len('javascript:'):]
+    code = urlstr.removeprefix('javascript:')
     if not code:
         raise Error("Resulted in empty JavaScript code")
 
@@ -682,3 +689,25 @@ def widened_hostnames(hostname: str) -> Iterable[str]:
     while hostname:
         yield hostname
         hostname = hostname.partition(".")[-1]
+
+
+def get_url_yank_text(url: QUrl, *, pretty: bool) -> str:
+    """Get the text that should be yanked for the given URL."""
+    flags = FormatOption.REMOVE_PASSWORD
+    if url.scheme() == 'mailto':
+        flags |= FormatOption.REMOVE_SCHEME
+    if pretty:
+        flags |= FormatOption.DECODE_RESERVED
+    else:
+        flags |= FormatOption.ENCODED
+
+    url_query = QUrlQuery()
+    url_query_str = url.query()
+    if '&' not in url_query_str and ';' in url_query_str:
+        url_query.setQueryDelimiters(cast(QChar, '='), cast(QChar, ';'))
+    url_query.setQuery(url_query_str)
+    for key in dict(url_query.queryItems()):
+        if key in config.val.url.yank_ignored_parameters:
+            url_query.removeQueryItem(key)
+    url.setQuery(url_query)
+    return url.toString(flags)

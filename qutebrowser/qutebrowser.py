@@ -171,12 +171,13 @@ def debug_flag_error(flag):
         avoid-chromium-init: Enable `--version` without initializing Chromium.
         werror: Turn Python warnings into errors.
         test-notification-service: Use the testing libnotify service.
+        caret: Enable debug logging for caret.js.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
                    'log-scroll-pos', 'log-sensitive-keys', 'stack', 'chromium',
                    'wait-renderer-process', 'avoid-chromium-init', 'werror',
-                   'test-notification-service', 'log-qt-events']
+                   'test-notification-service', 'log-qt-events', 'caret']
 
     if flag in valid_flags:
         return flag

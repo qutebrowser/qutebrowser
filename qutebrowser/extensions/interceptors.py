@@ -6,7 +6,8 @@
 
 import enum
 import dataclasses
-from typing import Callable, List, Optional
+from typing import Optional
+from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl
 
@@ -39,6 +40,7 @@ class ResourceType(enum.Enum):
     # 18 is "preload", deprecated in Chromium
     preload_main_frame = 19
     preload_sub_frame = 20
+    json = 21
     websocket = 254
     unknown = 255
 
@@ -89,7 +91,7 @@ class Request:
 InterceptorType = Callable[[Request], None]
 
 
-_interceptors: List[InterceptorType] = []
+_interceptors: list[InterceptorType] = []
 
 
 def register(interceptor: InterceptorType) -> None:

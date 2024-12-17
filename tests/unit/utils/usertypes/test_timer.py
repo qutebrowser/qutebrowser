@@ -4,6 +4,9 @@
 
 """Tests for Timer."""
 
+import logging
+import fnmatch
+
 import pytest
 from qutebrowser.qt.core import QObject
 
@@ -65,3 +68,63 @@ def test_timeout_set_interval(qtbot):
     with qtbot.wait_signal(t.timeout, timeout=3000):
         t.setInterval(200)
         t.start()
+
+
+@pytest.mark.parametrize(
+    "elapsed_ms, expected",
+    [
+        (0, False),
+        (1, False),
+        (600, True),
+        (999, True),
+        (1000, True),
+    ],
+)
+def test_early_timeout_check(qtbot, mocker, elapsed_ms, expected):
+    time_mock = mocker.patch("time.monotonic", autospec=True)
+
+    t = usertypes.Timer()
+    t.setInterval(1000)  # anything long enough to not actually fire
+    time_mock.return_value = 0  # assigned to _start_time in start()
+    t.start()
+    time_mock.return_value = elapsed_ms / 1000  # used for `elapsed`
+
+    assert t.check_timeout_validity() is expected
+
+    t.stop()
+
+
+def test_early_timeout_handler(qtbot, mocker, caplog):
+    time_mock = mocker.patch("time.monotonic", autospec=True)
+
+    t = usertypes.Timer(name="t")
+    t.setInterval(3)
+    t.setSingleShot(True)
+    time_mock.return_value = 0
+    with caplog.at_level(logging.WARNING):
+        with qtbot.wait_signal(t.timeout, timeout=10):
+            t.start()
+            time_mock.return_value = 1 / 1000
+
+        assert len(caplog.messages) == 1
+        assert fnmatch.fnmatch(
+            caplog.messages[-1],
+            "Timer t (id *) triggered too early: interval 3 but only 0.001s passed",
+        )
+
+
+def test_early_manual_fire(qtbot, mocker, caplog):
+    """Same as above but start() never gets called."""
+    time_mock = mocker.patch("time.monotonic", autospec=True)
+
+    t = usertypes.Timer(name="t")
+    t.setInterval(3)
+    t.setSingleShot(True)
+    time_mock.return_value = 0
+    with caplog.at_level(logging.WARNING):
+        with qtbot.wait_signal(t.timeout, timeout=10):
+            t.timeout.emit()
+            time_mock.return_value = 1 / 1000
+
+        assert len(caplog.messages) == 0
+        assert t.check_timeout_validity()

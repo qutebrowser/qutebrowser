@@ -73,8 +73,8 @@ PERFECT_FILES = [
      'qutebrowser/browser/history.py'),
     ('tests/unit/browser/test_pdfjs.py',
      'qutebrowser/browser/pdfjs.py'),
-    ('tests/unit/browser/webkit/http/test_http.py',
-     'qutebrowser/browser/webkit/http.py'),
+    ('tests/unit/browser/webkit/http/test_httpheaders.py',
+     'qutebrowser/browser/webkit/httpheaders.py'),
     # ('tests/unit/browser/webkit/test_webkitelem.py',
     #  'qutebrowser/browser/webkit/webkitelem.py'),
     # ('tests/unit/browser/webkit/test_webkitelem.py',
@@ -242,7 +242,7 @@ def _get_filename(filename):
             os.path.join(os.path.dirname(__file__), '..', '..'))
         common_path = os.path.commonprefix([basedir, filename])
         if common_path:
-            filename = filename[len(common_path):].lstrip('/')
+            filename = filename.removeprefix(common_path).lstrip('/')
 
     return filename
 

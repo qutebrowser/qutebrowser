@@ -3,6 +3,7 @@ Feature: Miscellaneous utility commands exposed to the user.
     Background:
         Given I open data/scroll/simple.html
         And I run :tab-only
+        And I run :window-only
 
     ## :cmd-later
 
@@ -91,7 +92,6 @@ Feature: Miscellaneous utility commands exposed to the user.
 
     ## :debug-cache-stats
 
-    @python>=3.9.0
     Scenario: :debug-cache-stats
         When I run :debug-cache-stats
         Then "is_valid_prefix: CacheInfo(*)" should be logged
@@ -143,8 +143,10 @@ Feature: Miscellaneous utility commands exposed to the user.
         And I run :hint-follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
+            """
             - data/hints/link_blank.html
             - data/hello.txt (active)
+            """
 
     ## :debug-log-capacity
 

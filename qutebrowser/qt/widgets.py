@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # pylint: disable=import-error,wildcard-import,unused-wildcard-import
 
 """Wrapped Qt imports for Qt Widgets.
@@ -26,4 +30,5 @@ else:
     raise machinery.UnknownWrapper()
 
 if machinery.IS_QT5:
+    # pylint: disable=undefined-variable
     del QFileSystemModel  # moved to QtGui in Qt 6
