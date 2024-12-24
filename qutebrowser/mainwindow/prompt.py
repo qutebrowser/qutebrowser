@@ -474,7 +474,7 @@ class PromptContainer(QWidget):
             )
         # XXX to avoid current cyclic import
         from qutebrowser.browser import shared
-        location = shared.choose_file(shared.FileSelectionMode.download)
+        location = shared.choose_file(shared.FileSelectionMode.folder)
         if not location:
             message.info("No path given.")
             return
