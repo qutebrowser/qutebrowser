@@ -574,7 +574,7 @@ def _validated_selected_files(
         if not os.path.exists(selected_file):
             message.warning(f"Ignoring non-existent file '{selected_file}'")
             continue
-        if qb_mode == FileSelectionMode.folder or qb_mode == FilesSelectionMode.download:
+        if qb_mode == FileSelectionMode.folder or qb_mode == FileSelectionMode.download:
             if not os.path.isdir(selected_file):
                 message.warning(
                     f"Expected folder but got file, ignoring '{selected_file}'"
