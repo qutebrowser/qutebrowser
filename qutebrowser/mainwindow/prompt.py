@@ -464,7 +464,7 @@ class PromptContainer(QWidget):
         """Choose a location using a configured external picker.
 
         This spawns the external fileselector configured via
-        `fileselect.download.command`.
+        `fileselect.folder.command`.
         """
         assert self._prompt is not None
         if not isinstance(self._prompt, FilenamePrompt):
@@ -474,13 +474,13 @@ class PromptContainer(QWidget):
             )
         # XXX to avoid current cyclic import
         from qutebrowser.browser import shared
-        location = shared.choose_file(shared.FileSelectionMode.folder)
-        if not location:
-            message.info("No path given.")
+        folders = shared.choose_file(shared.FileSelectionMode.folder)
+        if not folders:
+            message.info("No folder chosen.")
             return
-        # choose_file already checks that this is max one location
-        assert len(location) == 1
-        self.prompt_accept(location[0])
+        # choose_file already checks that this is max one folder
+        assert len(folders) == 1
+        self.prompt_accept(folders[0])
 
 
 class LineEdit(QLineEdit):
