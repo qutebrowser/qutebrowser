@@ -474,7 +474,7 @@ class PromptContainer(QWidget):
             )
         # XXX to avoid current cyclic import
         from qutebrowser.browser import shared
-        folders = shared.choose_file(shared.FileSelectionMode.download)
+        folders = shared.choose_file(shared.FileSelectionMode.folder)
         if not folders:
             message.info("No folder chosen.")
             return
