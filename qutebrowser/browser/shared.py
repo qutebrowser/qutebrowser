@@ -581,7 +581,8 @@ def _validated_selected_files(
                 continue
         else:
             # pylint: disable=else-if-used
-            if qb_mode != FileSelectionMode.download and not os.path.isfile(selected_file):
+            # if qb_mode != FileSelectionMode.download and not os.path.isfile(selected_file):
+            if not os.path.isfile(selected_file:
                 message.warning(
                     f"Expected file but got folder, ignoring '{selected_file}'"
                 )
