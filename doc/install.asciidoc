@@ -492,3 +492,29 @@ newest dependencies.
 Alternatively, you can update your local copy of the code (e.g. by pulling the
 git repo, or extracting a new version) and the virtualenv should automatically
 use the updated versions. However, dependencies won't be updated that way.
+
+Ad blocking
+------------
+Blocking ads in qutebrowser can be done in two ways;  host-based or rules-based blocking.
+Host-based blocking works by preventing a list of urls from loading
+and can be turned on with a single option
+(see documentation of settings for `content.blocking`).
+
+More advanced rule based blocking uses Brave's adblocking library via 
+ a python library `adblock`, which is an optional dependency of
+qutebrowser.
+
+Some linux distributions ship this library in official repositories,
+but in general you can only get it by installing
+a library `adblock` via pip, e.g. run:
+
+`pip3 install adblock`
+
+By default, this library is used if found and
+the host-based blocking servers as a fallback.
+
+If not, make sure blocking is on by having
+`content.blocking.enabled` set to `true` and
+settings `content.blocking.method` set to `auto`,
+see documentation for other options.
+
