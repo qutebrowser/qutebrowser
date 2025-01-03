@@ -122,6 +122,17 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          not config.webengine and ssl.OPENSSL_VERSION_INFO[0] == 3,
          "Failing due to cheroot: https://github.com/cherrypy/cheroot/issues/346"),
+        (
+            "qt69_ci_xfail",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
+            pytest.mark.xfail,
+            (
+                config.webengine
+                and version.qtwebengine_versions(avoid_init=True).webengine
+                == utils.VersionNumber(6, 9)
+                and testutils.ON_CI
+            ),
+            "Fails on QtWebEngine 6.9 on CI",
+        ),
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:

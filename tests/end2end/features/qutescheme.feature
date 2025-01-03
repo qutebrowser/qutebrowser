@@ -315,8 +315,8 @@ Feature: Special qute:// pages
 
     # qute://start
 
-    # QtWebKit doesn't support formaction
-    @qtwebkit_skip
+    # QtWebKit doesn't support formaction; unknown Qt 6.9 renderer process crashes
+    @qtwebkit_skip @qt69_ci_xfail
     Scenario: Searching on qute://start
         When I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/title.html?q={}"}
         And I open qute://start
