@@ -281,6 +281,7 @@
 |<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable spatial navigation.
+|<<input.use_ime,input.use_ime>>|Use Input Method Editor for input detection.
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 |<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
@@ -3690,6 +3691,15 @@ Enable spatial navigation.
 Spatial navigation consists in the ability to navigate between focusable elements, such as hyperlinks and form controls, on a web page by using the Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element they might be trying to reach towards the right and which element they probably want.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[input.use_ime]]
+=== input.use_ime
+Use Input Method Editor for input detection.
+Try setting this to `true` if you sometimes click into input elements in a web page and qutebrowser doesn't automatically switch to input mode.
 
 Type: <<types,Bool>>
 
