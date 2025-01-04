@@ -7,6 +7,7 @@
 
 import collections
 import functools
+import weakref
 from typing import (TYPE_CHECKING, Any,
                     Optional, Union)
 from collections.abc import MutableMapping, MutableSequence, Sequence, Callable
@@ -37,6 +38,46 @@ class CommandOnlyError(Exception):
 
     """Raised when an object is requested which is used for commands only."""
 
+
+_WindowRefType = weakref.ReferenceType['mainwindow.MainWindow']
+
+
+class WindowAccessHistory():
+    """Contains an ordered list of windows, sorted by last added.
+
+    Uses weak references to avoid memory leaks.
+    """
+
+    def __init__(self) -> None:
+        self._windows: list[_WindowRefType] = []
+
+    def append(self, window: 'mainwindow.MainWindow') -> None:
+        """Append a window to the access history."""
+        self.remove(window)
+        self._windows.append(weakref.ref(window))
+
+    def remove(self, window: 'mainwindow.MainWindow') -> None:
+        """Remove a window from the access history."""
+        try:
+            self._windows.remove(weakref.ref(window))
+        except ValueError:
+            pass
+
+    def last(self) -> 'mainwindow.MainWindow':
+        """Return the last window from the access history.
+
+        Prune any None values encountered and return the last still
+        existing window from the list.
+        """
+        win = self._windows[-1]()
+        while win is None:
+            self._windows.pop()
+            win = self._windows[-1]()
+        return win
+
+
+window_visibility_history = WindowAccessHistory()
+window_focus_history = WindowAccessHistory()
 
 _IndexType = Union[str, int]
 
@@ -309,8 +350,8 @@ def dump_objects() -> Sequence[str]:
 def last_visible_window() -> 'mainwindow.MainWindow':
     """Get the last visible window, or the last focused window if none."""
     try:
-        window = get('last-visible-main-window')
-    except KeyError:
+        window = window_visibility_history.last()
+    except IndexError:
         return last_focused_window()
     if window.tabbed_browser.is_shutting_down:
         return last_focused_window()
@@ -320,8 +361,8 @@ def last_visible_window() -> 'mainwindow.MainWindow':
 def last_focused_window() -> 'mainwindow.MainWindow':
     """Get the last focused window, or the last window if none."""
     try:
-        window = get('last-focused-main-window')
-    except KeyError:
+        window = window_focus_history.last()
+    except IndexError:
         return last_opened_window()
     if window.tabbed_browser.is_shutting_down:
         return last_opened_window()
