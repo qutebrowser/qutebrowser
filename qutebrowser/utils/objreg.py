@@ -66,14 +66,16 @@ class WindowAccessHistory():
     def last(self) -> 'mainwindow.MainWindow':
         """Return the last window from the access history.
 
-        Prune any None values encountered and return the last still
-        existing window from the list.
+        Prune any None values and windows that are shutting down and
+        return the last still existing window from the list.
         """
-        win = self._windows[-1]()
-        while win is None:
-            self._windows.pop()
-            win = self._windows[-1]()
-        return win
+        for ref in reversed(self._windows):
+            win = ref()
+            if win is None or win.tabbed_browser.is_shutting_down:
+                self._windows.pop()
+            else:
+                return win
+        return None
 
 
 window_visibility_history = WindowAccessHistory()
@@ -349,24 +351,12 @@ def dump_objects() -> Sequence[str]:
 
 def last_visible_window() -> 'mainwindow.MainWindow':
     """Get the last visible window, or the last focused window if none."""
-    try:
-        window = window_visibility_history.last()
-    except IndexError:
-        return last_focused_window()
-    if window.tabbed_browser.is_shutting_down:
-        return last_focused_window()
-    return window
+    return window_visibility_history.last() or last_focused_window()
 
 
 def last_focused_window() -> 'mainwindow.MainWindow':
     """Get the last focused window, or the last window if none."""
-    try:
-        window = window_focus_history.last()
-    except IndexError:
-        return last_opened_window()
-    if window.tabbed_browser.is_shutting_down:
-        return last_opened_window()
-    return window
+    return window_focus_history.last() or last_opened_window()
 
 
 def _window_by_index(idx: int) -> 'mainwindow.MainWindow':
