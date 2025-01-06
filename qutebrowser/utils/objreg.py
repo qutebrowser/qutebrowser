@@ -63,7 +63,7 @@ class WindowAccessHistory():
         except ValueError:
             pass
 
-    def last(self) -> 'mainwindow.MainWindow':
+    def last(self) -> Optional['mainwindow.MainWindow']:
         """Return the last window from the access history.
 
         Prune any None values and windows that are shutting down and
