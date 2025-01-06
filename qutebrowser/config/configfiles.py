@@ -183,9 +183,9 @@ class StateConfig(configparser.ConfigParser):
             return
 
         old_chromium_version_str = self['general'].get('chromium_version', None)
-        if old_chromium_version_str in ['no', None]:
+        if old_chromium_version_str == "no" or old_chromium_version_str is None:
             old_qtwe_version = self['general'].get('qtwe_version', None)
-            if old_qtwe_version in ['no', None]:
+            if old_qtwe_version == "no" or old_qtwe_version is None:
                 return
 
             try:
