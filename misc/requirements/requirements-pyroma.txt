@@ -2,16 +2,16 @@
 
 build==1.2.2.post1
 certifi==2024.12.14
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
 docutils==0.21.2
 idna==3.10
 importlib_metadata==8.5.0
 packaging==24.2
-Pygments==2.18.0
+Pygments==2.19.0
 pyproject_hooks==1.2.0
 pyroma==4.2
 requests==2.32.3
 tomli==2.2.1
 trove-classifiers==2024.10.21.16
-urllib3==2.2.3
+urllib3==2.3.0
 zipp==3.21.0
