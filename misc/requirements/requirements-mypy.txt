@@ -2,18 +2,18 @@
 
 chardet==5.2.0
 diff_cover==9.2.1
-Jinja2==3.1.4
+Jinja2==3.1.5
 lxml==5.3.0
 MarkupSafe==3.0.2
-mypy==1.13.0
+mypy==1.14.1
 mypy-extensions==1.0.0
 pluggy==1.5.0
-Pygments==2.18.0
+Pygments==2.19.0
 PyQt5-stubs==5.15.6.0
 tomli==2.2.1
 types-colorama==0.4.15.20240311
 types-docutils==0.21.0.20241128
 types-Pygments==2.18.0.20240506
-types-PyYAML==6.0.12.20240917
-types-setuptools==75.6.0.20241126
+types-PyYAML==6.0.12.20241230
+types-setuptools==75.6.0.20241223
 typing_extensions==4.12.2

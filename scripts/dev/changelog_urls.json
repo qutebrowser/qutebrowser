@@ -169,5 +169,5 @@
   "blinker": "https://blinker.readthedocs.io/en/stable/#changes",
   "exceptiongroup": "https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst",
   "nh3": "https://github.com/messense/nh3/commits/main",
-  "pillow": "https://github.com/python-pillow/Pillow/blob/main/CHANGES.rst"
+  "pillow": "https://github.com/python-pillow/Pillow/releases"
 }
