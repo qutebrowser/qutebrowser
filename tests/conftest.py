@@ -239,6 +239,8 @@ def pytest_addoption(parser):
                      help="Delay (in ms) after qutebrowser process started.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
+    parser.addoption('--qute-strace-subprocs', action='store_true',
+                     default=False, help="Run strace for subprocesses.")
     parser.addoption('--qute-backend', action='store',
                      choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
