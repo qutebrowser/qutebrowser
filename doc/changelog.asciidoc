@@ -15,6 +15,17 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.4.1]]
+v3.4.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when trying to use the `DocumentPictureInPicture` JS API, such as done
+  by the new Google Workspaces Huddle feature. The API is unsupported by
+  QtWebEngine and now correctly disabled on the JS side. (#8449)
+
 [[v3.4.0]]
 v3.4.0 (2024-12-14)
 -------------------
