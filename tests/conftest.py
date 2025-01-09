@@ -123,15 +123,15 @@ def _apply_platform_markers(config, item):
          not config.webengine and ssl.OPENSSL_VERSION_INFO[0] == 3,
          "Failing due to cheroot: https://github.com/cherrypy/cheroot/issues/346"),
         (
-            "qt69_ci_xfail",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
-            pytest.mark.xfail,
+            "qt69_ci_flaky",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
+            pytest.mark.flaky,
             (
                 config.webengine
                 and version.qtwebengine_versions(avoid_init=True).webengine
                 == utils.VersionNumber(6, 9)
                 and testutils.ON_CI
             ),
-            "Fails on QtWebEngine 6.9 on CI",
+            "Flaky with QtWebEngine 6.9 on CI",
         ),
     ]
 
