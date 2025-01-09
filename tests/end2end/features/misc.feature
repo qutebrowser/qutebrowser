@@ -644,3 +644,10 @@ Feature: Various utility commands.
         And I open data/scroll/simple.html
         And I run :fake-key "<Space>"
         Then the page should be scrolled vertically
+
+    @qtwebkit_skip
+    Scenario: Using DocumentPictureInPicture API
+        When I set content.javascript.can_open_tabs_automatically to true
+        And I open data/crashers/document_picture_in_picture.html
+        And I run :click-element id toggle
+        Then the javascript message "documentPictureInPicture support disabled!" should be logged
