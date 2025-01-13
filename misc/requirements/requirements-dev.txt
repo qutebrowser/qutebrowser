@@ -31,7 +31,7 @@ packaging==24.2
 pkginfo==1.12.0
 platformdirs==4.3.6
 pycparser==2.22
-Pygments==2.19.0
+Pygments==2.19.1
 PyJWT==2.10.1
 Pympler==1.1
 pyproject_hooks==1.2.0

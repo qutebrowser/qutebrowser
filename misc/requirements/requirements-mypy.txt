@@ -8,12 +8,12 @@ MarkupSafe==3.0.2
 mypy==1.14.1
 mypy-extensions==1.0.0
 pluggy==1.5.0
-Pygments==2.19.0
+Pygments==2.19.1
 PyQt5-stubs==5.15.6.0
 tomli==2.2.1
 types-colorama==0.4.15.20240311
 types-docutils==0.21.0.20241128
-types-Pygments==2.18.0.20240506
+types-Pygments==2.19.0.20250107
 types-PyYAML==6.0.12.20241230
-types-setuptools==75.6.0.20241223
+types-setuptools==75.8.0.20250110
 typing_extensions==4.12.2
