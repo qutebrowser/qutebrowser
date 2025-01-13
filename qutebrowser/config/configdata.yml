@@ -2187,6 +2187,7 @@ statusbar.widgets:
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
         - 'text:foo': "Display the static text after the colon, `foo` in the example."
+        - page_ram_usage: "Display the RAM usage (in MB) of each web page."
         - clock: "Display current time. The format can be changed by adding a
          format string via `clock:...`. For supported format strings, see
          https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the

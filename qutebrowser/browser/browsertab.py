@@ -14,7 +14,7 @@ from collections.abc import Iterable, Sequence, Callable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint, QRect, QTimer)
+                                 QEvent, QPoint, QRect, QTimer)
 from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
 from qutebrowser.qt.widgets import QApplication, QWidget
 from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
@@ -957,8 +957,8 @@ class AbstractTabPrivate:
         tabdata.inspector.set_position(position)
 
     def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
-           win_id: int,
-           parent: QWidget = None) -> 'AbstractWebInspector':
+                        win_id: int,
+                        parent: QWidget = None) -> 'AbstractWebInspector':
         """Get a WebKitInspector/WebEngineInspector.
 
         Args:
@@ -1256,6 +1256,9 @@ class AbstractTab(QWidget):
         self.load_progress.emit(perc)
 
     def url(self, *, requested: bool = False) -> QUrl:
+        raise NotImplementedError
+
+    def pid(self) -> int:
         raise NotImplementedError
 
     def progress(self) -> int:

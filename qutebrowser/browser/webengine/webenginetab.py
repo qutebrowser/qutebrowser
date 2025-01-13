@@ -13,7 +13,7 @@ import html as html_utils
 from typing import cast, Union, Optional
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QObject, QByteArray)
+                                 QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
@@ -1355,6 +1355,10 @@ class WebEngineTab(browsertab.AbstractTab):
             return page.requestedUrl()
         else:
             return page.url()
+
+    def pid(self) -> int:
+        page: QWebEnginePage = self._widget.page()
+        return page.renderProcessPid()
 
     def dump_async(self, callback, *, plain=False):
         if plain:
