@@ -1,9 +1,12 @@
 """Page RAM usage displayed in the statusbar."""
 
 import platform
+import typing
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import throttle
 from qutebrowser.qt.core import Qt
+from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt.gui import QHideEvent, QShowEvent
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
@@ -14,12 +17,14 @@ class PageRamUsage(textbase.TextBase):
     """Show memory usage of the renderer process."""
 
     @staticmethod
-    def __mem_usage_darwin(pid: int) -> str:
-        return "not implemented"
+    def __mem_usage_darwin(_: int) -> str:
+        # pid
+        raise NotImplementedError()
 
     @staticmethod
-    def __mem_usage_windows(pid: int) -> str:
-        return "not implemented"
+    def __mem_usage_windows(_: int) -> str:
+        # pid
+        raise NotImplementedError()
 
     @staticmethod
     def __mem_usage_linux(pid: int) -> str:
@@ -43,24 +48,16 @@ class PageRamUsage(textbase.TextBase):
             # convert Vm value to bytes
             return float(parts[1]) * _scale[parts[2]]
 
-        def memory(since: float = 0.0) -> float:
-            """Return memory usage in bytes."""
-            return _mem_bytes("VmData:") - since
-
         def resident(since: float = 0.0) -> float:
             """Return resident memory usage in bytes."""
             return _mem_bytes("VmRSS:") - since
-
-        def stacksize(since: float = 0.0) -> float:
-            """Return stack size in bytes."""
-            return _mem_bytes("VmStk:") - since
 
         mem = resident() / _scale["mB"]
         return "%.2f" % mem
 
     UPDATE_DELAY = 1000  # ms
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
         super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
         self._set_text = throttle.Throttle(self.setText, 100, parent=self)
         self.timer = usertypes.Timer(self)
@@ -70,15 +67,15 @@ class PageRamUsage(textbase.TextBase):
     def _show_ram_usage(self) -> None:
         """Set text to current time, using self.format as format-string."""
         usage = "N/A"
+        if self.pid == 0:
+            return
+        dct = {
+            "Linux": PageRamUsage.__mem_usage_linux,
+            "Darwin": PageRamUsage.__mem_usage_darwin,
+            "Windows": PageRamUsage.__mem_usage_windows,
+        }
+        sys = platform.system()
         try:
-            if self.pid == 0:
-                return
-            dct = {
-                "Linux": PageRamUsage.__mem_usage_linux,
-                "Darwin": PageRamUsage.__mem_usage_darwin,
-                "Windows": PageRamUsage.__mem_usage_windows,
-            }
-            sys = platform.system()
             if sys in dct:
                 usage = dct[sys](self.pid)
             else:
@@ -93,16 +90,14 @@ class PageRamUsage(textbase.TextBase):
             self.pid = tab.pid()
             self._show_ram_usage()
         except Exception:
-            """we can catch ErrNotImplemented here because tab.pid() implemented only
-            for qtwebengine"""
             log.statusbar.exception("failed to get tab pid or show ram usage")
 
-    def hideEvent(self, event) -> None:
+    def hideEvent(self, event: QHideEvent) -> None:
         """Stop timer when widget is hidden."""
         self.timer.stop()
         super().hideEvent(event)
 
-    def showEvent(self, event) -> None:
+    def showEvent(self, event: QShowEvent) -> None:
         """Override showEvent to show time and start self.timer for updating."""
         self.timer.start(PageRamUsage.UPDATE_DELAY)
         self._show_ram_usage()
