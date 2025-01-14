@@ -1,12 +1,11 @@
 """Page RAM usage displayed in the statusbar."""
 
 import platform
-import typing
+from typing import Optional
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import throttle
 from qutebrowser.qt.core import Qt
 from qutebrowser.qt.widgets import QWidget
-from qutebrowser.qt.gui import QHideEvent, QShowEvent
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
@@ -35,7 +34,7 @@ class PageRamUsage(textbase.TextBase):
             """Private."""
             # get pseudo file  /proc/<pid>/status
             try:
-                with open(_proc_status) as t:
+                with open(_proc_status, encoding="utf-8") as t:
                     v = t.read()
             except Exception:
                 log.statusbar.exception(f"failed to open {_proc_status} file")
@@ -57,7 +56,7 @@ class PageRamUsage(textbase.TextBase):
 
     UPDATE_DELAY = 1000  # ms
 
-    def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
         self._set_text = throttle.Throttle(self.setText, 100, parent=self)
         self.timer = usertypes.Timer(self)
@@ -92,12 +91,12 @@ class PageRamUsage(textbase.TextBase):
         except Exception:
             log.statusbar.exception("failed to get tab pid or show ram usage")
 
-    def hideEvent(self, event: QHideEvent) -> None:
+    def hideEvent(self, event) -> None:
         """Stop timer when widget is hidden."""
         self.timer.stop()
         super().hideEvent(event)
 
-    def showEvent(self, event: QShowEvent) -> None:
+    def showEvent(self, event) -> None:
         """Override showEvent to show time and start self.timer for updating."""
         self.timer.start(PageRamUsage.UPDATE_DELAY)
         self._show_ram_usage()
