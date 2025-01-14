@@ -89,17 +89,18 @@ class PageRamUsage(textbase.TextBase):
     def on_tab_changed(self, tab: browsertab.AbstractTab) -> None:
         """Update page ram usage if possible."""
         try:
-            self.pid = tab.renderer_process_pid()
+            rpid = tab.renderer_process_pid()
+            self.pid = 0 if rpid is None else rpid
             self._show_ram_usage()
         except Exception:
             log.statusbar.exception("failed to get tab pid or show ram usage")
 
-    def hideEvent(self, event: QHideEvent) -> None:
+    def hideEvent(self, event: Optional[QHideEvent]) -> None:
         """Stop timer when widget is hidden."""
         self.timer.stop()
         super().hideEvent(qtutils.remove_optional(event))
 
-    def showEvent(self, event: QShowEvent) -> None:
+    def showEvent(self, event: Optional[QShowEvent]) -> None:
         """Override showEvent to show time and start self.timer for updating."""
         self.timer.start(PageRamUsage.UPDATE_DELAY)
         self._show_ram_usage()
