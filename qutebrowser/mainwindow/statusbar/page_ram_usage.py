@@ -2,6 +2,8 @@
 
 import platform
 from typing import Optional
+
+from qutebrowser.utils import qtutils
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import throttle
 from qutebrowser.qt.core import Qt
@@ -87,18 +89,18 @@ class PageRamUsage(textbase.TextBase):
     def on_tab_changed(self, tab: browsertab.AbstractTab) -> None:
         """Update page ram usage if possible."""
         try:
-            self.pid = tab.pid()
+            self.pid = tab.renderer_process_pid()
             self._show_ram_usage()
         except Exception:
             log.statusbar.exception("failed to get tab pid or show ram usage")
 
-    def hideEvent(self, event: Optional[QHideEvent]) -> None:
+    def hideEvent(self, event: QHideEvent) -> None:
         """Stop timer when widget is hidden."""
         self.timer.stop()
-        super().hideEvent(event)
+        super().hideEvent(qtutils.remove_optional(event))
 
-    def showEvent(self, event: Optional[QShowEvent]) -> None:
+    def showEvent(self, event: QShowEvent) -> None:
         """Override showEvent to show time and start self.timer for updating."""
         self.timer.start(PageRamUsage.UPDATE_DELAY)
         self._show_ram_usage()
-        super().showEvent(event)
+        super().showEvent(qtutils.remove_optional(event))

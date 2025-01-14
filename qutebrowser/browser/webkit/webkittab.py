@@ -900,9 +900,6 @@ class WebKitTab(browsertab.AbstractTab):
         else:
             return frame.url()
 
-    def pid(self):
-        raise NotImplementedError
-
     def dump_async(self, callback, *, plain=False):
         frame = self._widget.page().mainFrame()
         if plain:

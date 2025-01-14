@@ -1356,10 +1356,6 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             return page.url()
 
-    def pid(self) -> int:
-        page: QWebEnginePage = self._widget.page()
-        return page.renderProcessPid()
-
     def dump_async(self, callback, *, plain=False):
         if plain:
             self._widget.page().toPlainText(callback)

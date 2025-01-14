@@ -1,24 +1,36 @@
 # SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+from qutebrowser.qt import sip
+from qutebrowser.browser import eventfilter, inspector
+from qutebrowser.misc import miscwidgets, objects, sessions
+from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
+                               urlutils, message, jinja, version)
+from qutebrowser.config import config, websettings
+from qutebrowser.keyinput import modeman
+from qutebrowser.qt.network import QNetworkAccessManager
+from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
+from qutebrowser.qt.widgets import QApplication, QWidget
+from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
+                                 QEvent, QPoint, QRect, QTimer)
+from qutebrowser.qt import machinery
+from collections.abc import Iterable, Sequence, Callable
+from typing import (cast, TYPE_CHECKING, Any, Optional, Union)
+import dataclasses
+import functools
+import itertools
+import pathlib
+import enum
+
+
+def pid(self) -> int:
+    page: QWebEnginePage = self._widget.page()
+    return page.renderProcessPid()
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+
 """Base class for a wrapper over WebView/WebEngineView."""
 
-import enum
-import pathlib
-import itertools
-import functools
-import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Optional, Union)
-from collections.abc import Iterable, Sequence, Callable
-
-from qutebrowser.qt import machinery
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                                 QEvent, QPoint, QRect, QTimer)
-from qutebrowser.qt.gui import QKeyEvent, QIcon, QPixmap
-from qutebrowser.qt.widgets import QApplication, QWidget
-from qutebrowser.qt.printsupport import QPrintDialog, QPrinter
-from qutebrowser.qt.network import QNetworkAccessManager
 
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory, QWebHistoryItem
@@ -26,13 +38,6 @@ if TYPE_CHECKING:
     from qutebrowser.qt.webenginecore import (
         QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
 
-from qutebrowser.keyinput import modeman
-from qutebrowser.config import config, websettings
-from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message, jinja, version)
-from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter, inspector
-from qutebrowser.qt import sip
 
 if TYPE_CHECKING:
     from qutebrowser.browser import webelem
@@ -1256,9 +1261,6 @@ class AbstractTab(QWidget):
         self.load_progress.emit(perc)
 
     def url(self, *, requested: bool = False) -> QUrl:
-        raise NotImplementedError
-
-    def pid(self) -> int:
         raise NotImplementedError
 
     def progress(self) -> int:
