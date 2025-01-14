@@ -6,6 +6,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.misc import throttle
 from qutebrowser.qt.core import Qt
 from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt.gui import QHideEvent, QShowEvent
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes
@@ -91,12 +92,12 @@ class PageRamUsage(textbase.TextBase):
         except Exception:
             log.statusbar.exception("failed to get tab pid or show ram usage")
 
-    def hideEvent(self, event) -> None:
+    def hideEvent(self, event: Optional[QHideEvent]) -> None:
         """Stop timer when widget is hidden."""
         self.timer.stop()
         super().hideEvent(event)
 
-    def showEvent(self, event) -> None:
+    def showEvent(self, event: Optional[QShowEvent]) -> None:
         """Override showEvent to show time and start self.timer for updating."""
         self.timer.start(PageRamUsage.UPDATE_DELAY)
         self._show_ram_usage()
