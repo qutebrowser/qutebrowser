@@ -14,5 +14,5 @@ setuptools==75.8.0
 tomli==2.2.1
 tox==4.23.2
 typing_extensions==4.12.2
-virtualenv==20.28.1
+virtualenv==20.29.1
 wheel==0.45.1
