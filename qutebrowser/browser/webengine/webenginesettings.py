@@ -216,6 +216,10 @@ class WebEngineSettings(websettings.AbstractSettings):
             QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: True,
             QWebEngineSettings.WebAttribute.JavascriptCanPaste: True,
         },
+        'ask': {
+            QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard: False,
+            QWebEngineSettings.WebAttribute.JavascriptCanPaste: False,
+        },
     }
 
     def set_unknown_url_scheme_policy(
@@ -281,6 +285,7 @@ class ProfileSetter:
         self._set_hardcoded_settings()
         self.set_persistent_cookie_policy()
         self.set_dictionary_language()
+        self.disable_persistent_permissions_policy()
 
     def _set_hardcoded_settings(self):
         """Set up settings with a fixed value."""
@@ -343,7 +348,23 @@ class ProfileSetter:
 
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)
-        self._profile.setSpellCheckEnabled(bool(filenames))
+
+        should_enable = bool(filenames)
+        if self._profile.isSpellCheckEnabled() != should_enable:
+            # Only setting conditionally as a WORKAROUND for a bogus Qt error message:
+            # https://bugreports.qt.io/browse/QTBUG-131969
+            self._profile.setSpellCheckEnabled(should_enable)
+
+    def disable_persistent_permissions_policy(self):
+        """Disable webengine's permission persistence."""
+        if machinery.IS_QT6:  # for mypy
+            try:
+                # New in WebEngine 6.8.0
+                self._profile.setPersistentPermissionsPolicy(
+                    QWebEngineProfile.PersistentPermissionsPolicy.AskEveryTime
+                )
+            except AttributeError:
+                pass
 
 
 def _update_settings(option):
@@ -392,6 +413,25 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     _global_settings.init_settings()
 
 
+def _clear_webengine_permissions_json():
+    """Remove QtWebEngine's persistent permissions file, if present.
+
+    We have our own permissions feature and don't integrate with their one.
+    This only needs to be called when you are on Qt6.8 but PyQt<6.8, since if
+    we have access to the `setPersistentPermissionsPolicy()` we will use that
+    to disable the Qt feature.
+    This needs to be called before we call `setPersistentStoragePath()`
+    because Qt will load the file during that.
+    """
+    permissions_file = pathlib.Path(standarddir.data()) / "webengine" / "permissions.json"
+    try:
+        permissions_file.unlink(missing_ok=True)
+    except OSError as err:
+        log.init.warning(
+            f"Error while cleaning up webengine permissions file: {err}"
+        )
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
@@ -414,6 +454,7 @@ def _init_default_profile():
             f"  Early version: {non_ua_version}\n"
             f"  Real version:  {ua_version}")
 
+    _clear_webengine_permissions_json()
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
@@ -452,7 +493,7 @@ def _init_site_specific_quirks():
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
                   "{upstream_browser_key}/{upstream_browser_version} "
                   "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:131.0) Gecko/20100101 Firefox/131.0"
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:133.0) Gecko/20100101 Firefox/133.0"
 
     def maybe_newer_chrome_ua(at_least_version):
         """Return a new UA if our current chrome version isn't at least at_least_version."""

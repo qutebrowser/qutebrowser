@@ -17,7 +17,9 @@ Feature: Javascript stuff
         And I wait for "[*] window closed" in the log
         Then "Focus object changed: *" should be logged
         And the following tabs should be open:
+            """
             - data/javascript/window_open.html (active)
+            """
 
     @skip   # Too flaky
     Scenario: Opening/closing a modal window via JS
@@ -31,7 +33,9 @@ Feature: Javascript stuff
         Then "Focus object changed: *" should be logged
         And "Web*Dialog requested, but we don't support that!" should be logged
         And the following tabs should be open:
+            """
             - data/javascript/window_open.html (active)
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/906
 

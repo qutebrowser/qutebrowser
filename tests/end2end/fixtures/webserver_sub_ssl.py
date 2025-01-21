@@ -47,6 +47,8 @@ def log_request(response):
 
 
 def main():
+    webserver_sub.init_unraisable_hook()
+
     port = int(sys.argv[1])
     server = webserver_sub.WSGIServer(('127.0.0.1', port), app)
 

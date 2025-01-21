@@ -410,8 +410,8 @@ def test_tox():
                                check=True)
 
 
-def test_requirements(name, outfile, *, force=False):
-    """Test a resulting requirements file."""
+def install_requirements(name, outfile, *, force=False):
+    """Test install a resulting requirements file."""
     print()
     utils.print_subtitle("Testing")
 
@@ -446,7 +446,7 @@ def main():
     for name in names:
         utils.print_title(name)
         outfile = build_requirements(name)
-        test_requirements(name, outfile, force=args.force_test)
+        install_requirements(name, outfile, force=args.force_test)
         if name == 'pylint':
             cleanup_pylint_build()
 

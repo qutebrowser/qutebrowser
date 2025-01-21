@@ -128,6 +128,8 @@ def link_pyqt(executable, venv_path, *, version):
     if version not in ["5", "6"]:
         raise ValueError(f"Invalid version {version}")
 
+    pyqt_dir = os.path.dirname(get_lib_path(executable, f'PyQt{version}.QtCore'))
+
     try:
         get_lib_path(executable, f'PyQt{version}.sip')
     except Error:
@@ -138,7 +140,6 @@ def link_pyqt(executable, venv_path, *, version):
         sip_file = None
 
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
-    pyqt_dir = os.path.dirname(get_lib_path(executable, f'PyQt{version}.QtCore'))
 
     for path in [sip_file, sipconfig_file, pyqt_dir]:
         if path is None:

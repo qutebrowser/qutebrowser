@@ -34,8 +34,8 @@ def check_query(quteproc, name, value):
     assert data[name] == value
 
 
-@bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
-def check_history(quteproc, server, tmpdir, expected):
+@bdd.then(bdd.parsers.parse("the history should contain:"))
+def check_history(quteproc, server, tmpdir, docstring):
     quteproc.wait_for(message='INSERT INTO History *', category='sql')
     path = tmpdir / 'history'
     quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
@@ -46,7 +46,7 @@ def check_history(quteproc, server, tmpdir, expected):
         # ignore access times, they will differ in each run
         actual = '\n'.join(re.sub('^\\d+-?', '', line).strip() for line in f)
 
-    expected = expected.replace('(port)', str(server.port))
+    expected = docstring.replace('(port)', str(server.port))
     assert actual == expected
 
 

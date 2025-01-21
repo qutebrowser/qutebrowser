@@ -8,6 +8,7 @@
                 const xhr = new XMLHttpRequest();
                 xhr.open("GET", "/headers");
                 xhr.setRequestHeader("X-Qute-Test", "from XHR");
+                xhr.setRequestHeader("Accept-Language", "from XHR");
 
                 const elem = document.getElementById("output");
                 xhr.addEventListener("load", function(event) {

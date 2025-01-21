@@ -154,6 +154,11 @@ def _qtwebengine_features(
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89740
         disabled_features.append('InstalledApp')
 
+    if versions.webengine >= utils.VersionNumber(6, 7):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-132681
+        # TODO adjust if fixed in Qt 6.8.2/.3 or 6.9.0/.1
+        disabled_features.append('DocumentPictureInPictureAPI')
+
     if not config.val.input.media_keys:
         disabled_features.append('HardwareMediaKeyHandling')
 
@@ -171,7 +176,7 @@ def _get_pak_name(locale_name: str) -> str:
     Based on Chromium's behavior in l10n_util::CheckAndResolveLocale:
     https://source.chromium.org/chromium/chromium/src/+/master:ui/base/l10n/l10n_util.cc;l=344-428;drc=43d5378f7f363dab9271ca37774c71176c9e7b69
     """
-    if locale_name in {'en', 'en-PH', 'en-LR'}:
+    if locale_name in {'en', 'en-POSIX', 'en-PH', 'en-LR'}:
         return 'en-US'
     elif locale_name.startswith('en-'):
         return 'en-GB'

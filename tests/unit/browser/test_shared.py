@@ -6,6 +6,7 @@ import logging
 
 import pytest
 
+from qutebrowser.qt.core import QUrl
 from qutebrowser.browser import shared
 from qutebrowser.utils import usertypes
 
@@ -33,6 +34,19 @@ def test_custom_headers(config_stub, dnt, accept_language, custom_headers,
 
     expected_items = sorted(expected.items())
     assert shared.custom_headers(url=None) == expected_items
+
+
+@pytest.mark.parametrize("url, fallback, expected", [
+    # url is never None in the wild, mostly sanity check
+    (None, True, True),
+    (None, False, True),
+    (QUrl("http://example.org"), True, True),
+    (QUrl("http://example.org"), False, False),
+])
+def test_accept_language_no_fallback(config_stub, url, fallback, expected):
+    config_stub.val.content.headers.accept_language = "de, en"
+    headers = shared.custom_headers(url=url, fallback_accept_language=fallback)
+    assert (b"Accept-Language" in dict(headers)) == expected
 
 
 @pytest.mark.parametrize(

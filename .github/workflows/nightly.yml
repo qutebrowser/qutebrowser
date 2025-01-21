@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-12
+          - os: macos-13
             toxenv: build-release
             name: macos-intel
           - os: macos-14
@@ -23,7 +23,7 @@ jobs:
           - os: windows-2019
             toxenv: build-release
             name: windows
-          - os: macos-12
+          - os: macos-13
             args: --debug
             toxenv: build-release
             name: macos-debug-intel
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.13"
       - name: Install dependencies
         run: |
             python -m pip install -U pip
@@ -75,7 +75,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [pyinstaller]
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:

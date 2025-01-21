@@ -69,19 +69,8 @@ def generate_pdfjs_page(filename, url):
     return html
 
 
-def _generate_polyfills():
-    return """
-        if (typeof Promise.withResolvers === 'undefined') {
-            Promise.withResolvers = function () {
-                let resolve, reject
-                const promise = new Promise((res, rej) => {
-                    resolve = res
-                    reject = rej
-                })
-                return { promise, resolve, reject }
-            }
-        }
-    """
+def _get_polyfills() -> str:
+    return resources.read_file("javascript/pdfjs_polyfills.js")
 
 
 def _generate_pdfjs_script(filename):
@@ -121,7 +110,7 @@ def _generate_pdfjs_script(filename):
                 });
             }
         });
-    """).render(url=js_url, polyfills=_generate_polyfills())
+    """).render(url=js_url, polyfills=_get_polyfills())
 
 
 def get_pdfjs_res_and_path(path):
@@ -168,7 +157,7 @@ def get_pdfjs_res_and_path(path):
     if path == "build/pdf.worker.mjs":
         content = b"\n".join(
             [
-                _generate_polyfills().encode("ascii"),
+                _get_polyfills().encode("ascii"),
                 content,
             ]
         )

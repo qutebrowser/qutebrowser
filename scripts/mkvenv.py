@@ -227,8 +227,8 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
 
     if _is_qt6_version(version):
         supported_archs = {
-            'linux': {'x86_64'},
-            'win32': {'AMD64'},
+            'linux': {'x86_64', 'aarch64'},  # ARM since PyQt 6.8
+            'win32': {'AMD64', 'arm64'},  # ARM since PyQt 6.8
             'darwin': {'x86_64', 'arm64'},
         }
     else:

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Document Picture-in-Picture API Crasher</title>
+  <script type="text/javascript">
+    async function togglePictureInPicture() {
+      if (!("documentPictureInPicture" in window)) {
+          console.log("documentPictureInPicture support disabled!");
+          return;
+      }
+      await window.documentPictureInPicture.requestWindow();
+    }
+  </script>
+  </head>
+
+<body>
+    <button id="toggle" onclick="togglePictureInPicture()">Toggle Picture-in-Picture</button>
+</body>
+
+</html>

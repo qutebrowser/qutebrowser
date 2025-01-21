@@ -188,15 +188,22 @@ def transform_path(path):
     """
     if not utils.is_windows:
         return path
+
     path = utils.expand_windows_drive(path)
     # Drive dependent working directories are not supported, e.g.
     # E:filename is invalid
     if re.search(r'^[A-Z]:[^\\]', path, re.IGNORECASE):
         return None
+
     # Paths like COM1, ...
     # See https://github.com/qutebrowser/qutebrowser/issues/82
-    if pathlib.Path(path).is_reserved():
-        return None
+    if sys.version_info[:2] >= (3, 13):
+        if os.path.isreserved(path):  # pylint: disable=no-member
+            return None
+    else:
+        if pathlib.Path(path).is_reserved():  # pylint: disable=else-if-used
+            return None
+
     return path
 
 

@@ -12,7 +12,6 @@ import pstats
 import operator
 
 import pytest
-from qutebrowser.qt import machinery
 from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
@@ -29,7 +28,7 @@ from end2end.fixtures.quteprocess import (
 )
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
-from qutebrowser.utils import qtutils, utils, version
+from qutebrowser.utils import qtutils, utils
 
 
 def pytest_configure(config):
@@ -139,32 +138,16 @@ def _get_version_tag(tag):
         raise utils.Unreachable(package)
 
 
-def _get_backend_tag(tag):
-    """Handle a @qtwebengine_*/@qtwebkit_skip tag."""
-    pytest_marks = {
-        'qtwebengine_todo': pytest.mark.qtwebengine_todo,
-        'qtwebengine_skip': pytest.mark.qtwebengine_skip,
-        'qtwebkit_skip': pytest.mark.qtwebkit_skip,
-    }
-    if not any(tag.startswith(t + ':') for t in pytest_marks):
-        return None
-    name, desc = tag.split(':', maxsplit=1)
-    return pytest_marks[name](desc)
-
-
 if not getattr(sys, 'frozen', False):
     def pytest_bdd_apply_tag(tag, function):
         """Handle custom tags for BDD tests.
 
-        This tries various functions, and if none knows how to handle this tag,
-        it returns None so it falls back to pytest-bdd's implementation.
+        If we return None, this falls back to pytest-bdd's implementation.
         """
-        funcs = [_get_version_tag, _get_backend_tag]
-        for func in funcs:
-            mark = func(tag)
-            if mark is not None:
-                mark(function)
-                return True
+        mark = _get_version_tag(tag)
+        if mark is not None:
+            mark(function)
+            return True
         return None
 
 
@@ -192,12 +175,6 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-        ('qt68_beta4_skip',  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8242#issuecomment-2184542226
-         "Fails on Qt 6.8 beta 4",
-         pytest.mark.xfail,
-         machinery.IS_QT6 and version.qtwebengine_versions(
-             avoid_init=True
-         ).webengine == utils.VersionNumber(6, 8) and version.PYQT_WEBENGINE_VERSION_STR < '6.8.0'),
     ]
 
     for item in items:

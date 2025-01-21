@@ -34,9 +34,9 @@ _qute_scheme_handler = None
 
 
 # Set hypothesis settings
-hypotheses_optional_kwargs = {}
+hypothesis_optional_kwargs = {}
 if "HYPOTHESIS_EXAMPLES_DIR" in os.environ:
-    hypotheses_optional_kwargs[
+    hypothesis_optional_kwargs[
         "database"
     ] = hypothesis.database.DirectoryBasedExampleDatabase(
         os.environ["HYPOTHESIS_EXAMPLES_DIR"]
@@ -46,17 +46,16 @@ hypothesis.settings.register_profile(
     'default', hypothesis.settings(
         deadline=600,
         suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
-        **hypotheses_optional_kwargs,
+        **hypothesis_optional_kwargs,
     )
 )
 hypothesis.settings.register_profile(
     'ci', hypothesis.settings(
-        deadline=None,
+        hypothesis.settings.get_profile('ci'),
         suppress_health_check=[
             hypothesis.HealthCheck.function_scoped_fixture,
-            hypothesis.HealthCheck.too_slow
         ],
-        **hypotheses_optional_kwargs,
+        **hypothesis_optional_kwargs,
     )
 )
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
@@ -123,6 +122,17 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          not config.webengine and ssl.OPENSSL_VERSION_INFO[0] == 3,
          "Failing due to cheroot: https://github.com/cherrypy/cheroot/issues/346"),
+        (
+            "qt69_ci_flaky",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
+            pytest.mark.flaky,
+            (
+                config.webengine
+                and version.qtwebengine_versions(avoid_init=True).webengine
+                == utils.VersionNumber(6, 9)
+                and testutils.ON_CI
+            ),
+            "Flaky with QtWebEngine 6.9 on CI",
+        ),
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
@@ -229,6 +239,8 @@ def pytest_addoption(parser):
                      help="Delay (in ms) after qutebrowser process started.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
+    parser.addoption('--qute-strace-subprocs', action='store_true',
+                     default=False, help="Run strace for subprocesses.")
     parser.addoption('--qute-backend', action='store',
                      choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
@@ -353,6 +365,21 @@ def check_yaml_c_exts():
     """Make sure PyYAML C extensions are available on CI."""
     if testutils.ON_CI:
         from yaml import CLoader  # pylint: disable=unused-import
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_qtwe_dict_path(
+    tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest,
+) -> None:
+    """Initialize spell checking dictionaries for QtWebEngine.
+
+    QtWebEngine stores the dictionary path in a static variable, so we can't do
+    this per-test. Hence the session-scope on this fixture.
+    """
+    if request.config.webengine:  # type: ignore[att-defined]
+        # Set an empty directory path, this is enough for QtWebEngine to not complain.
+        dictionary_dir = tmp_path_factory.mktemp("qtwebengine_dictionaries")
+        os.environ["QTWEBENGINE_DICTIONARIES_PATH"] = str(dictionary_dir)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

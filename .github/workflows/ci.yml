@@ -50,15 +50,15 @@ jobs:
           python-version: '3.10'
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
         if: "matrix.testenv == 'eslint'"
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g 'eslint@<9.0.0'
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1-mesa
-            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1-mesa
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1
+            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
@@ -155,7 +155,7 @@ jobs:
           #   python: "3.10"
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.11"
           ### PyQt 6.2 (Python 3.9)
           - testenv: py39-pyqt62
@@ -163,11 +163,11 @@ jobs:
             python: "3.9"
           ### PyQt 6.3 (Python 3.9)
           - testenv: py39-pyqt63
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ## PyQt 6.4 (Python 3.9)
           - testenv: py39-pyqt64
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ### PyQt 6.5 (Python 3.10)
           - testenv: py310-pyqt65
@@ -189,25 +189,24 @@ jobs:
           - testenv: py312-pyqt67
             os: ubuntu-22.04
             python: "3.12"
-          ### macOS Monterey
-          - testenv: py312-pyqt67
-            os: macos-12
-            python: "3.12"
-            args: "tests/unit"  # Only run unit tests on macOS
+          ### PyQt 6.8 (Python 3.13)
+          - testenv: py313-pyqt68
+            os: ubuntu-22.04
+            python: "3.13"
           ### macOS Ventura
-          - testenv: py312-pyqt67
+          - testenv: py313-pyqt68
             os: macos-13
-            python: "3.12"
+            python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
-          - testenv: py312-pyqt67
+          - testenv: py313-pyqt68
             os: macos-14
-            python: "3.12"
+            python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py312-pyqt67
+          - testenv: py313-pyqt68
             os: windows-2019
-            python: "3.12"
+            python: "3.13"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v4
@@ -229,7 +228,7 @@ jobs:
       - name: Install apt dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
@@ -251,7 +250,7 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           name: "${{ matrix.testenv }}"
       - name: Gather info

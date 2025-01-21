@@ -15,12 +15,12 @@ def turn_on_scroll_logging(quteproc):
     quteproc.turn_on_scroll_logging()
 
 
-@bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))
-def create_session_file(quteproc, name, contents):
+@bdd.when(bdd.parsers.parse('I have a "{name}" session file:'))
+def create_session_file(quteproc, name, docstring):
     filename = os.path.join(quteproc.basedir, 'data', 'sessions',
                             name + '.yml')
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write(contents)
+        f.write(docstring)
 
 
 @bdd.when(bdd.parsers.parse('I replace "{pattern}" by "{replacement}" in the '

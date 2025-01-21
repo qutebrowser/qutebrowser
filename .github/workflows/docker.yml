@@ -8,7 +8,7 @@ on:
 jobs:
   docker:
     if: "github.repository == 'qutebrowser/qutebrowser'"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +42,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [docker]
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:

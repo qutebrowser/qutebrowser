@@ -231,6 +231,16 @@ def is_ignored_chromium_message(line):
         # Some MojoDiscardableSharedMemoryManagerImpls are still alive. They
         # will be leaked.
         "Some MojoDiscardableSharedMemoryManagerImpls are still alive. They will be leaked.",
+
+        # Qt 6.7 on GitHub Actions
+        # [3456:5752:1111/103609.929:ERROR:block_files.cc(443)] Failed to open
+        # C:\Users\RUNNER~1\AppData\Local\Temp\qutebrowser-basedir-ruvn1lys\data\webengine\DawnCache\data_0
+        "Failed to open *webengine*DawnCache*data_*",
+
+        # Qt 6.8 on GitHub Actions
+        # [7072:3412:1209/220659.527:ERROR:simple_index_file.cc(322)] Failed to
+        # write the temporary index file
+        "Failed to write the temporary index file",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -389,24 +399,37 @@ class QuteProc(testprocess.Process):
 
     def _executable_args(self):
         profile = self.request.config.getoption('--qute-profile-subprocs')
+        strace = self.request.config.getoption('--qute-strace-subprocs')
         if hasattr(sys, 'frozen'):
-            if profile:
-                raise RuntimeError("Can't profile with sys.frozen!")
+            if profile or strace:
+                raise RuntimeError("Can't profile/strace with sys.frozen!")
             executable = str(pathlib.Path(sys.executable).parent / 'qutebrowser')
             args = []
         else:
-            executable = sys.executable
+            if strace:
+                executable = 'strace'
+                args = [
+                    "-o",
+                    "qb-strace",
+                    "--output-separately",  # create .PID files
+                    "--write=2",  # dump full stderr data (qb JSON logs)
+                    sys.executable,
+                ]
+            else:
+                executable = sys.executable
+                args = []
+
             if profile:
                 profile_dir = pathlib.Path.cwd() / 'prof'
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
                 profile_file = profile_dir / '{}.pstats'.format(profile_id)
                 profile_dir.mkdir(exist_ok=True)
-                args = [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
+                args += [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
                         '--profile-tool', 'none',
                         '--profile-file', str(profile_file)]
             else:
-                args = ['-bb', '-m', 'qutebrowser']
+                args += ['-bb', '-m', 'qutebrowser']
         return executable, args
 
     def _default_args(self):
