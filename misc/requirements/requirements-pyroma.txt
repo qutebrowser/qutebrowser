@@ -7,11 +7,11 @@ docutils==0.21.2
 idna==3.10
 importlib_metadata==8.5.0
 packaging==24.2
-Pygments==2.19.0
+Pygments==2.19.1
 pyproject_hooks==1.2.0
 pyroma==4.2
 requests==2.32.3
 tomli==2.2.1
-trove-classifiers==2024.10.21.16
+trove-classifiers==2025.1.15.22
 urllib3==2.3.0
 zipp==3.21.0
