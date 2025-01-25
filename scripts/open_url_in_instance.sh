@@ -2,14 +2,7 @@
 # initial idea: Florian Bruhin (The-Compiler)
 # author: Thore Bödecker (foxxx0)
 
-_url="$(echo $@ | grep -oE '\w+://.+')"
-if [ -z $_url ]; then
-	for _el in $@; do
-		if [ -e $_el ]; then
-			_url=$_el
-		fi
-	done
-fi
+_url="${@: -1}"
 _qb_version='1.0.4'
 _proto_version=1
 _ipc_socket="${XDG_RUNTIME_DIR}/qutebrowser/ipc-$(printf '%s' "$USER" | md5sum | cut -d' ' -f1)"
