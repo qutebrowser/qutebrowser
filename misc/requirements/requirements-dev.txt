@@ -11,8 +11,9 @@ cryptography==44.0.0
 docutils==0.21.2
 github3.py==4.0.1
 hunter==3.7.0
+id==1.5.0
 idna==3.10
-importlib_metadata==8.5.0
+importlib_metadata==8.6.1
 importlib_resources==6.5.2
 inflect==7.3.1
 jaraco.classes==3.4.0
@@ -28,7 +29,6 @@ mdurl==0.1.2
 more-itertools==10.6.0
 nh3==0.2.20
 packaging==24.2
-pkginfo==1.12.0
 platformdirs==4.3.6
 pycparser==2.22
 Pygments==2.19.1
@@ -46,7 +46,7 @@ SecretStorage==3.3.3
 sip==6.9.1
 six==1.17.0
 tomli==2.2.1
-twine==6.0.1
+twine==6.1.0
 typeguard==4.3.0
 typing_extensions==4.12.2
 uritemplate==4.1.1
