@@ -96,7 +96,8 @@ def ask_password(password_prompt_invocation):
         raise Exception('Could not unlock vault')
     master_pass = process.stdout.strip()
     return subprocess.check_output(
-        ['bw', 'unlock', '--raw', master_pass],
+        ['bw', 'unlock', '--raw', '--passwordenv', 'BW_MASTERPASS'],
+        env={**os.environ, 'BW_MASTERPASS': master_pass},
         text=True,
     ).strip()
 
