@@ -41,7 +41,7 @@ If you want to find something useful to do, check the
 https://github.com/qutebrowser/qutebrowser/issues[issue tracker]. Some
 pointers:
 
-* https://github.com/qutebrowser/qutebrowser/labels/easy[Issues which should
+* https://github.com/qutebrowser/qutebrowser/contribute[Issues which should
 be easy to solve]
 * https://github.com/qutebrowser/qutebrowser/labels/component%3A%20docs[Documentation issues which require little/no coding]
 
