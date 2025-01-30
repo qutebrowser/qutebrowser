@@ -286,7 +286,10 @@ class NotificationBridgePresenter(QObject):
 
         if replaces_id is None:
             if notification_id in self._active_notifications:
-                raise Error(f"Got duplicate id {notification_id}")
+                message.error(f"Got duplicate notification id {notification_id} "
+                              f"from {self._adapter.NAME}")
+                self._drop_adapter()
+                return
 
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification

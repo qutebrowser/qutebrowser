@@ -25,6 +25,8 @@ Fixed
 - Crash when trying to use the `DocumentPictureInPicture` JS API, such as done
   by the new Google Workspaces Huddle feature. The API is unsupported by
   QtWebEngine and now correctly disabled on the JS side. (#8449)
+- Crash when a buggy notification presenter returns a duplicate ID (now an
+  error is shown instead).
 
 [[v3.4.0]]
 v3.4.0 (2024-12-14)
