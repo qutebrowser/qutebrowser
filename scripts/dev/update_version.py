@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-"""Update version numbers using bump2version."""
+"""Update version numbers using bump-my-version."""
 
 import re
 import sys
@@ -45,7 +45,7 @@ def bump_version(version_leap="patch"):
         version_leap: define the jump between versions
         ("major", "minor", "patch")
     """
-    subprocess.run([sys.executable, '-m', 'bumpversion', version_leap],
+    subprocess.run([sys.executable, '-m', 'bumpversion', 'bump', version_leap],
                    check=True)
 
 
