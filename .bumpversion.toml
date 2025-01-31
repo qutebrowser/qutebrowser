@@ -7,10 +7,12 @@ sign_tags = true
 tag_name = "v{new_version}"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
-allow_dirty = true
+allow_dirty = false
 
 [[tool.bumpversion.files]]
 filename = "qutebrowser/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
 
 [[tool.bumpversion.files]]
 filename = "misc/org.qutebrowser.qutebrowser.appdata.xml"
