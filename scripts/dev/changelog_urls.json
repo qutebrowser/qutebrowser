@@ -152,7 +152,7 @@
   "inflect": "https://inflect.readthedocs.io/en/latest/history.html",
   "typeguard": "https://typeguard.readthedocs.io/en/latest/versionhistory.html",
   "backports.tarfile": "https://github.com/jaraco/backports.tarfile/blob/main/NEWS.rst",
-  "pkginfo": "https://bazaar.launchpad.net/~tseaver/pkginfo/trunk/view/head:/CHANGES.txt",
+  "id": "https://github.com/di/id/blob/main/CHANGELOG.md",
   "readme_renderer": "https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst",
   "requests-toolbelt": "https://github.com/requests/toolbelt/blob/master/HISTORY.rst",
   "rfc3986": "https://rfc3986.readthedocs.io/en/latest/release-notes/index.html",
