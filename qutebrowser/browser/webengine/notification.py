@@ -973,7 +973,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             icon_custom = config.val.app.icon
             icon_default = 'icons/qutebrowser-64x64.png'
 
-            def get_icon_data():
+            def get_icon_data() -> bytes:
                 if icon_custom == None:
                     return resources.read_file_binary(icon_default)
 
