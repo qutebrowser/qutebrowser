@@ -168,15 +168,36 @@ def init(*, args: argparse.Namespace) -> None:
 
 def _init_icon():
     """Initialize the icon of qutebrowser."""
+    
     fallback_icon = QIcon()
-    for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
-        filename = 'icons/qutebrowser-{size}x{size}.png'.format(size=size)
+
+    def load_default_icons():
+        for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
+            filename = 'icons/qutebrowser-{size}x{size}.png'.format(size=size)
+            pixmap = QPixmap()
+            pixmap.loadFromData(resources.read_file_binary(filename))
+            if pixmap.isNull():
+                log.init.warning("Failed to load: {}".format(filename))
+            else:
+                fallback_icon.addPixmap(pixmap)
+
+    icon_custom = config.val.app.icon
+    if icon_custom != None:
+        # Use the custom icon if possible
         pixmap = QPixmap()
-        pixmap.loadFromData(resources.read_file_binary(filename))
-        if pixmap.isNull():
-            log.init.warning("Failed to load {}".format(filename))
-        else:
-            fallback_icon.addPixmap(pixmap)
+        try:
+            pixmap.loadFromData(resources.read_absolute_file_binary(icon_custom))
+            if pixmap.isNull():
+                log.init.warning("Failed to load custom icon: {}. Falling back to default".format(icon_custom))
+                load_default_icons()
+            else:
+                fallback_icon.addPixmap(pixmap)
+        except FileNotFoundError:
+            log.init.warning("Custom icon not found: {}. Falling back to default".format(icon_custom))
+            load_default_icons()
+    else:
+        load_default_icons()
+
     icon = QIcon.fromTheme('qutebrowser', fallback_icon)
     if icon.isNull():
         log.init.warning("Failed to load icon")
