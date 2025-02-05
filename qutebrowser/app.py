@@ -168,7 +168,6 @@ def init(*, args: argparse.Namespace) -> None:
 
 def _init_icon():
     """Initialize the icon of qutebrowser."""
-    
     fallback_icon = QIcon()
 
     def load_default_icons():
@@ -182,7 +181,7 @@ def _init_icon():
                 fallback_icon.addPixmap(pixmap)
 
     icon_custom = config.val.app.icon
-    if icon_custom != None:
+    if icon_custom is not None:
         # Use the custom icon if possible
         pixmap = QPixmap()
         try:

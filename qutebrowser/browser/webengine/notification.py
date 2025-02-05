@@ -974,7 +974,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             icon_default = 'icons/qutebrowser-64x64.png'
 
             def get_icon_data() -> bytes:
-                if icon_custom == None:
+                if icon_custom is None:
                     return resources.read_file_binary(icon_default)
 
                 try:
@@ -982,8 +982,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 except FileNotFoundError:
                     log.init.warning("Custom icon not found: {}. Falling back to default".format(icon_custom))
                     return resources.read_file_binary(icon_default)
-                    
-            
+
             icon = QImage.fromData(get_icon_data())
 
         key = self._quirks.icon_key or "image-data"
