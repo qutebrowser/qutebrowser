@@ -182,7 +182,6 @@ def _init_icon():
 
     icon_custom = config.val.app.icon
     if icon_custom is not None:
-        # Use the custom icon if possible
         pixmap = QPixmap()
         try:
             pixmap.loadFromData(resources.read_absolute_file_binary(icon_custom))
