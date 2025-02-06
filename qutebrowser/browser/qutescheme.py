@@ -518,8 +518,6 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
         filename = QUrlQuery(url).queryItemValue('filename')
         if not filename:
             raise UrlInvalidError("Missing filename")
-        if '/' in filename or os.sep in filename:
-            raise RequestDeniedError("Path separator in filename.")
 
         path = _pdf_path(filename)
         with open(path, 'rb') as f:
