@@ -224,7 +224,7 @@ def main(arguments):
     if len(candidates) == 1:
         selection = candidates.pop()
     else:
-        choices = ['{:s} | {:s}'.format(c['name'], c['login']['username']) for c in candidates]
+        choices = ['{:s} | {:s}'.format(c['name'] or "?", c['login']['username'] or "?") for c in candidates]
         choice = dmenu(choices, arguments.dmenu_invocation, arguments.io_encoding)
         choice_tokens = choice.split('|')
         choice_name = choice_tokens[0].strip()
