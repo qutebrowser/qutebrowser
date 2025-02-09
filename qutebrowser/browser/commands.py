@@ -1235,47 +1235,50 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
 
         if self._tabbed_browser.is_treetabbedbrowser:
-            # self._tree_tab_move(new_idx)
-            new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
-            tab = self._current_widget()
-
-            # traverse order is the same as display order
-            # so indexing works correctly
-            tree_root = self._tabbed_browser.widget.tree_root
-            tabs = list(tree_root.traverse(render_collapsed=False))
-            target_node = tabs[new_idx]
-
-            if tab.node in target_node.path:
-                raise cmdutils.CommandError("Can't move tab to a descendent"
-                                            " of itself")
-            
-            new_parent = target_node.parent
-
-            # find eldest parent to use index for comparison
-            def find_eldest(node):
-                while node.parent.value is not None:
-                    node = node.parent
-                return node
-
-            if new_parent.value != None: 
-                new_eldest = find_eldest(new_parent)
-                tab_eldest = find_eldest(tab.node.parent) if tab.node.parent.value is not None else tab.node
-                
-                new_idx = new_parent.children.index(target_node) # we need index relative to parent for correct placement when inserting into trees
-                
-                if tab_eldest.index < new_eldest.index: # add index to tabs moving down the tab order to ensure they land on the target value while removing an earlier tab
-                    new_idx += 1
-            else: 
-                new_idx -= 1 # use selected index in cases where parent is tree root
-                
-            tab.node.parent = None  # avoid duplicate errors
-            siblings = list(new_parent.children)
-            siblings.insert(new_idx, tab.node)
-            new_parent.children = siblings
-
-            self._tabbed_browser.widget.tree_tab_update()
+            self._tree_tab_move(new_idx)
         else:
             self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
+
+    def _tree_tab_move(self, new_idx):
+        # self._tree_tab_move(new_idx)
+        new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
+        tab = self._current_widget()
+
+        # traverse order is the same as display order
+        # so indexing works correctly
+        tree_root = self._tabbed_browser.widget.tree_root
+        tabs = list(tree_root.traverse(render_collapsed=False))
+        target_node = tabs[new_idx]
+
+        if tab.node in target_node.path:
+            raise cmdutils.CommandError("Can't move tab to a descendent"
+                                        " of itself")
+
+        new_parent = target_node.parent
+
+        # find eldest parent to use index for comparison
+        def find_eldest(node):
+            while node.parent.value is not None:
+                node = node.parent
+            return node
+
+        if new_parent.value is not None:
+            new_eldest = find_eldest(new_parent)
+            tab_eldest = find_eldest(tab.node.parent) if tab.node.parent.value is not None else tab.node
+
+            new_idx = new_parent.children.index(target_node)  # we need index relative to parent for correct placement when inserting into trees
+
+            if tab_eldest.index < new_eldest.index:  # add index to tabs moving down the tab order to ensure they land on the target value while removing an earlier tab
+                new_idx += 1
+        else:
+            new_idx -= 1  # use selected index in cases where parent is tree root
+
+        tab.node.parent = None  # avoid duplicate errors
+        siblings = list(new_parent.children)
+        siblings.insert(new_idx, tab.node)
+        new_parent.children = siblings
+
+        self._tabbed_browser.widget.tree_tab_update()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
