@@ -69,6 +69,19 @@ Feature: Tree tab management
             - data/numbers/1.txt
               - data/numbers/2.txt (active)
 
+    Scenario: Move a tab from a subtree to "end"
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tab-move end
+        Then the following tabs should be open:
+          - data/numbers/1.txt
+          - data/numbers/3.txt
+          - data/numbers/4.txt
+          - data/numbers/2.txt (active)
+
     Scenario: Move a tab to the given index
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
