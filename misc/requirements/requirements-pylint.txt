@@ -4,7 +4,7 @@ astroid==3.3.8
 certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
-cryptography==44.0.0
+cryptography==44.0.1
 dill==0.3.9
 github3.py==4.0.1
 idna==3.10
