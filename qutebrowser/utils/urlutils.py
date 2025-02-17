@@ -11,18 +11,12 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Union, cast, TYPE_CHECKING
+from typing import Optional, Union, cast
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QUrl, QUrlQuery
 from qutebrowser.qt.network import QHostInfo, QHostAddress, QNetworkProxy
-# WORKAROUND for
-# https://www.riverbankcomputing.com/pipermail/pyqt/2024-December/046096.html
-if TYPE_CHECKING and machinery.IS_QT6:
-    from qutebrowser.qt.core import QChar
-else:
-    QChar = str
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
@@ -704,7 +698,7 @@ def get_url_yank_text(url: QUrl, *, pretty: bool) -> str:
     url_query = QUrlQuery()
     url_query_str = url.query()
     if '&' not in url_query_str and ';' in url_query_str:
-        url_query.setQueryDelimiters(cast(QChar, '='), cast(QChar, ';'))
+        url_query.setQueryDelimiters('=', ';')
     url_query.setQuery(url_query_str)
     for key in dict(url_query.queryItems()):
         if key in config.val.url.yank_ignored_parameters:
