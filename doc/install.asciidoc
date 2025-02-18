@@ -103,11 +103,17 @@ To be able to play videos with proprietary codecs with QtWebEngine, you will
 need to install an additional package from the RPM Fusion Free repository.
 For more information see https://rpmfusion.org/Configuration.
 
+With Qt 6 (recommended):
+
+-----
+# dnf install libavcodec-freeworld
+-----
+
+With Qt 5:
+
 -----
 # dnf install qt5-qtwebengine-freeworld
 -----
-
-It's currently unknown what the Qt 6 equivalent of this is.
 
 On Archlinux
 ------------
