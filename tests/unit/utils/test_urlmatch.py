@@ -14,13 +14,14 @@ Currently not tested:
 """
 
 import string
+import urllib.parse
 
 import pytest
 import hypothesis
 import hypothesis.strategies as hst
 from qutebrowser.qt.core import QUrl
 
-from qutebrowser.utils import urlmatch
+from qutebrowser.utils import urlmatch, utils
 
 # FIXME:v4 (lint): disable=line-too-long
 
@@ -76,7 +77,10 @@ _INVALID_IP_MESSAGE = (
     pytest.param(
         "http://[2607:f8b0:4005:805::200e]]/*",
         "Invalid IPv6 URL",
-        marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360"),
+        marks=pytest.mark.xfail(
+            not utils.raises(ValueError, urllib.parse.urlparse, "http://[::1]]"),
+            reason="https://github.com/python/cpython/issues/105704"
+        ),
         id='host-ipv6-two-closing',
     ),
     # Two open brackets (`[[`).
