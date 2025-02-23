@@ -14,7 +14,7 @@ jobs:
   linters:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 10
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +86,7 @@ jobs:
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -146,7 +146,7 @@ jobs:
         include:
           ### PyQt 5.15.2 (Python 3.9)
           - testenv: py39-pyqt5152
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ### PyQt 5.15 (Python 3.10, with coverage)
           # FIXME:qt6
@@ -159,7 +159,7 @@ jobs:
             python: "3.11"
           ### PyQt 6.2 (Python 3.9)
           - testenv: py39-pyqt62
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ### PyQt 6.3 (Python 3.9)
           - testenv: py39-pyqt63
@@ -191,7 +191,7 @@ jobs:
             python: "3.12"
           ### PyQt 6.8 (Python 3.13)
           - testenv: py313-pyqt68
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             python: "3.13"
           ### macOS Ventura
           - testenv: py313-pyqt68
@@ -274,7 +274,7 @@ jobs:
     permissions:
       security-events: write
     timeout-minutes: 15
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -291,7 +291,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
