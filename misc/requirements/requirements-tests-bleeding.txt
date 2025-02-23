@@ -8,6 +8,7 @@ git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to wor
 git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
 git+https://github.com/pytest-dev/pytest.git
 git+https://github.com/pytest-dev/pytest-bdd.git
+gherkin-official<31.0.0  # https://github.com/cucumber/gherkin/issues/373
 git+https://github.com/ionelmc/pytest-benchmark.git
 git+https://github.com/pytest-dev/pytest-instafail.git
 git+https://github.com/pytest-dev/pytest-mock.git
