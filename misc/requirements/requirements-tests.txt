@@ -16,7 +16,7 @@ filelock==3.17.0
 Flask==3.1.0
 gherkin-official==29.0.0
 hunter==3.7.0
-hypothesis==6.125.3
+hypothesis==6.127.1
 idna==3.10
 importlib_metadata==8.6.1
 importlib_resources==6.5.2
