@@ -6,7 +6,7 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 bracex==2.5.post1
 build==1.2.2.post1
-bump-my-version==0.32.1
+bump-my-version==0.32.2
 certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
@@ -41,7 +41,7 @@ platformdirs==4.3.6
 prompt_toolkit==3.0.50
 pycparser==2.22
 pydantic==2.10.6
-pydantic-settings==2.7.1
+pydantic-settings==2.8.0
 pydantic_core==2.27.2
 Pygments==2.19.1
 PyJWT==2.10.1
@@ -56,7 +56,7 @@ requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.9.4
-rich-click==1.8.5
+rich-click==1.8.6
 SecretStorage==3.3.3
 sip==6.10.0
 six==1.17.0
