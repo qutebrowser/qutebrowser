@@ -86,7 +86,7 @@ jobs:
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04  # not 24.04 because sandboxing fails by default (#8424)
     strategy:
       fail-fast: false
       matrix:
