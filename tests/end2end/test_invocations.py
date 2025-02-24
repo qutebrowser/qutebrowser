@@ -884,11 +884,14 @@ def test_sandboxing(
         request, quteproc_new, sandboxing,
         has_namespaces, has_seccomp, has_yama, expected_result,
 ):
+    # https://github.com/qutebrowser/qutebrowser/issues/8424
+    userns_restricted = testutils.is_userns_restricted()
+
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
     elif sandboxing == "enable-all" and testutils.disable_seccomp_bpf_sandbox():
         pytest.skip("Full sandboxing not supported")
-    elif version.is_flatpak():
+    elif version.is_flatpak() or userns_restricted:
         # https://github.com/flathub/io.qt.qtwebengine.BaseApp/pull/66
         has_namespaces = False
         expected_result = "You are NOT adequately sandboxed."

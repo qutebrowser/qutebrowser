@@ -12,8 +12,10 @@ import pprint
 import os.path
 import contextlib
 import pathlib
+import subprocess
 import importlib.util
 import importlib.machinery
+from typing import Optional
 
 import pytest
 
@@ -310,3 +312,20 @@ def enum_members(base, enumtype):
             for name, value in vars(base).items()
             if isinstance(value, enumtype)
         }
+
+
+def is_userns_restricted() -> Optional[bool]:
+    if not utils.is_linux:
+        return None
+
+    try:
+        proc = subprocess.run(
+            ["sysctl", "-n", "kernel.apparmor_restrict_unprivileged_userns"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+    return proc.stdout.strip() == "1"
