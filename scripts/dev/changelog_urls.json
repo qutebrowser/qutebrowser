@@ -2,7 +2,7 @@
   "pylint": "https://pylint.pycqa.org/en/latest/whatsnew/3/index.html",
   "tomlkit": "https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md",
   "dill": "https://github.com/uqfoundation/dill/commits/master",
-  "isort": "https://github.com/PyCQA/isort/blob/main/CHANGELOG.md",
+  "isort": "https://github.com/PyCQA/isort/releases",
   "mccabe": "https://github.com/PyCQA/mccabe#changes",
   "pytest-cov": "https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst",
   "pytest-xdist": "https://github.com/pytest-dev/pytest-xdist/blob/master/CHANGELOG.rst",
