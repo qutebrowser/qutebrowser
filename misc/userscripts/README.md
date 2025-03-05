@@ -108,6 +108,8 @@ The following userscripts can be found on their own repositories.
   automatically mutates input URLs based on configurable rules
 - [qute-translate-popup](https://github.com/JohnBardoe/qute-translate-popup):
   selected text translation, with a qute popup!
+- [get-tech](https://gist.github.com/p4p1/00dc78bd92ce3161b7ae540f485259f8):
+  Detect what is running on a website with the use of nuclei templates.
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
