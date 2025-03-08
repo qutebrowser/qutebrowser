@@ -576,7 +576,7 @@ class Application(QApplication):
 
     def event(self, e):
         """Handle macOS FileOpen events."""
-        log.init.debug(f"Got event {e} <{type(e)}>")
+        log.init.debug(f"Got event {e} <{e.type()}>")
         if e.type() != QEvent.Type.FileOpen:
             return super().event(e)
 
