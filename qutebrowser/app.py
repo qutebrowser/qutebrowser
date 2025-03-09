@@ -158,9 +158,9 @@ def init(*, args: argparse.Namespace) -> None:
 
     _process_args(args)
 
-    for scheme in ['http', 'https', 'qute']:
-        QDesktopServices.setUrlHandler(
-            scheme, open_desktopservices_url)
+    #for scheme in ['http', 'https', 'qute']:
+    #    QDesktopServices.setUrlHandler(
+    #        scheme, open_desktopservices_url)
 
     log.init.debug("Init done!")
     crashsignal.crash_handler.raise_crashdlg()
