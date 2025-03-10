@@ -27,7 +27,6 @@
   "types-colorama": "https://github.com/python/typeshed/commits/main/stubs/colorama",
   "types-docutils": "https://github.com/python/typeshed/commits/main/stubs/docutils",
   "types-Pygments": "https://github.com/python/typeshed/commits/main/stubs/Pygments",
-  "types-setuptools": "https://github.com/python/typeshed/commits/main/stubs/setuptools",
   "pytest": "https://docs.pytest.org/en/latest/changelog.html",
   "iniconfig": "https://github.com/pytest-dev/iniconfig/blob/master/CHANGELOG",
   "tox": "https://tox.readthedocs.io/en/latest/changelog.html",
