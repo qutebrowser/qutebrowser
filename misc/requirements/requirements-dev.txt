@@ -56,7 +56,7 @@ requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.9.4
-rich-click==1.8.6
+rich-click==1.8.8
 SecretStorage==3.3.3
 sip==6.10.0
 six==1.17.0
