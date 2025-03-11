@@ -6,7 +6,7 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 bracex==2.5.post1
 build==1.2.2.post1
-bump-my-version==1.0.0
+bump-my-version==1.0.2
 certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
@@ -56,7 +56,7 @@ requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.9.4
-rich-click==1.8.6
+rich-click==1.8.8
 SecretStorage==3.3.3
 sip==6.10.0
 six==1.17.0
