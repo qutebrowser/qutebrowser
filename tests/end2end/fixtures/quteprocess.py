@@ -241,6 +241,10 @@ def is_ignored_chromium_message(line):
         # [7072:3412:1209/220659.527:ERROR:simple_index_file.cc(322)] Failed to
         # write the temporary index file
         "Failed to write the temporary index file",
+
+        # Qt 6.9 Beta 3 on GitHub Actions
+        # [978:1041:0311/070551.759339:ERROR:bus.cc(407)]
+        "Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
