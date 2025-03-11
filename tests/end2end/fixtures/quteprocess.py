@@ -549,6 +549,7 @@ class QuteProc(testprocess.Process):
     def before_test(self):
         """Clear settings before every test."""
         super().before_test()
+        self.send_cmd(':clear-messages')
         self.send_cmd(':config-clear')
         self._init_settings()
         self.clear_data()
