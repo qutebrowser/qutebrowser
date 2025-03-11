@@ -4,6 +4,7 @@
 
 """The main tabbed browser widget."""
 
+import os
 import signal
 import collections
 import functools
@@ -1011,11 +1012,11 @@ class TabbedBrowser(QWidget):
         }
 
         sig = None
-        if utils.is_posix and code > 128:
-            try:
-                sig = signal.Signals(code - 128)
-            except ValueError:
-                pass
+        try:
+            if os.WIFSIGNALED(code):
+                sig = signal.Signals(os.WTERMSIG(code))
+        except (AttributeError, ValueError):
+            pass
 
         if sig is not None:
             msg = messages[status] + f" (status {code}: {sig.name})"
