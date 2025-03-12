@@ -104,6 +104,10 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          testutils.ON_CI,
          "Skipped on CI."),
+        ('no_offscreen',
+         pytest.mark.skipif,
+         testutils.offscreen_plugin_enabled(),
+         "Skipped with offscreen platform plugin."),
         ('unicode_locale',
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
@@ -317,8 +321,17 @@ def pytest_report_header(config):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
-    if utils.is_linux and not os.environ.get('DISPLAY', ''):
+    if (
+        utils.is_linux
+        and not os.environ.get("DISPLAY", "")
+        and not testutils.offscreen_plugin_enabled()
+    ):
         raise RuntimeError("No display and no Xvfb available!")
+
+
+def pytest_xvfb_disable() -> bool:
+    """Disable Xvfb if the offscreen plugin is in use."""
+    return testutils.offscreen_plugin_enabled()
 
 
 @pytest.fixture(autouse=True)

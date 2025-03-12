@@ -323,6 +323,12 @@ SOFTWARE_RENDERING_FLAG = "--disable-gpu"
 SOFTWARE_RENDERING_ARGS = ["-s", "qt.force_software_rendering", "chromium"]
 
 
+def offscreen_plugin_enabled() -> bool:
+    """Check whether offscreen rendering is enabled."""
+    # FIXME allow configuring via custom CLI flag?
+    return os.environ["QT_QPA_PLATFORM"] == "offscreen"
+
+
 def use_software_rendering() -> bool:
     """Check whether to enforce software rendering for tests."""
     if not _has_qtwebengine():
@@ -333,6 +339,7 @@ def use_software_rendering() -> bool:
         # https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569554046
         # not on CI, but unknown how to tell apart affected / unaffected systems
         versions.webengine == utils.VersionNumber(6, 9)
+        or offscreen_plugin_enabled()
     )
 
 

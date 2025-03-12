@@ -50,7 +50,7 @@ pytest-qt==4.4.0
 pytest-repeat==0.9.3
 pytest-rerunfailures==15.0
 pytest-xdist==3.6.1
-pytest-xvfb==3.0.0
+pytest-xvfb==3.1.1
 PyVirtualDisplay==3.0
 requests==2.32.3
 requests-file==2.1.0
