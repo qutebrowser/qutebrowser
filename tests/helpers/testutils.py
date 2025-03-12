@@ -9,6 +9,7 @@ import re
 import enum
 import gzip
 import pprint
+import platform
 import os.path
 import contextlib
 import pathlib
@@ -267,6 +268,32 @@ DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
 DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
 
 
+def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> bool:
+    """Check if this system needs the glibc 2.41+ MAP_DISCARD workaround.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-134631
+    See https://bugs.gentoo.org/show_bug.cgi?id=949654
+    """
+    if not utils.is_posix:
+        return False
+
+    # Not fixed yet as of Qt 6.9 Beta 3
+    utils.unused(webengine_version)
+
+    libc_name, libc_version_str = platform.libc_ver()
+    if libc_name != "glibc":
+        return False
+
+    libc_version = utils.VersionNumber.parse(libc_version_str)
+    kernel_version = utils.VersionNumber.parse(os.uname().release)
+
+    # https://sourceware.org/git/?p=glibc.git;a=commit;h=461cab1
+    affected_glibc = utils.VersionNumber(2, 41)
+    affected_kernel = utils.VersionNumber(6, 11)
+
+    return libc_version >= affected_glibc and kernel_version >= affected_kernel
+
+
 def disable_seccomp_bpf_sandbox():
     """Check whether we need to disable the seccomp BPF sandbox.
 
@@ -280,7 +307,10 @@ def disable_seccomp_bpf_sandbox():
         return False
 
     versions = version.qtwebengine_versions(avoid_init=True)
-    return versions.webengine == utils.VersionNumber(5, 15, 2)
+    return (
+        versions.webengine == utils.VersionNumber(5, 15, 2)
+        or _needs_map_discard_workaround(versions.webengine)
+    )
 
 
 def import_userscript(name):
