@@ -11,7 +11,8 @@ from qutebrowser.utils import usertypes
 
 @pytest.mark.parametrize([  # noqa: PT006
     'user_agent', 'os_info', 'webkit_version',
-    'upstream_browser_key', 'upstream_browser_version', 'qt_key'
+    'upstream_browser_key', 'upstream_browser_version',
+    'upstream_browser_version_short', 'qt_key'
 ], [
     (
         # QtWebEngine, Linux
@@ -21,7 +22,7 @@ from qutebrowser.utils import usertypes
          "QtWebEngine/5.14.0 Chrome/77.0.3865.98 Safari/537.36"),
         "X11; Linux x86_64",
         "537.36",
-        "Chrome", "77.0.3865.98",
+        "Chrome", "77.0.3865.98", "77.0.0.0",
         "QtWebEngine",
     ), (
         # QtWebKit, Linux
@@ -31,7 +32,7 @@ from qutebrowser.utils import usertypes
          "Version/10.0 Safari/602.1"),
         "X11; Linux x86_64",
         "602.1",
-        "Version", "10.0",
+        "Version", "10.0", "10.0",
         "Qt",
     ), (
         # QtWebEngine, macOS
@@ -40,7 +41,7 @@ from qutebrowser.utils import usertypes
          "QtWebEngine/5.13.2 Chrome/73.0.3683.105 Safari/537.36"),
         "Macintosh; Intel Mac OS X 10_12_6",
         "537.36",
-        "Chrome", "73.0.3683.105",
+        "Chrome", "73.0.3683.105", "73.0.0.0",
         "QtWebEngine",
     ), (
         # QtWebEngine, Windows
@@ -49,18 +50,25 @@ from qutebrowser.utils import usertypes
          "QtWebEngine/5.12.5 Chrome/69.0.3497.128 Safari/537.36"),
         "Windows NT 10.0; Win64; x64",
         "537.36",
-        "Chrome", "69.0.3497.128",
+        "Chrome", "69.0.3497.128", "69.0.0.0",
         "QtWebEngine",
     )
 ])
-def test_parse_user_agent(user_agent, os_info, webkit_version,
-                          upstream_browser_key, upstream_browser_version,
-                          qt_key):
+def test_parse_user_agent(
+    user_agent: str,
+    os_info: str,
+    webkit_version: str,
+    upstream_browser_key: str,
+    upstream_browser_version: str,
+    upstream_browser_version_short: str,
+    qt_key: str,
+):
     parsed = websettings.UserAgent.parse(user_agent)
     assert parsed.os_info == os_info
     assert parsed.webkit_version == webkit_version
     assert parsed.upstream_browser_key == upstream_browser_key
     assert parsed.upstream_browser_version == upstream_browser_version
+    assert parsed.upstream_browser_version_short == upstream_browser_version_short
     assert parsed.qt_key == qt_key
 
 

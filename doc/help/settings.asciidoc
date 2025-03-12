@@ -2275,6 +2275,8 @@ The following placeholders are defined:
 * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
   QtWebEngine.
 * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+* `{upstream_browser_version_short}`: The corresponding Safari/Chrome
+  version, but only with its major version.
 * `{qutebrowser_version}`: The currently running qutebrowser version.
 
 The default value is equal to the unchanged user agent of
@@ -2289,7 +2291,7 @@ This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FormatString>>
 
-Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version_short} Safari/{webkit_version}]+
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
