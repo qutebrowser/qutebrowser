@@ -448,8 +448,11 @@ class QuteProc(testprocess.Process):
                 '--qt-flag', 'disable-features=PaintHoldingCrossOrigin',
                 '--qt-arg', 'geometry', '800x600+0+0']
 
-        if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
-            args += testutils.DISABLE_SECCOMP_BPF_ARGS
+        if self.request.config.webengine:
+            if testutils.disable_seccomp_bpf_sandbox():
+                args += testutils.DISABLE_SECCOMP_BPF_ARGS
+            if testutils.use_software_rendering():
+                args += testutils.SOFTWARE_RENDERING_ARGS
 
         args.append('about:blank')
         return args

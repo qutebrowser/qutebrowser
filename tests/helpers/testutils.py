@@ -264,6 +264,15 @@ def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
 
 
+def _has_qtwebengine() -> bool:
+    """Check whether QtWebEngine is available."""
+    try:
+        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
+    except ImportError:
+        return False
+    return True
+
+
 DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
 DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
 
@@ -294,22 +303,36 @@ def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> boo
     return libc_version >= affected_glibc and kernel_version >= affected_kernel
 
 
-def disable_seccomp_bpf_sandbox():
+
+def disable_seccomp_bpf_sandbox() -> bool:
     """Check whether we need to disable the seccomp BPF sandbox.
 
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
     """
-    try:
-        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
-    except ImportError:
-        # no QtWebEngine available
+    if not _has_qtwebengine():
         return False
-
     versions = version.qtwebengine_versions(avoid_init=True)
     return (
         versions.webengine == utils.VersionNumber(5, 15, 2)
         or _needs_map_discard_workaround(versions.webengine)
+    )
+
+
+SOFTWARE_RENDERING_FLAG = "--disable-gpu"
+SOFTWARE_RENDERING_ARGS = ["-s", "qt.force_software_rendering", "chromium"]
+
+
+def use_software_rendering() -> bool:
+    """Check whether to enforce software rendering for tests."""
+    if not _has_qtwebengine():
+        return False
+
+    versions = version.qtwebengine_versions(avoid_init=True)
+    return (
+        # https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569554046
+        # not on CI, but unknown how to tell apart affected / unaffected systems
+        versions.webengine == utils.VersionNumber(6, 9)
     )
 
 
