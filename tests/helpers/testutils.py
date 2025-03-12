@@ -303,7 +303,6 @@ def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> boo
     return libc_version >= affected_glibc and kernel_version >= affected_kernel
 
 
-
 def disable_seccomp_bpf_sandbox() -> bool:
     """Check whether we need to disable the seccomp BPF sandbox.
 
