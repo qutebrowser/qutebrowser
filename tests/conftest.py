@@ -213,11 +213,13 @@ def pytest_ignore_collect(collection_path: pathlib.Path) -> bool:
 
 
 @pytest.fixture(scope='session')
-def qapp_args():
-    """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
+def qapp_args() -> list[str]:
+    """Work around various issues when running QtWebEngine tests."""
     args = [sys.argv[0], "--webEngineArgs"]
     if testutils.disable_seccomp_bpf_sandbox():
         args.append(testutils.DISABLE_SECCOMP_BPF_FLAG)
+    if testutils.use_software_rendering():
+        args.append(testutils.SOFTWARE_RENDERING_FLAG)
 
     # Disabling PaintHoldingCrossOrigin makes tests needing UI interaction with
     # QtWebEngine more reliable.
