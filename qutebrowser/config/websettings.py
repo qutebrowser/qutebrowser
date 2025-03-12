@@ -34,6 +34,13 @@ class UserAgent:
     qt_key: str
     qt_version: Optional[str]
 
+    @property
+    def upstream_browser_version_short(self) -> str:
+        """Return a shortened version of the upstream browser version."""
+        major, *rest = self.upstream_browser_version.split('.')
+        shortened = [major] + ["0"] * (len(rest))
+        return ".".join(shortened)
+
     @classmethod
     def parse(cls, ua: str) -> 'UserAgent':
         """Parse a user agent string into its components."""
@@ -207,6 +214,7 @@ def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
         qt_version=qVersion(),
         upstream_browser_key=parsed.upstream_browser_key,
         upstream_browser_version=parsed.upstream_browser_version,
+        upstream_browser_version_short=parsed.upstream_browser_version_short,
         qutebrowser_version=qutebrowser.__version__,
     )
 

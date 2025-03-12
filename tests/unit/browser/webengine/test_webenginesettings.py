@@ -151,8 +151,11 @@ def test_spell_check_disabled(config_stub, monkeypatch, global_settings,
 def test_parsed_user_agent(qapp):
     webenginesettings.init_user_agent()
     parsed = webenginesettings.parsed_user_agent
+    assert parsed is not None
     assert parsed.upstream_browser_key == 'Chrome'
     assert parsed.qt_key == 'QtWebEngine'
+    assert not parsed.upstream_browser_version.endswith(".0.0.0")
+    assert parsed.upstream_browser_version_short.endswith(".0.0.0")
 
 
 def test_profile_setter_settings(private_profile, configdata_init):

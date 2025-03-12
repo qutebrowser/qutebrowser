@@ -19,6 +19,13 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.4.1 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- The `content.headers.user_agent` setting now has a new
+  `{upstream_browser_version_short}` template field, which is the
+  upstream/Chromium version but shortened to only major version.
+
 Fixed
 ~~~~~
 
@@ -27,6 +34,8 @@ Fixed
   QtWebEngine and now correctly disabled on the JS side. (#8449)
 - Crash when a buggy notification presenter returns a duplicate ID (now an
   error is shown instead).
+- The default user agent now only contains the shortened Chromium version
+  number, which fixes overzealous blocking on ScienceDirect.
 
 [[v3.4.0]]
 v3.4.0 (2024-12-14)

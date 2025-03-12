@@ -378,6 +378,12 @@ def _update_settings(option):
 def _init_user_agent_str(ua):
     global parsed_user_agent
     parsed_user_agent = websettings.UserAgent.parse(ua)
+    if parsed_user_agent.upstream_browser_version.endswith(".0.0.0"):
+        # https://codereview.qt-project.org/c/qt/qtwebengine/+/616314
+        # but we still want the full version available to users if they want it.
+        qtwe_versions = version.qtwebengine_versions()
+        assert qtwe_versions.chromium is not None
+        parsed_user_agent.upstream_browser_version = qtwe_versions.chromium
 
 
 def init_user_agent():
@@ -487,11 +493,11 @@ def _init_site_specific_quirks():
     # default_ua = ("Mozilla/5.0 ({os_info}) "
     #               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
     #               "{qt_key}/{qt_version} "
-    #               "{upstream_browser_key}/{upstream_browser_version} "
+    #               "{upstream_browser_key}/{upstream_browser_version_short} "
     #               "Safari/{webkit_version}")
     no_qtwe_ua = ("Mozilla/5.0 ({os_info}) "
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
-                  "{upstream_browser_key}/{upstream_browser_version} "
+                  "{upstream_browser_key}/{upstream_browser_version_short} "
                   "Safari/{webkit_version}")
     firefox_ua = "Mozilla/5.0 ({os_info}; rv:133.0) Gecko/20100101 Firefox/133.0"
 

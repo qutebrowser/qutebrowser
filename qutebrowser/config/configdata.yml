@@ -752,7 +752,7 @@ content.headers.referer:
 content.headers.user_agent:
   default: 'Mozilla/5.0 ({os_info})
       AppleWebKit/{webkit_version} (KHTML, like Gecko)
-      {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version}
+      {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version_short}
       Safari/{webkit_version}'
   type:
     name: FormatString
@@ -764,6 +764,7 @@ content.headers.user_agent:
       - qt_version
       - upstream_browser_key
       - upstream_browser_version
+      - upstream_browser_version_short
       - qutebrowser_version
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
@@ -795,6 +796,8 @@ content.headers.user_agent:
     * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
       QtWebEngine.
     * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+    * `{upstream_browser_version_short}`: The corresponding Safari/Chrome
+      version, but only with its major version.
     * `{qutebrowser_version}`: The currently running qutebrowser version.
 
     The default value is equal to the unchanged user agent of
