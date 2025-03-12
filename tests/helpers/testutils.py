@@ -325,7 +325,7 @@ SOFTWARE_RENDERING_ARGS = ["-s", "qt.force_software_rendering", "chromium"]
 def offscreen_plugin_enabled() -> bool:
     """Check whether offscreen rendering is enabled."""
     # FIXME allow configuring via custom CLI flag?
-    return os.environ["QT_QPA_PLATFORM"] == "offscreen"
+    return os.environ.get("QT_QPA_PLATFORM") == "offscreen"
 
 
 def use_software_rendering() -> bool:
