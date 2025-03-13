@@ -70,45 +70,43 @@ echo "message-info 'Looking for password for $URL...'" >> "$QUTE_FIFO"
 
 if [ -f "$TOKEN_CACHE" ]; then
     TOKEN=$(cat "$TOKEN_CACHE")
-    if ! op signin --session="$TOKEN" --output=raw > /dev/null; then
-        TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
+    if ! op signin --session="$TOKEN" --raw > /dev/null; then
+        TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --raw)
         echo "$TOKEN" > "$TOKEN_CACHE"
     fi
 else
-    TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
+    TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --raw)
     install -m 600 /dev/null "$TOKEN_CACHE"
     echo "$TOKEN" > "$TOKEN_CACHE"
 fi
 
 
 if [ -n "$TOKEN" ]; then
-    UUID=$(op list items --cache --session="$TOKEN" | jq --arg url "$URL" -r '[.[] | {uuid, url: [.overview.URLs[]?.u, .overview.url][]?} | select(.uuid != null) | select(.url != null) | select(.url|test(".*\($url).*"))][.0].uuid') || UUID="" 
-
+    UUID=$(op item list --cache --session="$TOKEN" --format=json | jq -r '.[]| first(select(.category ==
+	"LOGIN" and (.urls | length) > 0 and (.urls[].href | ascii_downcase |  contains("'"$URL"'")))).id') || UUID="" 
     if [ -z "$UUID" ] || [ "$UUID" == "null" ];then
         echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
-        TITLE=$(op list items --cache --session="$TOKEN" | jq -r '.[].overview.title' | rofi -dmenu -i) || TITLE=""
+        TITLE=$(op item list --cache --session="$TOKEN" --format=json | jq -r '.[].title' | rofi -dmenu -i) || TITLE=""
         if [ -n "$TITLE" ]; then
-            UUID=$(op list items --cache --session="$TOKEN" | jq --arg title "$TITLE" -r '[.[] | {uuid, title:.overview.title}|select(.title|test("\($title)"))][.0].uuid') || UUID=""
+				UUID=$(op item list --cache --session="$TOKEN" --format=json | jq -r '.[]| select(.category == "LOGIN" and (.title | contains("'"$TITLE"'")) | .id') || UUID=""
         else
             UUID=""
         fi
     fi
 
     if [ -n "$UUID" ];then
-        ITEM=$(op get item --cache --session="$TOKEN" "$UUID")
-
-        PASSWORD=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="password") | .value')
+        ITEM=$(op item get --cache --session="$TOKEN" "$UUID" --format=json)
+        PASSWORD=$(echo "$ITEM" | jq -r '.fields | .[] | select(.label=="password") | .value')
 
         if [ -n "$PASSWORD" ]; then
-            TITLE=$(echo "$ITEM" | jq -r '.overview.title')
-            USERNAME=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="username") | .value')
+            TITLE=$(echo "$ITEM" | jq -r '.title')
+            USERNAME=$(echo "$ITEM" | jq -r '.fields | .[] | select(.label=="username") | .value')
 
             printjs() {
                 js | sed 's,//.*$,,' | tr '\n' ' '
             }
             echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
-
-            TOTP=$(echo "$ITEM" | op get totp --cache --session="$TOKEN" "$UUID") || TOTP=""
+			TOTP=$(echo "$ITEM" | op item get --otp --cache --session="$TOKEN" "$UUID") || TOTP=""
             if [ -n "$TOTP" ]; then
                 echo "$TOTP" | xclip -in -selection clipboard
                 echo "message-info 'Pasted one time password for $TITLE to clipboard'" >> "$QUTE_FIFO" 
