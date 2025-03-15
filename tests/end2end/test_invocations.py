@@ -515,6 +515,10 @@ def test_preferred_colorscheme_with_dark_mode(
         '-s', 'colors.webpage.darkmode.enabled', 'true',
         '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
     ]
+    if webengine_versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND: For unknown reasons, dark mode colors are wrong with
+        # Qt 6.9 + hardware rendering + Xvfb.
+        args += testutils.SOFTWARE_RENDERING_ARGS
     quteproc_new.start(args)
 
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
@@ -741,10 +745,13 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
         '-s', 'colors.webpage.darkmode.enabled', 'true',
         '-s', 'colors.webpage.darkmode.algorithm', algorithm,
     ]
-    quteproc_new.start(args)
+    if webengine_versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND: For unknown reasons, dark mode colors are wrong with
+        # Qt 6.9 + hardware rendering + Xvfb.
+        args += testutils.SOFTWARE_RENDERING_ARGS
 
-    ver = webengine_versions.webengine
-    minor_version = str(ver.strip_patch())
+    quteproc_new.start(args)
+    minor_version = str(webengine_versions.webengine.strip_patch())
 
     arch = platform.machine()
     for key in [
@@ -777,6 +784,11 @@ def test_dark_mode_mathml(webengine_versions, quteproc_new, request, qtbot, suff
         '-s', 'colors.webpage.darkmode.enabled', 'true',
         '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
     ]
+    if webengine_versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND: For unknown reasons, dark mode colors are wrong with
+        # Qt 6.9 + hardware rendering + Xvfb.
+        args += testutils.SOFTWARE_RENDERING_ARGS
+
     quteproc_new.start(args)
 
     quteproc_new.open_path(f'data/darkmode/mathml-{suffix}.html')

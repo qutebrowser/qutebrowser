@@ -330,16 +330,7 @@ def offscreen_plugin_enabled() -> bool:
 
 def use_software_rendering() -> bool:
     """Check whether to enforce software rendering for tests."""
-    if not _has_qtwebengine():
-        return False
-
-    versions = version.qtwebengine_versions(avoid_init=True)
-    return (
-        # https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569554046
-        # not on CI, but unknown how to tell apart affected / unaffected systems
-        versions.webengine == utils.VersionNumber(6, 9)
-        or offscreen_plugin_enabled()
-    )
+    return _has_qtwebengine() and offscreen_plugin_enabled()
 
 
 def import_userscript(name):
