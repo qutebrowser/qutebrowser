@@ -749,7 +749,7 @@ class TestProxyFromUrl:
 class TestParseJavascriptUrl:
 
     @pytest.mark.parametrize('url, message', [
-        (QUrl(), ""),
+        (QUrl(), "Invalid URL"),
         (QUrl('https://example.com'), "Expected a javascript:... URL"),
         (QUrl('javascript://example.com'),
          "URL contains unexpected components: example.com"),
