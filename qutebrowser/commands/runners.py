@@ -7,13 +7,14 @@
 import traceback
 import re
 import contextlib
-from typing import TYPE_CHECKING, Callable, Dict, Tuple, Iterator, Mapping, MutableMapping
+from typing import TYPE_CHECKING
+from collections.abc import Iterator, Mapping, MutableMapping, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, parser
-from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils, urlutils
 from qutebrowser.keyinput import macros, modeman
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
 _ReplacementFunction = Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 
-last_command: Dict[usertypes.KeyMode, Tuple[str, int]] = {}
+last_command: dict[usertypes.KeyMode, tuple[str, int]] = {}
 
 
 def _url(tabbed_browser):
@@ -38,7 +39,7 @@ def _url(tabbed_browser):
 
 def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
-    replacements: Dict[str, _ReplacementFunction] = {
+    replacements: dict[str, _ReplacementFunction] = {
         'url': lambda tb: _url(tb).toString(
             QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword),
         'url:pretty': lambda tb: _url(tb).toString(
@@ -57,6 +58,8 @@ def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
             _url(tb).port()) if _url(tb).port() != -1 else "",
         'url:path': lambda tb: _url(tb).path(),
         'url:query': lambda tb: _url(tb).query(),
+        'url:yank': lambda tb: urlutils.get_url_yank_text(_url(tb),
+                                                          pretty=False),
         'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
         'clipboard': lambda _: utils.get_clipboard(),
         'primary': lambda _: utils.get_clipboard(selection=True),

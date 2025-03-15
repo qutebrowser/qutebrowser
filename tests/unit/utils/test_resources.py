@@ -79,7 +79,7 @@ class TestReadFile:
                                           'html/error.html'])
     def test_read_cached_file(self, mocker, filename):
         resources.preload()
-        m = mocker.patch('qutebrowser.utils.resources.importlib_resources.files')
+        m = mocker.patch('qutebrowser.utils.resources.importlib.resources.files')
         resources.read_file(filename)
         m.assert_not_called()
 
@@ -111,7 +111,7 @@ class TestReadFile:
                 return self
 
         if fake_exception is not None:
-            monkeypatch.setattr(resources.importlib_resources, 'files',
+            monkeypatch.setattr(resources.importlib.resources, 'files',
                                 lambda _pkg: BrokenFileFake(fake_exception))
 
         meth = getattr(resources, name)

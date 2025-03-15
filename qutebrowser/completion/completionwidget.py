@@ -4,7 +4,7 @@
 
 """Completion view for statusbar command section.
 
-Defines a CompletionView which uses CompletionFiterModel and CompletionModel
+Defines a CompletionView which uses CompletionFilterModel and CompletionModel
 subclasses to provide completions.
 """
 
@@ -364,15 +364,13 @@ class CompletionView(QTreeView):
         old_model = self.model()
         if old_model is not None and model is not old_model:
             old_model.deleteLater()
-            self._selection_model().deleteLater()
-
-        self.setModel(model)
 
         if model is None:
             self._active = False
             self.hide()
             return
 
+        self.setModel(model)
         model.setParent(self)
         self._active = True
         self.pattern = None
@@ -414,7 +412,7 @@ class CompletionView(QTreeView):
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
         self.hide()
-        selmod = self._selection_model()
+        selmod = self.selectionModel()
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()

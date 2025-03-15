@@ -6,6 +6,7 @@ Feature: Opening pages
         And I wait until data/numbers/1.txt is loaded
         And I run :tab-only
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -13,6 +14,7 @@ Feature: Opening pages
                 - url: about:blank
                 - active: true
                   url: http://localhost:*/data/numbers/1.txt
+            """
 
     Scenario: :open without URL
         When I set url.default_page to http://localhost:(port)/data/numbers/11.txt
@@ -46,8 +48,10 @@ Feature: Opening pages
         And I run :open -t http://localhost:(port)/data/numbers/4.txt
         And I wait until data/numbers/4.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/numbers/4.txt (active)
+            """
 
     Scenario: Opening in a new background tab
         Given I open about:blank
@@ -55,8 +59,10 @@ Feature: Opening pages
         And I run :open -b http://localhost:(port)/data/numbers/5.txt
         And I wait until data/numbers/5.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank (active)
             - data/numbers/5.txt
+            """
 
     Scenario: :open with count
         Given I open about:blank
@@ -65,6 +71,7 @@ Feature: Opening pages
         And I run :open http://localhost:(port)/data/numbers/6.txt with count 2
         And I wait until data/numbers/6.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - history:
@@ -74,6 +81,7 @@ Feature: Opening pages
                 - url: about:blank
                 - active: true
                   url: http://localhost:*/data/numbers/6.txt
+            """
 
     Scenario: Opening in a new tab (unrelated)
         Given I open about:blank
@@ -83,8 +91,10 @@ Feature: Opening pages
         And I run :open -t http://localhost:(port)/data/numbers/7.txt
         And I wait until data/numbers/7.txt is loaded
         Then the following tabs should be open:
+            """
             - about:blank
             - data/numbers/7.txt (active)
+            """
 
     Scenario: Opening in a new tab (related)
         Given I open about:blank
@@ -94,8 +104,10 @@ Feature: Opening pages
         And I run :open -t --related http://localhost:(port)/data/numbers/8.txt
         And I wait until data/numbers/8.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/8.txt (active)
             - about:blank
+            """
 
     Scenario: Opening in a new window
         Given I open about:blank
@@ -103,6 +115,7 @@ Feature: Opening pages
         And I run :open -w http://localhost:(port)/data/numbers/9.txt
         And I wait until data/numbers/9.txt is loaded
         Then the session should look like:
+            """
             windows:
             - tabs:
               - active: true
@@ -114,6 +127,7 @@ Feature: Opening pages
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/9.txt
+            """
 
     Scenario: Opening a quickmark
         When I run :quickmark-add http://localhost:(port)/data/numbers/10.txt quickmarktest

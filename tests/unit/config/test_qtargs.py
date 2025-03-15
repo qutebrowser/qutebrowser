@@ -448,6 +448,39 @@ class TestWebEngineArgs:
         expected = ['--disable-features=InstalledApp'] if has_workaround else []
         assert disable_features_args == expected
 
+    @pytest.mark.parametrize('qt_version, has_workaround', [
+        # Qt 6.6
+        ('6.6.3', False),
+        # Qt 6.7
+        ('6.7.0', True),
+        ('6.7.1', True),
+        ('6.7.2', True),
+        ('6.7.3', True),
+        # Qt 6.8
+        ('6.8.0', True),
+        ('6.8.1', True),
+        ('6.8.2', True),  # tbd
+        ('6.8.3', True),  # tbd
+        # Qt 6.9
+        ('6.9.0', True),  # tbd
+        ('6.9.1', True),  # tbd
+    ])
+    def test_document_pip_workaround(
+        self, parser, version_patcher, qt_version, has_workaround
+    ):
+        version_patcher(qt_version)
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+        disable_features_args = [
+            arg for arg in args
+            if arg.startswith(qtargs._DISABLE_FEATURES)
+        ]
+
+        flag = "--disable-features=DocumentPictureInPictureAPI"
+        expected = [flag] if has_workaround else []
+        assert disable_features_args == expected
+
     @pytest.mark.parametrize('enabled', [True, False])
     def test_media_keys(self, config_stub, parser, enabled):
         config_stub.val.input.media_keys = enabled

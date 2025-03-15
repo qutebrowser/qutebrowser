@@ -9,11 +9,14 @@ import re
 import enum
 import gzip
 import pprint
+import platform
 import os.path
 import contextlib
 import pathlib
+import subprocess
 import importlib.util
 import importlib.machinery
+from typing import Optional
 
 import pytest
 
@@ -261,24 +264,73 @@ def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
 
 
+def _has_qtwebengine() -> bool:
+    """Check whether QtWebEngine is available."""
+    try:
+        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
+    except ImportError:
+        return False
+    return True
+
+
 DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
 DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
 
 
-def disable_seccomp_bpf_sandbox():
+def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> bool:
+    """Check if this system needs the glibc 2.41+ MAP_DISCARD workaround.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-134631
+    See https://bugs.gentoo.org/show_bug.cgi?id=949654
+    """
+    if not utils.is_posix:
+        return False
+
+    # Not fixed yet as of Qt 6.9 Beta 3
+    utils.unused(webengine_version)
+
+    libc_name, libc_version_str = platform.libc_ver()
+    if libc_name != "glibc":
+        return False
+
+    libc_version = utils.VersionNumber.parse(libc_version_str)
+    kernel_version = utils.VersionNumber.parse(os.uname().release)
+
+    # https://sourceware.org/git/?p=glibc.git;a=commit;h=461cab1
+    affected_glibc = utils.VersionNumber(2, 41)
+    affected_kernel = utils.VersionNumber(6, 11)
+
+    return libc_version >= affected_glibc and kernel_version >= affected_kernel
+
+
+def disable_seccomp_bpf_sandbox() -> bool:
     """Check whether we need to disable the seccomp BPF sandbox.
 
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
     """
-    try:
-        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
-    except ImportError:
-        # no QtWebEngine available
+    if not _has_qtwebengine():
         return False
-
     versions = version.qtwebengine_versions(avoid_init=True)
-    return versions.webengine == utils.VersionNumber(5, 15, 2)
+    return (
+        versions.webengine == utils.VersionNumber(5, 15, 2)
+        or _needs_map_discard_workaround(versions.webengine)
+    )
+
+
+SOFTWARE_RENDERING_FLAG = "--disable-gpu"
+SOFTWARE_RENDERING_ARGS = ["-s", "qt.force_software_rendering", "chromium"]
+
+
+def offscreen_plugin_enabled() -> bool:
+    """Check whether offscreen rendering is enabled."""
+    # FIXME allow configuring via custom CLI flag?
+    return os.environ.get("QT_QPA_PLATFORM") == "offscreen"
+
+
+def use_software_rendering() -> bool:
+    """Check whether to enforce software rendering for tests."""
+    return _has_qtwebengine() and offscreen_plugin_enabled()
 
 
 def import_userscript(name):
@@ -310,3 +362,20 @@ def enum_members(base, enumtype):
             for name, value in vars(base).items()
             if isinstance(value, enumtype)
         }
+
+
+def is_userns_restricted() -> Optional[bool]:
+    if not utils.is_linux:
+        return None
+
+    try:
+        proc = subprocess.run(
+            ["sysctl", "-n", "kernel.apparmor_restrict_unprivileged_userns"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+    return proc.stdout.strip() == "1"

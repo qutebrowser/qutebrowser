@@ -186,8 +186,10 @@ Feature: Downloading things from a website.
         And I run :download-retry
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then the requests should be:
+            """
             does-not-exist
             does-not-exist
+            """
 
     @flaky
     Scenario: Retrying with count
@@ -197,9 +199,11 @@ Feature: Downloading things from a website.
         And I run :download-retry with count 2
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then the requests should be:
+            """
             data/downloads/download.bin
             does-not-exist
             does-not-exist
+            """
 
     Scenario: Retrying with two failed downloads
         When I run :download http://localhost:(port)/does-not-exist
@@ -209,9 +213,11 @@ Feature: Downloading things from a website.
         And I run :download-retry
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then the requests should be:
+            """
             does-not-exist
             does-not-exist-2
             does-not-exist
+            """
 
     Scenario: Retrying a download which does not exist
         When I run :download-retry with count 42
@@ -257,14 +263,14 @@ Feature: Downloading things from a website.
         And I wait for "File successfully written." in the log
         Then the downloaded file Test title.mhtml should exist
 
-    @qtwebengine_skip: QtWebEngine refuses to load this
+    @qtwebengine_skip  # QtWebEngine refuses to load this
     Scenario: Downloading as mhtml with non-ASCII headers
         When I open response-headers?Content-Type=text%2Fpl%C3%A4in
         And I run :download --mhtml --dest mhtml-response-headers.mhtml
         And I wait for "File successfully written." in the log
         Then the downloaded file mhtml-response-headers.mhtml should exist
 
-    @qtwebengine_skip: https://github.com/qutebrowser/qutebrowser/issues/2288
+    @qtwebengine_skip  # https://github.com/qutebrowser/qutebrowser/issues/2288
     Scenario: Overwriting existing mhtml file
         When I set downloads.location.prompt to true
         And I open data/title.html
@@ -324,7 +330,7 @@ Feature: Downloading things from a website.
         And "cancelled" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/1535
-    @qtwebengine_todo: :download --mhtml is not implemented yet
+    @qtwebengine_todo  # :download --mhtml is not implemented yet
     Scenario: Cancelling an MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
         And I run :download --mhtml
@@ -645,7 +651,7 @@ Feature: Downloading things from a website.
         And I set content.pdfjs to true
         And I open data/misc/test.pdf without waiting
         And I wait until PDF.js is ready
-        And I run :click-element id download
+        And I run :jseval (document.getElementById("downloadButton") || document.getElementById("download")).click()
         And I clear the log
         And I wait until the download is finished
         # We get viewer.html as name on QtWebKit...
@@ -663,14 +669,14 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
 
-    @qtwebengine_skip: We can't get the UA from the page there
+    @qtwebengine_skip  # We can't get the UA from the page there
     Scenario: user-agent when using :download
         When I open user-agent
         And I run :download --dest user-agent
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 
-    @qtwebengine_skip: We can't get the UA from the page there
+    @qtwebengine_skip  # We can't get the UA from the page there
     Scenario: user-agent when using hints
         When I open /
         And I run :hint links download
@@ -678,7 +684,7 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 
-    @qtwebengine_skip: Handled by QtWebEngine, not by us
+    @qtwebengine_skip  # Handled by QtWebEngine, not by us
     Scenario: Downloading a "Internal server error" with disposition: inline (#2304)
         When I set downloads.location.prompt to false
         And I open 500-inline
@@ -712,3 +718,4 @@ Feature: Downloading things from a website.
         And I wait for "Asking question *" in the log
         And I run :prompt-fileselect-external
         Then the error "Can only launch external fileselect for FilenamePrompt, not LineEditPrompt" should be shown
+        And I run :mode-leave

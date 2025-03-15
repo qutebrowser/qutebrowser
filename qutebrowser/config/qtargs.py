@@ -8,7 +8,11 @@ import os
 import sys
 import argparse
 import pathlib
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union, Callable
+# Using deprecated typing.Callable as a WORKAROUND because
+# collections.abc.Callable inside Optional[...]/Union[...]
+# is broken on Python 3.9.0 and 3.9.1
+from typing import Any, Optional, Union, Callable
+from collections.abc import Iterator, Sequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QLocale
@@ -23,7 +27,7 @@ _DISABLE_FEATURES = '--disable-features='
 _BLINK_SETTINGS = '--blink-settings='
 
 
-def qt_args(namespace: argparse.Namespace) -> List[str]:
+def qt_args(namespace: argparse.Namespace) -> list[str]:
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -77,7 +81,7 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
 def _qtwebengine_features(
         versions: version.WebEngineVersions,
         special_flags: Sequence[str],
-) -> Tuple[Sequence[str], Sequence[str]]:
+) -> tuple[Sequence[str], Sequence[str]]:
     """Get a tuple of --enable-features/--disable-features flags for QtWebEngine.
 
     Args:
@@ -91,10 +95,10 @@ def _qtwebengine_features(
 
     for flag in special_flags:
         if flag.startswith(_ENABLE_FEATURES):
-            flag = flag[len(_ENABLE_FEATURES):]
+            flag = flag.removeprefix(_ENABLE_FEATURES)
             enabled_features += flag.split(',')
         elif flag.startswith(_DISABLE_FEATURES):
-            flag = flag[len(_DISABLE_FEATURES):]
+            flag = flag.removeprefix(_DISABLE_FEATURES)
             disabled_features += flag.split(',')
         elif flag.startswith(_BLINK_SETTINGS):
             pass
@@ -150,6 +154,11 @@ def _qtwebengine_features(
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89740
         disabled_features.append('InstalledApp')
 
+    if versions.webengine >= utils.VersionNumber(6, 7):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-132681
+        # TODO adjust if fixed in Qt 6.8.2/.3 or 6.9.0/.1
+        disabled_features.append('DocumentPictureInPictureAPI')
+
     if not config.val.input.media_keys:
         disabled_features.append('HardwareMediaKeyHandling')
 
@@ -167,7 +176,7 @@ def _get_pak_name(locale_name: str) -> str:
     Based on Chromium's behavior in l10n_util::CheckAndResolveLocale:
     https://source.chromium.org/chromium/chromium/src/+/master:ui/base/l10n/l10n_util.cc;l=344-428;drc=43d5378f7f363dab9271ca37774c71176c9e7b69
     """
-    if locale_name in {'en', 'en-PH', 'en-LR'}:
+    if locale_name in {'en', 'en-POSIX', 'en-PH', 'en-LR'}:
         return 'en-US'
     elif locale_name.startswith('en-'):
         return 'en-GB'
@@ -285,7 +294,7 @@ _SettingValueType = Union[
         Optional[str],
     ],
 ]
-_WEBENGINE_SETTINGS: Dict[str, Dict[Any, Optional[_SettingValueType]]] = {
+_WEBENGINE_SETTINGS: dict[str, dict[Any, Optional[_SettingValueType]]] = {
     'qt.force_software_rendering': {
         'software-opengl': None,
         'qt-quick': None,

@@ -11,6 +11,7 @@ import ssl
 
 import pytest
 import hypothesis
+import hypothesis.database
 
 pytest.register_assert_rewrite('helpers')
 
@@ -33,19 +34,28 @@ _qute_scheme_handler = None
 
 
 # Set hypothesis settings
+hypothesis_optional_kwargs = {}
+if "HYPOTHESIS_EXAMPLES_DIR" in os.environ:
+    hypothesis_optional_kwargs[
+        "database"
+    ] = hypothesis.database.DirectoryBasedExampleDatabase(
+        os.environ["HYPOTHESIS_EXAMPLES_DIR"]
+    )
+
 hypothesis.settings.register_profile(
     'default', hypothesis.settings(
         deadline=600,
         suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
+        **hypothesis_optional_kwargs,
     )
 )
 hypothesis.settings.register_profile(
     'ci', hypothesis.settings(
-        deadline=None,
+        hypothesis.settings.get_profile('ci'),
         suppress_health_check=[
             hypothesis.HealthCheck.function_scoped_fixture,
-            hypothesis.HealthCheck.too_slow
-        ]
+        ],
+        **hypothesis_optional_kwargs,
     )
 )
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
@@ -94,6 +104,10 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          testutils.ON_CI,
          "Skipped on CI."),
+        ('no_offscreen',
+         pytest.mark.skipif,
+         testutils.offscreen_plugin_enabled(),
+         "Skipped with offscreen platform plugin."),
         ('unicode_locale',
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
@@ -112,6 +126,17 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          not config.webengine and ssl.OPENSSL_VERSION_INFO[0] == 3,
          "Failing due to cheroot: https://github.com/cherrypy/cheroot/issues/346"),
+        (
+            "qt69_ci_flaky",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
+            pytest.mark.flaky,
+            (
+                config.webengine
+                and version.qtwebengine_versions(avoid_init=True).webengine
+                == utils.VersionNumber(6, 9)
+                and testutils.ON_CI
+            ),
+            "Flaky with QtWebEngine 6.9 on CI",
+        ),
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
@@ -192,16 +217,20 @@ def pytest_ignore_collect(collection_path: pathlib.Path) -> bool:
 
 
 @pytest.fixture(scope='session')
-def qapp_args():
-    """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
+def qapp_args() -> list[str]:
+    """Work around various issues when running QtWebEngine tests."""
+    args = [sys.argv[0], "--webEngineArgs"]
     if testutils.disable_seccomp_bpf_sandbox():
-        return [sys.argv[0], testutils.DISABLE_SECCOMP_BPF_FLAG]
+        args.append(testutils.DISABLE_SECCOMP_BPF_FLAG)
+    if testutils.use_software_rendering():
+        args.append(testutils.SOFTWARE_RENDERING_FLAG)
 
     # Disabling PaintHoldingCrossOrigin makes tests needing UI interaction with
     # QtWebEngine more reliable.
     # Only needed with QtWebEngine and Qt 6.5, but Qt just ignores arguments it
     # doesn't know about anyways.
-    return [sys.argv[0], "--webEngineArgs", "--disable-features=PaintHoldingCrossOrigin"]
+    args.append("--disable-features=PaintHoldingCrossOrigin")
+    return args
 
 
 @pytest.fixture(scope='session')
@@ -218,6 +247,8 @@ def pytest_addoption(parser):
                      help="Delay (in ms) after qutebrowser process started.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
+    parser.addoption('--qute-strace-subprocs', action='store_true',
+                     default=False, help="Run strace for subprocesses.")
     parser.addoption('--qute-backend', action='store',
                      choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
@@ -290,8 +321,17 @@ def pytest_report_header(config):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
-    if utils.is_linux and not os.environ.get('DISPLAY', ''):
+    if (
+        utils.is_linux
+        and not os.environ.get("DISPLAY", "")
+        and not testutils.offscreen_plugin_enabled()
+    ):
         raise RuntimeError("No display and no Xvfb available!")
+
+
+def pytest_xvfb_disable() -> bool:
+    """Disable Xvfb if the offscreen plugin is in use."""
+    return testutils.offscreen_plugin_enabled()
 
 
 @pytest.fixture(autouse=True)
@@ -339,13 +379,24 @@ def apply_fake_os(monkeypatch, request):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on CI.
-
-    Not available yet with a nightly Python, see:
-    https://github.com/yaml/pyyaml/issues/630
-    """
-    if testutils.ON_CI and sys.version_info[:2] != (3, 11):
+    """Make sure PyYAML C extensions are available on CI."""
+    if testutils.ON_CI:
         from yaml import CLoader  # pylint: disable=unused-import
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_qtwe_dict_path(
+    tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest,
+) -> None:
+    """Initialize spell checking dictionaries for QtWebEngine.
+
+    QtWebEngine stores the dictionary path in a static variable, so we can't do
+    this per-test. Hence the session-scope on this fixture.
+    """
+    if request.config.webengine:  # type: ignore[att-defined]
+        # Set an empty directory path, this is enough for QtWebEngine to not complain.
+        dictionary_dir = tmp_path_factory.mktemp("qtwebengine_dictionaries")
+        os.environ["QTWEBENGINE_DICTIONARIES_PATH"] = str(dictionary_dir)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -361,7 +412,8 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_terminal_summary(terminalreporter):
-    """Group benchmark results on CI."""
+    """Add custom pytest summary sections."""
+    # Group benchmark results on CI.
     if testutils.ON_CI:
         terminalreporter.write_line(
             testutils.gha_group_begin('Benchmark results'))
@@ -369,3 +421,21 @@ def pytest_terminal_summary(terminalreporter):
         terminalreporter.write_line(testutils.gha_group_end())
     else:
         yield
+
+    # List any screenshots of failed end2end tests that were generated during
+    # the run. Screenshots are captured from QuteProc.after_test()
+    properties = lambda report: dict(report.user_properties)
+    reports = [
+        report
+        for report in terminalreporter.getreports("")
+        if "screenshot" in properties(report)
+    ]
+    screenshots = [
+        pathlib.Path(properties(report)["screenshot"])
+        for report in reports
+    ]
+
+    if screenshots:
+        terminalreporter.ensure_newline()
+        screenshot_dir = screenshots[0].parent
+        terminalreporter.section(f"End2end screenshots available in: {screenshot_dir}", sep="-", blue=True, bold=True)

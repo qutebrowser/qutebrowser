@@ -106,6 +106,8 @@ The following userscripts can be found on their own repositories.
   More powerfully manage single window sessions
 - [qutebrowser-url-mutator](https://codeberg.org/mister_monster/qutebrowser-url-mutator):
   automatically mutates input URLs based on configurable rules
+- [qute-translate-popup](https://github.com/JohnBardoe/qute-translate-popup):
+  selected text translation, with a qute popup!
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

@@ -39,6 +39,7 @@ def test_command_expansion(quteproc, send_msg, recv_msg):
 @pytest.mark.parametrize('send_msg, recv_msg, url', [
     ('foo{title}', 'fooTest title', 'data/title.html'),
     ('foo{url:query}', 'fooq=bar', 'data/hello.txt?q=bar'),
+    ('foo{url:yank}', 'foohttp://localhost:*/hello.txt', 'data/hello.txt?ref=test'),
 
     # multiple variable expansion
     ('{title}bar{url}', 'Test titlebarhttp://localhost:*/title.html', 'data/title.html'),

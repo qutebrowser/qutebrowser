@@ -41,7 +41,7 @@ $(TEMPLATE_DMG):
 	@echo
 	@echo --------------------- Generating empty template --------------------
 	mkdir template
-	hdiutil create -fs HFSX -layout SPUD -size $(TEMPLATE_SIZE) "$(TEMPLATE_DMG)" -srcfolder template -format UDRW -volname "$(NAME)" -quiet
+	for i in {1..30}; do hdiutil create -fs HFSX -layout SPUD -size $(TEMPLATE_SIZE) "$(TEMPLATE_DMG)" -srcfolder template -format UDRW -volname "$(NAME)" -quiet && break; sleep 2; done
 	rmdir template
 
 $(WC_DMG): $(TEMPLATE_DMG)
@@ -60,7 +60,7 @@ $(MASTER_DMG): $(WC_DMG) $(addprefix $(SOURCE_DIR)/,$(SOURCE_FILES))
 	#rm -f "$@"
 	#hdiutil create -srcfolder "$(WC_DIR)" -format UDZO -imagekey zlib-level=9 "$@" -volname "$(NAME) $(VERSION)" -scrub -quiet
 	WC_DEV=`hdiutil info | grep "$(WC_DIR)" | grep "Apple_HFS" | awk '{print $$1}'` && \
-	hdiutil detach $$WC_DEV -force || { sleep 30; hdiutil detach $$WC_DEV -force -debug; }
+	for i in {1..30}; do hdiutil detach $$WC_DEV -force -debug && break; sleep 2; done
 	rm -f "$(MASTER_DMG)"
 	hdiutil convert "$(WC_DMG)" -quiet -format UDZO -imagekey zlib-level=9 -o "$@"
 	rm -rf $(WC_DIR)

@@ -226,7 +226,7 @@ def open_path(quteproc, server, path, default_kwargs: dict = None):
     while True:
         for suffix, value in suffixes.items():
             if path.endswith(suffix):
-                path = path[:-len(suffix) - 1]
+                path = path.removesuffix(suffix)
                 update_from_value(value, kwargs)
                 break
         else:
@@ -261,7 +261,7 @@ def run_command(quteproc, server, tmpdir, command):
 
     invalid_tag = ' (invalid command)'
     if command.endswith(invalid_tag):
-        command = command[:-len(invalid_tag)]
+        command = command.removesuffix(invalid_tag)
         invalid = True
     else:
         invalid = False
@@ -270,16 +270,18 @@ def run_command(quteproc, server, tmpdir, command):
     command = testutils.substitute_testdata(command)
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
+    command = command.replace('(rootpath)', 'C:\\' if utils.is_windows else '/')
     command = command.replace('(echo-exe)', _get_echo_exe_path())
 
     quteproc.send_cmd(command, count=count, invalid=invalid)
 
 
-@bdd.when(bdd.parsers.parse("I reload"))
-def reload(qtbot, server, quteproc):
+@bdd.when(bdd.parsers.parse("I reload {path}"))
+def reload(qtbot, server, quteproc, path):
     """Reload and wait until a new request is received."""
     with qtbot.wait_signal(server.new_request):
         quteproc.send_cmd(':reload')
+        quteproc.wait_for_load_finished(path)
 
 
 @bdd.when(bdd.parsers.parse("I wait until {path} is loaded"))
@@ -347,10 +349,9 @@ def fill_clipboard(quteproc, server, what, content):
 
 
 @bdd.when(bdd.parsers.re(r'I put the following lines into the '
-                         r'(?P<what>primary selection|clipboard):\n'
-                         r'(?P<content>.+)$', flags=re.DOTALL))
-def fill_clipboard_multiline(quteproc, server, what, content):
-    fill_clipboard(quteproc, server, what, textwrap.dedent(content))
+                         r'(?P<what>primary selection|clipboard):', flags=re.DOTALL))
+def fill_clipboard_multiline(quteproc, server, what, docstring):
+    fill_clipboard(quteproc, server, what, textwrap.dedent(docstring))
 
 
 @bdd.when(bdd.parsers.parse('I hint with args "{args}"'))
@@ -453,20 +454,20 @@ def path_should_be_requested(server, path):
     server.wait_for(verb='GET', path='/' + path)
 
 
-@bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
-def list_of_requests(server, pages):
+@bdd.then(bdd.parsers.parse("The requests should be:"))
+def list_of_requests(server, docstring):
     """Make sure the given requests were done from the webserver."""
     expected_requests = [server.ExpectedRequest('GET', '/' + path.strip())
-                         for path in pages.split('\n')]
+                         for path in docstring.split('\n')]
     actual_requests = server.get_requests()
     assert actual_requests == expected_requests
 
 
-@bdd.then(bdd.parsers.parse("The unordered requests should be:\n{pages}"))
-def list_of_requests_unordered(server, pages):
+@bdd.then(bdd.parsers.parse("The unordered requests should be:"))
+def list_of_requests_unordered(server, docstring):
     """Make sure the given requests were done (in no particular order)."""
     expected_requests = [server.ExpectedRequest('GET', '/' + path.strip())
-                         for path in pages.split('\n')]
+                         for path in docstring.split('\n')]
     actual_requests = server.get_requests()
     # Requests are not hashable, we need to convert to ExpectedRequests
     actual_requests = [server.ExpectedRequest.from_request(req)
@@ -530,21 +531,21 @@ def javascript_message_not_logged(quteproc, message):
                                message='[*] {}'.format(message))
 
 
-@bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
-def compare_session(quteproc, expected):
+@bdd.then(bdd.parsers.parse("The session should look like:"))
+def compare_session(quteproc, docstring):
     """Compare the current sessions against the given template.
 
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
-    quteproc.compare_session(expected)
+    quteproc.compare_session(docstring)
 
 
 @bdd.then(
-    bdd.parsers.parse("The session saved with {flags} should look like:\n{expected}"))
-def compare_session_flags(quteproc, flags, expected):
+    bdd.parsers.parse("The session saved with {flags} should look like:"))
+def compare_session_flags(quteproc, flags, docstring):
     """Compare the current session saved with custom flags."""
-    quteproc.compare_session(expected, flags=flags)
+    quteproc.compare_session(docstring, flags=flags)
 
 
 @bdd.then("no crash should happen")
@@ -597,17 +598,17 @@ def check_not_contents_plain(quteproc, text):
     assert text not in content
 
 
-@bdd.then(bdd.parsers.parse('the json on the page should be:\n{text}'))
-def check_contents_json(quteproc, text):
+@bdd.then(bdd.parsers.parse('the json on the page should be:'))
+def check_contents_json(quteproc, docstring):
     """Check the current page's content as json."""
     content = quteproc.get_content().strip()
-    expected = json.loads(text)
+    expected = json.loads(docstring)
     actual = json.loads(content)
     assert actual == expected
 
 
-@bdd.then(bdd.parsers.parse("the following tabs should be open:\n{expected_tabs}"))
-def check_open_tabs(quteproc, request, expected_tabs):
+@bdd.then(bdd.parsers.parse("the following tabs should be open:"))
+def check_open_tabs(quteproc, docstring):
     """Check the list of open tabs in a one window session.
 
     This is a lightweight alternative for "The session should look like: ...".
@@ -624,7 +625,7 @@ def check_open_tabs(quteproc, request, expected_tabs):
         (collapsed)
     """
     session = quteproc.get_session()
-    expected_tabs = expected_tabs.splitlines()
+    expected_tabs = docstring.splitlines()
     assert len(session['windows']) == 1
     window = session['windows'][0]
     assert len(window['tabs']) == len(expected_tabs)
@@ -716,9 +717,9 @@ def clipboard_contains(quteproc, server, what, content):
         what, json.dumps(expected)))
 
 
-@bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
-def clipboard_contains_multiline(quteproc, server, content):
-    expected = textwrap.dedent(content).replace('(port)', str(server.port))
+@bdd.then(bdd.parsers.parse('the clipboard should contain:'))
+def clipboard_contains_multiline(quteproc, server, docstring):
+    expected = textwrap.dedent(docstring).replace('(port)', str(server.port))
     quteproc.wait_for(message='Setting fake clipboard: {}'.format(
         json.dumps(expected)))
 
@@ -785,7 +786,7 @@ def set_up_fileselector(quteproc, py_proc, tmpdir, kind, files, output_type):
         tmp_file = None
         for i, arg in enumerate(sys.argv):
             if arg.startswith('--file='):
-                tmp_file = arg[len('--file='):]
+                tmp_file = arg.removeprefix('--file=')
                 sys.argv.pop(i)
                 break
         selected_files = sys.argv[1:]
@@ -805,3 +806,9 @@ def set_up_fileselector(quteproc, py_proc, tmpdir, kind, files, output_type):
     fileselect_cmd = json.dumps([cmd, *args])
     quteproc.set_setting('fileselect.handler', 'external')
     quteproc.set_setting(f'fileselect.{kind}.command', fileselect_cmd)
+
+
+@bdd.then(bdd.parsers.parse("I run {command}"))
+def run_command_then(quteproc, command):
+    """Run a qutebrowser command."""
+    quteproc.send_cmd(command)

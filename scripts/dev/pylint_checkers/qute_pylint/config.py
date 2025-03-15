@@ -50,7 +50,7 @@ class ConfigChecker(checkers.BaseChecker):
         node_str = node.as_string()
         prefix = 'config.val.'
         if node_str.startswith(prefix):
-            self._check_config(node, node_str[len(prefix):])
+            self._check_config(node, node_str.removeprefix(prefix))
 
     def _check_config(self, node, name):
         """Check that we're accessing proper config options."""

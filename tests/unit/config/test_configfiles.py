@@ -399,6 +399,7 @@ class TestYaml:
         yaml._save()
 
         if not insert and old_config is None:
+            data = {}   # unused
             lines = []
         else:
             data = autoconfig.read()
@@ -787,7 +788,7 @@ class TestYamlMigrations:
         (None, ('Mozilla/5.0 ({os_info}) '
                 'AppleWebKit/{webkit_version} (KHTML, like Gecko) '
                 '{qt_key}/{qt_version} '
-                '{upstream_browser_key}/{upstream_browser_version} '
+                '{upstream_browser_key}/{upstream_browser_version_short} '
                 'Safari/{webkit_version}')),
         ('toaster', 'toaster'),
     ])

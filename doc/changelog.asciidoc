@@ -15,9 +15,163 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.2.0]]
-v3.2.0 (unreleased)
+[[v3.4.1]]
+v3.4.1 (unreleased)
 -------------------
+
+Changed
+~~~~~~~
+
+- The `content.headers.user_agent` setting now has a new
+  `{upstream_browser_version_short}` template field, which is the
+  upstream/Chromium version but shortened to only major version.
+
+Fixed
+~~~~~
+
+- Crash when trying to use the `DocumentPictureInPicture` JS API, such as done
+  by the new Google Workspaces Huddle feature. The API is unsupported by
+  QtWebEngine and now correctly disabled on the JS side. (#8449)
+- Crash when a buggy notification presenter returns a duplicate ID (now an
+  error is shown instead).
+- The default user agent now only contains the shortened Chromium version
+  number, which fixes overzealous blocking on ScienceDirect.
+
+[[v3.4.0]]
+v3.4.0 (2024-12-14)
+-------------------
+
+Removed
+~~~~~~~
+
+- Support for Python 3.8 is dropped, and Python 3.9 is now required. (#8325)
+- Support for macOS 12 Monterey is now dropped, and binaries will be built on
+  macOS 13 Ventura. (#8327)
+- When using the installer on Windows 10, build 1809 or newer is now required
+  (previous versions required 1607 or newer, but that's not officialy supported by
+  Qt upstream). (#8336)
+
+Changed
+~~~~~~~
+
+- Windows/macOS binaries are now built with Qt 6.8.1. (#8242)
+    - Based on Chromium 122.0.6261.171
+    - With security patches up to 131.0.6778.70
+- Windows/macOS binaries are now using Python 3.13. (#8205)
+- The `.desktop` file now also declares qutebrowser as a valid viewer for
+  `image/webp`. (#8340)
+- Updated mimetype information for getting a suitable extension when downloading
+  a `data:` URL.
+- The `content.javascript.clipboard` setting now defaults to "ask", which on
+  Qt 6.8+ will prompt the user to grant clipboard access. On older Qt versions,
+  this is still equivalent to `"none"` and needs to be set manually. (#8348)
+- If a XHR request made via JS sets a custom `Accept-Language` header, it now
+  correctly has precedence over the global `content.headers.accept_language`
+  setting (but not per-domain overrides). This fixes subtle JS issues on
+  websites that rely on the custom header being sent for those requests, and
+  e.g. block the requests server-side otherwise. (#8370)
+- Our packaging scripts now prefer the "legacy"/"for older browsers" PDF.js
+  build as their normal release only supports the latest Chromium version and
+  might break in qutebrowser on updates. **Note to packagers:** If there's a
+  PDF.js package in your distribution as an (optional) qutebrowser dependency,
+  consider also switching to this variant (same code, built differently).
+
+Fixed
+~~~~~
+
+- Crash with recent Jinja/Markupsafe versions when viewing a finished userscript
+  (or potentially editor) process via `:process`.
+- `scripts/open_url_in_instance.sh` now avoids `echo -n`, thus running
+  correctly on POSIX sh. (#8409)
+- Added a workaround for a bogus QtWebEngine warning about missing spell
+  checking dictionaries. (#8330)
+
+
+[[v3.3.1]]
+v3.3.1 (2024-10-12)
+-------------------
+
+Fixed
+~~~~~
+
+- Updated the workaround for Google sign-in issues.
+
+[[v3.3.0]]
+v3.3.0 (2024-10-12)
+-------------------
+
+Added
+~~~~~
+
+- Added the `qt.workarounds.disable_hangouts_extension` setting,
+  for disabling the Google Hangouts extension built into Chromium/QtWebEngine.
+- Failed end2end tests will now save screenshots of the browser window when
+  run under xvfb (the default on linux). Screenshots will be under
+  `$TEMP/pytest-current/pytest-screenshots/` or attached to the GitHub actions
+  run as an artifact. (#7625)
+
+Removed
+~~~~~~~
+
+- Support for macOS 11 Big Sur is dropped. Binaries are now built on macOS 12
+  Monterey and are unlikely to still run on older macOS versions.
+
+Changed
+~~~~~~~
+
+- The qute-pass userscript now has better support for internationalized domain
+  names when using the pass backend - both domain names and secret paths are
+  normalized before comparing (#8133)
+- Ignored URL query parameters (via `url.yank_ignored_parameters`) are now
+  respected when yanking any URL (for example, through hints with `hint links
+  yank`). The `{url:yank}` substitution has also been added as a version of
+  `{url}` that respects ignored URL query parameters. (#7879)
+- Windows and macOS releases now bundle Qt 6.7.3, which includes security fixes
+  up to Chromium 129.0.6668.58.
+
+Fixed
+~~~~~
+
+- A minor memory leak of QItemSelectionModels triggered by closing the
+  completion dialog has been resolved. (#7950)
+- The link to the chrome https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns/[URL match pattern]
+  documentation in our settings docs now loads a live page again. (#8268)
+- A rare crash when on Qt 6, a renderer process terminates with an unknown
+  termination reason.
+- Updated the workaround for Google sign-in issues.
+
+[[v3.2.1]]
+v3.2.1 (2024-06-25)
+-------------------
+
+Added
+~~~~~
+
+- There is now a separate macOS release built for Apple Silicon. A Universal
+  Binary might follow with a later release.
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 6.7.2, which includes security fixes
+  up to Chromium 125.0.6422.142.
+
+Fixed
+~~~~~
+
+- When the selected Qt wrapper is unavailable, qutebrowser now again shows a
+  GUI error message instead of only an exception in the terminal.
+
+[[v3.2.0]]
+v3.2.0 (2024-06-03)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- This will be the last feature release supporting macOS 11 Big Sur.
+  Starting with qutebrowser v3.3.0, macOS 12 Monterey will be the oldest
+  supported version.
 
 Added
 ~~~~~
@@ -25,13 +179,17 @@ Added
 - When qutebrowser receives a SIGHUP it will now reload any config.py file
   in use (same as the `:config-source` command does). (#8108)
 - The Chromium security patch version is now shown in the backend string in
-  --version and :version. This reflects the latest Chromium version that
+  `--version` and `:version`. This reflects the latest Chromium version that
   security fixes have been backported to the base QtWebEngine version from.
   (#7187)
 
 Changed
 ~~~~~~~
 
+- Windows and macOS releases now ship with Qt 6.7.1, which is based on Chromium
+  118.0.5993.220 with security patches up to 124.0.6367.202.
+- With QtWebEngine 6.7+, the `colors.webpage.darkmode.enabled` setting can now
+  be changed at runtime and supports URL patterns (#8182).
 - A few more completions will now match search terms in any order:
   `:quickmark-*`, `:bookmark-*`, `:tab-take` and `:tab-select` (for the quick
   and bookmark categories). (#7955)
@@ -44,14 +202,19 @@ Fixed
 ~~~~~
 
 - `input.insert_mode.auto_load` sometimes not triggering due to a race
-  condition.
+  condition. (#8145)
 - Worked around qutebrowser quitting when closing a KDE file dialog due to a Qt
-  bug.
-
-[[v3.1.1]]
-v3.1.1 (unreleased)
--------------------
-
+  bug. (#8143)
+- Trying to use qutebrowser after it's been deleted/moved on disk (e.g. after a
+  Python upgrade) should now not crash anymore.
+- When the QtWebEngine resources dir couldn't be found, qutebrowser now doesn't
+  crash anymore (but QtWebEngine still might).
+- Fixed a rare crash in the completion widget when there was no selection model
+  when we went to clear that, probably when leaving a mode. (#7901)
+- Worked around a minor issue around QTimers on Windows where the IPC server
+  could close the socket early. (#8191)
+- The latest PDF.js release (v4.2.67) is now supported when backed by
+  QtWebEngine 6.6+ (#8170)
 
 [[v3.1.0]]
 v3.1.0 (2023-12-08)
@@ -3669,7 +3832,7 @@ Fixed
 - Continuing a search after clearing it now works correctly.
 - The tabbar and completion should now be more consistently and correctly
   styled with various system styles.
-- Applying styiles in `qt5ct` now shouldn't crash anymore.
+- Applying styles in `qt5ct` now shouldn't crash anymore.
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
 - `data:` URLs now aren't added to the history anymore.

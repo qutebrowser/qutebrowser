@@ -5,6 +5,7 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import pathlib
+import os
 import re
 import sys
 import time
@@ -18,6 +19,7 @@ import json
 
 import yaml
 import pytest
+from PIL.ImageGrab import grab
 from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
 from qutebrowser.qt.gui import QImage, QColor
 
@@ -77,6 +79,10 @@ def is_ignored_lowlevel_message(message):
         'DRI3 not available',
         # Webkit on arch with a newer mesa
         'MESA: error: ZINK: failed to load libvulkan.so.1',
+
+        # GitHub Actions with Archlinux unstable packages
+        'libEGL warning: DRI3: Screen seems not DRI3 capable',
+        'libEGL warning: egl: failed to create dri2 screen',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -225,6 +231,20 @@ def is_ignored_chromium_message(line):
         # Some MojoDiscardableSharedMemoryManagerImpls are still alive. They
         # will be leaked.
         "Some MojoDiscardableSharedMemoryManagerImpls are still alive. They will be leaked.",
+
+        # Qt 6.7 on GitHub Actions
+        # [3456:5752:1111/103609.929:ERROR:block_files.cc(443)] Failed to open
+        # C:\Users\RUNNER~1\AppData\Local\Temp\qutebrowser-basedir-ruvn1lys\data\webengine\DawnCache\data_0
+        "Failed to open *webengine*DawnCache*data_*",
+
+        # Qt 6.8 on GitHub Actions
+        # [7072:3412:1209/220659.527:ERROR:simple_index_file.cc(322)] Failed to
+        # write the temporary index file
+        "Failed to write the temporary index file",
+
+        # Qt 6.9 Beta 3 on GitHub Actions
+        # [978:1041:0311/070551.759339:ERROR:bus.cc(407)]
+        "Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -383,24 +403,37 @@ class QuteProc(testprocess.Process):
 
     def _executable_args(self):
         profile = self.request.config.getoption('--qute-profile-subprocs')
+        strace = self.request.config.getoption('--qute-strace-subprocs')
         if hasattr(sys, 'frozen'):
-            if profile:
-                raise RuntimeError("Can't profile with sys.frozen!")
+            if profile or strace:
+                raise RuntimeError("Can't profile/strace with sys.frozen!")
             executable = str(pathlib.Path(sys.executable).parent / 'qutebrowser')
             args = []
         else:
-            executable = sys.executable
+            if strace:
+                executable = 'strace'
+                args = [
+                    "-o",
+                    "qb-strace",
+                    "--output-separately",  # create .PID files
+                    "--write=2",  # dump full stderr data (qb JSON logs)
+                    sys.executable,
+                ]
+            else:
+                executable = sys.executable
+                args = []
+
             if profile:
                 profile_dir = pathlib.Path.cwd() / 'prof'
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
                 profile_file = profile_dir / '{}.pstats'.format(profile_id)
                 profile_dir.mkdir(exist_ok=True)
-                args = [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
+                args += [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
                         '--profile-tool', 'none',
                         '--profile-file', str(profile_file)]
             else:
-                args = ['-bb', '-m', 'qutebrowser']
+                args += ['-bb', '-m', 'qutebrowser']
         return executable, args
 
     def _default_args(self):
@@ -412,10 +445,14 @@ class QuteProc(testprocess.Process):
                 '--debug-flag', 'werror',
                 '--debug-flag', 'test-notification-service',
                 '--debug-flag', 'caret',
-                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin']
+                '--qt-flag', 'disable-features=PaintHoldingCrossOrigin',
+                '--qt-arg', 'geometry', '800x600+0+0']
 
-        if self.request.config.webengine and testutils.disable_seccomp_bpf_sandbox():
-            args += testutils.DISABLE_SECCOMP_BPF_ARGS
+        if self.request.config.webengine:
+            if testutils.disable_seccomp_bpf_sandbox():
+                args += testutils.DISABLE_SECCOMP_BPF_ARGS
+            if testutils.use_software_rendering():
+                args += testutils.SOFTWARE_RENDERING_ARGS
 
         args.append('about:blank')
         return args
@@ -515,6 +552,7 @@ class QuteProc(testprocess.Process):
     def before_test(self):
         """Clear settings before every test."""
         super().before_test()
+        self.send_cmd(':clear-messages')
         self.send_cmd(':config-clear')
         self._init_settings()
         self.clear_data()
@@ -541,6 +579,8 @@ class QuteProc(testprocess.Process):
         except AttributeError:
             pass
         else:
+            if call.failed:
+                self._take_x11_screenshot_of_failed_test()
             if call.failed or hasattr(call, 'wasxfail') or call.skipped:
                 super().after_test()
                 return
@@ -879,6 +919,10 @@ class QuteProc(testprocess.Process):
             self.send_cmd(cmd.format('no-scroll-filtering'))
         self.send_cmd(cmd.format('log-scroll-pos'))
 
+    def _take_x11_screenshot_of_failed_test(self):
+        fixture = self.request.getfixturevalue('take_x11_screenshot')
+        fixture()
+
 
 class YamlLoader(yaml.SafeLoader):
 
@@ -919,6 +963,39 @@ def _xpath_escape(text):
     return 'concat({})'.format(', '.join(parts))
 
 
+@pytest.fixture
+def screenshot_dir(request, tmp_path_factory):
+    """Return the path of a directory to save e2e screenshots in."""
+    path = tmp_path_factory.getbasetemp()
+    if "PYTEST_XDIST_WORKER" in os.environ:
+        # If we are running under xdist remove the per-worker directory
+        # (like "popen-gw0") so the user doesn't have to search through
+        # multiple folders for the screenshot they are looking for.
+        path = path.parent
+    path /= "pytest-screenshots"
+    path.mkdir(exist_ok=True)
+    return path
+
+
+@pytest.fixture
+def take_x11_screenshot(request, screenshot_dir, record_property, xvfb):
+    """Take a screenshot of the current pytest-xvfb display.
+
+    Screenshots are saved to the location of the `screenshot_dir` fixture.
+    """
+    def doit():
+        if not xvfb:
+            # Likely we are being run with --no-xvfb
+            return
+
+        img = grab(xdisplay=f":{xvfb.display}")
+        fpath = screenshot_dir / f"{request.node.name}.png"
+        img.save(fpath)
+
+        record_property("screenshot", str(fpath))
+    return doit
+
+
 @pytest.fixture(scope='module')
 def quteproc_process(qapp, server, request):
     """Fixture for qutebrowser process which is started once per file."""
@@ -930,7 +1007,7 @@ def quteproc_process(qapp, server, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, server, request):
+def quteproc(quteproc_process, server, request, take_x11_screenshot):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()

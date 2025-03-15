@@ -10,7 +10,8 @@ import pathlib
 import importlib
 import argparse
 import dataclasses
-from typing import Callable, Iterator, List, Optional, Tuple
+from typing import Optional
+from collections.abc import Iterator, Callable
 
 from qutebrowser.qt.core import pyqtSlot
 
@@ -21,7 +22,7 @@ from qutebrowser.misc import objects
 
 
 # ModuleInfo objects for all loaded plugins
-_module_infos: List["ModuleInfo"] = []
+_module_infos: list["ModuleInfo"] = []
 
 InitHookType = Callable[['InitContext'], None]
 ConfigChangedHookType = Callable[[], None]
@@ -47,8 +48,8 @@ class ModuleInfo:
 
     skip_hooks: bool = False
     init_hook: Optional[InitHookType] = None
-    config_changed_hooks: List[
-        Tuple[
+    config_changed_hooks: list[
+        tuple[
             Optional[str],
             ConfigChangedHookType,
         ]

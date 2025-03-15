@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # pylint: disable=import-error,wildcard-import,unused-wildcard-import
 
 """Wrapped Qt imports for Qt WebEngine Widgets.
@@ -27,6 +31,7 @@ else:
 
 
 if machinery.IS_QT5:
+    # pylint: disable=undefined-variable
     # moved to WebEngineCore in Qt 6
     del QWebEngineSettings
     del QWebEngineProfile

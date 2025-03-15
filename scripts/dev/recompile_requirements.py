@@ -114,7 +114,7 @@ def get_all_names():
     """Get all requirement names based on filenames."""
     for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*.txt-raw')):
         basename = os.path.basename(filename)
-        yield basename[len('requirements-'):-len('.txt-raw')]
+        yield basename.removeprefix('requirements-').removesuffix('.txt-raw')
 
 
 def run_pip(venv_dir, *args, quiet=False, **kwargs):
@@ -161,8 +161,11 @@ def parse_args():
 
 def git_diff(*args):
     """Run a git diff command."""
-    command = (['git', '--no-pager', 'diff'] + list(args) + [
-        '--', 'requirements.txt', 'misc/requirements/requirements-*.txt'])
+    command = (
+        ["git", "--no-pager", "-c", "diff.mnemonicPrefix=false", "diff"]
+        + list(args)
+        + ["--", "requirements.txt", "misc/requirements/requirements-*.txt"]
+    )
     proc = subprocess.run(command,
                           stdout=subprocess.PIPE,
                           encoding='utf-8',
@@ -231,7 +234,7 @@ def extract_requirement_name(path: pathlib.Path) -> str:
     prefix = "requirements-"
     assert path.suffix == ".txt", path
     assert path.stem.startswith(prefix), path
-    return path.stem[len(prefix):]
+    return path.stem.removeprefix(prefix)
 
 
 def parse_versioned_line(line):
@@ -274,11 +277,11 @@ def _get_changes(diff):
             continue
         elif line.startswith('--- '):
             prefix = '--- a/'
-            current_path = pathlib.Path(line[len(prefix):])
+            current_path = pathlib.Path(line.removeprefix(prefix))
             continue
         elif line.startswith('+++ '):
             prefix = '+++ b/'
-            new_path = pathlib.Path(line[len(prefix):])
+            new_path = pathlib.Path(line.removeprefix(prefix))
             assert current_path == new_path, (current_path, new_path)
             continue
         elif not line.strip():
@@ -407,8 +410,8 @@ def test_tox():
                                check=True)
 
 
-def test_requirements(name, outfile, *, force=False):
-    """Test a resulting requirements file."""
+def install_requirements(name, outfile, *, force=False):
+    """Test install a resulting requirements file."""
     print()
     utils.print_subtitle("Testing")
 
@@ -443,7 +446,7 @@ def main():
     for name in names:
         utils.print_title(name)
         outfile = build_requirements(name)
-        test_requirements(name, outfile, force=args.force_test)
+        install_requirements(name, outfile, force=args.force_test)
         if name == 'pylint':
             cleanup_pylint_build()
 

@@ -7,7 +7,7 @@
 """Fetch and print the most common user agents.
 
 This script fetches the most common user agents according to
-https://github.com/Kikobeats/top-user-agents, and prints the most recent
+https://github.com/microlinkhq/top-user-agents, and prints the most recent
 Chrome user agent for Windows, macOS and Linux.
 """
 
@@ -29,7 +29,7 @@ def wrap(ini, sub, string):
 
 
 # pylint: disable-next=missing-timeout
-response = requests.get('https://raw.githubusercontent.com/Kikobeats/top-user-agents/master/index.json')
+response = requests.get('https://raw.githubusercontent.com/microlinkhq/top-user-agents/master/src/index.json')
 
 if response.status_code != 200:
     print('Unable to fetch the user agent index', file=sys.stderr)

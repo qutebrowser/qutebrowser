@@ -8,7 +8,8 @@ import string
 import types
 import dataclasses
 import traceback
-from typing import Mapping, MutableMapping, Optional, Sequence
+from typing import Optional
+from collections.abc import Mapping, MutableMapping, Sequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent

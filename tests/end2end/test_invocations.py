@@ -45,8 +45,11 @@ def _base_args(config):
     else:
         args += ['--backend', 'webkit']
 
-    if config.webengine and testutils.disable_seccomp_bpf_sandbox():
-        args += testutils.DISABLE_SECCOMP_BPF_ARGS
+    if config.webengine:
+        if testutils.disable_seccomp_bpf_sandbox():
+            args += testutils.DISABLE_SECCOMP_BPF_ARGS
+        if testutils.use_software_rendering():
+            args += testutils.SOFTWARE_RENDERING_ARGS
 
     args.append('about:blank')
     return args
@@ -335,7 +338,7 @@ def test_launching_with_old_python(python):
     except FileNotFoundError:
         pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.8 is required to run qutebrowser"
+    error = "At least Python 3.9 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
@@ -512,6 +515,10 @@ def test_preferred_colorscheme_with_dark_mode(
         '-s', 'colors.webpage.darkmode.enabled', 'true',
         '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
     ]
+    if webengine_versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND: For unknown reasons, dark mode colors are wrong with
+        # Qt 6.9 + hardware rendering + Xvfb.
+        args += testutils.SOFTWARE_RENDERING_ARGS
     quteproc_new.start(args)
 
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
@@ -636,6 +643,36 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     quteproc_new.wait_for_quit()
 
 
+def test_permission_prompt_across_restart(quteproc_new, request, short_tmpdir):
+    # Start test process
+    args = _base_args(request.config) + [
+        '--basedir', str(short_tmpdir),
+        '-s', 'content.notifications.enabled', 'ask',
+    ]
+    quteproc_new.start(args)
+
+    def notification_prompt(answer):
+        quteproc_new.open_path('data/prompt/notifications.html')
+        quteproc_new.send_cmd(':click-element id button')
+        quteproc_new.wait_for(message='Asking question *')
+        quteproc_new.send_cmd(f':prompt-accept {answer}')
+
+    # Make sure we are prompted the first time we are opened in this basedir
+    notification_prompt('yes')
+    quteproc_new.wait_for_js('notification permission granted')
+
+    # Restart with same basedir
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+    quteproc_new.start(args)
+
+    # We should be re-prompted in the new instance
+    notification_prompt('no')
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
 # The 'colors' dictionaries in the parametrize decorator below have (QtWebEngine
 # version, CPU architecture) as keys. Either of those (or both) can be None to
 # say "on all other Qt versions" or "on all other CPU architectures".
@@ -708,10 +745,13 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
         '-s', 'colors.webpage.darkmode.enabled', 'true',
         '-s', 'colors.webpage.darkmode.algorithm', algorithm,
     ]
-    quteproc_new.start(args)
+    if webengine_versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND: For unknown reasons, dark mode colors are wrong with
+        # Qt 6.9 + hardware rendering + Xvfb.
+        args += testutils.SOFTWARE_RENDERING_ARGS
 
-    ver = webengine_versions.webengine
-    minor_version = str(ver.strip_patch())
+    quteproc_new.start(args)
+    minor_version = str(webengine_versions.webengine.strip_patch())
 
     arch = platform.machine()
     for key in [
@@ -744,6 +784,11 @@ def test_dark_mode_mathml(webengine_versions, quteproc_new, request, qtbot, suff
         '-s', 'colors.webpage.darkmode.enabled', 'true',
         '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
     ]
+    if webengine_versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND: For unknown reasons, dark mode colors are wrong with
+        # Qt 6.9 + hardware rendering + Xvfb.
+        args += testutils.SOFTWARE_RENDERING_ARGS
+
     quteproc_new.start(args)
 
     quteproc_new.open_path(f'data/darkmode/mathml-{suffix}.html')
@@ -854,11 +899,14 @@ def test_sandboxing(
         request, quteproc_new, sandboxing,
         has_namespaces, has_seccomp, has_yama, expected_result,
 ):
+    # https://github.com/qutebrowser/qutebrowser/issues/8424
+    userns_restricted = testutils.is_userns_restricted()
+
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
     elif sandboxing == "enable-all" and testutils.disable_seccomp_bpf_sandbox():
         pytest.skip("Full sandboxing not supported")
-    elif version.is_flatpak():
+    elif version.is_flatpak() or userns_restricted:
         # https://github.com/flathub/io.qt.qtwebengine.BaseApp/pull/66
         has_namespaces = False
         expected_result = "You are NOT adequately sandboxed."
@@ -905,6 +953,7 @@ def test_sandboxing(
             f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
             f"{yama_text} (Broker)": "Yes" if has_yama else "No",
+            # pylint: disable-next=used-before-assignment
             f"{yama_text} (Non-broker)": "Yes" if has_yama_non_broker else "No",
         }
 
@@ -987,7 +1036,7 @@ def test_restart(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
     assert line.message.startswith(prefix)
-    pid = int(line.message[len(prefix):])
+    pid = int(line.message.removeprefix(prefix))
     os.kill(pid, signal.SIGTERM)
 
     try:

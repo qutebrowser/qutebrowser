@@ -7,7 +7,7 @@
 This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG-114334.
 """
 
-from typing import Tuple, Union, cast, Optional
+from typing import Union, cast, Optional
 import enum
 import ctypes
 import ctypes.util
@@ -137,8 +137,10 @@ class NativeEventFilter(QAbstractNativeEventFilter):
             xcb.xcb_disconnect(conn)
 
     def nativeEventFilter(
-        self, evtype: Union[bytes, QByteArray], message: Optional[sip.voidptr]
-    ) -> Tuple[bool, _PointerRetType]:
+        self,
+        evtype: Union[QByteArray, bytes, bytearray, memoryview],
+        message: Optional[sip.voidptr],
+    ) -> tuple[bool, _PointerRetType]:
         """Handle XCB events."""
         # We're only installed when the platform plugin is xcb
         assert evtype == b"xcb_generic_event_t", evtype

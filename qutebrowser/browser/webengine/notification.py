@@ -33,7 +33,8 @@ import dataclasses
 import itertools
 import functools
 import subprocess
-from typing import Any, List, Dict, Optional, Iterator, Type, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
+from collections.abc import Iterator
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
@@ -195,7 +196,7 @@ class NotificationBridgePresenter(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
 
-        self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
+        self._active_notifications: dict[int, 'QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
 
         config.instance.changed.connect(self._init_adapter)
@@ -232,8 +233,8 @@ class NotificationBridgePresenter(QObject):
     def _get_adapter_candidates(
         self,
         setting: str,
-    ) -> List[Type[AbstractNotificationAdapter]]:
-        candidates: Dict[str, List[Type[AbstractNotificationAdapter]]] = {
+    ) -> list[type[AbstractNotificationAdapter]]:
+        candidates: dict[str, list[type[AbstractNotificationAdapter]]] = {
             "libnotify": [
                 DBusNotificationAdapter,
                 SystrayNotificationAdapter,
@@ -285,7 +286,10 @@ class NotificationBridgePresenter(QObject):
 
         if replaces_id is None:
             if notification_id in self._active_notifications:
-                raise Error(f"Got duplicate id {notification_id}")
+                message.error(f"Got duplicate notification id {notification_id} "
+                              f"from {self._adapter.NAME}")
+                self._drop_adapter()
+                return
 
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification
@@ -665,7 +669,7 @@ class _ServerCapabilities:
     kde_origin_name: bool
 
     @classmethod
-    def from_list(cls, capabilities: List[str]) -> "_ServerCapabilities":
+    def from_list(cls, capabilities: list[str]) -> "_ServerCapabilities":
         return cls(
             actions='actions' in capabilities,
             body_markup='body-markup' in capabilities,
@@ -951,10 +955,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             qtutils.extract_enum_val(QMetaType.Type.QStringList),
         )
 
-    def _get_hints_arg(self, *, origin_url: QUrl, icon: QImage) -> Dict[str, Any]:
+    def _get_hints_arg(self, *, origin_url: QUrl, icon: QImage) -> dict[str, Any]:
         """Get the hints argument for present()."""
         origin_url_str = origin_url.toDisplayString()
-        hints: Dict[str, Any] = {
+        hints: dict[str, Any] = {
             # Include the origin in case the user wants to do different things
             # with different origin's notifications.
             "x-qutebrowser-origin": origin_url_str,
@@ -984,7 +988,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         title: str,
         body: str,
         actions: QDBusArgument,
-        hints: Dict[str, Any],
+        hints: dict[str, Any],
         timeout: int,
     ) -> Any:
         """Wrapper around DBus call to use keyword args."""

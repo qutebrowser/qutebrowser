@@ -17,10 +17,12 @@ import traceback
 import functools
 import contextlib
 import shlex
+import sysconfig
 import mimetypes
-from typing import (Any, Callable, IO, Iterator,
-                    Optional, Sequence, Tuple, List, Type, Union,
+from typing import (Any, IO,
+                    Optional, Union,
                     TypeVar, Protocol)
+from collections.abc import Iterator, Sequence, Callable
 
 from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
 from qutebrowser.qt.gui import QClipboard, QDesktopServices
@@ -264,16 +266,16 @@ def fake_io(write_func: Callable[[str], int]) -> Iterator[None]:
     old_stderr = sys.stderr
     fake_stderr = FakeIOStream(write_func)
     fake_stdout = FakeIOStream(write_func)
-    sys.stderr = fake_stderr  # type: ignore[assignment]
-    sys.stdout = fake_stdout  # type: ignore[assignment]
+    sys.stderr = fake_stderr
+    sys.stdout = fake_stdout
     try:
         yield
     finally:
         # If the code we did run did change sys.stdout/sys.stderr, we leave it
         # unchanged. Otherwise, we reset it.
-        if sys.stdout is fake_stdout:  # type: ignore[comparison-overlap]
+        if sys.stdout is fake_stdout:
             sys.stdout = old_stdout
-        if sys.stderr is fake_stderr:  # type: ignore[comparison-overlap]
+        if sys.stderr is fake_stderr:
             sys.stderr = old_stderr
 
 
@@ -406,7 +408,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType = Union[Type[BaseException], Tuple[Type[BaseException]]]
+_ExceptionType = Union[type[BaseException], tuple[type[BaseException]]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:
@@ -636,7 +638,7 @@ def expand_windows_drive(path: str) -> str:
         path: The path to expand.
     """
     # Usually, "E:" on Windows refers to the current working directory on drive
-    # E:\. The correct way to specifify drive E: is "E:\", but most users
+    # E:\. The correct way to specify drive E: is "E:\", but most users
     # probably don't use the "multiple working directories" feature and expect
     # "E:" and "E:\" to be equal.
     if re.fullmatch(r'[A-Z]:', path, re.IGNORECASE):
@@ -666,7 +668,10 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
-    deadline = 10 if 'CI' in os.environ else 2
+    if "CI" in os.environ or sysconfig.get_config_var("Py_DEBUG"):
+        deadline = 10
+    else:
+        deadline = 2
     if delta > deadline:  # pragma: no cover
         log.misc.warning(
             "YAML load took unusually long, please report this at "
@@ -772,14 +777,38 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
 
     This mostly delegates to Python's mimetypes.guess_extension(), but backports some
     changes (via a simple override dict) which are missing from earlier Python versions.
-    Most likely, this can be dropped once the minimum Python version is raised to 3.10.
     """
-    overrides = {
-        # Added in 3.10
-        "application/x-hdf5": ".h5",
-        # Added around 3.8
-        "application/manifest+json": ".webmanifest",
-    }
+    overrides = {}
+    if sys.version_info[:2] < (3, 13):
+        overrides.update({
+            "text/rtf": ".rtf",
+            "text/markdown": ".md",
+            "text/x-rst": ".rst",
+        })
+    if sys.version_info[:2] < (3, 12):
+        overrides.update({
+            "text/javascript": ".js",
+        })
+    if sys.version_info[:2] < (3, 11):
+        overrides.update({
+            "application/n-quads": ".nq",
+            "application/n-triples": ".nt",
+            "application/trig": ".trig",
+            "image/avif": ".avif",
+            "image/webp": ".webp",
+            "text/n3": ".n3",
+            "text/vtt": ".vtt",
+        })
+    if sys.version_info[:2] < (3, 10):
+        overrides.update({
+            "application/x-hdf5": ".h5",
+            "audio/3gpp": ".3gp",
+            "audio/3gpp2": ".3g2",
+            "audio/aac": ".aac",
+            "audio/opus": ".opus",
+            "image/heic": ".heic",
+            "image/heif": ".heif",
+        })
     if mimetype in overrides:
         return overrides[mimetype]
     return mimetypes.guess_extension(mimetype, strict=False)
@@ -842,7 +871,7 @@ def parse_point(s: str) -> QPoint:
         raise ValueError(e)
 
 
-def match_globs(patterns: List[str], value: str) -> Optional[str]:
+def match_globs(patterns: list[str], value: str) -> Optional[str]:
     """Match a list of glob-like patterns against a value.
 
     Return:

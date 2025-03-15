@@ -758,8 +758,10 @@ class TestPyQIODevice:
         # pylint: enable=no-member,useless-suppression
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
+
         pyqiodev.open(QIODevice.OpenModeFlag.ReadOnly)
         with pytest.raises(io.UnsupportedOperation):
+            # pylint: disable=possibly-used-before-assignment
             pyqiodev.seek(0, whence)
 
     @pytest.mark.flaky
@@ -1116,13 +1118,13 @@ class TestQObjRepr:
         assert qtutils.qobj_repr(obj) == expected
 
     def test_class_name(self):
-        obj = QTimer()
+        obj = QTimer()  # misc: ignore
         hidden = sip.cast(obj, QObject)
         expected = f"<{self._py_repr(hidden)}, className='QTimer'>"
         assert qtutils.qobj_repr(hidden) == expected
 
     def test_both(self):
-        obj = QTimer()
+        obj = QTimer()  # misc: ignore
         obj.setObjectName("Pomodoro")
         hidden = sip.cast(obj, QObject)
         expected = f"<{self._py_repr(hidden)}, objectName='Pomodoro', className='QTimer'>"

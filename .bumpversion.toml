@@ -1,0 +1,26 @@
+[tool.bumpversion]
+current_version = "3.4.0"
+commit = true
+message = "Release v{new_version}"
+tag = true
+sign_tags = true
+tag_name = "v{new_version}"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+allow_dirty = false
+
+[[tool.bumpversion.files]]
+filename = "qutebrowser/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "misc/org.qutebrowser.qutebrowser.appdata.xml"
+search = "<!-- Add new releases here -->"
+replace = """<!-- Add new releases here -->
+<release version='{new_version}' date='{now:%Y-%m-%d}'/>"""
+
+[[tool.bumpversion.files]]
+filename = "doc/changelog.asciidoc"
+search = "(unreleased)"
+replace = "({now:%Y-%m-%d})"

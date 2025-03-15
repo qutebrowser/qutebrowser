@@ -12,7 +12,8 @@ import functools
 import glob
 import textwrap
 import dataclasses
-from typing import cast, List, Sequence, Tuple, Optional
+from typing import cast, Optional
+from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
 
@@ -207,9 +208,9 @@ class MatchingScripts:
     """All userscripts registered to run on a particular url."""
 
     url: QUrl
-    start: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
-    end: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
-    idle: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    start: list[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    end: list[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    idle: list[GreasemonkeyScript] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -217,8 +218,8 @@ class LoadResults:
 
     """The results of loading all Greasemonkey scripts."""
 
-    successful: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
-    errors: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
+    successful: list[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    errors: list[tuple[str, str]] = dataclasses.field(default_factory=list)
 
     def successful_str(self) -> str:
         """Get a string with all successfully loaded scripts.
@@ -294,10 +295,10 @@ class GreasemonkeyManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._run_start: List[GreasemonkeyScript] = []
-        self._run_end: List[GreasemonkeyScript] = []
-        self._run_idle: List[GreasemonkeyScript] = []
-        self._in_progress_dls: List[downloads.AbstractDownloadItem] = []
+        self._run_start: list[GreasemonkeyScript] = []
+        self._run_end: list[GreasemonkeyScript] = []
+        self._run_idle: list[GreasemonkeyScript] = []
+        self._in_progress_dls: list[downloads.AbstractDownloadItem] = []
 
     def load_scripts(self, *, force: bool = False) -> LoadResults:
         """Re-read Greasemonkey scripts from disk.

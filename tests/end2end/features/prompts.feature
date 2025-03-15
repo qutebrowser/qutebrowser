@@ -62,7 +62,7 @@ Feature: Prompts
 
     # Multiple prompts
 
-    @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
+    @qtwebengine_skip  # QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by blocking one
         When I set content.javascript.alert to true
         And I open data/prompt/jsalert.html
@@ -78,7 +78,7 @@ Feature: Prompts
         Then the javascript message "confirm reply: true" should be logged
         And the javascript message "Alert done" should be logged
 
-    @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
+    @qtwebengine_skip  # QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by async one
         Given I have a fresh instance
         When I set content.javascript.alert to true
@@ -158,6 +158,131 @@ Feature: Prompts
         And I open data/prompt/jsprompt.html
         And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
+
+    # Clipboard permissions - static
+
+    @qtwebkit_skip
+    Scenario: Clipboard - no permission - copy
+        When I set content.javascript.clipboard to none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Failed to copy text." should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - no permission - paste
+        When I set content.javascript.clipboard to none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    # access permission no longer allows copy permission on 6.8 because it
+    # falls back to a permission prompt that we don't support
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-130599
+    @qt<6.8 @qtwebkit_skip
+    Scenario: Clipboard - access permission - copy
+        When I set content.javascript.clipboard to access
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - access permission - paste
+        When I set content.javascript.clipboard to access
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - full permission - copy
+        When I set content.javascript.clipboard to access-paste
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qtwebkit_skip
+    Scenario: Clipboard - full permission - paste
+        When I set content.javascript.clipboard to access-paste
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Text pasted: *" should be logged
+
+    # Clipboard permissions - prompt
+    # A fresh instance is only required for these tests on Qt<6.8
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow - copy
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text copied: default text" should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text pasted: *" should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask deny - copy
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id copy
+        And I wait for a prompt
+        And I run :prompt-accept no
+        Then the javascript message "Failed to copy text." should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask deny - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept no
+        Then the javascript message "Failed to read from clipboard." should be logged
+
+    @qt>=6.8
+    Scenario: Clipboard - ask per url - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to none
+        And I run :set -u localhost:* content.javascript.clipboard ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the javascript message "Text pasted: *" should be logged
+        And I run :config-unset -u localhost:* content.javascript.clipboard
+
+    @qt>=6.8
+    Scenario: Clipboard - deny per url - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to access-paste
+        And I run :set -u localhost:* content.javascript.clipboard none
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Failed to read from clipboard." should be logged
+        And I run :config-unset -u localhost:* content.javascript.clipboard
+
+    @qt>=6.8
+    Scenario: Clipboard - ask allow persistent - paste
+        Given I may need a fresh instance
+        When I set content.javascript.clipboard to ask
+        And I open data/prompt/clipboard.html
+        And I run :click-element id paste
+        And I wait for a prompt
+        And I run :prompt-accept --save yes
+        And I wait for "*Text pasted: *" in the log
+        And I reload data/prompt/clipboard.html
+        And I run :click-element id paste
+        Then the javascript message "Text pasted: *" should be logged
 
     # SSL
 
@@ -252,6 +377,7 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
 
     Scenario: geolocation with ask -> false
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -260,6 +386,7 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
 
     Scenario: geolocation with ask -> false and save
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -269,6 +396,7 @@ Feature: Prompts
         And the per-domain option content.geolocation should be set to false for http://localhost:(port)
 
     Scenario: geolocation with ask -> abort
+        Given I may need a fresh instance
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
@@ -369,10 +497,12 @@ Feature: Prompts
         And I run :prompt-accept
         And I wait until basic-auth/user1/password1 is loaded
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user1"
             }
+            """
 
     Scenario: Authentication with :prompt-accept value
         When I open about:blank in a new tab
@@ -381,10 +511,12 @@ Feature: Prompts
         And I run :prompt-accept user2:password2
         And I wait until basic-auth/user2/password2 is loaded
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user2"
             }
+            """
 
     Scenario: Authentication with invalid :prompt-accept value
         When I open about:blank in a new tab
@@ -407,13 +539,15 @@ Feature: Prompts
         And I run :prompt-accept
         And I wait until basic-auth/user4/password4 is loaded
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user4"
             }
+            """
 
     @qtwebengine_skip
-    Scenario: Cancellling webpage authentication with QtWebKit
+    Scenario: Cancelling webpage authentication with QtWebKit
         When I open basic-auth/user6/password6 without waiting
         And I wait for a prompt
         And I run :mode-leave
@@ -494,7 +628,7 @@ Feature: Prompts
         Then "Added quickmark prompt-in-command-mode for *" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/1093
-    @qtwebengine_skip: QtWebEngine doesn't open the second page/prompt
+    @qtwebengine_skip  # QtWebEngine doesn't open the second page/prompt
     Scenario: Keyboard focus with multiple auth prompts
         When I open basic-auth/user5/password5 without waiting
         And I open basic-auth/user6/password6 in a new tab without waiting
@@ -514,10 +648,12 @@ Feature: Prompts
         And I wait until basic-auth/user5/password5 is loaded
         # We're on the second page
         Then the json on the page should be:
+            """
             {
               "authenticated": true,
               "user": "user6"
             }
+            """
 
     # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544

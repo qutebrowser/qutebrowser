@@ -12,6 +12,7 @@ parameters or headers with the same name properly.
 """
 
 import sys
+import errno
 import json
 import time
 import threading
@@ -338,7 +339,33 @@ class WSGIServer(cheroot.wsgi.Server):
         self._ready = value
 
 
+def unraisable_hook(unraisable: "sys.UnraisableHookArgs") -> None:
+    if (
+        sys.version_info[:2] == (3, 13)
+        and isinstance(unraisable.exc_value, OSError)
+        and (
+            unraisable.exc_value.errno == errno.EBADF
+            or (
+                sys.platform == "win32"
+                # pylint: disable-next=no-member
+                and unraisable.exc_value.winerror == errno.WSAENOTSOCK
+            )
+        )
+        and unraisable.object.__qualname__ == "IOBase.__del__"
+    ):
+        # WORKAROUND for bogus exceptions with cheroot:
+        # https://github.com/cherrypy/cheroot/issues/734
+        return
+    sys.__unraisablehook__(unraisable)
+
+
+def init_unraisable_hook() -> None:
+    sys.unraisablehook = unraisable_hook
+
+
 def main():
+    init_unraisable_hook()
+
     app.template_folder = END2END_DIR / 'templates'
     assert app.template_folder.is_dir(), app.template_folder
 

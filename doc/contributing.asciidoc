@@ -41,7 +41,7 @@ If you want to find something useful to do, check the
 https://github.com/qutebrowser/qutebrowser/issues[issue tracker]. Some
 pointers:
 
-* https://github.com/qutebrowser/qutebrowser/labels/easy[Issues which should
+* https://github.com/qutebrowser/qutebrowser/contribute[Issues which should
 be easy to solve]
 * https://github.com/qutebrowser/qutebrowser/labels/component%3A%20docs[Documentation issues which require little/no coding]
 
@@ -111,9 +111,9 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py38`, `py39`, ...: Run pytest for python 3.8/3.9/... with the system-wide PyQt.
-  - `py38-pyqt515`, ..., `py38-pyqt65`: Run pytest with the given PyQt version (`py39-*` etc. also works).
-  - `py38-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
+  - `py39`, `py310`, ...: Run pytest for python 3.9/3.10/... with the system-wide PyQt.
+  - `py39-pyqt515`, ..., `py39-pyqt65`: Run pytest with the given PyQt version (`py310-*` etc. also works).
+  - `py39-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].
 * `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
   unused code portions.
@@ -171,16 +171,16 @@ Examples:
 
 ----
 # run only pytest tests which failed in last run:
-tox -e py38 -- --lf
+tox -e py39 -- --lf
 
 # run only the end2end feature tests:
-tox -e py38 -- tests/end2end/features
+tox -e py39 -- tests/end2end/features
 
 # run everything with undo in the generated name, based on the scenario text
-tox -e py38 -- tests/end2end/features/test_tabs_bdd.py -k undo
+tox -e py39 -- tests/end2end/features/test_tabs_bdd.py -k undo
 
 # run coverage test for specific file (updates htmlcov/index.html)
-tox -e py38-cov -- tests/unit/browser/test_webelem.py
+tox -e py39-cov -- tests/unit/browser/test_webelem.py
 ----
 
 Specifying the backend for tests
@@ -191,6 +191,28 @@ you have both backends available and you would like the tests to be run with a
 specific one you can set either of a) the environment variable QUTE_TESTS_BACKEND
 , or b) the command line argument --qute-backend, to the desired backend
 (webkit/webengine).
+
+If you need an environment with webkit installed to do testing while we still
+support it (see #4039) you can re-use the docker container used for the CI
+test runs which has PyQt5Webkit installed from the archlinux package archives.
+Examples:
+
+----
+# Get a bash shell in the docker container with
+# a) the current directory mounted at /work in the container
+# b) the container using the X11 display :27 (for example, a Xephyr instance) from the host
+# c) the tox and hypothesis dirs set to somewhere in the container that it can write to
+# d) the system site packages available in the tox venv so you can use PyQt
+#    from the OS without having to run the link_pyqt script
+docker run -it -v $PWD:/work:ro -w /work -e QUTE_TESTS_BACKEND=webkit -e DISPLAY=:27 -v /tmp/.X11-unix:/tmp/.X11-unix -e TOX_WORK_DIR="/home/user/.tox" -e HYPOTHESIS_EXAMPLES_DIR="/home/user/.hypothesis/examples" -e VIRTUALENV_SYSTEM_SITE_PACKAGES=True qutebrowser/ci:archlinux-webkit bash
+
+# Start a qutebrowser temporary basedir in the appropriate tox environment to
+# play with
+tox exec -e py-qt5 -- python3 -m qutebrowser -T --backend webkit
+
+# Run tests, passing positional args through to pytest.
+tox -e py-qt5 -- tests/unit
+----
 
 Profiling
 ~~~~~~~~~
@@ -767,10 +789,12 @@ New PyQt release
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
 
-* Make sure there are no unstaged changes and the tests are green.
+* Make sure there are no unstaged or unpushed changes.
+* Make sure CI is reasonably green.
 * Make sure all issues with the related milestone are closed.
 * Mark the https://github.com/qutebrowser/qutebrowser/milestones[milestone] as closed.
-* Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
+* Consider updating the completions for `content.headers.user_agent` in `configdata.yml`
+  and the Firefox UA in `qutebrowser/browser/webengine/webenginesettings.py`.
 * Minor release: Consider updating some files from main:
   - `misc/requirements/` and `requirements.txt`
   - `scripts/`

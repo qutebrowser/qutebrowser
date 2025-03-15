@@ -8,7 +8,8 @@ import re
 import argparse
 import functools
 import dataclasses
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Optional, Union
+from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl, pyqtSlot, qVersion
 from qutebrowser.qt.gui import QFont
@@ -32,6 +33,13 @@ class UserAgent:
     upstream_browser_version: str
     qt_key: str
     qt_version: Optional[str]
+
+    @property
+    def upstream_browser_version_short(self) -> str:
+        """Return a shortened version of the upstream browser version."""
+        major, *rest = self.upstream_browser_version.split('.')
+        shortened = [major] + ["0"] * (len(rest))
+        return ".".join(shortened)
 
     @classmethod
     def parse(cls, ua: str) -> 'UserAgent':
@@ -86,10 +94,10 @@ class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
 
-    _ATTRIBUTES: Dict[str, AttributeInfo] = {}
-    _FONT_SIZES: Dict[str, Any] = {}
-    _FONT_FAMILIES: Dict[str, Any] = {}
-    _FONT_TO_QFONT: Dict[Any, QFont.StyleHint] = {}
+    _ATTRIBUTES: dict[str, AttributeInfo] = {}
+    _FONT_SIZES: dict[str, Any] = {}
+    _FONT_FAMILIES: dict[str, Any] = {}
+    _FONT_TO_QFONT: dict[Any, QFont.StyleHint] = {}
 
     def __init__(self, settings: Any) -> None:
         self._settings = settings
@@ -206,6 +214,7 @@ def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
         qt_version=qVersion(),
         upstream_browser_key=parsed.upstream_browser_key,
         upstream_browser_version=parsed.upstream_browser_version,
+        upstream_browser_version_short=parsed.upstream_browser_version_short,
         qutebrowser_version=qutebrowser.__version__,
     )
 

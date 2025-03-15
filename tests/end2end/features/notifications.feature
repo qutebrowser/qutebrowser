@@ -12,7 +12,8 @@ Feature: Notifications
         When I run :click-element id show-button
         Then the javascript message "notification shown" should be logged
         And 1 notification should be presented
-        And the notification should have image dimensions 64x64  # qutebrowser logo
+        # qutebrowser logo
+        And the notification should have image dimensions 64x64
 
     Scenario: Notification containing escaped characters
         Given the notification server supports body markup
@@ -90,7 +91,8 @@ Feature: Notifications
         And the javascript message "i=3 notification shown" should be logged
         And "Ignoring notification tag 'counter' due to PyQt bug" should be logged
         And 3 notifications should be presented
-        And the notification should have title "i=3"  # last one
+        # last one
+        And the notification should have title "i=3"
 
     @pyqtwebengine>=5.15.0
     Scenario: User closes presented notification
@@ -123,9 +125,11 @@ Feature: Notifications
         And I click the notification
         Then the javascript message "notification clicked" should be logged
         And the following tabs should be open:
+         """
          - about:blank
          - data/javascript/notifications.html (active)
          - about:blank
+         """
 
     @pyqtwebengine<5.15.0
     Scenario: User clicks presented notification (old Qt)

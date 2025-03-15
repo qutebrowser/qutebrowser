@@ -44,7 +44,7 @@ image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 Downloads
 ---------
 
-See the https://github.com/qutebrowser/qutebrowser/releases[github releases
+See the https://github.com/qutebrowser/qutebrowser/releases[GitHub releases
 page] for available downloads and the link:doc/install.asciidoc[INSTALL] file for
 detailed instructions on how to get qutebrowser running on various platforms.
 
@@ -84,7 +84,7 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.8 or newer
+* https://www.python.org/[Python] 3.9 or newer
 * https://www.qt.io/[Qt], either 6.2.0 or newer, or 5.15.0 or newer, with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase or qtdeclarative in some distributions)
@@ -104,10 +104,6 @@ websites and using it for transmission of sensitive data._
   (Qt 6) or 5.15.0 or newer (Qt 5)
 * https://palletsprojects.com/p/jinja/[jinja2]
 * https://github.com/yaml/pyyaml[PyYAML]
-
-On Python 3.8, the following backport is also required:
-
-* https://importlib-resources.readthedocs.io/[importlib_resources]
 
 On macOS, the following libraries are also required:
 
@@ -252,9 +248,9 @@ main inspiration for qutebrowser)
   https://github.com/akhodakivskiy/VimFx[VimFx] (seems to offer a
   https://gir.st/blog/legacyfox.htm[hack] to run on modern Firefox releases),
   https://github.com/shinglyu/QuantumVim[QuantumVim],
-  https://github.com/ueokande/vim-vixen[Vim Vixen] (ESR only),
+  https://github.com/ueokande/vim-vixen[Vim Vixen],
   https://github.com/amedama41/vvimpulation[VVimpulation],
-  https://krabby.netlify.com/[Krabby]
+  https://krabby.netlify.app/[Krabby]
 * Chrome/Chromium addons:
   https://github.com/k2nr/ViChrome/[ViChrome],
   https://github.com/jinzhu/vrome[Vrome],

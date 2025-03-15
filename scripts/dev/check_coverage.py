@@ -242,7 +242,7 @@ def _get_filename(filename):
             os.path.join(os.path.dirname(__file__), '..', '..'))
         common_path = os.path.commonprefix([basedir, filename])
         if common_path:
-            filename = filename[len(common_path):].lstrip('/')
+            filename = filename.removeprefix(common_path).lstrip('/')
 
     return filename
 

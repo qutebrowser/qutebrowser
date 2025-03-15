@@ -11,11 +11,11 @@ from qutebrowser.utils import log, utils
 
 def _get_name(exc: BaseException) -> str:
     """Get a suitable exception name as a string."""
-    prefixes = ['qutebrowser', 'builtins']
+    prefixes = ['qutebrowser.', 'builtins.']
     name = utils.qualname(exc.__class__)
     for prefix in prefixes:
         if name.startswith(prefix):
-            name = name[len(prefix) + 1:]
+            name = name.removeprefix(prefix)
             break
     return name
 

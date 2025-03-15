@@ -9,13 +9,15 @@ import os.path
 import sys
 import bdb
 import pdb  # noqa: T002
+import types
 import signal
 import argparse
 import functools
 import threading
 import faulthandler
 import dataclasses
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
+from typing import TYPE_CHECKING, Optional, cast
+from collections.abc import Callable, MutableMapping
 
 from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
@@ -35,8 +37,8 @@ class ExceptionInfo:
 
     """Information stored when there was an exception."""
 
-    pages: List[List[str]]
-    cmd_history: List[str]
+    pages: list[list[str]]
+    cmd_history: list[str]
     objects: str
 
 
@@ -178,7 +180,7 @@ class CrashHandler(QObject):
         if sys.__stderr__ is not None:
             faulthandler.enable(sys.__stderr__)
         else:
-            faulthandler.disable()  # type: ignore[unreachable]
+            faulthandler.disable()
         try:
             self._crash_log_file.close()
             os.remove(self._crash_log_file.name)
@@ -323,7 +325,9 @@ class SignalHandler(QObject):
         self._activated = False
         self._orig_wakeup_fd: Optional[int] = None
 
-        self._handlers = {
+        self._handlers: dict[
+            signal.Signals, Callable[[int, Optional[types.FrameType]], None]
+        ] = {
             signal.SIGINT: self.interrupt,
             signal.SIGTERM: self.interrupt,
         }
@@ -331,8 +335,10 @@ class SignalHandler(QObject):
             "SIGHUP": self.reload_config,
         }
         for sig_str, handler in platform_dependant_handlers.items():
-            if hasattr(signal.Signals, sig_str):
+            try:
                 self._handlers[signal.Signals[sig_str]] = handler
+            except KeyError:
+                pass
 
     def activate(self):
         """Set up signal handlers.

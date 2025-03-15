@@ -2,12 +2,13 @@
 # bzr+lp:beautifulsoup
 beautifulsoup4
 git+https://github.com/cherrypy/cheroot.git
-git+https://github.com/nedbat/coveragepy.git#egg=coverage[toml]
+coverage[toml] @ git+https://github.com/nedbat/coveragepy.git
 git+https://github.com/pallets/flask.git
 git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to work
 git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
 git+https://github.com/pytest-dev/pytest.git
 git+https://github.com/pytest-dev/pytest-bdd.git
+gherkin-official<31.0.0  # https://github.com/cucumber/gherkin/issues/373
 git+https://github.com/ionelmc/pytest-benchmark.git
 git+https://github.com/pytest-dev/pytest-instafail.git
 git+https://github.com/pytest-dev/pytest-mock.git
@@ -20,6 +21,7 @@ git+https://github.com/pygments/pygments.git
 git+https://github.com/pytest-dev/pytest-repeat.git
 git+https://github.com/pytest-dev/pytest-cov.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
+git+https://github.com/python-pillow/Pillow.git
 git+https://github.com/pytest-dev/pytest-xdist.git
 git+https://github.com/john-kurkowski/tldextract
 

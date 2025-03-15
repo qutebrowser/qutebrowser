@@ -15,8 +15,9 @@ import warnings
 import json
 import inspect
 import argparse
-from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union, TextIO, Literal, cast)
+from typing import (TYPE_CHECKING, Any,
+                    Optional, Union, TextIO, Literal, cast)
+from collections.abc import Iterator, Mapping, MutableSequence
 
 # NOTE: This is a Qt-free zone! All imports related to Qt logging should be done in
 # qutebrowser.utils.qtlog (see https://github.com/qutebrowser/qutebrowser/issues/7769).
@@ -240,7 +241,7 @@ def _init_handlers(
         force_color: bool,
         json_logging: bool,
         ram_capacity: int
-) -> Tuple["logging.StreamHandler[TextIO]", Optional['RAMHandler']]:
+) -> tuple[Optional["logging.StreamHandler[TextIO]"], Optional['RAMHandler']]:
     """Init log handlers.
 
     Args:
@@ -255,7 +256,7 @@ def _init_handlers(
         level, color, force_color, json_logging)
 
     if sys.stderr is None:
-        console_handler = None  # type: ignore[unreachable]
+        console_handler = None
     else:
         strip = False if force_color else None
         if use_colorama:
@@ -293,9 +294,13 @@ def _init_formatters(
         level: int,
         color: bool,
         force_color: bool,
-        json_logging: bool
-) -> Tuple[Union['JSONFormatter', 'ColoredFormatter'],
-           'ColoredFormatter', 'HTMLFormatter', bool]:
+        json_logging: bool,
+) -> tuple[
+    Union['JSONFormatter', 'ColoredFormatter', None],
+    'ColoredFormatter',
+    'HTMLFormatter',
+    bool,
+]:
     """Init log formatters.
 
     Args:
@@ -318,7 +323,7 @@ def _init_formatters(
     use_colorama = False
 
     if sys.stderr is None:
-        console_formatter = None  # type: ignore[unreachable]
+        console_formatter = None
         return console_formatter, ram_formatter, html_formatter, use_colorama
 
     if json_logging:
@@ -392,7 +397,7 @@ class InvalidLogFilterError(Exception):
 
     """Raised when an invalid filter string is passed to LogFilter.parse()."""
 
-    def __init__(self, names: Set[str]):
+    def __init__(self, names: set[str]):
         invalid = names - set(LOGGER_NAMES)
         super().__init__("Invalid log category {} - valid categories: {}"
                          .format(', '.join(sorted(invalid)),
@@ -413,7 +418,7 @@ class LogFilter(logging.Filter):
                     than debug.
     """
 
-    def __init__(self, names: Set[str], *, negated: bool = False,
+    def __init__(self, names: set[str], *, negated: bool = False,
                  only_debug: bool = True) -> None:
         super().__init__()
         self.names = names
@@ -547,7 +552,7 @@ class ColoredFormatter(logging.Formatter):
             log_color = LOG_COLORS[record.levelname]
             color_dict['log_color'] = COLOR_ESCAPES[log_color]
         else:
-            color_dict = {color: '' for color in COLOR_ESCAPES}
+            color_dict = dict.fromkeys(COLOR_ESCAPES, "")
             color_dict['reset'] = ''
             color_dict['log_color'] = ''
         record.__dict__.update(color_dict)

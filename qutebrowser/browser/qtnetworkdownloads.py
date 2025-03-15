@@ -9,7 +9,7 @@ import os.path
 import shutil
 import functools
 import dataclasses
-from typing import Dict, IO, Optional
+from typing import IO, Optional
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QTimer, QUrl
 from qutebrowser.qt.widgets import QApplication
@@ -73,7 +73,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """
         super().__init__(manager=manager, parent=manager)
         self.fileobj: Optional[IO[bytes]] = None
-        self.raw_headers: Dict[bytes, bytes] = {}
+        self.raw_headers: dict[bytes, bytes] = {}
 
         self._autoclose = True
         self._retry_info = None
@@ -124,7 +124,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                 log.downloads.exception("Error while closing file object")
 
             if pos == 0:
-                # Emtpy remaining file
+                # Empty remaining file
                 filename = self._get_open_filename()
                 log.downloads.debug(f"Removing empty file at {filename}")
                 try:

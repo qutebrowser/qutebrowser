@@ -322,8 +322,9 @@ qt.chromium.sandboxing:
 
     See the Chromium documentation for more details:
 
-    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/linux/README.md[Linux]
     - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/sandbox/mac/README.md[Mac]
     - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
   # yamllint enable rule:line-length
 
@@ -403,6 +404,23 @@ qt.workarounds.disable_accelerated_2d_canvas:
     so we do that by default.
 
     So far these glitches only occur on some Intel graphics devices.
+
+qt.workarounds.disable_hangouts_extension:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Disable the Hangouts extension.
+
+    The Hangouts extension provides additional APIs for Google domains only.
+
+    Hangouts has been replaced with Meet,
+    which appears to work without this extension.
+
+    Note this setting gets ignored and the Hangouts extension is always
+    disabled to avoid crashes on Qt 6.5.0 to 6.5.3 if dark mode is enabled,
+    as well as on Qt 6.6.0.
 
 ## auto_save
 
@@ -734,7 +752,7 @@ content.headers.referer:
 content.headers.user_agent:
   default: 'Mozilla/5.0 ({os_info})
       AppleWebKit/{webkit_version} (KHTML, like Gecko)
-      {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version}
+      {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version_short}
       Safari/{webkit_version}'
   type:
     name: FormatString
@@ -746,6 +764,7 @@ content.headers.user_agent:
       - qt_version
       - upstream_browser_key
       - upstream_browser_version
+      - upstream_browser_version_short
       - qutebrowser_version
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
@@ -755,14 +774,14 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-        - Chrome 117 macOS
+          (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
+        - Chrome 135 macOS
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/117.0.0.0 Safari/537.36"
-        - Chrome 117 Win10
+          like Gecko) Chrome/135.0.0.0 Safari/537.36"
+        - Chrome 135 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/117.0.0.0 Safari/537.36"
-        - Chrome 117 Linux
+          Gecko) Chrome/135.0.0.0 Safari/537.36"
+        - Chrome 135 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -777,6 +796,8 @@ content.headers.user_agent:
     * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
       QtWebEngine.
     * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+    * `{upstream_browser_version_short}`: The corresponding Safari/Chrome
+      version, but only with its major version.
     * `{qutebrowser_version}`: The currently running qutebrowser version.
 
     The default value is equal to the unchanged user agent of
@@ -906,19 +927,23 @@ content.javascript.alert:
   desc: Show javascript alerts.
 
 content.javascript.clipboard:
-  default: none
+  default: ask
   type:
-    name: String
+    name: JSClipboardPermission
     valid_values:
       - none: Disable access to clipboard.
       - access: Allow reading from and writing to the clipboard.
       - access-paste: Allow accessing the clipboard and pasting clipboard content.
+      - ask: Prompt when requested (grants 'access-paste' permission).
   supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
 
     With QtWebEngine, writing the clipboard as response to a user interaction
     is always allowed.
+
+    On Qt < 6.8, the `ask` setting is equivalent to `none` and permission needs
+    to be granted manually via this setting.
 
 content.javascript.can_close_tabs:
   default: false
@@ -2648,7 +2673,7 @@ url.yank_ignored_parameters:
     - utm_term
     - utm_content
     - utm_name
-  desc: URL parameters to strip with `:yank url`.
+  desc: URL parameters to strip when yanking a URL.
 
 ## window
 
@@ -3318,6 +3343,9 @@ colors.webpage.darkmode.enabled:
   desc: >-
     Render all web contents using a dark theme.
 
+    On QtWebEngine < 6.7, this setting requires a restart and does not support
+    URL patterns, only the global setting is applied.
+
     Example configurations from Chromium's `chrome://flags`:
 
     - "With simple HSL/CIELAB/RGB-based inversion": Set
@@ -3325,7 +3353,7 @@ colors.webpage.darkmode.enabled:
       set `colors.webpage.darkmode.policy.images` to `never`.
 
     - "With selective image inversion": qutebrowser default settings.
-  restart: true
+  supports_pattern: true
   backend: QtWebEngine
 
 colors.webpage.darkmode.algorithm:
@@ -3765,8 +3793,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
-      ym: yank inline [{title}]({url})
-      yM: yank inline [{title}]({url}) -s
+      ym: yank inline [{title}]({url:yank})
+      yM: yank inline [{title}]({url:yank}) -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}

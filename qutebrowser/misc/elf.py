@@ -49,7 +49,7 @@ import re
 import dataclasses
 import mmap
 import pathlib
-from typing import IO, ClassVar, Dict, Optional, cast
+from typing import IO, ClassVar, Optional, cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.utils import log, version, qtutils
@@ -131,7 +131,7 @@ class Header:
     shnum: int
     shstrndx: int
 
-    _FORMATS: ClassVar[Dict[Bitness, str]] = {
+    _FORMATS: ClassVar[dict[Bitness, str]] = {
         Bitness.x64: '<HHIQQQIHHHHHH',
         Bitness.x32: '<HHIIIIIHHHHHH',
     }
@@ -162,7 +162,7 @@ class SectionHeader:
     addralign: int
     entsize: int
 
-    _FORMATS: ClassVar[Dict[Bitness, str]] = {
+    _FORMATS: ClassVar[dict[Bitness, str]] = {
         Bitness.x64: '<IIQQQQIIQQ',
         Bitness.x32: '<IIIIIIIIII',
     }
@@ -235,7 +235,7 @@ def _find_versions(data: bytes) -> Versions:
     # Here it gets even more crazy: Sometimes, we don't have the full UA in one piece
     # in the string table somehow (?!). However, Qt 6.2 added a separate
     # qWebEngineChromiumVersion(), with PyQt wrappers following later. And *that*
-    # apperently stores the full version in the string table separately from the UA.
+    # apparently stores the full version in the string table separately from the UA.
     # As we clearly didn't have enough crazy heuristics yet so far, let's hunt for it!
 
     # We first get the partial Chromium version from the UA:

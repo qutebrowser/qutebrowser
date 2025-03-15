@@ -10,11 +10,12 @@ import html
 import enum
 import netrc
 import tempfile
-from typing import Callable, Mapping, List, Optional, Iterable, Iterator
+from typing import Optional
+from collections.abc import Mapping, Iterable, Iterator, Callable
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configtypes
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
                                qtutils, version, urlutils)
 from qutebrowser.mainwindow import mainwindow
@@ -25,8 +26,15 @@ class CallSuper(Exception):
     """Raised when the caller should call the superclass instead."""
 
 
-def custom_headers(url):
-    """Get the combined custom headers."""
+def custom_headers(
+    url: QUrl, *, fallback_accept_language: bool = True
+) -> list[tuple[bytes, bytes]]:
+    """Get the combined custom headers.
+
+    Arguments:
+        fallback_accept_language: Whether to include the global (rather than
+                                  per-domain override) accept language header as well.
+    """
     headers = {}
 
     dnt_config = config.instance.get('content.headers.do_not_track', url=url)
@@ -40,9 +48,17 @@ def custom_headers(url):
         encoded_value = b"" if value is None else value.encode('ascii')
         headers[encoded_header] = encoded_value
 
+    # On QtWebEngine, we have fallback_accept_language set to False here for XHR
+    # requests, so that we don't end up overriding headers that are set via the XHR API.
+    #
+    # The global Accept-Language header is set via
+    # QWebEngineProfile::setHttpAcceptLanguage already anyways, so we only need
+    # to take care of URL pattern overrides here.
+    #
+    # note: Once we drop QtWebKit, we could hardcode fallback_accept_language to False.
     accept_language = config.instance.get('content.headers.accept_language',
-                                          url=url)
-    if accept_language is not None:
+                                          url=url, fallback=fallback_accept_language)
+    if accept_language is not None and not isinstance(accept_language, usertypes.Unset):
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 
     return sorted(headers.items())
@@ -303,6 +319,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
         None otherwise.
     """
     config_val = config.instance.get(option, url=url)
+    opt = config.instance.get_opt(option)
     if config_val == 'ask':
         if url.isValid():
             urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
@@ -328,12 +345,21 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 cancel_action=no_action, abort_on=abort_on,
                 title='Permission request', text=text, url=urlstr,
                 option=option)
-    elif config_val:
+
+    if isinstance(opt.typ, configtypes.AsBool):
+        config_val = opt.typ.to_bool(config_val)
+
+    if config_val is True:
         yes_action()
         return None
-    else:
+    elif config_val is False:
         no_action()
         return None
+    else:
+        raise AssertionError(
+            f"Unsupported value for permission prompt setting ({option}), expected boolean or "
+            f"'ask', got: {config_val} ({type(config_val)})"
+        )
 
 
 def get_tab(win_id, target):
@@ -445,7 +471,7 @@ class FileSelectionMode(enum.Enum):
     folder = enum.auto()
 
 
-def choose_file(qb_mode: FileSelectionMode) -> List[str]:
+def choose_file(qb_mode: FileSelectionMode) -> list[str]:
     """Select file(s)/folder for up-/downloading, using an external command.
 
     Args:
@@ -485,10 +511,10 @@ def choose_file(qb_mode: FileSelectionMode) -> List[str]:
 
 
 def _execute_fileselect_command(
-    command: List[str],
+    command: list[str],
     qb_mode: FileSelectionMode,
     tmpfilename: Optional[str] = None
-) -> List[str]:
+) -> list[str]:
     """Execute external command to choose file.
 
     Args:
@@ -522,7 +548,7 @@ def _execute_fileselect_command(
 
 def _validated_selected_files(
     qb_mode: FileSelectionMode,
-    selected_files: List[str],
+    selected_files: list[str],
 ) -> Iterator[str]:
     """Validates selected files if they are.
 

@@ -12,7 +12,7 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
+from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -816,7 +816,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         # Implements the intended two-second delay specified at
         # https://doc.qt.io/archives/qt-5.14/qwebenginepage.html#recentlyAudibleChanged
         delay_ms = 2000
-        self._silence_timer = QTimer(self)
+        self._silence_timer = usertypes.Timer(self)
         self._silence_timer.setSingleShot(True)
         self._silence_timer.setInterval(delay_ms)
 
@@ -886,6 +886,8 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
         QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
         QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
+        # 8 == ClipboardReadWrite, new in 6.8
+        QWebEnginePage.Feature(8): 'content.javascript.clipboard',
     }
 
     _messages = {
@@ -897,6 +899,7 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
         QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
         QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
+        QWebEnginePage.Feature(8): 'read and write your clipboard',
     }
 
     def __init__(self, tab, parent=None):
@@ -1477,9 +1480,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.network.debug("Asking for credentials")
             answer = shared.authentication_required(
                 url, authenticator, abort_on=[self.abort_questions])
-        if not netrc_success and answer is None:
-            log.network.debug("Aborting auth")
-            sip.assign(authenticator, QAuthenticator())
+            if answer is None:
+                log.network.debug("Aborting auth")
+                sip.assign(authenticator, QAuthenticator())
 
     @pyqtSlot()
     def _on_load_started(self):
@@ -1513,7 +1516,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 browsertab.TerminationStatus.crashed,
             QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus:
                 browsertab.TerminationStatus.killed,
-            -1:
+            QWebEnginePage.RenderProcessTerminationStatus(-1):
                 browsertab.TerminationStatus.unknown,
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)

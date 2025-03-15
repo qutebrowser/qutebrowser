@@ -474,7 +474,7 @@ def test_get_repr(constructor, attrs, expected):
     assert utils.get_repr(Obj(), constructor, **attrs) == expected
 
 
-class QualnameObj():
+class QualnameObj:
 
     """Test object for test_qualname."""
 
@@ -533,7 +533,7 @@ class TestIsEnum:
         assert not utils.is_enum(23)
 
 
-class SentinalException(Exception):
+class SentinelException(Exception):
     pass
 
 
@@ -543,7 +543,7 @@ class TestRaises:
 
     def do_raise(self):
         """Helper function which raises an exception."""
-        raise SentinalException
+        raise SentinelException
 
     def do_nothing(self):
         """Helper function which does nothing."""
@@ -562,15 +562,15 @@ class TestRaises:
 
     def test_no_args_true(self):
         """Test with no args and an exception which gets raised."""
-        assert utils.raises(SentinalException, self.do_raise)
+        assert utils.raises(SentinelException, self.do_raise)
 
     def test_no_args_false(self):
         """Test with no args and an exception which does not get raised."""
-        assert not utils.raises(SentinalException, self.do_nothing)
+        assert not utils.raises(SentinelException, self.do_nothing)
 
     def test_unrelated_exception(self):
         """Test with an unrelated exception."""
-        with pytest.raises(SentinalException):
+        with pytest.raises(SentinelException):
             utils.raises(ValueError, self.do_raise)
 
 

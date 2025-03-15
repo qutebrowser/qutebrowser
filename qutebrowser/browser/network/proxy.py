@@ -7,7 +7,7 @@
 from typing import Optional
 
 from qutebrowser.qt.core import QUrl, pyqtSlot
-from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory
+from qutebrowser.qt.network import QNetworkProxy, QNetworkProxyFactory, QNetworkProxyQuery
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.utils import message, usertypes, urlutils, utils, qtutils
@@ -71,7 +71,7 @@ class ProxyFactory(QNetworkProxyFactory):
             capabilities &= ~lookup_cap
         proxy.setCapabilities(capabilities)
 
-    def queryProxy(self, query):
+    def queryProxy(self, query: QNetworkProxyQuery = QNetworkProxyQuery()) -> list[QNetworkProxy]:
         """Get the QNetworkProxies for a query.
 
         Args:

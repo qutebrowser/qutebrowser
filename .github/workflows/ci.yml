@@ -14,7 +14,7 @@ jobs:
   linters:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -50,15 +50,15 @@ jobs:
           python-version: '3.10'
       - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version: '22.x'
         if: "matrix.testenv == 'eslint'"
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g 'eslint@<9.0.0'
-            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1-mesa
-            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1-mesa
+            [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get update && sudo apt-get install --no-install-recommends asciidoc libegl1
+            [[ ${{ matrix.testenv }} == vulture || ${{ matrix.testenv }} == pylint ]] && sudo apt-get update && sudo apt-get install --no-install-recommends libegl1
             if [[ ${{ matrix.testenv }} == shellcheck ]]; then
                 scversion="stable"
                 bindir="$HOME/.local/bin"
@@ -86,7 +86,7 @@ jobs:
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04  # not 24.04 because sandboxing fails by default (#8424)
     strategy:
       fail-fast: false
       matrix:
@@ -107,6 +107,7 @@ jobs:
         DOCKER: "${{ matrix.image }}"
         CI: true
         PYTEST_ADDOPTS: "--color=yes"
+        TMPDIR: "${{ runner.temp }}"
       volumes:
         # Hardcoded because we can't use ${{ runner.temp }} here apparently.
         - /home/runner/work/_temp/:/home/runner/work/_temp/
@@ -119,6 +120,21 @@ jobs:
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-user/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -128,10 +144,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.15.2 (Python 3.8)
-          - testenv: py37-pyqt5152
-            os: ubuntu-20.04
-            python: "3.8"
+          ### PyQt 5.15.2 (Python 3.9)
+          - testenv: py39-pyqt5152
+            os: ubuntu-22.04
+            python: "3.9"
           ### PyQt 5.15 (Python 3.10, with coverage)
           # FIXME:qt6
           # - testenv: py310-pyqt515-cov
@@ -139,19 +155,19 @@ jobs:
           #   python: "3.10"
           ### PyQt 5.15 (Python 3.11)
           - testenv: py311-pyqt515
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.11"
-          ### PyQt 6.2 (Python 3.8)
-          - testenv: py37-pyqt62
-            os: ubuntu-20.04
-            python: "3.8"
-          ### PyQt 6.3 (Python 3.8)
-          - testenv: py38-pyqt63
-            os: ubuntu-20.04
-            python: "3.8"
+          ### PyQt 6.2 (Python 3.9)
+          - testenv: py39-pyqt62
+            os: ubuntu-22.04
+            python: "3.9"
+          ### PyQt 6.3 (Python 3.9)
+          - testenv: py39-pyqt63
+            os: ubuntu-22.04
+            python: "3.9"
           ## PyQt 6.4 (Python 3.9)
           - testenv: py39-pyqt64
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             python: "3.9"
           ### PyQt 6.5 (Python 3.10)
           - testenv: py310-pyqt65
@@ -165,20 +181,32 @@ jobs:
           - testenv: py312-pyqt66
             os: ubuntu-22.04
             python: "3.12"
-          ### macOS Big Sur
-          - testenv: py312-pyqt66
-            os: macos-11
+          ### PyQt 6.7 (Python 3.11)
+          - testenv: py311-pyqt67
+            os: ubuntu-22.04
+            python: "3.11"
+          ### PyQt 6.7 (Python 3.12)
+          - testenv: py312-pyqt67
+            os: ubuntu-22.04
             python: "3.12"
+          ### PyQt 6.8 (Python 3.13)
+          - testenv: py313-pyqt68
+            os: ubuntu-24.04
+            python: "3.13"
+          ### macOS Ventura
+          - testenv: py313-pyqt68
+            os: macos-13
+            python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
-          ### macOS Monterey
-          - testenv: py312-pyqt66
-            os: macos-12
-            python: "3.12"
+          ### macOS Sonoma (M1 runner)
+          - testenv: py313-pyqt68
+            os: macos-14
+            python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py312-pyqt66
+          - testenv: py313-pyqt68
             os: windows-2019
-            python: "3.12"
+            python: "3.13"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v4
@@ -200,12 +228,17 @@ jobs:
       - name: Install apt dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Upgrade 3rd party assets
+        run: "tox exec -e ${{ matrix.testenv }} -- python scripts/dev/update_3rdparty.py --gh-token ${{ secrets.GITHUB_TOKEN }}"
+        if: "startsWith(matrix.os, 'windows-')"
+      - name: "Set TMPDIR for pytest"
+        run: 'echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"'
       - name: "Run ${{ matrix.testenv }}"
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
@@ -217,16 +250,31 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           name: "${{ matrix.testenv }}"
+      - name: Gather info
+        id: info
+        run: |
+            echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        if: failure()
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
+          path: |
+            ${{ runner.temp }}/pytest-of-runner/pytest-current/pytest-screenshots/*.png
+          if-no-files-found: ignore
+        if: failure()
 
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     permissions:
       security-events: write
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -243,7 +291,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:

@@ -32,7 +32,7 @@ render_tree(root)
 > ('└─', 'baz')
 """
 import enum
-from typing import Optional, TypeVar, Sequence, List, Tuple, Iterable, Generic
+from typing import Optional, TypeVar, Sequence, Iterable, Generic
 import itertools
 
 # For Node.render
@@ -99,12 +99,12 @@ class Node(Generic[T]):
         self.value = value
         # set initial values so there's no need for AttributeError checks
         self.__parent: Optional['Node[T]'] = None
-        self.__children: List['Node[T]'] = []
+        self.__children: list['Node[T]'] = []
 
         # For render memoization
         self.__modified = False
         self.__set_modified()  # not the same as line above
-        self.__rendered: Optional[List[Tuple[str, 'Node[T]']]] = None
+        self.__rendered: Optional[list[tuple[str, 'Node[T]']]] = None
 
         if parent:
             self.parent = parent  # calls setter
@@ -155,7 +155,7 @@ class Node(Generic[T]):
         self.__set_modified()
 
     @property
-    def path(self) -> List['Node[T]']:
+    def path(self) -> list['Node[T]']:
         """Get a list of all nodes from the root node to self."""
         if self.parent is None:
             return [self]
@@ -189,7 +189,7 @@ class Node(Generic[T]):
         for node in self.path:
             node.__modified = True  # pylint: disable=protected-access,unused-private-member
 
-    def render(self) -> List[Tuple[str, 'Node[T]']]:
+    def render(self) -> list[tuple[str, 'Node[T]']]:
         """Render a tree with ascii symbols.
 
         Tabs appear in the same order as in traverse() with TraverseOrder.PRE
