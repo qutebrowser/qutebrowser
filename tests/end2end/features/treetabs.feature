@@ -15,9 +15,11 @@ Feature: Tree tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-prev --sibling
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
               - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: Focus next sibling tab
         When I open data/numbers/1.txt
@@ -26,9 +28,11 @@ Feature: Tree tab management
         And I run :tab-focus 1
         And I run :tab-next --sibling
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/2.txt
             - data/numbers/3.txt (active)
+            """
 
     Scenario: Closing a tab promotes the first child in its place
         When I open data/numbers/1.txt
@@ -38,9 +42,11 @@ Feature: Tree tab management
         And I run :tab-focus 1
         And I run :tab-close
         Then the following tabs should be open:
+            """
             - data/numbers/2.txt
               - data/numbers/3.txt
             - data/numbers/4.txt
+            """
 
     Scenario: Focus a parent tab
         When I open data/numbers/1.txt
@@ -48,9 +54,11 @@ Feature: Tree tab management
         And I open data/numbers/2.txt in a new sibling tab
         And I run :tab-focus parent
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
               - data/numbers/2.txt
               - data/numbers/3.txt
+            """
 
     Scenario: :tab-close --recursive
         When I open data/numbers/1.txt
@@ -60,14 +68,18 @@ Feature: Tree tab management
         And I run :tab-focus 1
         And I run :tab-close --recursive
         Then the following tabs should be open:
+            """
             - data/numbers/4.txt
+            """
 
     Scenario: Open a child tab
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/2.txt (active)
+            """
 
     Scenario: Move a tab to the given index
         When I open data/numbers/1.txt
@@ -77,10 +89,12 @@ Feature: Tree tab management
         And I run :tab-focus 3
         And I run :tab-move 1
         Then the following tabs should be open:
+            """
             - data/numbers/3.txt
               - data/numbers/4.txt
             - data/numbers/1.txt
               - data/numbers/2.txt
+            """
 
     Scenario: Collapse a subtree
         When I open data/numbers/1.txt
@@ -89,9 +103,11 @@ Feature: Tree tab management
         And I run :tab-focus 2
         And I run :tree-tab-toggle-hide
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/2.txt (active) (collapsed)
                 - data/numbers/3.txt
+            """
 
     Scenario: Load a collapsed subtree
         # Same setup as above
@@ -108,9 +124,11 @@ Feature: Tree tab management
         And I wait until data/numbers/3.txt is loaded
         # And of course the same assertion as above too
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/2.txt (active) (collapsed)
                 - data/numbers/3.txt
+            """
 
     Scenario: Uncollapse a subtree
         When I open data/numbers/1.txt
@@ -120,9 +138,11 @@ Feature: Tree tab management
         And I run :tree-tab-toggle-hide
         And I run :tree-tab-toggle-hide
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/2.txt (active)
                 - data/numbers/3.txt
+            """
 
     # Same as a test in sessions.feature but tree tabs and the related
     # settings.
@@ -143,10 +163,12 @@ Feature: Tree tab management
         And I wait until data/numbers/3.txt is loaded
         And I wait until data/numbers/4.txt is loaded
         Then the following tabs should be open:
+          """
           - data/numbers/1.txt
             - data/numbers/2.txt (active) (collapsed)
               - data/numbers/3.txt
           - data/numbers/4.txt
+          """
 
     Scenario: Undo a tab close restores tree structure
         # Restored node should be put back in the right place in the tree with
@@ -158,9 +180,11 @@ Feature: Tree tab management
         And I run :tab-close
         And I run :undo
         Then the following tabs should be open:
+          """
           - about:blank?grandparent
             - about:blank?parent (active)
               - about:blank?child
+          """
 
     Scenario: Undo a tab close when the parent has already been closed
         # Close the child first, then the parent. When the child is restored
@@ -172,8 +196,10 @@ Feature: Tree tab management
         And I run :tab-close
         And I run :undo 2
         Then the following tabs should be open:
+          """
           - about:blank?child (active)
           - about:blank?grandparent
+          """
 
     Scenario: Undo a tab close when the parent has already been closed - with children
         # Close the child first, then the parent. When the child is restored
@@ -189,9 +215,11 @@ Feature: Tree tab management
         And I run :tab-close
         And I run :undo 2
         Then the following tabs should be open:
+          """
           - about:blank?child (active)
             - about:blank?leaf
           - about:blank?grandparent
+          """
 
     Scenario: Undo a tab close when the child has already been closed
         # Close the parent first, then the child. Make sure we don't crash
@@ -204,5 +232,7 @@ Feature: Tree tab management
         And I run :tab-close
         And I run :undo 2
         Then the following tabs should be open:
+          """
           - about:blank?grandparent
             - about:blank?parent (active)
+          """
