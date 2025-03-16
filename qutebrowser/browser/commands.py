@@ -1171,8 +1171,6 @@ class CommandDispatcher:
                    If moving absolutely: New position (default: 0). This
                    overrides the index argument, if given.
         """
-        # pylint: disable=invalid-unary-operand-type
-        # https://github.com/PyCQA/pylint/issues/1472
         if index in ["+", "-"]:
             # relative moving
             new_idx = self._current_index()
