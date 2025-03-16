@@ -32,7 +32,8 @@ render_tree(root)
 > ('└─', 'baz')
 """
 import enum
-from typing import Optional, TypeVar, Sequence, Iterable, Generic
+from typing import Optional, TypeVar, Generic
+from collections.abc import Iterable, Sequence
 import itertools
 
 # For Node.render
@@ -72,7 +73,7 @@ class Node(Generic[T]):
     """Fundamental unit of notree library.
 
     Attributes:
-        value: The element (ususally a tab) the node represents
+        value: The element (usually a tab) the node represents
         parent: Node's parent.
         children: Node's children elements.
         siblings: Children of parent node that are not self.
