@@ -266,7 +266,7 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         return tab
 
-    def _position_tab(
+    def _position_tab(  # pylint: disable=too-many-positional-arguments
         self,
         cur_node: notree.Node,
         new_node: notree.Node,
