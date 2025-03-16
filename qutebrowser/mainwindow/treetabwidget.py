@@ -125,8 +125,7 @@ class TreeTabWidget(TabWidget):
                 tab = node.value
                 name = tab.title()
                 icon = tab.icon()
-                if node.parent is not None:
-                    parent_idx = self.indexOf(node.parent.value)
+                parent_idx = self.indexOf(node.parent.value)
                 self.insertTab(parent_idx + 1, tab, icon, name)
                 tab.node.parent = parent  # insertTab resets node
 
