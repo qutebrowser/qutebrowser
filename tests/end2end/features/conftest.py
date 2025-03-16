@@ -226,7 +226,7 @@ def open_path(quteproc, server, path, default_kwargs: dict = None):
     while True:
         for suffix, value in suffixes.items():
             if path.endswith(suffix):
-                path = path.removesuffix(suffix)
+                path = path.removesuffix(f" {suffix}")
                 update_from_value(value, kwargs)
                 break
         else:
