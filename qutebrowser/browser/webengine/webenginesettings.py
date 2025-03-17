@@ -528,9 +528,19 @@ def _init_site_specific_quirks():
 
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
-        # October 2023: Slack claims they only support 112+. On #7951 at least
-        # one user claims it still works fine on 108 based Qt versions.
-        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(112)),
+        #
+        # March 2025 situation:
+        # - https://slack.com/help/articles/1500001836081-Slack-support-lifecycle-for-operating-systems-app-versions-and-browsers
+        #   claims that Chrome 123 is needed
+        # - Qt 6.9 (130 based) works fine and doesn't display any banner, but is
+        #   not released yet.
+        # - Qt 6.8 (122 based) displays a "This browser won’t be supported
+        #   starting March 15th, 2025" banner on March 17th, but works just fine
+        #   with the default UA still...
+        # - With the default UA, Qt 6.7 (118 based) breaks.
+        # - With the workaround, Qt 6.4 (102 based) still seems to work perfectly fine,
+        #   while Qt 6.3 (94 based) works fine but has some styling issues.
+        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(123)),
     ]
 
     for name, pattern, ua in user_agents:
