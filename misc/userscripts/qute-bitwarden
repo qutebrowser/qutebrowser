@@ -133,7 +133,7 @@ def get_session_key(auto_lock, password_prompt_invocation):
 def pass_(domain, encoding, auto_lock, password_prompt_invocation):
     session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
-        ['bw', 'list', 'items', '--session', session_key, '--url', domain],
+        ['bw', 'list', 'items', '--nointeraction', '--session', session_key, '--url', domain],
         capture_output=True,
     )
 
@@ -141,6 +141,10 @@ def pass_(domain, encoding, auto_lock, password_prompt_invocation):
     if err:
         msg = 'Bitwarden CLI returned for {:s} - {:s}'.format(domain, err)
         stderr(msg)
+
+        if "Vault is locked" in err:
+            stderr("Bitwarden Vault got locked, trying again with clean session")
+            return pass_(domain, encoding, 0, password_prompt_invocation)
 
     if process.returncode:
         return '[]'
@@ -153,7 +157,7 @@ def pass_(domain, encoding, auto_lock, password_prompt_invocation):
 def get_totp_code(selection_id, domain_name, encoding, auto_lock, password_prompt_invocation):
     session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
-        ['bw', 'get', 'totp', '--session', session_key, selection_id],
+        ['bw', 'get', 'totp', '--nointeraction', '--session', session_key, selection_id],
         capture_output=True,
     )
 
@@ -162,6 +166,10 @@ def get_totp_code(selection_id, domain_name, encoding, auto_lock, password_promp
         # domain_name instead of selection_id to make it more user-friendly
         msg = 'Bitwarden CLI returned for {:s} - {:s}'.format(domain_name, err)
         stderr(msg)
+
+        if "Vault is locked" in err:
+            stderr("Bitwarden Vault got locked, trying again with clean session")
+            return get_totp_code(selection_id, domain_name, encoding, 0, password_prompt_invocation)
 
     if process.returncode:
         return '[]'
