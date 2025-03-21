@@ -26,7 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
         URL.parse = function(url, base) {
             try { 
                 return new URL(url, base);
-            } catch (e) {
+            } catch (ex) {
                 return null;
             }
         }
