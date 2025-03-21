@@ -29,6 +29,11 @@ Changed
     * `qute-bitwarden` now passes your password to the subprocess in an
       environment variable when unlocking your vault, instead of as a command
       line argument. (#7781)
+- New `-D no-system-pdfjs` debug flag to ignore system-wide PDF.js installations
+  for testing.
+- Polyfill for missing `URL.parse` with PDF.js v5 and QtWebEngine < 6.9. Note
+  this is a "best effort" fix and you should be using the "older browsers"
+  ("legacy") build of PDF.js instead.
 
 Fixed
 ~~~~~
