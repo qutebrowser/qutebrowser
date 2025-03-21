@@ -128,7 +128,7 @@ def _apply_platform_markers(config, item):
          "Failing due to cheroot: https://github.com/cherrypy/cheroot/issues/346"),
         (
             "qt69_ci_flaky",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
-            pytest.mark.flaky,
+            pytest.mark.flaky(reruns=3),
             (
                 config.webengine
                 and version.qtwebengine_versions(avoid_init=True).webengine
