@@ -11,6 +11,7 @@ from qutebrowser.qt.core import QUrl, QUrlQuery
 
 from qutebrowser.utils import resources, javascript, jinja, standarddir, log, urlutils
 from qutebrowser.config import config
+from qutebrowser.misc import objects
 
 
 _SYSTEM_PATHS = [
@@ -127,7 +128,12 @@ def get_pdfjs_res_and_path(path):
     content = None
     file_path = None
 
-    system_paths = _SYSTEM_PATHS + [
+    if 'no-system-pdfjs' in objects.debug_flags:
+        system_paths = []
+    else:
+        system_paths = _SYSTEM_PATHS[:]
+
+    system_paths += [
         # fallback
         os.path.join(standarddir.data(), 'pdfjs'),
         # hardcoded fallback for --temp-basedir
