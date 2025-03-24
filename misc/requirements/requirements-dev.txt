@@ -37,7 +37,7 @@ mdurl==0.1.2
 more-itertools==10.6.0
 nh3==0.2.21
 packaging==24.2
-platformdirs==4.3.6
+platformdirs==4.3.7
 prompt_toolkit==3.0.50
 pycparser==2.22
 pydantic==2.10.6
