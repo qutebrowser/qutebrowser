@@ -28,7 +28,7 @@
   "types-docutils": "https://github.com/python/typeshed/commits/main/stubs/docutils",
   "types-Pygments": "https://github.com/python/typeshed/commits/main/stubs/Pygments",
   "pytest": "https://docs.pytest.org/en/latest/changelog.html",
-  "iniconfig": "https://github.com/pytest-dev/iniconfig/blob/master/CHANGELOG",
+  "iniconfig": "https://github.com/pytest-dev/iniconfig/blob/main/CHANGELOG",
   "tox": "https://tox.readthedocs.io/en/latest/changelog.html",
   "cachetools": "https://github.com/tkem/cachetools/blob/master/CHANGELOG.rst",
   "pyproject-api": "https://github.com/tox-dev/pyproject-api/releases",
