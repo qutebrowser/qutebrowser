@@ -45,6 +45,8 @@ Fixed
   error is shown instead).
 - The default user agent now only contains the shortened Chromium version
   number, which fixes overzealous blocking on ScienceDirect.
+- New site-specific quirk to fix existing accounts showing as non-existant on
+  Digitec/Galaxus.
 - Resolved issues in userscripts:
     * `qute-bitwarden` will now prompt a re-login if its cached session has
       been invalidated since last used. (#8456)
