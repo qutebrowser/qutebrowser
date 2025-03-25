@@ -2773,6 +2773,7 @@ Valid values:
  * +ua-google+
  * +ua-slack+
  * +ua-googledocs+
+ * +ua-digitecgalaxus+
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+

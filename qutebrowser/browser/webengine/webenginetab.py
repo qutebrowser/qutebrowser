@@ -1201,6 +1201,11 @@ class _WebEngineScripts(QObject):
                 # will be an UA quirk once we set the JS UA as well
                 name='ua-googledocs',
             ),
+            _Quirk(
+                'digitecgalaxus',
+                # will be an UA quirk once we set the JS UA as well
+                name='ua-digitecgalaxus',
+            ),
 
             _Quirk(
                 'string_replaceall',
