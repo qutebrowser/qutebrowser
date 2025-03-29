@@ -305,9 +305,10 @@ def _get_changes(diff):  # noqa: C901 pragma: no mccabe
     current_path = None
 
     for line in diff:
-        if len(line) == 1:
-            continue
         if not line.startswith('-') and not line.startswith('+'):
+            continue
+        elif line in ["-", "+"]:
+            # Empty line added or removed
             continue
         elif line.startswith('--- '):
             prefix = '--- a/'
