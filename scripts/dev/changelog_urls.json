@@ -133,6 +133,7 @@
   "idna": "https://github.com/kjd/idna/blob/master/HISTORY.rst",
   "tldextract": "https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md",
   "typing_extensions": "https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
+  "typing-inspection": "https://github.com/pydantic/typing-inspection/blob/main/HISTORY.md",
   "diff_cover": "https://github.com/Bachmann1234/diff_cover/blob/main/CHANGELOG",
   "beautifulsoup4": "https://git.launchpad.net/beautifulsoup/tree/CHANGELOG",
   "check-manifest": "https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst",
