@@ -407,7 +407,8 @@ def get_updated_requirements_freeze(filename, venv_dir, comments):
               pre=comments['pre'],
               pip_args=comments['pip_args'])
     with utils.gha_group('Freezing requirements'):
-        args = ['--all'] if '-tox.txt-raw' in filename else []
+        basename = os.path.basename(filename)
+        args = ['--all'] if basename == "requirements-tox.txt-raw" else []
         proc = run_pip(venv_dir, 'freeze', *args, stdout=subprocess.PIPE)
         lines = proc.stdout.decode('utf-8').splitlines()
         return "\n".join([normalize_line(line) for line in lines])
@@ -422,7 +423,7 @@ def get_updated_requirements_compile(filename, venv_dir, comments):
 
         run_pip(venv_dir, 'install', '-U', 'uv', quiet=not utils.ON_CI)
         uv_command = "uv pip compile -U".split()
-        if "-tox.txt-raw" not in filename:
+        if os.path.basename(filename) != "requirements-tox.txt-raw":
             # Ignore pip dependencies to match pip freeze.
             for package in ["pip", "setuptools"]:
                 uv_command.extend(f"--no-emit-package {package}".split())
