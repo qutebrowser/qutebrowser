@@ -119,7 +119,7 @@ def test_markers_in_comments(reqs, initial_compiled, expected, tmp_path, monkeyp
         lambda *args: textwrap.dedent(initial_compiled).strip(),
     )
 
-    recompile_requirements.build_requirements("test", mode="compile")
+    recompile_requirements.build_requirements("test")
 
     result = (tmp_path / "requirements-test.txt").read_text()
     assert result.strip() == f"{recompile_requirements.PREAMBLE}{textwrap.dedent(expected).strip()}"

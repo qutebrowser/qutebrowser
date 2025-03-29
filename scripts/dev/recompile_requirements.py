@@ -47,15 +47,6 @@ def normalize_pkg(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def normalize_line(line):
-    """Normalize the package name in a line of a requirements file."""
-    if "==" not in line:
-        return line
-
-    pkg, version = line.split("==", maxsplit=1)
-    return "==".join([normalize_pkg(pkg), version])
-
-
 CHANGELOG_URLS = {normalize_pkg(name): url for name, url in CHANGELOG_URLS.items()}
 
 
@@ -400,20 +391,6 @@ def get_outfile(name):
     return os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
 
-def get_updated_requirements_freeze(filename, venv_dir, comments):
-    """Use pip install && pip freeze to compute a requirements lock file."""
-    init_venv(venv_dir=venv_dir,
-              requirements=filename,
-              pre=comments['pre'],
-              pip_args=comments['pip_args'])
-    with utils.gha_group('Freezing requirements'):
-        basename = os.path.basename(filename)
-        args = ['--all'] if basename == "requirements-tox.txt-raw" else []
-        proc = run_pip(venv_dir, 'freeze', *args, stdout=subprocess.PIPE)
-        lines = proc.stdout.decode('utf-8').splitlines()
-        return "\n".join([normalize_line(line) for line in lines])
-
-
 def get_updated_requirements_compile(filename, venv_dir, comments):
     """Use pip compile to compute a requirements lock file."""
     init_venv(venv_dir=venv_dir, requirements=None)
@@ -442,10 +419,8 @@ def get_updated_requirements_compile(filename, venv_dir, comments):
         return "\n".join(stdout[2:])
 
 
-def build_requirements(name, mode):
+def build_requirements(name):
     """Build an updated requirements lock file."""
-    assert mode in ["freeze", "compile"]
-
     utils.print_subtitle("Building")
     filename = os.path.join(REQ_DIR, 'requirements-{}.txt-raw'.format(name))
 
@@ -453,11 +428,7 @@ def build_requirements(name, mode):
         comments = read_comments(f)
 
     with tempfile.TemporaryDirectory() as venv_dir:
-        if mode == "freeze":
-            reqs = get_updated_requirements_freeze(filename, venv_dir, comments)
-
-        else:  # mode == "compile":
-            reqs = get_updated_requirements_compile(filename, venv_dir, comments)
+        reqs = get_updated_requirements_compile(filename, venv_dir, comments)
 
         if utils.ON_CI:
             print(reqs.strip())
@@ -537,7 +508,7 @@ def main():
     utils.print_col('Rebuilding requirements: ' + ', '.join(names), 'green')
     for name in names:
         utils.print_title(name)
-        outfile = build_requirements(name, mode="compile")
+        outfile = build_requirements(name)
         install_requirements(name, outfile, force=args.force_test)
         if name == 'pylint':
             cleanup_pylint_build()
