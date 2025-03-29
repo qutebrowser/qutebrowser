@@ -400,10 +400,6 @@ def get_updated_requirements_compile(filename, venv_dir, comments):
 
         run_pip(venv_dir, 'install', '-U', 'uv', quiet=not utils.ON_CI)
         uv_command = "uv pip compile -U".split()
-        if os.path.basename(filename) != "requirements-tox.txt-raw":
-            # Ignore pip dependencies to match pip freeze.
-            for package in ["pip", "setuptools"]:
-                uv_command += ["--no-emit-package", package]
         if comments["pre"]:
             uv_command.extend("--prerelease allow".split())
         # Other interesting options:
