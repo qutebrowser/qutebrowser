@@ -426,7 +426,7 @@ def get_updated_requirements_compile(filename, venv_dir, comments):
         if os.path.basename(filename) != "requirements-tox.txt-raw":
             # Ignore pip dependencies to match pip freeze.
             for package in ["pip", "setuptools"]:
-                uv_command.extend(f"--no-emit-package {package}".split())
+                uv_command += ["--no-emit-package", package]
         if comments["pre"]:
             uv_command.extend("--prerelease allow".split())
         # Other interesting options:
