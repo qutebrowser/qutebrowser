@@ -43,6 +43,8 @@ Fixed
   QtWebEngine and now correctly disabled on the JS side. (#8449)
 - Crash when a buggy notification presenter returns a duplicate ID (now an
   error is shown instead).
+- Crashes when running `:tab-move` or `:yank title` at startup, before a tab is
+  available.
 - The default user agent now only contains the shortened Chromium version
   number, which fixes overzealous blocking on ScienceDirect.
 - New site-specific quirk to fix existing accounts showing as non-existent on
