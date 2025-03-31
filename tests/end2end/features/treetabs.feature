@@ -83,7 +83,9 @@ Feature: Tree tab management
         And I wait for "Asking question *" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
+            """
             - data/numbers/4.txt
+            """
 
     Scenario: :tab-close --recursive with collapsed subtree
         When I open data/numbers/1.txt
@@ -95,7 +97,9 @@ Feature: Tree tab management
         And I run :tab-focus 1
         And I run :tab-close --recursive
         Then the following tabs should be open:
+            """
             - data/numbers/4.txt
+            """
 
     Scenario: :tab-give --recursive with collapsed subtree
         When I open data/numbers/1.txt
@@ -110,10 +114,12 @@ Feature: Tree tab management
         And I run :window-only
         And I wait until data/numbers/4.txt is loaded
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt (active)
               - data/numbers/3.txt (collapsed)
                 - data/numbers/4.txt
               - data/numbers/2.txt
+            """
 
     Scenario: Open a child tab
         When I open data/numbers/1.txt
@@ -146,10 +152,12 @@ Feature: Tree tab management
         And I open data/numbers/4.txt in a new related tab
         And I run :tab-move 2
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/4.txt
               - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: Move a tab within siblings
         When I open data/numbers/1.txt
@@ -157,9 +165,11 @@ Feature: Tree tab management
         And I open data/numbers/3.txt in a new sibling tab
         And I run :tab-move +
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
               - data/numbers/2.txt
               - data/numbers/3.txt
+            """
 
     Scenario: Move a tab to end
         When I open data/numbers/1.txt
@@ -169,10 +179,12 @@ Feature: Tree tab management
         And I run :tab-focus 2
         And I run :tab-move end
         Then the following tabs should be open:
+            """
             - data/numbers/1.txt
             - data/numbers/3.txt
               - data/numbers/4.txt
               - data/numbers/2.txt
+            """
 
     Scenario: Move a tab to start
         When I open data/numbers/1.txt
@@ -181,10 +193,12 @@ Feature: Tree tab management
         And I open data/numbers/4.txt in a new related tab
         And I run :tab-move start
         Then the following tabs should be open:
+            """
             - data/numbers/4.txt
             - data/numbers/1.txt
               - data/numbers/2.txt
             - data/numbers/3.txt
+            """
 
     Scenario: Collapse a subtree
         When I open data/numbers/1.txt
