@@ -40,22 +40,22 @@ packaging==24.2
 platformdirs==4.3.7
 prompt_toolkit==3.0.50
 pycparser==2.22
-pydantic==2.10.6
+pydantic==2.11.1
 pydantic-settings==2.8.1
-pydantic_core==2.27.2
+pydantic_core==2.33.0
 Pygments==2.19.1
 PyJWT==2.10.1
 Pympler==1.1
 pyproject_hooks==1.2.0
 PyQt-builder==1.18.1
 python-dateutil==2.9.0.post0
-python-dotenv==1.0.1
+python-dotenv==1.1.0
 questionary==2.1.0
 readme_renderer==44.0
 requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==13.9.4
+rich==14.0.0
 rich-click==1.8.8
 SecretStorage==3.3.3
 sip==6.10.0
@@ -65,7 +65,8 @@ tomli==2.2.1
 tomlkit==0.13.2
 twine==6.1.0
 typeguard==4.3.0
-typing_extensions==4.12.2
+typing-inspection==0.4.0
+typing_extensions==4.13.0
 uritemplate==4.1.1
 # urllib3==2.3.0
 wcmatch==10.0
