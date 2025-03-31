@@ -111,9 +111,25 @@ Feature: Tree tab management
         And I run :tree-tab-toggle-hide
         And I run :tab-focus 1
         And I run :tab-give --recursive
-        And I run :window-only
         And I wait until data/numbers/4.txt is loaded
-        Then the following tabs should be open:
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/5.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+              - history:
+                - url: http://localhost:*/data/numbers/4.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+            """
+        And I run :window-only
+        And the following tabs should be open:
             """
             - data/numbers/1.txt (active)
               - data/numbers/3.txt (collapsed)

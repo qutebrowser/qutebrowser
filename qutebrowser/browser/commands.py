@@ -487,7 +487,7 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(new_tab_map[current_node.uid])
         if not keep:
             self._tabbed_browser.close_tab(
-                node.value,
+                current_node.value,
                 add_undo=False,
                 transfer=True,
                 recursive=True,
