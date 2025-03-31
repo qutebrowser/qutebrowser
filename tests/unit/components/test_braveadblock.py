@@ -105,7 +105,6 @@ def assert_none_blocked(ad_blocker):
     assert_urls(ad_blocker, NOT_OKAY_URLS + OKAY_URLS, False)
 
     def assert_not_blocked(url, source_url, resource_type):
-        nonlocal ad_blocker
         assert not ad_blocker._is_blocked(url, source_url, resource_type)
 
     run_function_on_dataset(assert_not_blocked)
