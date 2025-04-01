@@ -6,6 +6,7 @@
 
 import collections
 import dataclasses
+import functools
 from typing import Union
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
@@ -124,10 +125,30 @@ class TreeTabbedBrowser(TabbedBrowser):
         """Return the tab widget that can display a tree structure."""
         return TreeTabWidget(self._win_id, parent=self)
 
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
+    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False, recursive=False):
         """Handle children positioning after a tab is removed."""
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             self._add_undo_entry(tab, new_undo)
+
+        if recursive:
+            for descendent in tab.node.traverse(
+                order=notree.TraverseOrder.POST_R,
+                render_collapsed=False
+            ):
+                self.tab_close_prompt_if_pinned(
+                    descendent.value,
+                    False,
+                    functools.partial(
+                        self._remove_tab,
+                        descendent.value,
+                        add_undo=add_undo,
+                        new_undo=new_undo,
+                        crashed=crashed,
+                        recursive=False,
+                    )
+                )
+                new_undo = False
+            return
 
         node = tab.node
         parent = node.parent
@@ -262,7 +283,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
-        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling, related, background)
+        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling,
+                           related, background, idx)
 
         return tab
 
@@ -275,6 +297,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         sibling: bool = False,
         related: bool = True,
         background: bool = None,
+        idx: int = None,
     ) -> None:
         toplevel = not sibling and not related
         siblings = list(parent.children)
@@ -283,7 +306,14 @@ class TreeTabbedBrowser(TabbedBrowser):
             # potentially adding it as a duplicate later.
             siblings.remove(new_node)
 
-        if pos == 'first':
+        if idx:
+            sibling_indices = [self.widget.indexOf(node.value) for node in siblings]
+            assert sibling_indices == sorted(sibling_indices)
+            sibling_indices.append(idx)
+            sibling_indices = sorted(sibling_indices)
+            rel_idx = sibling_indices.index(idx)
+            siblings.insert(rel_idx, new_node)
+        elif pos == 'first':
             rel_idx = 0
             if config.val.tabs.new_position.stacking and related:
                 rel_idx += self._tree_tab_child_rel_idx

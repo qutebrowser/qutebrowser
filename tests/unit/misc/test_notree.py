@@ -172,10 +172,13 @@ def test_demote_to_last(tree):
     assert n6.children[-1] is n11
 
 
-def test_traverse(node):
-    len_traverse = len(list(node.traverse()))
-    len_render = len(node.render())
-    assert len_traverse == len_render
+def test_traverse(tree):
+    n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11 = tree
+    actual = list(n1.traverse())
+    rendered = n1.render()
+    assert len(actual) == len(rendered)
+    print("\n".join('\t'.join((str(t[0]), t[1][0] + str(t[1][1]))) for t in zip(actual, rendered)))
+    assert actual == [n1, n2, n4, n5, n3, n6, n7, n8, n9, n10, n11]
 
 
 def test_traverse_postorder(tree):
