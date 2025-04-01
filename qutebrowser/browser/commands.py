@@ -1133,7 +1133,11 @@ class CommandDispatcher:
     @cmdutils.register(instance="command-dispatcher", scope="window")
     @cmdutils.argument("index", choices=["+", "-", "start", "end"])
     @cmdutils.argument("count", value=cmdutils.Value.count)
-    def tab_move(self, index: Union[str, int] = None, count: int = None) -> None:
+    def tab_move(  # noqa: C901
+        self,
+        index: Union[str, int] = None,
+        count: int = None,
+    ) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
