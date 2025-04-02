@@ -341,7 +341,7 @@ class WSGIServer(cheroot.wsgi.Server):
 
 def unraisable_hook(unraisable: "sys.UnraisableHookArgs") -> None:
     if (
-        sys.version_info[:2] == (3, 13)
+        sys.version_info[:2] >= (3, 13)
         and isinstance(unraisable.exc_value, OSError)
         and (
             unraisable.exc_value.errno == errno.EBADF
@@ -351,7 +351,19 @@ def unraisable_hook(unraisable: "sys.UnraisableHookArgs") -> None:
                 and unraisable.exc_value.winerror == errno.WSAENOTSOCK
             )
         )
-        and unraisable.object.__qualname__ == "IOBase.__del__"
+        and (
+            (
+                # Python 3.14
+                unraisable.object is None
+                and unraisable.err_msg.startswith(
+                    "Exception ignored while calling deallocator <function IOBase.__del__ at "
+                )
+            )
+            or (
+                unraisable.object is not None
+                and unraisable.object.__qualname__ == "IOBase.__del__"
+            )
+        )
     ):
         # WORKAROUND for bogus exceptions with cheroot:
         # https://github.com/cherrypy/cheroot/issues/734
