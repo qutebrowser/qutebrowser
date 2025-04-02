@@ -196,7 +196,7 @@ jobs:
           ### PyQt 6.8 (Python 3.14)
           - testenv: py313-pyqt68
             os: ubuntu-24.04
-            python: "3.14"
+            python: "3.14-dev"
           ### macOS Ventura
           - testenv: py313-pyqt68
             os: macos-13
