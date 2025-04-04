@@ -124,7 +124,7 @@ class CommandDispatcher:
             private = self._tabbed_browser.is_private
 
         if window or private:
-            assert isinstance(private, bool)
+            assert isinstance(private, bool), private
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
             tabbed_browser.window().show()
