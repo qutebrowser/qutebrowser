@@ -224,7 +224,6 @@ class MainWindow(QWidget):
             model=self._download_model)
 
         self.is_private = config.val.content.private_browsing or private
-        assert isinstance(self.is_private, bool), private
 
         self.tabbed_browser: tabbedbrowser.TabbedBrowser = tabbedbrowser.TabbedBrowser(
             win_id=self.win_id, private=self.is_private, parent=self)
