@@ -1368,6 +1368,11 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().toHtml(callback)
 
     def run_js_async(self, code, callback=None, *, world=None):
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3895
+            log.misc.debug("run_js_async called on deleted tab")
+            return
+
         world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
         if world is None:
             world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
