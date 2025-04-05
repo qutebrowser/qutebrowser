@@ -1,2 +1,4 @@
 tox
 wheel
+pip
+setuptools
