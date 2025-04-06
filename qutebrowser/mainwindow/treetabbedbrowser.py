@@ -15,6 +15,7 @@ from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser, _UndoEntry
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
+from qutebrowser.qt.widgets import QTabBar
 
 
 @dataclasses.dataclass
@@ -152,6 +153,31 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         node = tab.node
         parent = node.parent
+        current_tab = self.current_tab()
+
+        # Override tabs.select_on_remove behavior to be tree aware.
+        # The default behavior is in QTabBar.removeTab(), by way of
+        # QTabWidget.removeTab(). But here we are detaching the tab from the
+        # tree before those methods get called, so if we want to have a tree
+        # aware behavior we need to implement that here by selecting the new
+        # tab before the closing the current one.
+        if tab == current_tab:
+            selection_behavior = self.widget.tabBar().selectionBehaviorOnRemove()
+            # Given a tree structure like:
+            # - one
+            #   - two
+            # - three (active)
+            # If the setting is "prev" (aka left) we want to end up with tab
+            # "one" selected after closing tab "three". Switch to either the
+            # current tab's previous sibling or its parent.
+            if selection_behavior == QTabBar.SelectionBehavior.SelectLeftTab:
+                siblings = parent.children
+                rel_index = siblings.index(node)
+                if rel_index == 0:
+                    next_tab = parent.value
+                else:
+                    next_tab = siblings[rel_index-1].value
+                self.widget.setCurrentWidget(next_tab)
 
         if node.collapsed:
             # Collapsed nodes have already been removed from the TabWidget so
