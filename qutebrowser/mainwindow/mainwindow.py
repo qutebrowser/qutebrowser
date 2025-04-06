@@ -13,7 +13,7 @@ from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
-                          QCoreApplication, QEventLoop, QByteArray)
+                                 QCoreApplication, QEventLoop, QByteArray)
 from qutebrowser.qt.widgets import QWidget, QVBoxLayout, QSizePolicy
 from qutebrowser.qt.gui import QPalette
 
