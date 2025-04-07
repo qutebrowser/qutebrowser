@@ -448,25 +448,25 @@ class TestWebEngineArgs:
         expected = ['--disable-features=InstalledApp'] if has_workaround else []
         assert disable_features_args == expected
 
-    @pytest.mark.parametrize('qt_version, has_workaround', [
+    @pytest.mark.parametrize('qt_version, disabled', [
         # Qt 6.6
-        ('6.6.3', False),
+        ('6.6.3', None),
         # Qt 6.7
-        ('6.7.0', True),
-        ('6.7.1', True),
-        ('6.7.2', True),
-        ('6.7.3', True),
+        ('6.7.0', "DocumentPictureInPictureAPI"),
+        ('6.7.1', "DocumentPictureInPictureAPI"),
+        ('6.7.2', "DocumentPictureInPictureAPI"),
+        ('6.7.3', "DocumentPictureInPictureAPI"),
         # Qt 6.8
-        ('6.8.0', True),
-        ('6.8.1', True),
-        ('6.8.2', True),  # tbd
-        ('6.8.3', True),  # tbd
+        ('6.8.0', "DocumentPictureInPictureAPI"),
+        ('6.8.1', "DocumentPictureInPictureAPI"),
+        ('6.8.2', "DocumentPictureInPictureAPI"),
+        ('6.8.3', "DocumentPictureInPictureAPI"),
         # Qt 6.9
-        ('6.9.0', True),  # tbd
-        ('6.9.1', True),  # tbd
+        ('6.9.0', "DocumentPictureInPictureAPI,PermissionElement"),
+        ('6.9.1', "DocumentPictureInPictureAPI"),  # tbd
     ])
-    def test_document_pip_workaround(
-        self, parser, version_patcher, qt_version, has_workaround
+    def test_disble_feature_workaround(
+        self, parser, version_patcher, qt_version, disabled
     ):
         version_patcher(qt_version)
 
@@ -477,8 +477,7 @@ class TestWebEngineArgs:
             if arg.startswith(qtargs._DISABLE_FEATURES)
         ]
 
-        flag = "--disable-features=DocumentPictureInPictureAPI"
-        expected = [flag] if has_workaround else []
+        expected = [f"--disable-features={disabled}"] if disabled else []
         assert disable_features_args == expected
 
     @pytest.mark.parametrize('enabled', [True, False])

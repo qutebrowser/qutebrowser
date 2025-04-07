@@ -49,6 +49,9 @@ Fixed
   number, which fixes overzealous blocking on ScienceDirect.
 - New site-specific quirk to fix existing accounts showing as non-existent on
   Digitec/Galaxus.
+- Workaround for microphone/camera permissions not being requested with
+  QtWebEngine 6.9.0 on Google Meet, Zoom, or other pages using the new
+  `<permission>` element.
 - Resolved issues in userscripts:
     * `qute-bitwarden` will now prompt a re-login if its cached session has
       been invalidated since last used. (#8456)
