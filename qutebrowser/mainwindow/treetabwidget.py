@@ -20,6 +20,75 @@ class TreeTabWidget(TabWidget):
         # root of the tab tree, common for all tabs in the window
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
+        self.tabBar().tabMoved.connect(self.on_tab_moved)
+        self._recursion_guard = False
+
+    def on_tab_moved(self, from_idx: int, to_idx: int):
+        """Handle the tabMoved signal."""
+        # QTabBar::mouseMoveEvent() passes the indices backwards, the tab being
+        # dragged is the second arg and the tab we just replaced is first.
+        # We care about which tab is being dragged because dragging a tab into
+        # a tree group is different from dragging a tab out of a group (the
+        # tab that got displaced should stay in the group).
+        if self.tabBar().drag_in_progress:
+            from_idx, to_idx = to_idx, from_idx
+
+        # A tab has been moved. See if the tree structure needs to be updated.
+        # The move could have been triggered from a tree-naive place like
+        # QTabBar, or it could have been triggered by something like
+        # _TreeUndoEntry which will have already updated the tree structure.
+
+        # We assume tree tabs will always be in the same order as the tab bar.
+        # This should be enforced by `update_tree_tab_positions()`.
+        # If indexing into the list of tree nodes doesn't yield the same tab
+        # as indexing into the tab bar, then we have work to do.
+        moved_tab = self._tab_by_idx(to_idx)
+        nodes = list(self.tree_root.traverse(render_collapsed=False))[1:]
+        node_at_current_position = nodes[to_idx]
+        if moved_tab.node == node_at_current_position:
+            return
+
+        if self._recursion_guard:
+            # If we are moving a tab with children, then move events will fire
+            # as we move the children up tree_tab_update(). We already take
+            # care to correctly position children in the initial move event.
+            return
+        self._recursion_guard = True
+
+        log.misc.debug(f"Updating tree structure after tab move {moved_tab.node=} {node_at_current_position=}")
+
+        if from_idx > to_idx:
+            moving_down = False  # moving down the tree, increasing in index
+        else:
+            moving_down = True
+
+        moved_node = self._tab_by_idx(to_idx).node
+        if moving_down:
+            displaced_node = self._tab_by_idx(to_idx - 1).node
+        else:
+            displaced_node = self._tab_by_idx(to_idx + 1).node
+
+        # Detach the moved node and insert it in the right place in the
+        # displaced tab's sibling list.
+        displaced_parent = displaced_node.parent
+        moved_node.parent = None  # detach the node now to avoid duplicate errors
+        displaced_siblings = list(displaced_parent.children)
+        displaced_rel_index = displaced_siblings.index(displaced_node)
+
+        log.misc.vdebug(f"{moved_node=} {moving_down=} {displaced_node=} {displaced_rel_index=} {displaced_siblings=}")
+
+        # Sanity check something weird isn't going on, this can happen without
+        # the recursion guard.
+        assert moved_node not in displaced_node.path
+
+        if moving_down:
+            displaced_siblings.insert(displaced_rel_index + 1, moved_node)
+        else:
+            displaced_siblings.insert(displaced_rel_index, moved_node)
+        displaced_parent.children = displaced_siblings
+
+        self.tree_tab_update()
+        self._recursion_guard = False
 
     def get_tab_fields(self, idx):
         """Add tree field data to normal tab field data."""

@@ -359,6 +359,24 @@ Feature: Tree tab management
             - about:blank?parent (active)
           """
 
+    Scenario: Undo a complex tree structure close
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        When I open about:blank?four in a new tab
+        And I open about:blank?five in a new related tab
+        And I run :tab-select ?two
+        And I run :tab-only
+        And I run :undo
+        Then the following tabs should be open:
+          """
+          - about:blank?one (active)
+            - about:blank?two
+              - about:blank?three
+          - about:blank?four
+            - about:blank?five
+          """
+
     Scenario: Tabs.select_on_remove prev selects previous sibling
         When I open about:blank?one
         And I open about:blank?two in a new related tab

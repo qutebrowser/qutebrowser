@@ -1197,31 +1197,12 @@ class CommandDispatcher:
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
 
-        if self._tabbed_browser.is_treetabbedbrowser:
-            tab = self._current_widget()
-            tree_root = self._tabbed_browser.widget.tree_root
-            # Lookup target nodes from display order list to match what the
-            # user sees in the tab bar.
-            nodes = list(tree_root.traverse(render_collapsed=False))[1:]
-            target_node = nodes[new_idx]
-            if tab.node in target_node.path:
-                raise cmdutils.CommandError("Can't move tab to a descendent"
-                                            " of itself")
+        #if self._tabbed_browser.is_treetabbedbrowser:
+        #    self.update_tree_structure(cur_idx, new_idx)
 
-            tab.node.parent = None  # detach the node now to avoid duplicate errors
-            target_siblings = list(target_node.parent.children)
-            new_idx_relative = target_siblings.index(target_node)
-            if cur_idx < new_idx:
-                # If moving the tab to a higher number, insert if after the
-                # target node to account for all the tabs shifting down.
-                new_idx_relative += 1
-
-            target_siblings.insert(new_idx_relative, tab.node)
-            target_node.parent.children = target_siblings
-
-            self._tabbed_browser.widget.tree_tab_update()
-        else:
-            self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
+        #    self._tabbed_browser.widget.tree_tab_update()
+        #else:
+        self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
