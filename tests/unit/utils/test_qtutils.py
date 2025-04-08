@@ -530,7 +530,7 @@ class TestSavefileOpen:
             assert data == b'foo\nbar\nbaz'
 
 
-if test_file is not None:
+if test_file is not None:  # noqa: C901
     # If we were able to import Python's test_file module, we run some code
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
