@@ -15,8 +15,8 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.4.1]]
-v3.4.1 (unreleased)
+[[v3.5.0]]
+v3.5.0 (unreleased)
 -------------------
 
 Changed
@@ -59,6 +59,8 @@ Fixed
   error is shown instead).
 - Crashes when running `:tab-move` or `:yank title` at startup, before a tab is
   available.
+- Crash with `input.insert_mode.auto_load`, when closing a new tab quickly after
+  opening it, but before it was fully loaded. (#3895, #8400)
 - Workaround for microphone/camera permissions not being requested with
   QtWebEngine 6.9.0 on Google Meet, Zoom, or other pages using the new
   `<permission>` element. (#8539)
