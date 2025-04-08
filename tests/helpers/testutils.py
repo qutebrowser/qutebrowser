@@ -277,7 +277,7 @@ DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
 DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
 
 
-def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> bool:
+def _needs_map_discard_workaround(qtwe_version: utils.VersionNumber) -> bool:
     """Check if this system needs the glibc 2.41+ MAP_DISCARD workaround.
 
     WORKAROUND for https://bugreports.qt.io/browse/QTBUG-134631
@@ -285,9 +285,6 @@ def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> boo
     """
     if not utils.is_posix:
         return False
-
-    # Not fixed yet as of Qt 6.9 Beta 3
-    utils.unused(webengine_version)
 
     libc_name, libc_version_str = platform.libc_ver()
     if libc_name != "glibc":
@@ -300,7 +297,21 @@ def _needs_map_discard_workaround(webengine_version: utils.VersionNumber) -> boo
     affected_glibc = utils.VersionNumber(2, 41)
     affected_kernel = utils.VersionNumber(6, 11)
 
-    return libc_version >= affected_glibc and kernel_version >= affected_kernel
+    return (
+        libc_version >= affected_glibc
+        and kernel_version >= affected_kernel
+        and not (
+            # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/631749
+            # -> Fixed in QtWebEngine 5.15.9
+            utils.VersionNumber(5, 15, 19) <= qtwe_version < utils.VersionNumber(6)
+            # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/631750
+            # -> Fixed in QtWebEngine 6.8.4
+            or utils.VersionNumber(6, 8, 4) <= qtwe_version < utils.VersionNumber(6, 9)
+            # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/631348
+            # -> Fixed in QtWebEngine 6.9.1
+            or utils.VersionNumber(6, 9, 1) <= qtwe_version
+        )
+    )
 
 
 def disable_seccomp_bpf_sandbox() -> bool:
