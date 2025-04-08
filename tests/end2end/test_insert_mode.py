@@ -64,8 +64,8 @@ def test_auto_load_delayed_tab_close(quteproc):
     on my machine.
     """
     quteproc.set_setting('input.insert_mode.auto_load', "true")
-    quteproc.send_cmd(":later 50 open -t about:blank")
-    quteproc.send_cmd(":later 110 tab-close")
+    quteproc.send_cmd(":cmd-later 50 open -t about:blank")
+    quteproc.send_cmd(":cmd-later 110 tab-close")
 
 
 def test_auto_leave_insert_mode(quteproc):
