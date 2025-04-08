@@ -2280,19 +2280,18 @@ The following placeholders are defined:
   version, but only with its major version.
 * `{qutebrowser_version}`: The currently running qutebrowser version.
 
-The default value is equal to the unchanged user agent of
-QtWebKit/QtWebEngine.
+The default value is equal to the default user agent of
+QtWebKit/QtWebEngine, but with the `QtWebEngine/...` part removed for
+increased compatibility.
 
-Note that the value read from JavaScript is always the global value. With
-QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
-to JavaScript requires a restart.
+Note that the value read from JavaScript is always the global value.
 
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FormatString>>
 
-Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version_short} Safari/{webkit_version}]+
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {upstream_browser_key}/{upstream_browser_version_short} Safari/{webkit_version}]+
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
@@ -2770,10 +2769,8 @@ Type: <<types,FlagList>>
 
 Valid values:
 
- * +ua-whatsapp+
  * +ua-google+
  * +ua-googledocs+
- * +ua-digitecgalaxus+
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+

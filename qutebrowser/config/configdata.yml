@@ -656,10 +656,8 @@ content.site_specific_quirks.skip:
   type:
     name: FlagList
     valid_values:
-      - ua-whatsapp
       - ua-google
       - ua-googledocs
-      - ua-digitecgalaxus
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall
@@ -752,7 +750,7 @@ content.headers.referer:
 content.headers.user_agent:
   default: 'Mozilla/5.0 ({os_info})
       AppleWebKit/{webkit_version} (KHTML, like Gecko)
-      {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version_short}
+      {upstream_browser_key}/{upstream_browser_version_short}
       Safari/{webkit_version}'
   type:
     name: FormatString
@@ -800,12 +798,11 @@ content.headers.user_agent:
       version, but only with its major version.
     * `{qutebrowser_version}`: The currently running qutebrowser version.
 
-    The default value is equal to the unchanged user agent of
-    QtWebKit/QtWebEngine.
+    The default value is equal to the default user agent of
+    QtWebKit/QtWebEngine, but with the `QtWebEngine/...` part removed for
+    increased compatibility.
 
-    Note that the value read from JavaScript is always the global value. With
-    QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
-    to JavaScript requires a restart.
+    Note that the value read from JavaScript is always the global value.
 
 content.host_blocking.enabled:
   renamed: content.blocking.enabled

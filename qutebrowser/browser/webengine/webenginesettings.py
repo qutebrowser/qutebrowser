@@ -495,10 +495,6 @@ def _init_site_specific_quirks():
     #               "{qt_key}/{qt_version} "
     #               "{upstream_browser_key}/{upstream_browser_version_short} "
     #               "Safari/{webkit_version}")
-    no_qtwe_ua = ("Mozilla/5.0 ({os_info}) "
-                  "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
-                  "{upstream_browser_key}/{upstream_browser_version_short} "
-                  "Safari/{webkit_version}")
     firefox_ua = "Mozilla/5.0 ({os_info}; rv:136.0) Gecko/20100101 Firefox/136.0"
 
     def maybe_newer_chrome_ua(at_least_version):
@@ -517,12 +513,6 @@ def _init_site_specific_quirks():
     utils.unused(maybe_newer_chrome_ua)
 
     user_agents = [
-        # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
-        # page which doesn't allow to use WhatsApp Web at all. Also see the
-        # additional JS quirk: qutebrowser/javascript/quirks/whatsapp_web.user.js
-        # https://github.com/qutebrowser/qutebrowser/issues/4445
-        ("ua-whatsapp", "https://web.whatsapp.com/", no_qtwe_ua),
-
         # Needed to avoid a "you're using a browser [...] that doesn't allow us
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182

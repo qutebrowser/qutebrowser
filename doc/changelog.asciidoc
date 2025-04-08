@@ -25,6 +25,12 @@ Changed
 - The `content.headers.user_agent` setting now has a new
   `{upstream_browser_version_short}` template field, which is the
   upstream/Chromium version but shortened to only major version.
+- The default user agent now uses the shortened Chromium version and doesn't
+  expose the `QtWebEngine/...` part anymore, thus making it equal to the
+  corresponding Chromium user agent. This increases compatibilty due to various
+  overzealous "security" products used by a variety of websites that block
+  QtWebEngine, presumably as a bot (known issues existed with Whatsapp Web, UPS,
+  Digitec Galaxus).
 - Changed features in userscripts:
     * `qute-bitwarden` now passes your password to the subprocess in an
       environment variable when unlocking your vault, instead of as a command
@@ -38,7 +44,10 @@ Changed
 Removed
 ~~~~~~~
 
-- The `ua-slack` site-specific quirk, as things seem to work better nowadays without a quirk needed.
+- The `ua-slack` site-specific quirk, as things seem to work better nowadays
+  without a quirk needed.
+- The `ua-whatsapp` site-specific quirk, as it's unneeded with the default UA
+  change described above.
 
 Fixed
 ~~~~~
@@ -50,13 +59,9 @@ Fixed
   error is shown instead).
 - Crashes when running `:tab-move` or `:yank title` at startup, before a tab is
   available.
-- The default user agent now only contains the shortened Chromium version
-  number, which fixes overzealous blocking on ScienceDirect.
-- New site-specific quirk to fix existing accounts showing as non-existent on
-  Digitec/Galaxus.
 - Workaround for microphone/camera permissions not being requested with
   QtWebEngine 6.9.0 on Google Meet, Zoom, or other pages using the new
-  `<permission>` element.
+  `<permission>` element. (#8539)
 - Resolved issues in userscripts:
     * `qute-bitwarden` will now prompt a re-login if its cached session has
       been invalidated since last used. (#8456)
