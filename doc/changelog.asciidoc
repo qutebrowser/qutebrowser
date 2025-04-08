@@ -35,6 +35,11 @@ Changed
   this is a "best effort" fix and you should be using the "older browsers"
   ("legacy") build of PDF.js instead.
 
+Removed
+~~~~~~~
+
+- The `ua-slack` site-specific quirk, as things seem to work better nowadays without a quirk needed.
+
 Fixed
 ~~~~~
 

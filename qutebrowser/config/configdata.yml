@@ -658,7 +658,6 @@ content.site_specific_quirks.skip:
     valid_values:
       - ua-whatsapp
       - ua-google
-      - ua-slack
       - ua-googledocs
       - ua-digitecgalaxus
       - js-whatsapp-web
