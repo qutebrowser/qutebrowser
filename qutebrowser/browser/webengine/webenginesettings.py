@@ -26,7 +26,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version)
+                               urlmatch, usertypes, objreg, version, utils)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -514,33 +514,19 @@ def _init_site_specific_quirks():
             "Safari/537.36"
         )
 
+    utils.unused(maybe_newer_chrome_ua)
+
     user_agents = [
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
         # page which doesn't allow to use WhatsApp Web at all. Also see the
         # additional JS quirk: qutebrowser/javascript/quirks/whatsapp_web.user.js
         # https://github.com/qutebrowser/qutebrowser/issues/4445
-        ("ua-whatsapp", 'https://web.whatsapp.com/', no_qtwe_ua),
+        ("ua-whatsapp", "https://web.whatsapp.com/", no_qtwe_ua),
 
         # Needed to avoid a "you're using a browser [...] that doesn't allow us
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182
-        ("ua-google", 'https://accounts.google.com/*', firefox_ua),
-
-        # Needed because Slack adds an error which prevents using it relatively
-        # aggressively, despite things actually working fine.
-        #
-        # March 2025 situation:
-        # - https://slack.com/help/articles/1500001836081-Slack-support-lifecycle-for-operating-systems-app-versions-and-browsers
-        #   claims that Chrome 123 is needed
-        # - Qt 6.9 (130 based) works fine and doesn't display any banner, but is
-        #   not released yet.
-        # - Qt 6.8 (122 based) displays a "This browser won’t be supported
-        #   starting March 15th, 2025" banner on March 17th, but works just fine
-        #   with the default UA still...
-        # - With the default UA, Qt 6.7 (118 based) breaks.
-        # - With the workaround, Qt 6.4 (102 based) still seems to work perfectly fine,
-        #   while Qt 6.3 (94 based) works fine but has some styling issues.
-        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(123)),
+        ("ua-google", "https://accounts.google.com/*", firefox_ua),
     ]
 
     for name, pattern, ua in user_agents:
