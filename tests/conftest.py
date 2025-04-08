@@ -137,6 +137,17 @@ def _apply_platform_markers(config, item):
             ),
             "Flaky with QtWebEngine 6.9 on CI",
         ),
+        (
+            "qt69_ci_skip",  # WORKAROUND: https://github.com/qutebrowser/qutebrowser/issues/8444#issuecomment-2569610110
+            pytest.mark.skipif,
+            (
+                config.webengine
+                and version.qtwebengine_versions(avoid_init=True).webengine
+                == utils.VersionNumber(6, 9)
+                and testutils.ON_CI
+            ),
+            "Skipped with QtWebEngine 6.9 on CI",
+        ),
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
