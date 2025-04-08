@@ -78,7 +78,7 @@ def qt_args(namespace: argparse.Namespace) -> list[str]:
     return argv
 
 
-def _qtwebengine_features(
+def _qtwebengine_features(  # noqa: C901
         versions: version.WebEngineVersions,
         special_flags: Sequence[str],
 ) -> tuple[Sequence[str], Sequence[str]]:
