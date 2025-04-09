@@ -5,6 +5,8 @@ Feature: Tree tab management
         # Open a new tree tab enabled window, close everything else
         Given I set tabs.tabs_are_windows to false
         And I set tabs.tree_tabs to true
+        And I set tabs.position to left
+        And I set tabs.width to 30%
         And I open about:blank?starting%20page in a new window
         And I clean up open tabs
         And I clear the log
@@ -395,4 +397,103 @@ Feature: Tree tab management
           """
           - about:blank?one
           - about:blank?three (active)
+          """
+
+    ## :tab-move, but with trees
+    Scenario: Move tab out of a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I run :tab-select ?three
+        And I run :tab-move 4
+        Then the following tabs should be open:
+          # one
+          #   two
+          #     three (active)
+          # four
+          """
+          - about:blank?one
+            - about:blank?two
+          - about:blank?four
+          - about:blank?three (active)
+          """
+
+    Scenario: Move multiple tabs out of a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I open about:blank?five in a new related tab
+        And I run :tab-select ?two
+        And I run :tab-move 4
+        Then the following tabs should be open:
+          # one
+          #   two (active)
+          #     three
+          # four
+          #   five
+          """
+          - about:blank?one
+          - about:blank?four
+            - about:blank?five
+          - about:blank?two (active)
+            - about:blank?three
+          """
+
+    Scenario: Move two sibling groups
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new tab
+        And I open about:blank?four in a new related tab
+        And I run :tab-select ?three
+        And I run :tab-move 1
+        Then the following tabs should be open:
+          # one
+          #   two
+          # three (active)
+          #   four
+          """
+          - about:blank?three (active)
+            - about:blank?four
+          - about:blank?one
+            - about:blank?two
+          """
+
+    Scenario: Move multiple tabs into another group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I open about:blank?five in a new related tab
+        And I run :tab-select ?two
+        And I run :tab-move 5
+        Then the following tabs should be open:
+          # one
+          #   two (active)
+          #     three
+          # four
+          #   five
+          """
+          - about:blank?one
+          - about:blank?four
+            - about:blank?five
+            - about:blank?two
+              - about:blank?three
+          """
+
+    Scenario: Move a tab a single step over a group
+        When I open about:blank?one
+        And I open about:blank?two in a new tab
+        And I open about:blank?three in a new related tab
+        And I run :tab-select ?one
+        And I run :tab-move 2
+        Then the following tabs should be open:
+          # one (active)
+          # two
+          #   three
+          """
+          - about:blank?two
+            - about:blank?three
+          - about:blank?one
           """
