@@ -641,7 +641,7 @@ class WebEngineVersions:
         utils.VersionNumber(6, 8, 2): (_BASES[122], '132.0.6834.111'),  # 2025-01-22
         utils.VersionNumber(6, 8, 3): (_BASES[122], '134.0.6998.89'),  # 2025-03-10
 
-        ## Qt 6.9 (Beta 3)
+        ## Qt 6.9
         utils.VersionNumber(6, 9): (_BASES[130], '133.0.6943.141'),  # 2025-02-25
     }
 
