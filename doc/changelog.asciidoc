@@ -67,6 +67,7 @@ Fixed
 - Resolved issues in userscripts:
     * `qute-bitwarden` will now prompt a re-login if its cached session has
       been invalidated since last used. (#8456)
+    * `qute-bitwarden`, `-lastpass` and `-pass` now avoid a `DeprecationWarning` from the upcoming 6.0 release of `tldextract`
 
 [[v3.4.0]]
 v3.4.0 (2024-12-14)
