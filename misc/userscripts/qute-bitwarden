@@ -204,12 +204,20 @@ def main(arguments):
     # the registered domain name and finally: the IPv4 address if that's what
     # the URL represents
     candidates = []
-    for target in filter(None, [
-                extract_result.fqdn,
-                extract_result.registered_domain,
-                extract_result.subdomain + '.' + extract_result.domain,
-                extract_result.domain,
-                extract_result.ipv4]):
+    for target in filter(
+        None,
+        [
+            extract_result.fqdn,
+            getattr(
+                extract_result,
+                "top_domain_under_public_suffix",
+                getattr(extract_result, "registered_domain"),
+            ),
+            extract_result.subdomain + "." + extract_result.domain,
+            extract_result.domain,
+            extract_result.ipv4,
+        ],
+    ):
         target_candidates = json.loads(
             pass_(
                 target,
