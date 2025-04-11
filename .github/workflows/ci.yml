@@ -194,9 +194,11 @@ jobs:
             os: ubuntu-24.04
             python: "3.13"
           ### PyQt 6.8 (Python 3.14)
+          # Pinned to Alpha 6:
+          # https://www.riverbankcomputing.com/pipermail/pyqt/2025-April/046210.html
           - testenv: py314-pyqt68
             os: ubuntu-24.04
-            python: "3.14-dev"
+            python: "3.14.0-alpha.6"
           ### PyQt 6.9 (Python 3.13)
           - testenv: py313-pyqt69
             os: ubuntu-24.04
