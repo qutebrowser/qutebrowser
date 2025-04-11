@@ -69,8 +69,11 @@ def test_auto_load_delayed_tab_close(quteproc):
 
 
 def test_auto_leave_insert_mode(quteproc):
+    quteproc.set_setting('input.insert_mode.auto_load', 'true')
+
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path)
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
 
     quteproc.set_setting('input.insert_mode.auto_leave', 'true')
     quteproc.send_cmd(':zoom 100')
