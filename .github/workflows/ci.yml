@@ -194,7 +194,7 @@ jobs:
             os: ubuntu-24.04
             python: "3.13"
           ### PyQt 6.8 (Python 3.14)
-          - testenv: py314
+          - testenv: py314-pyqt68
             os: ubuntu-24.04
             python: "3.14-dev"
           ### PyQt 6.9 (Python 3.13)
