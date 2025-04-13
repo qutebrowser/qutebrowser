@@ -1197,11 +1197,14 @@ class CommandDispatcher:
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
 
-        #if self._tabbed_browser.is_treetabbedbrowser:
-        #    self.update_tree_structure(cur_idx, new_idx)
+        if self._tabbed_browser.is_treetabbedbrowser:
+            tree_root = self._tabbed_browser.widget.tree_root
+            nodes = list(tree_root.traverse(render_collapsed=False))[1:]
+            target_node = nodes[new_idx]
+            if self._current_widget().node in target_node.path:
+                raise cmdutils.CommandError("Can't move tab to a descendent"
+                                            " of itself")
 
-        #    self._tabbed_browser.widget.tree_tab_update()
-        #else:
         self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
