@@ -4094,3 +4094,15 @@ logging.level.console:
   desc: >-
     Level for console (stdout/stderr) logs.
     Ignored if the `--loglevel` or `--debug` CLI flags are used.
+
+## app
+
+app.icon:
+  type:
+    name: String
+    none_ok: true
+  default: null
+  restart: true
+  desc: >-
+    The absolute path to a custom icon for the qutebrowser app.
+    Note that this only sets the icon for the app while it is running.
