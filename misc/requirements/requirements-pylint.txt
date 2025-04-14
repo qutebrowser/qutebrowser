@@ -21,6 +21,6 @@ requests==2.32.3
 six==1.17.0
 tomli==2.2.1
 tomlkit==0.13.2
-typing_extensions==4.13.1
+typing_extensions==4.13.2
 uritemplate==4.1.1
-# urllib3==2.3.0
+# urllib3==2.4.0

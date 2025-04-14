@@ -12,6 +12,6 @@ pyproject_hooks==1.2.0
 pyroma==4.2
 requests==2.32.3
 tomli==2.2.1
-trove-classifiers==2025.3.19.19
-urllib3==2.3.0
+trove-classifiers==2025.4.11.15
+urllib3==2.4.0
 zipp==3.21.0
