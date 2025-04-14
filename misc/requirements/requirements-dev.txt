@@ -6,7 +6,7 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 bracex==2.5.post1
 build==1.2.2.post1
-bump-my-version==1.1.1
+bump-my-version==1.1.2
 certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
@@ -16,7 +16,7 @@ docutils==0.21.2
 exceptiongroup==1.2.2
 github3.py==4.0.1
 h11==0.14.0
-httpcore==1.0.7
+httpcore==1.0.8
 httpx==0.28.1
 hunter==3.7.0
 id==1.5.0
@@ -40,7 +40,7 @@ packaging==24.2
 platformdirs==4.3.7
 prompt_toolkit==3.0.50
 pycparser==2.22
-pydantic==2.11.2
+pydantic==2.11.3
 pydantic-settings==2.8.1
 pydantic_core==2.33.1
 Pygments==2.19.1
@@ -66,9 +66,9 @@ tomlkit==0.13.2
 twine==6.1.0
 typeguard==4.3.0
 typing-inspection==0.4.0
-typing_extensions==4.13.1
+typing_extensions==4.13.2
 uritemplate==4.1.1
-# urllib3==2.3.0
+# urllib3==2.4.0
 wcmatch==10.0
 wcwidth==0.2.13
 zipp==3.21.0
