@@ -61,17 +61,17 @@ def test_js_quirks_match_files(webengine_tab):
 
 
 def test_js_quirks_match_settings(webengine_tab, configdata_init):
+    quirks_code = {q.name for q in webengine_tab._scripts._get_quirks()}
+
     opt = configdata.DATA["content.site_specific_quirks.skip"]
-    prefix = "js-"
     valid_values = opt.typ.get_valid_values()
     assert valid_values is not None
     quirks_config = {
-        val.removeprefix(prefix).replace("-", "_")
+        val
         for val in valid_values
-        if val.startswith(prefix)
+        # some JS quirks are actually only setting the user agent, so we include
+        # those as well.
+        if val.startswith("js-") or (val.startswith("ua-") and val in quirks_code)
     }
-
-    quirks_code = {q.filename for q in webengine_tab._scripts._get_quirks()}
-    quirks_code -= {"googledocs"}  # special case, UA quirk
 
     assert quirks_code == quirks_config

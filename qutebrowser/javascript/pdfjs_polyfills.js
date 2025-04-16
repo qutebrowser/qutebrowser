@@ -19,4 +19,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
             return { promise, resolve, reject }
         }
     }
+
+    // Chromium 126 / QtWebEngine 6.9
+    // https://caniuse.com/mdn-api_url_parse_static
+    if (typeof URL.parse === "undefined") {
+        URL.parse = function(url, base) {
+            try { 
+                return new URL(url, base);
+            } catch (ex) {
+                return null;
+            }
+        }
+    }
 })();

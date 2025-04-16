@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import pathlib
+import unittest.mock
 import os.path
 
 import pytest
@@ -10,6 +12,7 @@ from qutebrowser.qt.core import QUrl
 
 from qutebrowser.browser import pdfjs
 from qutebrowser.utils import urlmatch, utils
+from qutebrowser.misc import objects
 
 
 pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
@@ -73,20 +76,32 @@ class TestResources:
         read_system_mock.assert_called_with('/usr/share/pdf.js/',
                                             ['web/test', 'test'])
 
-    def test_get_pdfjs_res_bundled(self, read_system_mock, read_file_mock,
-                                   tmpdir):
+    @pytest.mark.parametrize("with_system", [True, False])
+    def test_get_pdfjs_res_bundled(
+        self,
+        read_system_mock: unittest.mock.Mock,
+        read_file_mock: unittest.mock.Mock,
+        tmp_path: pathlib.Path,
+        monkeypatch: pytest.MonkeyPatch,
+        with_system: bool,
+    ) -> None:
         read_system_mock.return_value = (None, None)
-
         read_file_mock.return_value = b'content'
+        if not with_system:
+            monkeypatch.setattr(objects, 'debug_flags', {'no-system-pdfjs'})
 
         assert pdfjs.get_pdfjs_res_and_path('web/test') == (b'content', None)
         assert pdfjs.get_pdfjs_res('web/test') == b'content'
 
-        for path in ['/usr/share/pdf.js/',
-                     str(tmpdir / 'data' / 'pdfjs'),
-                     # hardcoded for --temp-basedir
-                     os.path.expanduser('~/.local/share/qutebrowser/pdfjs/')]:
-            read_system_mock.assert_any_call(path, ['web/test', 'test'])
+        paths = {call.args[0] for call in read_system_mock.mock_calls}
+        expected_paths = {
+            str(tmp_path / 'data' / 'pdfjs'),
+            # hardcoded for --temp-basedir
+            os.path.expanduser('~/.local/share/qutebrowser/pdfjs/')
+        }
+        assert expected_paths.issubset(paths)
+        if not with_system:
+            assert '/usr/share/pdf.js/' not in paths
 
     def test_get_pdfjs_res_not_found(self, read_system_mock, read_file_mock,
                                      caplog):

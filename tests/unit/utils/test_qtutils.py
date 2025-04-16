@@ -530,7 +530,7 @@ class TestSavefileOpen:
             assert data == b'foo\nbar\nbaz'
 
 
-if test_file is not None:
+if test_file is not None:  # noqa: C901
     # If we were able to import Python's test_file module, we run some code
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
@@ -577,7 +577,7 @@ if test_file is not None:
             qiodev.name = test_file.TESTFN
             qiodev.mode = mode
             # Create empty TESTFN file because the Python tests try to unlink
-            # it.after the test.
+            # it after the test.
             with open(test_file.TESTFN, 'w', encoding='utf-8'):
                 pass
             return qiodev
@@ -597,6 +597,9 @@ if test_file is not None:
 
         def testSetBufferSize(self):
             """Skip this test as setting buffer size is unsupported."""
+
+        def testDefaultBufferSize(self):
+            """Skip this test as getting buffer size is unsupported."""
 
         def testTruncateOnWindows(self):
             """Skip this test truncating is unsupported."""

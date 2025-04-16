@@ -1,0 +1,4 @@
+PyQt6 >= 6.9, < 6.10
+PyQt6-Qt6 >= 6.9, < 6.10
+PyQt6-WebEngine >= 6.9, < 6.10
+PyQt6-WebEngine-Qt6 >= 6.9, < 6.10
