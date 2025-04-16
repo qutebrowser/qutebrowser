@@ -131,6 +131,7 @@ class Node(Generic[T]):
             self.__parent.__disown(self)
             self.__parent = None
         if value is not None:
+            assert self not in value.path
             value.__add_child(self)
             self.__parent = value
         self.__set_modified()
@@ -150,6 +151,7 @@ class Node(Generic[T]):
             raise TreeError("A duplicate item is present in %r" % value)
         new_children = list(value)
         for child in new_children:
+            assert child not in self.path
             if child.parent is not self:
                 child.parent = self
         self.__children = new_children
@@ -283,10 +285,10 @@ class Node(Generic[T]):
         """Makes self a child of its grandparent, i.e. sibling of its parent.
 
         Args:
-            times: How many levels to promote the tab to. to: One of 'next',
-            'prev', 'first', 'last'. Determines the position among siblings
-            after being promoted. 'next' and 'prev' are relative to the current
-            parent.
+            times: How many levels to promote the tab to.
+            to: One of 'next', 'prev', 'first', 'last'. Determines the position among siblings
+              after being promoted. 'next' and 'prev' are relative to the current
+              parent.
 
         """
         if to not in ['first', 'last', 'next', 'prev']:

@@ -25,13 +25,29 @@ class TreeTabWidget(TabWidget):
 
     def on_tab_moved(self, from_idx: int, to_idx: int):
         """Handle the tabMoved signal."""
+        #if self._tabbed_browser.is_shutting_down:
+        #    # Running through the tests we somehow wind up with a cycle in the
+        #    # tree when a window is being closed down via :window-only in the
+        #    # setup step. This guard lets the test run through, but I wonder
+        #    # if there is some more comprehensive logic fix.
+        #    return
+
         # QTabBar::mouseMoveEvent() passes the indices backwards, the tab being
         # dragged is the second arg and the tab we just replaced is first.
         # We care about which tab is being dragged because dragging a tab into
         # a tree group is different from dragging a tab out of a group (the
         # tab that got displaced should stay in the group).
+        recursive = True
         if self.tabBar().drag_in_progress:
             from_idx, to_idx = to_idx, from_idx
+            recursive = False
+
+        log.misc.info(f"TAB MOVED: {from_idx=} {to_idx=} in_drag={self.tabBar().drag_in_progress} guard={self._recursion_guard}")
+
+        def render(node=self.tree_root):
+            for t in node.render():
+                log.misc.info(f"{t[0]} {repr(t[1])}")
+        render()
 
         # A tab has been moved. See if the tree structure needs to be updated.
         # The move could have been triggered from a tree-naive place like
@@ -68,25 +84,239 @@ class TreeTabWidget(TabWidget):
         else:
             displaced_node = self._tab_by_idx(to_idx + 1).node
 
-        # Detach the moved node and insert it in the right place in the
-        # displaced tab's sibling list.
-        displaced_parent = displaced_node.parent
-        moved_node.parent = None  # detach the node now to avoid duplicate errors
-        displaced_siblings = list(displaced_parent.children)
-        displaced_rel_index = displaced_siblings.index(displaced_node)
+        if recursive:
+            # Detach the moved node and insert it in the right place in the
+            # displaced tab's sibling list.
+            displaced_parent = displaced_node.parent
+            moved_node.parent = None  # detach the node now to avoid duplicate errors
+            displaced_siblings = list(displaced_parent.children)
+            displaced_rel_index = displaced_siblings.index(displaced_node)
 
-        log.misc.vdebug(f"{moved_node=} {moving_down=} {displaced_node=} {displaced_rel_index=} {displaced_siblings=}")
+            log.misc.info(f"{moved_node=} {moving_down=} {displaced_node=} {displaced_rel_index=} {displaced_siblings=}")
 
-        # Sanity check something weird isn't going on, this can happen without
-        # the recursion guard.
-        assert moved_node not in displaced_node.path
+            # Sanity check something weird isn't going on, this can happen without
+            # the recursion guard.
+            assert moved_node not in displaced_node.path
 
-        if moving_down:
-            displaced_siblings.insert(displaced_rel_index + 1, moved_node)
+            if moving_down:
+                displaced_siblings.insert(displaced_rel_index + 1, moved_node)
+            else:
+                displaced_siblings.insert(displaced_rel_index, moved_node)
+            displaced_parent.children = displaced_siblings
         else:
-            displaced_siblings.insert(displaced_rel_index, moved_node)
-        displaced_parent.children = displaced_siblings
+            # The below logic assumes we are moving one tab bar index at a
+            # time. Which means if you keep moving a tab like this it'll do a
+            # depth first traversal of the tree.
+            if moving_down:
+                assert abs(to_idx - from_idx) == 1, f"{to_idx=} {from_idx=}"
+            else:
+                log.misc.info(f"{to_idx=} {from_idx=}")
 
+            # The general strategy here is to go with the positioning that
+            # QTabBar used and try to make that work. QTabBar will always swap
+            # the moved node with the displaced one. So we adjust parents,
+            # and children to work around that.
+
+            ## Ahhh, remember this code is called for both drags and big jumps with
+            ## :tab-move!
+
+            # When moving single node, it will move in depth first fashion.
+            # Need to swap moved node and displaced node?
+            # What about children and siblings?
+            # Write more examples and catalog them, come up with generic
+            #   components to apply.
+            # one
+            #   two (active)
+            #     three
+            #       four
+            #     five
+            # :tab-move +
+            # one
+            #   three
+            #     two (active)
+            #       four
+            #     five
+            # ^ swap moved and displaced - seems to be the case for any
+            # one-level move down
+            #
+            # one
+            #   two (active)
+            # three
+            #   four
+            # :tab-move +
+            # one
+            # two (active)
+            #   three
+            #     four
+            #
+            # one
+            #   two
+            #     three (active)
+            #   four
+            #     five
+            # :tab-move +
+            # one
+            #   two
+            #   three (active)
+            #     four
+            #       five
+            # ^ any move into a new tree will shunt the tree down under the
+            # moved node, which shouldn't have children by this point.
+            # How to define a new tree here? Any node that isn't descendant?
+            #
+            # v not sure about these ones v
+            # one
+            #   two (active)
+            #   three
+            #     four
+            #       five
+            #     six
+            # :tab-move +
+            # one
+            #   three (active)
+            #     two
+            #       four
+            #         five
+            #       six
+            # one
+            #   three (active)
+            #     two
+            #     four
+            #       five
+            #     six
+            # ^ we can't swap them here, else three would have been moved out
+            # of the tree.
+            # TODO: check with dragging onto collapsed nodes, they should have
+            # the same behaviour as no-children nodes: https://github.com/brimdata/react-arborist/issues/181
+            # Add add_sibling() method to notree? https://forum.godotengine.org/t/moving-a-node-up-or-down-in-a-tree/13998
+            # Or add_child(idx=None, before=None, after=None)
+            # Move this logic into notree? At least so it's easier to unit
+            # test?
+
+            if moving_down:
+                if moved_node == displaced_node.parent:
+                    log.misc.info("moving down a branch")
+                    # =swap nodes
+                    # We want to swap the node moving down with the one it's
+                    # displacing.
+                    # We also swap their children, so the child nodes stay at
+                    # the same level.
+
+                    moved_parent = moved_node.parent
+                    moved_siblings = list(moved_node.parent.children)
+                    moved_rel_index = moved_siblings.index(moved_node)
+
+                    # Detach moved node and insert displaced node in its
+                    # place.
+                    moved_node.parent = None
+                    moved_siblings.insert(moved_rel_index, displaced_node)
+                    moved_parent.children = moved_siblings
+
+                    # Swap the children and add the moved node as the first
+                    # child of the displaced node.
+                    moved_children = moved_node.children
+                    moved_node.children = displaced_node.children
+                    displaced_node.children = (moved_node,) + moved_children
+                elif (
+                    displaced_node in moved_node.parent.children  # moving down in siblings
+                    and not displaced_node.children
+                ):
+                    log.misc.info("moving between siblings")
+                    # Moving between siblings, no new tree to worry about.
+                    # Make the moved node the next sibling of the displaced
+                    # one.
+                    moved_node.parent = None
+
+                    displaced_parent = displaced_node.parent
+                    displaced_siblings = list(displaced_parent.children)
+                    displaced_rel_index = displaced_siblings.index(displaced_node)
+                    displaced_siblings.insert(displaced_rel_index + 1, moved_node)
+                    displaced_parent.children = displaced_siblings
+                else:
+                    log.misc.info("moving into a new tree")
+                    # Moving into new tree, either of a sibling node or an ancestor.
+                    # =either shunt new tree down and put this one at top
+                    # =or insert as first child of new tree <-- try this
+                    moved_node.parent = None
+
+                    displaced_parent = displaced_node.parent
+                    displaced_siblings = list(displaced_parent.children)
+                    displaced_rel_index = displaced_siblings.index(displaced_node)
+                    displaced_children = displaced_node.children
+
+                    # We need to put the moved node after the displaced one.
+                    # If it has children, that means putting it in the tree as
+                    # the first child of the displaced node. Otherwise it's
+                    # just the next sibling of the displaced node.
+                    if displaced_node.children:
+                        displaced_node.children = (moved_node,) + displaced_children
+                    else:
+                        displaced_siblings.insert(displaced_rel_index + 1, moved_node)
+                        displaced_parent.children = displaced_siblings
+            else:
+                if moved_node.parent == displaced_node:
+                    log.misc.info("moving up a branch")
+                    # Swap nodes and then swap children to keep them in the
+                    # same place
+                    # Exact inverse of moving down a group
+
+                    displaced_parent = displaced_node.parent
+                    displaced_siblings = list(displaced_node.parent.children)
+                    displaced_rel_index = displaced_siblings.index(displaced_node)
+
+                    # Detach displaced node and insert moved node in its
+                    # place.
+                    displaced_node.parent = None
+                    displaced_siblings.insert(displaced_rel_index, moved_node)
+                    displaced_parent.children = displaced_siblings
+
+                    # Swap the children and add the displaced node as the first
+                    # child of the moved node.
+                    displaced_children = displaced_node.children
+                    displaced_node.children = moved_node.children
+                    moved_node.children = (displaced_node,) + displaced_children
+                elif (
+                    displaced_node in moved_node.parent.children  # moving up in siblings
+                ):
+                    log.misc.info("moving between siblings")
+                    # Swap nodes in sibling list. Switch children of moved
+                    # node to displaced node
+                    assert not displaced_node.children
+
+                    moved_node.parent = None
+                    displaced_parent = displaced_node.parent
+                    displaced_siblings = list(displaced_parent.children)
+                    displaced_rel_index = displaced_siblings.index(displaced_node)
+                    displaced_siblings.insert(displaced_rel_index - 1, moved_node)
+                    displaced_parent.children = displaced_siblings
+
+                    moved_children = moved_node.children
+                    moved_node.children = []
+                    displaced_node.children = moved_children
+                else:
+                    log.misc.info("moving into a new tree")
+                    # Make moved node sibling of last node in tree. Promote
+                    # first child of moved node to take it's place.
+                    moved_parent = moved_node.parent
+                    moved_siblings = list(moved_node.parent.children)
+                    moved_rel_index = moved_siblings.index(moved_node)
+
+                    moved_node.parent = None
+
+                    # This "promote a single node" logic is also in
+                    # `TreeTabbedBrowser._remove_tab()`.
+                    moved_children = moved_node.children
+                    first_child = moved_children[0]
+                    for child in moved_children[1:]:
+                        child.parent = first_child
+
+                    moved_siblings.insert(moved_rel_index, first_child)
+                    moved_parent.children = moved_siblings
+                    displaced_parent = displaced_node.parent
+                    displaced_siblings = displaced_parent.children
+                    displaced_parent.children = (moved_node,) + displaced_siblings
+
+        render()
         self.tree_tab_update()
         self._recursion_guard = False
 

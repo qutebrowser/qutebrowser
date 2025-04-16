@@ -515,3 +515,206 @@ Feature: Tree tab management
             - about:blank?three
           - about:blank?one
           """
+
+    ## Move tabs via mouse drags
+    Scenario: Drag a tab down between siblings
+        When I open about:blank?one
+        And I open about:blank?two in a new tab
+        And I run :tab-select ?one
+        And I run :debug-mouse-move +
+        Then the following tabs should be open:
+          # one (active)
+          # two
+          """
+          - about:blank?two
+          - about:blank?one (active)
+          """
+
+    Scenario: Drag a tab down out of a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I run :tab-select ?three
+        And I run :debug-mouse-move +
+        Then the following tabs should be open:
+          # one
+          #   two
+          #     three (active)
+          # four
+          """
+          - about:blank?one
+            - about:blank?two
+          - about:blank?four
+          - about:blank?three (active)
+          """
+
+    Scenario: Drag a tab down out of a group into another
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I open about:blank?five in a new related tab
+        And I run :tab-select ?three
+        And I run :debug-mouse-move +
+        Then the following tabs should be open:
+          # one
+          #   two
+          #     three (active)
+          # four
+          #   five
+          """
+          - about:blank?one
+            - about:blank?two
+          - about:blank?four
+            - about:blank?three (active)
+            - about:blank?five
+          """
+
+    Scenario: Drag a tab down a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I run :tab-select ?two
+        And I run :debug-mouse-move +
+        Then the following tabs should be open:
+          # one
+          #   two (active)
+          #     three
+          # four
+          """
+          - about:blank?one
+            - about:blank?three
+              - about:blank?two (active)
+          - about:blank?four
+          """
+
+    Scenario: Drag a tab with children down a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?five in a new related tab
+        And I open about:blank?three in a new sibling tab
+        And I open about:blank?four in a new related tab
+        And I open about:blank?six in a new tab
+        And I run :tab-select ?two
+        And I run :debug-mouse-move +
+        Then the following tabs should be open:
+          # one
+          #   two (active)
+          #     three
+          #       four
+          #     five
+          # six
+          """
+          - about:blank?one
+            - about:blank?three
+              - about:blank?two (active)
+                - about:blank?four
+              - about:blank?five
+          - about:blank?six
+          """
+
+    # uppies
+
+    ## Move tabs via mouse drags
+    Scenario: Drag a tab up between siblings
+        When I open about:blank?one
+        And I open about:blank?two in a new tab
+        And I open about:blank?three in a new related tab
+        And I run :tab-select ?two
+        And I run :debug-mouse-move -
+        Then the following tabs should be open:
+          # one (active)
+          # two
+          #   three
+          """
+          - about:blank?two (active)
+          - about:blank?one
+            - about:blank?three
+          """
+
+    Scenario: Drag a tab up out of a group
+        When I open about:blank?one
+        And I open about:blank?two in a new tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new related tab
+        And I run :tab-select ?three
+        And I run :debug-mouse-move -
+        Then the following tabs should be open:
+          # one
+          # two
+          #   three (active)
+          #     four
+          """
+          - about:blank?one
+          - about:blank?three (active)
+            - about:blank?two
+              - about:blank?four
+          """
+
+    Scenario: Drag a tab with children up into a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new tab
+        And I open about:blank?four in a new related tab
+        And I open about:blank?five in a new tab
+        And I run :tab-select ?three
+        And I run :debug-mouse-move -
+        Then the following tabs should be open:
+          # one
+          #   two
+          # three (active)
+          #   four
+          # five
+          """
+          - about:blank?one
+            - about:blank?three (active)
+            - about:blank?two
+          - about:blank?four
+          - about:blank?five
+          """
+
+    Scenario: Drag a tab up a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new related tab
+        And I open about:blank?four in a new tab
+        And I run :tab-select ?three
+        And I run :debug-mouse-move -
+        Then the following tabs should be open:
+          # one
+          #   two (active)
+          #     three
+          # four
+          """
+          - about:blank?one
+            - about:blank?three (active)
+              - about:blank?two
+          - about:blank?four
+          """
+
+    Scenario: Drag a tab with children up a group
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?five in a new related tab
+        And I open about:blank?three in a new sibling tab
+        And I open about:blank?four in a new related tab
+        And I open about:blank?six in a new tab
+        And I run :tab-select ?three
+        And I run :debug-mouse-move -
+        Then the following tabs should be open:
+          # one
+          #   two
+          #     three (active)
+          #       four
+          #     five
+          # six
+          """
+          - about:blank?one
+            - about:blank?three (active)
+              - about:blank?two
+                - about:blank?four
+              - about:blank?five
+          - about:blank?six
+          """

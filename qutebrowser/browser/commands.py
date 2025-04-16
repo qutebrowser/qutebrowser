@@ -1208,6 +1208,28 @@ class CommandDispatcher:
         self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
+                       debug=True)
+    @cmdutils.argument('direction', choices=['-', '+'])
+    def debug_mouse_move(self, direction: str):
+        """Pretend we are moving a tab with the mouse.
+
+        Args:
+            direction: Which direction to drag the tab, '+' or '-'.
+        """
+        current = self._tabbed_browser.widget.tabBar().drag_in_progress
+        assert not current, "Can't initiate drag with one already in progress."
+        self._tabbed_browser.widget.tabBar().drag_in_progress = not current
+
+        cur_idx = self._current_index()
+        new_idx = cur_idx + 1 if direction == "+" else cur_idx - 1
+        assert new_idx < self._count()
+        assert new_idx >= 0
+        # Pass the indices backwards to match what QTabBar does
+        self._tabbed_browser.widget.tabBar().moveTab(new_idx, cur_idx)
+
+        self._tabbed_browser.widget.tabBar().drag_in_progress = current
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('output_messages', flag='m')
