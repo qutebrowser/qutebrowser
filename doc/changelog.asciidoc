@@ -19,6 +19,14 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.5.1 (unreleased)
 -------------------
 
+Fixed
+~~~~~
+
+- Resolved issues in userscripts:
+    * `qute-bitwarden`, `-lastpass` and `-pass` now properly avoid a
+      `DeprecationWarning` from the upcoming 6.0 release of `tldextract`.
+      The previous fix in v3.5.1 was insufficient.
+
 [[v3.5.0]]
 v3.5.0 (2025-04-12)
 -------------------
