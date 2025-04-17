@@ -15,4 +15,4 @@ types-colorama==0.4.15.20240311
 types-docutils==0.21.0.20241128
 types-Pygments==2.19.0.20250305
 types-PyYAML==6.0.12.20250402
-typing_extensions==4.13.1
+typing_extensions==4.13.2
