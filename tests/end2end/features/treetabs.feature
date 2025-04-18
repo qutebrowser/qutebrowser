@@ -678,19 +678,25 @@ Feature: Tree tab management
     Scenario: Drag a tab up a group
         When I open about:blank?one
         And I open about:blank?two in a new related tab
-        And I open about:blank?three in a new related tab
+        And I open about:blank?five in a new related tab
+        And I open about:blank?three in a new sibling tab
+        And I open about:blank?six in a new related tab
         And I open about:blank?four in a new tab
         And I run :tab-select ?three
         And I run :debug-mouse-move -
         Then the following tabs should be open:
           # one
-          #   two (active)
-          #     three
+          #   two
+          #     three (active)
+          #       six
+          #     five
           # four
           """
           - about:blank?one
             - about:blank?three (active)
               - about:blank?two
+                - about:blank?six
+              - about:blank?five
           - about:blank?four
           """
 

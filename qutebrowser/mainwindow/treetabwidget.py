@@ -186,12 +186,13 @@ class TreeTabWidget(TabWidget):
             #     six
             # ^ we can't swap them here, else three would have been moved out
             # of the tree.
-            # TODO: check with dragging onto collapsed nodes, they should have
-            # the same behaviour as no-children nodes: https://github.com/brimdata/react-arborist/issues/181
-            # Add add_sibling() method to notree? https://forum.godotengine.org/t/moving-a-node-up-or-down-in-a-tree/13998
-            # Or add_child(idx=None, before=None, after=None)
-            # Move this logic into notree? At least so it's easier to unit
-            # test?
+            # TODO:
+            # * check with dragging onto collapsed nodes, they should have
+            #   the same behaviour as no-children nodes: https://github.com/brimdata/react-arborist/issues/181
+            # * move this logic into notree? At least so it's easier to unit test?
+            # * review comments (and logic) below to make sure it's clear,
+            #   concise and accurate
+            # * look for opportunities to consolidate between branches
 
             if moving_down:
                 if moved_node == displaced_node.parent:
@@ -202,21 +203,14 @@ class TreeTabWidget(TabWidget):
                     # We also swap their children, so the child nodes stay at
                     # the same level.
 
-                    moved_parent = moved_node.parent
-                    moved_siblings = list(moved_node.parent.children)
-                    moved_rel_index = moved_siblings.index(moved_node)
-
                     # Detach moved node and insert displaced node in its
                     # place.
-                    moved_node.parent = None
-                    moved_siblings.insert(moved_rel_index, displaced_node)
-                    moved_parent.children = moved_siblings
+                    moved_node.parent.insert_child(displaced_node, after=moved_node)
 
                     # Swap the children and add the moved node as the first
                     # child of the displaced node.
-                    moved_children = moved_node.children
-                    moved_node.children = displaced_node.children
-                    displaced_node.children = (moved_node,) + moved_children
+                    displaced_node.children, moved_node.children = moved_node.children, displaced_node.children
+                    displaced_node.insert_child(moved_node, idx=0)
                 elif (
                     displaced_node in moved_node.parent.children  # moving down in siblings
                     and not displaced_node.children
@@ -225,34 +219,20 @@ class TreeTabWidget(TabWidget):
                     # Moving between siblings, no new tree to worry about.
                     # Make the moved node the next sibling of the displaced
                     # one.
-                    moved_node.parent = None
-
-                    displaced_parent = displaced_node.parent
-                    displaced_siblings = list(displaced_parent.children)
-                    displaced_rel_index = displaced_siblings.index(displaced_node)
-                    displaced_siblings.insert(displaced_rel_index + 1, moved_node)
-                    displaced_parent.children = displaced_siblings
+                    displaced_node.parent.insert_child(moved_node, after=displaced_node)
                 else:
                     log.misc.info("moving into a new tree")
                     # Moving into new tree, either of a sibling node or an ancestor.
-                    # =either shunt new tree down and put this one at top
-                    # =or insert as first child of new tree <-- try this
-                    moved_node.parent = None
-
-                    displaced_parent = displaced_node.parent
-                    displaced_siblings = list(displaced_parent.children)
-                    displaced_rel_index = displaced_siblings.index(displaced_node)
-                    displaced_children = displaced_node.children
+                    # Insert as first child of new tree
 
                     # We need to put the moved node after the displaced one.
                     # If it has children, that means putting it in the tree as
                     # the first child of the displaced node. Otherwise it's
                     # just the next sibling of the displaced node.
                     if displaced_node.children:
-                        displaced_node.children = (moved_node,) + displaced_children
+                        displaced_node.insert_child(moved_node, idx=0)
                     else:
-                        displaced_siblings.insert(displaced_rel_index + 1, moved_node)
-                        displaced_parent.children = displaced_siblings
+                        displaced_node.parent.insert_child(moved_node, after=displaced_node)
             else:
                 if moved_node.parent == displaced_node:
                     log.misc.info("moving up a branch")
@@ -260,21 +240,13 @@ class TreeTabWidget(TabWidget):
                     # same place
                     # Exact inverse of moving down a group
 
-                    displaced_parent = displaced_node.parent
-                    displaced_siblings = list(displaced_node.parent.children)
-                    displaced_rel_index = displaced_siblings.index(displaced_node)
-
-                    # Detach displaced node and insert moved node in its
-                    # place.
-                    displaced_node.parent = None
-                    displaced_siblings.insert(displaced_rel_index, moved_node)
-                    displaced_parent.children = displaced_siblings
+                    # Insert moved node into displaced node's place.
+                    displaced_node.parent.insert_child(moved_node, before=displaced_node)
 
                     # Swap the children and add the displaced node as the first
                     # child of the moved node.
-                    displaced_children = displaced_node.children
-                    displaced_node.children = moved_node.children
-                    moved_node.children = (displaced_node,) + displaced_children
+                    displaced_node.children, moved_node.children = moved_node.children, displaced_node.children
+                    moved_node.insert_child(displaced_node, idx=0)
                 elif (
                     displaced_node in moved_node.parent.children  # moving up in siblings
                 ):
@@ -284,11 +256,7 @@ class TreeTabWidget(TabWidget):
                     assert not displaced_node.children
 
                     moved_node.parent = None
-                    displaced_parent = displaced_node.parent
-                    displaced_siblings = list(displaced_parent.children)
-                    displaced_rel_index = displaced_siblings.index(displaced_node)
-                    displaced_siblings.insert(displaced_rel_index - 1, moved_node)
-                    displaced_parent.children = displaced_siblings
+                    displaced_node.parent.insert_child(moved_node, before=displaced_node)
 
                     moved_children = moved_node.children
                     moved_node.children = []
@@ -297,11 +265,6 @@ class TreeTabWidget(TabWidget):
                     log.misc.info("moving into a new tree")
                     # Make moved node sibling of last node in tree. Promote
                     # first child of moved node to take it's place.
-                    moved_parent = moved_node.parent
-                    moved_siblings = list(moved_node.parent.children)
-                    moved_rel_index = moved_siblings.index(moved_node)
-
-                    moved_node.parent = None
 
                     # This "promote a single node" logic is also in
                     # `TreeTabbedBrowser._remove_tab()`.
@@ -310,11 +273,8 @@ class TreeTabWidget(TabWidget):
                     for child in moved_children[1:]:
                         child.parent = first_child
 
-                    moved_siblings.insert(moved_rel_index, first_child)
-                    moved_parent.children = moved_siblings
-                    displaced_parent = displaced_node.parent
-                    displaced_siblings = displaced_parent.children
-                    displaced_parent.children = (moved_node,) + displaced_siblings
+                    moved_node.parent.insert_child(first_child, after=moved_node)
+                    displaced_node.parent.insert_child(moved_node, idx=0)
 
         render()
         self.tree_tab_update()

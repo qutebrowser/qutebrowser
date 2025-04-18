@@ -157,6 +157,32 @@ class Node(Generic[T]):
         self.__children = new_children
         self.__set_modified()
 
+    def insert_child(
+        self,
+        node: 'Node[T]',
+        idx: Optional[int] = None,
+        before: Optional['Node[T]'] = None,
+        after: Optional['Node[T]'] = None,
+    ) -> None:
+        """Insert `node` under `self` as a child.
+
+        The `idx`, `before` and `after` parameters are mutually exclusive, one
+        of them is required. They can be used to insert `node` at either a
+        fixed index or beside another node.
+        """
+        assert sum(1 for a in [idx, before, after] if a is not None) == 1, f"{idx=} {before=} {after=}"
+        node.parent = None
+        children = list(self.children)
+        if idx is not None:
+            assert 0 <= idx <= len(children)
+            children.insert(idx, node)
+        else:
+            rel_idx = children.index(before or after)
+            if after:
+                rel_idx += 1
+            children.insert(rel_idx, node)
+        self.children = children
+
     @property
     def path(self) -> list['Node[T]']:
         """Get a list of all nodes from the root node to self."""
