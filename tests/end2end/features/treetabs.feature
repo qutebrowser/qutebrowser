@@ -356,3 +356,43 @@ Feature: Tree tab management
           - about:blank?grandparent
             - about:blank?parent (active)
           """
+
+    Scenario: Tabs.select_on_remove prev selects previous sibling
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new tab
+        And I run :set tabs.select_on_remove prev
+        And I run :tab-close
+        And I run :config-unset tabs.select_on_remove
+        Then the following tabs should be open:
+          """
+          - about:blank?one (active)
+            - about:blank?two
+          """
+
+    Scenario: Tabs.select_on_remove prev selects parent
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new sibling tab
+        And I run :set tabs.select_on_remove prev
+        And I run :tab-close
+        And I run :config-unset tabs.select_on_remove
+        Then the following tabs should be open:
+          """
+          - about:blank?one (active)
+            - about:blank?two
+          """
+
+    Scenario: Tabs.select_on_remove prev can be overridden
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new tab
+        And I run :tab-select ?two
+        And I run :set tabs.select_on_remove prev
+        And I run :tab-close --next
+        And I run :config-unset tabs.select_on_remove
+        Then the following tabs should be open:
+          """
+          - about:blank?one
+          - about:blank?three (active)
+          """
