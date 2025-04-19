@@ -6,6 +6,7 @@
 
 import collections
 import dataclasses
+import functools
 from typing import Union
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
@@ -14,6 +15,7 @@ from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser, _UndoEntry
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
+from qutebrowser.qt.widgets import QTabBar
 
 
 @dataclasses.dataclass
@@ -124,13 +126,58 @@ class TreeTabbedBrowser(TabbedBrowser):
         """Return the tab widget that can display a tree structure."""
         return TreeTabWidget(self._win_id, parent=self)
 
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
+    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False, recursive=False):
         """Handle children positioning after a tab is removed."""
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             self._add_undo_entry(tab, new_undo)
 
+        if recursive:
+            for descendent in tab.node.traverse(
+                order=notree.TraverseOrder.POST_R,
+                render_collapsed=False
+            ):
+                self.tab_close_prompt_if_pinned(
+                    descendent.value,
+                    False,
+                    functools.partial(
+                        self._remove_tab,
+                        descendent.value,
+                        add_undo=add_undo,
+                        new_undo=new_undo,
+                        crashed=crashed,
+                        recursive=False,
+                    )
+                )
+                new_undo = False
+            return
+
         node = tab.node
         parent = node.parent
+        current_tab = self.current_tab()
+
+        # Override tabs.select_on_remove behavior to be tree aware.
+        # The default behavior is in QTabBar.removeTab(), by way of
+        # QTabWidget.removeTab(). But here we are detaching the tab from the
+        # tree before those methods get called, so if we want to have a tree
+        # aware behavior we need to implement that here by selecting the new
+        # tab before the closing the current one.
+        if tab == current_tab:
+            selection_behavior = self.widget.tabBar().selectionBehaviorOnRemove()
+            # Given a tree structure like:
+            # - one
+            #   - two
+            # - three (active)
+            # If the setting is "prev" (aka left) we want to end up with tab
+            # "one" selected after closing tab "three". Switch to either the
+            # current tab's previous sibling or its parent.
+            if selection_behavior == QTabBar.SelectionBehavior.SelectLeftTab:
+                siblings = parent.children
+                rel_index = siblings.index(node)
+                if rel_index == 0:
+                    next_tab = parent.value
+                else:
+                    next_tab = siblings[rel_index-1].value
+                self.widget.setCurrentWidget(next_tab)
 
         if node.collapsed:
             # Collapsed nodes have already been removed from the TabWidget so
@@ -262,7 +309,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
-        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling, related, background)
+        self._position_tab(cur_tab.node, tab.node, pos, parent, sibling,
+                           related, background, idx)
 
         return tab
 
@@ -275,6 +323,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         sibling: bool = False,
         related: bool = True,
         background: bool = None,
+        idx: int = None,
     ) -> None:
         toplevel = not sibling and not related
         siblings = list(parent.children)
@@ -283,7 +332,14 @@ class TreeTabbedBrowser(TabbedBrowser):
             # potentially adding it as a duplicate later.
             siblings.remove(new_node)
 
-        if pos == 'first':
+        if idx:
+            sibling_indices = [self.widget.indexOf(node.value) for node in siblings]
+            assert sibling_indices == sorted(sibling_indices)
+            sibling_indices.append(idx)
+            sibling_indices = sorted(sibling_indices)
+            rel_idx = sibling_indices.index(idx)
+            siblings.insert(rel_idx, new_node)
+        elif pos == 'first':
             rel_idx = 0
             if config.val.tabs.new_position.stacking and related:
                 rel_idx += self._tree_tab_child_rel_idx

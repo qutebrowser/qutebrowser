@@ -72,6 +72,71 @@ Feature: Tree tab management
             - data/numbers/4.txt
             """
 
+    Scenario: :tab-close --recursive with pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 1
+        And I run :cmd-run-with-count 2 tab-pin
+        And I run :tab-close --recursive
+        And I wait for "Asking question *" in the log
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            """
+            - data/numbers/4.txt
+            """
+
+    Scenario: :tab-close --recursive with collapsed subtree
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new related tab
+        And I open data/numbers/4.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tree-tab-toggle-hide
+        And I run :tab-focus 1
+        And I run :tab-close --recursive
+        Then the following tabs should be open:
+            """
+            - data/numbers/4.txt
+            """
+
+    Scenario: :tab-give --recursive with collapsed subtree
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new sibling tab
+        And I open data/numbers/4.txt in a new related tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tree-tab-toggle-hide
+        And I run :tab-focus 1
+        And I run :tab-give --recursive
+        And I wait until data/numbers/4.txt is loaded
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/5.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+              - history:
+                - url: http://localhost:*/data/numbers/4.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+            """
+        And I run :window-only
+        And the following tabs should be open:
+            """
+            - data/numbers/1.txt (active)
+              - data/numbers/3.txt (collapsed)
+                - data/numbers/4.txt
+              - data/numbers/2.txt
+            """
+
     Scenario: Open a child tab
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
@@ -81,7 +146,7 @@ Feature: Tree tab management
               - data/numbers/2.txt (active)
             """
 
-    Scenario: Move a tab to the given index
+    Scenario: Move a tab down to the given index
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new related tab
         And I open data/numbers/3.txt in a new tab
@@ -94,6 +159,61 @@ Feature: Tree tab management
               - data/numbers/4.txt
             - data/numbers/1.txt
               - data/numbers/2.txt
+            """
+
+    Scenario: Move a tab up to given index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-move 2
+        Then the following tabs should be open:
+            """
+            - data/numbers/1.txt
+              - data/numbers/4.txt
+              - data/numbers/2.txt
+            - data/numbers/3.txt
+            """
+
+    Scenario: Move a tab within siblings
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new sibling tab
+        And I run :tab-move +
+        Then the following tabs should be open:
+            """
+            - data/numbers/1.txt
+              - data/numbers/2.txt
+              - data/numbers/3.txt
+            """
+
+    Scenario: Move a tab to end
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-focus 2
+        And I run :tab-move end
+        Then the following tabs should be open:
+            """
+            - data/numbers/1.txt
+            - data/numbers/3.txt
+              - data/numbers/4.txt
+              - data/numbers/2.txt
+            """
+
+    Scenario: Move a tab to start
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new related tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new related tab
+        And I run :tab-move start
+        Then the following tabs should be open:
+            """
+            - data/numbers/4.txt
+            - data/numbers/1.txt
+              - data/numbers/2.txt
+            - data/numbers/3.txt
             """
 
     Scenario: Collapse a subtree
@@ -235,4 +355,44 @@ Feature: Tree tab management
           """
           - about:blank?grandparent
             - about:blank?parent (active)
+          """
+
+    Scenario: Tabs.select_on_remove prev selects previous sibling
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new tab
+        And I run :set tabs.select_on_remove prev
+        And I run :tab-close
+        And I run :config-unset tabs.select_on_remove
+        Then the following tabs should be open:
+          """
+          - about:blank?one (active)
+            - about:blank?two
+          """
+
+    Scenario: Tabs.select_on_remove prev selects parent
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new sibling tab
+        And I run :set tabs.select_on_remove prev
+        And I run :tab-close
+        And I run :config-unset tabs.select_on_remove
+        Then the following tabs should be open:
+          """
+          - about:blank?one (active)
+            - about:blank?two
+          """
+
+    Scenario: Tabs.select_on_remove prev can be overridden
+        When I open about:blank?one
+        And I open about:blank?two in a new related tab
+        And I open about:blank?three in a new tab
+        And I run :tab-select ?two
+        And I run :set tabs.select_on_remove prev
+        And I run :tab-close --next
+        And I run :config-unset tabs.select_on_remove
+        Then the following tabs should be open:
+          """
+          - about:blank?one
+          - about:blank?three (active)
           """

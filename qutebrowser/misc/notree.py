@@ -228,13 +228,11 @@ class Node(Generic[T]):
 
     def traverse(self, order: TraverseOrder = TraverseOrder.PRE,
                  render_collapsed: bool = True) -> Iterable['Node']:
-        """Generator for all descendants of `self`.
+        """Generator for `self` and all descendants.
 
         Args:
             order: a TraverseOrder object. See TraverseOrder documentation.
             render_collapsed: whether to yield children of collapsed nodes
-            Even if render_collapsed is False, collapsed nodes are be rendered.
-            It's their children that won't.
         """
         if order == TraverseOrder.PRE:
             yield self

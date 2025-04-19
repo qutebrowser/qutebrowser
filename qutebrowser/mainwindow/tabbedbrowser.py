@@ -488,7 +488,7 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False):
+    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False, recursive=False):
         """Close a tab.
 
         Args:
@@ -507,7 +507,7 @@ class TabbedBrowser(QWidget):
         if last_close == 'ignore' and count == 1:
             return
 
-        self._remove_tab(tab, add_undo=add_undo, new_undo=new_undo)
+        self._remove_tab(tab, add_undo=add_undo, new_undo=new_undo, recursive=recursive)
 
         if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
@@ -520,7 +520,15 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
+    def _remove_tab(
+        self,
+        tab,
+        *,
+        add_undo=True,
+        new_undo=True,
+        crashed=False,
+        recursive=False,  # pylint: disable=unused-argument
+    ):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
