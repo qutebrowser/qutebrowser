@@ -1989,3 +1989,12 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I run :tab-prev
         Then "Entering mode KeyMode.insert (reason: mode_override)" should be logged
+
+    Scenario: Lifecycle change on tab switch
+        When I set qt.chromium.use_recommended_page_lifecycle_state to true
+        And I open about:blank?1
+        And I open about:blank?2 in a new tab
+        And I run :tab-prev
+        Then "Setting page lifecycle state of <qutebrowser.browser.webengine.webenginetab.WebEngineTab tab_id=* url='about:blank?2'> to LifecycleState.Frozen" should be logged
+        And "Setting page lifecycle state of <qutebrowser.browser.webengine.webenginetab.WebEngineTab tab_id=* url='about:blank?2'> to LifecycleState.Discarded" should be logged
+        And I run :set qt.chromium.use_recommended_page_lifecycle_state false

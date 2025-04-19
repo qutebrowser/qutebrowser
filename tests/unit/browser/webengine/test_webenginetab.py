@@ -244,3 +244,115 @@ class TestWebEnginePermissions:
             pytest.skip("enum member not available")
         assert clipboard in permissions_cls._options
         assert clipboard in permissions_cls._messages
+
+
+class TestPageLifecycle:
+
+    @pytest.fixture
+    def set_state_spy(
+        self,
+        webengine_tab: webenginetab.WebEngineTab,
+        monkeypatch,
+        mocker,
+    ):
+        set_state_spy = mocker.Mock()
+        monkeypatch.setattr(
+            webengine_tab._widget.page(),
+            "setLifecycleState",
+            set_state_spy,
+        )
+        return set_state_spy
+
+    @pytest.fixture(autouse=True)
+    def set_config_defaults(
+        self,
+        config_stub,
+        set_state_spy,
+    ):
+        self.set_config(config_stub)
+
+    def set_config(
+        self,
+        config_stub,
+        freeze_delay=0,
+        discard_delay=0,
+        enabled=True,
+    ):
+        config_stub.val.qt.chromium.lifecycle_state_freeze_delay = freeze_delay
+        config_stub.val.qt.chromium.lifecycle_state_discard_delay = discard_delay
+        config_stub.val.qt.chromium.use_recommended_page_lifecycle_state = enabled
+
+    def test_qt_method_is_called(
+        self,
+        webengine_tab: webenginetab.WebEngineTab,
+        set_state_spy,
+        qtbot,
+    ):
+        """Basic test to show that we call QT after going through our code."""
+        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
+        with qtbot.wait_signal(webengine_tab._lifecycle_timer.timeout):
+            pass
+        set_state_spy.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
+
+    @pytest.mark.parametrize(
+        "new_state, freeze_delay, discard_delay",
+        [
+            (QWebEnginePage.LifecycleState.Discarded, 2000, 10,),
+            (QWebEnginePage.LifecycleState.Frozen, 10, 2000,),
+        ]
+    )
+    def test_per_state_delay(
+        self,
+        webengine_tab: webenginetab.WebEngineTab,
+        monkeypatch,
+        mocker,
+        set_state_spy,
+        config_stub,
+        qtbot,
+        new_state,
+        freeze_delay,
+        discard_delay,
+    ):
+        """Show that a different time delay can get set for each state."""
+        self.set_config(
+            config_stub,
+            freeze_delay=freeze_delay,
+            discard_delay=discard_delay,
+        )
+
+        webengine_tab._on_recommended_state_changed(new_state)
+
+        timer = webengine_tab._lifecycle_timer
+        assert timer.remainingTime() == (
+            freeze_delay
+            if new_state == QWebEnginePage.LifecycleState.Frozen
+            else discard_delay
+        )
+
+        with qtbot.wait_signal(timer.timeout, timeout=100):
+            pass
+        set_state_spy.assert_called_once_with(new_state)
+
+    def test_timer_interrupted(
+        self,
+        webengine_tab: webenginetab.WebEngineTab,
+        set_state_spy,
+        config_stub,
+        qtbot,
+    ):
+        """Pending time should be cancelled when a new signal comes in."""
+        self.set_config(
+            config_stub,
+            freeze_delay=1,
+            discard_delay=3,
+        )
+        timer = webengine_tab._lifecycle_timer
+        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
+        assert timer.remainingTime() == 1
+
+        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
+        assert timer.remainingTime() == 3
+
+        with qtbot.wait_signal(webengine_tab._lifecycle_timer.timeout):
+            pass
+        set_state_spy.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
