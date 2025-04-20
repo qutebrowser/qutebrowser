@@ -243,7 +243,20 @@ def main(arguments):
 
     netloc = urlparse(arguments.url).netloc
 
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain, netloc]):
+    for target in filter(
+        None,
+        [
+            extract_result.fqdn,
+            (
+                extract_result.top_domain_under_public_suffix
+                if hasattr(extract_result, "top_domain_under_public_suffix")
+                else extract_result.registered_domain
+            ),
+            extract_result.ipv4,
+            private_domain,
+            netloc,
+        ],
+    ):
         attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         if not target_candidates:

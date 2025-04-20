@@ -303,14 +303,14 @@ Feature: Special qute:// pages
 
     # :version
 
-    @qt69_ci_flaky
+    @qt69_ci_skip
     Scenario: Open qute://version
         When I open qute://version
         Then the page should contain the plaintext "Version info"
 
     # qute://gpl
 
-    @qt69_ci_flaky
+    @qt69_ci_skip
     Scenario: Open qute://gpl
         When I open qute://gpl
         Then the page should contain the plaintext "GNU GENERAL PUBLIC LICENSE"
@@ -318,7 +318,7 @@ Feature: Special qute:// pages
     # qute://start
 
     # QtWebKit doesn't support formaction; unknown Qt 6.9 renderer process crashes
-    @qtwebkit_skip @qt69_ci_flaky
+    @qtwebkit_skip @qt69_ci_skip
     Scenario: Searching on qute://start
         When I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/title.html?q={}"}
         And I open qute://start

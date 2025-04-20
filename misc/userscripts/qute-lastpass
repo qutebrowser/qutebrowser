@@ -117,7 +117,20 @@ def main(arguments):
     # the URL represents
     candidates = []
     seen_id = set()
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4]):
+    for target in filter(
+        None,
+        [
+            extract_result.fqdn,
+            (
+                extract_result.top_domain_under_public_suffix
+                if hasattr(extract_result, "top_domain_under_public_suffix")
+                else extract_result.registered_domain
+            ),
+            extract_result.subdomain + extract_result.domain,
+            extract_result.domain,
+            extract_result.ipv4,
+        ],
+    ):
         target_candidates, err = pass_(target, arguments.io_encoding)
         if err:
             stderr("LastPass CLI returned for {:s} - {:s}".format(target, err))

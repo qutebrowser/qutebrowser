@@ -56,9 +56,25 @@ def test_auto_load(quteproc, auto_load, background, insert_mode):
         quteproc.ensure_not_logged(message=log_message)
 
 
+def test_auto_load_delayed_tab_close(quteproc):
+    """We shouldn't try to run JS on dead tabs async.
+
+    Triggering the bug is pretty timing-dependent, so this test might still pass
+    even if a bug is present. Howevber, with those timings, it triggers consistently
+    on my machine.
+    """
+    quteproc.set_setting('input.insert_mode.auto_load', "true")
+    quteproc.send_cmd(":cmd-later 50 open -t about:blank")
+    quteproc.send_cmd(":cmd-later 110 tab-close")
+    quteproc.wait_for(message="command called: tab-close")
+
+
 def test_auto_leave_insert_mode(quteproc):
+    quteproc.set_setting('input.insert_mode.auto_load', 'true')
+
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path)
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
 
     quteproc.set_setting('input.insert_mode.auto_leave', 'true')
     quteproc.send_cmd(':zoom 100')

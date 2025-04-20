@@ -10,7 +10,9 @@ from qutebrowser.browser import downloads, qtnetworkdownloads
 @pytest.fixture
 def manager(config_stub, cookiejar_and_cache):
     """A QtNetwork download manager."""
-    return qtnetworkdownloads.DownloadManager()
+    dl_manager = qtnetworkdownloads.DownloadManager()
+    yield dl_manager
+    dl_manager.deleteLater()
 
 
 def test_download_model(qapp, qtmodeltester, manager):

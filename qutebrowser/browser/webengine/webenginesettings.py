@@ -26,7 +26,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.misc import pakjoy
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg, version)
+                               urlmatch, usertypes, objreg, version, utils)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -495,10 +495,6 @@ def _init_site_specific_quirks():
     #               "{qt_key}/{qt_version} "
     #               "{upstream_browser_key}/{upstream_browser_version_short} "
     #               "Safari/{webkit_version}")
-    no_qtwe_ua = ("Mozilla/5.0 ({os_info}) "
-                  "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
-                  "{upstream_browser_key}/{upstream_browser_version_short} "
-                  "Safari/{webkit_version}")
     firefox_ua = "Mozilla/5.0 ({os_info}; rv:136.0) Gecko/20100101 Firefox/136.0"
 
     def maybe_newer_chrome_ua(at_least_version):
@@ -514,23 +510,13 @@ def _init_site_specific_quirks():
             "Safari/537.36"
         )
 
-    user_agents = [
-        # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
-        # page which doesn't allow to use WhatsApp Web at all. Also see the
-        # additional JS quirk: qutebrowser/javascript/quirks/whatsapp_web.user.js
-        # https://github.com/qutebrowser/qutebrowser/issues/4445
-        ("ua-whatsapp", 'https://web.whatsapp.com/', no_qtwe_ua),
+    utils.unused(maybe_newer_chrome_ua)
 
+    user_agents = [
         # Needed to avoid a "you're using a browser [...] that doesn't allow us
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182
-        ("ua-google", 'https://accounts.google.com/*', firefox_ua),
-
-        # Needed because Slack adds an error which prevents using it relatively
-        # aggressively, despite things actually working fine.
-        # October 2023: Slack claims they only support 112+. On #7951 at least
-        # one user claims it still works fine on 108 based Qt versions.
-        ("ua-slack", 'https://*.slack.com/*', maybe_newer_chrome_ua(112)),
+        ("ua-google", "https://accounts.google.com/*", firefox_ua),
     ]
 
     for name, pattern, ua in user_agents:

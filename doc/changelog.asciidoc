@@ -15,16 +15,55 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.4.1]]
-v3.4.1 (unreleased)
+[[v3.5.1]]
+v3.5.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Resolved issues in userscripts:
+    * `qute-bitwarden`, `-lastpass` and `-pass` now properly avoid a
+      `DeprecationWarning` from the upcoming 6.0 release of `tldextract`.
+      The previous fix in v3.5.1 was insufficient.
+
+[[v3.5.0]]
+v3.5.0 (2025-04-12)
 -------------------
 
 Changed
 ~~~~~~~
 
+- Windows/macOS releases are now built with Qt 6.9.0
+    * Based on Chromium 130.0.6723.192
+    * Security fixes up to Chromium 133.0.6943.141
+    * Also fixes issues with opening links on macOS
 - The `content.headers.user_agent` setting now has a new
   `{upstream_browser_version_short}` template field, which is the
   upstream/Chromium version but shortened to only major version.
+- The default user agent now uses the shortened Chromium version and doesn't
+  expose the `QtWebEngine/...` part anymore, thus making it equal to the
+  corresponding Chromium user agent. This increases compatibilty due to various
+  overzealous "security" products used by a variety of websites that block
+  QtWebEngine, presumably as a bot (known issues existed with Whatsapp Web, UPS,
+  Digitec Galaxus).
+- Changed features in userscripts:
+    * `qute-bitwarden` now passes your password to the subprocess in an
+      environment variable when unlocking your vault, instead of as a command
+      line argument. (#7781)
+- New `-D no-system-pdfjs` debug flag to ignore system-wide PDF.js installations
+  for testing.
+- Polyfill for missing `URL.parse` with PDF.js v5 and QtWebEngine < 6.9. Note
+  this is a "best effort" fix and you should be using the "older browsers"
+  ("legacy") build of PDF.js instead.
+
+Removed
+~~~~~~~
+
+- The `ua-slack` site-specific quirk, as things seem to work better nowadays
+  without a quirk needed.
+- The `ua-whatsapp` site-specific quirk, as it's unneeded with the default UA
+  change described above.
 
 Fixed
 ~~~~~
@@ -34,8 +73,18 @@ Fixed
   QtWebEngine and now correctly disabled on the JS side. (#8449)
 - Crash when a buggy notification presenter returns a duplicate ID (now an
   error is shown instead).
-- The default user agent now only contains the shortened Chromium version
-  number, which fixes overzealous blocking on ScienceDirect.
+- Crashes when running `:tab-move` or `:yank title` at startup, before a tab is
+  available.
+- Crash with `input.insert_mode.auto_load`, when closing a new tab quickly after
+  opening it, but before it was fully loaded. (#3895, #8400)
+- Workaround for microphone/camera permissions not being requested with
+  QtWebEngine 6.9.0 on Google Meet, Zoom, or other pages using the new
+  `<permission>` element. (#8539)
+- Resolved issues in userscripts:
+    * `qute-bitwarden` will now prompt a re-login if its cached session has
+      been invalidated since last used. (#8456)
+    * `qute-bitwarden`, `-lastpass` and `-pass` now avoid a
+      `DeprecationWarning` from the upcoming 6.0 release of `tldextract`
 
 [[v3.4.0]]
 v3.4.0 (2024-12-14)

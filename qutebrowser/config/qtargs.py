@@ -78,7 +78,7 @@ def qt_args(namespace: argparse.Namespace) -> list[str]:
     return argv
 
 
-def _qtwebengine_features(
+def _qtwebengine_features(  # noqa: C901
         versions: version.WebEngineVersions,
         special_flags: Sequence[str],
 ) -> tuple[Sequence[str], Sequence[str]]:
@@ -158,6 +158,11 @@ def _qtwebengine_features(
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-132681
         # TODO adjust if fixed in Qt 6.8.2/.3 or 6.9.0/.1
         disabled_features.append('DocumentPictureInPictureAPI')
+
+    if versions.webengine == utils.VersionNumber(6, 9):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-135787
+        # TODO adjust if still present in 6.9.1
+        disabled_features.append('PermissionElement')
 
     if not config.val.input.media_keys:
         disabled_features.append('HardwareMediaKeyHandling')

@@ -11,16 +11,16 @@ idna==3.10
 isort==6.0.1
 mccabe==0.7.0
 pefile==2024.8.26
-platformdirs==4.3.6
+platformdirs==4.3.7
 pycparser==2.22
 PyJWT==2.10.1
-pylint==3.3.5
+pylint==3.3.6
 python-dateutil==2.9.0.post0
 ./scripts/dev/pylint_checkers
 requests==2.32.3
 six==1.17.0
 tomli==2.2.1
 tomlkit==0.13.2
-typing_extensions==4.12.2
+typing_extensions==4.13.2
 uritemplate==4.1.1
-# urllib3==2.3.0
+# urllib3==2.4.0

@@ -73,7 +73,10 @@ class CommandDispatcher:
 
     def _current_index(self):
         """Convenience method to get the current widget index."""
-        return self._tabbed_browser.widget.currentIndex()
+        current_index = self._tabbed_browser.widget.currentIndex()
+        if current_index == -1:
+            raise cmdutils.CommandError("No WebView available yet!")
+        return current_index
 
     def _current_url(self):
         """Convenience method to get the current url."""
@@ -1315,7 +1318,7 @@ class CommandDispatcher:
         if count is not None:
             env['QUTE_COUNT'] = str(count)
 
-        idx = self._current_index()
+        idx = self._tabbed_browser.widget.currentIndex()
         if idx != -1:
             env['QUTE_TAB_INDEX'] = str(idx + 1)
             env['QUTE_TITLE'] = self._tabbed_browser.widget.page_title(idx)

@@ -193,6 +193,14 @@ jobs:
           - testenv: py313-pyqt68
             os: ubuntu-24.04
             python: "3.13"
+          ### PyQt 6.8 (Python 3.14)
+          - testenv: py314-pyqt68
+            os: ubuntu-24.04
+            python: "3.14-dev"
+          ### PyQt 6.9 (Python 3.13)
+          - testenv: py313-pyqt69
+            os: ubuntu-24.04
+            python: "3.13"
           ### macOS Ventura
           - testenv: py313-pyqt68
             os: macos-13
@@ -228,7 +236,7 @@ jobs:
       - name: Install apt dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends libyaml-dev libegl1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-cursor0 libjpeg-dev
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
