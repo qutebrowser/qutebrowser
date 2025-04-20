@@ -917,10 +917,6 @@ class CommandDispatcher:
             count: How many tabs to switch back.
             sibling: Whether to focus the previous tree sibling.
         """
-        if self._count() == 0:
-            # Running :tab-prev after last tab was closed
-            # See https://github.com/qutebrowser/qutebrowser/issues/1448
-            return
         if sibling and self._tabbed_browser.is_treetabbedbrowser:
             cur_node = self._current_widget().node
             siblings = list(cur_node.parent.children)
@@ -955,10 +951,6 @@ class CommandDispatcher:
             count: How many tabs to switch forward.
             sibling: Whether to focus the next tree sibling.
         """
-        if self._count() == 0:
-            # Running :tab-next after last tab was closed
-            # See https://github.com/qutebrowser/qutebrowser/issues/1448
-            return
         if sibling and self._tabbed_browser.is_treetabbedbrowser:
             cur_node = self._current_widget().node
             siblings = list(cur_node.parent.children)
