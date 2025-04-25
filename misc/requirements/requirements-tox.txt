@@ -5,12 +5,12 @@ chardet==5.2.0
 colorama==0.4.6
 distlib==0.3.9
 filelock==3.18.0
-packaging==24.2
+packaging==25.0
 pip==25.0.1
 platformdirs==4.3.7
 pluggy==1.5.0
 pyproject-api==1.9.0
-setuptools==78.1.0
+setuptools==79.0.1
 tomli==2.2.1
 tox==4.25.0
 typing_extensions==4.13.2
