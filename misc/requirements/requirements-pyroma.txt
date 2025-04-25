@@ -6,7 +6,7 @@ charset-normalizer==3.4.1
 docutils==0.21.2
 idna==3.10
 importlib_metadata==8.6.1
-packaging==24.2
+packaging==25.0
 Pygments==2.19.1
 pyproject_hooks==1.2.0
 pyroma==4.2
