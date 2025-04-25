@@ -247,10 +247,10 @@ def main(arguments):
         None,
         [
             extract_result.fqdn,
-            getattr(
-                extract_result,
-                "top_domain_under_public_suffix",
-                getattr(extract_result, "registered_domain"),
+            (
+                extract_result.top_domain_under_public_suffix
+                if hasattr(extract_result, "top_domain_under_public_suffix")
+                else extract_result.registered_domain
             ),
             extract_result.ipv4,
             private_domain,

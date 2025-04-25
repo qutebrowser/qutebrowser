@@ -146,7 +146,7 @@
   "python-dateutil": "https://dateutil.readthedocs.io/en/stable/changelog.html",
   "platformdirs": "https://github.com/platformdirs/platformdirs/releases",
   "pluggy": "https://github.com/pytest-dev/pluggy/blob/main/CHANGELOG.rst",
-  "mypy-extensions": "https://github.com/python/mypy_extensions/commits/master",
+  "mypy_extensions": "https://github.com/python/mypy_extensions/commits/master",
   "pyroma": "https://github.com/regebro/pyroma/blob/master/CHANGES.txt",
   "adblock": "https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md",
   "importlib_resources": "https://importlib-resources.readthedocs.io/en/latest/history.html",
