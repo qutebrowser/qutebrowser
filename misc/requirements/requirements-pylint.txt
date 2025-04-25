@@ -5,7 +5,7 @@ certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
 cryptography==44.0.2
-dill==0.3.9
+dill==0.4.0
 github3.py==4.0.1
 idna==3.10
 isort==6.0.1

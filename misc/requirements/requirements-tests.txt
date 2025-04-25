@@ -3,7 +3,7 @@
 attrs==25.3.0
 autocommand==2.2.2
 backports.tarfile==1.2.0
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
 blinker==1.9.0
 certifi==2025.1.31
 charset-normalizer==3.4.1
@@ -31,8 +31,8 @@ jaraco.text==3.12.1
 Mako==1.3.10
 manhole==1.8.1
 # MarkupSafe==3.0.2
-more-itertools==10.6.0
-packaging==24.2
+more-itertools==10.7.0
+packaging==25.0
 parse==1.20.2
 parse_type==0.6.4
 pillow==11.2.1
@@ -56,8 +56,8 @@ requests==2.32.3
 requests-file==2.1.0
 six==1.17.0
 sortedcontainers==2.4.0
-soupsieve==2.6
-tldextract==5.2.0
+soupsieve==2.7
+tldextract==5.3.0
 tomli==2.2.1
 typeguard==4.3.0
 typing_extensions==4.13.2
