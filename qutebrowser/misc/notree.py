@@ -36,6 +36,8 @@ from typing import Optional, TypeVar, Generic
 from collections.abc import Iterable, Sequence
 import itertools
 
+from qutebrowser.utils import log
+
 # For Node.render
 CORNER = '└─'
 INTERSECTION = '├─'
@@ -371,3 +373,106 @@ class Node(Generic[T]):
     def __str__(self) -> str:
         # return "<Node '%s'>" % self.value
         return str(self.value)
+
+    def check_can_move(self, to: "Node") -> None:
+        """Raise a TreeError if our moving logic doesn't support the requested operation."""
+        if self in to.path:
+            raise TreeError("Can't move tab to a descendent of itself")
+
+    def move_recursive(self, to: "Node") -> None:
+        """Move this tab and its children to the position of `to`."""
+        # The logic below doesn't currently handle these cases.
+        self.check_can_move(to)
+
+        nodes = list(self.path[0].traverse(render_collapsed=False))[1:]
+        from_idx = nodes.index(self)
+        if nodes.index(to) > from_idx:
+            to.parent.insert_child(self, after=to)
+        else:
+            to.parent.insert_child(self, before=to)
+
+    def drag(self, direction: str) -> None:
+        """Move this tab a single place in the list of nodes."""
+        # move() implementation that only supports moving a single step at a
+        # time. Could probably be generalized into a non-recursive move()
+        # implementation.
+
+        # Give nodes direction independent names so we can re-use logic
+        # below. Names reflect where we need to put the nodes, eg if
+        # moving down the moved node will be the bottom of the two.
+        nodes = list(self.path[0].traverse(render_collapsed=False))[1:]
+        from_idx = nodes.index(self)
+        if direction == "+":
+            moving_down = True
+            top_node = nodes[from_idx + 1]
+            bottom_node = self
+        elif direction == "-":
+            moving_down = False
+            top_node = self
+            bottom_node = nodes[from_idx - 1]
+        else:
+            raise TreeError('direction argument must be one of: "-" or "+"')
+
+        # TODO:
+        # * check with dragging onto collapsed nodes, they should have
+        #   the same behaviour as no-children nodes: https://github.com/brimdata/react-arborist/issues/181
+        # * move this logic into notree? At least so it's easier to unit test?
+        # * review comments (and logic) below to make sure it's clear,
+        #   concise and accurate
+        # * look for opportunities to consolidate between branches
+
+        # The general strategy here is to go with the positioning that
+        # QTabBar uses and try to make that work. QTabBar shows all the nodes
+        # in order and will always swap the moved node with the displaced one.
+        # So we adjust parents and children to make the tab bar's view of
+        # things reality.
+
+        if bottom_node == top_node.parent:
+            log.notree.info("moving along a branch")
+            # Nodes are parent and child, swap them around. First move the
+            # top node up to be a sibling of the bottom node.
+            bottom_node.parent.insert_child(top_node, before=bottom_node)
+            # Then swap children to keep them in the same place.
+            top_node.children, bottom_node.children = bottom_node.children, top_node.children
+            # Then move the bottom node down.
+            top_node.insert_child(bottom_node, idx=0)
+        elif (
+            top_node in bottom_node.parent.children
+            # If moving down and the displaced node has children, we are
+            # going into a new tree so skip this branch.
+            and not (moving_down and top_node.children)
+        ):
+            log.notree.info("moving between siblings")
+            # Swap nodes in sibling list.
+            bottom_node.parent.insert_child(top_node, before=bottom_node)
+
+            # If moving up, the top node (the one that's moving) could
+            # have children. Move them down to the bottom node to keep
+            # them in the same place.
+            top_children = top_node.children
+            top_node.children = []
+            bottom_node.children = top_children
+        elif moving_down:
+            log.notree.info("moving into top of new tree")
+            # Moving from a leaf node in one tree, to the top of a new
+            # one. If the new tree is just a single node, insert the
+            # bottom node as a sibling. Or if the new tree has children,
+            # insert the bottom node as the first child.
+            if top_node.children:
+                top_node.insert_child(bottom_node, idx=0)
+            else:
+                top_node.parent.insert_child(bottom_node, after=top_node)
+        else:
+            log.notree.info("moving into bottom of new tree")
+            # Moving from the top of a tree into a leaf node of a new one.
+            # If the top node has children, promote the first child to
+            # take the top node's place in the old tree.
+            # This "promote a single node" logic is also in
+            # `TreeTabbedBrowser._remove_tab()`.
+            top_children = top_node.children
+            first_child = top_children[0]
+            for child in top_children[1:]:
+                child.parent = first_child
+
+            top_node.parent.insert_child(first_child, after=top_node)
+            bottom_node.parent.insert_child(top_node, before=bottom_node)

@@ -1201,9 +1201,10 @@ class CommandDispatcher:
             tree_root = self._tabbed_browser.widget.tree_root
             nodes = list(tree_root.traverse(render_collapsed=False))[1:]
             target_node = nodes[new_idx]
-            if self._current_widget().node in target_node.path:
-                raise cmdutils.CommandError("Can't move tab to a descendent"
-                                            " of itself")
+            try:
+                self._current_widget().node.check_can_move(target_node)
+            except notree.TreeError as err:
+                raise cmdutils.CommandError(str(err)) from err
 
         self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
