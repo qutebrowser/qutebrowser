@@ -8,6 +8,8 @@ from qutebrowser.config.configtypes import NewTabPosition, NewChildPosition
 from qutebrowser.misc.notree import Node
 from qutebrowser.mainwindow import treetabbedbrowser, treetabwidget
 
+from tests.unit.misc.test_notree import str_to_tree
+
 
 @pytest.fixture
 def mock_browser(mocker):
@@ -75,7 +77,7 @@ class TestPositionTab:
         """Test tree tab positioning.
 
         How to use the parameters above:
-        * refer to the tree structure being passed to create_tree() below, that's
+        * refer to the tree structure being passed to str_to_tree() below, that's
           our starting state
         * specify how the new node should be related to the current one
         * specify cur_node by value, which is the tab currently focused when the
@@ -94,7 +96,7 @@ class TestPositionTab:
         situations apart. But I went this route to avoid having to specify
         multiple trees in the parameters.
         """
-        root = self.create_tree(
+        root = str_to_tree(
             """
             - one
               - two
@@ -104,7 +106,7 @@ class TestPositionTab:
               - six
             - seven
             """,
-        )
+        )[0]
         new_node = Node("new", parent=root)
 
         config_stub.val.tabs.new_position.stacking = False
@@ -178,27 +180,6 @@ class TestPositionTab:
             background=background,
         )
 
-    def create_tree(self, tree_str):
-        # Construct a notree.Node tree from the test string.
-        root = Node("root")
-        previous_indent = ''
-        previous_node = root
-        for line in tree_str.splitlines():
-            if not line.strip():
-                continue
-            indent, value = line.split("-")
-            node = Node(value.strip())
-            if len(indent) > len(previous_indent):
-                node.parent = previous_node
-            elif len(indent) == len(previous_indent):
-                node.parent = previous_node.parent
-            else:
-                # TODO: handle going up in jumps of more than one rank
-                node.parent = previous_node.parent.parent
-            previous_indent = indent
-            previous_node = node
-        return root
-
     @pytest.mark.parametrize(
         "     test_tree, relation, pos, expected", [
             ("tree_one", "sibling", "next", "one,two,new1,new2,new3",),
@@ -229,12 +210,12 @@ class TestPositionTab:
         """
         # Simpler tree here to make the assert string a bit simpler.
         # Tab "two" is hardcoded as cur_tab.
-        root = self.create_tree(
+        root = str_to_tree(
             """
             - one
               - two
             """,
-        )
+        )[0]
         config_stub.val.tabs.new_position.stacking = True
 
         for val in ["new1", "new2", "new3"]:

@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Tests for misc.notree library."""
+import itertools
+import textwrap
+from typing import NamedTuple, Optional
+
 import pytest
 
 from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
@@ -294,3 +298,386 @@ def test_memoization(node):
     assert node.children[0]._Node__modified is True
     node.render()
     assert node._Node__modified is False
+
+
+def str_to_tree(tree_str: str) -> tuple["Node", "Node"]:
+    """Construct a notree.Node tree from a string.
+
+    Input strings can look like:
+        one (active)
+          two
+
+    Or
+        - one (active)
+          - two
+
+    You can use any indent to separate levels of the tree but it needs to be
+    consistent.
+
+    Returns a tuple of (tree_root, active_tab).
+    """
+    root = Node("root")
+    previous_indent = ""
+    previous_node = root
+    indent_increment = None
+    active = None
+    for line in textwrap.dedent(tree_str).splitlines():
+        if not line.strip():
+            continue
+
+        indent = "".join(list(itertools.takewhile(lambda c: c.isspace(), line)))
+        if indent and not indent_increment:
+            indent_increment = indent
+
+        line = line.removeprefix(indent)
+        line = line.removeprefix("- ")  # Strip optional dash prefix thing
+        parts = line.split()
+        value = parts[0]
+        node = Node(value)
+
+        if len(parts) > 1:
+            if parts[1] == "(active)":
+                active = node
+
+        if previous_node == root:
+            node.parent = root
+        elif len(indent) > len(previous_indent):
+            node.parent = previous_node
+        elif len(indent) == len(previous_indent):
+            node.parent = previous_node.parent
+        else:
+            if not indent:
+                level = 0
+            else:
+                level = int(len(indent) / len(indent_increment))
+            node.parent = previous_node.path[level]
+
+        previous_indent = indent
+        previous_node = node
+    return root, active
+
+
+def tree_to_str(
+    node: Node,
+    active: Optional[bool] = None,
+    indent: str = "",
+    indent_increment: str = "  ",
+    include_root: bool = False,
+) -> None:
+    """Serialize Node tree into a string.
+
+    Output string will look like:
+
+        one
+          two
+        three (active)
+
+    With two spaces of indentation marking levels of the tree. The reverse of
+    `str_to_tree()`.
+    """
+    lines = []
+    if not node.parent and include_root is False:
+        next_indent = indent
+    else:
+        next_indent = indent + indent_increment
+        lines.append(f"{indent}{node.value}{' (active)' if node == active else ''}")
+    for child in node.children:
+        lines.append(
+            tree_to_str(
+                child, active, indent=next_indent, indent_increment=indent_increment
+            )
+        )
+    return "\n".join(lines)
+
+
+class MoveTestArgs(NamedTuple):
+    description: str
+    before: str
+    to: str
+    after: str
+
+
+@pytest.mark.parametrize(
+    MoveTestArgs._fields,
+    [
+        MoveTestArgs(
+            description="Move a tab out of a group",
+            before="""
+                one
+                  two
+                    three (active)
+                four
+                """,
+            to="four",
+            after="""
+                one
+                  two
+                four
+                three (active)
+                """,
+        ),
+        MoveTestArgs(
+            description="Move multiple tabs out of a group",
+            before="""
+                one
+                  two (active)
+                    three
+                four
+                  five
+                """,
+            to="four",
+            after="""
+                one
+                four
+                  five
+                two (active)
+                  three
+                """,
+        ),
+        MoveTestArgs(
+            description="Move two sibling groups",
+            before="""
+               one
+                 two
+               three (active)
+                 four
+               """,
+            to="one",
+            after="""
+                three (active)
+                  four
+                one
+                  two
+                """,
+        ),
+        MoveTestArgs(
+            description="Move multiple tabs into another group",
+            before="""
+                one
+                  two (active)
+                    three
+                four
+                  five
+                """,
+            to="five",
+            after="""
+                one
+                four
+                  five
+                  two (active)
+                    three
+                """,
+        ),
+        MoveTestArgs(
+            description="Move a tab a single step over a group",
+            before="""
+                one (active)
+                two
+                  three
+                """,
+            to="two",
+            after="""
+                two
+                  three
+                one (active)
+                """,
+        ),
+    ],
+)
+def test_move_recursive(description, before, to, after):
+    before, after = textwrap.dedent(before), textwrap.dedent(after).strip()
+    tree_root, active = str_to_tree(before)
+    nodes = list(tree_root.traverse(render_collapsed=False))
+    to_node = [node for node in nodes if node.value == to][0]
+
+    active.move_recursive(to_node)
+
+    assert tree_to_str(tree_root, active) == after
+
+
+@pytest.mark.parametrize(
+    MoveTestArgs._fields,
+    [
+        # And now the drag downwards test cases
+        MoveTestArgs(
+            description="Drag a tab down between siblings",
+            before="""
+                one (active)
+                two
+                """,
+            to="+",
+            after="""
+                two
+                one (active)
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab down out of a group",
+            before="""
+                one
+                  two
+                    three (active)
+                four
+                """,
+            to="+",
+            after="""
+                one
+                  two
+                four
+                three (active)
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab down out of a group into another",
+            before="""
+                one
+                  two
+                    three (active)
+                four
+                  five
+                """,
+            to="+",
+            after="""
+                one
+                  two
+                four
+                  three (active)
+                  five
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab down a group",
+            before="""
+                one
+                  two (active)
+                    three
+                four
+                """,
+            to="+",
+            after="""
+                one
+                  three
+                    two (active)
+                four
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab with children down a group",
+            before="""
+                one
+                  two (active)
+                    three
+                      four
+                    five
+                six
+                """,
+            to="+",
+            after="""
+                one
+                  three
+                    two (active)
+                      four
+                    five
+                six
+                """,
+        ),
+        # And now the drag upwards test cases
+        MoveTestArgs(
+            description="Drag a tab up between siblings",
+            before="""
+                one
+                two (active)
+                  three
+                """,
+            to="-",
+            after="""
+                two (active)
+                one
+                  three
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab up out of a group",
+            before="""
+                one
+                two
+                  three (active)
+                    four
+                """,
+            to="-",
+            after="""
+                one
+                three (active)
+                  two
+                    four
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab with children up into a group",
+            before="""
+                one
+                  two
+                  foo
+                three (active)
+                  four
+                five
+                """,
+            to="-",
+            after="""
+                one
+                  two
+                  three (active)
+                  foo
+                four
+                five
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab up a group",
+            before="""
+                one
+                  two
+                    three (active)
+                      six
+                    five
+                four
+                """,
+            to="-",
+            after="""
+                one
+                  three (active)
+                    two
+                      six
+                    five
+                four
+                """,
+        ),
+        MoveTestArgs(
+            description="Drag a tab with children up a group",
+            before="""
+                one
+                  two
+                    three (active)
+                      four
+                    five
+                six
+                """,
+            to="-",
+            after="""
+                one
+                  three (active)
+                    two
+                      four
+                    five
+                six
+                """,
+        ),
+    ],
+)
+def test_drag(description, before, to, after):
+    before, after = textwrap.dedent(before), textwrap.dedent(after).strip()
+    tree_root, active = str_to_tree(before)
+
+    active.drag(to)
+
+    assert tree_to_str(tree_root, active) == after
