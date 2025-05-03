@@ -40,7 +40,7 @@ import setuptools
 # * version=_get_constant('version'),
 #   * dynamic in setuptools
 # * description=_get_constant('description'),
-#   * dynamic option in setuptools
+#   * support reading from file, but not attribute
 # * author=_get_constant('author'),
 # * author_email=_get_constant('email'),
 #   * both not dynamic and don't change much, duplicate or move
@@ -48,6 +48,7 @@ import setuptools
 #   * not dynamic, it's also not used anywhere else and doesn't change often
 #   * just duplicate it and leave a comment or move it completely
 #
+# Move duplicated stuff in __init__ to use importlib.metadata?
 
 # Args to setup()
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#setuptools-specific-configuration

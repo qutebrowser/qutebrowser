@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qutebrowser"
+description = "A keyboard-driven, vim-like browser based on Python and Qt."
 # What about the other libs in requirements.txt?
 dependencies = [
   "jinja2",
@@ -41,7 +42,6 @@ classifiers = [
 # https://discuss.python.org/t/please-make-package-version-go-away/58501/11
 dynamic = [
   "version",
-  "description",
 ]
 
 [project.urls]
@@ -57,8 +57,10 @@ funding = "https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#
 qutebrowser = "qutebrowser.qutebrowser:main"
 
 [tool.setuptools.dynamic]
-version = {attr = "qutebrowser.__version__"}
-description = {attr = "qutebrowser.__description__"}
+# We can't import a variable from qutebrowser/__init__.py because when we put
+# "qutebrowser" here setuptools resolves that to "qutebrowser/qutebrowser.py".
+# So just import the attribute from that qutebrowser.py file.
+version = {attr = "qutebrowser.qutebrowser.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["qutebrowser", "qutebrowser.*"]  # package names should match these glob patterns (["*"] by default)
