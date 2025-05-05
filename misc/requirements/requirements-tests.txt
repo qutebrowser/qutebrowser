@@ -5,8 +5,8 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 beautifulsoup4==4.13.4
 blinker==1.9.0
-certifi==2025.1.31
-charset-normalizer==3.4.1
+certifi==2025.4.26
+charset-normalizer==3.4.2
 cheroot==10.0.1
 click==8.1.8
 coverage==7.8.0
@@ -16,9 +16,9 @@ filelock==3.18.0
 Flask==3.1.0
 gherkin-official==29.0.0
 hunter==3.7.0
-hypothesis==6.131.0
+hypothesis==6.131.9
 idna==3.10
-importlib_metadata==8.6.1
+importlib_metadata==8.7.0
 importlib_resources==6.5.2
 inflect==7.3.1
 iniconfig==2.1.0

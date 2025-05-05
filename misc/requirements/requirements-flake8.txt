@@ -15,7 +15,7 @@ flake8-string-format==0.3.0
 flake8-tidy-imports==4.11.0
 flake8-tuple==0.4.1
 mccabe==0.7.0
-pep8-naming==0.14.1
+pep8-naming==0.15.0
 pycodestyle==2.13.0
 pydocstyle==6.3.0
 pyflakes==3.3.2
