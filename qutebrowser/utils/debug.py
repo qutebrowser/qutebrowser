@@ -16,6 +16,7 @@ from typing import (
 from collections.abc import Mapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects
@@ -345,9 +346,9 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
         return wrapped
 
 
-def _get_widgets() -> Sequence[str]:
+def _get_widgets(qapp: QApplication) -> Sequence[str]:
     """Get a string list of all widgets."""
-    widgets = objects.qapp.allWidgets()
+    widgets = qapp.allWidgets()
     widgets.sort(key=repr)
     return [repr(w) for w in widgets]
 
@@ -361,17 +362,20 @@ def _get_pyqt_objects(lines: MutableSequence[str],
         _get_pyqt_objects(lines, kid, depth + 1)
 
 
-def get_all_objects(start_obj: QObject = None) -> str:
+def get_all_objects(start_obj: QObject = None, *, qapp: QApplication = None) -> str:
     """Get all children of an object recursively as a string."""
+    if qapp is None:
+        assert objects.qapp is not None
+        qapp = objects.qapp
     output = ['']
-    widget_lines = _get_widgets()
+    widget_lines = _get_widgets(qapp)
     widget_lines = ['    ' + e for e in widget_lines]
     widget_lines.insert(0, "Qt widgets - {} objects:".format(
         len(widget_lines)))
     output += widget_lines
 
     if start_obj is None:
-        start_obj = objects.qapp
+        start_obj = qapp
 
     pyqt_lines: list[str] = []
     _get_pyqt_objects(pyqt_lines, start_obj)
