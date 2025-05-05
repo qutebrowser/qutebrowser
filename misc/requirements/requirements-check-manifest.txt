@@ -2,7 +2,7 @@
 
 build==1.2.2.post1
 check-manifest==0.50
-importlib_metadata==8.6.1
+importlib_metadata==8.7.0
 packaging==25.0
 pyproject_hooks==1.2.0
 tomli==2.2.1

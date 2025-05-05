@@ -7,11 +7,11 @@ backports.tarfile==1.2.0
 bracex==2.5.post1
 build==1.2.2.post1
 bump-my-version==1.1.2
-certifi==2025.1.31
+certifi==2025.4.26
 cffi==1.17.1
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
 click==8.1.8
-cryptography==44.0.2
+cryptography==44.0.3
 docutils==0.21.2
 exceptiongroup==1.2.2
 github3.py==4.0.1
@@ -21,7 +21,7 @@ httpx==0.28.1
 hunter==3.7.0
 id==1.5.0
 idna==3.10
-importlib_metadata==8.6.1
+importlib_metadata==8.7.0
 importlib_resources==6.5.2
 inflect==7.3.1
 jaraco.classes==3.4.0
@@ -40,9 +40,9 @@ packaging==25.0
 platformdirs==4.3.7
 prompt_toolkit==3.0.51
 pycparser==2.22
-pydantic==2.11.3
+pydantic==2.11.4
 pydantic-settings==2.9.1
-pydantic_core==2.33.1
+pydantic_core==2.33.2
 Pygments==2.19.1
 PyJWT==2.10.1
 Pympler==1.1
