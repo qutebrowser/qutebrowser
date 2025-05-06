@@ -66,6 +66,12 @@ RUN python3.10 -m ensurepip
 RUN python3.10 -m pip install tox pyqt5-sip
 {% endif %}
 
+# Needed for running PyPI Qt builds
+RUN cd ~ && \
+    git clone https://aur.archlinux.org/libxml2.13.git && \
+    cd libxml2.13 && \
+    makepkg -si --noconfirm
+
 {% if qt6 %}
   {% set pyqt_module = 'PyQt6' %}
 {% else %}
