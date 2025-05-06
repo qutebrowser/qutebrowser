@@ -1413,6 +1413,18 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
+    def set_lifecycle_state(
+            self,
+            new_state: QWebEnginePage.LifecycleState
+    ) -> None:
+        """Set the lifecycle state of the current tab."""
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Ignoring page lifecycle update for deleted widget")
+            return
+
+        log.webview.debug("Setting page lifecycle state of {} to {}".format(self.url().toString(), new_state))
+        self._widget.page().setLifecycleState(new_state)
+
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
         log.misc.debug("Showing error page for {}".format(error))
@@ -1668,6 +1680,18 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
+    def _on_recommended_state_changed(
+            self,
+            recommended_state: QWebEnginePage.LifecycleState
+    ) -> None:
+        log.webview.debug("Recommended state changed to: {}".format(recommended_state))
+
+        if not qtutils.version_check("5.14"):
+            log.webview.debug("Ignoring state change")
+            return
+
+        self.set_lifecycle_state(recommended_state)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1685,6 +1709,10 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
+
+        if config.val.qt.chromium.use_recommended_page_lifecycle_state:
+            log.webview.debug("Using recommended page lifecycle states")
+            page.recommendedStateChanged.connect(self._on_recommended_state_changed)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
