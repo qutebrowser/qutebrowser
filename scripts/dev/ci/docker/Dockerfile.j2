@@ -39,6 +39,7 @@ RUN pacman -Su --noconfirm \
 RUN useradd user -u 1001 && \
     mkdir /home/user && \
     chown user:users /home/user
+RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers  # needed for makepkg
 
 {% if not webengine %}
 RUN pacman -U --noconfirm \
@@ -56,7 +57,6 @@ RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-webchannel/qt5-webchannel-5.15.10%2Bkde%2Br3-1-x86_64.pkg.tar.zst
 RUN pacman -S --noconfirm base-devel
 
-RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers  # needed for makepkg
 USER user
 RUN cd ~ && \
     git clone https://aur.archlinux.org/python310.git && \
@@ -68,10 +68,12 @@ RUN python3.10 -m pip install tox pyqt5-sip
 {% endif %}
 
 # Needed for running PyPI Qt builds
+USER user
 RUN cd ~ && \
     git clone https://aur.archlinux.org/libxml2.13.git && \
     cd libxml2.13 && \
     makepkg -si --noconfirm
+USER root
 
 {% if qt6 %}
   {% set pyqt_module = 'PyQt6' %}
