@@ -43,7 +43,8 @@ RUN useradd user -u 1001 && \
 RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers  # needed for makepkg
 
 {% if webengine %}
-# Needed for running PyPI Qt builds
+# WORKAROUND for https://bugreports.qt.io/browse/QTBUG-136637
+# Needed for running PyQt from PyPI wheels with Qt binaries
 USER user
 RUN cd ~ && \
     git clone https://aur.archlinux.org/libxml2.13.git && \
