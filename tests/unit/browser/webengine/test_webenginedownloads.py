@@ -100,6 +100,7 @@ class TestDataUrlWorkaround:
         manager.install(webengine_profile)
         yield manager
         webengine_profile.downloadRequested.disconnect()
+        manager.deleteLater()
 
     def test_workaround(self, webengine_tab, message_mock, qtbot,
                         pdf_url, download_manager, expected_names):
