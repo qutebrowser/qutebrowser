@@ -8,7 +8,9 @@ import logging
 import fnmatch
 
 import pytest
-from qutebrowser.qt.core import QObject
+import pytest_mock
+from qutebrowser.qt.core import QObject, QTimer
+from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.utils import usertypes
 
@@ -70,6 +72,17 @@ def test_timeout_set_interval(qtbot):
         t.start()
 
 
+@pytest.fixture
+def time_mock(qapp: QApplication, mocker: pytest_mock.MockerFixture) -> None:
+    """Patch time.monotonic() to return a fixed value."""
+    # Check if there are any stray timers still alive.
+    # If previous tests didn't clean up a QApplication-wide QTimer correctly, this
+    # will point us at the issue instead of test_early_timeout_check getting flaky
+    # because of it.
+    assert not qapp.findChildren(QTimer)
+    return mocker.patch("time.monotonic", autospec=True)
+
+
 @pytest.mark.parametrize(
     "elapsed_ms, expected",
     [
@@ -80,9 +93,7 @@ def test_timeout_set_interval(qtbot):
         (1000, True),
     ],
 )
-def test_early_timeout_check(qtbot, mocker, elapsed_ms, expected):
-    time_mock = mocker.patch("time.monotonic", autospec=True)
-
+def test_early_timeout_check(time_mock, elapsed_ms, expected):
     t = usertypes.Timer()
     t.setInterval(1000)  # anything long enough to not actually fire
     time_mock.return_value = 0  # assigned to _start_time in start()
@@ -94,9 +105,7 @@ def test_early_timeout_check(qtbot, mocker, elapsed_ms, expected):
     t.stop()
 
 
-def test_early_timeout_handler(qtbot, mocker, caplog):
-    time_mock = mocker.patch("time.monotonic", autospec=True)
-
+def test_early_timeout_handler(qtbot, time_mock, caplog):
     t = usertypes.Timer(name="t")
     t.setInterval(3)
     t.setSingleShot(True)
@@ -113,10 +122,8 @@ def test_early_timeout_handler(qtbot, mocker, caplog):
         )
 
 
-def test_early_manual_fire(qtbot, mocker, caplog):
+def test_early_manual_fire(qtbot, time_mock, caplog):
     """Same as above but start() never gets called."""
-    time_mock = mocker.patch("time.monotonic", autospec=True)
-
     t = usertypes.Timer(name="t")
     t.setInterval(3)
     t.setSingleShot(True)
