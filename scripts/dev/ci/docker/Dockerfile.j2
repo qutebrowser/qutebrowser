@@ -93,6 +93,12 @@ USER user
 WORKDIR /home/user
 RUN git config --global --add safe.directory /outside/.git
 
+{% if not webengine %}
+# Unknown May 2025 crashes with QtWebKit
+ENV QT_XCB_FORCE_SOFTWARE_OPENGL=1
+ENV QT_QUICK_BACKEND=software
+{% endif %}
+
 CMD git clone /outside qutebrowser.git && \
     cd qutebrowser.git && \
     {{ python }} -m tox -e {% if qt6 %}py-qt6{% else %}py-qt5{% endif %}
