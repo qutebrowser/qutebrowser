@@ -16,4 +16,4 @@ tox==4.25.0 ; python_full_version!="3.14.0b1"
 typing_extensions==4.13.2
 virtualenv==20.30.0
 wheel==0.45.1
-git+https://github.com/The-Compiler/tox@python314 ; python_full_version=="3.14.0b1"
+tox @ git+https://github.com/The-Compiler/tox@python314 ; python_full_version=="3.14.0b1"
