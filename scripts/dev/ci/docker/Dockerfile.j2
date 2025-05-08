@@ -10,6 +10,7 @@ RUN pacman -Su --noconfirm \
     {% if webengine %}
     python-tox \
     python-distlib \
+    libxml2-legacy \
     {% endif %}
     {% if qt6 %}
       qt6-base \
@@ -34,24 +35,13 @@ RUN pacman -Su --noconfirm \
     ttf-bitstream-vera \
     gcc \
     libyaml \
-    xorg-xdpyinfo \
-    base-devel
+    xorg-xdpyinfo
 
 RUN useradd user -u 1001 && \
     mkdir /home/user && \
     chown user:users /home/user
-RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers  # needed for makepkg
 
-{% if webengine %}
-# WORKAROUND for https://bugreports.qt.io/browse/QTBUG-136637
-# Needed for running PyQt from PyPI wheels with Qt binaries
-USER user
-RUN cd ~ && \
-    git clone https://aur.archlinux.org/libxml2.13.git && \
-    cd libxml2.13 && \
-    makepkg -si --noconfirm
-USER root
-{% else %}
+{% if not webengine %}
 RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-webkit/qt5-webkit-5.212.0alpha4-18-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/p/python-pyqt5/python-pyqt5-5.15.7-2-x86_64.pkg.tar.zst \
@@ -65,7 +55,9 @@ RUN pacman -U --noconfirm \
     https://archive.archlinux.org/packages/q/qt5-sensors/qt5-sensors-5.15.10-1-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/q/qt5-location/qt5-location-5.15.10%2Bkde%2Br5-1-x86_64.pkg.tar.zst \
     https://archive.archlinux.org/packages/q/qt5-webchannel/qt5-webchannel-5.15.10%2Bkde%2Br3-1-x86_64.pkg.tar.zst
+RUN pacman -S --noconfirm base-devel
 
+RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers  # needed for makepkg
 USER user
 RUN cd ~ && \
     git clone https://aur.archlinux.org/python310.git && \
