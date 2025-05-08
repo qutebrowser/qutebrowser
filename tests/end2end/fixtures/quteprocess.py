@@ -83,6 +83,8 @@ def is_ignored_lowlevel_message(message):
         # GitHub Actions with Archlinux unstable packages
         'libEGL warning: DRI3: Screen seems not DRI3 capable',
         'libEGL warning: egl: failed to create dri2 screen',
+        'libEGL warning: DRI3 error: Could not get DRI3 device',
+        'libEGL warning: Activate DRI3 at Xorg or build mesa with DRI2',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
