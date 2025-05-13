@@ -13,7 +13,7 @@ MarkupSafe==3.0.2
 packaging==25.0
 Pygments==2.19.1
 requests==2.32.3
-snowballstemmer==2.2.0
+snowballstemmer==3.0.1
 Sphinx==7.4.7
 sphinxcontrib-applehelp==2.0.0
 sphinxcontrib-devhelp==2.0.0
