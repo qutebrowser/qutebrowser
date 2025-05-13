@@ -92,8 +92,6 @@ jobs:
       matrix:
         include:
           - testenv: py-qt5
-            image: archlinux-webkit
-          - testenv: py-qt5
             image: archlinux-webengine
           - testenv: py-qt5
             image: archlinux-webengine-unstable

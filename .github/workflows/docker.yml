@@ -13,7 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - archlinux-webkit
           - archlinux-webengine
           - archlinux-webengine-unstable
           - archlinux-webengine-unstable-qt6
