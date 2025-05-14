@@ -90,7 +90,12 @@ class Completer(QObject):
             log.completion.debug('Starting command completion')
             return miscmodels.command
         try:
-            cmd = objects.commands[before_cursor[0]]
+            cmdname = before_cursor[0]
+            if before_cursor[0] in config.cache['aliases']:
+                cmdname = config.cache['aliases'][before_cursor[0]].split(
+                    maxsplit=1)[0]
+
+            cmd = objects.commands[cmdname]
         except KeyError:
             log.completion.debug("No completion for unknown command: {}"
                                  .format(before_cursor[0]))
