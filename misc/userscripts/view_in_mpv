@@ -57,9 +57,12 @@ msg() {
 MPV_COMMAND=${MPV_COMMAND:-mpv}
 YTDLP_COMMAND=${YTDLP_COMMAND:-yt-dlp}
 # Warning: spaces in single flags are not supported
+YT_DLP_FLAGS=${YT_DLP_AUDIO_FLAGS:- --cookies-from-browser chromium:~/.local/share/qutebrowser -N 8 --downloader=http -f 'bestvideo*+bestaudio/best'}
+YT_DLP_AUDIO_FLAGS=${YT_DLP_AUDIO_FLAGS:- --cookies-from-browser chromium:~/.local/share/qutebrowser --downloader=aria2c -f bestaudio}
 MPV_FLAGS=${MPV_FLAGS:- --force-window --quiet --keep-open=yes --ytdl}
 IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
 IFS=" " read -r -a yt_dlp_video_command <<< "$YTDLP_COMMAND $YT_DLP_FLAGS"
+IFS=" " read -r -a yt_dlp_audio_command <<< "$YTDLP_COMMAND $YT_DLP_AUDIO_FLAGS"
 
 program_name=$0 options='fu:' loptions='fast,url'
 getopt_out=$(getopt --name $program_name --options $options --longoptions $loptions -- "$@")
@@ -180,7 +183,19 @@ fi
 
 msg info "Opening $URL with mpv"
 if [[ $USE_YTDLP_FOR_DOWNLOAD == "yes" ]]; then
-  "${yt_dlp_video_command[@]}" -o - "$URL" | "${video_command[@]}" --title="$(yt-dlp --get-title "$URL") - mpv" "$@" -
+  mkdir -p $HOME/.cache/qutebrowser/view_in_mpv
+  tmpdir=$(mktemp -p $HOME/.cache/qutebrowser/view_in_mpv -d)
+  ( cd $tmpdir && "${yt_dlp_audio_command[@]}" -o - "$URL" >$tmpdir/ytdlp_audio ) &
+  audio_ytdlp_pid=$!
+  sleep 2
+
+  MPV_FLAGS="$MPV_FLAGS --audio-file=$tmpdir/ytdlp_audio"
+  IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
+
+  "${yt_dlp_video_command[@]}" -o - "$URL" | "${video_command[@]}" --title="$(yt-dlp --cookies-from-browser chromium:~/.local/share/qutebrowser --get-title "$URL") - mpv" "$@" -
+
+  ps $audio_ytdlp_pid >/dev/null && kill $audio_ytdlp_pid
+  rm -rf $tmpdir
 else
   "${video_command[@]}" "$@" "$URL"
 fi
