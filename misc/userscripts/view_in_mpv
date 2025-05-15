@@ -21,6 +21,13 @@
 #   (comments and video suggestions), i.e. only the videos should disappear
 #   when mpv is started. And that's precisely what the present script does.
 #
+# Arguments:
+#   * `-f`: Fast download, spawn yt-dlp to download the video, instead of
+#     letting mpv do it. This allows for much faster video downloads but is a
+#     bit more fragile: a) if you seek past the end of the mpv cache it'll
+#     likely break b) if you have custom formats set for yt-dlp the download
+#     speed will regress again.
+#
 # Thorsten Wißmann, 2015 (thorsten` on Libera Chat)
 # Any feedback is welcome!
 
@@ -53,6 +60,28 @@ YTDLP_COMMAND=${YTDLP_COMMAND:-yt-dlp}
 MPV_FLAGS=${MPV_FLAGS:- --force-window --quiet --keep-open=yes --ytdl}
 IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
 IFS=" " read -r -a yt_dlp_video_command <<< "$YTDLP_COMMAND $YT_DLP_FLAGS"
+
+program_name=$0 options='f' loptions='fast'
+getopt_out=$(getopt --name $program_name --options $options --longoptions $loptions -- "$@")
+if (( $? != 0 )); then exit 1; fi
+
+#sets the positionnal parameters with getopt's output
+eval set -- "$getopt_out"
+
+while [[ $1 != "--" ]]; do
+  case "$1" in
+  "-f")
+    USE_YTDLP_FOR_DOWNLOAD=${USE_YTDLP_FOR_DOWNLOAD:-"yes"}
+    shift
+    ;;
+  *)
+    msg error "$0: Unknown arg '$1'"
+    exit 2
+    ;;
+  esac
+done
+# shift away from the last optional parameter (--)
+shift
 
 js() {
 cat <<EOF
