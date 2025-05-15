@@ -22,11 +22,15 @@
 #   when mpv is started. And that's precisely what the present script does.
 #
 # Arguments:
-#   * `-f`: Fast download, spawn yt-dlp to download the video, instead of
+#   -f
+#     Fast download, spawn yt-dlp to download the video, instead of
 #     letting mpv do it. This allows for much faster video downloads but is a
 #     bit more fragile: a) if you seek past the end of the mpv cache it'll
 #     likely break b) if you have custom formats set for yt-dlp the download
 #     speed will regress again.
+#   -u {url}
+#     Pass an URL as argument. This is meant to be used with the `{hint-url}`
+#     argument from qutebrowser keymap system.
 #
 # Thorsten Wißmann, 2015 (thorsten` on Libera Chat)
 # Any feedback is welcome!
