@@ -61,16 +61,23 @@ MPV_FLAGS=${MPV_FLAGS:- --force-window --quiet --keep-open=yes --ytdl}
 IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
 IFS=" " read -r -a yt_dlp_video_command <<< "$YTDLP_COMMAND $YT_DLP_FLAGS"
 
-program_name=$0 options='f' loptions='fast'
+program_name=$0 options='fu:' loptions='fast,url'
 getopt_out=$(getopt --name $program_name --options $options --longoptions $loptions -- "$@")
 if (( $? != 0 )); then exit 1; fi
 
 #sets the positionnal parameters with getopt's output
 eval set -- "$getopt_out"
 
+URL="$QUTE_URL"
+NO_JS=false
 while [[ $1 != "--" ]]; do
   case "$1" in
-  "-f")
+  -u|--url)
+    URL=$2
+    NO_JS=true
+    shift 2
+    ;;
+  -f|--fast)
     USE_YTDLP_FOR_DOWNLOAD=${USE_YTDLP_FOR_DOWNLOAD:-"yes"}
     shift
     ;;
@@ -167,11 +174,13 @@ EOF
 printjs() {
     js | sed 's,//.*$,,' | tr '\n' ' '
 }
-echo "jseval -q -w main $(printjs)" >> "$QUTE_FIFO"
+if ! [[ $NO_JS == "true" ]]; then
+  echo "jseval -q -w main $(printjs)" >> "$QUTE_FIFO"
+fi
 
-msg info "Opening $QUTE_URL with mpv"
+msg info "Opening $URL with mpv"
 if [[ $USE_YTDLP_FOR_DOWNLOAD == "yes" ]]; then
-  "${yt_dlp_video_command[@]}" -o - "$QUTE_URL" | "${video_command[@]}" --title="$(yt-dlp --get-title "$QUTE_URL") - mpv" "$@" -
+  "${yt_dlp_video_command[@]}" -o - "$URL" | "${video_command[@]}" --title="$(yt-dlp --get-title "$URL") - mpv" "$@" -
 else
-  "${video_command[@]}" "$@" "$QUTE_URL"
+  "${video_command[@]}" "$@" "$URL"
 fi
