@@ -1750,8 +1750,10 @@ class WebEngineTab(browsertab.AbstractTab):
             delay = config.val.qt.chromium.lifecycle_state_freeze_delay
         elif recommended_state == QWebEnginePage.LifecycleState.Discarded:
             delay = config.val.qt.chromium.lifecycle_state_discard_delay
-        else:
+        elif recommended_state == QWebEnginePage.LifecycleState.Active:
             delay = 0
+        else:
+            raise utils.Unreachable(recommended_state)
 
         try:
             self._lifecycle_timer.timeout.disconnect()
