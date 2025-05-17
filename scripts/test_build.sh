@@ -26,6 +26,7 @@ cd "$scratch_dir"
 # buld -w seems to have a similar structure to setup.py build
 #
 # TODO: examine differences (looks pretty minor, just a few metadata files?)
+# Can also compare `pip3 show -v qutebrowser`
 # TODO: look at updating adapting makefile and packaging workflows
 #
 # Example packing workflows:
