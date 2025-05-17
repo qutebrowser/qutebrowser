@@ -347,6 +347,17 @@ class TestPageLifecycle:
         webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
         assert not webengine_tab._lifecycle_timer.isActive()
 
+    def test_pinned_tabs_untouched(
+        self,
+        webengine_tab: webenginetab.WebEngineTab,
+        monkeypatch,
+        config_stub,
+    ):
+        """Don't change lifecycle state for a pinned tab."""
+        webengine_tab.set_pinned(True)
+        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
+        assert not webengine_tab._lifecycle_timer.isActive()
+
     def test_timer_interrupted(
         self,
         webengine_tab: webenginetab.WebEngineTab,
