@@ -1753,8 +1753,15 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             delay = 0
 
-        self._lifecycle_timer.timeout.disconnect()
-        log.webview.debug(f"Setting lifecycle state {recommended_state} in {delay}ms")
+        try:
+            self._lifecycle_timer.timeout.disconnect()
+        except TypeError:
+            pass
+
+        if self._widget.page().lifecycleState() == recommended_state:
+            return
+
+        log.webview.debug(f"Scheduling recommended lifecycle change {delay=} {recommended_state=} tab={self}")
         self._lifecycle_timer.timeout.connect(lambda: self._set_lifecycle_state(recommended_state))
         self._lifecycle_timer.start(delay)
 
