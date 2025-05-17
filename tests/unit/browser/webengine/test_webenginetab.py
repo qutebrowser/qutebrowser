@@ -333,6 +333,20 @@ class TestPageLifecycle:
             pass
         set_state_spy.assert_called_once_with(new_state)
 
+    def test_state_disabled(
+        self,
+        webengine_tab: webenginetab.WebEngineTab,
+        monkeypatch,
+        config_stub,
+    ):
+        """For negative delay values, the timer shouldn't be scheduled."""
+        self.set_config(
+            config_stub,
+            freeze_delay=-1,
+        )
+        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
+        assert not webengine_tab._lifecycle_timer.isActive()
+
     def test_timer_interrupted(
         self,
         webengine_tab: webenginetab.WebEngineTab,

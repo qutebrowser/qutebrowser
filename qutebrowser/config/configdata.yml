@@ -349,6 +349,7 @@ qt.chromium.use_recommended_page_lifecycle_state:
   type: Bool
   default: false
   backend: QtWebEngine
+  # yamllint disable rule:line-length
   desc: >-
     Use recommended page lifecycle state.
 
@@ -361,6 +362,9 @@ qt.chromium.use_recommended_page_lifecycle_state:
     Ongoing page activity is taken into account when determining the
     recommended lifecycle state, as to not disrupt your browsing.
 
+    See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
+  # yamllint enable rule:line-length
+
 qt.chromium.lifecycle_state_freeze_delay:
   type: Int
   default: 0
@@ -369,6 +373,8 @@ qt.chromium.lifecycle_state_freeze_delay:
     The amount of time (in milliseconds) to wait before transitioning a page to
     the frozen lifecycle state.
 
+    Set to -1 to disable this state (will also disable the discard state).
+
 qt.chromium.lifecycle_state_discard_delay:
   type: Int
   default: 0
@@ -376,6 +382,8 @@ qt.chromium.lifecycle_state_discard_delay:
   desc: >-
     The amount of time (in milliseconds) to wait before transitioning a page to
     the discarded lifecycle state.
+
+    Set to -1 to disable this state.
 
 qt.highdpi:
   type: Bool
