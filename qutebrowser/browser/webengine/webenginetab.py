@@ -1708,6 +1708,9 @@ class WebEngineTab(browsertab.AbstractTab):
         if delay < 0:
             return
 
+        if self.data.pinned and recommended_state != QWebEnginePage.LifecycleState.Active:
+            return
+
         log.webview.debug(f"Scheduling recommended lifecycle change {delay=} {recommended_state=} tab={self}")
         self._lifecycle_timer.timeout.connect(lambda: self._set_lifecycle_state(recommended_state))
         self._lifecycle_timer.start(delay)
