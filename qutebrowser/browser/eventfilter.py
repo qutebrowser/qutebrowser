@@ -38,8 +38,8 @@ class ChildEventFilter(QObject):
         if event.type() == QEvent.Type.ChildAdded:
             child = event.child()
             if not isinstance(child, QWidget):
-                # Can e.g. happen when dragging text
-                log.misc.debug(f"Ignoring new child {qtutils.qobj_repr(child)}")
+                # Can e.g. happen when dragging text, or accessibility tree
+                # nodes since Qt 6.9
                 return False
 
             log.misc.debug(
