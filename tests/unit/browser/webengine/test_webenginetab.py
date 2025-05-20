@@ -14,11 +14,13 @@ QWebEngineScriptCollection = QtWebEngineCore.QWebEngineScriptCollection
 QWebEngineScript = QtWebEngineCore.QWebEngineScript
 
 from qutebrowser.browser import greasemonkey
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils, version
 webenginetab = pytest.importorskip(
     "qutebrowser.browser.webengine.webenginetab")
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
+
+versions = version.qtwebengine_versions(avoid_init=True)
 
 
 class ScriptsHelper:
@@ -247,6 +249,14 @@ class TestWebEnginePermissions:
 
 
 class TestPageLifecycle:
+
+    @pytest.fixture(autouse=True)
+    def check_version(self):
+        # While the lifecycle feature was introduced in 5.14, PyQt seems to
+        # have trouble connecting to the signal we require on 6.4 and prior.
+        # https://github.com/qutebrowser/qutebrowser/pull/8547#issuecomment-2890997662
+        if versions.webengine < utils.VersionNumber(6, 5):
+            pytest.skip("Lifecycle feature requires Webengine 6.5+")
 
     @pytest.fixture
     def set_state_spy(
