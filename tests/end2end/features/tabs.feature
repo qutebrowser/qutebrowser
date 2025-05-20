@@ -1990,6 +1990,7 @@ Feature: Tab management
         And I run :tab-prev
         Then "Entering mode KeyMode.insert (reason: mode_override)" should be logged
 
+    @qt>=6.5
     Scenario: Lifecycle change on tab switch
         When I set qt.chromium.use_recommended_page_lifecycle_state to true
         And I open about:blank?1

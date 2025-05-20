@@ -362,6 +362,9 @@ qt.chromium.use_recommended_page_lifecycle_state:
     Ongoing page activity is taken into account when determining the
     recommended lifecycle state, as to not disrupt your browsing.
 
+    This feature is only available on QtWebEngine 6.5+. On older versions
+    this setting is ignored.
+
     See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
   # yamllint enable rule:line-length
 

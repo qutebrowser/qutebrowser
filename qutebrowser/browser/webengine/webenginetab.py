@@ -1791,7 +1791,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
 
-        page.recommendedStateChanged.connect(self._on_recommended_state_changed)
+        if version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 5):
+            page.recommendedStateChanged.connect(self._on_recommended_state_changed)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
