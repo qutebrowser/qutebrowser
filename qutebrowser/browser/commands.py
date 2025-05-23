@@ -2032,7 +2032,7 @@ class CommandDispatcher:
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
-    def _ensure_tree_tabs(self, arg_name: Optional[str] = None):
+    def _ensure_tree_tabs(self, arg_name: Optional[str] = None) -> None:
         """Check if we are on a tree tabs enabled browser."""
         if not self._tabbed_browser.is_treetabbedbrowser:
             # Potentially fragile code to get the name of the command the user
