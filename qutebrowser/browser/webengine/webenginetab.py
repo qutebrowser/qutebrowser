@@ -1316,8 +1316,14 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._scripts.init()
-        self._lifecycle_timer = usertypes.Timer(self)
-        self._lifecycle_timer.setSingleShot(True)
+
+        self._lifecycle_timer_freeze = usertypes.Timer(self)
+        self._lifecycle_timer_freeze.setSingleShot(True)
+        self._lifecycle_timer_freeze.timeout.connect(functools.partial(self._set_lifecycle_state, QWebEnginePage.LifecycleState.Frozen))
+        self._lifecycle_timer_discard = usertypes.Timer(self)
+        self._lifecycle_timer_discard.setSingleShot(True)
+        self._lifecycle_timer_discard.timeout.connect(functools.partial(self._set_lifecycle_state, QWebEnginePage.LifecycleState.Discarded))
+
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         self._needs_qtbug65223_workaround = (
             version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5))
@@ -1734,44 +1740,61 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
+    def _schedule_lifecycle_transition(
+        self,
+        state: Optional[QWebEnginePage.LifecycleState] = None,
+    ) -> None:
+        """Schedule, or cancel, a page lifecycle transition.
+
+        Schedule a lifecycle transition to `state`, according to the user's
+        config.
+        If a transition into `state` is already schedule, do nothing.
+        If `state` is `None`, cancel any scheduled transition.
+        """
+        timers = {
+            QWebEnginePage.LifecycleState.Frozen: (
+                self._lifecycle_timer_freeze,
+                config.val.qt.chromium.lifecycle_state_freeze_delay,
+            ),
+            QWebEnginePage.LifecycleState.Discarded: (
+                self._lifecycle_timer_discard,
+                config.val.qt.chromium.lifecycle_state_discard_delay,
+            ),
+        }
+
+        to_start = delay = None
+        if state is not None:
+            try:
+                to_start, delay = timers[state]
+            except KeyError:
+                raise utils.Unreachable(state)
+
+        for timer, _ in timers.values():
+            if timer != to_start:
+                timer.stop()
+
+        if to_start and not to_start.isActive() and delay != -1:
+            log.webview.debug(f"Scheduling recommended lifecycle change {delay=} {state=} tab={self}")
+            to_start.start(delay)
+
     @pyqtSlot(QWebEnginePage.LifecycleState)
     def _on_recommended_state_changed(
             self,
             recommended_state: QWebEnginePage.LifecycleState,
     ) -> None:
+        if self._widget.page().lifecycleState() == recommended_state:
+            self._schedule_lifecycle_transition(None)
+            return
+
         disabled = not config.val.qt.chromium.use_recommended_page_lifecycle_state
 
-        # If the config is changed at runtime, stop freezing/discarding pages, but do
-        # recover pages that become active again.
-        if disabled and recommended_state != QWebEnginePage.LifecycleState.Active:
-            return
-
-        if recommended_state == QWebEnginePage.LifecycleState.Frozen:
-            delay = config.val.qt.chromium.lifecycle_state_freeze_delay
-        elif recommended_state == QWebEnginePage.LifecycleState.Discarded:
-            delay = config.val.qt.chromium.lifecycle_state_discard_delay
-        elif recommended_state == QWebEnginePage.LifecycleState.Active:
-            delay = 0
+        if recommended_state == QWebEnginePage.LifecycleState.Active:
+            self._schedule_lifecycle_transition(None)
+            self._set_lifecycle_state(recommended_state)
+        elif disabled or self.data.pinned:
+            self._schedule_lifecycle_transition(None)
         else:
-            raise utils.Unreachable(recommended_state)
-
-        try:
-            self._lifecycle_timer.timeout.disconnect()
-        except TypeError:
-            pass
-
-        if self._widget.page().lifecycleState() == recommended_state:
-            return
-
-        if delay < 0:
-            return
-
-        if self.data.pinned and recommended_state != QWebEnginePage.LifecycleState.Active:
-            return
-
-        log.webview.debug(f"Scheduling recommended lifecycle change {delay=} {recommended_state=} tab={self}")
-        self._lifecycle_timer.timeout.connect(lambda: self._set_lifecycle_state(recommended_state))
-        self._lifecycle_timer.start(delay)
+            self._schedule_lifecycle_transition(recommended_state)
 
     def _connect_signals(self):
         view = self._widget
