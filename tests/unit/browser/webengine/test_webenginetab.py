@@ -292,6 +292,14 @@ class TestPageLifecycle:
         config_stub.val.qt.chromium.lifecycle_state_discard_delay = discard_delay
         config_stub.val.qt.chromium.use_recommended_page_lifecycle_state = enabled
 
+    def timer_for(self, tab, state):  # pylint: disable=inconsistent-return-statements
+        if state == QWebEnginePage.LifecycleState.Frozen:
+            return tab._lifecycle_timer_freeze
+        elif state == QWebEnginePage.LifecycleState.Discarded:
+            return tab._lifecycle_timer_discard
+        else:
+            pytest.fail(f"Unknown lifecycle state `{state}`")
+
     def test_qt_method_is_called(
         self,
         webengine_tab: webenginetab.WebEngineTab,
@@ -299,8 +307,9 @@ class TestPageLifecycle:
         qtbot,
     ):
         """Basic test to show that we call QT after going through our code."""
-        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
-        with qtbot.wait_signal(webengine_tab._lifecycle_timer.timeout):
+        state = QWebEnginePage.LifecycleState.Discarded
+        webengine_tab._on_recommended_state_changed(state)
+        with qtbot.wait_signal(self.timer_for(webengine_tab, state).timeout):
             pass
         set_state_mock.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
 
@@ -332,7 +341,7 @@ class TestPageLifecycle:
 
         webengine_tab._on_recommended_state_changed(new_state)
 
-        timer = webengine_tab._lifecycle_timer
+        timer = self.timer_for(webengine_tab, new_state)
         assert timer.remainingTime() == (
             freeze_delay
             if new_state == QWebEnginePage.LifecycleState.Frozen
@@ -354,8 +363,10 @@ class TestPageLifecycle:
             config_stub,
             discard_delay=-1,
         )
-        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
-        assert not webengine_tab._lifecycle_timer.isActive()
+        state = QWebEnginePage.LifecycleState.Discarded
+        webengine_tab._on_recommended_state_changed(state)
+        timer = self.timer_for(webengine_tab, state)
+        assert not timer.isActive()
 
     def test_pinned_tabs_untouched(
         self,
@@ -365,8 +376,10 @@ class TestPageLifecycle:
     ):
         """Don't change lifecycle state for a pinned tab."""
         webengine_tab.set_pinned(True)
-        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
-        assert not webengine_tab._lifecycle_timer.isActive()
+        state = QWebEnginePage.LifecycleState.Frozen
+        webengine_tab._on_recommended_state_changed(state)
+        timer = self.timer_for(webengine_tab, state)
+        assert not timer.isActive()
 
     def test_timer_interrupted(
         self,
@@ -381,13 +394,15 @@ class TestPageLifecycle:
             freeze_delay=1,
             discard_delay=3,
         )
-        timer = webengine_tab._lifecycle_timer
+        freeze_timer = webengine_tab._lifecycle_timer_freeze
+        discard_timer = webengine_tab._lifecycle_timer_discard
+
         webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
-        assert timer.remainingTime() == 1
+        assert freeze_timer.remainingTime() == 1
 
         webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
-        assert timer.remainingTime() == 3
+        assert discard_timer.remainingTime() == 3
 
-        with qtbot.wait_signal(webengine_tab._lifecycle_timer.timeout):
+        with qtbot.wait_signal(discard_timer.timeout):
             pass
         set_state_mock.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
