@@ -7,7 +7,7 @@
 import collections
 import dataclasses
 import functools
-from typing import Union
+from typing import Union, Any
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
@@ -378,7 +378,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         super()._on_current_changed(idx)
         self._reset_stack_counters()
 
-    def cycle_hide_tab(self, node):
+    def cycle_hide_tab(self, node: notree.Node[Any]) -> None:
         """Utility function for tree_tab_cycle_hide command."""
         # height = node.height  # height is always rel_height
         if node.collapsed:
@@ -387,10 +387,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                 descendent.collapsed = False
             return
 
-        def rel_depth(n):
+        def rel_depth(n: notree.Node[Any]) -> int:
             return n.depth - node.depth
 
-        levels: dict[int, list] = collections.defaultdict(list)
+        levels: dict[int, list[notree.Node[Any]]] = collections.defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
