@@ -352,9 +352,9 @@ class TestPageLifecycle:
         """For negative delay values, the timer shouldn't be scheduled."""
         self.set_config(
             config_stub,
-            freeze_delay=-1,
+            discard_delay=-1,
         )
-        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Frozen)
+        webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
         assert not webengine_tab._lifecycle_timer.isActive()
 
     def test_pinned_tabs_untouched(
