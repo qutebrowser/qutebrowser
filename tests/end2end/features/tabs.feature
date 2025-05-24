@@ -1998,4 +1998,3 @@ Feature: Tab management
         And I run :tab-prev
         Then "Setting page lifecycle state of <qutebrowser.browser.webengine.webenginetab.WebEngineTab tab_id=* url='about:blank?2'> to LifecycleState.Frozen" should be logged
         And "Setting page lifecycle state of <qutebrowser.browser.webengine.webenginetab.WebEngineTab tab_id=* url='about:blank?2'> to LifecycleState.Discarded" should be logged
-        And I run :set qt.chromium.use_recommended_page_lifecycle_state false
