@@ -259,25 +259,25 @@ class TestPageLifecycle:
             pytest.skip("Lifecycle feature requires Webengine 6.5+")
 
     @pytest.fixture
-    def set_state_spy(
+    def set_state_mock(
         self,
         webengine_tab: webenginetab.WebEngineTab,
         monkeypatch,
         mocker,
     ):
-        set_state_spy = mocker.Mock()
+        set_state_mock = mocker.Mock()
         monkeypatch.setattr(
             webengine_tab._widget.page(),
             "setLifecycleState",
-            set_state_spy,
+            set_state_mock,
         )
-        return set_state_spy
+        return set_state_mock
 
     @pytest.fixture(autouse=True)
     def set_config_defaults(
         self,
         config_stub,
-        set_state_spy,
+        set_state_mock,
     ):
         self.set_config(config_stub)
 
@@ -295,14 +295,14 @@ class TestPageLifecycle:
     def test_qt_method_is_called(
         self,
         webengine_tab: webenginetab.WebEngineTab,
-        set_state_spy,
+        set_state_mock,
         qtbot,
     ):
         """Basic test to show that we call QT after going through our code."""
         webengine_tab._on_recommended_state_changed(QWebEnginePage.LifecycleState.Discarded)
         with qtbot.wait_signal(webengine_tab._lifecycle_timer.timeout):
             pass
-        set_state_spy.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
+        set_state_mock.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
 
     @pytest.mark.parametrize(
         "new_state, freeze_delay, discard_delay",
@@ -316,7 +316,7 @@ class TestPageLifecycle:
         webengine_tab: webenginetab.WebEngineTab,
         monkeypatch,
         mocker,
-        set_state_spy,
+        set_state_mock,
         config_stub,
         qtbot,
         new_state,
@@ -341,7 +341,7 @@ class TestPageLifecycle:
 
         with qtbot.wait_signal(timer.timeout, timeout=100):
             pass
-        set_state_spy.assert_called_once_with(new_state)
+        set_state_mock.assert_called_once_with(new_state)
 
     def test_state_disabled(
         self,
@@ -371,7 +371,7 @@ class TestPageLifecycle:
     def test_timer_interrupted(
         self,
         webengine_tab: webenginetab.WebEngineTab,
-        set_state_spy,
+        set_state_mock,
         config_stub,
         qtbot,
     ):
@@ -390,4 +390,4 @@ class TestPageLifecycle:
 
         with qtbot.wait_signal(webengine_tab._lifecycle_timer.timeout):
             pass
-        set_state_spy.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
+        set_state_mock.assert_called_once_with(QWebEnginePage.LifecycleState.Discarded)
