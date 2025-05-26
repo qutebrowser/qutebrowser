@@ -368,13 +368,13 @@ class TreeTabbedBrowser(TabbedBrowser):
         if not background:
             self._reset_stack_counters()
 
-    def _reset_stack_counters(self):
+    def _reset_stack_counters(self) -> None:
         self._tree_tab_child_rel_idx = 0
         self._tree_tab_sibling_rel_idx = 0
         self._tree_tab_toplevel_rel_idx = 0
 
     @pyqtSlot(int)
-    def _on_current_changed(self, idx):
+    def _on_current_changed(self, idx: int) -> None:
         super()._on_current_changed(idx)
         self._reset_stack_counters()
 
