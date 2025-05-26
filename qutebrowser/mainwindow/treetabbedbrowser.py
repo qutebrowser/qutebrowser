@@ -7,7 +7,7 @@
 import collections
 import dataclasses
 import functools
-from typing import Union, Any
+from typing import Optional, Union, Any
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
@@ -316,14 +316,14 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _position_tab(  # pylint: disable=too-many-positional-arguments
         self,
-        cur_node: notree.Node,
-        new_node: notree.Node,
+        cur_node: notree.Node[Any],
+        new_node: notree.Node[Any],
         pos: str,
-        parent: notree.Node,
+        parent: notree.Node[Any],
         sibling: bool = False,
         related: bool = True,
-        background: bool = None,
-        idx: int = None,
+        background: Optional[bool] = None,
+        idx: Optional[int] = None,
     ) -> None:
         toplevel = not sibling and not related
         siblings = list(parent.children)
