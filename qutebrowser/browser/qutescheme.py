@@ -581,7 +581,7 @@ def qute_warning(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('treegroup')
-def qute_treegroup(url):
+def qute_treegroup(url: QUrl) -> _HandlerRet:
     """Handler for qute://treegroup/x.
 
     Makes an empty tab with a title, for use with tree-tabs as a grouping

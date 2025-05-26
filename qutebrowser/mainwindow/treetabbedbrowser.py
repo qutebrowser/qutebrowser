@@ -7,7 +7,7 @@
 import collections
 import dataclasses
 import functools
-from typing import Union
+from typing import Optional, Union, Any
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
@@ -316,14 +316,14 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _position_tab(  # pylint: disable=too-many-positional-arguments
         self,
-        cur_node: notree.Node,
-        new_node: notree.Node,
+        cur_node: notree.Node[Any],
+        new_node: notree.Node[Any],
         pos: str,
-        parent: notree.Node,
+        parent: notree.Node[Any],
         sibling: bool = False,
         related: bool = True,
-        background: bool = None,
-        idx: int = None,
+        background: Optional[bool] = None,
+        idx: Optional[int] = None,
     ) -> None:
         toplevel = not sibling and not related
         siblings = list(parent.children)
@@ -368,17 +368,17 @@ class TreeTabbedBrowser(TabbedBrowser):
         if not background:
             self._reset_stack_counters()
 
-    def _reset_stack_counters(self):
+    def _reset_stack_counters(self) -> None:
         self._tree_tab_child_rel_idx = 0
         self._tree_tab_sibling_rel_idx = 0
         self._tree_tab_toplevel_rel_idx = 0
 
     @pyqtSlot(int)
-    def _on_current_changed(self, idx):
+    def _on_current_changed(self, idx: int) -> None:
         super()._on_current_changed(idx)
         self._reset_stack_counters()
 
-    def cycle_hide_tab(self, node):
+    def cycle_hide_tab(self, node: notree.Node[Any]) -> None:
         """Utility function for tree_tab_cycle_hide command."""
         # height = node.height  # height is always rel_height
         if node.collapsed:
@@ -387,10 +387,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                 descendent.collapsed = False
             return
 
-        def rel_depth(n):
+        def rel_depth(n: notree.Node[Any]) -> int:
             return n.depth - node.depth
 
-        levels: dict[int, list] = collections.defaultdict(list)
+        levels: dict[int, list[notree.Node[Any]]] = collections.defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
