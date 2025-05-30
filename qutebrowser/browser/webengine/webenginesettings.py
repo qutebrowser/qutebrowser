@@ -453,8 +453,19 @@ def _init_default_profile():
 
     init_user_agent()
     ua_version = version.qtwebengine_versions()
+
+    logger = log.init.warning
+    if machinery.IS_QT5:
+        # With Qt 5.15, we can't quite be sure about which QtWebEngine patch version
+        # we're getting, as ELF parsing might be broken and there's no other way.
+        # For most of the code, we don't really care about the patch version though.
+        assert (
+            non_ua_version.webengine.strip_patch() == ua_version.webengine.strip_patch()
+        ), (non_ua_version, ua_version)
+        logger = log.init.debug
+
     if ua_version.webengine != non_ua_version.webengine:
-        log.init.warning(
+        logger(
             "QtWebEngine version mismatch - unexpected behavior might occur, "
             "please open a bug about this.\n"
             f"  Early version: {non_ua_version}\n"

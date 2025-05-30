@@ -4,4 +4,4 @@ PyQt6==6.4.2
 PyQt6-Qt6==6.4.3
 PyQt6-WebEngine==6.4.0
 PyQt6-WebEngine-Qt6==6.4.3
-PyQt6_sip==13.10.0
+PyQt6_sip==13.10.2
