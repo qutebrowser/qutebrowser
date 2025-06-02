@@ -10,7 +10,7 @@ pip==25.1.1
 platformdirs==4.3.8
 pluggy==1.6.0
 pyproject-api==1.9.1
-setuptools==80.8.0
+setuptools==80.9.0
 tomli==2.2.1
 tox==4.26.0 ; python_full_version!="3.14.0b1"
 typing_extensions==4.13.2
