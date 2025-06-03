@@ -749,3 +749,14 @@ else:
         return obj
 
     QT_NONE: None = None
+
+
+def maybe_cast(to_type: type[_T], do_cast: bool, value: Any) -> _T:
+    """Cast `value` to `to_type` only if `do_cast` is true."""
+    if do_cast:
+        return cast(
+            to_type,  # type: ignore[valid-type]
+            value,
+        )
+
+    return value
