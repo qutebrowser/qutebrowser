@@ -7,6 +7,10 @@ echo "work_tree: $work_tree"
 echo "'after' branch: $cur_branch"
 echo "'before' branch: main"
 
+cd "$work_tree"
+git stash
+cd -
+
 scratch_dir="/tmp/qute_test_build"
 [ -e "$scratch_dir" ] && rm -r "$scratch_dir"
 mkdir "$scratch_dir"
@@ -143,4 +147,5 @@ compare_install
 # Restore work tree
 cd "$work_tree"
 checkout "$cur_branch"
+git stash pop
 
