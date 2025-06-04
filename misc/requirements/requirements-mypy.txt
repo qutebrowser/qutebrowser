@@ -13,7 +13,7 @@ Pygments==2.19.1
 PyQt5-stubs==5.15.6.0
 tomli==2.2.1
 types-colorama==0.4.15.20240311
-types-docutils==0.21.0.20250526
+types-docutils==0.21.0.20250604
 types-Pygments==2.19.0.20250516
 types-PyYAML==6.0.12.20250516
-typing_extensions==4.13.2
+typing_extensions==4.14.0
