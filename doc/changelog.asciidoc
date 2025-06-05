@@ -55,7 +55,7 @@ Fixed
   previous fix in v3.5.1 was insufficient.
 
 [[v3.5.0]]
-v3.5.0 (unreleased)
+v3.5.0 (2025-04-12)
 -------------------
 
 Changed
