@@ -20,7 +20,7 @@ jobs:
           - os: macos-14
             toxenv: build-release
             name: macos-apple-silicon
-          - os: windows-2019
+          - os: windows-latest
             toxenv: build-release
             name: windows
           - os: macos-13
@@ -30,7 +30,7 @@ jobs:
           - os: macos-14
             toxenv: build-release
             name: macos-debug-apple-silicon
-          - os: windows-2019
+          - os: windows-latest
             args: --debug
             toxenv: build-release
             name: windows-debug
