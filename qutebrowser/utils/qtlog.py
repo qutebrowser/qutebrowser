@@ -127,6 +127,9 @@ def qt_message_handler(msg_type: qtcore.QtMsgType,
         "QCoreApplication is created.",
         # Qt 6.4 beta 1: https://bugreports.qt.io/browse/QTBUG-104741
         "GL format 0 is not supported",
+        # WORKAROUND https://bugreports.qt.io/browse/QTBUG-137424
+        ("QObject::disconnect: wildcard call disconnects from destroyed signal of "
+         "QNativeSocketEngine::unnamed"),
     ]
     # not using utils.is_mac here, because we can't be sure we can successfully
     # import the utils module here.
