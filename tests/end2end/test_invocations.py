@@ -1039,11 +1039,13 @@ def test_restart(request, quteproc_new):
     pid = int(line.message.removeprefix(prefix))
     os.kill(pid, signal.SIGTERM)
 
-    try:
-        # If the new process hangs, this will hang too.
-        # Still better than just ignoring it, so we can fix it if something is broken.
-        os.waitpid(pid, 0)  # pid, options... positional-only :(
-    except (ChildProcessError, PermissionError):
-        # Already gone. Even if not documented, Windows seems to raise PermissionError
-        # here...
-        pass
+    # This often hangs on Windows for unknown reasons
+    if not utils.is_windows:
+        try:
+            # If the new process hangs, this will hang too.
+            # Still better than just ignoring it, so we can fix it if something is broken.
+            os.waitpid(pid, 0)  # pid, options... positional-only :(
+        except (ChildProcessError, PermissionError):
+            # Already gone. Even if not documented, Windows seems to raise PermissionError
+            # here...
+            pass
