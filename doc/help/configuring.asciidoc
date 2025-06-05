@@ -417,6 +417,7 @@ Pre-built colorschemes
 - https://github.com/catppuccin/qutebrowser[Catppuccin]
 - https://github.com/iruzo/matrix-qutebrowser[Matrix]
 - https://github.com/harmtemolder/qutebrowser-solarized[Solarized]
+- https://github.com/Rehpotsirhc-z/qutebrowser-doom-one[Doom One]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^

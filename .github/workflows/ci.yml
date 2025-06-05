@@ -92,8 +92,6 @@ jobs:
       matrix:
         include:
           - testenv: py-qt5
-            image: archlinux-webkit
-          - testenv: py-qt5
             image: archlinux-webengine
           - testenv: py-qt5
             image: archlinux-webengine-unstable
@@ -194,28 +192,29 @@ jobs:
             os: ubuntu-24.04
             python: "3.13"
           ### PyQt 6.8 (Python 3.14)
-          # Pinned to Alpha 6:
-          # https://www.riverbankcomputing.com/pipermail/pyqt/2025-April/046210.html
           - testenv: py314-pyqt68
             os: ubuntu-24.04
-            python: "3.14.0-alpha.6"
+            python: "3.14-dev"
           ### PyQt 6.9 (Python 3.13)
           - testenv: py313-pyqt69
             os: ubuntu-24.04
             python: "3.13"
           ### macOS Ventura
-          - testenv: py313-pyqt68
+          - testenv: py313-pyqt69
             os: macos-13
             python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
-          - testenv: py313-pyqt68
+          - testenv: py313-pyqt69
             os: macos-14
             python: "3.13"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py313-pyqt68
-            os: windows-2019
+          - testenv: py313-pyqt69
+            os: windows-2022
+            python: "3.13"
+          - testenv: py313-pyqt69
+            os: windows-2025
             python: "3.13"
     runs-on: "${{ matrix.os }}"
     steps:

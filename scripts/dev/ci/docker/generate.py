@@ -14,11 +14,10 @@ import jinja2
 
 
 CONFIGS = {
-    'archlinux-webkit': {'webengine': False, 'unstable': False, 'qt6': False},
-    'archlinux-webengine': {'webengine': True, 'unstable': False, 'qt6': False},
-    'archlinux-webengine-qt6': {'webengine': True, 'unstable': False, 'qt6': True},
-    'archlinux-webengine-unstable': {'webengine': True, 'unstable': True, 'qt6': False},
-    'archlinux-webengine-unstable-qt6': {'webengine': True, 'unstable': True, 'qt6': True},
+    'archlinux-webengine': {'unstable': False, 'qt6': False},
+    'archlinux-webengine-qt6': {'unstable': False, 'qt6': True},
+    'archlinux-webengine-unstable': {'unstable': True, 'qt6': False},
+    'archlinux-webengine-unstable-qt6': {'unstable': True, 'qt6': True},
 }
 
 

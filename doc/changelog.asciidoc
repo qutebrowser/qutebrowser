@@ -15,6 +15,45 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.5.1]]
+v3.5.1 (unreleased)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- QtWebKit (legacy) support got removed from CI and is now untested. If it
+  breaks, it's not going to be fixed, and support will be removed over the next
+  releases.
+- Qt 5 support is currently still tested, but is also planned to get removed
+  over the next releases. Same goes for support for older Qt 6 versions (likely
+  6.2/6.3/6.4 and perhaps 6.5, see https://github.com/qutebrowser/qutebrowser/issues/8464[#8464]).
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now bundle Qt 6.9.1, including many graphics-related
+  bugfixes, as well as security patches up to Chromium 136.0.7103.114.
+
+Fixed
+~~~~~
+
+- A bogus "wildcard call disconnects from destroyed signal" warning from Qt is
+  now suppressed.
+- PDF.js now loads correctly on Windows installations with broken mimetype
+  configurations.
+- A "Ignoring new child ..." debug log message which got spammy with Qt 6.9 is
+  now removed.
+- A unknown crash (possibly related to using devtools) due to weird (Py)Qt
+  behavior now has a workaround.
+- No "QtWebEngine version mismatch" warning is now logged anymore with newer Qt
+  5.15 releases (but you should still stop using Qt 5).
+- The PDF.js version can now correctly be extracted/displayed with newer PDF.js
+  versions.
+- The `qute-bitwarden`, `-lastpass` and `-pass` userscripts now properly avoid
+  a `DeprecationWarning` from the upcoming 6.0 release of `tldextract`.  The
+  previous fix in v3.5.1 was insufficient.
+
 [[v3.5.0]]
 v3.5.0 (unreleased)
 -------------------
@@ -25,6 +64,7 @@ Changed
 - Windows/macOS releases are now built with Qt 6.9.0
     * Based on Chromium 130.0.6723.192
     * Security fixes up to Chromium 133.0.6943.141
+    * Also fixes issues with opening links on macOS
 - The `content.headers.user_agent` setting now has a new
   `{upstream_browser_version_short}` template field, which is the
   upstream/Chromium version but shortened to only major version.

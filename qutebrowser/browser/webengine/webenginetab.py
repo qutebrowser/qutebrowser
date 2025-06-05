@@ -626,7 +626,14 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         return data
 
     def deserialize(self, data):
-        qtutils.deserialize(data, self._history)
+        try:
+            qtutils.deserialize(data, self._history)
+        except OSError:
+            dump = "\n".join(
+                bytes(line).hex(" ") for line in utils.chunk(bytes(data), 16)
+            )
+            log.webview.debug(f"Failed to deserialize history data:\n{dump}")
+            raise
 
     def _load_items_workaround(self, items):
         """WORKAROUND for session loading not working on Qt 5.15.

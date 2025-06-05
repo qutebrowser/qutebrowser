@@ -83,6 +83,8 @@ def is_ignored_lowlevel_message(message):
         # GitHub Actions with Archlinux unstable packages
         'libEGL warning: DRI3: Screen seems not DRI3 capable',
         'libEGL warning: egl: failed to create dri2 screen',
+        'libEGL warning: DRI3 error: Could not get DRI3 device',
+        'libEGL warning: Activate DRI3 at Xorg or build mesa with DRI2',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -131,6 +133,8 @@ def is_ignored_chromium_message(line):
         # Qt 6.2:
         # [503633:503650:0509/185222.442798:ERROR:ssl_client_socket_impl.cc(959)] handshake failed; returned -1, SSL error code 1, net_error -202
         'handshake failed; returned -1, SSL error code 1, net_error -202',
+        # Qt 6.8 + Python 3.14
+        'handshake failed; returned -1, SSL error code 1, net_error -101',
 
         # Qt 6.2:
         # [2432160:7:0429/195800.168435:ERROR:command_buffer_proxy_impl.cc(140)] ContextResult::kTransientFailure: Failed to send GpuChannelMsg_CreateCommandBuffer.

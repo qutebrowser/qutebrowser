@@ -4,7 +4,7 @@
 
 """A model that proxies access to one or more completion categories."""
 
-from typing import overload, Optional, Any, cast
+from typing import overload, Optional, Any
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
@@ -91,14 +91,14 @@ class CompletionModel(QAbstractItemModel):
         Return: The item flags, or Qt.ItemFlag.NoItemFlags on error.
         """
         if not index.isValid():
-            return cast(_FlagType, Qt.ItemFlag.NoItemFlags)
+            return qtutils.maybe_cast(_FlagType, machinery.IS_QT5, Qt.ItemFlag.NoItemFlags)
         if index.parent().isValid():
             # item
             return (Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable |
                     Qt.ItemFlag.ItemNeverHasChildren)
         else:
             # category
-            return cast(_FlagType, Qt.ItemFlag.NoItemFlags)
+            return qtutils.maybe_cast(_FlagType, machinery.IS_QT5, Qt.ItemFlag.NoItemFlags)
 
     def index(self, row: int, col: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
         """Get an index into the model.

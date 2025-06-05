@@ -722,6 +722,11 @@ def guess_mimetype(filename: str, fallback: bool = False) -> str:
         fallback: Fall back to application/octet-stream if unknown.
     """
     mimetype, _encoding = mimetypes.guess_type(filename)
+    if os.path.splitext(filename)[1] == '.mjs' and mimetype == "text/plain":
+        # Windows can sometimes have .mjs registered wrongly as text/plain:
+        # https://github.com/golang/go/issues/68591
+        return "text/javascript"
+
     if mimetype is None:
         if fallback:
             return 'application/octet-stream'

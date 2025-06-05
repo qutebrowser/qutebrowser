@@ -173,6 +173,9 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
             # Qt 6.7, only seen on macos for some reason
             (r'.*Path override failed for key base::DIR_APP_DICTIONARIES '
              r"and path '.*/qtwebengine_dictionaries'"),
+
+            # Qt 6.9 on macOS
+            r'Compositor returned null texture',
         ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
