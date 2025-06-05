@@ -722,6 +722,11 @@ def guess_mimetype(filename: str, fallback: bool = False) -> str:
         fallback: Fall back to application/octet-stream if unknown.
     """
     mimetype, _encoding = mimetypes.guess_type(filename)
+    if os.path.splitext(filename)[1] == '.mjs' and mimetype == "text/plain":
+        # For unknown reasons, Windows (at least on GitHub Actions) wrongly
+        # gives us text/plain here.
+        return "text/javascript"
+
     if mimetype is None:
         if fallback:
             return 'application/octet-stream'
