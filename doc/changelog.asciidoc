@@ -19,6 +19,16 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.5.1 (unreleased)
 -------------------
 
+Deprecated
+~~~~~~~~~~
+
+- QtWebKit (legacy) support got removed from CI and is now untested. If it
+  breaks, it's not going to be fixed, and support will be removed over the next
+  releases.
+- Qt 5 support is currently still tested, but is also planned to get removed
+  over the next releases. Same goes for support for older Qt 6 versions (likely
+  6.2/6.3/6.4 and perhaps 6.5, see https://github.com/qutebrowser/qutebrowser/issues/8464[#8464]).
+
 Changed
 ~~~~~~~
 
@@ -32,6 +42,14 @@ Fixed
   now suppressed.
 - PDF.js now loads correctly on Windows installations with broken mimetype
   configurations.
+- A "Ignoring new child ..." debug log message which got spammy with Qt 6.9 is
+  now removed.
+- A unknown crash (possibly related to using devtools) due to weird (Py)Qt
+  behavior now has a workaround.
+- No "QtWebEngine version mismatch" warning is now logged anymore with newer Qt
+  5.15 releases (but you should still stop using Qt 5).
+- The PDF.js version can now correctly be extracted/displayed with newer PDF.js
+  versions.
 - The `qute-bitwarden`, `-lastpass` and `-pass` userscripts now properly avoid
   a `DeprecationWarning` from the upcoming 6.0 release of `tldextract`.  The
   previous fix in v3.5.1 was insufficient.
