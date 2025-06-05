@@ -16,7 +16,7 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
 [[v3.5.1]]
-v3.5.1 (unreleased)
+v3.5.1 (2025-06-05)
 -------------------
 
 Deprecated
