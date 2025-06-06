@@ -37,8 +37,8 @@ def signal_handler(qtbot, mocker, read_config_mock):
         app=mocker.Mock(spec=QApplication),
         quitter=mocker.Mock(spec=quitter.Quitter),
     )
-
-    return signal_handler
+    yield signal_handler
+    signal_handler.deactivate()
 
 
 def test_handlers_registered(signal_handler):
