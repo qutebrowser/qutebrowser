@@ -143,7 +143,7 @@ def _apply_platform_markers(config, item):
             (
                 config.webengine
                 and version.qtwebengine_versions(avoid_init=True).webengine
-                == utils.VersionNumber(6, 9)
+                in [utils.VersionNumber(6, 9), utils.VersionNumber(6, 9, 1)]
                 and testutils.ON_CI
             ),
             "Skipped with QtWebEngine 6.9 on CI",
