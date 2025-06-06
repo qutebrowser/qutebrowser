@@ -23,6 +23,7 @@ import sys
 import json
 
 import qutebrowser
+from qutebrowser import __version__
 try:
     from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
