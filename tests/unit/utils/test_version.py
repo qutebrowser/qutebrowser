@@ -650,16 +650,15 @@ class TestModuleVersions:
                 expected.append(f"{name}: 1.2.3")
         assert version._module_versions() == expected
 
-    @pytest.mark.parametrize('module, idx, expected', [
-        ('colorama', 0, 'colorama: no'),
-        ('adblock', 4, 'adblock: no'),
+    @pytest.mark.parametrize('module, expected', [
+        ('colorama', 'colorama: no'),
+        ('adblock', 'adblock: no'),
     ])
-    def test_missing_module(self, module, idx, expected, import_fake):
+    def test_missing_module(self, module, expected, import_fake):
         """Test with a module missing.
 
         Args:
             module: The name of the missing module.
-            idx: The index where the given text is expected.
             expected: The expected text.
         """
         import_fake.modules[module] = False
@@ -667,6 +666,7 @@ class TestModuleVersions:
         mod_info = version.MODULE_INFO[module]
         mod_info._reset_cache()
 
+        idx = list(version.MODULE_INFO).index(module)
         assert version._module_versions()[idx] == expected
 
         for method_name, expected_result in [
@@ -700,7 +700,8 @@ class TestModuleVersions:
         assert not mod_info.is_usable()
 
         expected = f"adblock: {fake_version} (< {mod_info.min_version}, outdated)"
-        assert version._module_versions()[4] == expected
+        idx = list(version.MODULE_INFO).index("adblock")
+        assert version._module_versions()[idx] == expected
 
     def test_importlib_not_found(self, importlib_metadata_mock: unittest.mock.Mock):
         """Test with no __version__ attribute and missing importlib.metadata."""
