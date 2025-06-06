@@ -15,8 +15,10 @@ import textwrap
 import datetime
 import dataclasses
 import importlib.metadata
+import unittest.mock
 
 import pytest
+import pytest_mock
 import hypothesis
 import hypothesis.strategies
 from qutebrowser.qt import machinery
@@ -620,27 +622,32 @@ def test_path_info(monkeypatch, equal):
         assert pathinfo['system data'] == 'SYSTEM DATA PATH'
 
 
-@pytest.fixture
-def import_fake(stubs, monkeypatch):
-    """Fixture to patch imports using ImportFake."""
-    fake = stubs.ImportFake(dict.fromkeys(version.MODULE_INFO, True), monkeypatch)
-    fake.patch()
-    return fake
-
-
 class TestModuleVersions:
 
     """Tests for _module_versions() and ModuleInfo."""
 
+    @pytest.fixture
+    def import_fake(self, stubs, monkeypatch):
+        """Fixture to patch imports using ImportFake."""
+        fake = stubs.ImportFake(dict.fromkeys(version.MODULE_INFO, True), monkeypatch)
+        fake.patch()
+        return fake
+
+    @pytest.fixture(autouse=True)
+    def importlib_metadata_mock(
+        self, mocker: pytest_mock.MockerFixture
+    ) -> unittest.mock.Mock:
+        return mocker.patch("importlib.metadata.version", return_value="4.5.6")
+
     def test_all_present(self, import_fake):
-        """Test with all modules present in version 1.2.3."""
+        """Test with all modules present in a fixed version."""
         expected = []
         for name in import_fake.modules:
             version.MODULE_INFO[name]._reset_cache()
             if '__version__' not in version.MODULE_INFO[name]._version_attributes:
-                expected.append('{}: yes'.format(name))
+                expected.append(f"{name}: 4.5.6")  # from importlib.metadata
             else:
-                expected.append('{}: 1.2.3'.format(name))
+                expected.append(f"{name}: 1.2.3")
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
@@ -695,6 +702,14 @@ class TestModuleVersions:
         expected = f"adblock: {fake_version} (< {mod_info.min_version}, outdated)"
         assert version._module_versions()[4] == expected
 
+    def test_importlib_not_found(self, importlib_metadata_mock: unittest.mock.Mock):
+        """Test with no __version__ attribute and missing importlib.metadata."""
+        assert not version.MODULE_INFO["jinja2"]._version_attributes  # sanity check
+        importlib_metadata_mock.side_effect = importlib.metadata.PackageNotFoundError
+        version.MODULE_INFO["jinja2"]._reset_cache()
+        idx = list(version.MODULE_INFO).index("jinja2")
+        assert version._module_versions()[idx] == "jinja2: unknown"
+
     @pytest.mark.parametrize('attribute, expected_modules', [
         ('VERSION', ['colorama']),
         ('SIP_VERSION_STR', ['PyQt5.sip', 'PyQt6.sip']),
@@ -722,17 +737,17 @@ class TestModuleVersions:
             mod_info = version.MODULE_INFO[name]
             if name in expected_modules:
                 assert mod_info.get_version() == "1.2.3"
-                expected.append('{}: 1.2.3'.format(name))
+                expected.append(f"{name}: 1.2.3")
             else:
-                assert mod_info.get_version() is None
-                expected.append('{}: yes'.format(name))
+                assert mod_info.get_version() == "4.5.6"  # from importlib.metadata
+                expected.append(f"{name}: 4.5.6")
 
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('name, has_version', [
         ('sip', False),
         ('colorama', True),
-        ('jinja2', True),
+        # jinja2: removed in 3.3
         ('pygments', True),
         ('yaml', True),
         ('adblock', True),
