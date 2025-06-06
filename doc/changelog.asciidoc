@@ -15,6 +15,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.5.2]]
+v3.5.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- The package version for Jinja 3.3+ is now correctly displayed in `:version`.
+
 [[v3.5.1]]
 v3.5.1 (2025-06-05)
 -------------------
