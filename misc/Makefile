@@ -11,8 +11,8 @@ PIPOPTS = --root="$(DESTDIR)"
 endif
 
 all: man
-	# Builds a wheel and sdist (tarball) in dist/
-	$(PYTHON) -m build
+	# Builds a wheel in dist/
+	$(PYTHON) -m pip wheel --no-deps
 
 man: doc/qutebrowser.1
 doc/qutebrowser.1: doc/qutebrowser.1.asciidoc
