@@ -20,7 +20,7 @@ python-dateutil==2.9.0.post0
 requests==2.32.3
 six==1.17.0
 tomli==2.2.1
-tomlkit==0.13.2
+tomlkit==0.13.3
 typing_extensions==4.14.0
 uritemplate==4.2.0
 # urllib3==2.4.0
