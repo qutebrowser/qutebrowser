@@ -7,7 +7,7 @@
 import collections
 import dataclasses
 import functools
-from typing import Optional, Union, Any
+from typing import Optional, Union
 from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config
@@ -218,7 +218,7 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         self.widget.tree_tab_update()
 
-    def undo(self, depth=1):
+    def undo(self, depth: int = 1) -> None:
         """Undo removing of a tab or tabs."""
         super().undo(depth)
         self.widget.tree_tab_update()
@@ -316,10 +316,10 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _position_tab(  # pylint: disable=too-many-positional-arguments
         self,
-        cur_node: notree.Node[Any],
-        new_node: notree.Node[Any],
+        cur_node: notree.Node[object],
+        new_node: notree.Node[object],
         pos: str,
-        parent: notree.Node[Any],
+        parent: notree.Node[object],
         sibling: bool = False,
         related: bool = True,
         background: Optional[bool] = None,
@@ -378,7 +378,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         super()._on_current_changed(idx)
         self._reset_stack_counters()
 
-    def cycle_hide_tab(self, node: notree.Node[Any]) -> None:
+    def cycle_hide_tab(self, node: notree.Node[object]) -> None:
         """Utility function for tree_tab_cycle_hide command."""
         # height = node.height  # height is always rel_height
         if node.collapsed:
@@ -387,10 +387,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                 descendent.collapsed = False
             return
 
-        def rel_depth(n: notree.Node[Any]) -> int:
+        def rel_depth(n: notree.Node[object]) -> int:
             return n.depth - node.depth
 
-        levels: dict[int, list[notree.Node[Any]]] = collections.defaultdict(list)
+        levels: dict[int, list[notree.Node[object]]] = collections.defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
