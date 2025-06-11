@@ -122,7 +122,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         self._tree_tab_sibling_rel_idx = 0
         self._tree_tab_toplevel_rel_idx = 0
 
-    def _create_tab_widget(self):
+    def _create_tab_widget(self) -> TreeTabWidget:
         """Return the tab widget that can display a tree structure."""
         return TreeTabWidget(self._win_id, parent=self)
 
