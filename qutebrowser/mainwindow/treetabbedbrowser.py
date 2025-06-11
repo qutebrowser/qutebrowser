@@ -286,7 +286,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         # as a tree style tab correctly. We don't have a TreeTab so this is
         # heuristic to highlight any problems elsewhere in the application
         # logic.
-        assert tab.node.parent, (
+        assert tab.node.parent, ( # type: ignore[truthy-function]
             f"Node for new tab doesn't have a parent: {tab.node}"
         )
 
