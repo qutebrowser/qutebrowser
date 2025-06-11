@@ -126,7 +126,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         """Return the tab widget that can display a tree structure."""
         return TreeTabWidget(self._win_id, parent=self)
 
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False, recursive=False):
+    def _remove_tab(self, tab, *, add_undo: bool = True, new_undo: bool = True, crashed: bool = False, recursive: bool = False) -> None:
         """Handle children positioning after a tab is removed."""
         if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
             self._add_undo_entry(tab, new_undo)
