@@ -463,9 +463,9 @@ class TestWebEngineArgs:
         ('6.8.3', "DocumentPictureInPictureAPI"),
         # Qt 6.9
         ('6.9.0', "DocumentPictureInPictureAPI,PermissionElement"),
-        ('6.9.1', "DocumentPictureInPictureAPI"),  # tbd
+        ('6.9.1', "DocumentPictureInPictureAPI,PermissionElement"),
     ])
-    def test_disble_feature_workaround(
+    def test_disable_feature_workaround(
         self, parser, version_patcher, qt_version, disabled
     ):
         version_patcher(qt_version)
