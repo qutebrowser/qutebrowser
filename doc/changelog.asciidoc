@@ -23,6 +23,10 @@ Fixed
 ~~~~~
 
 - The package version for Jinja 3.3+ is now correctly displayed in `:version`.
+- The workaround for microphone/camera permissions not being requested with
+  QtWebEngine 6.9 on Google Meet, Zoom, or other pages using the new
+  `<permission>` element now got extended to Qt 6.9.1+ as it's still not fixed
+  upstream. (#8612)
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)
