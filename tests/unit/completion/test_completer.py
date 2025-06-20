@@ -189,12 +189,18 @@ def _set_cmd_prompt(cmd, txt):
     (':config-cycle option |', 'value', '', ['option']),
     (':config-cycle option one |', 'value', '', ['option', 'one']),
     (':config-cycle option one two |', 'value', '', ['option', 'one', 'two']),
+    (':openalias |', 'url', '', []),
+    (':bindalias |', None, '', []),
+    (':bindalias <c-x> |', 'command', '', ['<c-x>']),
+    (':bindalias <c-x> foo|', 'command', 'foo', ['<c-x>']),
+    (':bindalias <c-x>| foo', None, '<c-x>', []),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub, config_stub,
                            key_config_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
+    config_stub.val.aliases = {"bindalias": "bind", "openalias": "open -t"}
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
     if kind is None:
