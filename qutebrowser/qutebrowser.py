@@ -49,6 +49,10 @@ def get_argparser():
                                      description=qutebrowser.__description__)
     parser.add_argument('-B', '--basedir', help="Base directory for all "
                         "storage.")
+    parser.add_argument('--wm-class',
+                        default="qutebrowser",
+                        help="Set WM_CLASS class part.",
+                        )
     parser.add_argument('-C', '--config-py', help="Path to config.py.",
                         metavar='CONFIG')
     parser.add_argument('-V', '--version', help="Show version and quit.",
