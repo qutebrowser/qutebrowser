@@ -38,6 +38,7 @@ class _Location(enum.Enum):
 
 
 APPNAME = 'qutebrowser'
+CONFIG_LOCATIONS = [os.path.join(os.path.normpath(os.getenv('XDG_CONFIG_HOME', '~/.config')), APPNAME), '~/.' + APPNAME]
 
 
 class EmptyValueError(Exception):
@@ -82,7 +83,7 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
     if utils.is_mac:
         path = _from_args(typ, args)
         if path is None:  # pragma: no branch
-            path = os.path.expanduser('~/.' + APPNAME)
+            path = _get_config_location()
             _create(path)
             _locations[_Location.config] = path
 
@@ -91,6 +92,17 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
         assert args is not None
         config_py_file = os.path.abspath(args.config_py)
     _locations[_Location.config_py] = config_py_file
+
+
+def _get_config_location() -> str:
+    """Get the optimal location for the config directory on disk.
+
+    Searches CONFIG_LOCATIONS in order for existing config folder, defaults to
+    CONFIG_LOCATIONS[0]
+    """
+    it = (p for p in CONFIG_LOCATIONS if p is not None and os.path.exists(os.path.expanduser(p)))
+    path = next(it, CONFIG_LOCATIONS[0])
+    return os.path.expanduser(path)
 
 
 def config(auto: bool = False) -> str:
