@@ -38,7 +38,7 @@ class _Location(enum.Enum):
 
 
 APPNAME = 'qutebrowser'
-CONFIG_LOCATIONS = [os.path.join(os.path.normpath(os.getenv('XDG_CONFIG_HOME', '~/.config')), APPNAME), '~/.' + APPNAME]
+CONFIG_LOCATIONS = [os.path.normpath(os.getenv('XDG_CONFIG_HOME', '~/.config')) + '/', '~/.']
 
 
 class EmptyValueError(Exception):
@@ -100,8 +100,9 @@ def _get_config_location() -> str:
     Searches CONFIG_LOCATIONS in order for existing config folder, defaults to
     CONFIG_LOCATIONS[0]
     """
-    it = (p for p in CONFIG_LOCATIONS if p is not None and os.path.exists(os.path.expanduser(p)))
-    path = next(it, CONFIG_LOCATIONS[0])
+    it = (p + APPNAME for p in CONFIG_LOCATIONS if
+        os.path.exists(os.path.expanduser(p + APPNAME)))
+    path = next(it, CONFIG_LOCATIONS[0] + APPNAME)
     return os.path.expanduser(path)
 
 
