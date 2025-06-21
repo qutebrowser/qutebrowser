@@ -74,7 +74,7 @@ def test_unset_organization_no_qapp(monkeypatch):
 @pytest.mark.posix
 def test_fake_mac_config(tmp_path, fake_home_envvar):
     """Test standardir.config on a fake Mac."""
-    expected = str(tmp_path) + '/.config/qute_testii'  # always with /
+    expected = str(tmp_path) + '/.config/qute_test'  # always with /
     standarddir._init_config(args=None)
     assert standarddir.config() == expected
 
