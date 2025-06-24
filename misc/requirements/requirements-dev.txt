@@ -4,7 +4,7 @@ annotated-types==0.7.0
 anyio==4.9.0
 autocommand==2.2.2
 backports.tarfile==1.2.0
-bracex==2.5.post1
+bracex==2.6
 build==1.2.2.post1
 bump-my-version==1.2.0
 certifi==2025.6.15
@@ -27,7 +27,7 @@ inflect==7.3.1
 jaraco.classes==3.4.0
 jaraco.collections==5.1.0
 jaraco.context==6.0.1
-jaraco.functools==4.1.0
+jaraco.functools==4.0.1
 jaraco.text==3.12.1
 jeepney==0.9.0
 keyring==25.6.0
@@ -41,9 +41,9 @@ platformdirs==4.3.8
 prompt_toolkit==3.0.51
 pycparser==2.22
 pydantic==2.11.7
-pydantic-settings==2.9.1
+pydantic-settings==2.10.0
 pydantic_core==2.33.2
-Pygments==2.19.1
+Pygments==2.19.2
 PyJWT==2.10.1
 Pympler==1.1
 pyproject_hooks==1.2.0
@@ -68,7 +68,7 @@ typeguard==4.3.0
 typing-inspection==0.4.1
 typing_extensions==4.14.0
 uritemplate==4.2.0
-# urllib3==2.4.0
-wcmatch==10.0
+# urllib3==2.5.0
+wcmatch==10.1
 wcwidth==0.2.13
 zipp==3.23.0
