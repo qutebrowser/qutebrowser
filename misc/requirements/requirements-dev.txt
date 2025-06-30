@@ -41,7 +41,7 @@ platformdirs==4.3.8
 prompt_toolkit==3.0.51
 pycparser==2.22
 pydantic==2.11.7
-pydantic-settings==2.10.0
+pydantic-settings==2.10.1
 pydantic_core==2.33.2
 Pygments==2.19.2
 PyJWT==2.10.1
@@ -49,7 +49,7 @@ Pympler==1.1
 pyproject_hooks==1.2.0
 PyQt-builder==1.18.2
 python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
+python-dotenv==1.1.1
 questionary==2.1.0
 readme_renderer==44.0
 requests==2.32.4
