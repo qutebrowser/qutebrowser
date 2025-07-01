@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<!-- target: hello.txt -->
+
+<html>
+    <body>
+    <div id="host"></div>
+    <script>
+        const hostElement = document.getElementById('host');
+        const shadowRoot = hostElement.attachShadow({ mode: 'open' });
+        const a = document.createElement('a');
+        a.href = '/data/hello.txt';
+        a.textContent = 'In shadow DOM';
+        shadowRoot.appendChild(a);
+    </script>
+    </body>
+</html>

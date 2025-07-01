@@ -24,6 +24,7 @@ Added
 
 - The `:version` info now shows the X11 window manager / Wayland compositor name
   (mostly useful for bug/crash reports)
+- Support for hinting elements which are part of an (open) shadow DOM.
 
 [[v3.5.2]]
 v3.5.2 (unreleased)
