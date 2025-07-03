@@ -493,11 +493,7 @@ class AbstractDownloadItem(QObject):
                         total=total, errmsg=errmsg))
 
     def _find_next_filename(self) -> None:
-        """Append unique numeric suffix to filename.
-
-        After finding a unique filename, restart the process of setting the
-        filename which will update the filename shown in the downloads list.
-        """
+        """Append unique numeric suffix to filename and rerun _set_filename."""
         assert self._filename is not None
         path, file = os.path.split(self._filename)
         # Pull out filename extension which could be a two part one like
@@ -511,9 +507,9 @@ class AbstractDownloadItem(QObject):
             suffix = ''
 
         for i in range(2, 1000):
-            self._filename = os.path.join(path, f'{base}_{i}{suffix}')
-            if not (os.path.exists(self._filename) or self._get_conflicting_download()):
-                self._set_filename(self._filename)
+            filename = os.path.join(path, f'{base}_{i}{suffix}')
+            if not (os.path.exists(filename) or self._get_conflicting_download()):
+                self._set_filename(filename)
                 break
         else:
             self._die('Alternative filename not available.')
@@ -776,7 +772,7 @@ class AbstractDownloadItem(QObject):
         elif os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            txt = "<b>{}</b> already exists. Overwrite? (\"No\" renames)".format(
+            txt = "<b>{}</b> already exists. Overwrite? (\"No\" renames.)".format(
                 html.escape(self._filename))
             self._ask_confirm_question("Overwrite existing file?", txt,
                 custom_no_action=self._find_next_filename)
