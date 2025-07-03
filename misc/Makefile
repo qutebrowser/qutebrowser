@@ -7,18 +7,19 @@ MANDIR ?= $(DATAROOTDIR)/man
 A2X ?= a2x
 
 ifdef DESTDIR
-SETUPTOOLSOPTS = --root="$(DESTDIR)"
+PIPOPTS = --root="$(DESTDIR)"
 endif
 
 all: man
-	$(PYTHON) setup.py build
+	# Builds a wheel in dist/
+	$(PYTHON) -m pip wheel --no-deps
 
 man: doc/qutebrowser.1
 doc/qutebrowser.1: doc/qutebrowser.1.asciidoc
 	$(A2X) -f manpage $<
 
 install: man
-	$(PYTHON) setup.py install --prefix="$(PREFIX)" --optimize=1 $(SETUPTOOLSOPTS)
+	$(PYTHON) -m pip install --no-deps --prefix="$(PREFIX)" --compile $(PIPOPTS) .
 	install -Dm644 misc/org.qutebrowser.qutebrowser.appdata.xml \
 		"$(DESTDIR)$(DATADIR)/metainfo/org.qutebrowser.qutebrowser.appdata.xml"
 	install -Dm644 doc/qutebrowser.1 \

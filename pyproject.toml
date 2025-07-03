@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools >= 42.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qutebrowser"
+description = "A keyboard-driven, vim-like browser based on Python and Qt."
+# What about the other libs in requirements.txt?
+dependencies = [
+  "jinja2",
+  "pyyaml",
+]
+requires-python = ">=3.9"
+authors = [
+  {name = "Florian Bruhin", email = "mail@qutebrowser.org"},
+]
+readme = {file = "README.asciidoc", content-type = "text/asciidoc"}
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+keywords = ["pyqt", "browser", "web", "qt", "webkit", "qtwebkit", "qtwebengine"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: X11 Applications :: Qt",
+  "Intended Audience :: End Users/Desktop",
+  "Natural Language :: English",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: BSD",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Internet",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Internet :: WWW/HTTP :: Browsers",
+]
+# TODO: reconsider making the application files the authoritative source of
+# these values, see discussion:
+# https://discuss.python.org/t/please-make-package-version-go-away/58501/11
+dynamic = [
+  "version",
+]
+
+[project.urls]
+homepage = "https://www.qutebrowser.org/"
+documentation = "https://www.qutebrowser.org/doc/help/"
+repository = "https://github.com/qutebrowser/qutebrowser.git"
+issues = "https://github.com/qutebrowser/qutebrowser/issues"
+changelog = "https://www.qutebrowser.org/doc/changelog.html"
+download = "https://github.com/qutebrowser/qutebrowser/releases"
+funding = "https://github.com/qutebrowser/qutebrowser/blob/main/README.asciidoc#donating"
+
+[project.gui-scripts]
+qutebrowser = "qutebrowser.qutebrowser:main"
+
+[tool.setuptools.dynamic]
+# We can't import a variable from qutebrowser/__init__.py because when we put
+# "qutebrowser" here setuptools resolves that to "qutebrowser/qutebrowser.py".
+# So just import the attribute from that qutebrowser.py file.
+version = {attr = "qutebrowser.qutebrowser.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["qutebrowser", "qutebrowser.*"]  # package names should match these glob patterns (["*"] by default)
