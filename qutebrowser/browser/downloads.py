@@ -765,8 +765,8 @@ class AbstractDownloadItem(QObject):
 
         log.downloads.debug("Setting filename to {}".format(self._filename))
         if self._get_conflicting_download():
-            txt = ("<b>{}</b> is already downloading. Cancel and "
-                   "re-download?".format(html.escape(self._filename)))
+            txt = ("<b>{}</b> is already downloading. Cancel and re-download?"
+                   "(\"No\" renames.)".format(html.escape(self._filename)))
             self._ask_confirm_question(
                 "Cancel other download?", txt,
                 custom_yes_action=self._cancel_conflicting_download,
