@@ -151,8 +151,8 @@ class TestTextFiltering:
     def mock_elem(self):
         """Create a mock web element for testing."""
         elem = mock.Mock()
-        elem.value.return_value = ""
-        elem.get.return_value = ""
+        elem.value = mock.Mock(return_value="")
+        elem.get = mock.Mock(return_value="")
         return elem
     
     def test_filter_matches_basic(self, hint_manager):
@@ -185,9 +185,9 @@ class TestTextFiltering:
     def test_text_filter_with_placeholder(self, hint_manager, mock_elem):
         """Test text filtering includes placeholder text."""
         # Mock element with placeholder
-        mock_elem.__str__.return_value = "Submit"  # text content
-        mock_elem.value.return_value = ""  # no value
-        mock_elem.get.return_value = "Enter your name"  # placeholder
+        mock_elem.__str__ = mock.Mock(return_value="Submit")  # text content
+        mock_elem.value = mock.Mock(return_value="")  # no value
+        mock_elem.get = mock.Mock(return_value="Enter your name")  # placeholder
         
         # Combined text should be "Submit  Enter your name"
         combined = f"Submit   Enter your name".strip()
@@ -206,9 +206,9 @@ class TestTextFiltering:
     def test_text_filter_with_value(self, hint_manager, mock_elem):
         """Test text filtering includes input values."""
         # Mock element with value
-        mock_elem.__str__.return_value = ""  # no text content
-        mock_elem.value.return_value = "current input text"  # input value
-        mock_elem.get.return_value = "placeholder text"  # placeholder
+        mock_elem.__str__ = mock.Mock(return_value="")  # no text content
+        mock_elem.value = mock.Mock(return_value="current input text")  # input value
+        mock_elem.get = mock.Mock(return_value="placeholder text")  # placeholder
         
         combined = f" current input text placeholder text".strip()
         
@@ -225,9 +225,9 @@ class TestTextFiltering:
     def test_text_filter_combined_sources(self, hint_manager, mock_elem):
         """Test text filtering with all text sources combined."""
         # Mock element with all text sources
-        mock_elem.__str__.return_value = "Login Button"  # text content
-        mock_elem.value.return_value = "login"  # input value  
-        mock_elem.get.return_value = "Enter credentials"  # placeholder
+        mock_elem.__str__ = mock.Mock(return_value="Login Button")  # text content
+        mock_elem.value = mock.Mock(return_value="login")  # input value  
+        mock_elem.get = mock.Mock(return_value="Enter credentials")  # placeholder
         
         combined = "Login Button login Enter credentials"
         
@@ -243,9 +243,9 @@ class TestTextFiltering:
     def test_text_filter_empty_sources(self, hint_manager, mock_elem):
         """Test text filtering with empty/None values."""
         # Mock element with empty values
-        mock_elem.__str__.return_value = "Button Text"
-        mock_elem.value.return_value = None  # None value
-        mock_elem.get.return_value = ""  # empty placeholder
+        mock_elem.__str__ = mock.Mock(return_value="Button Text")
+        mock_elem.value = mock.Mock(return_value=None)  # None value
+        mock_elem.get = mock.Mock(return_value="")  # empty placeholder
         
         combined = "Button Text  ".strip()
         
