@@ -652,3 +652,70 @@ Feature: Using hints
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :fake-key -g something
         Then the javascript message "contents: existingsomething" should be logged
+
+    ### Text filtering tests
+
+    Scenario: Hint with text filter - matching text content
+        When I open data/hints/text_filter.html
+        And I run :hint --text "Home"
+        And I wait for "hints: a" in the log
+        And I run :hint-follow a
+        And I wait until data/hello.txt is loaded
+        Then data/hello.txt should be loaded
+
+    Scenario: Hint with text filter - matching placeholder
+        When I open data/hints/text_filter.html
+        And I run :hint --text "username"
+        And I wait for "hints: a" in the log
+        # Should match input with placeholder="Enter username"
+        Then the hint a should be visible
+
+    Scenario: Hint with text filter - matching input value
+        When I open data/hints/text_filter.html
+        And I run :hint --text "existing content"
+        And I wait for "hints: a" in the log
+        # Should match input with value="existing content"
+        Then the hint a should be visible
+
+    Scenario: Hint with text filter - multi-word matching
+        When I open data/hints/text_filter.html
+        And I run :hint --text "Contact Information"
+        And I wait for "hints: a" in the log
+        And I run :hint-follow a
+        And I wait until data/contact.txt is loaded
+        Then data/contact.txt should be loaded
+
+    Scenario: Hint with text filter - case insensitive
+        When I open data/hints/text_filter.html
+        And I run :hint --text "SUBMIT"
+        And I wait for "hints: a" in the log
+        # Should match "Submit Form" button case-insensitively
+        Then the hint a should be visible
+
+    Scenario: Hint with text filter - no matches
+        When I open data/hints/text_filter.html
+        And I run :hint --text "nonexistent"
+        Then the error "No elements found matching text filter: nonexistent" should be shown
+
+    Scenario: Hint with text filter - partial placeholder match
+        When I open data/hints/text_filter.html
+        And I run :hint --text "secure"
+        And I wait for "hints: a" in the log
+        # Should match input with placeholder="Enter secure password"
+        Then the hint a should be visible
+
+    Scenario: Hint with text filter - combined text sources
+        When I open data/hints/text_filter.html
+        And I run :hint --text "Submit current"
+        And I wait for "hints: a" in the log
+        # Should match elements that have both words across text/value/placeholder
+        Then the hint a should be visible
+
+    Scenario: Interactive filtering still works with placeholders
+        When I open data/hints/text_filter.html
+        And I run :hint
+        And I wait for "Entering mode KeyMode.hint" in the log
+        # Type to filter interactively - should include placeholder text
+        And I run :fake-key username
+        # Should show input with placeholder="Enter username"
+        Then the hint a should be visible
