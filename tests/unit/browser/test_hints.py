@@ -6,6 +6,7 @@ import string
 import functools
 import itertools
 import operator
+from unittest import mock
 
 import pytest
 from qutebrowser.qt.core import QUrl
@@ -149,7 +150,7 @@ class TestTextFiltering:
     @pytest.fixture 
     def mock_elem(self):
         """Create a mock web element for testing."""
-        elem = pytest.Mock()
+        elem = mock.Mock()
         elem.value.return_value = ""
         elem.get.return_value = ""
         return elem
@@ -260,8 +261,8 @@ class TestTextFiltering:
         
         # Create a minimal HintContext to test text_filter field
         context = HintContext(
-            tab=pytest.Mock(),
-            target=pytest.Mock(),
+            tab=mock.Mock(),
+            target=mock.Mock(),
             rapid=False,
             hint_mode="number",
             add_history=False,
@@ -271,13 +272,13 @@ class TestTextFiltering:
             group="all",
             text_filter="test filter"
         )
-        
+
         assert context.text_filter == "test filter"
-        
+
         # Test with None (default)
         context_none = HintContext(
-            tab=pytest.Mock(),
-            target=pytest.Mock(),
+            tab=mock.Mock(),
+            target=mock.Mock(),
             rapid=False,
             hint_mode="number",
             add_history=False,
@@ -286,5 +287,5 @@ class TestTextFiltering:
             args=[],
             group="all"
         )
-        
+
         assert context_none.text_filter is None
