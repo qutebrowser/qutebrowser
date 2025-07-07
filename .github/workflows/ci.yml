@@ -27,7 +27,6 @@ jobs:
           - testenv: vulture
           - testenv: misc
           - testenv: pyroma
-          - testenv: check-manifest
           - testenv: eslint
           - testenv: shellcheck
             args: "-f gcc"  # For problem matchers
