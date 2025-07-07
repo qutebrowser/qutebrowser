@@ -121,8 +121,6 @@ Currently, the following tox environments are available:
 * `pyroma`: Check packaging practices with
   https://pypi.python.org/pypi/pyroma/[pyroma].
 * `eslint`: Run https://eslint.org/[ESLint] javascript checker.
-* `check-manifest`: Check MANIFEST.in completeness with
-  https://github.com/mgedmin/check-manifest[check-manifest].
 * `mkvenv`: Bootstrap a virtualenv for testing.
 * `misc`: Run `scripts/misc_checks.py` to check for:
     - untracked git files

@@ -453,7 +453,6 @@ def install_dev_requirements(venv_dir: pathlib.Path) -> None:
     utils.print_title("Installing dev dependencies")
     pip_install(venv_dir,
                 '-r', str(requirements_file('dev')),
-                '-r', str(requirements_file('check-manifest')),
                 '-r', str(requirements_file('flake8')),
                 '-r', str(requirements_file('mypy')),
                 '-r', str(requirements_file('pyroma')),

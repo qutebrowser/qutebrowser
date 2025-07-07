@@ -3,6 +3,7 @@
 build==1.2.2.post1
 certifi==2025.6.15
 charset-normalizer==3.4.2
+check-manifest==0.50
 docutils==0.21.2
 idna==3.10
 importlib_metadata==8.7.0
