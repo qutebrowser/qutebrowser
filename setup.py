@@ -10,6 +10,14 @@ import re
 import ast
 import os
 import os.path
+import sys
+
+# Add repo root to path so we can import scripts. Prior to PEP517 support this
+# was the default behavior for setuptools.
+# https://github.com/pypa/setuptools/issues/3939#issuecomment-1573619382
+# > If users want to import local modules they are recommended to explicitly add
+# > the current directory to sys.path at the top of setup.py.
+sys.path.append(".")
 
 from scripts import setupcommon as common
 
