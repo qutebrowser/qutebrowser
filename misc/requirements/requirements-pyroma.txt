@@ -9,7 +9,7 @@ importlib_metadata==8.7.0
 packaging==25.0
 Pygments==2.19.2
 pyproject_hooks==1.2.0
-pyroma==4.2
+pyroma==4.3.3
 requests==2.32.4
 tomli==2.2.1
 trove-classifiers==2025.5.9.12
