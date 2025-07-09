@@ -606,3 +606,11 @@ def qute_start(_url: QUrl) -> _HandlerRet:
                         search_url=searchurl,
                         quickmarks=quickmarks)
     return 'text/html', page
+
+
+@add_handler("blank")
+def qute_blank(_url: QUrl) -> _HandlerRet:
+    """Handler for qute://blank."""
+    bgcolor = config.val.colors.webpage.bg
+    return "text/html", \
+        f'<html style="background-color: {bgcolor.name()}"/>'
