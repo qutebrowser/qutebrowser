@@ -80,7 +80,7 @@ class TabWidget(QTabWidget):
         assert isinstance(bar, TabBar), bar
         return bar
 
-    def _tab_by_idx(self, idx: int) -> Optional[QWidget]:
+    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
         """Get the tab at the given index."""
         tab = self.widget(idx)
         if tab is not None:
@@ -127,7 +127,7 @@ class TabWidget(QTabWidget):
         """
         if self._tab_title_update_disabled:
             return
-
+        assert self._tabbed_browser is not None
         if self._tabbed_browser.is_shutting_down:
             return
 
