@@ -80,7 +80,7 @@ class TabWidget(QTabWidget):
         assert isinstance(bar, TabBar), bar
         return bar
 
-    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
+    def _tab_by_idx(self, idx: int) -> Optional[QWidget]:
         """Get the tab at the given index."""
         tab = self.widget(idx)
         if tab is not None:
