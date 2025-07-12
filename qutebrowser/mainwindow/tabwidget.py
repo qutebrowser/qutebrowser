@@ -127,7 +127,7 @@ class TabWidget(QTabWidget):
         """
         if self._tab_title_update_disabled:
             return
-
+        assert self._tabbed_browser is not None
         if self._tabbed_browser.is_shutting_down:
             return
 

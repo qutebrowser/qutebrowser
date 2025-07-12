@@ -49,7 +49,7 @@ _WidgetType = Union["WebView", "WebEngineView"]
 
 def create(win_id: int,
            private: bool,
-           parent: QWidget = None) -> 'AbstractTab':
+           parent: Optional[QWidget] = None) -> 'AbstractTab':
     """Get a QtWebKit/QtWebEngine tab object.
 
     Args:
@@ -223,7 +223,7 @@ class AbstractPrinting(QObject):
     printing_finished = pyqtSignal(bool)
     pdf_printing_finished = pyqtSignal(str, bool)  # filename, ok
 
-    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+    def __init__(self, tab: 'AbstractTab', parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._tab = tab
@@ -371,7 +371,7 @@ class AbstractSearch(QObject):
     _Callback = Callable[[bool], None]
     _NavCallback = Callable[[SearchNavigationResult], None]
 
-    def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
+    def __init__(self, tab: 'AbstractTab', parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(_WidgetType, None)
@@ -398,7 +398,7 @@ class AbstractSearch(QObject):
     def search(self, text: str, *,
                ignore_case: usertypes.IgnoreCase = usertypes.IgnoreCase.never,
                reverse: bool = False,
-               result_cb: _Callback = None) -> None:
+               result_cb: Optional[_Callback] = None) -> None:
         """Find the given text on the page.
 
         Args:
@@ -413,7 +413,7 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
+    def prev_result(self, *, wrap: bool = False, callback: Optional[_NavCallback] = None) -> None:
         """Go to the previous result of the current search.
 
         Args:
@@ -422,7 +422,7 @@ class AbstractSearch(QObject):
         """
         raise NotImplementedError
 
-    def next_result(self, *, wrap: bool = False, callback: _NavCallback = None) -> None:
+    def next_result(self, *, wrap: bool = False, callback: Optional[_NavCallback] = None) -> None:
         """Go to the next result of the current search.
 
         Args:
@@ -436,7 +436,7 @@ class AbstractZoom(QObject):
 
     """Attribute ``zoom`` of AbstractTab for controlling zoom."""
 
-    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+    def __init__(self, tab: 'AbstractTab', parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(_WidgetType, None)
@@ -531,7 +531,7 @@ class AbstractCaret(QObject):
     def __init__(self,
                  tab: 'AbstractTab',
                  mode_manager: modeman.ModeManager,
-                 parent: QWidget = None) -> None:
+                 parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._mode_manager = mode_manager
@@ -623,7 +623,7 @@ class AbstractScroller(QObject):
     #: Used to set the special ' mark so the user can return.
     before_jump_requested = pyqtSignal()
 
-    def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
+    def __init__(self, tab: 'AbstractTab', parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(_WidgetType, None)
@@ -644,7 +644,7 @@ class AbstractScroller(QObject):
     def pos_perc(self) -> tuple[int, int]:
         raise NotImplementedError
 
-    def to_perc(self, x: float = None, y: float = None) -> None:
+    def to_perc(self, x: Optional[float] = None, y: Optional[float] = None) -> None:
         raise NotImplementedError
 
     def to_point(self, point: QPoint) -> None:
@@ -842,7 +842,7 @@ class AbstractAudio(QObject):
     muted_changed = pyqtSignal(bool)
     recently_audible_changed = pyqtSignal(bool)
 
-    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+    def __init__(self, tab: 'AbstractTab', parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._tab = tab
@@ -960,7 +960,7 @@ class AbstractTabPrivate:
 
     def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
            win_id: int,
-           parent: QWidget = None) -> 'AbstractWebInspector':
+           parent: Optional[QWidget] = None) -> 'AbstractWebInspector':
         """Get a WebKitInspector/WebEngineInspector.
 
         Args:
@@ -1038,7 +1038,7 @@ class AbstractTab(QWidget):
     def __init__(self, *, win_id: int,
                  mode_manager: 'modeman.ModeManager',
                  private: bool,
-                 parent: QWidget = None) -> None:
+                 parent: Optional[QWidget] = None) -> None:
         utils.unused(mode_manager)  # needed for mypy
         self.is_private = private
         self.win_id = win_id
@@ -1060,6 +1060,7 @@ class AbstractTab(QWidget):
             self, parent=self)
         self.backend: Optional[usertypes.Backend] = None
 
+        # TODO fix this type error
         if parent is not None and isinstance(parent, TreeTabWidget):
             self.node: AbstractTab = Node(self, parent=parent.tree_root)
         else:
@@ -1344,7 +1345,7 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def grab_pixmap(self, rect: QRect = None) -> Optional[QPixmap]:
+    def grab_pixmap(self, rect: Optional[QRect] = None) -> Optional[QPixmap]:
         """Grab a QPixmap of the displayed page.
 
         Returns None if we got a null pixmap from Qt.

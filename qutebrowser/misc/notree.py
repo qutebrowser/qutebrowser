@@ -227,7 +227,7 @@ class Node(Generic[T]):
         return list(result)
 
     def traverse(self, order: TraverseOrder = TraverseOrder.PRE,
-                 render_collapsed: bool = True) -> Iterable['Node']:
+                 render_collapsed: bool = True) -> Iterable['Node[T]']:
         """Generator for `self` and all descendants.
 
         Args:
