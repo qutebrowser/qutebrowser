@@ -227,6 +227,8 @@ class PromptMode(enum.Enum):
     user_pwd = enum.auto()
     alert = enum.auto()
     download = enum.auto()
+    pwd = enum.auto()
+    select = enum.auto()
 
 
 class ClickTarget(enum.Enum):
@@ -359,6 +361,8 @@ class Question(QObject):
               yesno: A question which can be answered with yes/no.
               text: A question which requires a free text answer.
               user_pwd: A question for a username and password.
+              pwd: A question for a password or PIN.
+              select: A question for selecting an option.
         default: The default value.
                  For yesno, None (no default), True or False.
                  For text, a default text as string.
@@ -399,6 +403,7 @@ class Question(QObject):
         self.text: Optional[str] = None
         self.url: Optional[str] = None
         self.option: Optional[bool] = None
+        self.choices: Optional[list[str]] = None
         self.answer: Union[str, bool, None] = None
         self.is_aborted = False
         self.interrupted = False
@@ -406,7 +411,7 @@ class Question(QObject):
     def __repr__(self) -> str:
         return utils.get_repr(self, title=self.title, text=self.text,
                               mode=self.mode, default=self.default,
-                              option=self.option)
+                              option=self.option, choices=self.choices)
 
     @pyqtSlot()
     def done(self) -> None:
