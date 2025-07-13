@@ -49,7 +49,7 @@ class _UndoEntry:
     @classmethod
     def from_tab(
         cls, tab: browsertab.AbstractTab, idx: int
-    ) -> Union["_UndoEntry", list["_UndoEntry"]]:
+    ) -> Optional[Union["_UndoEntry", list["_UndoEntry"]]]:
         """Generate an undo entry from `tab`."""
         try:
             history_data = tab.history.private_api.serialize()
