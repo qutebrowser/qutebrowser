@@ -8,6 +8,8 @@ from qutebrowser.mainwindow.tabwidget import TabWidget
 from qutebrowser.misc.notree import Node
 from qutebrowser.utils import log
 
+from typing import Any
+
 
 class TreeTabWidget(TabWidget):
     """Tab widget used in TabbedBrowser, with tree-functionality.
@@ -21,13 +23,13 @@ class TreeTabWidget(TabWidget):
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
 
-    def get_tab_fields(self, idx):
+    def get_tab_fields(self, idx: int) -> dict[str, Any]:
         """Add tree field data to normal tab field data."""
         fields = super().get_tab_fields(idx)
 
         if len(self.tree_root.children) == 0:
             # Presumably the window is still being initialized
-            log.misc.vdebug(f"Tree root has no children. Are we starting up? fields={fields}")
+            log.misc.vdebug(f"Tree root has no children. Are we starting up? fields={fields}")  # type: ignore[attr-defined]
             return fields
 
         rendered_tree = self.tree_root.render()
@@ -80,7 +82,7 @@ class TreeTabWidget(TabWidget):
             # tabwidget/tabbbedbrowser. Or have the session manager add all
             # nodes to the tree uncollapsed initially and then go through and
             # collapse them.
-            log.misc.vdebug(
+            log.misc.vdebug(  # type: ignore[attr-defined]
                 "get_tab_fields() called with different amount of tabs in "
                 f"widget vs in the tree: difference={difference} "
                 f"tree={rendered_tree[1:]} tabs={tabs}"
@@ -94,7 +96,7 @@ class TreeTabWidget(TabWidget):
 
         return fields
 
-    def update_tree_tab_positions(self):
+    def update_tree_tab_positions(self) -> None:
         """Update tab positions according to the tree structure."""
         nodes = self.tree_root.traverse(render_collapsed=False)
         for idx, node in enumerate(nodes):
@@ -102,7 +104,7 @@ class TreeTabWidget(TabWidget):
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
 
-    def update_tree_tab_visibility(self):
+    def update_tree_tab_visibility(self) -> None:
         """Hide collapsed tabs and show uncollapsed ones.
 
         Sync the internal tree to the tabs the user can actually see.
@@ -129,7 +131,7 @@ class TreeTabWidget(TabWidget):
                 self.insertTab(parent_idx + 1, tab, icon, name)
                 tab.node.parent = parent  # insertTab resets node
 
-    def tree_tab_update(self):
+    def tree_tab_update(self) -> None:
         """Update titles and positions."""
         with self._disable_tab_title_updates():
             self.update_tree_tab_visibility()
