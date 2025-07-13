@@ -10,6 +10,7 @@ from qutebrowser.utils import log
 
 from typing import Any
 
+
 class TreeTabWidget(TabWidget):
     """Tab widget used in TabbedBrowser, with tree-functionality.
 
