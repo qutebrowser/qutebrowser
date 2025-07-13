@@ -227,6 +227,7 @@ class PromptMode(enum.Enum):
     user_pwd = enum.auto()
     alert = enum.auto()
     download = enum.auto()
+    pwd = enum.auto()
 
 
 class ClickTarget(enum.Enum):

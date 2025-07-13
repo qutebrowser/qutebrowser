@@ -315,6 +315,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.yesno: YesNoPrompt,
             usertypes.PromptMode.text: LineEditPrompt,
             usertypes.PromptMode.user_pwd: AuthenticationPrompt,
+            usertypes.PromptMode.pwd: PasswordPrompt,
             usertypes.PromptMode.download: DownloadFilenamePrompt,
             usertypes.PromptMode.alert: AlertPrompt,
         }
@@ -944,6 +945,15 @@ class AuthenticationPrompt(_BasePrompt):
     def _allowed_commands(self):
         return [('prompt-accept', "Accept"),
                 ('mode-leave', "Abort")]
+
+
+class PasswordPrompt(LineEditPrompt):
+
+    """A prompt for a password/pin."""
+
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
+        self._lineedit.setEchoMode(QLineEdit.EchoMode.Password)
 
 
 class YesNoPrompt(_BasePrompt):
