@@ -203,6 +203,9 @@ class TabEventFilter(QObject):
             self._check_insertmode_on_release = True
             return
 
+        if config.val.input.use_ime:
+            return
+
         if elem.is_editable():
             log.mouse.debug("Clicked editable element!")
             if config.val.input.insert_mode.auto_enter:

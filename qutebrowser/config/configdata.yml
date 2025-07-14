@@ -1998,6 +1998,16 @@ input.mode_override:
   supports_pattern: true
   desc: Mode to change to when focusing on a tab/URL changes.
 
+input.use_ime:
+  default: false
+  type: Bool
+  desc: >-
+    Use Input Method Editor for input detection.
+
+    Try setting this to `true` if
+    you sometimes click into input elements in a web page and qutebrowser
+    doesn't automatically switch to input mode.
+
 ## keyhint
 
 keyhint.blacklist:
