@@ -18,7 +18,7 @@ github3.py==4.0.1
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
-hunter==3.7.0
+hunter==3.8.0
 id==1.5.0
 idna==3.10
 importlib_metadata==8.7.0
