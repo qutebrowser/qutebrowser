@@ -7,7 +7,7 @@ backports.tarfile==1.2.0
 bracex==2.6
 build==1.2.2.post1
 bump-my-version==1.2.0
-certifi==2025.6.15
+certifi==2025.7.14
 cffi==1.17.1
 charset-normalizer==3.4.2
 click==8.1.8
@@ -18,7 +18,7 @@ github3.py==4.0.1
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
-hunter==3.7.0
+hunter==3.8.0
 id==1.5.0
 idna==3.10
 importlib_metadata==8.7.0
