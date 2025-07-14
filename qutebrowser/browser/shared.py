@@ -14,7 +14,6 @@ from typing import Optional
 from collections.abc import Mapping, Iterable, Iterator, Callable
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
-from qutebrowser.qt.webenginecore import QWebEngineWebAuthUxRequest
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
@@ -84,20 +83,22 @@ def authentication_required(url, authenticator, abort_on):
     return answer
 
 
-def webuth_verification_required(request, abort_on):
+def webuth_verification_required(url, abort_on):
     """Ask a prompt for a webuth user verification request."""
-    title = "PIN required by {}".format(request.relyingPartyId())
-    text = "Please enter the PIN for your device:"
-    match request.pinRequest():
-        case QWebEngineWebAuthUxRequest.PinEntryReason.Set:
-            title = "New PIN required"
-            text = "Please enter a new PIN for your device:"
-        case QWebEngineWebAuthUxRequest.PinEntryReason.Change:
-            title = "PIN changed required"
-            text = "Please enter a new PIN for your device:"
+    return message.ask(
+        title="User Verification for {}".format(url),
+        text="Please enter the PIN for your device:",
+        mode=usertypes.PromptMode.pwd, abort_on=abort_on)
 
-    return message.ask(title=title, text=text, mode=usertypes.PromptMode.pwd,
-                       abort_on=abort_on)
+
+def webuth_select_account(url, usernames, abort_on):
+    """Ask a prompt for a webuth account selection."""
+    text = "Please select the your account:<br><ul><li>{}</li></ul>".format(
+           "</li><li>".join(usernames))
+    return message.ask(
+        title="Account Selection for {}".format(url), text=text,
+        options=usernames, mode=usertypes.PromptMode.options,
+        abort_on=abort_on)
 
 
 def _format_msg(msg: str) -> str:

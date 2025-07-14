@@ -1499,89 +1499,94 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot('QWebEngineWebAuthUxRequest*')
     def _on_web_auth_ux_requested(self, request):
-        log.webview.debug("Asking for Webauth user verification: {}".format(
-            request))
+        log.webview.debug("Asking for Webauth user verification for {}".format(
+            request.relyingPartyId()))
         self._webauth_request = request
         request.stateChanged.connect(self._on_web_auth_ux_state)
         self._on_web_auth_ux_state(request.state())
 
     def _on_web_auth_ux_state(self, state):
-        match state:
-            case QWebEngineWebAuthUxRequest.WebAuthUxState.CollectPin:
-                self._web_auth_ux_pin_request()
-            case QWebEngineWebAuthUxRequest.WebAuthUxState.FinishTokenCollection:
-                log.webview.debug(
-                    "Finish Webauth token collection for {}".format(
-                        self._webauth_request.relyingPartyId()))
-                message.info("Please touch your device now.")
-            case QWebEngineWebAuthUxRequest.WebAuthUxState.SelectAccount:
-                log.webview.debug(
-                    "Webauth account selection for {}: {}".format(
-                        self._webauth_request.relyingPartyId(),
-                        self._webauth_request.userNames()))
-                message.warning("Account selection is currently not supported")
-            case QWebEngineWebAuthUxRequest.WebAuthUxState.Cancelled:
-                log.webview.debug("Webauth request cancelled for {}".format(
-                    self._webauth_request.relyingPartyId()))
-                message.info("User verification cancelled.")
-                self.abort_questions.emit()
-            case QWebEngineWebAuthUxRequest.WebAuthUxState.Completed:
-                log.webview.debug("Webauth request completed for {}".format(
-                    self._webauth_request.relyingPartyId()))
-                message.info("User verification successful.")
-            case QWebEngineWebAuthUxRequest.WebAuthUxState.RequestFailed:
-                self._web_auth_ux_request_failed()
+        log.webview.debug("Webauth UX state for {}: {}".format(
+            self._webauth_request.relyingPartyId(), state))
+        {
+            QWebEngineWebAuthUxRequest.WebAuthUxState.CollectPin:
+                self._web_auth_ux_pin_request,
+            QWebEngineWebAuthUxRequest.WebAuthUxState.FinishTokenCollection:
+                lambda: message.info("Please touch your device now."),
+            QWebEngineWebAuthUxRequest.WebAuthUxState.SelectAccount:
+                self._web_auth_ux_account_selection,
+            QWebEngineWebAuthUxRequest.WebAuthUxState.Cancelled:
+                self._web_auth_ux_request_cancelled,
+            QWebEngineWebAuthUxRequest.WebAuthUxState.Completed:
+                lambda: message.info("User verification successful."),
+            QWebEngineWebAuthUxRequest.WebAuthUxState.RequestFailed:
+                self._web_auth_ux_request_failed
+        }[state]()
 
     def _web_auth_ux_pin_request(self):
         log.webview.debug("Collect Webuth pin for {}".format(
             self._webauth_request.relyingPartyId()))
         answer = shared.webuth_verification_required(
-            self._webauth_request,
+            self._webauth_request.relyingPartyId(),
             abort_on=[self.abort_questions])
         if answer is not None:
-            log.webview.debug(
-                "User verification accepted by user for {}".format(
-                    self._webauth_request.relyingPartyId()))
+            log.webview.debug("User verification accepted by user")
             self._webauth_request.setPin(answer)
         else:
-            log.webview.debug(
-                "User verification aborted by user for {}".format(
-                    self._webauth_request.relyingPartyId()))
+            log.webview.debug("User verification aborted by user")
             self._webauth_request.cancel()
+
+    def _web_auth_ux_account_selection(self):
+        log.webview.debug("Select Webuth account for {}".format(
+            self._webauth_request.relyingPartyId()))
+        answer = shared.webuth_select_account(
+            self._webauth_request.relyingPartyId(),
+            self._webauth_request.userNames(),
+            abort_on=[self.abort_questions])
+        if answer is not None:
+            log.webview.debug("Username selection accepted by user")
+            self._webauth_request.setSelectedAccount(answer)
+        else:
+            log.webview.debug("Username selection aborted by user")
+            self._webauth_request.cancel()
+
+    def _web_auth_ux_request_cancelled(self):
+        message.info("User verification cancelled.")
+        self.abort_questions.emit()
 
     def _web_auth_ux_request_failed(self):
         log.webview.debug("Webauth request failed for {}: {}".format(
             self._webauth_request.relyingPartyId(),
             self._webauth_request.requestFailureReason()))
 
-        reason = self._webauth_request.requestFailureReason()
-        match self._webauth_request.requestFailureReason():
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.Timeout:
-                reason = "The request timeout out."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.KeyNotRegistered:
-                reason = "The device is not registered."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.KeyAlreadyRegistered:
-                reason = "You already registered this device."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.SoftPinBlock:
-                reason = "The device is locked because the wrong PIN was entered too many times."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.HardPinBlock:
-                reason = "The device is locked because the wrong PIN was entered too many times."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorRemovedDuringPinEntry:
-                reason = "The device was removed during verification. Please reinsert and try again"
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingResidentKeys:
-                reason = "The device does not have resident key support."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingUserVerification:
-                reason = "The device is missing user verification."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingLargeBlob:
-                reason = "The device s missing Large Blob support."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.NoCommonAlgorithms:
-                reason = "The device is missing Large Blob support."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.StorageFull:
-                reason = "The storage on the device is full."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.UserConsentDenied:
-                reason = "User consent was denied."
-            case QWebEngineWebAuthUxRequest.RequestFailureReason.WinUserCancelled:
-                reason = "User cancelled the request."
+        reason = {
+            QWebEngineWebAuthUxRequest.RequestFailureReason.Timeout:
+                "The request timeout out.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.KeyNotRegistered:
+                "The device is not registered.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.KeyAlreadyRegistered:
+                "You already registered this device.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.SoftPinBlock:
+                "The device is locked because the wrong PIN was entered too many times.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.HardPinBlock:
+                "The device is locked because the wrong PIN was entered too many times.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorRemovedDuringPinEntry:
+                "The device was removed during verification. Please reinsert and try again",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingResidentKeys:
+                "The device does not have resident key support.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingUserVerification:
+                "The device is missing user verification.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingLargeBlob:
+                "The device s missing Large Blob support.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.NoCommonAlgorithms:
+                "The device is missing Large Blob support.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.StorageFull:
+                "The storage on the device is full.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.UserConsentDenied:
+                "User consent was denied.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.WinUserCancelled:
+                "User cancelled the request."
+        }[self._webauth_request.requestFailureReason()]
         message.error("User verification failed: {}".format(reason))
 
     @pyqtSlot()

@@ -315,9 +315,10 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.yesno: YesNoPrompt,
             usertypes.PromptMode.text: LineEditPrompt,
             usertypes.PromptMode.user_pwd: AuthenticationPrompt,
-            usertypes.PromptMode.pwd: PasswordPrompt,
             usertypes.PromptMode.download: DownloadFilenamePrompt,
             usertypes.PromptMode.alert: AlertPrompt,
+            usertypes.PromptMode.pwd: PasswordPrompt,
+            usertypes.PromptMode.options: OptionsPrompt,
         }
         klass = classes[question.mode]
         prompt = klass(question)
@@ -947,15 +948,6 @@ class AuthenticationPrompt(_BasePrompt):
                 ('mode-leave', "Abort")]
 
 
-class PasswordPrompt(LineEditPrompt):
-
-    """A prompt for a password/pin."""
-
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
-        self._lineedit.setEchoMode(QLineEdit.EchoMode.Password)
-
-
 class YesNoPrompt(_BasePrompt):
 
     """A prompt with yes/no answers."""
@@ -1048,6 +1040,31 @@ class AlertPrompt(_BasePrompt):
 
     def _allowed_commands(self):
         return [('prompt-accept', "Hide")]
+
+
+class PasswordPrompt(LineEditPrompt):
+
+    """A prompt for a password/pin."""
+
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
+        self._lineedit.setEchoMode(QLineEdit.EchoMode.Password)
+
+
+class OptionsPrompt(LineEditPrompt):
+
+    """A prompt for selecting an option."""
+
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
+
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
+        text = value if value is not None else self._lineedit.text()
+        if text in self.question.options:
+            self.question.answer = text
+            return True
+        return False
 
 
 def init():
