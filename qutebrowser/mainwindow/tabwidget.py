@@ -746,7 +746,7 @@ class TabBar(QTabBar):
     def tabRemoved(self, idx):
         """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
-        if config.val.tabs.show_on_tab_close and config.val.tabs.show == 'switching':
+        if config.val.tabs.show_on_close and config.val.tabs.show == 'switching':
             self.show()
             self._auto_hide_timer.start()
         else:
