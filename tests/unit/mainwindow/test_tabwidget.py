@@ -162,6 +162,58 @@ class TestTabWidget:
             widget.addTab(fake_web_tab(), 'foobar' + str(i))
         assert not widget.tabBar().isVisible()
 
+    def test_show_on_tab_close(self, widget, fake_web_tab, config_stub, monkeypatch):
+        tab_bar = widget.tabBar()
+        mock_show = Mock()
+        mock_start_timer = Mock()
+        mock_maybe_hide = Mock()
+
+        # Mock the config object that tabwidget.py imports
+        mock_config_val_tabs = Mock()
+        mock_config_val = Mock(tabs=mock_config_val_tabs)
+        mock_config = Mock(val=mock_config_val)
+        monkeypatch.setattr(tabwidget, 'config', mock_config)
+
+        # Mock the parent class's tabRemoved method to prevent side effects
+        monkeypatch.setattr(tabwidget.QTabBar, 'tabRemoved', Mock())
+
+        monkeypatch.setattr(tab_bar, 'show', mock_show)
+        monkeypatch.setattr(tab_bar._auto_hide_timer, 'start', mock_start_timer)
+        monkeypatch.setattr(tab_bar, 'maybe_hide', mock_maybe_hide)
+
+        # Test case 1: show_on_tab_close is True, tabs.show is 'switching'
+        mock_config_val_tabs.show_on_tab_close = True
+        mock_config_val_tabs.show = 'switching'
+        tab_bar.tabRemoved(0)
+        mock_show.assert_called_once()
+        mock_start_timer.assert_called_once()
+        mock_maybe_hide.assert_not_called()
+
+        # Reset mocks for next test case
+        mock_show.reset_mock()
+        mock_start_timer.reset_mock()
+        mock_maybe_hide.reset_mock()
+
+        # Test case 2: show_on_tab_close is False
+        mock_config_val_tabs.show_on_tab_close = False
+        tab_bar.tabRemoved(0)
+        mock_show.assert_not_called()
+        mock_start_timer.assert_not_called()
+        mock_maybe_hide.assert_called_once()
+
+        # Reset mocks for next test case
+        mock_show.reset_mock()
+        mock_start_timer.reset_mock()
+        mock_maybe_hide.reset_mock()
+
+        # Test case 3: show_on_tab_close is True, tabs.show is not 'switching'
+        mock_config_val_tabs.show_on_tab_close = True
+        mock_config_val_tabs.show = 'always' # or 'never', 'multiple'
+        tab_bar.tabRemoved(0)
+        mock_show.assert_not_called()
+        mock_start_timer.assert_not_called()
+        mock_maybe_hide.assert_called_once()
+
     @pytest.mark.parametrize("num_tabs", [4, 70])
     @pytest.mark.parametrize("rev", [True, False])
     def test_add_remove_tab_benchmark(self, benchmark, widget,

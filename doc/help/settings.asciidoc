@@ -4511,6 +4511,14 @@ Type: <<types,Int>>
 
 Default: +pass:[800]+
 
+[[tabs.show_on_tab_close]]
+=== tabs.show_on_tab_close
+Show the tab bar for a short duration when a tab is closed, if tabs.show is set to 'switching'.
+
+Type: <<types,Bool>>
+
+Default: +pass:[False]+
+
 [[tabs.tabs_are_windows]]
 === tabs.tabs_are_windows
 Open a new window for every tab.
