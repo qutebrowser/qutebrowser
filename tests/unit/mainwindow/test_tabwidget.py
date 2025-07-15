@@ -226,12 +226,17 @@ class TestTabBarShowOnClose:
         widget.removeTab(0)
         assert not tab_bar.isVisible()
 
-    def test_show_on_close_true_not_switching(self, widget, config_stub):
+    @pytest.mark.parametrize('show_val,is_visible', [
+        ('always', True),
+        ('never', False),
+    ])
+    def test_show_on_close_true_not_switching(self, widget, config_stub,
+                                              show_val, is_visible):
         """Test tabs.show_on_close=True and tabs.show!='switching'."""
-        config_stub.val.tabs.show = 'always'
+        config_stub.val.tabs.show = show_val
         config_stub.val.tabs.show_on_close = True
         tab_bar = widget.tabBar()
-        assert tab_bar.isVisible()
+        assert tab_bar.isVisible() is is_visible
 
         widget.removeTab(0)
-        assert tab_bar.isVisible()
+        assert tab_bar.isVisible() is is_visible
