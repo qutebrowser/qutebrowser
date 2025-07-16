@@ -407,6 +407,7 @@ class TabBar(QTabBar):
         # Otherwise, we get "Cannot determine type of "drag_in_progress" in
         # TabWidget._toggle_visibility below.
         self.drag_in_progress: bool = False
+        self._closing: bool = False
         stylesheet.set_register(self)
         self.ensurePolished()
         config.instance.changed.connect(self._on_config_changed)
@@ -467,6 +468,8 @@ class TabBar(QTabBar):
 
     def on_current_changed(self):
         """Show tab bar when current tab got changed."""
+        if self._closing:
+            return
         self.maybe_hide()  # for fullscreen tabs
         if config.val.tabs.show == 'switching':
             self.show()
@@ -746,11 +749,16 @@ class TabBar(QTabBar):
     def tabRemoved(self, idx):
         """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
-        if config.val.tabs.show_on_close and config.val.tabs.show == 'switching':
-            self.show()
-            self._auto_hide_timer.start()
-        else:
-            self.maybe_hide()
+        self._closing = True
+        try:
+            if (config.val.tabs.show_on_close and
+                    config.val.tabs.show == 'switching'):
+                self.show()
+                self._auto_hide_timer.start()
+            else:
+                self.maybe_hide()
+        finally:
+            self._closing = False
 
     def wheelEvent(self, e):
         """Override wheelEvent to make the action configurable.

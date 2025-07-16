@@ -208,7 +208,7 @@ class TestTabBarShowOnClose:
         config_stub.val.tabs.show = 'switching'
         config_stub.val.tabs.show_on_close = True
         tab_bar = widget.tabBar()
-        qtbot.wait(3)
+        qtbot.wait(1)
         assert not tab_bar.isVisible()
 
         widget.removeTab(0)
