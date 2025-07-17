@@ -158,6 +158,7 @@ class AbstractWebInspector(QWidget):
         self._position = position
 
         self._widget.show()
+        self.setWindowTitle("Web Inspector")
         self.show()
 
     def toggle(self) -> None:
