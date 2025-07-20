@@ -228,7 +228,7 @@ class PromptMode(enum.Enum):
     alert = enum.auto()
     download = enum.auto()
     pwd = enum.auto()
-    options = enum.auto()
+    select = enum.auto()
 
 
 class ClickTarget(enum.Enum):
@@ -403,7 +403,7 @@ class Question(QObject):
         self.text: Optional[str] = None
         self.url: Optional[str] = None
         self.option: Optional[bool] = None
-        self.options: Optional[list[str]] = None
+        self.choices: Optional[list[str]] = None
         self.answer: Union[str, bool, None] = None
         self.is_aborted = False
         self.interrupted = False
@@ -411,7 +411,7 @@ class Question(QObject):
     def __repr__(self) -> str:
         return utils.get_repr(self, title=self.title, text=self.text,
                               mode=self.mode, default=self.default,
-                              option=self.option, options=self.options)
+                              option=self.option, choices=self.choices)
 
     @pyqtSlot()
     def done(self) -> None:

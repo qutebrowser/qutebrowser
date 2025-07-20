@@ -97,7 +97,7 @@ def webuth_select_account(url, usernames, abort_on):
            "</li><li>".join(usernames))
     return message.ask(
         title="Account Selection for {}".format(url), text=text,
-        options=usernames, mode=usertypes.PromptMode.options,
+        choices=usernames, mode=usertypes.PromptMode.select,
         abort_on=abort_on)
 
 

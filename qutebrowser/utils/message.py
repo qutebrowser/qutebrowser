@@ -112,7 +112,7 @@ def _build_question(title: str,
                     abort_on: Iterable[pyqtBoundSignal] = (),
                     url: str = None,
                     option: bool = None,
-                    options: list[str] = None) -> usertypes.Question:
+                    choices: list[str] = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
     question = usertypes.Question()
     question.title = title
@@ -128,9 +128,9 @@ def _build_question(title: str,
             raise ValueError("Need 'url' given when 'option' is given")
     question.option = option
 
-    if options is not None and mode != usertypes.PromptMode.options:
-        raise ValueError("Can only 'options' with PromptMode.options")
-    question.options = options
+    if choices is not None and mode != usertypes.PromptMode.select:
+        raise ValueError("Can only 'choices' with PromptMode.select")
+    question.choices = choices
 
     for sig in abort_on:
         sig.connect(question.abort)
@@ -147,7 +147,7 @@ def ask(*args: Any, **kwargs: Any) -> Any:
         text: Additional text to show
         option: The option for always/never question answers.
                 Only available with PromptMode.yesno.
-        options: The options for options question answers.
+        choices: The choices for options question answers.
                 Only available with PromptMode.selection.
         abort_on: A list of signals which abort the question if emitted.
 
@@ -197,7 +197,7 @@ def confirm_async(*, yes_action: _ActionType,
                        question.
         default: True/False to set a default value, or None.
         option: The option for always/never question answers.
-        options: The options for options question answers.
+        choices: The choices for options question answers.
         text: Additional text to show.
 
     Return:

@@ -318,7 +318,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.download: DownloadFilenamePrompt,
             usertypes.PromptMode.alert: AlertPrompt,
             usertypes.PromptMode.pwd: PasswordPrompt,
-            usertypes.PromptMode.options: OptionsPrompt,
+            usertypes.PromptMode.select: SelectPrompt,
         }
         klass = classes[question.mode]
         prompt = klass(question)
@@ -1051,9 +1051,9 @@ class PasswordPrompt(LineEditPrompt):
         self._lineedit.setEchoMode(QLineEdit.EchoMode.Password)
 
 
-class OptionsPrompt(LineEditPrompt):
+class SelectPrompt(LineEditPrompt):
 
-    """A prompt for selecting an option."""
+    """A prompt for selecting one out of multiple choices."""
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
@@ -1061,7 +1061,7 @@ class OptionsPrompt(LineEditPrompt):
     def accept(self, value=None, save=False):
         self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()
-        if text in self.question.options:
+        if text in self.question.choices:
             self.question.answer = text
             return True
         return False
