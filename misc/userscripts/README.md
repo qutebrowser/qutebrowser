@@ -75,8 +75,6 @@ The following userscripts can be found on their own repositories.
    and retrieve they when you want.
 - [doi](https://github.com/cadadr/configuration/blob/default/dotfiles/qutebrowser/userscripts/doi):
   Opens DOIs on Sci-Hub.
-- [qute-1password](https://github.com/fmartingr/qute-1password):
-  Qutebrowser userscript to fill 1password credentials
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
 - [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
@@ -97,7 +95,7 @@ The following userscripts can be found on their own repositories.
   substitution)
 - [pseudo per domain stylesheets](https://github.com/bschnitz/qute): Userscript
   for generating url restricted greasemonkey scripts to apply user styles.
-- [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
+- [qute-containers](https://github.com/s-praveen-kumar/qute-containers):
   A simple interface to manage browser containers by manipulating the basedir
   parameter.
 - [qutebrowser-metascript](https://codeberg.org/mister_monster/qutebrowser-metascript):
@@ -108,7 +106,7 @@ The following userscripts can be found on their own repositories.
   automatically mutates input URLs based on configurable rules
 - [qute-translate-popup](https://github.com/JohnBardoe/qute-translate-popup):
   selected text translation, with a qute popup!
-  
+
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/
