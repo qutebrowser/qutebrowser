@@ -35,7 +35,7 @@ manhole==1.8.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.7.0
-nh3==0.2.21
+nh3==0.3.0
 packaging==25.0
 platformdirs==4.3.8
 prompt_toolkit==3.0.51
