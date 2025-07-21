@@ -6,7 +6,7 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 bracex==2.6
 build==1.2.2.post1
-bump-my-version==1.2.0
+bump-my-version==1.2.1
 certifi==2025.7.14
 cffi==1.17.1
 charset-normalizer==3.4.2
@@ -35,7 +35,7 @@ manhole==1.8.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.7.0
-nh3==0.2.21
+nh3==0.3.0
 packaging==25.0
 platformdirs==4.3.8
 prompt_toolkit==3.0.51
