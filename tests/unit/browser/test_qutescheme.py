@@ -310,3 +310,17 @@ class TestQuteConfigdiff:
         url = QUrl('qute://configdiff/')
         _mimetype, data = qutescheme.data_for_url(url)
         assert data == b'content.images = false'
+
+
+class TestBlankHandler:
+
+    """Test the qute://blank handler."""
+
+    @pytest.fixture(autouse=True)
+    def prepare_config(self, config_stub):
+        config_stub.set_obj("colors.webpage.bg", "#101010")
+
+    def test_basic(self, config_stub):
+        url = QUrl("qute://blank")
+        _mimetype, data = qutescheme.qute_blank(url)
+        assert data == '<html style="background-color: #101010"/>'
