@@ -241,15 +241,18 @@ def main(arguments):
     if len(candidates) == 1:
         selection = candidates.pop()
     else:
-        choices = ['{:s} | {:s}'.format(c['name'], c['login']['username']) for c in candidates]
+        choices = {
+                '{:s} | {:s}'.format(
+                    c['name'] or '?',
+                    c['login']['username'] or '?'
+                    ).strip(): c for c in candidates}
+        # if two entries have the same string representation,
+        # it might be impossible to select one of them
         choice = dmenu(choices, arguments.dmenu_invocation, arguments.io_encoding)
-        choice_tokens = choice.split('|')
-        choice_name = choice_tokens[0].strip()
-        choice_username = choice_tokens[1].strip()
-        selection = next((c for (i, c) in enumerate(candidates)
-                          if c['name'] == choice_name
-                          and c['login']['username'] == choice_username),
-                         None)
+        if not choice:
+            selection = None
+        else:
+            selection = choices[choice]
 
     # Nothing was selected, simply return
     if not selection:
@@ -260,8 +263,14 @@ def main(arguments):
     totp = selection['login']['totp']
 
     if arguments.username_only:
+        if username is None:
+            stderr('Username is not available')
+            return ExitCodes.FAILURE
         fake_key_raw(username)
     elif arguments.password_only:
+        if password is None:
+            stderr('Password is not available')
+            return ExitCodes.FAILURE
         fake_key_raw(password)
     elif arguments.totp_only:
         # No point in moving it to the clipboard in this case
