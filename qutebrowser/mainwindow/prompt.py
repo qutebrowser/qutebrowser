@@ -1055,9 +1055,6 @@ class SelectPrompt(LineEditPrompt):
 
     """A prompt for selecting one out of multiple choices."""
 
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
-
     def accept(self, value=None, save=False):
         self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()

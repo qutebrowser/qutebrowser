@@ -1254,6 +1254,7 @@ class _WebEngineWebAuth(QObject):
         self._request = None
 
     def on_ux_requested(self, request):
+        """Handle a Webauth UX request."""
         log.webview.debug("Asking for Webauth user verification for "
                           f"{request.relyingPartyId()}")
         self._request = request
@@ -1295,7 +1296,7 @@ class _WebEngineWebAuth(QObject):
         answer = self._select_account(self._request.relyingPartyId(),
                                       self._request.userNames())
         if answer is not None:
-            log.webview.debug("Username selection accepted by user")
+            log.webview.debug(f"Username selection accepted by user: {answer}")
             self._request.setSelectedAccount(answer)
         else:
             log.webview.debug("Username selection aborted by user")
@@ -1619,10 +1620,6 @@ class WebEngineTab(browsertab.AbstractTab):
             if answer is None:
                 log.network.debug("Aborting auth")
                 sip.assign(authenticator, QAuthenticator())
-
-    @pyqtSlot('QWebEngineWebAuthUxRequest*')
-    def _on_web_auth_ux_requested(self, request):
-        self._webauth.on_web_auth_ux_requested
 
     @pyqtSlot()
     def _on_load_started(self):
