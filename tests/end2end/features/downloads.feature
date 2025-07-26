@@ -94,7 +94,7 @@ Feature: Downloading things from a website.
         When I set downloads.location.suggestion to filename
         And I set downloads.location.prompt to true
         And I open data/downloads/download.bin in a new window without waiting
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question choices=None default='*' mode=<PromptMode.download: 5> *" in the log
         And I run :window-only
         And I run :mode-leave
         Then no crash should happen
