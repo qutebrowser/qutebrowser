@@ -1499,15 +1499,15 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot('QWebEngineWebAuthUxRequest*')
     def _on_web_auth_ux_requested(self, request):
-        log.webview.debug("Asking for Webauth user verification for {}".format(
-            request.relyingPartyId()))
+        log.webview.debug("Asking for Webauth user verification for "
+                          f"{request.relyingPartyId()}")
         self._webauth_request = request
         request.stateChanged.connect(self._on_web_auth_ux_state)
         self._on_web_auth_ux_state(request.state())
 
     def _on_web_auth_ux_state(self, state):
-        log.webview.debug("Webauth UX state for {}: {}".format(
-            self._webauth_request.relyingPartyId(), state))
+        log.webview.debug("Webauth UX state for "
+                          f"{self._webauth_request.relyingPartyId()}: {state}")
         {
             QWebEngineWebAuthUxRequest.WebAuthUxState.CollectPin:
                 self._web_auth_ux_pin_request,
@@ -1524,8 +1524,8 @@ class WebEngineTab(browsertab.AbstractTab):
         }[state]()
 
     def _web_auth_ux_pin_request(self):
-        log.webview.debug("Collect Webuth pin for {}".format(
-            self._webauth_request.relyingPartyId()))
+        log.webview.debug("Collect Webuth pin for "
+                          f"{self._webauth_request.relyingPartyId()}")
         answer = shared.webuth_verification_required(
             self._webauth_request.relyingPartyId(),
             abort_on=[self.abort_questions])
@@ -1537,8 +1537,8 @@ class WebEngineTab(browsertab.AbstractTab):
             self._webauth_request.cancel()
 
     def _web_auth_ux_account_selection(self):
-        log.webview.debug("Select Webuth account for {}".format(
-            self._webauth_request.relyingPartyId()))
+        log.webview.debug("Select Webuth account for "
+                          f"{self._webauth_request.relyingPartyId()}")
         answer = shared.webuth_select_account(
             self._webauth_request.relyingPartyId(),
             self._webauth_request.userNames(),
@@ -1555,9 +1555,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self.abort_questions.emit()
 
     def _web_auth_ux_request_failed(self):
-        log.webview.debug("Webauth request failed for {}: {}".format(
-            self._webauth_request.relyingPartyId(),
-            self._webauth_request.requestFailureReason()))
+        log.webview.debug("Webauth request failed for "
+                          f"{self._webauth_request.relyingPartyId()}: "
+                          f"{self._webauth_request.requestFailureReason()}")
 
         reason = {
             QWebEngineWebAuthUxRequest.RequestFailureReason.Timeout:
@@ -1587,7 +1587,7 @@ class WebEngineTab(browsertab.AbstractTab):
             QWebEngineWebAuthUxRequest.RequestFailureReason.WinUserCancelled:
                 "User cancelled the request."
         }[self._webauth_request.requestFailureReason()]
-        message.error("User verification failed: {}".format(reason))
+        message.error(f"User verification failed: {reason}")
 
     @pyqtSlot()
     def _on_load_started(self):

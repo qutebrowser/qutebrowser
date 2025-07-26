@@ -86,17 +86,18 @@ def authentication_required(url, authenticator, abort_on):
 def webuth_verification_required(url, abort_on):
     """Ask a prompt for a webuth user verification request."""
     return message.ask(
-        title="User Verification for {}".format(url),
+        title=f"User Verification for {url}",
         text="Please enter the PIN for your device:",
         mode=usertypes.PromptMode.pwd, abort_on=abort_on)
 
 
 def webuth_select_account(url, usernames, abort_on):
     """Ask a prompt for a webuth account selection."""
-    text = "Please select the your account:<br><ul><li>{}</li></ul>".format(
-           "</li><li>".join(usernames))
+    text = "Please select the your account:<br>" \
+           f"<ul><li>{'</li><li>'.join(usernames)}</li></ul>"
+
     return message.ask(
-        title="Account Selection for {}".format(url), text=text,
+        title=f"Account Selection for {url}", text=text,
         choices=usernames, mode=usertypes.PromptMode.select,
         abort_on=abort_on)
 
