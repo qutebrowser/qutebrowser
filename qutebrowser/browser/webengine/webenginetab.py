@@ -15,8 +15,7 @@ from typing import cast, Union, Optional
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray)
 from qutebrowser.qt.network import QAuthenticator
-from qutebrowser.qt.webenginecore import (QWebEnginePage, QWebEngineScript,
-                                    QWebEngineHistory, QWebEngineWebAuthUxRequest)
+from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -28,6 +27,12 @@ from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version, urlutils)
 from qutebrowser.qt import sip, machinery
 from qutebrowser.misc import objects, miscwidgets
+
+try:
+    from qutebrowser.qt.webenginecore import QWebEngineWebAuthUxRequest
+    WEBAUTH = True
+except ImportError:
+    WEBAUTH = False
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -1421,7 +1426,8 @@ class WebEngineTab(browsertab.AbstractTab):
                                                tab=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
-        self._webauth = _WebEngineWebAuth(tab=self, parent=self)
+        if WEBAUTH:
+            self._webauth = _WebEngineWebAuth(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
@@ -1808,7 +1814,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadStarted.connect(self._on_load_started)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
-        page.webAuthUxRequested.connect(self._webauth.on_ux_requested)
+        if WEBAUTH:
+            page.webAuthUxRequested.connect(self._webauth.on_ux_requested)
         page.proxyAuthenticationRequired.connect(
             self._on_proxy_authentication_required)
         page.contentsSizeChanged.connect(self.contents_size_changed)
