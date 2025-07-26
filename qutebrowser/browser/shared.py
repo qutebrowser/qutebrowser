@@ -83,25 +83,6 @@ def authentication_required(url, authenticator, abort_on):
     return answer
 
 
-def webuth_verification_required(url, abort_on):
-    """Ask a prompt for a webuth user verification request."""
-    return message.ask(
-        title=f"User Verification for {url}",
-        text="Please enter the PIN for your device:",
-        mode=usertypes.PromptMode.pwd, abort_on=abort_on)
-
-
-def webuth_select_account(url, usernames, abort_on):
-    """Ask a prompt for a webuth account selection."""
-    text = "Please select the your account:<br>" \
-           f"<ul><li>{'</li><li>'.join(usernames)}</li></ul>"
-
-    return message.ask(
-        title=f"Account Selection for {url}", text=text,
-        choices=usernames, mode=usertypes.PromptMode.select,
-        abort_on=abort_on)
-
-
 def _format_msg(msg: str) -> str:
     """Convert message to HTML suitable for rendering."""
     return html.escape(msg).replace('\n', '<br />')
