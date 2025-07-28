@@ -55,7 +55,7 @@ readme_renderer==44.0
 requests==2.32.4
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rich==14.0.0
+rich==14.1.0
 rich-click==1.8.9
 SecretStorage==3.3.3
 sip==6.12.0
