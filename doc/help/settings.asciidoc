@@ -3990,7 +3990,7 @@ Type: <<types,String>>
 Valid values:
 
  * +always+: Disable accelerated 2d canvas
- * +auto+: Disable on Qt6 < 6.6.0, enable otherwise
+ * +auto+: Disable on Qt versions with known issues, enable otherwise
  * +never+: Enable accelerated 2d canvas
 
 Default: +pass:[auto]+
