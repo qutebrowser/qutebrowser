@@ -442,7 +442,7 @@ class TestArgument:
     def test_no_docstring_with_optimize(self, monkeypatch):
         """With -OO we'd get a warning on start, but no warning afterwards."""
         sys_flags_fake = types.SimpleNamespace(
-            {
+            **{
                 k: v
                 for k, v in inspect.getmembers(sys.flags)
                 if not k.startswith("_") and k not in {"count", "index"}
