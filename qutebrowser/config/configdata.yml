@@ -391,7 +391,7 @@ qt.workarounds.disable_accelerated_2d_canvas:
     name: String
     valid_values:
       - always: Disable accelerated 2d canvas
-      - auto: Disable on Qt6 < 6.6.0, enable otherwise
+      - auto: Disable on Qt versions with known issues, enable otherwise
       - never: Enable accelerated 2d canvas
   default: auto
   backend: QtWebEngine
