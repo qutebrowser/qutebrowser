@@ -10,7 +10,7 @@ import functools
 import dataclasses
 import re
 import html as html_utils
-from typing import cast, Union, Optional
+from typing import cast, Union, Optional, Any
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray)
@@ -27,6 +27,15 @@ from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version, urlutils)
 from qutebrowser.qt import sip, machinery
 from qutebrowser.misc import objects, miscwidgets
+
+if machinery.IS_QT6:
+    try:
+        from qutebrowser.qt.webenginecore import QWebEngineWebAuthUxRequest
+    except ImportError:
+        # Added in Qt 6.7
+        QWebEngineWebAuthUxRequest: None = None  # type: ignore[no-redef]
+else:
+    QWebEngineWebAuthUxRequest: Any = None
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -1237,6 +1246,144 @@ class _WebEngineScripts(QObject):
                 )
 
 
+class _WebEngineWebAuth(QObject):
+
+    """Handling of Webauth signals."""
+
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
+        self._request = None
+
+    def on_ux_requested(self, request):
+        """Handle a Webauth UX request."""
+        log.webview.debug("Asking for Webauth user verification for "
+                          f"{request.relyingPartyId()}")
+        self._request = request
+        request.stateChanged.connect(self._on_ux_state_changed)
+        self._on_ux_state_changed(request.state())
+
+    def _on_ux_state_changed(self, state):
+        assert self._request is not None
+        log.webview.debug("Webauth UX state for "
+                          f"{self._request.relyingPartyId()}: {state}")
+
+        if state == QWebEngineWebAuthUxRequest.WebAuthUxState.CollectPin:
+            self._ux_pin_request()
+        elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.FinishTokenCollection:
+            message.info("Please touch your device now.")
+        elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.SelectAccount:
+            self._ux_account_selection()
+        elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.Completed:
+            self._ux_request_completed()
+        elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.Cancelled:
+            self._ux_request_cancelled()
+        elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.RequestFailed:
+            self._ux_request_failed()
+        else:
+            raise utils.Unreachable(state)
+
+    def _ux_pin_request(self):
+        assert self._request is not None
+        log.webview.debug("Collect Webauth pin for "
+                          f"{self._request.relyingPartyId()}")
+        answer = self._verification_required(self._request.relyingPartyId())
+        if answer is not None:
+            log.webview.debug("User verification accepted by user")
+            self._request.setPin(answer)
+        else:
+            log.webview.debug("User verification aborted by user")
+            self._request.cancel()
+
+    def _ux_account_selection(self):
+        assert self._request is not None
+        log.webview.debug("Select Webauth account for "
+                          f"{self._request.relyingPartyId()}")
+        answer = self._select_account(self._request.relyingPartyId(),
+                                      self._request.userNames())
+        if answer is not None:
+            log.webview.debug(f"Username selection accepted by user: {answer}")
+            self._request.setSelectedAccount(answer)
+        else:
+            log.webview.debug("Username selection aborted by user")
+            self._request.cancel()
+
+    def _ux_request_completed(self):
+        message.info("User verification completed.")
+        self._request = None
+
+    def _ux_request_cancelled(self):
+        message.info("User verification cancelled.")
+        self._tab.abort_questions.emit()
+        self._request = None
+
+    def _ux_request_failed(self):
+        assert self._request is not None
+        log.webview.debug("Webauth request failed for "
+                          f"{self._request.relyingPartyId()}: "
+                          f"{self._request.requestFailureReason()}")
+
+        reason_text = self._get_failure_reason_text(
+            self._request.requestFailureReason()
+        )
+        message.info(f"User verification failed: {reason_text}")
+
+    def _get_failure_reason_text(self, reason):
+        texts = {
+            QWebEngineWebAuthUxRequest.RequestFailureReason.Timeout:
+                "The request timeout out.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.KeyNotRegistered:
+                "The device is not registered.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.KeyAlreadyRegistered:
+                "You already registered this device.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.SoftPinBlock:
+                "The device is locked because the wrong PIN was entered too "
+                "many times.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.HardPinBlock:
+                "The device is hard-locked because the wrong PIN was entered "
+                "too many times.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorRemovedDuringPinEntry:
+                "The device was removed during verification. Please re-insert "
+                "and try again",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingResidentKeys:
+                "The device does not have resident key support.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingUserVerification:
+                "The device is missing user verification.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.AuthenticatorMissingLargeBlob:
+                "The device s missing Large Blob support.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.NoCommonAlgorithms:
+                "The device is missing Large Blob support.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.StorageFull:
+                "The storage on the device is full.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.UserConsentDenied:
+                "User consent was denied.",
+            QWebEngineWebAuthUxRequest.RequestFailureReason.WinUserCancelled:
+                "User cancelled the request.",
+        }
+        if reason not in texts:
+            raise utils.Unreachable(reason)
+        return texts[reason]
+
+    def _verification_required(self, url: str) -> Any:
+        """Ask a prompt for a webauth user verification request."""
+        return message.ask(
+            title=f"User Verification for {url}",
+            text="Please enter the PIN for your device:",
+            mode=usertypes.PromptMode.pwd,
+            abort_on=[self._tab.abort_questions])
+
+    def _select_account(self, url: str, usernames: list[str]) -> Any:
+        """Ask a prompt for a webauth account selection."""
+        usernames_html = "".join(f"<li>{html_utils.escape(name)}</li>"
+                                 for name in usernames)
+        text = f"Please select an account:<br><ul>{usernames_html}</ul>"
+
+        return message.ask(
+            title=f"Account Selection for {url}", text=text,
+            choices=usernames, mode=usertypes.PromptMode.select,
+            abort_on=[self._tab.abort_questions])
+
+
 class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
     """QtWebEngine-related methods which aren't part of the public API."""
@@ -1304,6 +1451,8 @@ class WebEngineTab(browsertab.AbstractTab):
                                                tab=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
+        if QWebEngineWebAuthUxRequest is not None:
+            self._webauth = _WebEngineWebAuth(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
@@ -1686,6 +1835,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadStarted.connect(self._on_load_started)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
+        if machinery.IS_QT6 and QWebEngineWebAuthUxRequest is not None:
+            page.webAuthUxRequested.connect(self._webauth.on_ux_requested)
         page.proxyAuthenticationRequired.connect(
             self._on_proxy_authentication_required)
         page.contentsSizeChanged.connect(self.contents_size_changed)

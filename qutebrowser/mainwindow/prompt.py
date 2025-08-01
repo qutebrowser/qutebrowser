@@ -317,6 +317,8 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.user_pwd: AuthenticationPrompt,
             usertypes.PromptMode.download: DownloadFilenamePrompt,
             usertypes.PromptMode.alert: AlertPrompt,
+            usertypes.PromptMode.pwd: PasswordPrompt,
+            usertypes.PromptMode.select: SelectPrompt,
         }
         klass = classes[question.mode]
         prompt = klass(question)
@@ -1038,6 +1040,28 @@ class AlertPrompt(_BasePrompt):
 
     def _allowed_commands(self):
         return [('prompt-accept', "Hide")]
+
+
+class PasswordPrompt(LineEditPrompt):
+
+    """A prompt for a password/pin."""
+
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
+        self._lineedit.setEchoMode(QLineEdit.EchoMode.Password)
+
+
+class SelectPrompt(LineEditPrompt):
+
+    """A prompt for selecting one out of multiple choices."""
+
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
+        text = value if value is not None else self._lineedit.text()
+        if text in self.question.choices:
+            self.question.answer = text
+            return True
+        return False
 
 
 def init():
