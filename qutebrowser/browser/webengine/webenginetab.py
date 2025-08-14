@@ -14,6 +14,7 @@ from typing import cast, Union, Optional, Any
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray, QTimer)
+from qutebrowser.qt.widgets import QWidget
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
@@ -1260,12 +1261,12 @@ class _WebEngineWebAuth(QObject):
 
     request_cancelled = pyqtSignal()
 
-    def __init__(self, tab, parent=None):
+    def __init__(self, tab: "WebEngineTab", parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._request = None
+        self._request: Optional[QWebEngineWebAuthUxRequest] = None
 
-    def on_ux_requested(self, request):
+    def on_ux_requested(self, request: QWebEngineWebAuthUxRequest) -> None:
         """Handle a Webauth UX request."""
         log.webview.debug("Asking for Webauth user verification for "
                           f"{request.relyingPartyId()}")
@@ -1273,7 +1274,9 @@ class _WebEngineWebAuth(QObject):
         request.stateChanged.connect(self._on_ux_state_changed)
         self._on_ux_state_changed(request.state())
 
-    def _on_ux_state_changed(self, state):
+    def _on_ux_state_changed(
+        self, state: "QWebEngineWebAuthUxRequest.WebAuthUxState"
+    ) -> None:
         log.webview.debug(f"Webauth UX state: {state}")
         if state == QWebEngineWebAuthUxRequest.WebAuthUxState.CollectPin:
             self._ux_pin_request()
@@ -1290,7 +1293,7 @@ class _WebEngineWebAuth(QObject):
         else:
             raise utils.Unreachable(state)
 
-    def _ux_pin_request(self):
+    def _ux_pin_request(self) -> None:
         assert self._request is not None
         log.webview.debug("Collect Webauth pin for "
                           f"{self._request.relyingPartyId()}")
@@ -1302,11 +1305,11 @@ class _WebEngineWebAuth(QObject):
             log.webview.debug("User verification aborted by user")
             self._request.cancel()
 
-    def _ux_finish_token_collection(self):
+    def _ux_finish_token_collection(self) -> None:
         log.webview.debug("Finish Webauth token collection")
         message.info("Please touch your device now.")
 
-    def _ux_account_selection(self):
+    def _ux_account_selection(self) -> None:
         assert self._request is not None
         log.webview.debug("Select Webauth account for "
                           f"{self._request.relyingPartyId()}")
@@ -1319,17 +1322,17 @@ class _WebEngineWebAuth(QObject):
             log.webview.debug("Username selection aborted by user")
             self._request.cancel()
 
-    def _ux_request_completed(self):
+    def _ux_request_completed(self) -> None:
         log.webview.debug("Webauth request completed")
         message.info("User verification completed.")
         self._request = None
 
-    def _ux_request_cancelled(self):
+    def _ux_request_cancelled(self) -> None:
         log.webview.debug("Webauth verification cancelled")
         message.info("User verification cancelled.")
         self.request_cancelled.emit()
 
-    def _ux_request_failed(self):
+    def _ux_request_failed(self) -> None:
         assert self._request is not None
         log.webview.debug("Webauth request failed for "
                           f"{self._request.relyingPartyId()}: "
@@ -1340,7 +1343,9 @@ class _WebEngineWebAuth(QObject):
         )
         message.info(f"User verification failed: {reason_text}")
 
-    def _get_failure_reason_text(self, reason):
+    def _get_failure_reason_text(
+        self, reason: "QWebEngineWebAuthUxRequest.RequestFailureReason"
+    ) -> str:
         texts = {
             QWebEngineWebAuthUxRequest.RequestFailureReason.Timeout:
                 "The request timed out.",
