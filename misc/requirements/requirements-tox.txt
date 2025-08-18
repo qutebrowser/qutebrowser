@@ -4,7 +4,7 @@ cachetools==6.1.0
 chardet==5.2.0
 colorama==0.4.6
 distlib==0.4.0
-filelock==3.18.0
+filelock==3.19.1
 packaging==25.0
 pip==25.2
 platformdirs==4.3.8
@@ -14,6 +14,6 @@ setuptools==80.9.0
 tomli==2.2.1
 tox==4.28.4 ; python_full_version!="3.14.0b1"
 typing_extensions==4.14.1
-virtualenv==20.33.1
+virtualenv==20.34.0
 wheel==0.45.1
 tox @ git+https://github.com/tox-dev/tox ; python_full_version=="3.14.0b1"
