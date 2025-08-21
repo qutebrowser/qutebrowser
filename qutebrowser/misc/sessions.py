@@ -220,6 +220,7 @@ class SessionManager(QObject):
                 data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
 
         data['pinned'] = tab.data.pinned
+        data['custom_title'] = tab.data.custom_title
 
         return data
 
@@ -412,6 +413,9 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
+            if 'custom_title' in histentry:
+                new_tab.data.custom_title = histentry['custom_title']
+
             if (config.val.session.lazy_restore and
                     histentry.get('active', False) and
                     not histentry['url'].startswith('qute://back')):
@@ -449,7 +453,10 @@ class SessionManager(QObject):
                                    last_visited=last_visited)
             entries.append(entry)
             if active:
-                new_tab.title_changed.emit(histentry['title'])
+                if new_tab.data.custom_title:
+                    new_tab.title_changed.emit(new_tab.data.custom_title)
+                else:
+                    new_tab.title_changed.emit(histentry['title'])
 
         try:
             new_tab.history.private_api.load_items(entries)
@@ -470,6 +477,8 @@ class SessionManager(QObject):
                 tab_to_focus = i
             if new_tab.data.pinned:
                 new_tab.set_pinned(True)
+            if new_tab.data.custom_title:
+                new_tab.set_title(new_tab.data.custom_title)
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
 
