@@ -18,7 +18,7 @@ github3.py==4.0.1
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
-hunter==3.8.0
+hunter==3.9.0
 id==1.5.0
 idna==3.10
 importlib_metadata==8.7.0
@@ -52,7 +52,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 questionary==2.1.0
 readme_renderer==44.0
-requests==2.32.4
+requests==2.32.5
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==14.1.0
