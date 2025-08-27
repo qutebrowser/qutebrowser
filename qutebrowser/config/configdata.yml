@@ -2198,7 +2198,7 @@ statusbar.widgets:
 statusbar.mode_text:
   default: true
   type: Bool
-  desc: Show a text widget with the current input mode in the statusbar
+  desc: Show a text widget with the current input mode in the statusbar.
 
 ## tabs
 
