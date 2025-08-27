@@ -174,6 +174,8 @@ class StatusBar(QWidget):
 
         self.txt = textbase.TextBase()
         self._stack.addWidget(self.txt)
+        if not config.val.statusbar.mode_text:
+            self.txt.hide()
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
@@ -232,6 +234,11 @@ class StatusBar(QWidget):
             self._set_hbox_padding()
         elif option == 'statusbar.widgets':
             self._draw_widgets()
+        elif option == 'statusbar.mode_text':
+            if not config.val.statusbar.mode_text:
+                self.txt.hide()
+            else:
+                self.txt.show()
 
     def _draw_widgets(self):
         """Draw statusbar widgets."""
