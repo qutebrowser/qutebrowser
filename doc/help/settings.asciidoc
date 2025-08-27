@@ -314,6 +314,7 @@
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
+|<<statusbar.mode_text,statusbar.mode_text>>|Show a text widget with the current input mode in the statusbar
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
 |<<statusbar.show,statusbar.show>>|When to show the statusbar.
@@ -4169,6 +4170,14 @@ Valid values:
  * +vi-VN+: Vietnamese (Viet Nam)
 
 Default: empty
+
+[[statusbar.mode_text]]
+=== statusbar.mode_text
+Show a text widget with the current input mode in the statusbar
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[statusbar.padding]]
 === statusbar.padding
