@@ -36,6 +36,15 @@ create_menu_items() {
         'select title, url from CompletionHistory ORDER BY last_atime DESC')"
 }
 
+# Main
+# https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/font
+[[ -s $confdir/dmenu/font ]] && read -r font < "$confdir"/dmenu/font
+
+[[ -n $font ]] && opts+=(-fn "$font")
+
+# shellcheck source=/dev/null
+[[ -s $optsfile ]] && source "$optsfile"
+
 while true; do
     selection=$(create_menu_items | create_menu)
     exit_code=$?
