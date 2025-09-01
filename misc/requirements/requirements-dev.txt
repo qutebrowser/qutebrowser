@@ -37,8 +37,8 @@ mdurl==0.1.2
 more-itertools==10.7.0
 nh3==0.3.0
 packaging==25.0
-platformdirs==4.3.8
-prompt_toolkit==3.0.51
+platformdirs==4.4.0
+prompt_toolkit==3.0.52
 pycparser==2.22
 pydantic==2.11.7
 pydantic-settings==2.10.1
@@ -50,7 +50,7 @@ pyproject_hooks==1.2.0
 PyQt-builder==1.18.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
-questionary==2.1.0
+questionary==2.1.1
 readme_renderer==44.0
 requests==2.32.5
 requests-toolbelt==1.0.0
@@ -66,7 +66,7 @@ tomlkit==0.13.3
 twine==6.1.0
 typeguard==4.3.0
 typing-inspection==0.4.1
-typing_extensions==4.14.1
+typing_extensions==4.15.0
 uritemplate==4.2.0
 # urllib3==2.5.0
 wcmatch==10.1
