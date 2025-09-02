@@ -33,7 +33,7 @@ jobs:
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up problem matchers

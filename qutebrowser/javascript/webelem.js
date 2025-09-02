@@ -191,36 +191,51 @@ window._qutebrowser.webelem = (function() {
         }
     }
 
-    funcs.find_css = (selector, only_visible) => {
-        let elems;
+    // Recursively finds elements from DOM that have a shadowRoot
+    // and returns the shadow roots in a list
+    function find_shadow_roots(container = document) {
+        const roots = [];
 
-        try {
-            elems = document.querySelectorAll(selector);
-        } catch (ex) {
-            return {"success": false, "error": ex.toString()};
-        }
-
-        const subelem_frames = window.frames;
-        const out = [];
-
-        for (let i = 0; i < elems.length; ++i) {
-            if (!only_visible || is_visible(elems[i])) {
-                out.push(serialize_elem(elems[i]));
+        for (const elem of container.querySelectorAll("*")) {
+            if (elem.shadowRoot) {
+                roots.push(elem.shadowRoot, ...find_shadow_roots(elem.shadowRoot));
             }
         }
 
-        // Recurse into frames and add them
-        for (let i = 0; i < subelem_frames.length; i++) {
-            if (iframe_same_domain(subelem_frames[i])) {
-                const frame = subelem_frames[i];
-                const subelems = frame.document.
-                    querySelectorAll(selector);
-                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
-                    if (!only_visible ||
-                        is_visible(subelems[elem_num], frame)) {
-                        out.push(serialize_elem(subelems[elem_num], frame));
-                    }
+        return roots;
+    }
+
+    funcs.find_css = (selector, only_visible) => {
+        // Find all places where we need to look for elements:
+        const containers = [[document, null]];
+        // Same-domain iframes
+        for (const frame of Array.from(window.frames)) {
+            if (iframe_same_domain(frame)) {
+                containers.push([frame.document, frame]);
+            }
+        }
+        // Open shadow roots
+        for (const root of find_shadow_roots()) {
+            containers.push([root, null]);
+        }
+
+        // Then find elements in all of them
+        const elems = [];
+        for (const [container, frame] of containers) {
+            try {
+                for (const elem of container.querySelectorAll(selector)) {
+                    elems.push([elem, frame]);
                 }
+            } catch (ex) {
+                return {"success": false, "error": ex.toString()};
+            }
+        }
+
+        // Finally, filter by visibility
+        const out = [];
+        for (const [elem, frame] of elems) {
+            if (!only_visible || is_visible(elem, frame)) {
+                out.push(serialize_elem(elem, frame));
             }
         }
 

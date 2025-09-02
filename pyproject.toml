@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[tool.check-manifest]
+ignore = [
+    "qutebrowser/git-commit-id",
+    "qutebrowser/html/doc",
+    "qutebrowser/html/doc/*",
+    "qutebrowser/html/doc/img/cheatsheet-*.png",
+    "*/__pycache__",
+]

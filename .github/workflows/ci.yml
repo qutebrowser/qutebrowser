@@ -27,7 +27,6 @@ jobs:
           - testenv: vulture
           - testenv: misc
           - testenv: pyroma
-          - testenv: check-manifest
           - testenv: eslint
           - testenv: shellcheck
             args: "-f gcc"  # For problem matchers
@@ -35,7 +34,7 @@ jobs:
           - testenv: actionlint
           - testenv: package
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: actions/cache@v4
@@ -111,7 +110,7 @@ jobs:
         - /home/runner/work/_temp/:/home/runner/work/_temp/
       options: --privileged --tty
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up problem matchers
@@ -218,7 +217,7 @@ jobs:
             python: "3.13"
     runs-on: "${{ matrix.os }}"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: actions/cache@v4
@@ -286,7 +285,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Initialize CodeQL
