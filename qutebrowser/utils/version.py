@@ -559,6 +559,7 @@ class WebEngineVersions:
         118: '118.0.5993.220',  # 2024-01-25, Qt 6.7
         122: '122.0.6261.171',  # 2024-04-15, Qt 6.8
         130: '130.0.6723.192',  # 2025-01-06, Qt 6.9
+        134: '134.0.6998.208',  # 2025-04-16, Qt 6.10
     }
 
     # Dates based on https://chromereleases.googleblog.com/
@@ -652,9 +653,10 @@ class WebEngineVersions:
         ## Qt 6.9
         utils.VersionNumber(6, 9): (_BASES[130], '133.0.6943.141'),  # 2025-02-25
         utils.VersionNumber(6, 9, 1): (_BASES[130], '136.0.7103.114'),  # 2025-05-13
+        utils.VersionNumber(6, 9, 2): (_BASES[130], '139.0.7258.67'),  # 2025-07-29
 
         ## Qt 6.10 (WIP)
-        utils.VersionNumber(6, 10): (_BASES[130], '137.0.7151.68'),  # 2025-05-30
+        utils.VersionNumber(6, 10): (_BASES[134], '134.0.6998.208'),  # 2025-04-16
     }
 
     def __post_init__(self) -> None:
