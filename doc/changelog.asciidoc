@@ -29,6 +29,8 @@ Added
 Changed
 ~~~~~~~
 
+- Windows releases are now built on Windows Server 2022 (previously 2019),
+  which might break compatibility with older Windows releases (untested).
 - The `qutedmenu` userscript now sorts history by the last access time.
 
 [[v3.5.2]]
