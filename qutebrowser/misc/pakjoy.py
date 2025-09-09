@@ -35,6 +35,7 @@ from collections.abc import Iterator
 
 from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
+from qutebrowser.qt import core
 from qutebrowser.utils import qtutils, standarddir, version, utils, log, message
 
 HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
@@ -57,7 +58,11 @@ PAK_VERSION = 5
 RESOURCES_ENV_VAR = "QTWEBENGINE_RESOURCES_PATH"
 DISABLE_ENV_VAR = "QUTE_DISABLE_PAKJOY"
 CACHE_DIR_NAME = "webengine_resources_pak_quirk"
-PAK_FILENAME = "qtwebengine_resources.pak"
+PAK_FILENAME = (
+    "qtwebengine_resources.debug.pak"
+    if core.QLibraryInfo.isDebugBuild()
+    else "qtwebengine_resources.pak"
+)
 
 TARGET_URL = b"https://*.google.com/*"
 REPLACEMENT_URL = b"https://qute.invalid/*"
