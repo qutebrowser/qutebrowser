@@ -51,6 +51,7 @@ jobs:
           scoop update
           scoop bucket add extras
           scoop install nsis
+          Add-Content $env:GITHUB_PATH "C:\Users\runneradmin\scoop\shims"
       - name: Install dependencies
         run: |
             python -m pip install -U pip
