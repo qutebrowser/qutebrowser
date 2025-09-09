@@ -253,6 +253,10 @@ def is_ignored_chromium_message(line):
         # Qt 6.9 on GitHub Actions with Windows Server 2025
         # [4348:7828:0605/123815.402:ERROR:shared_image_manager.cc(356)]
         "SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.",
+
+        # Qt 6.10 debug build
+        # "[453900:453973:0909/000324.265214:WARNING:viz_main_impl.cc(85)]"
+        "VizNullHypothesis is disabled (not a warning)",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
