@@ -481,7 +481,7 @@ def _delete_history_urls(urls: list[str]) -> None:
 
 
 @cmdutils.register()
-def history_clear_site(url: str, force: bool = False):
+def history_clear_site(url: str, force: bool = False) -> None:
     """Clear browsing history for a specific site.
 
     Args:
