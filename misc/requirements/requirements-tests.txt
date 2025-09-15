@@ -16,7 +16,7 @@ filelock==3.19.1
 Flask==3.1.2
 gherkin-official==29.0.0
 hunter==3.9.0
-hypothesis==6.138.14
+hypothesis==6.138.16
 idna==3.10
 importlib_metadata==8.7.0
 importlib_resources==6.5.2
@@ -43,7 +43,7 @@ Pygments==2.19.2
 pytest==8.4.2
 pytest-bdd==8.1.0
 pytest-benchmark==5.1.0
-pytest-cov==6.3.0
+pytest-cov==7.0.0
 pytest-instafail==0.5.0
 pytest-mock==3.15.0
 pytest-qt==4.5.0
