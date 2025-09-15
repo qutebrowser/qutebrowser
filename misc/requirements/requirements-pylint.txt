@@ -2,7 +2,7 @@
 
 astroid==3.3.11
 certifi==2025.8.3
-cffi==1.17.1
+cffi==2.0.0
 charset-normalizer==3.4.3
 cryptography==45.0.7
 dill==0.4.0
@@ -12,7 +12,7 @@ isort==6.0.1
 mccabe==0.7.0
 pefile==2024.8.26
 platformdirs==4.4.0
-pycparser==2.22
+pycparser==2.23
 PyJWT==2.10.1
 pylint==3.3.8
 python-dateutil==2.9.0.post0

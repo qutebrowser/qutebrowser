@@ -3,6 +3,6 @@
 altgraph==0.17.4
 importlib_metadata==8.7.0
 packaging==25.0
-pyinstaller==6.15.0
+pyinstaller==6.16.0
 pyinstaller-hooks-contrib==2025.8
 zipp==3.23.0
