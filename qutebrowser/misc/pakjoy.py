@@ -26,6 +26,7 @@ instead of crashing.
 """
 
 import os
+import sys
 import shutil
 import pathlib
 import dataclasses
@@ -308,3 +309,12 @@ def patch_webengine() -> Iterator[None]:
         del os.environ[RESOURCES_ENV_VAR]
     else:
         os.environ[RESOURCES_ENV_VAR] = old_value
+
+
+if __name__ == "__main__":
+    with open(sys.argv[1], "rb") as f:
+        parser = PakParser(f)
+        print(parser.manifest.decode("utf-8"))
+        print()
+        print(f"entry: {parser.manifest_entry}")
+        print(f"URL offset: {parser.find_patch_offset()}")
