@@ -363,7 +363,7 @@ Feature: Saving and loading sessions
   Scenario: Saving session with an empty download tab
     When I open data/downloads/downloads.html
     And I run :click-element --force-event -t tab id download
-    And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
+    And I wait for "Asking question <qutebrowser.utils.usertypes.Question choices=None default='*' mode=<PromptMode.download: 5> *" in the log
     And I run :mode-leave
     And I run :session-save current
     And I run :session-load --clear current
