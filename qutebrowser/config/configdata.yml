@@ -1602,6 +1602,7 @@ fileselect.single_file.command:
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
       - ['["xterm", "-e", "fff", "-p", "{}"]', "fff in xterm"]
       - ['["xterm", "-e", "lf", "-selection-path", "{}"]', "lf in xterm"]
+      - ['["xterm", "-e", "yazi", "--chooser-file", "{}"]', "yazi in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
     Command (and arguments) to use for selecting a single file in forms.
@@ -1622,6 +1623,7 @@ fileselect.multiple_files.command:
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
       - ['["xterm", "-e", "fff", "-p", "{}"]', "fff in xterm"]
       - ['["xterm", "-e", "lf", "-selection-path", "{}"]', "lf in xterm"]
+      - ['["xterm", "-e", "yazi", "--chooser-file", "{}"]', "yazi in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefiles={}']
   desc: >-
     Command (and arguments) to use for selecting multiple files in forms.
@@ -1641,6 +1643,7 @@ fileselect.folder.command:
       - ['["xterm", "-e", "ranger", "--choosedir={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-dir", "{}"]', "vifm in xterm"]
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+      - ['["xterm", "-e", "yazi", "--cwd-file", "{}"]', "yazi in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosedir={}']
   desc: >-
     Command (and arguments) to use for selecting a single folder in forms.
