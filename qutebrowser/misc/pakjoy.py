@@ -311,10 +311,14 @@ def patch_webengine() -> Iterator[None]:
         os.environ[RESOURCES_ENV_VAR] = old_value
 
 
-if __name__ == "__main__":
+def main() -> None:
     with open(sys.argv[1], "rb") as f:
         parser = PakParser(f)
         print(parser.manifest.decode("utf-8"))
         print()
         print(f"entry: {parser.manifest_entry}")
         print(f"URL offset: {parser.find_patch_offset()}")
+
+
+if __name__ == "__main__":
+    main()
