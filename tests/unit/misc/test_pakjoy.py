@@ -12,6 +12,7 @@ import shutil
 
 import pytest
 
+from qutebrowser.qt import machinery
 from qutebrowser.misc import pakjoy, binparsing
 from qutebrowser.utils import utils, version, standarddir, usertypes
 
@@ -193,11 +194,19 @@ def read_patched_manifest():
     return json_without_comments(reparsed.manifest)
 
 
+skip_if_incompatible = pytest.mark.skipif(
+    not machinery.IS_QT6
+    or version.qtwebengine_versions(avoid_init=True).webengine
+    >= utils.VersionNumber(6, 10),
+    reason="Only needed for Qt 6; Qt 6.10+ uses gzip storage for manifest",
+)
+
+
 @pytest.mark.usefixtures("affected_version")
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
 
-    @pytest.mark.qt6_only
+    @skip_if_incompatible
     def test_happy_path(self):
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
@@ -257,7 +266,7 @@ class TestWithRealResourcesFile:
             "Not applying quirks. Expected location: "
         )
 
-    @pytest.mark.qt6_only
+    @skip_if_incompatible
     def test_hardcoded_ids(self):
         """Make sure we hardcoded the currently valid ID.
 
@@ -457,7 +466,7 @@ class TestWithConstructedResourcesFile:
         )
         assert pakjoy.RESOURCES_ENV_VAR not in os.environ
 
-    @pytest.mark.qt6_only
+    @skip_if_incompatible
     def test_explicitly_enabled(self, monkeypatch: pytest.MonkeyPatch, config_stub):
         patch_version(monkeypatch, utils.VersionNumber(6, 7))  # unaffected
         config_stub.val.qt.workarounds.disable_hangouts_extension = True
