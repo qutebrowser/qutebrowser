@@ -927,7 +927,7 @@ class WebKitTab(browsertab.AbstractTab):
     def stop(self):
         self._widget.stop()
 
-    def title(self):
+    def raw_title(self):
         return self._widget.title()
 
     def renderer_process_pid(self) -> Optional[int]:
@@ -1017,6 +1017,12 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_ssl_errors(self, reply):
         self._insecure_hosts.add(reply.url().host())
 
+    def _on_title_changed(self, title):
+        """Handle title updates."""
+        if self.data.custom_title:
+            return
+        self.title_changed.emit(title)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1031,7 +1037,7 @@ class WebKitTab(browsertab.AbstractTab):
             self._on_load_started)
         view.scroll_pos_changed.connect(self.scroller.perc_changed)
         view.titleChanged.connect(  # type: ignore[attr-defined]
-            self.title_changed)
+            self._on_title_changed)
         view.urlChanged.connect(  # type: ignore[attr-defined]
             self._on_url_changed)
         view.shutting_down.connect(self.shutting_down)

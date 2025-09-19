@@ -1402,7 +1402,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def stop(self):
         self._widget.stop()
 
-    def title(self):
+    def raw_title(self):
         return self._widget.title()
 
     def renderer_process_pid(self) -> int:
@@ -1675,6 +1675,12 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
+    def _on_title_changed(self, title):
+        """Handle title updates."""
+        if self.data.custom_title:
+            return
+        self.title_changed.emit(title)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1693,7 +1699,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
 
-        view.titleChanged.connect(self.title_changed)
+        view.titleChanged.connect(self._on_title_changed)
         view.urlChanged.connect(self._on_url_changed)
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
