@@ -129,6 +129,14 @@ Feature: Downloading things from a website.
         And I wait for "Download drip finished" in the log
         Then the downloaded file drip should be 128 bytes big
 
+    Scenario: Shutting down with a download question
+        When I set downloads.location.prompt to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I run :close
+        Then qutebrowser should quit
+        # (and no crash should happen)
+
     Scenario: Downloading a file with spaces
         When I open data/downloads/download with spaces.bin without waiting
         And I wait until the download is finished

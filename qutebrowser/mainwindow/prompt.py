@@ -342,9 +342,9 @@ class PromptContainer(QWidget):
         """Leave KEY_MODE whenever a prompt is aborted."""
         try:
             modeman.leave(self._win_id, key_mode, 'aborted', maybe=True)
-        except objreg.RegistryUnavailableError:
+        except (objreg.RegistryUnavailableError, RuntimeError):
             # window was deleted: ignore
-            pass
+            log.prompt.debug(f"Ignoring leaving {key_mode} as window was deleted")
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_prompt_done(self, key_mode):
