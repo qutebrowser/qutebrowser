@@ -654,6 +654,12 @@ class FilenamePrompt(_BasePrompt):
 
     """A prompt for a filename."""
 
+    # Note: This *must* be a class variable! If it's not, for unknown reasons,
+    # we get a segfault in Qt/PyQt in QFileInfoGatherer::getInfo() if we have
+    # nested download prompts (i.e. trigger a download while a download prompt
+    # is open already).
+    _null_icon_provider = NullIconProvider()
+
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._init_texts(question)
@@ -753,7 +759,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_model = QFileSystemModel(self)
 
         # avoid icon and mime type lookups, they are slow in Qt6
-        self._file_model.setIconProvider(NullIconProvider())
+        self._file_model.setIconProvider(self._null_icon_provider)
 
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)

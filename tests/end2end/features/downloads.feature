@@ -669,6 +669,20 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
 
+    Scenario: Nested download prompts (#8674)
+        When I set downloads.location.prompt to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I run :prompt-accept
+        And I run :mode-leave
+        And I run :mode-leave
+        And I wait until the download is finished
+        Then the downloaded file download.bin should exist
+
     @qtwebengine_skip  # We can't get the UA from the page there
     Scenario: user-agent when using :download
         When I open user-agent
