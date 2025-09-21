@@ -45,6 +45,10 @@ Fixed
   QtWebEngine 6.9 on Google Meet, Zoom, or other pages using the new
   `<permission>` element now got extended to Qt 6.9.1+ as it's still not fixed
   upstream. (#8612)
+- Fixed crash if two new downloads start while a download prompt is already open
+  (#8674).
+- Fixed exception when closing a qutebrowser window while a download prompt is
+  still open.
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)
