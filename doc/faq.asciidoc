@@ -61,7 +61,7 @@ Why Python?::
     point, I wasn't comfortable with C++ so that wasn't an alternative.
 
 But isn't Python too slow for a browser?::
-    https://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[It's generally less of a problem than one would expect.]
+    https://www.infoworld.com/article/2303031/van-rossum-python-is-not-too-slow-2.html[It's generally less of a problem than one would expect.]
     Most of the heavy lifting of qutebrowser is done by Qt and
     QtWebKit/QtWebEngine in C++, with the
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
