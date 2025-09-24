@@ -677,6 +677,7 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
 
+    @qt>=6.9
     Scenario: Nested download prompts (#8674)
         When I set downloads.location.prompt to true
         And I open data/downloads/download.bin without waiting
