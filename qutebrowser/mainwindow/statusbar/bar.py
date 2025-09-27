@@ -16,7 +16,8 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex, textbase, clock, searchmatch)
+                                              tabindex, textbase, clock, searchmatch,
+                                              page_ram_usage)
 
 
 @dataclasses.dataclass
@@ -188,6 +189,7 @@ class StatusBar(QWidget):
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
         self.clock = clock.Clock()
+        self.page_ram_usage = page_ram_usage.PageRamUsage()
         self._text_widgets = []
         self._draw_widgets()
 
@@ -221,6 +223,8 @@ class StatusBar(QWidget):
             return new_text_widget
         elif key.startswith('clock:') or key == 'clock':
             return self.clock
+        elif key == "page_ram_usage":
+            return self.page_ram_usage
         else:
             raise utils.Unreachable(key)
 
@@ -246,11 +250,13 @@ class StatusBar(QWidget):
 
             if segment == 'scroll_raw':
                 widget.set_raw()
+            elif segment == 'page_ram_usage':
+                if tab:
+                    widget.on_tab_changed(tab)
             elif segment in ('history', 'progress'):
                 widget.enabled = True
                 if tab:
                     widget.on_tab_changed(tab)
-
                 # Do not call .show() for these widgets. They are not always shown, and
                 # dynamically show/hide themselves in their on_tab_changed() methods.
                 continue
@@ -270,7 +276,8 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog, self.clock, *self._text_widgets]:
+                       self.keystring, self.prog, self.clock, *self._text_widgets,
+                       self.page_ram_usage]:
             assert isinstance(widget, QWidget)
             if widget in [self.prog, self.backforward]:
                 widget.enabled = False  # type: ignore[attr-defined]
@@ -420,6 +427,7 @@ class StatusBar(QWidget):
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
+        self.page_ram_usage.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
