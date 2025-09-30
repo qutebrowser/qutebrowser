@@ -9,7 +9,7 @@ idna==3.10
 imagesize==1.4.1
 importlib_metadata==8.7.0
 Jinja2==3.1.6
-MarkupSafe==3.0.2
+MarkupSafe==3.0.3
 packaging==25.0
 Pygments==2.19.2
 requests==2.32.5
