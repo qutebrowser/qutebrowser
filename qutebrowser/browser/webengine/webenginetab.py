@@ -1639,6 +1639,37 @@ class WebEngineTab(browsertab.AbstractTab):
             navigation.accepted = False
             self.load_url(navigation.url)
 
+        # WORKAROUND for QtWebEngine >= 6.2 not allowing form requests from
+        # qute:// to outside domains.
+        needs_load_workarounds = (
+            objects.backend == usertypes.Backend.QtWebEngine and
+            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
+        )
+        if (
+            needs_load_workarounds and
+            self.url() == QUrl("qute://start/") and
+            navigation.navigation_type == navigation.Type.form_submitted and
+            navigation.url.matches(
+                QUrl(config.val.url.searchengines['DEFAULT']),
+                urlutils.FormatOption.REMOVE_QUERY)
+        ):
+            log.webview.debug(
+                "Working around qute://start loading issue for "
+                f"{navigation.url.toDisplayString()}")
+            navigation.accepted = False
+            self.load_url(navigation.url)
+
+        if (
+            needs_load_workarounds and
+            self.url() == QUrl("qute://bookmarks/") and
+            navigation.navigation_type == navigation.Type.back_forward
+        ):
+            log.webview.debug(
+                "Working around qute://bookmarks loading issue for "
+                f"{navigation.url.toDisplayString()}")
+            navigation.accepted = False
+            self.load_url(navigation.url)
+
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
