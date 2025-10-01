@@ -13,7 +13,7 @@ import html as html_utils
 from typing import cast, Union, Optional
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QObject, QByteArray)
+                          QObject, QByteArray, QTimer)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
@@ -1619,6 +1619,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
 
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103778
         local_schemes = {"qute", "file"}
         qtwe_ver = version.qtwebengine_versions().webengine
         if (
@@ -1631,7 +1632,6 @@ class WebEngineTab(browsertab.AbstractTab):
             (utils.VersionNumber(6, 2) <= qtwe_ver < utils.VersionNumber(6, 2, 5) or
              utils.VersionNumber(6, 3) <= qtwe_ver < utils.VersionNumber(6, 3, 1))
         ):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-103778
             log.webview.debug(
                 "Working around blocked request from local page "
                 f"{self.url().toDisplayString()}"
@@ -1641,12 +1641,8 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # WORKAROUND for QtWebEngine >= 6.2 not allowing form requests from
         # qute:// to outside domains.
-        needs_load_workarounds = (
-            objects.backend == usertypes.Backend.QtWebEngine and
-            version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 2)
-        )
         if (
-            needs_load_workarounds and
+            qtwe_ver >= utils.VersionNumber(6, 2) and
             self.url() == QUrl("qute://start/") and
             navigation.navigation_type == navigation.Type.form_submitted and
             navigation.url.matches(
@@ -1657,10 +1653,14 @@ class WebEngineTab(browsertab.AbstractTab):
                 "Working around qute://start loading issue for "
                 f"{navigation.url.toDisplayString()}")
             navigation.accepted = False
-            self.load_url(navigation.url)
+            # Using QTimer.singleShot as WORKAROUND for this crashing otherwise
+            # with QtWebEngine 6.10: https://bugreports.qt.io/browse/QTBUG-140543
+            QTimer.singleShot(0, functools.partial(self.load_url, navigation.url))
 
+        # WORKAROUND for QtWebEngine 6.2 - 6.5 blocking back/forward navigation too
         if (
-            needs_load_workarounds and
+            qtwe_ver >= utils.VersionNumber(6, 2) and
+            qtwe_ver < utils.VersionNumber(6, 6) and
             self.url() == QUrl("qute://bookmarks/") and
             navigation.navigation_type == navigation.Type.back_forward
         ):
