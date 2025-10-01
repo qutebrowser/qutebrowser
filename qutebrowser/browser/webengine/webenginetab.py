@@ -1659,8 +1659,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # WORKAROUND for QtWebEngine 6.2 - 6.5 blocking back/forward navigation too
         if (
-            qtwe_ver >= utils.VersionNumber(6, 2) and
-            qtwe_ver < utils.VersionNumber(6, 6) and
+            utils.VersionNumber(6, 6) > qtwe_ver >= utils.VersionNumber(6, 2) and
             self.url() == QUrl("qute://bookmarks/") and
             navigation.navigation_type == navigation.Type.back_forward
         ):
