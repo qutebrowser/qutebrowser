@@ -194,6 +194,17 @@ class StatusBar(QWidget):
         config.instance.changed.connect(self._on_config_changed)
         QTimer.singleShot(0, self.maybe_hide)
 
+    def connect_slot_to_hide_cmd(self, slot):
+        """Connect slot to signal cmd.hide_cmd.
+
+        This method makes sure the slot is called before
+        the widget cmd gets hides.
+        This allows to set focus where we need to before
+        the focus is changed automatically by hiding cmd."""
+        self.cmd.hide_cmd.disconnect(self._hide_cmd_widget)
+        self.cmd.hide_cmd.connect(slot)
+        self.cmd.hide_cmd.connect(self._hide_cmd_widget)
+
     def __repr__(self):
         return utils.get_repr(self)
 
