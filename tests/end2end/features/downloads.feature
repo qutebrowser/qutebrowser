@@ -78,8 +78,8 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
-        Then the error "Download error: No handler found for qute://" should be shown
-        And "NotFoundError while handling qute://* URL" should be logged
+        Then the error "Download error: Invalid host (from path): ''" should be shown
+        And "UrlInvalidError while handling qute://* URL" should be logged
 
     Scenario: Downloading a data: link (issue 1214)
         When I set downloads.location.suggestion to filename
