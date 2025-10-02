@@ -42,7 +42,7 @@ class TestDataForUrl:
     def test_invalid_redirect(self) -> None:
         url = QUrl("qute:-")
         with pytest.raises(
-            qutescheme.NotFoundError, match="No handler found for qute:-"
+            qutescheme.UrlInvalidError, match=r"Invalid host \(from path\): '-'"
         ):
             qutescheme.data_for_url(url)
 

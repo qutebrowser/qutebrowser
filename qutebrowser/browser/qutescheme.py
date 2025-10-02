@@ -132,8 +132,9 @@ def data_for_url(url: QUrl) -> tuple[str, bytes]:
         new_url = QUrl(url)
         new_url.setHost(path)
         new_url.setPath('/')
-        if new_url.host():  # path was a valid host
-            raise Redirect(new_url)
+        if not new_url.host():  # Valid path but not valid host
+            raise UrlInvalidError(f"Invalid host (from path): {path!r}")
+        raise Redirect(new_url)
 
     if not path:
         # Redirect qute://help -> qute://help/
