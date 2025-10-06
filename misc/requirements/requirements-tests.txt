@@ -3,9 +3,9 @@
 attrs==25.3.0
 autocommand==2.2.2
 backports.tarfile==1.2.0
-beautifulsoup4==4.14.0
+beautifulsoup4==4.14.2
 blinker==1.9.0
-certifi==2025.8.3
+certifi==2025.10.5
 charset-normalizer==3.4.3
 cheroot==11.0.0
 click==8.1.8
@@ -16,7 +16,7 @@ filelock==3.19.1
 Flask==3.1.2
 gherkin-official==29.0.0
 hunter==3.9.0
-hypothesis==6.140.2
+hypothesis==6.140.3
 idna==3.10
 importlib_metadata==8.7.0
 importlib_resources==6.5.2
