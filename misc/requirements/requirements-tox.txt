@@ -12,7 +12,7 @@ pluggy==1.6.0
 pyproject-api==1.9.1
 setuptools==80.9.0
 tomli==2.2.1
-tox==4.30.2 ; python_full_version!="3.14.0b1"
+tox==4.30.3 ; python_full_version!="3.14.0b1"
 typing_extensions==4.15.0
 virtualenv==20.34.0
 wheel==0.45.1
