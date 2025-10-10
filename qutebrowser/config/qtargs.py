@@ -356,7 +356,11 @@ _WEBENGINE_SETTINGS: dict[str, dict[Any, Optional[_SettingValueType]]] = {
     'qt.workarounds.disable_accelerated_2d_canvas': {
         'always': '--disable-accelerated-2d-canvas',
         'never': None,
-        'auto': lambda _versions: '--disable-accelerated-2d-canvas' if machinery.IS_QT6 else None,
+        'auto': lambda versions: '--disable-accelerated-2d-canvas'
+        if machinery.IS_QT6
+        and versions.webengine
+        and versions.webengine < utils.VersionNumber(6, 8, 2)
+        else None,
     },
 }
 

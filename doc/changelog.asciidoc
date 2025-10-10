@@ -32,6 +32,11 @@ Changed
 - Windows releases are now built on Windows Server 2022 (previously 2019),
   which might break compatibility with older Windows releases (untested).
 - The `qutedmenu` userscript now sorts history by the last access time.
+- Hardware accelerated 2D canvas is now enabled by default on Qt 6.8.2+,
+  as graphic glitches with e.g. PDF.js and Google Sheets should be fixed
+  nowadays. If you still run into issues, please report them and set
+  `qt.workarounds.disable_accelerated_2d_canvas` to `always` to disable it
+  again.
 
 [[v3.5.2]]
 v3.5.2 (unreleased)
