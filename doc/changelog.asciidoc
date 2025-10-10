@@ -53,6 +53,8 @@ Fixed
   from a `qute://` page to a web page, e.g. when searching on `qute://start`
 - Hopefully proper fix for some web pages jumping to the top when the statusbar
   is hidden. (#8223)
+- Fix for the page header being shown on YouTube after the fullscreen notification was hidden (#8625).
+- Fix for videos losing keyboard focus when the fullscreen notification shows (#8174).
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)

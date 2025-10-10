@@ -940,6 +940,10 @@ class _WebEnginePermissions(QObject):
                 notif = miscwidgets.FullscreenNotification(self._widget)
                 notif.set_timeout(timeout)
                 notif.show()
+                # Restore keyboard focus to the tab. Setting a NoFocus policy
+                # for FullscreenNotification doesn't seem to work.
+                if self._widget.isVisible():
+                    self._widget.setFocus()
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
