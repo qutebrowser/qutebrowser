@@ -562,7 +562,7 @@ class MainWindow(QWidget):
             self._completion.on_clear_completion_selection)
         self.status.cmd.hide_completion.connect(
             self._completion.hide)
-        self.status.cmd.hide_cmd.connect(self.tabbed_browser.on_release_focus)
+        self.status.release_focus.connect(self.tabbed_browser.on_release_focus)
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""

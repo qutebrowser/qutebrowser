@@ -49,7 +49,10 @@ Fixed
   (#8674).
 - Fixed exception when closing a qutebrowser window while a download prompt is
   still open.
-- Fixed crash with Qt 6.10 (and possibly older Qt versions) when navigating from a `qute://` page to a web page, e.g. when searching on `qute://start`
+- Fixed crash with Qt 6.10 (and possibly older Qt versions) when navigating
+  from a `qute://` page to a web page, e.g. when searching on `qute://start`
+- Hopefully proper fix for some web pages jumping to the top when the statusbar
+  is hidden. (#8223)
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)

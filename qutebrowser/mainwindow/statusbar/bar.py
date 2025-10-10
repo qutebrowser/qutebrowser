@@ -140,10 +140,12 @@ class StatusBar(QWidget):
         moved: Emitted when the statusbar has moved, so the completion widget
                can move to the right position.
                arg: The new position.
+        release_focus: Emitted just before the statusbar is hidden.
     """
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
+    release_focus = pyqtSignal()
 
     STYLESHEET = _generate_stylesheet()
 
@@ -284,16 +286,20 @@ class StatusBar(QWidget):
         strategy = config.val.statusbar.show
         tab = self._current_tab()
         if tab is not None and tab.data.fullscreen:
+            self.release_focus.emit()
             self.hide()
         elif strategy == 'never':
+            self.release_focus.emit()
             self.hide()
         elif strategy == 'in-mode':
             try:
                 mode_manager = modeman.instance(self._win_id)
             except modeman.UnavailableError:
+                self.release_focus.emit()
                 self.hide()
             else:
                 if mode_manager.mode == usertypes.KeyMode.normal:
+                    self.release_focus.emit()
                     self.hide()
                 else:
                     self.show()
