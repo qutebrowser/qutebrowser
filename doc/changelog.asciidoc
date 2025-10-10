@@ -58,8 +58,12 @@ Fixed
   from a `qute://` page to a web page, e.g. when searching on `qute://start`
 - Hopefully proper fix for some web pages jumping to the top when the statusbar
   is hidden. (#8223)
-- Fix for the page header being shown on YouTube after the fullscreen notification was hidden (#8625).
-- Fix for videos losing keyboard focus when the fullscreen notification shows (#8174).
+- Fix for the page header being shown on YouTube after the fullscreen
+  notification was hidden (#8625).
+- Fix for videos losing keyboard focus when the fullscreen notification shows
+  (#8174).
+- On Wayland with Qt <= 6.9, `EGL_PLATFORM=wayland` is now set by qutebrowser to
+  get hardware rendering. Qt 6.10 includes an equivalent fix (#8637).
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)
