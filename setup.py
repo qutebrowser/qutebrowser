@@ -10,7 +10,8 @@ import re
 import ast
 import os
 import sys
-from pathlib import Path
+import pathlib
+
 # Add repo root to path so we can import scripts. Prior to PEP517 support this
 # was the default behavior for setuptools.
 # https://github.com/pypa/setuptools/issues/3939#issuecomment-1573619382
@@ -24,7 +25,7 @@ import setuptools
 
 
 try:
-    BASEDIR = Path(__file__).resolve().parent
+    BASEDIR = pathlib.Path(__file__).resolve().parent
 except NameError:
     BASEDIR = None
 
