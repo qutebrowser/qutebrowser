@@ -38,10 +38,6 @@ Changed
   `qt.workarounds.disable_accelerated_2d_canvas` to `always` to disable it
   again.
 
-[[v3.5.2]]
-v3.5.2 (unreleased)
--------------------
-
 Fixed
 ~~~~~
 
@@ -64,6 +60,8 @@ Fixed
   (#8174).
 - On Wayland with Qt <= 6.9, `EGL_PLATFORM=wayland` is now set by qutebrowser to
   get hardware rendering. Qt 6.10 includes an equivalent fix (#8637).
+- Added workaround for per-domain User-Agent header not being used on redirects
+  (#8679).
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)
