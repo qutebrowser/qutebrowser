@@ -1673,6 +1673,21 @@ class WebEngineTab(browsertab.AbstractTab):
             navigation.accepted = False
             self.load_url(navigation.url)
 
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-140515
+        ua_setting = "content.headers.user_agent"
+        if (
+            navigation.accepted
+            and config.instance.get(ua_setting, navigation.url, fallback=False)
+            is not usertypes.UNSET
+            and navigation.navigation_type == usertypes.NavigationRequest.Type.redirect
+            and navigation.is_main_frame
+            and utils.VersionNumber(6, 5) <= qtwe_ver < utils.VersionNumber(6, 10, 1)
+        ):
+            navigation.accepted = False
+            # Using QTimer.singleShot as WORKAROUND for this crashing otherwise
+            # with QtWebEngine 6.10: https://bugreports.qt.io/browse/QTBUG-140543
+            QTimer.singleShot(0, functools.partial(self.load_url, navigation.url))
+
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
