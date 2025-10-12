@@ -16,7 +16,7 @@ on:
       python_version:
         description: 'Python version'
         required: true
-        default: '3.13'
+        default: '3.14'
         type: choice
         options:
           - '3.9'
@@ -24,6 +24,7 @@ on:
           - '3.11'
           - '3.12'
           - '3.13'
+          - '3.14'
 jobs:
   prepare:
     runs-on: ubuntu-24.04

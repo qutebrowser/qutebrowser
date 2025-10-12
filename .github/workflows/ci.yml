@@ -191,30 +191,30 @@ jobs:
             os: ubuntu-24.04
             python: "3.13"
           ### PyQt 6.8 (Python 3.13)
-          - testenv: py314-pyqt68
+          - testenv: py313-pyqt68
             os: ubuntu-24.04
             python: "3.13"
           ### PyQt 6.9 (Python 3.14)
-          - testenv: py313-pyqt69
+          - testenv: py314-pyqt69
             os: ubuntu-24.04
             python: "3.14"
           ### macOS Ventura
-          - testenv: py313-pyqt69
+          - testenv: py314-pyqt69
             os: macos-13
-            python: "3.13"
+            python: "3.14"
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
-          - testenv: py313-pyqt69
+          - testenv: py314-pyqt69
             os: macos-14
-            python: "3.13"
+            python: "3.14"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py313-pyqt69
+          - testenv: py314-pyqt69
             os: windows-2022
-            python: "3.13"
-          - testenv: py313-pyqt69
+            python: "3.14"
+          - testenv: py314-pyqt69
             os: windows-2025
-            python: "3.13"
+            python: "3.14"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v5
