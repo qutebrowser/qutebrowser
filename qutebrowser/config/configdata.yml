@@ -658,6 +658,7 @@ content.site_specific_quirks.skip:
     valid_values:
       - ua-google
       - ua-googledocs
+      - ua-gnome-gitlab
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall
