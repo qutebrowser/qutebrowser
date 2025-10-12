@@ -67,6 +67,8 @@ Fixed
   (#8679).
 - Added site-specific quirk for gitlab.gnome.org agressively blocking old
   Chromium versions (and thus QtWebEngine) (#8509).
+- Using `:config-list-remove` with an invalid value for the respective option
+  type now corrently displays an error instead of crashing.
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)

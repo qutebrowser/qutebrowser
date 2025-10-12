@@ -315,9 +315,10 @@ class TestAdd:
         with pytest.raises(cmdutils.CommandError, match="Invalid value ''"):
             commands.config_list_add('content.blocking.whitelist', '')
 
-    # FIXME test value conversion for :list-add like in test_dict_add_value_type
-    # (once we have a List config option using a non-str type, or a way to
-    # dynamically add new option definitions).
+    def test_list_add_value_type(self, commands, config_stub):
+        commands.config_list_add("completion.web_history.exclude", "*")
+        value = config_stub.val.completion.web_history.exclude
+        assert value == [urlmatch.UrlPattern("*")]
 
     @pytest.mark.parametrize('value', ['test1', 'test2'])
     @pytest.mark.parametrize('temp', [True, False])
@@ -410,9 +411,16 @@ class TestRemove:
                 match="#133742 is not in colors.completion.fg!"):
             commands.config_list_remove('colors.completion.fg', '#133742')
 
-    # FIXME test value conversion for :list-remove like in test_dict_add_value_type
-    # (once we have a List config option using a non-str type, or a way to
-    # dynamically add new option definitions).
+    def test_list_remove_value_type(self, commands, config_stub):
+        config_stub.val.completion.web_history.exclude = ["*"]
+        commands.config_list_remove("completion.web_history.exclude", "*")
+        assert not config_stub.val.completion.web_history.exclude
+
+    def test_list_remove_invalid_value(self, commands, config_stub):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="Invalid value '::' - Pattern without host"):
+            commands.config_list_remove("completion.web_history.exclude", "::")
 
     @pytest.mark.parametrize('key', ['w', 'q'])
     @pytest.mark.parametrize('temp', [True, False])
