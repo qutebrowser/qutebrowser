@@ -23,12 +23,15 @@ Added
 ~~~~~
 
 - The `:version` info now shows the X11 window manager / Wayland compositor name
-  (mostly useful for bug/crash reports)
+  (mostly useful for bug/crash reports).
 - Support for hinting elements which are part of an (open) shadow DOM.
 
 Changed
 ~~~~~~~
 
+- (TODO) Windows and macOS releases are now built with Qt 6.10.0, which is based
+  on Chromium 134.0.6998.208 with security patches up to 140.0.7339.207.
+- (TODO) Windows and macOS releases are now built with Python 3.14.
 - Windows releases are now built on Windows Server 2022 (previously 2019),
   which might break compatibility with older Windows releases (untested).
 - The `qutedmenu` userscript now sorts history by the last access time.
@@ -51,9 +54,9 @@ Fixed
 - Fixed exception when closing a qutebrowser window while a download prompt is
   still open.
 - Fixed crash with Qt 6.10 (and possibly older Qt versions) when navigating
-  from a `qute://` page to a web page, e.g. when searching on `qute://start`
+  from a `qute://` page to a web page, e.g. when searching on `qute://start`.
 - Hopefully proper fix for some web pages jumping to the top when the statusbar
-  is hidden. (#8223)
+  is hidden (#8223).
 - Fix for the page header being shown on YouTube after the fullscreen
   notification was hidden (#8625).
 - Fix for videos losing keyboard focus when the fullscreen notification shows
@@ -62,6 +65,8 @@ Fixed
   get hardware rendering. Qt 6.10 includes an equivalent fix (#8637).
 - Added workaround for per-domain User-Agent header not being used on redirects
   (#8679).
+- Added site-specific quirk for gitlab.gnome.org agressively blocking old
+  Chromium versions (and thus QtWebEngine) (#8509).
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)
