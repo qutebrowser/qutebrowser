@@ -1629,7 +1629,24 @@ class TestDict:
                   none_ok=True)
         converted = d.to_py(val)
         expected = converted if converted else None
-        assert d.from_str(d.to_str(converted)) == expected
+        to_str = d.to_str(converted)
+
+        # YAML keys have a max length of 1024 characters:
+        # https://yaml.org/spec/1.2.2/#example-single-pair-explicit-entry
+        # Due to characters being backslash-escaped in YAML, we can't easily control
+        # the input size (short of setting it to `1024 / len("\\uXXXX")) = 170`),
+        # so we instead skip the string round trip check if the end result turned out
+        # to be too long.
+        #
+        # yaml.safe_load('{"%s": false}' % ("a" * 1022))  -> works (1033 chars total)
+        # yaml.safe_load('{"%s": false}' % ("a" * 1023))  -> fails (1034 chars total)
+        #                 ^^  ^^^^^^^^^ = 11 chars "overhead"
+        #
+        # Since this only affects .from_str() which always has error handling
+        # for YAML errors (since a user could enter invalid values anyways), we
+        # don't handle this specially in configtypes.py.
+        if len(to_str) <= 1022 + len('{"": false}'):
+            assert d.from_str(to_str) == expected
 
     @hypothesis.given(val=strategies.dictionaries(strategies.text(min_size=1),
                                                   strategies.booleans()))
