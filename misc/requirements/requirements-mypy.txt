@@ -11,7 +11,7 @@ pathspec==0.12.1
 pluggy==1.6.0
 Pygments==2.19.2
 PyQt5-stubs==5.15.6.0
-tomli==2.2.1
+tomli==2.3.0
 types-colorama==0.4.15.20250801
 types-docutils==0.22.2.20251006
 types-Pygments==2.19.0.20250809
