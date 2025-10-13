@@ -7,7 +7,7 @@ charset-normalizer==3.4.3
 cryptography==46.0.2
 dill==0.4.0
 github3.py==4.0.1
-idna==3.10
+idna==3.11
 importlib_metadata==8.7.0
 isort==6.1.0
 mccabe==0.7.0
@@ -20,7 +20,7 @@ python-dateutil==2.9.0.post0
 ./scripts/dev/pylint_checkers
 requests==2.32.5
 six==1.17.0
-tomli==2.2.1
+tomli==2.3.0
 tomlkit==0.13.3
 typing_extensions==4.15.0
 uritemplate==4.2.0
