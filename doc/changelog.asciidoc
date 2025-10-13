@@ -31,7 +31,10 @@ Changed
 
 - (TODO) Windows and macOS releases are now built with Qt 6.10.0, which is based
   on Chromium 134.0.6998.208 with security patches up to 140.0.7339.207.
-- (TODO) Windows and macOS releases are now built with Python 3.14.
+- If using `mkvenv.py` on Linux, note that Qt now requires glibc v2.34 (v2.28
+  previously). This is available down to Ubuntu 22.04 LTS and Debian Bookworm
+  (oldstable), so this should not affect most users of desktop distributions.
+- Windows and macOS releases are now built with Python 3.14.
 - Windows releases are now built on Windows Server 2022 (previously 2019),
   which might break compatibility with older Windows releases (untested).
 - The `qutedmenu` userscript now sorts history by the last access time.
