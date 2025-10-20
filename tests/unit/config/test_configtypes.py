@@ -248,6 +248,9 @@ class TestAll:
 
         assert converted == s
 
+    def test_py_type_is_defined(self, klass):
+        assert isinstance(klass().py_type(), str)
+
     def test_none_ok_true(self, klass):
         """Test None and empty string values with none_ok=True."""
         typ = klass(none_ok=True)
@@ -262,6 +265,7 @@ class TestAll:
         assert typ.from_str('') is None
         assert typ.to_py(None) == to_py_expected
         assert typ.to_str(None) == ''
+        assert 'Optional' in typ.py_type()
 
     @pytest.mark.parametrize('method, value', [
         ('from_str', ''),
@@ -557,6 +561,9 @@ class FromObjType(configtypes.BaseType):
 
     def from_obj(self, value):
         return int(value)
+
+    def _py_type(self) -> str:
+        return 'Any'
 
     def to_py(self, value):
         return value
