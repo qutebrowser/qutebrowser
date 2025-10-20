@@ -6,7 +6,7 @@ backports.tarfile==1.2.0
 beautifulsoup4==4.14.2
 blinker==1.9.0
 certifi==2025.10.5
-charset-normalizer==3.4.3
+charset-normalizer==3.4.4
 cheroot==11.0.0
 click==8.1.8
 coverage==7.10.7
@@ -16,7 +16,7 @@ filelock==3.19.1
 Flask==3.1.2
 gherkin-official==29.0.0
 hunter==3.9.0
-hypothesis==6.140.3
+hypothesis==6.141.1
 idna==3.11
 importlib_metadata==8.7.0
 importlib_resources==6.5.2
@@ -53,7 +53,7 @@ pytest-xdist==3.8.0
 pytest-xvfb==3.1.1
 PyVirtualDisplay==3.0
 requests==2.32.5
-requests-file==2.1.0
+requests-file==3.0.0
 six==1.17.0
 sortedcontainers==2.4.0
 soupsieve==2.8
