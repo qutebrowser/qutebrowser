@@ -434,6 +434,9 @@ class AbstractZoom(QObject):
 
     """Attribute ``zoom`` of AbstractTab for controlling zoom."""
 
+    #: Signal emitted when a tab's zoom factor changed (float)
+    factor_changed = pyqtSignal(float)
+
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab

@@ -730,6 +730,7 @@ class WebEngineZoom(browsertab.AbstractZoom):
 
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
+        self.factor_changed.emit(factor)
 
 
 class WebEngineElements(browsertab.AbstractElements):

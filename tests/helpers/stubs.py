@@ -204,6 +204,17 @@ class FakeWebTabScroller(browsertab.AbstractScroller):
     def pos_perc(self):
         return self._pos_perc
 
+class FakeWebTabZoom(browsertab.AbstractZoom):
+
+    """Fake AbstractZoom to use in tests."""
+
+    def __init__(self, tab, factor):
+        super().__init__(tab)
+        self._factor = factor
+
+    def factor(self):
+        return self._factor
+
 
 class FakeWebTabHistory(browsertab.AbstractHistory):
 
@@ -245,7 +256,8 @@ class FakeWebTab(browsertab.AbstractTab):
     def __init__(self, url=QUrl(), title='', tab_id=0, *,
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
-                 progress=0, can_go_back=None, can_go_forward=None):
+                 progress=0, can_go_back=None, can_go_forward=None,
+                 zoom_factor=1):
         super().__init__(win_id=0, mode_manager=None, private=False)
         self._load_status = load_status
         self._title = title
@@ -254,6 +266,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
+        self.zoom = FakeWebTabZoom(self, zoom_factor)
         self.audio = FakeWebTabAudio(self)
         self.private_api = FakeWebTabPrivate(tab=self, mode_manager=None)
         wrapped = QWidget()
