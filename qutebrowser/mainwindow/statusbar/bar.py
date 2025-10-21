@@ -350,6 +350,9 @@ class StatusBar(QWidget):
 
     def _set_mode_text(self, mode):
         """Set the mode text."""
+        if not config.val.statusbar.mode_text:
+            self.txt.setText('')
+            return
         if mode == 'passthrough':
             key_instance = config.key_instance
             all_bindings = key_instance.get_reverse_bindings_for('passthrough')
