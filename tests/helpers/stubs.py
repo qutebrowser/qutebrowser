@@ -204,6 +204,7 @@ class FakeWebTabScroller(browsertab.AbstractScroller):
     def pos_perc(self):
         return self._pos_perc
 
+
 class FakeWebTabZoom(browsertab.AbstractZoom):
 
     """Fake AbstractZoom to use in tests."""
