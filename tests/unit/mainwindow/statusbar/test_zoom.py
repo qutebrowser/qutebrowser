@@ -3,10 +3,12 @@
 import pytest
 
 from qutebrowser.mainwindow.statusbar.zoom import Zoom
+from typing import Any
+import pytestqt.qtbot
 
 
 @pytest.fixture
-def zoom(qtbot):
+def zoom(qtbot: pytestqt.qtbot.QtBot) -> Zoom:
     """Fixture providing a Percentage widget."""
     widget = Zoom()
     qtbot.add_widget(widget)
@@ -20,7 +22,7 @@ def zoom(qtbot):
     (0.5, '50%'),
     (0.25, '25%'),
 ])
-def test_percentage_texts(zoom, factor, expected):
+def test_percentage_texts(zoom: Zoom, factor: float, expected: str) -> None:
     """Test text displayed by the widget based on the zoom factor of a tab.
 
     Args:
@@ -31,7 +33,7 @@ def test_percentage_texts(zoom, factor, expected):
     assert zoom.text() == expected
 
 
-def test_tab_change(zoom, fake_web_tab):
+def test_tab_change(zoom: Zoom, fake_web_tab: Any) -> None:
     """Test zoom factor change when switching tabs."""
     zoom.on_zoom_changed(factor=2)
     assert zoom.text() == '200%'
