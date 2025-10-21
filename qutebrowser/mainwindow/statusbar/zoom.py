@@ -7,7 +7,7 @@ from qutebrowser.qt.core import pyqtSlot, QObject
 
 class Zoom(textbase.TextBase):
 
-    """Shows percentage indicator."""
+    """Shows zoom percentage in current tab."""
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)

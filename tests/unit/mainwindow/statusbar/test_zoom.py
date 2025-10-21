@@ -9,7 +9,7 @@ import pytestqt.qtbot
 
 @pytest.fixture
 def zoom(qtbot: pytestqt.qtbot.QtBot) -> Zoom:
-    """Fixture providing a Percentage widget."""
+    """Fixture providing a Zoom widget."""
     widget = Zoom()
     qtbot.add_widget(widget)
     return widget
