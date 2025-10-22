@@ -1,0 +1,8 @@
+PyQt6 >= 6.10, < 6.11
+PyQt6-Qt6 >= 6.10, < 6.11
+PyQt6-WebEngine >= 6.10, < 6.11
+PyQt6-WebEngine-Qt6 >= 6.10, < 6.11
+
+# WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2025-October/046347.html
+#@ add: --extra-index-url https://www.riverbankcomputing.com/pypi/simple/
+--extra-index-url https://www.riverbankcomputing.com/pypi/simple/
