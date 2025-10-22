@@ -425,17 +425,18 @@ def _maybe_disable_hangouts_extension(profile: QWebEngineProfile) -> None:
     if not config.val.qt.workarounds.disable_hangouts_extension:
         return
 
-    try:
-        ext_manager = profile.extensionManager()
-    except AttributeError:
-        return  # added in QtWebEngine 6.10
+    if machinery.IS_QT6:  # mypy
+        try:
+            ext_manager = profile.extensionManager()
+        except AttributeError:
+            return  # added in QtWebEngine 6.10
 
-    assert ext_manager is not None  # mypy
-    for info in ext_manager.extensions():
-        if info.id() == pakjoy.HANGOUTS_EXT_ID:
-            log.misc.debug(f"Disabling extension: {info.name()}")
-            # setExtensionEnabled(info, False) seems to segfault
-            ext_manager.unloadExtension(info)
+        assert ext_manager is not None  # mypy
+        for info in ext_manager.extensions():
+            if info.id() == pakjoy.HANGOUTS_EXT_ID:
+                log.misc.debug(f"Disabling extension: {info.name()}")
+                # setExtensionEnabled(info, False) seems to segfault
+                ext_manager.unloadExtension(info)
 
 
 def _clear_webengine_permissions_json():
