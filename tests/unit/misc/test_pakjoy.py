@@ -203,10 +203,10 @@ skip_if_incompatible = pytest.mark.skipif(
 
 
 @pytest.mark.usefixtures("affected_version")
+@skip_if_incompatible
 class TestWithRealResourcesFile:
     """Tests that use the real pak file form the Qt installation."""
 
-    @skip_if_incompatible
     def test_happy_path(self):
         # Go through the full patching processes with the real resources file from
         # the current installation. Make sure our replacement string is in it
@@ -266,7 +266,6 @@ class TestWithRealResourcesFile:
             "Not applying quirks. Expected location: "
         )
 
-    @skip_if_incompatible
     def test_hardcoded_ids(self):
         """Make sure we hardcoded the currently valid ID.
 
@@ -454,6 +453,7 @@ class TestWithConstructedResourcesFile:
     def quirk_dir_path(self, tmp_path: pathlib.Path) -> pathlib.Path:
         return tmp_path / "cache" / pakjoy.CACHE_DIR_NAME
 
+    @skip_if_incompatible
     def test_patching(self, resources_path: pathlib.Path, quirk_dir_path: pathlib.Path):
         """Go through the full patching processes with a fake resources file."""
         with pakjoy.patch_webengine():
@@ -473,6 +473,7 @@ class TestWithConstructedResourcesFile:
         with pakjoy.patch_webengine():
             assert pakjoy.RESOURCES_ENV_VAR in os.environ
 
+    @skip_if_incompatible
     def test_preset_env_var(
         self,
         resources_path: pathlib.Path,

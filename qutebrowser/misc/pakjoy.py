@@ -38,8 +38,11 @@ from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
 from qutebrowser.qt import core
 from qutebrowser.utils import qtutils, standarddir, version, utils, log, message
+from qutebrowser.qt.webenginecore import QWebEngineProfile
 
-HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
+
+HANGOUTS_EXT_ID = "nkeimhogjdpnpccoofpliimaahmaaome"
+HANGOUTS_MARKER = f"// Extension ID: {HANGOUTS_EXT_ID}".encode("utf-8")
 HANGOUTS_IDS = [
     # Linux
     47222,  # QtWebEngine 6.9 Beta 3
@@ -228,7 +231,7 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
         )
         # https://github.com/qutebrowser/qutebrowser/issues/8257
         or config.val.qt.workarounds.disable_hangouts_extension
-    ):
+    ) or hasattr(QWebEngineProfile, "extensionManager"):  # Qt 6.10+
         # No patching needed
         return None
 
