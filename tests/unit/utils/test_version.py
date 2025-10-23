@@ -1447,20 +1447,21 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
-        monkeypatch.setattr(
-            QWebEngineProfile,
-            "defaultProfile",
-            lambda: FakeExtensionProfile(
-                FakeExtensionManager([FakeExtensionInfo("ext1")])
-            ),
-        )
-        substitutions['webextensions'] = (
-            "\n"
-            "WebExtensions:\n"
-            "  ext1 (ext1-id)\n"
-            "  [ ] enabled  [ ] loaded  [ ] installed\n"
-            "  ext1-path\n"
-        )
+        if machinery.IS_QT6:
+            monkeypatch.setattr(
+                QWebEngineProfile,
+                "defaultProfile",
+                lambda: FakeExtensionProfile(
+                    FakeExtensionManager([FakeExtensionInfo("ext1")])
+                ),
+            )
+            substitutions['webextensions'] = (
+                "\n"
+                "WebExtensions:\n"
+                "  ext1 (ext1-id)\n"
+                "  [ ] enabled  [ ] loaded  [ ] installed\n"
+                "  ext1-path\n"
+            )
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
         substitutions['backend'] = 'QtWebEngine 1.2.3\n  (source: faked)'
 
@@ -1585,6 +1586,9 @@ class TestOpenGLInfo:
         assert str(info) == 'OpenGL ES'
 
 
+@pytest.mark.skipif(
+    not machinery.IS_QT6, reason="extensions are only available with Qt6"
+)
 class TestWebEngineExtensions:
 
     def test_qtwebkit(self, monkeypatch: pytest.MonkeyPatch) -> None:
