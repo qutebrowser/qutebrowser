@@ -12,6 +12,7 @@ on:
           - 'patch'
           - 'minor'
           - 'major'
+          - 'reupload'  # reupload last release
           # FIXME do we want a possibility to do prereleases here?
       python_version:
         description: 'Python version'
@@ -84,7 +85,7 @@ jobs:
           gpg --import <<< "${{ secrets.QUTEBROWSER_BOT_GPGKEY }}"
       - name: Bump version
         id: bump
-        run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
+        run: "tox -e update-version -- ${{ inputs.release_type }}"
       - name: Check milestone
         uses: actions/github-script@v8
         with:
@@ -101,22 +102,24 @@ jobs:
               core.setFailed(`Found open milestone ${milestone.title} with ${milestone.open_issues} open and ${milestone.closed_issues} closed issues!`);
             }
       - name: Push release commit/tag
+        if: ${{ inputs.release_type != 'reupload' }}
         run: |
             git push origin ${{ steps.find-branch.outputs.result }}
             git push origin v${{ steps.bump.outputs.version }}
       - name: Cherry-pick release commit
-        if: ${{ github.event.inputs.release_type == 'patch' }}
+        if: ${{ inputs.release_type == 'patch' }}
         run: |
             git checkout main
             git cherry-pick -x v${{ steps.bump.outputs.version }}
             git push origin main
             git checkout v${{ steps.bump.outputs.version_x }}
       - name: Create release branch
-        if: ${{ github.event.inputs.release_type != 'patch' }}
+        if: ${{ inputs.release_type == 'minor' || inputs.release_type == 'major' }}
         run: |
             git checkout -b v${{ steps.bump.outputs.version_x }}
             git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
       - name: Create GitHub draft release
+        if: ${{ inputs.release_type != 'reupload' }}
         id: create-release
         uses: softprops/action-gh-release@v2
         with:
@@ -143,7 +146,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ github.event.inputs.python_version }}
+          python-version: ${{ inputs.python_version }}
       - name: Import GPG Key
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: |
