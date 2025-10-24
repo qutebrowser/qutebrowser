@@ -16,7 +16,8 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex, textbase, clock, searchmatch)
+                                              tabindex, textbase, clock, searchmatch,
+                                              zoom)
 
 
 @dataclasses.dataclass
@@ -190,6 +191,7 @@ class StatusBar(QWidget):
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
         self.clock = clock.Clock()
+        self.zoom = zoom.Zoom()
         self._text_widgets = []
         self._draw_widgets()
 
@@ -223,6 +225,8 @@ class StatusBar(QWidget):
             return new_text_widget
         elif key.startswith('clock:') or key == 'clock':
             return self.clock
+        elif key == 'zoom':
+            return self.zoom
         else:
             raise utils.Unreachable(key)
 
@@ -272,7 +276,8 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog, self.clock, *self._text_widgets]:
+                       self.keystring, self.prog, self.clock,
+                       self.zoom, *self._text_widgets]:
             assert isinstance(widget, QWidget)
             if widget in [self.prog, self.backforward]:
                 widget.enabled = False  # type: ignore[attr-defined]
@@ -426,6 +431,7 @@ class StatusBar(QWidget):
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
+        self.zoom.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
