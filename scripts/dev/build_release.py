@@ -176,6 +176,10 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
 
             # Qt 6.9 on macOS
             r'Compositor returned null texture',
+
+            # Qt 6.10
+            (r'\[.*:ERROR:service_utils.cc\([0-9]*\)\] '
+             r'Skia Graphite backend = "" not found - falling back to Ganesh!'),
         ])
     elif IS_WINDOWS:
         stderr_whitelist.extend([
@@ -184,6 +188,9 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
             (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
             r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
             r'module could not be found. \(0x7E\)'),
+            # Qt 6.10
+            (r'\[.*:ERROR:direct_composition_support.cc\([0-9]*\)\] '
+             r'GetGpuDriverOverlayInfo: Failed to retrieve video device'),
         ])
 
     proc = _smoke_test_run(executable)
