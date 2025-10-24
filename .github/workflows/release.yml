@@ -33,7 +33,7 @@ jobs:
     outputs:
       version: ${{ steps.bump.outputs.version }}
       version_x: ${{ steps.bump.outputs.version_x }}
-      release_id: ${{ inputs.release_type == 'reupload' && steps.find-release.outputs.id || steps.create-release.outputs.id }}
+      release_id: ${{ inputs.release_type == 'reupload' && steps.find-release.outputs.result || steps.create-release.outputs.id }}
     permissions:
       contents: write  # To push release commit/tag
     steps:
