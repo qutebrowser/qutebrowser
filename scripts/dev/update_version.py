@@ -54,6 +54,7 @@ def show_commit():
     git_args = ['git', 'show']
     if utils.ON_CI:
         git_args.append("--color")
+        git_args.append("--no-patch")  # shows entire git tree on CI (shallow clone)
     subprocess.run(git_args, check=True)
 
 
