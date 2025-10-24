@@ -6,6 +6,7 @@
 
 """Build a new release."""
 
+from __future__ import annotations
 
 import os
 import sys
@@ -21,13 +22,17 @@ import collections
 import dataclasses
 import re
 import http
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from collections.abc import Iterable
 
 try:
     import winreg
 except ImportError:
     pass
+
+if TYPE_CHECKING:
+    import github3
+    import github3.repos.release
 
 import requests
 
@@ -564,6 +569,30 @@ def read_github_token(
     return token
 
 
+def _github_find_release(
+    gh: github3.GitHub, tag: str, experimental: bool
+) -> github3.repos.release.Release:
+    if experimental:
+        repo = gh.repository('qutebrowser', 'experiments')
+    else:
+        repo = gh.repository('qutebrowser', 'qutebrowser')
+    assert repo is not None
+
+    for release in repo.releases():
+        if release.tag_name == tag:
+            return release
+
+    releases = ", ".join(r.tag_name for r in repo.releases())
+    raise Exception(  # pylint: disable=broad-exception-raised
+        f"No release found for {tag!r} in {repo.full_name}, found: {releases}")
+
+
+def _github_assets(
+    release: github3.repos.release.Release, artifact: Artifact
+) -> list[github3.repos.release.Asset]:
+    return [asset for asset in release.assets() if asset.name == artifact.path.name]
+
+
 def github_upload(
     artifacts: list[Artifact],
     tag: str,
@@ -580,41 +609,23 @@ def github_upload(
         experimental: Upload to the experiments repo
         skip_if_exists: Skip uploading artifacts that already exist
     """
-    # pylint: disable=broad-exception-raised
     import github3
     import github3.exceptions
     utils.print_title("Uploading to github...")
 
     gh = github3.login(token=gh_token)
-
-    if experimental:
-        repo = gh.repository('qutebrowser', 'experiments')
-    else:
-        repo = gh.repository('qutebrowser', 'qutebrowser')
-
-    release = None  # to satisfy pylint
-    for release in repo.releases():
-        if release.tag_name == tag:
-            break
-    else:
-        releases = ", ".join(r.tag_name for r in repo.releases())
-        raise Exception(
-            f"No release found for {tag!r} in {repo.full_name}, found: {releases}")
+    assert gh is not None
+    release = _github_find_release(gh=gh, tag=tag, experimental=experimental)
 
     for artifact in artifacts:
-        assets = [
-            asset for asset in release.assets() if asset.name == artifact.path.name
-        ]
-        if assets and skip_if_exists:
+        if _github_assets(release, artifact) and skip_if_exists:
             print(f"Artifact {artifact.path.name} already exists, skipping")
             continue
 
         while True:
             print(f"Uploading {artifact.path}")
 
-            assets = [asset for asset in release.assets()
-                      if asset.name == artifact.path.name]
-            if assets:
+            if (assets := _github_assets(release, artifact)):
                 print(f"Assets already exist: {assets}")
 
                 if utils.ON_CI:
@@ -642,9 +653,7 @@ def github_upload(
 
                 print("Retrying!")
 
-                assets = [asset for asset in release.assets()
-                          if asset.name == artifact.path.name]
-                if assets:
+                if (assets := _github_assets(release, artifact)):
                     stray_asset = assets[0]
                     print(f"Deleting stray asset {stray_asset.name}")
                     stray_asset.delete()
@@ -654,7 +663,9 @@ def github_upload(
 
 def check_pypi_exists(version: str) -> bool:
     """Check whether the given version exists on PyPI."""
-    response = requests.get(f"https://pypi.org/pypi/qutebrowser/{version}/json")
+    response = requests.get(
+        f"https://pypi.org/pypi/qutebrowser/{version}/json", timeout=30
+    )
     if response.status_code == http.HTTPStatus.NOT_FOUND:
         return False
     response.raise_for_status()
