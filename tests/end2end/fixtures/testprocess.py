@@ -398,7 +398,7 @@ class Process(QObject):
             match = self._wait_for_match(spy, kwargs)
             if match is not None:
                 if message is not None:
-                    self._log("----> found it")
+                    self._log(f"----> found it: {match.formatted_str()}")
                 return match
 
         raise quteutils.Unreachable
