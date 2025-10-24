@@ -32,6 +32,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       version: ${{ steps.bump.outputs.version }}
+      version_x: ${{ steps.bump.outputs.version_x }}
       release_id: ${{ steps.create-release.outputs.id }}
     permissions:
       contents: write  # To push release commit/tag
@@ -142,7 +143,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: v${{ needs.prepare.outputs.version }}
+          ref: v${{ inputs.release_type == 'reupload' && needs.prepare.outputs.version_x || needs.prepare.outputs.version }}
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
