@@ -33,7 +33,7 @@ jobs:
     outputs:
       version: ${{ steps.bump.outputs.version }}
       version_x: ${{ steps.bump.outputs.version_x }}
-      release_id: ${{ steps.create-release.outputs.id }}
+      release_id: ${{ inputs.release_type == 'reupload' && steps.find-release.outputs.id || steps.create-release.outputs.id }}
     permissions:
       contents: write  # To push release commit/tag
     steps:
@@ -127,6 +127,28 @@ jobs:
           tag_name: v${{ steps.bump.outputs.version }}
           draft: true
           body: "*Release artifacts for this release are currently being uploaded...*"
+      - name: Find GitHub draft release
+        if: ${{ inputs.release_type == 'reupload' }}
+        id: find-release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const names = releases.map(release => release.name);
+            console.log(`releases: ${names}`);
+
+            const release = releases.find(release => release.tag_name === "v${{ steps.bump.outputs.version }}");
+            if (release === undefined) {
+              core.setFailed(`No release found with tag v${{ steps.bump.outputs.version }}!`);
+            }
+            if (!release.draft) {
+              core.setFailed(`Release ${release.tag_name} is not a draft release!`);
+            }
+            return release.id;
+          result-encoding: string
   release:
     strategy:
       matrix:
