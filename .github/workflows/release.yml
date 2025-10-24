@@ -171,7 +171,7 @@ jobs:
       # FIXME consider switching to trusted publishers:
       # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
       - name: Build and upload release
-        run: "tox -e build-release -- --upload --no-confirm"
+        run: "tox -e build-release -- --upload --no-confirm ${{ inputs.release_type == 'reupload' && '--reupload' || '' }}"
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.QUTEBROWSER_BOT_PYPI_TOKEN }}

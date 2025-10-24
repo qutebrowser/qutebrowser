@@ -20,6 +20,7 @@ import platform
 import collections
 import dataclasses
 import re
+import http
 from typing import Optional
 from collections.abc import Iterable
 
@@ -27,6 +28,8 @@ try:
     import winreg
 except ImportError:
     pass
+
+import requests
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -566,6 +569,7 @@ def github_upload(
     tag: str,
     gh_token: str,
     experimental: bool,
+    skip_if_exists: bool,
 ) -> None:
     """Upload the given artifacts to GitHub.
 
@@ -574,6 +578,7 @@ def github_upload(
         tag: The name of the release tag
         gh_token: The GitHub token to use
         experimental: Upload to the experiments repo
+        skip_if_exists: Skip uploading artifacts that already exist
     """
     # pylint: disable=broad-exception-raised
     import github3
@@ -597,6 +602,13 @@ def github_upload(
             f"No release found for {tag!r} in {repo.full_name}, found: {releases}")
 
     for artifact in artifacts:
+        assets = [
+            asset for asset in release.assets() if asset.name == artifact.path.name
+        ]
+        if assets and skip_if_exists:
+            print(f"Artifact {artifact.path.name} already exists, skipping")
+            continue
+
         while True:
             print(f"Uploading {artifact.path}")
 
@@ -640,12 +652,27 @@ def github_upload(
                 break
 
 
-def pypi_upload(artifacts: list[Artifact], experimental: bool) -> None:
+def check_pypi_exists(version: str) -> bool:
+    """Check whether the given version exists on PyPI."""
+    response = requests.get(f"https://pypi.org/pypi/qutebrowser/{version}/json")
+    if response.status_code == http.HTTPStatus.NOT_FOUND:
+        return False
+    response.raise_for_status()
+    return bool(response.json()["urls"])
+
+
+def pypi_upload(
+    artifacts: list[Artifact], experimental: bool, skip_if_exists: bool
+) -> None:
     """Upload the given artifacts to PyPI using twine."""
+    utils.print_title("Uploading to PyPI...")
+    if skip_if_exists and check_pypi_exists(qutebrowser.__version__):
+        print(f"Version {qutebrowser.__version__} already exists on PyPI, skipping")
+        return
+
     # https://blog.pypi.org/posts/2023-05-23-removing-pgp/
     artifacts = [a for a in artifacts if a.mimetype != 'application/pgp-signature']
 
-    utils.print_title("Uploading to PyPI...")
     if experimental:
         run_twine('upload', artifacts, "-r", "testpypi")
     else:
@@ -671,6 +698,8 @@ def main() -> None:
                         nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub.")
+    parser.add_argument('--reupload', action='store_true', required=False,
+                        help="Skip uploading artifacts that already exist.")
     parser.add_argument('--no-confirm', action='store_true', required=False,
                         help="Skip confirmation before uploading.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
@@ -730,9 +759,16 @@ def main() -> None:
 
         assert gh_token is not None
         github_upload(
-            artifacts, version_tag, gh_token=gh_token, experimental=args.experimental)
+            artifacts,
+            version_tag,
+            gh_token=gh_token,
+            experimental=args.experimental,
+            skip_if_exists=args.reupload,
+        )
         if upload_to_pypi:
-            pypi_upload(artifacts, experimental=args.experimental)
+            pypi_upload(
+                artifacts, experimental=args.experimental, skip_if_exists=args.reupload
+            )
     else:
         print()
         utils.print_title("Artifacts")
