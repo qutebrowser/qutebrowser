@@ -60,7 +60,7 @@ def show_commit():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update release version.")
     parser.add_argument('bump', action="store",
-                        choices=["major", "minor", "patch", "dummy"],
+                        choices=["major", "minor", "patch", "reupload"],
                         help="Update release version")
     parser.add_argument('--commands', action="store_true",
                         help="Only show commands to run post-release.")
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     if not args.commands:
         verify_branch(args.bump)
-        if args.bump != "dummy":
+        if args.bump != "reupload":
             bump_version(args.bump)
         show_commit()
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         print(f"Outputs for {version} written to GitHub Actions output file")
     else:
         print("Run the following commands to create a new release:")
-        if args.bump != 'dummy':
+        if args.bump != 'reupload':
             print("* git push origin; git push origin v{v}".format(v=version))
             if args.bump == 'patch':
                 print("* git checkout main && git cherry-pick -x v{v} && "
