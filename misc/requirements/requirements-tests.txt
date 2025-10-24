@@ -53,7 +53,7 @@ pytest-xdist==3.8.0
 pytest-xvfb==3.1.1
 PyVirtualDisplay==3.0
 requests==2.32.5
-requests-file==3.0.0
+requests-file==3.0.1
 six==1.17.0
 sortedcontainers==2.4.0
 soupsieve==2.8
