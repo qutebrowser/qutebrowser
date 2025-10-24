@@ -191,6 +191,9 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
             # Qt 6.10
             (r'\[.*:ERROR:direct_composition_support.cc\([0-9]*\)\] '
              r'GetGpuDriverOverlayInfo: Failed to retrieve video device'),
+            (r'\[.*:ERROR:direct_composition_support.cc\([0-9]*\)\] QueryInterface '
+             r'to IDCompositionDevice4 failed: No such interface supported '
+             r'\(0x80004002\)'),
         ])
 
     proc = _smoke_test_run(executable)
