@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "3.5.1"
+current_version = "3.6.0"
 commit = true
 message = "Release v{new_version}"
 tag = true
