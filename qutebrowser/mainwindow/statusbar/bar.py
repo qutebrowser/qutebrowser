@@ -286,20 +286,16 @@ class StatusBar(QWidget):
         strategy = config.val.statusbar.show
         tab = self._current_tab()
         if tab is not None and tab.data.fullscreen:
-            self.release_focus.emit()
             self.hide()
         elif strategy == 'never':
-            self.release_focus.emit()
             self.hide()
         elif strategy == 'in-mode':
             try:
                 mode_manager = modeman.instance(self._win_id)
             except modeman.UnavailableError:
-                self.release_focus.emit()
                 self.hide()
             else:
                 if mode_manager.mode == usertypes.KeyMode.normal:
-                    self.release_focus.emit()
                     self.hide()
                 else:
                     self.show()
@@ -371,6 +367,7 @@ class StatusBar(QWidget):
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
         log.statusbar.debug("Hiding cmd widget")
+        self.release_focus.emit()
         self._stack.setCurrentWidget(self.txt)
         self.maybe_hide()
 

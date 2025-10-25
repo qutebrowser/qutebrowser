@@ -103,3 +103,11 @@ Feature: Using completion
         And I run :completion-item-focus next
         And I run :cmd-set-text -s :set
         Then the completion model should be option
+
+    Scenario: Page focus after using completion (#8750)
+        When I open data/insert_mode_settings/html/input.html
+        And I run :cmd-set-text :
+        And I run :mode-leave
+        And I run :click-element id qute-input
+        And I run :fake-key -g someinput
+        Then the javascript message "contents: someinput" should be logged
