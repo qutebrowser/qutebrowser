@@ -452,6 +452,63 @@ def history_clear(force=False):
                               title="Clear all browsing history?")
 
 
+def _normalize_url(url: str) -> QUrl:
+    if not url:
+        return QUrl()
+    if '://' not in url:
+        url = f'https://{url}'
+    return QUrl(url)
+
+
+def _find_matching_history_urls(qurl: QUrl) -> list[str]:
+    if not qurl.isValid():
+        return []
+
+    target_host = qurl.host().lower()
+    matching_urls = []
+
+    for entry in web_history:
+        entry_qurl = QUrl(entry.url)
+        if entry_qurl.host().lower() == target_host:
+            matching_urls.append(entry.url)
+
+    return matching_urls
+
+
+def _delete_history_urls(urls: list[str]) -> None:
+    for url in urls:
+        web_history.delete_url(url)
+
+
+@cmdutils.register()
+def history_clear_site(url: str, force: bool = False) -> None:
+    """Clear browsing history for a specific site.
+
+    Args:
+        url: URL or domain to clear (e.g., "example.com", "https://example.com/page")
+        force: Don't ask for confirmation.
+    """
+    qurl = _normalize_url(url)
+    if not qurl.isValid():
+        raise cmdutils.CommandError(f"Invalid URL: {url}")
+
+    matching_urls = _find_matching_history_urls(qurl)
+
+    if not matching_urls:
+        message.info(f"No history entries found for: {url}")
+        return
+
+    if force:
+        _delete_history_urls(matching_urls)
+        message.info(f"Cleared {len(matching_urls)} history entries for: {url}")
+    else:
+        title = f"Clear {len(matching_urls)} history entries for {url}?"
+        message.confirm_async(
+            yes_action=lambda: _delete_history_urls(matching_urls),
+            title=title
+        )
+
+
 @cmdutils.register(debug=True)
 def debug_dump_history(dest):
     """Dump the history to a file in the old pre-SQL format.
