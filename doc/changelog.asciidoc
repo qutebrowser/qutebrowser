@@ -22,7 +22,7 @@ v3.6.1 (unreleased)
 Fixed
 ~~~~~
 
-- A regression in v3.6.1 where the page didn't have keyboard focus after closing
+- A regression in v3.6.0 where the page didn't have keyboard focus after closing
   the completion, so e.g. typing in an input field after hinting didn't work.
   (#8750)
 
