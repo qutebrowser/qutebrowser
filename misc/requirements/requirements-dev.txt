@@ -49,14 +49,14 @@ Pympler==1.1
 pyproject_hooks==1.2.0
 PyQt-builder==1.19.0
 python-dateutil==2.9.0.post0
-python-dotenv==1.1.1
+python-dotenv==1.2.1
 questionary==2.1.1
 readme_renderer==44.0
 requests==2.32.5
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==14.2.0
-rich-click==1.9.3
+rich-click==1.9.4
 SecretStorage==3.3.3
 sip==6.14.0
 six==1.17.0
