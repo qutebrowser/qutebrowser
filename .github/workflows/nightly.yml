@@ -72,7 +72,7 @@ jobs:
             echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
         shell: bash
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "qutebrowser-nightly-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.name }}"
           path: |
