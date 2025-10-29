@@ -179,7 +179,7 @@ customizable for a given <<patterns,URL patterns>>.
 
 [source,python]
 ----
-config.set('content.images', False, '*://example.com/')
+config.set('content.images', False, '*://example.com/*')
 ----
 
 Alternatively, you can use `with config.pattern(...) as p:` to get a shortcut
@@ -187,7 +187,7 @@ similar to `c.` which is scoped to the given domain:
 
 [source,python]
 ----
-with config.pattern('*://example.com/') as p:
+with config.pattern('*://example.com/*') as p:
     p.content.images = False
 ----
 
