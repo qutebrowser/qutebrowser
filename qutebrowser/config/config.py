@@ -333,8 +333,13 @@ class Config(QObject):
                                    pattern, hide_userconfig=hide_userconfig)
 
         self.changed.emit(opt.name)
-        log.config.debug("Config option changed: {} = {}".format(
-            opt.name, value))
+
+        if pattern is not None:
+            log.config.debug("Config option changed: {} = {} for {}".format(
+                opt.name, value, pattern))
+        else:
+            log.config.debug("Config option changed: {} = {}".format(
+                opt.name, value))
 
     def _check_yaml(self, opt: 'configdata.Option', save_yaml: bool) -> None:
         """Make sure the given option may be set in autoconfig.yml."""
