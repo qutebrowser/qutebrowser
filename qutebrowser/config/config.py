@@ -341,7 +341,6 @@ class Config(QObject):
             log.config.debug("Config option changed: {} = {}".format(
                 opt.name, value))
 
-
     def _check_yaml(self, opt: 'configdata.Option', save_yaml: bool) -> None:
         """Make sure the given option may be set in autoconfig.yml."""
         if save_yaml and opt.no_autoconfig:
