@@ -101,7 +101,7 @@ class CompletionView(QTreeView):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self.pattern: Optional[str] = None
+        self.pattern: str | None = None
         self._win_id = win_id
         self._cmd = cmd
         self._active = False

@@ -192,8 +192,8 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget: Optional[QWidget] = None
-        self._container: Optional[QWidget] = None
+        self._widget: QWidget | None = None
+        self._container: QWidget | None = None
 
     def addItem(self, _widget):
         raise utils.Unreachable
@@ -310,10 +310,10 @@ class InspectorSplitter(QSplitter):
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._on_splitter_moved)
-        self._main_idx: Optional[int] = None
-        self._inspector_idx: Optional[int] = None
-        self._position: Optional[inspector.Position] = None
-        self._preferred_size: Optional[int] = None
+        self._main_idx: int | None = None
+        self._inspector_idx: int | None = None
+        self._position: inspector.Position | None = None
+        self._preferred_size: int | None = None
 
     def cycle_focus(self):
         """Cycle keyboard focus between the main/inspector widget."""
@@ -439,7 +439,7 @@ class InspectorSplitter(QSplitter):
         self._preferred_size = sizes[self._inspector_idx]
         self._save_preferred_size()
 
-    def resizeEvent(self, e: Optional[QResizeEvent]) -> None:
+    def resizeEvent(self, e: QResizeEvent | None) -> None:
         """Window resize event."""
         assert e is not None
         super().resizeEvent(e)

@@ -101,7 +101,7 @@ class Error(Exception):
 
     """Base class for all SQL related errors."""
 
-    def __init__(self, msg: str, error: Optional[QSqlError] = None) -> None:
+    def __init__(self, msg: str, error: QSqlError | None = None) -> None:
         super().__init__(msg)
         self.error = error
 
@@ -135,7 +135,7 @@ class BugError(Error):
 def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
-    primary_error_code: Union[SqliteErrorCode, str]
+    primary_error_code: SqliteErrorCode | str
     try:
         # https://sqlite.org/rescode.html#pve
         primary_error_code = SqliteErrorCode(int(error_code) & 0xff)
@@ -228,8 +228,8 @@ class Database:
         return Query(self, querystr, forward_only)
 
     def table(self, name: str, fields: list[str],
-              constraints: Optional[dict[str, str]] = None,
-              parent: Optional[QObject] = None) -> 'SqlTable':
+              constraints: dict[str, str] | None = None,
+              parent: QObject | None = None) -> 'SqlTable':
         """Return a SqlTable instance linked to this Database."""
         return SqlTable(self, name, fields, constraints, parent)
 
@@ -277,9 +277,9 @@ class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
             raise_sqlite_error(msg, error)
 
     def __exit__(self,
-                 _exc_type: Optional[type[BaseException]],
-                 exc_val: Optional[BaseException],
-                 _exc_tb: Optional[types.TracebackType]) -> None:
+                 _exc_type: type[BaseException] | None,
+                 exc_val: BaseException | None,
+                 _exc_tb: types.TracebackType | None) -> None:
         db = self._database.qt_database()
         if exc_val:
             log.sql.debug('Rolling back a transaction')
@@ -428,8 +428,8 @@ class SqlTable(QObject):
     database: Database
 
     def __init__(self, database: Database, name: str, fields: list[str],
-                 constraints: Optional[dict[str, str]] = None,
-                 parent: Optional[QObject] = None) -> None:
+                 constraints: dict[str, str] | None = None,
+                 parent: QObject | None = None) -> None:
         """Wrapper over a table in the SQL database.
 
         Args:
@@ -443,7 +443,7 @@ class SqlTable(QObject):
         self.database = database
         self._create_table(fields, constraints)
 
-    def _create_table(self, fields: list[str], constraints: Optional[dict[str, str]],
+    def _create_table(self, fields: list[str], constraints: dict[str, str] | None,
                       *, force: bool = False) -> None:
         """Create the table if the database is uninitialized.
 

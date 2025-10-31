@@ -289,7 +289,7 @@ def _parse_from_file(f: IO[bytes]) -> Versions:
         return _find_versions(data)
 
 
-def parse_webenginecore() -> Optional[Versions]:
+def parse_webenginecore() -> Versions | None:
     """Parse the QtWebEngineCore library file."""
     if version.is_flatpak():
         # Flatpak has Qt in /usr/lib/x86_64-linux-gnu, but QtWebEngine in /app/lib.

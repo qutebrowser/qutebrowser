@@ -25,8 +25,8 @@ def collect_tests():
 @dataclasses.dataclass
 class ParsedFile:
 
-    target: Optional[str]
-    qtwebengine_todo: Optional[str]
+    target: str | None
+    qtwebengine_todo: str | None
 
 
 class InvalidFile(Exception):

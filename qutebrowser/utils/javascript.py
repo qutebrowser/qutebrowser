@@ -7,8 +7,8 @@
 from typing import Union
 from collections.abc import Sequence
 
-_InnerJsArgType = Union[None, str, bool, int, float]
-_JsArgType = Union[_InnerJsArgType, Sequence[_InnerJsArgType]]
+_InnerJsArgType = None | str | bool | int | float
+_JsArgType = _InnerJsArgType | Sequence[_InnerJsArgType]
 
 
 def string_escape(text: str) -> str:

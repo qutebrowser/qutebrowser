@@ -210,7 +210,7 @@ def modules():
 )
 def test_autoselect(
     stubs: Any,
-    available: dict[str, Union[bool, Exception]],
+    available: dict[str, bool | Exception],
     expected: machinery.SelectionInfo,
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -222,9 +222,9 @@ def test_autoselect(
 class SelectWrapperCase:
     name: str
     expected: machinery.SelectionInfo
-    args: Optional[argparse.Namespace] = None
-    env: Optional[str] = None
-    override: Optional[str] = None
+    args: argparse.Namespace | None = None
+    env: str | None = None
+    override: str | None = None
 
     def __str__(self):
         return self.name
@@ -345,8 +345,8 @@ class TestSelectWrapper:
     )
     def test_autoselect_by_default(
         self,
-        args: Optional[argparse.Namespace],
-        env: Optional[str],
+        args: argparse.Namespace | None,
+        env: str | None,
         monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that the default behavior is to autoselect a wrapper.

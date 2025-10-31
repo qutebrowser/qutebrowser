@@ -45,8 +45,8 @@ class Throttle(QObject):
         super().__init__(parent)
         self._delay_ms = delay_ms
         self._func = func
-        self._pending_call: Optional[_CallArgs] = None
-        self._last_call_ms: Optional[int] = None
+        self._pending_call: _CallArgs | None = None
+        self._last_call_ms: int | None = None
         self._timer = usertypes.Timer(self, 'throttle-timer')
         self._timer.setSingleShot(True)
 

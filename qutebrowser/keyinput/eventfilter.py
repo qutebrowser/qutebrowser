@@ -62,7 +62,7 @@ class EventFilter(QObject):
             # No window available yet, or not a MainWindow
             return False
 
-    def eventFilter(self, obj: Optional[QObject], event: Optional[QEvent]) -> bool:
+    def eventFilter(self, obj: QObject | None, event: QEvent | None) -> bool:
         """Handle an event.
 
         Args:

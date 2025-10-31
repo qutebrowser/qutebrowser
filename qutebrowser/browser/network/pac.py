@@ -248,7 +248,7 @@ class PACFetcher(QObject):
         with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
-            self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
+            self._manager: QNetworkAccessManager | None = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.ProxyType.NoProxy))
         self._pac = None
         self._error_message = None

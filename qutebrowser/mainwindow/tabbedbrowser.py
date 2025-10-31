@@ -85,7 +85,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab: Optional[browsertab.AbstractTab] = None
+        tab: browsertab.AbstractTab | None = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack.pop()()
         self._stack_deleted.append(weakref.ref(cur_tab))
@@ -102,7 +102,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab: Optional[browsertab.AbstractTab] = None
+        tab: browsertab.AbstractTab | None = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack_deleted.pop()()
         # On next tab-switch, current tab will be added to stack as normal.
@@ -397,7 +397,7 @@ class TabbedBrowser(QWidget):
         assert window is not None
         return window
 
-    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
+    def _tab_by_idx(self, idx: int) -> browsertab.AbstractTab | None:
         """Get a browser tab by index.
 
         If no tab was found at the given index, None is returned.

@@ -154,8 +154,8 @@ class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_error: Optional[str] = None
-    webengine_error: Optional[str] = None
+    webkit_error: str | None = None
+    webengine_error: str | None = None
 
 
 class _BackendProblemChecker:

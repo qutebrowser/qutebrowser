@@ -17,10 +17,7 @@ from qutebrowser.utils import qtutils, utils
 
 
 _ActionListType = MutableSequence[
-    Union[
-        tuple[None, None],  # separator
-        tuple[str, Callable[[], None]],
-    ]
+    tuple[None, None] | tuple[str, Callable[[], None]]
 ]
 
 
@@ -67,7 +64,7 @@ class DownloadView(QListView):
 
     def __repr__(self):
         model = qtutils.add_optional(self.model())
-        count: Union[int, str]
+        count: int | str
         if model is None:
             count = 'None'
         else:

@@ -52,7 +52,7 @@ _MODIFIER_MAP = {
 }
 
 try:
-    _NIL_KEY: Union[Qt.Key, int] = Qt.Key(0)
+    _NIL_KEY: Qt.Key | int = Qt.Key(0)
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
@@ -63,7 +63,7 @@ if machinery.IS_QT6:
     _ModifierType = Qt.KeyboardModifier
 else:
     _KeyInfoType = int
-    _ModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    _ModifierType = Qt.KeyboardModifiers | Qt.KeyboardModifier
 
 
 _SPECIAL_NAMES = {
@@ -203,7 +203,7 @@ def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
     return key
 
 
-def _check_valid_utf8(s: str, data: Union[Qt.Key, _ModifierType]) -> None:
+def _check_valid_utf8(s: str, data: Qt.Key | _ModifierType) -> None:
     """Make sure the given string is valid UTF-8.
 
     Makes sure there are no chars where Qt did fall back to weird UTF-16
@@ -259,7 +259,7 @@ class KeyParseError(Exception):
 
     """Raised by _parse_single_key/parse_keystring on parse errors."""
 
-    def __init__(self, keystr: Optional[str], error: str) -> None:
+    def __init__(self, keystr: str | None, error: str) -> None:
         if keystr is None:
             msg = "Could not parse keystring: {}".format(error)
         else:
@@ -593,7 +593,7 @@ class KeySequence:
     def __getitem__(self, item: slice) -> 'KeySequence':
         ...
 
-    def __getitem__(self, item: Union[int, slice]) -> Union[KeyInfo, 'KeySequence']:
+    def __getitem__(self, item: int | slice) -> Union[KeyInfo, 'KeySequence']:
         infos = list(self)
         if isinstance(item, slice):
             return self.__class__(*infos[item])

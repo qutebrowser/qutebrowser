@@ -66,13 +66,13 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions = Optional[Iterable[tuple[str, str]]]
-_StrUnset = Union[str, usertypes.Unset]
-_UnsetNone = Union[None, usertypes.Unset]
-_StrUnsetNone = Union[str, _UnsetNone]
+_Completions = _Completions = Iterable[tuple[str, str]] | None
+_StrUnset = str | usertypes.Unset
+_UnsetNone = None | usertypes.Unset
+_StrUnsetNone = str | _UnsetNone
 
 
-def _validate_encoding(encoding: Optional[str], value: str) -> None:
+def _validate_encoding(encoding: str | None, value: str) -> None:
     """Check if the given value fits into the given encoding.
 
     Raises ValidationError if not.
@@ -101,11 +101,7 @@ class ValidValues:
 
     def __init__(
             self,
-            *values: Union[
-                str,
-                dict[str, Optional[str]],
-                tuple[str, Optional[str]],
-            ],
+            *values: str | dict[str, str | None] | tuple[str, str | None],
             generate_docs: bool = True,
             others_permitted: bool = False
     ) -> None:
@@ -178,19 +174,19 @@ class BaseType:
     ) -> None:
         self._completions = completions
         self.none_ok = none_ok
-        self.valid_values: Optional[ValidValues] = None
+        self.valid_values: ValidValues | None = None
 
     def get_name(self) -> str:
         """Get a name for the type for documentation."""
         return self.__class__.__name__
 
-    def get_valid_values(self) -> Optional[ValidValues]:
+    def get_valid_values(self) -> ValidValues | None:
         """Get the type's valid values for documentation."""
         return self.valid_values
 
     def _basic_py_validation(
             self, value: Any,
-            pytype: Union[type, tuple[type, ...]]) -> None:
+            pytype: type | tuple[type, ...]) -> None:
         """Do some basic validation for Python values (emptyness, type).
 
         Arguments:
@@ -356,7 +352,7 @@ class MappingType(BaseType):
         MAPPING: A mapping from config values to (translated_value, docs) tuples.
     """
 
-    MAPPING: dict[str, tuple[Any, Optional[str]]] = {}
+    MAPPING: dict[str, tuple[Any, str | None]] = {}
 
     def __init__(
             self, *,
@@ -505,10 +501,10 @@ class List(BaseType):
             name += " of " + self.valtype.get_name()
         return name
 
-    def get_valid_values(self) -> Optional[ValidValues]:
+    def get_valid_values(self) -> ValidValues | None:
         return self.valtype.get_valid_values()
 
-    def from_str(self, value: str) -> Optional[list]:
+    def from_str(self, value: str) -> list | None:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -523,15 +519,15 @@ class List(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
-    def from_obj(self, value: Optional[list]) -> list:
+    def from_obj(self, value: list | None) -> list:
         if value is None:
             return []
         return [self.valtype.from_obj(v) for v in value]
 
     def to_py(
             self,
-            value: Union[list, usertypes.Unset]
-    ) -> Union[list, usertypes.Unset]:
+            value: list | usertypes.Unset
+    ) -> list | usertypes.Unset:
         self._basic_py_validation(value, list)
         if isinstance(value, usertypes.Unset):
             return value
@@ -610,7 +606,7 @@ class ListOrValue(BaseType):
     def get_name(self) -> str:
         return self.listtype.get_name() + ', or ' + self.valtype.get_name()
 
-    def get_valid_values(self) -> Optional[ValidValues]:
+    def get_valid_values(self) -> ValidValues | None:
         return self.valtype.get_valid_values()
 
     def from_str(self, value: str) -> Any:
@@ -659,7 +655,7 @@ class FlagList(List):
     the valid values of the setting.
     """
 
-    combinable_values: Optional[Sequence] = None
+    combinable_values: Sequence | None = None
 
     _show_valtype = False
 
@@ -685,8 +681,8 @@ class FlagList(List):
 
     def to_py(
             self,
-            value: Union[usertypes.Unset, list],
-    ) -> Union[usertypes.Unset, list]:
+            value: usertypes.Unset | list,
+    ) -> usertypes.Unset | list:
         vals = super().to_py(value)
         if not isinstance(vals, usertypes.Unset):
             self._check_duplicates(vals)
@@ -737,12 +733,12 @@ class Bool(BaseType):
         super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
-    def to_py(self, value: Union[bool, str, None]) -> Optional[bool]:
+    def to_py(self, value: bool | str | None) -> bool | None:
         self._basic_py_validation(value, bool)
         assert not isinstance(value, str)
         return value
 
-    def from_str(self, value: str) -> Optional[bool]:
+    def from_str(self, value: str) -> bool | None:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -752,7 +748,7 @@ class Bool(BaseType):
         except KeyError:
             raise configexc.ValidationError(value, "must be a boolean!")
 
-    def to_str(self, value: Optional[bool]) -> str:
+    def to_str(self, value: bool | None) -> str:
         mapping = {
             None: '',
             True: 'true',
@@ -774,7 +770,7 @@ class BoolAsk(Bool):
         self.valid_values = ValidValues('true', 'false', 'ask')
 
     def to_py(self,  # type: ignore[override]
-              value: Union[bool, str]) -> Union[bool, str, None]:
+              value: bool | str) -> bool | str | None:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().to_py
         if isinstance(value, str) and value.lower() == 'ask':
@@ -782,14 +778,14 @@ class BoolAsk(Bool):
         return super().to_py(value)
 
     def from_str(self,  # type: ignore[override]
-                 value: str) -> Union[bool, str, None]:
+                 value: str) -> bool | str | None:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().from_str
         if value.lower() == 'ask':
             return 'ask'
         return super().from_str(value)
 
-    def to_str(self, value: Union[bool, str, None]) -> str:
+    def to_str(self, value: bool | str | None) -> str:
         mapping = {
             None: '',
             True: 'true',
@@ -826,8 +822,8 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
                                  .format(self.minval, self.maxval))
 
     def _parse_bound(
-            self, bound: Union[None, str, int, float]
-    ) -> Union[None, int, float]:
+            self, bound: None | str | int | float
+    ) -> None | int | float:
         """Get a numeric bound from a string like 'maxint'."""
         if bound == 'maxint':
             return qtutils.MAXVALS['int']
@@ -839,7 +835,7 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
             return bound
 
     def _validate_bounds(self,
-                         value: Union[int, float, _UnsetNone],
+                         value: int | float | _UnsetNone,
                          suffix: str = '') -> None:
         """Validate self.minval and self.maxval."""
         if value is None:
@@ -855,7 +851,7 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         elif not self.zero_ok and value == 0:
             raise configexc.ValidationError(value, "must not be 0!")
 
-    def to_str(self, value: Union[None, int, float]) -> str:
+    def to_str(self, value: None | int | float) -> str:
         if value is None:
             return ''
         return str(value)
@@ -869,7 +865,7 @@ class Int(_Numeric):
 
     """Base class for an integer setting."""
 
-    def from_str(self, value: str) -> Optional[int]:
+    def from_str(self, value: str) -> int | None:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -881,7 +877,7 @@ class Int(_Numeric):
         self.to_py(intval)
         return intval
 
-    def to_py(self, value: Union[int, _UnsetNone]) -> Union[int, _UnsetNone]:
+    def to_py(self, value: int | _UnsetNone) -> int | _UnsetNone:
         self._basic_py_validation(value, int)
         self._validate_bounds(value)
         return value
@@ -891,7 +887,7 @@ class Float(_Numeric):
 
     """Base class for a float setting."""
 
-    def from_str(self, value: str) -> Optional[float]:
+    def from_str(self, value: str) -> float | None:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -905,8 +901,8 @@ class Float(_Numeric):
 
     def to_py(
             self,
-            value: Union[int, float, _UnsetNone],
-    ) -> Union[int, float, _UnsetNone]:
+            value: int | float | _UnsetNone,
+    ) -> int | float | _UnsetNone:
         self._basic_py_validation(value, (int, float))
         self._validate_bounds(value)
         return value
@@ -918,8 +914,8 @@ class Perc(_Numeric):
 
     def to_py(
             self,
-            value: Union[float, int, str, _UnsetNone]
-    ) -> Union[float, int, _UnsetNone]:
+            value: float | int | str | _UnsetNone
+    ) -> float | int | _UnsetNone:
         self._basic_py_validation(value, (float, int, str))
         if isinstance(value, usertypes.Unset):
             return value
@@ -936,7 +932,7 @@ class Perc(_Numeric):
         self._validate_bounds(value, suffix='%')
         return value
 
-    def to_str(self, value: Union[None, float, int, str]) -> str:
+    def to_str(self, value: None | float | int | str) -> str:
         if value is None:
             return ''
         elif isinstance(value, str):
@@ -978,7 +974,7 @@ class PercOrInt(_Numeric):
             raise ValueError("minperc ({}) needs to be <= maxperc "
                              "({})!".format(self.minperc, self.maxperc))
 
-    def from_str(self, value: str) -> Union[None, str, int]:
+    def from_str(self, value: str) -> None | str | int:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -995,7 +991,7 @@ class PercOrInt(_Numeric):
         self.to_py(intval)
         return intval
 
-    def to_py(self, value: Union[None, str, int]) -> Union[None, str, int]:
+    def to_py(self, value: None | str | int) -> None | str | int:
         """Expect a value like '42%' as string, or 23 as int."""
         self._basic_py_validation(value, (int, str))
         if value is None:
@@ -1110,7 +1106,7 @@ class QtColor(BaseType):
         except ValueError:
             raise configexc.ValidationError(val, "must be a valid color value")
 
-    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QColor]:
+    def to_py(self, value: _StrUnset) -> _UnsetNone | QColor:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1193,8 +1189,8 @@ class FontBase(BaseType):
     """Base class for Font/FontFamily."""
 
     # Gets set when the config is initialized.
-    default_family: Optional[str] = None
-    default_size: Optional[str] = None
+    default_family: str | None = None
+    default_size: str | None = None
     font_regex = re.compile(r"""
         (
             (
@@ -1334,8 +1330,8 @@ class Regex(BaseType):
 
     def to_py(
             self,
-            value: Union[str, Pattern[str], usertypes.Unset]
-    ) -> Union[_UnsetNone, Pattern[str]]:
+            value: str | Pattern[str] | usertypes.Unset
+    ) -> _UnsetNone | Pattern[str]:
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))
         if isinstance(value, usertypes.Unset):
@@ -1347,7 +1343,7 @@ class Regex(BaseType):
         else:
             return value
 
-    def to_str(self, value: Union[None, str, Pattern[str]]) -> str:
+    def to_str(self, value: None | str | Pattern[str]) -> str:
         if value is None:
             return ''
         elif isinstance(value, self._regex_type):
@@ -1396,7 +1392,7 @@ class Dict(BaseType):
             raise configexc.ValidationError(
                 value, "Required keys {}".format(self.required_keys))
 
-    def from_str(self, value: str) -> Optional[dict]:
+    def from_str(self, value: str) -> dict | None:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -1411,7 +1407,7 @@ class Dict(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
-    def from_obj(self, value: Optional[dict]) -> dict:
+    def from_obj(self, value: dict | None) -> dict:
         if value is None:
             return {}
 
@@ -1429,8 +1425,8 @@ class Dict(BaseType):
 
     def to_py(
             self,
-            value: Union[dict, _UnsetNone]
-    ) -> Union[dict, usertypes.Unset]:
+            value: dict | _UnsetNone
+    ) -> dict | usertypes.Unset:
         self._basic_py_validation(value, dict)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1606,8 +1602,8 @@ class ShellCommand(List):
 
     def to_py(
             self,
-            value: Union[list, usertypes.Unset],
-    ) -> Union[list, usertypes.Unset]:
+            value: list | usertypes.Unset,
+    ) -> list | usertypes.Unset:
         py_value = super().to_py(value)
         if isinstance(py_value, usertypes.Unset):
             return py_value
@@ -1646,7 +1642,7 @@ class Proxy(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> Union[_UnsetNone, QNetworkProxy, _SystemProxy, pac.PACFetcher]:
+    ) -> _UnsetNone | QNetworkProxy | _SystemProxy | pac.PACFetcher:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1719,7 +1715,7 @@ class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
 
-    def to_py(self, value: _StrUnset) -> Union[QUrl, _UnsetNone]:
+    def to_py(self, value: _StrUnset) -> QUrl | _UnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1764,8 +1760,8 @@ class Padding(Dict):
 
     def to_py(  # type: ignore[override]
             self,
-            value: Union[dict, _UnsetNone],
-    ) -> Union[usertypes.Unset, PaddingValues]:
+            value: dict | _UnsetNone,
+    ) -> usertypes.Unset | PaddingValues:
         d = super().to_py(value)
         if isinstance(d, usertypes.Unset):
             return d
@@ -1842,7 +1838,7 @@ class Url(BaseType):
 
     """A URL as a string."""
 
-    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QUrl]:
+    def to_py(self, value: _StrUnset) -> _UnsetNone | QUrl:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1917,8 +1913,8 @@ class ConfirmQuit(FlagList):
 
     def to_py(
             self,
-            value: Union[usertypes.Unset, list],
-    ) -> Union[list, usertypes.Unset]:
+            value: usertypes.Unset | list,
+    ) -> list | usertypes.Unset:
         values = super().to_py(value)
         if isinstance(values, usertypes.Unset):
             return values
@@ -1979,7 +1975,7 @@ class Key(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> Union[_UnsetNone, keyutils.KeySequence]:
+    ) -> _UnsetNone | keyutils.KeySequence:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -2004,7 +2000,7 @@ class UrlPattern(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> Union[_UnsetNone, urlmatch.UrlPattern]:
+    ) -> _UnsetNone | urlmatch.UrlPattern:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
