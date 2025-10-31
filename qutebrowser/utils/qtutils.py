@@ -62,7 +62,7 @@ class QtOSError(OSError):
         if msg is None:
             msg = dev.errorString()
 
-        self.qt_errno: Optional[QFileDevice.FileError] = None
+        self.qt_errno: QFileDevice.FileError | None = None
         if isinstance(dev, QFileDevice):
             msg = self._init_filedev(dev, msg)
 
@@ -271,7 +271,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> Iterator[Union[IO[str], IO[bytes]]]:
+) -> Iterator[IO[str] | IO[bytes]]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -283,7 +283,7 @@ def savefile_open(
         dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f: Union[IO[str], IO[bytes]] = dev
+            new_f: IO[str] | IO[bytes] = dev
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 
@@ -405,7 +405,7 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size: Optional[int] = -1) -> bytes:
+    def readline(self, size: int | None = -1) -> bytes:
         self._check_open()
         self._check_readable()
 
@@ -416,7 +416,7 @@ class PyQIODevice(io.BufferedIOBase):
         else:
             qt_size = size + 1  # Qt also counts the NUL byte
 
-        buf: Union[QByteArray, bytes, None] = None
+        buf: QByteArray | bytes | None = None
         if self.dev.canReadLine():
             if qt_size is None:
                 buf = self.dev.readLine()
@@ -450,7 +450,7 @@ class PyQIODevice(io.BufferedIOBase):
 
     def write(  # type: ignore[override]
             self,
-            data: Union[bytes, bytearray]
+            data: bytes | bytearray
     ) -> int:
         self._check_open()
         self._check_writable()
@@ -459,11 +459,11 @@ class PyQIODevice(io.BufferedIOBase):
             raise QtOSError(self.dev)
         return num
 
-    def read(self, size: Optional[int] = None) -> bytes:
+    def read(self, size: int | None = None) -> bytes:
         self._check_open()
         self._check_readable()
 
-        buf: Union[QByteArray, bytes, None] = None
+        buf: QByteArray | bytes | None = None
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
@@ -499,8 +499,9 @@ class QtValueError(ValueError):
 if machinery.IS_QT6:
     _ProcessEventFlagType = QEventLoop.ProcessEventsFlag
 else:
-    _ProcessEventFlagType = Union[
-        QEventLoop.ProcessEventsFlag, QEventLoop.ProcessEventsFlags]
+    _ProcessEventFlagType = (
+        QEventLoop.ProcessEventsFlag
+        | QEventLoop.ProcessEventsFlags )
 
 
 class EventLoop(QEventLoop):
@@ -559,7 +560,7 @@ def interpolate_color(
         start: QColor,
         end: QColor,
         percent: int,
-        colorspace: Optional[QColor.Spec] = QColor.Spec.Rgb
+        colorspace: QColor.Spec | None = QColor.Spec.Rgb
 ) -> QColor:
     """Get an interpolated color value.
 
@@ -677,7 +678,7 @@ def library_path(which: LibraryPath) -> pathlib.Path:
     return pathlib.Path(ret)
 
 
-def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
+def extract_enum_val(val: sip.simplewrapper | int | enum.Enum) -> int:
     """Extract an int value from a Qt enum value.
 
     For Qt 5, enum values are basically Python integers.
@@ -691,7 +692,7 @@ def extract_enum_val(val: Union[sip.simplewrapper, int, enum.Enum]) -> int:
     return val
 
 
-def qobj_repr(obj: Optional[QObject]) -> str:
+def qobj_repr(obj: QObject | None) -> str:
     """Show nicer debug information for a QObject."""
     py_repr = repr(obj)
     if obj is None:
@@ -731,21 +732,21 @@ if machinery.IS_QT5:
     # Also we have a special QT_NONE, which (being Any) we can pass to functions
     # where PyQt type hints claim that it's not allowed.
 
-    def remove_optional(obj: Optional[_T]) -> _T:
+    def remove_optional(obj: _T | None) -> _T:
         return cast(_T, obj)
 
-    def add_optional(obj: _T) -> Optional[_T]:
-        return cast(Optional[_T], obj)
+    def add_optional(obj: _T) -> _T | None:
+        return cast(_T | None, obj)
 
     QT_NONE: Any = None
 else:
     # On Qt 6, all those things are handled correctly by type annotations, so we
     # have a no-op below.
 
-    def remove_optional(obj: Optional[_T]) -> Optional[_T]:
+    def remove_optional(obj: _T | None) -> _T | None:
         return obj
 
-    def add_optional(obj: Optional[_T]) -> Optional[_T]:
+    def add_optional(obj: _T | None) -> _T | None:
         return obj
 
     QT_NONE: None = None

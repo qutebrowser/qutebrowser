@@ -234,7 +234,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     if command_target in {'window', 'private-window'}:
         command_target = 'tab-silent'
 
-    window: Optional[mainwindow.MainWindow] = None
+    window: mainwindow.MainWindow | None = None
 
     if via_ipc and (not args or args == ['']):
         window = mainwindow.get_window(via_ipc=via_ipc, target=new_window_target)
@@ -296,7 +296,7 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
     return window
 
 
-def _open_startpage(window: Optional[mainwindow.MainWindow] = None) -> None:
+def _open_startpage(window: mainwindow.MainWindow | None = None) -> None:
     """Open startpage.
 
     The startpage is never opened if the given windows are not empty.

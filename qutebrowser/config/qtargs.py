@@ -213,7 +213,7 @@ def _webengine_locales_path() -> pathlib.Path:
 def _get_lang_override(
         webengine_version: utils.VersionNumber,
         locale_name: str
-) -> Optional[str]:
+) -> str | None:
     """Get a --lang switch to override Qt's locale handling.
 
     This is needed as a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
@@ -290,16 +290,15 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args(versions)
 
 
-_SettingValueType = Union[
-    str,
-    Callable[
-        [
-            version.WebEngineVersions,
-        ],
-        Optional[str],
-    ],
-]
-_WEBENGINE_SETTINGS: dict[str, dict[Any, Optional[_SettingValueType]]] = {
+_SettingValueType = (
+    str
+    | Callable[
+        [version.WebEngineVersions],
+        str | None,
+    ]
+)
+
+_WEBENGINE_SETTINGS: dict[str, dict[Any, _SettingValueType | None]] = {
     'qt.force_software_rendering': {
         'software-opengl': None,
         'qt-quick': None,

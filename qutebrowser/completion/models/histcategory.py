@@ -26,12 +26,12 @@ class HistoryCategory(QSqlQueryModel, BaseCategory):
         super().__init__(parent=parent)
         self._database = database
         self.name = "History"
-        self._query: Optional[sql.Query] = None
+        self._query: sql.Query | None = None
 
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
         self.delete_func = delete_func
-        self._empty_prefix: Optional[str] = None
+        self._empty_prefix: str | None = None
 
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""

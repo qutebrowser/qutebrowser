@@ -22,7 +22,7 @@ class Message(QLabel):
             self,
             level: usertypes.MessageLevel,
             text: str,
-            replace: Optional[str],
+            replace: str | None,
             text_format: Qt.TextFormat,
             parent: QWidget = None,
     ) -> None:

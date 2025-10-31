@@ -138,8 +138,8 @@ class NativeEventFilter(QAbstractNativeEventFilter):
 
     def nativeEventFilter(
         self,
-        evtype: Union[QByteArray, bytes, bytearray, memoryview],
-        message: Optional[sip.voidptr],
+        evtype: QByteArray | bytes | bytearray | memoryview,
+        message: sip.voidptr | None,
     ) -> tuple[bool, _PointerRetType]:
         """Handle XCB events."""
         # We're only installed when the platform plugin is xcb

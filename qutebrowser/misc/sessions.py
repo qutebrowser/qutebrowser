@@ -37,7 +37,7 @@ class Sentinel:
 default = Sentinel()
 session_manager = cast('SessionManager', None)
 
-ArgType = Union[str, Sentinel]
+ArgType = str | Sentinel
 
 
 def init(parent=None):
@@ -63,7 +63,7 @@ def init(parent=None):
     session_manager = SessionManager(str(base_path), parent)
 
 
-def shutdown(session: Optional[ArgType], last_window: bool) -> None:
+def shutdown(session: ArgType | None, last_window: bool) -> None:
     """Handle a shutdown by saving sessions and removing the autosave file."""
     if session_manager is None:
         return  # type: ignore[unreachable]
@@ -136,7 +136,7 @@ class SessionManager(QObject):
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self.current: Optional[str] = None
+        self.current: str | None = None
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -436,7 +436,7 @@ class SessionManager(QObject):
                 orig_url = url
 
             if histentry.get("last_visited"):
-                last_visited: Optional[QDateTime] = QDateTime.fromString(
+                last_visited: QDateTime | None = QDateTime.fromString(
                     histentry.get("last_visited"),
                     Qt.DateFormat.ISODate,
                 )

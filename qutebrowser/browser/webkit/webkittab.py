@@ -760,7 +760,7 @@ class WebKitElements(browsertab.AbstractElements):
         self.find_css('#' + elem_id, find_id_cb, error_cb=lambda exc: None)
 
     def find_focused(self, callback):
-        frame = cast(Optional[QWebFrame], self._widget.page().currentFrame())
+        frame = cast(QWebFrame | None, self._widget.page().currentFrame())
         if frame is None:
             callback(None)
             return
@@ -774,7 +774,7 @@ class WebKitElements(browsertab.AbstractElements):
     def find_at_pos(self, pos, callback):
         assert pos.x() >= 0
         assert pos.y() >= 0
-        frame = cast(Optional[QWebFrame], self._widget.page().frameAt(pos))
+        frame = cast(QWebFrame | None, self._widget.page().frameAt(pos))
         if frame is None:
             # This happens when we click inside the webview, but not actually
             # on the QWebPage - for example when clicking the scrollbar
@@ -930,7 +930,7 @@ class WebKitTab(browsertab.AbstractTab):
     def title(self):
         return self._widget.title()
 
-    def renderer_process_pid(self) -> Optional[int]:
+    def renderer_process_pid(self) -> int | None:
         return None
 
     @pyqtSlot()

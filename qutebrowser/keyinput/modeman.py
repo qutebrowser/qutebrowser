@@ -185,7 +185,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     return modeman
 
 
-def instance(win_id: Union[int, str]) -> 'ModeManager':
+def instance(win_id: int | str) -> 'ModeManager':
     """Get a modemanager object.
 
     Raises UnavailableError if there is no instance available yet.

@@ -57,7 +57,7 @@ class _EventFilter(QObject):
 
     clicked = pyqtSignal()
 
-    def eventFilter(self, _obj: Optional[QObject], event: Optional[QEvent]) -> bool:
+    def eventFilter(self, _obj: QObject | None, event: QEvent | None) -> bool:
         """Translate mouse presses to a clicked signal."""
         assert event is not None
         if event.type() == QEvent.Type.MouseButtonPress:
@@ -86,7 +86,7 @@ class AbstractWebInspector(QWidget):
         self._widget = cast(_WidgetType, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
-        self._position: Optional[Position] = None
+        self._position: Position | None = None
         self._win_id = win_id
 
         self._event_filter = _EventFilter(parent=self)
@@ -128,7 +128,7 @@ class AbstractWebInspector(QWidget):
             modeman.enter(self._win_id, usertypes.KeyMode.insert,
                           reason='Inspector clicked', only_if_normal=True)
 
-    def set_position(self, position: Optional[Position]) -> None:
+    def set_position(self, position: Position | None) -> None:
         """Set the position of the inspector.
 
         If the position is None, the last known position is used.
@@ -183,7 +183,7 @@ class AbstractWebInspector(QWidget):
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
-    def closeEvent(self, _e: Optional[QCloseEvent]) -> None:
+    def closeEvent(self, _e: QCloseEvent | None) -> None:
         """Save the geometry when closed."""
         data = self._widget.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')

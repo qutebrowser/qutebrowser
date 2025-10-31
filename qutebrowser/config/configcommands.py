@@ -40,7 +40,7 @@ class ConfigCommands:
         except configexc.Error as e:
             raise cmdutils.CommandError(str(e))
 
-    def _parse_pattern(self, pattern: Optional[str]) -> Optional[urlmatch.UrlPattern]:
+    def _parse_pattern(self, pattern: str | None) -> urlmatch.UrlPattern | None:
         """Parse a pattern string argument to a pattern."""
         if pattern is None:
             return None
@@ -58,7 +58,7 @@ class ConfigCommands:
         except keyutils.KeyParseError as e:
             raise cmdutils.CommandError(str(e))
 
-    def _print_value(self, option: str, pattern: Optional[urlmatch.UrlPattern]) -> None:
+    def _print_value(self, option: str, pattern: urlmatch.UrlPattern | None) -> None:
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
@@ -474,7 +474,7 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options: list[tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
+        options: list[tuple[urlmatch.UrlPattern | None, configdata.Option, Any]] = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]

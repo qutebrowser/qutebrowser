@@ -238,7 +238,7 @@ class Command(misc.CommandLineEdit):
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
 
-    def setText(self, text: Optional[str]) -> None:
+    def setText(self, text: str | None) -> None:
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
             pass
@@ -252,7 +252,7 @@ class Command(misc.CommandLineEdit):
             text = cast(str, text)
         super().setText(text)
 
-    def keyPressEvent(self, e: Optional[QKeyEvent]) -> None:
+    def keyPressEvent(self, e: QKeyEvent | None) -> None:
         """Override keyPressEvent to ignore Return key presses, and add Shift-Ins.
 
         If this widget is focused, we are in passthrough key mode, and

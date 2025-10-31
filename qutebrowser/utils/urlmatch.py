@@ -59,10 +59,10 @@ class UrlPattern:
         self._pattern = pattern
         self._match_all = False
         self._match_subdomains: bool = False
-        self._scheme: Optional[str] = None
-        self.host: Optional[str] = None
-        self._path: Optional[str] = None
-        self._port: Optional[int] = None
+        self._scheme: str | None = None
+        self.host: str | None = None
+        self._path: str | None = None
+        self._port: int | None = None
 
         # > The special pattern <all_urls> matches any URL that starts with a
         # > permitted scheme.
@@ -92,10 +92,10 @@ class UrlPattern:
     def _to_tuple(self) -> tuple[
         bool,  # _match_all
         bool,  # _match_subdomains
-        Optional[str],  # _scheme
-        Optional[str],  # host
-        Optional[str],  # _path
-        Optional[int],  # _port
+        str | None,  # _scheme
+        str | None,  # host
+        str | None,  # _path
+        int | None,  # _port
     ]:
         """Get a pattern with information used for __eq__/__hash__."""
         return (self._match_all, self._match_subdomains, self._scheme,

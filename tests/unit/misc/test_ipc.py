@@ -632,7 +632,7 @@ class TestSendOrListen:
         no_err_windows: bool
         basedir: str
         command: list[str]
-        target: Optional[str]
+        target: str | None
 
     @pytest.fixture
     def args(self):

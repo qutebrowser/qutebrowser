@@ -24,7 +24,7 @@ class _ReadlineBridge:
     def __init__(self) -> None:
         self._deleted: MutableMapping[QLineEdit, str] = {}
 
-    def _widget(self) -> Optional[QLineEdit]:
+    def _widget(self) -> QLineEdit | None:
         """Get the currently active QLineEdit."""
         # FIXME add this to api.utils or so
         qapp = QApplication.instance()

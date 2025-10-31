@@ -33,9 +33,9 @@ class MacroRecorder:
 
     def __init__(self) -> None:
         self._macros: dict[str, list[_CommandType]] = {}
-        self._recording_macro: Optional[str] = None
+        self._recording_macro: str | None = None
         self._macro_count: dict[int, int] = {}
-        self._last_register: Optional[str] = None
+        self._last_register: str | None = None
 
     @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)

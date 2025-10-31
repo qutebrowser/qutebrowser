@@ -513,7 +513,7 @@ def choose_file(qb_mode: FileSelectionMode) -> list[str]:
 def _execute_fileselect_command(
     command: list[str],
     qb_mode: FileSelectionMode,
-    tmpfilename: Optional[str] = None
+    tmpfilename: str | None = None
 ) -> list[str]:
     """Execute external command to choose file.
 

@@ -74,12 +74,12 @@ class DistributionInfo:
 
     """Information about the running distribution."""
 
-    id: Optional[str]
+    id: str | None
     parsed: 'Distribution'
     pretty: str
 
 
-pastebin_url: Optional[str] = None
+pastebin_url: str | None = None
 
 
 class Distribution(enum.Enum):
@@ -106,7 +106,7 @@ class Distribution(enum.Enum):
     solus = enum.auto()
 
 
-def _parse_os_release() -> Optional[dict[str, str]]:
+def _parse_os_release() -> dict[str, str] | None:
     """Parse an /etc/os-release file."""
     filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
     info = {}
@@ -124,7 +124,7 @@ def _parse_os_release() -> Optional[dict[str, str]]:
     return info
 
 
-def distribution() -> Optional[DistributionInfo]:
+def distribution() -> DistributionInfo | None:
     """Get some information about the running Linux distribution.
 
     Returns:
@@ -178,7 +178,7 @@ def is_flatpak() -> bool:
 _FLATPAK_INFO_PATH = '/.flatpak-info'
 
 
-def flatpak_id() -> Optional[str]:
+def flatpak_id() -> str | None:
     """Get the ID of the currently running Flatpak (or None if outside of Flatpak)."""
     if 'FLATPAK_ID' in os.environ:
         return os.environ['FLATPAK_ID']
@@ -195,7 +195,7 @@ def flatpak_id() -> Optional[str]:
     return parser['Application']['name']
 
 
-def _git_str() -> Optional[str]:
+def _git_str() -> str | None:
     """Try to find out git version.
 
     Return:
@@ -229,7 +229,7 @@ def _call_git(gitpath: str, *args: str) -> str:
         stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
 
 
-def _git_str_subprocess(gitpath: str) -> Optional[str]:
+def _git_str_subprocess(gitpath: str) -> str | None:
     """Try to get the git commit ID and timestamp by calling git.
 
     Args:
@@ -296,13 +296,13 @@ class ModuleInfo:
         self,
         name: str,
         version_attributes: Sequence[str],
-        min_version: Optional[str] = None
+        min_version: str | None = None
     ):
         self.name = name
         self._version_attributes = version_attributes
         self.min_version = min_version
         self._installed = False
-        self._version: Optional[str] = None
+        self._version: str | None = None
         self._initialized = False
 
     def _reset_cache(self) -> None:
@@ -341,7 +341,7 @@ class ModuleInfo:
 
         self._initialized = True
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         """Finds the module version if it exists."""
         if not self._initialized:
             self._initialize_info()
@@ -353,7 +353,7 @@ class ModuleInfo:
             self._initialize_info()
         return self._installed
 
-    def is_outdated(self) -> Optional[bool]:
+    def is_outdated(self) -> bool | None:
         """Checks whether the module is outdated.
 
         Return:
@@ -505,7 +505,7 @@ def _pdfjs_version() -> str:
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
-def _get_pyqt_webengine_qt_version() -> Optional[str]:
+def _get_pyqt_webengine_qt_version() -> str | None:
     """Get the version of the PyQtWebEngine-Qt package.
 
     With PyQtWebEngine 5.15.3, the QtWebEngine binary got split into its own
@@ -541,10 +541,10 @@ class WebEngineVersions:
     """Version numbers for QtWebEngine and the underlying Chromium."""
 
     webengine: utils.VersionNumber
-    chromium: Optional[str]
+    chromium: str | None
     source: str
-    chromium_security: Optional[str] = None
-    chromium_major: Optional[int] = dataclasses.field(init=False)
+    chromium_security: str | None = None
+    chromium_major: int | None = dataclasses.field(init=False)
 
     # Dates based on https://chromium.googlesource.com/chromium/src/+refs
     _BASES: ClassVar[dict[int, str]] = {
@@ -563,7 +563,7 @@ class WebEngineVersions:
     }
 
     # Dates based on https://chromereleases.googleblog.com/
-    _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
+    _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, str | None]]] = {
         # ====== UNSUPPORTED =====
 
         # Qt 5.12: Chromium 69
@@ -732,7 +732,7 @@ class WebEngineVersions:
     def _infer_chromium_version(
             cls,
             pyqt_webengine_version: utils.VersionNumber,
-    ) -> tuple[Optional[str], Optional[str]]:
+    ) -> tuple[str | None, str | None]:
         """Infer the Chromium version based on the PyQtWebEngine version.
 
         Returns:
@@ -760,8 +760,8 @@ class WebEngineVersions:
     def from_api(
         cls,
         qtwe_version: str,
-        chromium_version: Optional[str],
-        chromium_security: Optional[str] = None,
+        chromium_version: str | None,
+        chromium_security: str | None = None,
     ) -> 'WebEngineVersions':
         """Get the versions based on the exact versions.
 
@@ -1036,16 +1036,16 @@ class OpenGLInfo:
     # The name of the vendor. Examples:
     # - nouveau
     # - "Intel Open Source Technology Center", "Intel", "Intel Inc."
-    vendor: Optional[str] = None
+    vendor: str | None = None
 
     # The OpenGL version as a string. See tests for examples.
-    version_str: Optional[str] = None
+    version_str: str | None = None
 
     # The parsed version as a (major, minor) tuple of ints
-    version: Optional[tuple[int, ...]] = None
+    version: tuple[int, ...] | None = None
 
     # The vendor specific information following the version number
-    vendor_specific: Optional[str] = None
+    vendor_specific: str | None = None
 
     def __str__(self) -> str:
         if self.gles:
@@ -1083,7 +1083,7 @@ class OpenGLInfo:
 
 
 @functools.lru_cache(maxsize=1)
-def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
+def opengl_info() -> OpenGLInfo | None:  # pragma: no cover
     """Get the OpenGL vendor used.
 
     This returns a string such as 'nouveau' or
@@ -1098,7 +1098,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
-    old_context: Optional[QOpenGLContext] = QOpenGLContext.currentContext()
+    old_context: QOpenGLContext | None = QOpenGLContext.currentContext()
     old_surface = None if old_context is None else old_context.surface()
 
     surface = QOffscreenSurface()

@@ -21,4 +21,4 @@ class BaseCategory(QAbstractItemModel):
 
     name: str
     columns_to_filter: Sequence[int]
-    delete_func: Optional[DeleteFuncType] = None
+    delete_func: DeleteFuncType | None = None

@@ -24,7 +24,7 @@ _cache: dict[str, str] = {}
 _bin_cache: dict[str, bytes] = {}
 
 
-_ResourceType = Union[Traversable, pathlib.Path]
+_ResourceType = Traversable | pathlib.Path
 
 
 def _path(filename: str) -> _ResourceType:

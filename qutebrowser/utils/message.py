@@ -25,7 +25,7 @@ class MessageInfo:
 
     level: usertypes.MessageLevel
     text: str
-    replace: Optional[str] = None
+    replace: str | None = None
     rich: bool = False
 
 
@@ -108,7 +108,7 @@ def info(message: str, *, replace: str = None, rich: bool = False) -> None:
 def _build_question(title: str,
                     text: str = None, *,
                     mode: usertypes.PromptMode,
-                    default: Union[None, bool, str] = None,
+                    default: None | bool | str = None,
                     abort_on: Iterable[pyqtBoundSignal] = (),
                     url: str = None,
                     option: bool = None) -> usertypes.Question:

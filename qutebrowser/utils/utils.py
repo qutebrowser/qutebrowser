@@ -40,7 +40,7 @@ except ImportError:  # pragma: no cover
 
 from qutebrowser.utils import log
 
-fake_clipboard: Optional[str] = None
+fake_clipboard: str | None = None
 log_clipboard = False
 
 is_mac = sys.platform.startswith('darwin')
@@ -231,7 +231,7 @@ def format_seconds(total_seconds: int) -> str:
     return prefix + ':'.join(chunks)
 
 
-def format_size(size: Optional[float], base: int = 1024, suffix: str = '') -> str:
+def format_size(size: float | None, base: int = 1024, suffix: str = '') -> str:
     """Format a byte size so it's human readable.
 
     Inspired by https://stackoverflow.com/q/1094841
@@ -408,7 +408,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType = Union[type[BaseException], tuple[type[BaseException]]]
+_ExceptionType = type[BaseException] | tuple[type[BaseException]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:
@@ -439,7 +439,7 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: Optional[str] = '_',
+                      replacement: str | None = '_',
                       shorten: bool = False) -> str:
     """Replace invalid filename characters.
 
@@ -647,7 +647,7 @@ def expand_windows_drive(path: str) -> str:
         return path
 
 
-def yaml_load(f: Union[str, IO[str]]) -> Any:
+def yaml_load(f: str | IO[str]) -> Any:
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
 
@@ -687,7 +687,7 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
     return data
 
 
-def yaml_dump(data: Any, f: IO[str] = None) -> Optional[str]:
+def yaml_dump(data: Any, f: IO[str] = None) -> str | None:
     """Wrapper over yaml.dump using the C dumper if possible.
 
     Also returns a str instead of bytes.
@@ -777,7 +777,7 @@ def parse_duration(duration: str) -> int:
     return milliseconds
 
 
-def mimetype_extension(mimetype: str) -> Optional[str]:
+def mimetype_extension(mimetype: str) -> str | None:
     """Get a suitable extension for a given mimetype.
 
     This mostly delegates to Python's mimetypes.guess_extension(), but backports some
@@ -876,7 +876,7 @@ def parse_point(s: str) -> QPoint:
         raise ValueError(e)
 
 
-def match_globs(patterns: list[str], value: str) -> Optional[str]:
+def match_globs(patterns: list[str], value: str) -> str | None:
     """Match a list of glob-like patterns against a value.
 
     Return:

@@ -72,7 +72,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(manager=manager, parent=manager)
-        self.fileobj: Optional[IO[bytes]] = None
+        self.fileobj: IO[bytes] | None = None
         self.raw_headers: dict[bytes, bytes] = {}
 
         self._autoclose = True

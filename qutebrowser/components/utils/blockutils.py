@@ -47,7 +47,7 @@ class BlocklistDownloads(QObject):
     single_download_finished = pyqtSignal(object)  # arg: the file object
     all_downloads_finished = pyqtSignal(int)  # arg: download count
 
-    def __init__(self, urls: list[QUrl], parent: Optional[QObject] = None) -> None:
+    def __init__(self, urls: list[QUrl], parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._urls = urls
 
