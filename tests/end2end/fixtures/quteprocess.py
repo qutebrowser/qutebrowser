@@ -263,6 +263,14 @@ def is_ignored_chromium_message(line):
         "GetGpuDriverOverlayInfo: Failed to retrieve video device",
         # [1784:7100:1022/150434.202:ERROR:direct_composition_support.cc(1122)]
         "QueryInterface to IDCompositionDevice4 failed: No such interface supported (0x80004002)",
+
+        # Qt 6.10 on Windows + GitHub Actions
+        # [3508:6056:1103/172403.602:ERROR:cache_util_win.cc(20)]
+        "Unable to move the cache: The system cannot find the file specified. (0x2)",
+        # [3508:5516:1103/172403.608:ERROR:disk_cache.cc(216)]
+        "Unable to create cache",
+        # [3508:5516:1103/172403.608:ERROR:gpu_disk_cache.cc(711)]
+        "Gpu Cache Creation failed: -2",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
