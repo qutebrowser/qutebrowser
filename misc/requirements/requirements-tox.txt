@@ -14,6 +14,6 @@ setuptools==80.9.0
 tomli==2.3.0
 tox==4.30.3 ; python_full_version!="3.14.0b1"
 typing_extensions==4.15.0
-virtualenv==20.35.3
+virtualenv==20.35.4
 wheel==0.45.1
 tox @ git+https://github.com/tox-dev/tox ; python_full_version=="3.14.0b1"
