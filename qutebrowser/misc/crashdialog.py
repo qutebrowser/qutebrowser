@@ -48,8 +48,8 @@ def parse_fatal_stacktrace(text):
     lines = [
         r'(?P<type>Fatal Python error|Windows fatal exception): (?P<msg>.*)',
         r' *',
-        r'(Current )?[Tt]hread [^ ]* \(most recent call first\): *',
-        r'  File ".*", line \d+ in (?P<func>.*)',
+        r'(Current )?[Tt]hread .* \(most recent call first\): *',
+        r'  (File ".*", line \d+ in (?P<func>.*)|<no Python frame>)',
     ]
     m = re.search('\n'.join(lines), text)
     if m is None:
@@ -58,7 +58,7 @@ def parse_fatal_stacktrace(text):
     else:
         msg = m.group('msg')
         typ = m.group('type')
-        func = m.group('func')
+        func = m.group('func') or ''
         if typ == 'Windows fatal exception':
             msg = 'Windows ' + msg
         return msg, func
