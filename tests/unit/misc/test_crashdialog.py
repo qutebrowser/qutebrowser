@@ -32,6 +32,31 @@ Thread 0x00007fa135ac7700 (most recent call first):
   File "", line 1 in testfunc
 """
 
+VALID_CRASH_TEXT_PY314 = """
+Fatal Python error: Segmentation fault
+_
+Current thread 0x00000001fe53e140 [CrBrowserMain] (most recent call first):
+  File "qutebrowser/app.py", line 126 in qt_mainloop
+  File "qutebrowser/app.py", line 116 in run
+  File "qutebrowser/qutebrowser.py", line 234 in main
+  File "__main__.py", line 15 in <module>
+_
+Current thread's C stack trace (most recent call first):
+  Binary file "...", at _Py_DumpStack+0x48 [0x10227cc9c]
+  <truncated rest of calls>
+"""
+
+VALID_CRASH_TEXT_PY314_NO_PY = """
+Fatal Python error: Segmentation fault
+_
+Current thread 0x00007f0dc805cbc0 [qutebrowser] (most recent call first):
+  <no Python frame>
+_
+Current thread's C stack trace (most recent call first):
+  Binary file "/lib64/libpython3.14.so.1.0", at _Py_DumpStack+0x4c [0x7f0dc7b2127b]
+  <truncated rest of calls>
+"""
+
 WINDOWS_CRASH_TEXT = r"""
 Windows fatal exception: access violation
 _
@@ -45,13 +70,32 @@ Hello world!
 """
 
 
-@pytest.mark.parametrize('text, typ, func', [
-    (VALID_CRASH_TEXT, 'Segmentation fault', 'testfunc'),
-    (VALID_CRASH_TEXT_THREAD, 'Segmentation fault', 'testfunc'),
-    (VALID_CRASH_TEXT_EMPTY, 'Aborted', ''),
-    (WINDOWS_CRASH_TEXT, 'Windows access violation', 'tabopen'),
-    (INVALID_CRASH_TEXT, '', ''),
-])
+@pytest.mark.parametrize(
+    "text, typ, func",
+    [
+        pytest.param(VALID_CRASH_TEXT, "Segmentation fault", "testfunc", id="valid"),
+        pytest.param(
+            VALID_CRASH_TEXT_THREAD, "Segmentation fault", "testfunc", id="valid-thread"
+        ),
+        pytest.param(
+            VALID_CRASH_TEXT_PY314,
+            "Segmentation fault",
+            "qt mainloop",
+            id="valid-py314",
+        ),
+        pytest.param(
+            VALID_CRASH_TEXT_PY314_NO_PY,
+            "Segmentation fault",
+            "",
+            id="valid-py314-no-py",
+        ),
+        pytest.param(VALID_CRASH_TEXT_EMPTY, "Aborted", "", id="valid-empty"),
+        pytest.param(
+            WINDOWS_CRASH_TEXT, "Windows access violation", "tabopen", id="windows"
+        ),
+        pytest.param(INVALID_CRASH_TEXT, "", "", id="invalid"),
+    ],
+)
 def test_parse_fatal_stacktrace(text, typ, func):
     text = text.strip().replace('_', ' ')
     assert crashdialog.parse_fatal_stacktrace(text) == (typ, func)
