@@ -36,6 +36,7 @@ class _UndoEntry:
     history: bytes
     index: int
     pinned: bool
+    title: Optional[str]
     created_at: datetime.datetime = dataclasses.field(
         default_factory=datetime.datetime.now)
 
@@ -516,6 +517,7 @@ class TabbedBrowser(QWidget):
                 entry = _UndoEntry(url=tab.url(),
                                    history=history_data,
                                    index=idx,
+                                   title=tab.data.custom_title,
                                    pinned=tab.data.pinned)
                 if new_undo or not self.undo_stack:
                     self.undo_stack.append([entry])
@@ -563,6 +565,7 @@ class TabbedBrowser(QWidget):
                 newtab = self.tabopen(background=False, idx=entry.index)
 
             newtab.history.private_api.deserialize(entry.history)
+            newtab.set_title(entry.title or '')
             newtab.set_pinned(entry.pinned)
             newtab.setFocus()
 
