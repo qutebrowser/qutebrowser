@@ -202,14 +202,14 @@ jobs:
           - testenv: py314-pyqt610
             os: ubuntu-24.04
             python: "3.14"
-          ### macOS Ventura
-          - testenv: py314-pyqt610
-            os: macos-13
-            python: "3.14"
-            args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
           - testenv: py314-pyqt610
             os: macos-14
+            python: "3.14"
+            args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Sequoia (Intel runner)
+          - testenv: py314-pyqt610
+            os: macos-15-intel
             python: "3.14"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows

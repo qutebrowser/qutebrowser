@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-15-intel
             toxenv: build-release
             name: macos-intel
           - os: macos-14
@@ -23,7 +23,7 @@ jobs:
           - os: windows-latest
             toxenv: build-release
             name: windows
-          - os: macos-13
+          - os: macos-15-intel
             args: --debug
             toxenv: build-release
             name: macos-debug-intel
