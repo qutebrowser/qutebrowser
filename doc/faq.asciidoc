@@ -141,7 +141,7 @@ The comma prefix is used to make sure user-defined bindings don't conflict with
 the built-in ones.
 +
 Note that you might need an additional package (e.g.
-https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
+https://archlinux.org/packages/extra/any/yt-dlp/[yt-dlp] on
 Archlinux) to play web videos with mpv.
 +
 There is a very useful script for mpv, which emulates "unique application"
