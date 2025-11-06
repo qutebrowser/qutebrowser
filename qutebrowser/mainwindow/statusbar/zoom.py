@@ -21,6 +21,4 @@ class Zoom(textbase.TextBase):
 
     def on_tab_changed(self, tab: browsertab.AbstractTab) -> None:
         """Update percentage when tab changed."""
-        percentage = int(100 * tab.zoom.factor())
-
-        self.setText(f"{percentage}%")
+        self.on_zoom_changed(tab.zoom.factor())
