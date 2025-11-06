@@ -54,13 +54,14 @@ def show_commit():
     git_args = ['git', 'show']
     if utils.ON_CI:
         git_args.append("--color")
+        git_args.append("--no-patch")  # shows entire git tree on CI (shallow clone)
     subprocess.run(git_args, check=True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update release version.")
     parser.add_argument('bump', action="store",
-                        choices=["major", "minor", "patch"],
+                        choices=["major", "minor", "patch", "reupload"],
                         help="Update release version")
     parser.add_argument('--commands', action="store_true",
                         help="Only show commands to run post-release.")
@@ -70,7 +71,8 @@ if __name__ == "__main__":
 
     if not args.commands:
         verify_branch(args.bump)
-        bump_version(args.bump)
+        if args.bump != "reupload":
+            bump_version(args.bump)
         show_commit()
 
     import qutebrowser
@@ -87,15 +89,16 @@ if __name__ == "__main__":
         print(f"Outputs for {version} written to GitHub Actions output file")
     else:
         print("Run the following commands to create a new release:")
-        print("* git push origin; git push origin v{v}".format(v=version))
-        if args.bump == 'patch':
-            print("* git checkout main && git cherry-pick -x v{v} && "
-                "git push origin".format(v=version))
-        else:
-            print("* git branch v{x} v{v} && git push --set-upstream origin v{x}"
-                .format(v=version, x=version_x))
-        print("* Create new release via GitHub (required to upload release "
-            "artifacts)")
+        if args.bump != 'reupload':
+            print("* git push origin; git push origin v{v}".format(v=version))
+            if args.bump == 'patch':
+                print("* git checkout main && git cherry-pick -x v{v} && "
+                    "git push origin".format(v=version))
+            else:
+                print("* git branch v{x} v{v} && git push --set-upstream origin v{x}"
+                    .format(v=version, x=version_x))
+            print("* Create new release via GitHub (required to upload release "
+                "artifacts)")
         print("* Linux: git fetch && git checkout v{v} && "
             "tox -e build-release -- --upload"
             .format(v=version))

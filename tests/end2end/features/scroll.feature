@@ -327,6 +327,7 @@ Feature: Scrolling
 
     Scenario: Relative scroll position with a position:absolute page
         When I open data/scroll/position_absolute.html
+        And I wait for "* position_absolute loaded" in the log
         And I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1

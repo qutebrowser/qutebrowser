@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.x'
         if: "matrix.testenv == 'eslint'"
@@ -125,7 +125,7 @@ jobs:
         shell: bash
         if: failure()
       - name: Upload screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
           path: |
@@ -198,21 +198,25 @@ jobs:
           - testenv: py314-pyqt69
             os: ubuntu-24.04
             python: "3.14"
-          ### macOS Ventura
-          - testenv: py314-pyqt69
-            os: macos-13
+          ### PyQt 6.10 (Python 3.14)
+          - testenv: py314-pyqt610
+            os: ubuntu-24.04
             python: "3.14"
-            args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Sonoma (M1 runner)
-          - testenv: py314-pyqt69
+          - testenv: py314-pyqt610
             os: macos-14
             python: "3.14"
             args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Sequoia (Intel runner)
+          - testenv: py314-pyqt610
+            os: macos-15-intel
+            python: "3.14"
+            args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py314-pyqt69
+          - testenv: py314-pyqt610
             os: windows-2022
             python: "3.14"
-          - testenv: py314-pyqt69
+          - testenv: py314-pyqt610
             os: windows-2025
             python: "3.14"
     runs-on: "${{ matrix.os }}"
@@ -269,7 +273,7 @@ jobs:
         shell: bash
         if: failure()
       - name: Upload screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
           path: |

@@ -23,7 +23,8 @@ import pytest_mock
 import hypothesis
 import hypothesis.strategies
 from qutebrowser.qt import machinery
-from qutebrowser.qt.core import PYQT_VERSION_STR
+from qutebrowser.qt.core import PYQT_VERSION_STR, QUrl
+from qutebrowser.qt.webenginecore import QWebEngineProfile
 
 import qutebrowser
 from qutebrowser.config import config, websettings
@@ -1153,13 +1154,7 @@ class TestChromiumVersion:
 
     def test_prefers_saved_user_agent(self, monkeypatch, patch_no_api):
         webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
-
-        class FakeProfile:
-            def defaultProfile(self):
-                raise AssertionError("Should not be called")
-
-        monkeypatch.setattr(webenginesettings, 'QWebEngineProfile', FakeProfile())
-
+        monkeypatch.setattr(QWebEngineProfile, "defaultProfile", lambda: 1/0)
         version.qtwebengine_versions()
 
     def test_unpatched(self, qapp, cache_tmpdir, data_tmpdir, config_stub):
@@ -1280,6 +1275,62 @@ class TestChromiumVersion:
         assert versions.webengine == override
 
 
+class FakeExtensionInfo:
+    def __init__(
+        self,
+        name: str,
+        *,
+        enabled: bool = False,
+        installed: bool = False,
+        loaded: bool = False,
+        action_popup_url: QUrl = QUrl(),
+    ) -> None:
+        self._name = name
+        self.enabled = enabled
+        self.installed = installed
+        self.loaded = loaded
+        self.action_popup_url = action_popup_url
+
+    def isEnabled(self) -> bool:
+        return self.enabled
+
+    def isInstalled(self) -> bool:
+        return self.installed
+
+    def isLoaded(self) -> bool:
+        return self.loaded
+
+    def name(self) -> str:
+        return self._name
+
+    def actionPopupUrl(self) -> QUrl:
+        return self.action_popup_url
+
+    def path(self) -> str:
+        return f"{self._name}-path"
+
+    def id(self) -> str:
+        return f"{self._name}-id"
+
+
+class FakeExtensionManager:
+
+    def __init__(self, extensions: list[FakeExtensionInfo]) -> None:
+        self._extensions = extensions
+
+    def extensions(self) -> list[FakeExtensionInfo]:
+        return self._extensions
+
+
+class FakeExtensionProfile:
+
+    def __init__(self, ext_manager: FakeExtensionManager) -> None:
+        self._ext_manager = ext_manager
+
+    def extensionManager(self) -> FakeExtensionManager:
+        return self._ext_manager
+
+
 @dataclasses.dataclass
 class VersionParams:
 
@@ -1373,6 +1424,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'python_path': 'EXECUTABLE PATH',
         'uptime': "1:23:45",
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
+        'webextensions': "",  # overridden below if QtWebEngine is used
     }
 
     patches['qtwebengine_versions'] = (
@@ -1395,6 +1447,21 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
+        if machinery.IS_QT6:
+            monkeypatch.setattr(
+                QWebEngineProfile,
+                "defaultProfile",
+                lambda: FakeExtensionProfile(
+                    FakeExtensionManager([FakeExtensionInfo("ext1")])
+                ),
+            )
+            substitutions['webextensions'] = (
+                "\n"
+                "WebExtensions:\n"
+                "  ext1 (ext1-id)\n"
+                "  [ ] enabled  [ ] loaded  [ ] installed\n"
+                "  ext1-path\n"
+            )
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
         substitutions['backend'] = 'QtWebEngine 1.2.3\n  (source: faked)'
 
@@ -1434,7 +1501,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         pdf.js: PDFJS VERSION
         sqlite: SQLITE VERSION
         QtNetwork SSL: {ssl}
-        {style}{platform_plugin}{opengl}
+        {webextensions}{style}{platform_plugin}{opengl}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
@@ -1517,6 +1584,95 @@ class TestOpenGLInfo:
     def test_str_gles(self):
         info = version.OpenGLInfo(gles=True)
         assert str(info) == 'OpenGL ES'
+
+
+@pytest.mark.skipif(
+    not machinery.IS_QT6, reason="extensions are only available with Qt6"
+)
+class TestWebEngineExtensions:
+
+    def test_qtwebkit(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(version.objects, "backend", usertypes.Backend.QtWebKit)
+        monkeypatch.setattr(QWebEngineProfile, "defaultProfile", lambda: 1/0)
+        assert not version._webengine_extensions()
+
+    def test_avoid_chromium_init(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(version.objects, "backend", usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(objects, "debug_flags", {"avoid-chromium-init"})
+        monkeypatch.setattr(QWebEngineProfile, "defaultProfile", lambda: 1/0)
+        assert not version._webengine_extensions()
+
+    def test_no_extension_manager(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(QWebEngineProfile, "defaultProfile", object)
+        assert not version._webengine_extensions()
+
+    @pytest.mark.parametrize(
+        "extensions, expected",
+        [
+            pytest.param([], ["WebExtensions: none"], id="empty"),
+            pytest.param(
+                [FakeExtensionInfo("ext1")],
+                [
+                    "WebExtensions:",
+                    "  ext1 (ext1-id)",
+                    "  [ ] enabled  [ ] loaded  [ ] installed",
+                    "  ext1-path",
+                    "",
+                ],
+                id="single",
+            ),
+            pytest.param(
+                [
+                    FakeExtensionInfo("ext1", enabled=True),
+                    FakeExtensionInfo(
+                        "ext2", enabled=True, loaded=True, installed=True
+                    ),
+                ],
+                [
+                    "WebExtensions:",
+                    "  ext1 (ext1-id)",
+                    "  [x] enabled  [ ] loaded  [ ] installed",
+                    "  ext1-path",
+                    "",
+                    "  ext2 (ext2-id)",
+                    "  [x] enabled  [x] loaded  [x] installed",
+                    "  ext2-path",
+                    "",
+                ],
+                id="multiple",
+            ),
+            pytest.param(
+                [
+                    FakeExtensionInfo(
+                        "ext", action_popup_url=QUrl("chrome-extension://ext")
+                    )
+                ],
+                [
+                    "WebExtensions:",
+                    "  ext (ext-id)",
+                    "  [ ] enabled  [ ] loaded  [ ] installed",
+                    "  ext-path",
+                    "  chrome-extension://ext",
+                    "",
+                ],
+                id="with-url",
+            ),
+        ],
+    )
+    def test_extensions(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        extensions: list[FakeExtensionInfo],
+        expected: list[str],
+    ) -> None:
+        monkeypatch.setattr(
+            QWebEngineProfile,
+            "defaultProfile",
+            lambda: FakeExtensionProfile(
+                FakeExtensionManager(extensions)
+            ),
+        )
+        assert version._webengine_extensions() == expected
 
 
 @pytest.fixture

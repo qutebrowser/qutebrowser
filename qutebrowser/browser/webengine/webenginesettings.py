@@ -417,6 +417,26 @@ def _init_profile(profile: QWebEngineProfile) -> None:
         lambda url: profile.clearVisitedLinks([url]))
 
     _global_settings.init_settings()
+    _maybe_disable_hangouts_extension(profile)
+
+
+def _maybe_disable_hangouts_extension(profile: QWebEngineProfile) -> None:
+    """Disable the Hangouts extension for Qt 6.10+."""
+    if not config.val.qt.workarounds.disable_hangouts_extension:
+        return
+
+    if machinery.IS_QT6:  # mypy
+        try:
+            ext_manager = profile.extensionManager()
+        except AttributeError:
+            return  # added in QtWebEngine 6.10
+
+        assert ext_manager is not None  # mypy
+        for info in ext_manager.extensions():
+            if info.id() == pakjoy.HANGOUTS_EXT_ID:
+                log.misc.debug(f"Disabling extension: {info.name()}")
+                # setExtensionEnabled(info, False) seems to segfault
+                ext_manager.unloadExtension(info)
 
 
 def _clear_webengine_permissions_json():
@@ -506,7 +526,7 @@ def _init_site_specific_quirks():
     #               "{qt_key}/{qt_version} "
     #               "{upstream_browser_key}/{upstream_browser_version_short} "
     #               "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:136.0) Gecko/20100101 Firefox/139.0"
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:144.0) Gecko/20100101 Firefox/144.0"
 
     # Needed for gitlab.gnome.org which blocks old Chromium versions outright,
     # except when QtWebEngine/... is in the UA.
