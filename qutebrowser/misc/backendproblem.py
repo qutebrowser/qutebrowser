@@ -422,6 +422,37 @@ class _BackendProblemChecker:
 
         raise utils.Unreachable
 
+    def _force_wayland_hardware_acceleration(self) -> None:
+        """Set environment variable so hardware acceleration works on Wayland.
+
+        Set EGL_PLATFORM=wayland to force ANGLE to obtain EGL display connection
+        for wayland platform. Otherwise, the display connection for
+        EGL_DEFAULT_DISPLAY may belong to a platform which Nvidia's EGL driver
+        doesn't support. In case of unsupported platform, EGL may fallback to
+        Mesa software renderer (LLVMPipe) disabling hardware acceleration in
+        Chromium.
+
+        Equivalent to:
+        https://codereview.qt-project.org/c/qt/qtwebengine/+/663568
+        """
+        if objects.qapp.platformName() != 'wayland':
+            return
+
+        versions = version.qtwebengine_versions(avoid_init=True)
+        if versions.webengine >= utils.VersionNumber(6, 10):
+            # Qt workaround is active
+            return
+
+        egl_platform_var = "EGL_PLATFORM"
+        egl_platform = os.environ.get(egl_platform_var)
+        if not egl_platform:
+            os.environ[egl_platform_var] = "wayland"
+        elif egl_platform != "wayland":
+            log.init.warning(
+                f"{egl_platform_var} environment variable is set to {egl_platform!r}. "
+                "This may break hardware rendering on Wayland."
+            )
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -433,6 +464,7 @@ class _BackendProblemChecker:
             self._handle_ssl_support()
             self._handle_serviceworker_nuking()
             self._check_software_rendering()
+            self._force_wayland_hardware_acceleration()
             self._confirm_chromium_version_changes()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)

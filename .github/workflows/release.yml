@@ -12,11 +12,12 @@ on:
           - 'patch'
           - 'minor'
           - 'major'
+          - 'reupload'  # reupload last release
           # FIXME do we want a possibility to do prereleases here?
       python_version:
         description: 'Python version'
         required: true
-        default: '3.13'
+        default: '3.14'
         type: choice
         options:
           - '3.9'
@@ -24,18 +25,20 @@ on:
           - '3.11'
           - '3.12'
           - '3.13'
+          - '3.14'
 jobs:
   prepare:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       version: ${{ steps.bump.outputs.version }}
-      release_id: ${{ steps.create-release.outputs.id }}
+      version_x: ${{ steps.bump.outputs.version_x }}
+      release_id: ${{ inputs.release_type == 'reupload' && steps.find-release.outputs.result || steps.create-release.outputs.id }}
     permissions:
       contents: write  # To push release commit/tag
     steps:
       - name: Find release branch
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         id: find-branch
         with:
           script: |
@@ -61,7 +64,7 @@ jobs:
           result-encoding: string
       - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           # Doesn't really matter what we prepare the release with, but let's
           # use the same version for consistency.
@@ -83,9 +86,9 @@ jobs:
           gpg --import <<< "${{ secrets.QUTEBROWSER_BOT_GPGKEY }}"
       - name: Bump version
         id: bump
-        run: "tox -e update-version -- ${{ github.event.inputs.release_type }}"
+        run: "tox -e update-version -- ${{ inputs.release_type }}"
       - name: Check milestone
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const milestones = await github.paginate(github.rest.issues.listMilestones, {
@@ -100,35 +103,59 @@ jobs:
               core.setFailed(`Found open milestone ${milestone.title} with ${milestone.open_issues} open and ${milestone.closed_issues} closed issues!`);
             }
       - name: Push release commit/tag
+        if: ${{ inputs.release_type != 'reupload' }}
         run: |
             git push origin ${{ steps.find-branch.outputs.result }}
             git push origin v${{ steps.bump.outputs.version }}
       - name: Cherry-pick release commit
-        if: ${{ github.event.inputs.release_type == 'patch' }}
+        if: ${{ inputs.release_type == 'patch' }}
         run: |
             git checkout main
             git cherry-pick -x v${{ steps.bump.outputs.version }}
             git push origin main
             git checkout v${{ steps.bump.outputs.version_x }}
       - name: Create release branch
-        if: ${{ github.event.inputs.release_type != 'patch' }}
+        if: ${{ inputs.release_type == 'minor' || inputs.release_type == 'major' }}
         run: |
             git checkout -b v${{ steps.bump.outputs.version_x }}
             git push --set-upstream origin v${{ steps.bump.outputs.version_x }}
       - name: Create GitHub draft release
+        if: ${{ inputs.release_type != 'reupload' }}
         id: create-release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.bump.outputs.version }}
           draft: true
           body: "*Release artifacts for this release are currently being uploaded...*"
+      - name: Find GitHub draft release
+        if: ${{ inputs.release_type == 'reupload' }}
+        id: find-release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const names = releases.map(release => release.name);
+            console.log(`releases: ${names}`);
+
+            const release = releases.find(release => release.tag_name === "v${{ steps.bump.outputs.version }}");
+            if (release === undefined) {
+              core.setFailed(`No release found with tag v${{ steps.bump.outputs.version }}!`);
+            }
+            if (!release.draft) {
+              core.setFailed(`Release ${release.tag_name} is not a draft release!`);
+            }
+            return release.id;
+          result-encoding: string
   release:
     strategy:
       matrix:
         include:
-          - os: macos-13
-          - os: macos-14
-          - os: windows-2019
+          - os: macos-14-large  # Intel
+          - os: macos-14  # Apple Silicon
+          - os: windows-2022
           - os: ubuntu-24.04
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 45
@@ -138,11 +165,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: v${{ needs.prepare.outputs.version }}
+          ref: v${{ inputs.release_type == 'reupload' && needs.prepare.outputs.version_x || needs.prepare.outputs.version }}
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: ${{ github.event.inputs.python_version }}
+          python-version: ${{ inputs.python_version }}
       - name: Import GPG Key
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: |
@@ -167,7 +194,7 @@ jobs:
       # FIXME consider switching to trusted publishers:
       # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
       - name: Build and upload release
-        run: "tox -e build-release -- --upload --no-confirm"
+        run: "tox -e build-release -- --upload --no-confirm ${{ inputs.release_type == 'reupload' && '--reupload' || '' }}"
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.QUTEBROWSER_BOT_PYPI_TOKEN }}
@@ -180,7 +207,7 @@ jobs:
       contents: write  # To change release
     steps:
       - name: Publish final release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.updateRelease({

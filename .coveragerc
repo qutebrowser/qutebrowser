@@ -4,6 +4,7 @@ include =
     tests/*
     scripts/*
 branch = true
+patch = subprocess
 omit =
     qutebrowser/__main__.py
     */__init__.py

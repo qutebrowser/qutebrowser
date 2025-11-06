@@ -44,10 +44,10 @@ jobs:
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('scripts/dev/pylint_checkers/qute_pylint/*.py') }}"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.x'
         if: "matrix.testenv == 'eslint'"
@@ -125,7 +125,7 @@ jobs:
         shell: bash
         if: failure()
       - name: Upload screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.image }}"
           path: |
@@ -190,31 +190,35 @@ jobs:
           - testenv: py313-pyqt68
             os: ubuntu-24.04
             python: "3.13"
-          ### PyQt 6.8 (Python 3.14)
-          - testenv: py314-pyqt68
-            os: ubuntu-24.04
-            python: "3.14-dev"
-          ### PyQt 6.9 (Python 3.13)
-          - testenv: py313-pyqt69
+          ### PyQt 6.8 (Python 3.13)
+          - testenv: py313-pyqt68
             os: ubuntu-24.04
             python: "3.13"
-          ### macOS Ventura
-          - testenv: py313-pyqt69
-            os: macos-13
-            python: "3.13"
-            args: "tests/unit"  # Only run unit tests on macOS
+          ### PyQt 6.9 (Python 3.14)
+          - testenv: py314-pyqt69
+            os: ubuntu-24.04
+            python: "3.14"
+          ### PyQt 6.10 (Python 3.14)
+          - testenv: py314-pyqt610
+            os: ubuntu-24.04
+            python: "3.14"
           ### macOS Sonoma (M1 runner)
-          - testenv: py313-pyqt69
+          - testenv: py314-pyqt610
             os: macos-14
-            python: "3.13"
+            python: "3.14"
+            args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Sequoia (Intel runner)
+          - testenv: py314-pyqt610
+            os: macos-15-intel
+            python: "3.14"
             args: "tests/unit"  # Only run unit tests on macOS
           ### Windows
-          - testenv: py313-pyqt69
+          - testenv: py314-pyqt610
             os: windows-2022
-            python: "3.13"
-          - testenv: py313-pyqt69
+            python: "3.14"
+          - testenv: py314-pyqt610
             os: windows-2025
-            python: "3.13"
+            python: "3.14"
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v5
@@ -228,7 +232,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "${{ matrix.python }}"
       - name: Set up problem matchers
@@ -269,7 +273,7 @@ jobs:
         shell: bash
         if: failure()
       - name: Upload screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "end2end-screenshots-${{ steps.info.outputs.date }}-${{ steps.info.outputs.sha_short }}-${{ matrix.testenv }}-${{ matrix.os }}"
           path: |
@@ -289,12 +293,12 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript, python
           queries: +security-extended
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
   irc:
     timeout-minutes: 2

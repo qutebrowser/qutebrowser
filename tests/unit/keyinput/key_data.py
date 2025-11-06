@@ -551,6 +551,7 @@ KEYS = [
 
     Key('MicVolumeUp', 'Microphone Volume Up', qtest=False),
     Key('MicVolumeDown', 'Microphone Volume Down', qtest=False),
+    Key('Keyboard', 'Keyboard', qtest=False),
 
     Key('New', qtest=False),
     Key('Open', qtest=False),

@@ -78,8 +78,8 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
-        Then the error "Download error: No handler found for qute://" should be shown
-        And "NotFoundError while handling qute://* URL" should be logged
+        Then the error "Download error: Invalid host (from path): ''" should be shown
+        And "UrlInvalidError while handling qute://* URL" should be logged
 
     Scenario: Downloading a data: link (issue 1214)
         When I set downloads.location.suggestion to filename
@@ -128,6 +128,14 @@ Feature: Downloading things from a website.
         And I run :tab-close
         And I wait for "Download drip finished" in the log
         Then the downloaded file drip should be 128 bytes big
+
+    Scenario: Shutting down with a download question
+        When I set downloads.location.prompt to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I run :close
+        Then qutebrowser should quit
+        # (and no crash should happen)
 
     Scenario: Downloading a file with spaces
         When I open data/downloads/download with spaces.bin without waiting
@@ -668,6 +676,21 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
+
+    @qt>=6.9
+    Scenario: Nested download prompts (#8674)
+        When I set downloads.location.prompt to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I run :prompt-accept
+        And I run :mode-leave
+        And I run :mode-leave
+        And I wait until the download is finished
+        Then the downloaded file download.bin should exist
 
     @qtwebengine_skip  # We can't get the UA from the page there
     Scenario: user-agent when using :download

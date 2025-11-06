@@ -26,6 +26,7 @@ instead of crashing.
 """
 
 import os
+import sys
 import shutil
 import pathlib
 import dataclasses
@@ -35,9 +36,13 @@ from collections.abc import Iterator
 
 from qutebrowser.config import config
 from qutebrowser.misc import binparsing, objects
+from qutebrowser.qt import core
 from qutebrowser.utils import qtutils, standarddir, version, utils, log, message
+from qutebrowser.qt.webenginecore import QWebEngineProfile
 
-HANGOUTS_MARKER = b"// Extension ID: nkeimhogjdpnpccoofpliimaahmaaome"
+
+HANGOUTS_EXT_ID = "nkeimhogjdpnpccoofpliimaahmaaome"
+HANGOUTS_MARKER = f"// Extension ID: {HANGOUTS_EXT_ID}".encode("utf-8")
 HANGOUTS_IDS = [
     # Linux
     47222,  # QtWebEngine 6.9 Beta 3
@@ -57,7 +62,11 @@ PAK_VERSION = 5
 RESOURCES_ENV_VAR = "QTWEBENGINE_RESOURCES_PATH"
 DISABLE_ENV_VAR = "QUTE_DISABLE_PAKJOY"
 CACHE_DIR_NAME = "webengine_resources_pak_quirk"
-PAK_FILENAME = "qtwebengine_resources.pak"
+PAK_FILENAME = (
+    "qtwebengine_resources.debug.pak"
+    if core.QLibraryInfo.isDebugBuild()
+    else "qtwebengine_resources.pak"
+)
 
 TARGET_URL = b"https://*.google.com/*"
 REPLACEMENT_URL = b"https://qute.invalid/*"
@@ -222,7 +231,7 @@ def copy_webengine_resources() -> Optional[pathlib.Path]:
         )
         # https://github.com/qutebrowser/qutebrowser/issues/8257
         or config.val.qt.workarounds.disable_hangouts_extension
-    ):
+    ) or hasattr(QWebEngineProfile, "extensionManager"):  # Qt 6.10+
         # No patching needed
         return None
 
@@ -303,3 +312,16 @@ def patch_webengine() -> Iterator[None]:
         del os.environ[RESOURCES_ENV_VAR]
     else:
         os.environ[RESOURCES_ENV_VAR] = old_value
+
+
+def main() -> None:
+    with open(sys.argv[1], "rb") as f:
+        parser = PakParser(f)
+        print(parser.manifest.decode("utf-8"))
+        print()
+        print(f"entry: {parser.manifest_entry}")
+        print(f"URL offset: {parser.find_patch_offset()}")
+
+
+if __name__ == "__main__":
+    main()

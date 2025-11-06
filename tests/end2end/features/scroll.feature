@@ -327,6 +327,7 @@ Feature: Scrolling
 
     Scenario: Relative scroll position with a position:absolute page
         When I open data/scroll/position_absolute.html
+        And I wait for "* position_absolute loaded" in the log
         And I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
@@ -339,3 +340,11 @@ Feature: Scrolling
         And I run :tab-next
         And I run :jseval --world main checkAnchor()
         Then "[*] [PASS] Positions equal: *" should be logged
+
+    Scenario: Showing/hiding statusbar (#2236, #8223)
+        When I set statusbar.show to never
+        And I run :scroll-to-perc 100
+        And I wait until the scroll position changed
+        And I run :cmd-set-text /
+        And I run :fake-key -g <Escape>
+        Then "Scroll position changed to Py*.QtCore.QPoint()" should not be logged

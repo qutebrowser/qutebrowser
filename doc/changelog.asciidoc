@@ -15,34 +15,88 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.7.0]]
+v3.7.0 (unreleased)
+-------------------
+
+Changed
+~~~~~~~
+
+- When switching between normal/fullscreen tabs, the fullscreen state now gets
+  left/restored properly. (#5283)
+
+[[v3.6.1]]
+v3.6.1 (2025-11-03)
+-------------------
+
+Fixed
+~~~~~
+
+- A regression in v3.6.0 where the page didn't have keyboard focus after closing
+  the completion, so e.g. typing in an input field after hinting didn't work.
+  (#8750)
+
 [[v3.6.0]]
-v3.6.0 (unreleased)
+v3.6.0 (2025-10-24)
 -------------------
 
 Added
 ~~~~~
 
-- The `:version` info now shows the X11 window manager / Wayland compositor name
-  (mostly useful for bug/crash reports)
+- The `:version` info now shows additional information:
+    * The X11 window manager / Wayland compositor name (mostly useful for
+      bug/crash reports).
+    * Loaded WebExtensions (partial support landed in QtWebEngine 6.10, no
+      official qutebrowser support yet).
 - Support for hinting elements which are part of an (open) shadow DOM.
 
 Changed
 ~~~~~~~
 
 - The `qutedmenu` userscript now sorts history by the last access time.
-
-[[v3.5.2]]
-v3.5.2 (unreleased)
--------------------
+- Hardware accelerated 2D canvas is now enabled by default on Qt 6.8.2+,
+  as graphic glitches with e.g. PDF.js and Google Sheets should be fixed
+  nowadays. If you still run into issues, please report them and set
+  `qt.workarounds.disable_accelerated_2d_canvas` to `always` to disable it
+  again.
+- Changes to binary releases:
+    * Windows and macOS releases are now built with Qt 6.10.0, which is based
+      on Chromium 134.0.6998.208 with security patches up to 140.0.7339.207.
+    * Windows and macOS releases are now built with Python 3.14.
+    * Windows releases are now built on Windows Server 2022 (previously 2019),
+      which might break compatibility with older Windows releases (untested).
+    * If using `mkvenv.py` on Linux, note that Qt now requires glibc v2.34 (v2.28
+      previously). This is available down to Ubuntu 22.04 LTS and Debian Bookworm
+      (oldstable), so this should not affect most users of desktop distributions.
 
 Fixed
 ~~~~~
 
-- The package version for Jinja 3.3+ is now correctly displayed in `:version`.
+- Fixed crash if two new downloads start while a download prompt is already open
+  (#8674).
+- Fixed exception when closing a qutebrowser window while a download prompt is
+  still open.
+- Hopefully proper fix for some web pages jumping to the top when the statusbar
+  is hidden (#8223).
+- Fix for the page header being shown on YouTube after the fullscreen
+  notification was hidden (#8625).
+- Fix for videos losing keyboard focus when the fullscreen notification shows
+  (#8174).
 - The workaround for microphone/camera permissions not being requested with
   QtWebEngine 6.9 on Google Meet, Zoom, or other pages using the new
   `<permission>` element now got extended to Qt 6.9.1+ as it's still not fixed
   upstream. (#8612)
+- The package version for Jinja 3.3+ is now correctly displayed in `:version`.
+- Fixed crash with Qt 6.10 (and possibly older Qt versions) when navigating
+  from a `qute://` page to a web page, e.g. when searching on `qute://start`.
+- On Wayland with Qt <= 6.9, `EGL_PLATFORM=wayland` is now set by qutebrowser to
+  get hardware rendering. Qt 6.10 includes an equivalent fix (#8637).
+- Added workaround for per-domain User-Agent header not being used on redirects
+  (#8679).
+- Added site-specific quirk for gitlab.gnome.org agressively blocking old
+  Chromium versions (and thus QtWebEngine) (#8509).
+- Using `:config-list-remove` with an invalid value for the respective option
+  type now corrently displays an error instead of crashing.
 
 [[v3.5.1]]
 v3.5.1 (2025-06-05)

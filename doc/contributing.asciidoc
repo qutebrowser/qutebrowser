@@ -802,7 +802,8 @@ qutebrowser release
 **Automatic release via GitHub Actions (starting with v3.0.0):**
 
 * Double check Python version in `.github/workflows/release.yml`
-* Run the `release` workflow on the `main` branch, e.g. via `gh workflow run release -f release_type=major` (`release_type` can be `major`, `minor` or `patch`; you can also override `python_version`)
+* Run the `release` workflow on the `main` branch, e.g. via `gh workflow run release -f release_type=minor` (`release_type` can be `major`, `minor` or `patch`; you can also override `python_version`)
+* Consider running `gh run watch` or `gh run view --web` to watch the progress
 
 **Manual release:**
 

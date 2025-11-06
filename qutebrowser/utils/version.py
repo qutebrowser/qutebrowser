@@ -559,6 +559,7 @@ class WebEngineVersions:
         118: '118.0.5993.220',  # 2024-01-25, Qt 6.7
         122: '122.0.6261.171',  # 2024-04-15, Qt 6.8
         130: '130.0.6723.192',  # 2025-01-06, Qt 6.9
+        134: '134.0.6998.208',  # 2025-04-16, Qt 6.10
     }
 
     # Dates based on https://chromereleases.googleblog.com/
@@ -652,9 +653,10 @@ class WebEngineVersions:
         ## Qt 6.9
         utils.VersionNumber(6, 9): (_BASES[130], '133.0.6943.141'),  # 2025-02-25
         utils.VersionNumber(6, 9, 1): (_BASES[130], '136.0.7103.114'),  # 2025-05-13
+        utils.VersionNumber(6, 9, 2): (_BASES[130], '139.0.7258.67'),  # 2025-07-29
 
-        ## Qt 6.10 (WIP)
-        utils.VersionNumber(6, 10): (_BASES[130], '137.0.7151.68'),  # 2025-05-30
+        ## Qt 6.10
+        utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
     }
 
     def __post_init__(self) -> None:
@@ -923,6 +925,46 @@ def _backend() -> str:
     raise utils.Unreachable(objects.backend)
 
 
+def _webengine_extensions() -> Sequence[str]:
+    """Get a list of WebExtensions enabled in QtWebEngine."""
+    lines: list[str] = []
+    if (
+        objects.backend == usertypes.Backend.QtWebEngine
+        and "avoid-chromium-init" not in objects.debug_flags
+        and machinery.IS_QT6  # mypy; TODO early return once Qt 5 is dropped
+    ):
+        from qutebrowser.qt.webenginecore import QWebEngineProfile
+        profile = QWebEngineProfile.defaultProfile()
+        assert profile is not None  # mypy
+
+        try:
+            ext_manager = profile.extensionManager()
+        except AttributeError:
+            # Added in QtWebEngine 6.10
+            return []
+        assert ext_manager is not None  # mypy
+
+        lines.append("WebExtensions:")
+        if not ext_manager.extensions():
+            lines[0] += " none"
+
+        for info in ext_manager.extensions():
+            tags = [
+                ("[x]" if info.isEnabled() else "[ ]") + " enabled",
+                ("[x]" if info.isLoaded() else "[ ]") + " loaded",
+                ("[x]" if info.isInstalled() else "[ ]") + " installed",
+            ]
+            lines.append(f"  {info.name()} ({info.id()})")
+            lines.append(f"  {'  '.join(tags)}")
+            lines.append(f"  {info.path()}")
+            url = info.actionPopupUrl()
+            if url.isValid():
+                lines.append(f"  {url.toDisplayString()}")
+            lines.append("")
+
+    return lines
+
+
 def _uptime() -> datetime.timedelta:
     time_delta = datetime.datetime.now() - objects.qapp.launch_time
     # Round off microseconds
@@ -971,6 +1013,8 @@ def version_info() -> str:
         'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
                                      if QSslSocket.supportsSsl() else 'no'),
     ]
+
+    lines += _webengine_extensions()
 
     if objects.qapp:
         style = objects.qapp.style()

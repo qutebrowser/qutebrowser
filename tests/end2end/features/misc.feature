@@ -386,6 +386,13 @@ Feature: Various utility commands.
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
 
+    Scenario: User-agent header with redirect
+        When I run :set -u localhost content.headers.user_agent toaster
+        And I open redirect-to?url=headers without waiting
+        And I wait until headers is loaded
+        And I run :jseval console.log(window.navigator.userAgent)
+        Then the header User-Agent should be set to toaster
+
     Scenario: User-agent header (JS)
         When I set content.headers.user_agent to toaster
         And I open about:blank

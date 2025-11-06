@@ -417,6 +417,26 @@ def _init_profile(profile: QWebEngineProfile) -> None:
         lambda url: profile.clearVisitedLinks([url]))
 
     _global_settings.init_settings()
+    _maybe_disable_hangouts_extension(profile)
+
+
+def _maybe_disable_hangouts_extension(profile: QWebEngineProfile) -> None:
+    """Disable the Hangouts extension for Qt 6.10+."""
+    if not config.val.qt.workarounds.disable_hangouts_extension:
+        return
+
+    if machinery.IS_QT6:  # mypy
+        try:
+            ext_manager = profile.extensionManager()
+        except AttributeError:
+            return  # added in QtWebEngine 6.10
+
+        assert ext_manager is not None  # mypy
+        for info in ext_manager.extensions():
+            if info.id() == pakjoy.HANGOUTS_EXT_ID:
+                log.misc.debug(f"Disabling extension: {info.name()}")
+                # setExtensionEnabled(info, False) seems to segfault
+                ext_manager.unloadExtension(info)
 
 
 def _clear_webengine_permissions_json():
@@ -506,7 +526,21 @@ def _init_site_specific_quirks():
     #               "{qt_key}/{qt_version} "
     #               "{upstream_browser_key}/{upstream_browser_version_short} "
     #               "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:136.0) Gecko/20100101 Firefox/139.0"
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:144.0) Gecko/20100101 Firefox/144.0"
+
+    # Needed for gitlab.gnome.org which blocks old Chromium versions outright,
+    # except when QtWebEngine/... is in the UA.
+    #
+    # We could further modify the UA to just "qutebrowser" or something so we don't get
+    # Anubis at all, but it looks like their Anubis triggers to more than just
+    # Mozilla/5.0 (also AppleWebKit/... and Chromium/... possibly?), so at that point
+    # I'm not sure if we can strip down the UA so much without breaking
+    # something in GitLab as well.
+    not_mozilla_ua = (
+        "Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) "
+        "{qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version_short} "
+        "Safari/{webkit_version}"
+    )
 
     def maybe_newer_chrome_ua(at_least_version):
         """Return a new UA if our current chrome version isn't at least at_least_version."""
@@ -528,6 +562,7 @@ def _init_site_specific_quirks():
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182
         ("ua-google", "https://accounts.google.com/*", firefox_ua),
+        ("ua-gnome-gitlab", "https://gitlab.gnome.org/*", not_mozilla_ua),
     ]
 
     for name, pattern, ua in user_agents:
