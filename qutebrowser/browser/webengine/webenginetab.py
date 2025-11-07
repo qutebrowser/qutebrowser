@@ -1772,5 +1772,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self.audio._connect_signals()
         self.search.connect_signals()
         self.printing.connect_signals()
+        self.zoom.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()

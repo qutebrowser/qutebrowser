@@ -3,6 +3,7 @@
 from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.qt.core import pyqtSlot, QObject
+from qutebrowser.config import config
 
 
 class Zoom(textbase.TextBase):
@@ -11,13 +12,16 @@ class Zoom(textbase.TextBase):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        self.setText("100%")
+        self.on_zoom_changed(1)
 
     @pyqtSlot(float)
     def on_zoom_changed(self, factor: float) -> None:
         """Update percentage when factor changed."""
+        if factor == 1 and config.val.statusbar.zoom.show == 'non-default':
+            self.setText("")
+            return
         percentage = int(100 * factor)
-        self.setText(f"{percentage}%")
+        self.setText(f"[{percentage}%]")
 
     def on_tab_changed(self, tab: browsertab.AbstractTab) -> None:
         """Update percentage when tab changed."""
