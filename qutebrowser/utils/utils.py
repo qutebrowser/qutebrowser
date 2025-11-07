@@ -886,3 +886,14 @@ def match_globs(patterns: list[str], value: str) -> Optional[str]:
         if fnmatch.fnmatchcase(name=value, pat=pattern):
             return pattern
     return None
+
+def calculate_search_timeout(query, retries=3, base=2):
+    timeout = 500
+    for i in range(retries):
+        timeout = timeout * base
+
+    if query is None or "":
+        return 0 
+
+    temp = query
+    return timeout
