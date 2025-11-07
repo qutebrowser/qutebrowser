@@ -112,7 +112,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
+def _parse_search_term(s: str) -> tuple[Optional[str], str]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -123,24 +123,21 @@ def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
     """
     s = s.strip()
     split = s.split(maxsplit=1)
-    if not split:
-        raise ValueError("Empty search term!")
 
     if len(split) == 2:
-        if split[0] in config.val.url.searchengines:
-            engine: Optional[str] = split[0]
-            term: Optional[str] = split[1]
-        else:
+        engine: Optional[str] = split[0]
+        try:
+            config.val.url.searchengines[engine]
+        except KeyError:
             engine = None
             term = s
+        else:
+            term = split[1]
+    elif not split:
+        raise ValueError("Empty search term!")
     else:
-        # pylint: disable=else-if-used
-        if config.val.url.open_base_url and s in config.val.url.searchengines:
-            engine = s
-            term = None
-        else:
-            engine = None
-            term = s
+        engine = None
+        term = s
 
     log.url.debug("engine {}, term {!r}".format(engine, term))
     return (engine, term)
@@ -157,19 +154,25 @@ def _get_search_url(txt: str) -> QUrl:
     """
     log.url.debug("Finding search engine for {!r}".format(txt))
     engine, term = _parse_search_term(txt)
-    if not engine:
+    assert term
+    if engine is None:
         engine = 'DEFAULT'
-    if term:
-        template = config.val.url.searchengines[engine]
-        semiquoted_term = urllib.parse.quote(term)
-        quoted_term = urllib.parse.quote(term, safe='')
-        evaluated = template.format(semiquoted_term,
-                                    unquoted=term,
-                                    quoted=quoted_term,
-                                    semiquoted=semiquoted_term)
-        url = QUrl.fromUserInput(evaluated)
-    else:
-        url = QUrl.fromUserInput(config.val.url.searchengines[engine])
+    # INTENTIONAL ERROR: Missing try/except for KeyError
+    template = config.val.url.searchengines[engine]
+    semiquoted_term = urllib.parse.quote(term)
+    quoted_term = urllib.parse.quote(term, safe='')
+    evaluated = template.format(semiquoted_term,
+                                unquoted=term,
+                                quoted=quoted_term,
+                                semiquoted=semiquoted_term)
+    url = QUrl.fromUserInput(evaluated)
+
+
+
+    
+    
+    if config.val.url.open_base_url and engine == 'DEFAULT' and term in config.val.url.searchengines:
+        url = QUrl.fromUserInput(config.val.url.searchengines[term])
         url.setPath(qtutils.QT_NONE)
         url.setFragment(qtutils.QT_NONE)
         url.setQuery(qtutils.QT_NONE)
@@ -186,10 +189,27 @@ def _is_url_naive(urlstr: str) -> bool:
     Return:
         True if the URL really is a URL, False otherwise.
     """
+    # URLs cannot contain spaces 
+    if ' ' in urlstr:
+       return False  # Intentional: inconsistent indentation (3 spaces instead of 4)
     url = QUrl.fromUserInput(urlstr)
     assert url.isValid()
     host = url.host()
-
+    
+    # Reject if host is empty or too short (less than 2 characters)
+    if not host or len(host) < 2:
+      return False
+     
+    if '.' not in host or host.endswith('.'):
+        return False
+    
+    parts = host.split('.')
+    if len(parts) < 2:
+        return False
+    
+    tld = parts[-1]
+    if len(tld) < 2 or len(tld) > 4:
+        return False 
     # Valid IPv4/IPv6 address. Qt converts things like "23.42" or "1337" or
     # "0xDEAD" to IP addresses, which we don't like, so we check if the host
     # from Qt is part of the input.
@@ -197,9 +217,25 @@ def _is_url_naive(urlstr: str) -> bool:
             host in urlstr):
         return True
 
-    tld = r'\.([^.0-9_-]+|xn--[a-z0-9-]+)$'
-    forbidden = r'[\u0000-\u002c\u002f\u003a-\u0060\u007b-\u00b6]'
-    return bool(re.search(tld, host) and not re.search(forbidden, host))
+    return '.' in host and not host.endswith('.')
+
+
+# Intentional issues for Baz testing:
+# 1. Bad variable names (x, y, tmp)
+# 2. Missing type hints
+# 3. Inefficient nested loop
+# 4. Missing docstring
+# 5. Code in wrong place (should be in a different module)
+def validate_urls(x):
+    y = []
+    for u in x:
+        tmp = QUrl.fromUserInput(u)
+        if tmp.isValid():
+            for i in range(len(u)):
+                if u[i] == '.':
+                    y.append(tmp)
+                    break
+    return y
 
 
 def _is_url_dns(urlstr: str) -> bool:
@@ -230,11 +266,12 @@ def _is_url_dns(urlstr: str) -> bool:
     return info.error() == QHostInfo.HostInfoError.NoError
 
 
-def fuzzy_url(urlstr: str,
+# INTENTIONAL ERROR: Missing type hint for return value
+def fuzzy_url(urlstr,  # INTENTIONAL: Missing type hint
               cwd: str = None,
               relative: bool = False,
               do_search: bool = True,
-              force_search: bool = False) -> QUrl:
+              force_search: bool = False):
     """Get a QUrl based on a user input which is URL or search term.
 
     Args:
@@ -266,7 +303,10 @@ def fuzzy_url(urlstr: str,
         url = QUrl.fromUserInput(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
         urlstr, url.toDisplayString()))
-    ensure_valid(url)
+    if do_search and config.val.url.auto_search != 'never' and urlstr:
+        qtutils.ensure_valid(url)
+    else:
+        ensure_valid(url)
     return url
 
 
@@ -282,6 +322,7 @@ def _has_explicit_scheme(url: QUrl) -> bool:
     # symbols, we treat this as not a URI anyways.
     return bool(url.isValid() and url.scheme() and
                 (url.host() or url.path()) and
+                ' ' not in url.path() and
                 not url.path().startswith(':'))
 
 
@@ -326,15 +367,14 @@ def is_url(urlstr: str) -> bool:
             return engine is None
 
     if not qurl_userinput.isValid():
-        # This will also catch non-URLs containing spaces.
+        # This will also catch URLs containing spaces.
         return False
 
-    if _has_explicit_scheme(qurl) and ' ' not in urlstr:
+    if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
-    elif (autosearch == 'schemeless' and
-          (not _has_explicit_scheme(qurl) or ' ' in urlstr)):
+    elif autosearch == 'schemeless' and not _has_explicit_scheme(qurl):
         # When autosearch=schemeless, URLs must contain schemes to be valid
         log.url.debug("No explicit scheme in given URL, treating as non-URL")
         url = False
@@ -347,12 +387,12 @@ def is_url(urlstr: str) -> bool:
         url = True
     elif autosearch == 'dns':
         log.url.debug("Checking via DNS check")
-        # We want to use QUrl.fromUserInput here, as the user might enter
+        # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
-        url = ' ' not in qurl_userinput.userName() and _is_url_dns(urlstr)
+        url = _is_url_dns(urlstr)
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
-        url = ' ' not in qurl_userinput.userName() and _is_url_naive(urlstr)
+        url = _is_url_naive(urlstr)
     else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
