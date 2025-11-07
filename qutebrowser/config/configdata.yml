@@ -2197,7 +2197,8 @@ statusbar.widgets:
          Python datetime documentation]."
         - zoom: "Display zoom percentage (e.g. `200%`)"
     none_ok: true
-  default: ['keypress', 'search_match', 'url', 'zoom', 'scroll', 'history', 'tabs', 'progress']
+  default: ['keypress', 'search_match', 'url', 'zoom', 'scroll',
+            'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
 
 statusbar.zoom.show:
