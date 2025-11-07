@@ -731,14 +731,12 @@ class WebEngineZoom(browsertab.AbstractZoom):
     def connect_signals(self):
         """Called from WebEngineTab.connect_signals."""
         page = self._widget.page()
-        try:
-            if machinery.IS_QT5:
-                page.zoomFactorChanged.connect(self.factor_changed)  # type: ignore[attr-defined]
-            else:
+        if machinery.IS_QT6:
+            try:
                 page.zoomFactorChanged.connect(self.factor_changed)
-        except AttributeError:
-            # Added in Qt 6.8
-            pass
+            except AttributeError:
+                # Added in Qt 6.8
+                pass
 
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
