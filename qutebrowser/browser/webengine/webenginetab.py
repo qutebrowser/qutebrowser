@@ -1298,6 +1298,7 @@ class WebEngineTab(browsertab.AbstractTab):
     search: WebEngineSearch
     audio: WebEngineAudio
     printing: WebEnginePrinting
+    zoom: WebEngineZoom
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,

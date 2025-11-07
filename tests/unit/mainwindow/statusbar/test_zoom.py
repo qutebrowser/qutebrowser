@@ -8,7 +8,7 @@ import pytestqt.qtbot
 
 
 @pytest.fixture
-def zoom(qtbot: pytestqt.qtbot.QtBot, config_stub) -> Zoom:
+def zoom(qtbot: pytestqt.qtbot.QtBot, config_stub: Any) -> Zoom:
     """Fixture providing a Zoom widget."""
     widget = Zoom()
     qtbot.add_widget(widget)
@@ -21,13 +21,14 @@ def zoom(qtbot: pytestqt.qtbot.QtBot, config_stub) -> Zoom:
     (2, 'always', '[200%]'),
     (0.5, 'always', '[50%]'),
     (0.25, 'always', '[25%]'),
-    (1, 'not-default', ''),
+    (1, 'non-default', ''),
     (1.5, 'non-default', '[150%]'),
     (2, 'non-default', '[200%]'),
     (0.5, 'non-default', '[50%]'),
     (0.25, 'non-default', '[25%]'),
 ])
-def test_percentage_texts(zoom: Zoom, factor: float, show: str, expected: str, config_stub) -> None:
+def test_percentage_texts(zoom: Zoom, factor: float, show: str, expected: str,
+                          config_stub: Any) -> None:
     """Test text displayed by the widget based on the zoom factor of a tab and a config value.
 
     Args:
