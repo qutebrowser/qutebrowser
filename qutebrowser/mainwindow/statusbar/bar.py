@@ -252,7 +252,7 @@ class StatusBar(QWidget):
 
             if segment == 'scroll_raw':
                 widget.set_raw()
-            elif segment in ('history', 'progress'):
+            elif segment in ('history', 'progress', 'zoom'):
                 widget.enabled = True
                 if tab:
                     widget.on_tab_changed(tab)

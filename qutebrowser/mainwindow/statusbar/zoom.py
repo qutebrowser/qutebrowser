@@ -18,9 +18,10 @@ class Zoom(textbase.TextBase):
     def on_zoom_changed(self, factor: float) -> None:
         """Update percentage when factor changed."""
         if factor == 1 and config.val.statusbar.zoom.show == 'non-default':
-            self.setText("")
+            self.hide()
             return
-        percentage = int(100 * factor)
+        self.show()
+        percentage = round(100 * factor)
         self.setText(f"[{percentage}%]")
 
     def on_tab_changed(self, tab: browsertab.AbstractTab) -> None:
