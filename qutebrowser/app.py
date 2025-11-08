@@ -81,6 +81,7 @@ def run(args):
     app = Application(args)
     objects.qapp = app
     app.setOrganizationName("qutebrowser")
+    app.setApplicationName("qutebrowser")
     # Default DesktopFileName is org.qutebrowser.qutebrowser, set in `get_argparser()`
     app.setDesktopFileName(args.desktop_file_name)
     app.setApplicationVersion(qutebrowser.__version__)
