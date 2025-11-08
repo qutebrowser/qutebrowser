@@ -14,9 +14,15 @@ import dataclasses
 from pathlib import Path
 from itertools import product, combinations
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
-
+from typing import (TYPE_CHECKING, Optional)
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableSequence,
+    Sequence,
+    Callable,
+)
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from qutebrowser.qt.widgets import QLabel
 
