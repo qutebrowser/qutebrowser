@@ -602,6 +602,7 @@ Info pages:
 - chrome://device-log/ (QtWebEngine >= 6.3)
 - chrome://gpu/
 - chrome://sandbox/ (Linux only)
+- chrome://qt/ (QtWebEngine >= 6.7)
 
 Misc. / Debugging pages:
 
@@ -612,6 +613,7 @@ Misc. / Debugging pages:
 - chrome://ukm/ (QtWebEngine >= 5.15.3)
 - chrome://user-actions/ (QtWebEngine >= 5.15.3)
 - chrome://webrtc-logs/ (QtWebEngine >= 5.15.3)
+- chrome://extensions/ (QtWebEngine >= 6.10)
 
 Internals pages:
 
