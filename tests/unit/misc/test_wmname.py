@@ -28,9 +28,10 @@ def test_load_libwayland_client():
 
 def test_load_libwayland_client_error(mocker: pytest_mock.MockerFixture):
     """Test that an error in loading the Wayland client library raises an error."""
+    mocker.patch.object(ctypes.util, "find_library", return_value="libwayland-client.so.6")
     mocker.patch("ctypes.CDLL", side_effect=OSError("Library not found"))
 
-    with pytest.raises(wmname.Error, match="Failed to load libwayland-client"):
+    with pytest.raises(wmname.Error, match="Failed to load wayland-client"):
         wmname._load_libwayland_client()
 
 
