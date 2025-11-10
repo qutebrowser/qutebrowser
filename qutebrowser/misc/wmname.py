@@ -26,12 +26,20 @@ class _WaylandDisplayStruct(ctypes.Structure):
 _WaylandDisplay = NewType("_WaylandDisplay", "ctypes._Pointer[_WaylandDisplayStruct]")
 
 
+def _load_library(name: str) -> ctypes.CDLL:
+    lib = ctypes.util.find_library(name)
+    if lib is None:
+        raise Error(f"{name} library not found")
+
+    try:
+        return ctypes.CDLL(lib)
+    except OSError as e:
+        raise Error(f"Failed to load {name} library: {e}")
+
+
 def _load_libwayland_client() -> ctypes.CDLL:
     """Load the Wayland client library."""
-    try:
-        return ctypes.CDLL("libwayland-client.so")
-    except OSError as e:
-        raise Error(f"Failed to load libwayland-client: {e}")
+    return _load_library("wayland-client")
 
 
 def _pid_from_fd(fd: int) -> int:
@@ -138,14 +146,7 @@ _X11Window = NewType("_X11Window", int)
 
 def _x11_load_lib() -> ctypes.CDLL:
     """Load the X11 library."""
-    lib = ctypes.util.find_library("X11")
-    if lib is None:
-        raise Error("X11 library not found")
-
-    try:
-        return ctypes.CDLL(lib)
-    except OSError as e:
-        raise Error(f"Failed to load X11 library: {e}")
+    return _load_library("X11")
 
 
 @contextlib.contextmanager
