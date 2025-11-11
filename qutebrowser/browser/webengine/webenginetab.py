@@ -728,8 +728,20 @@ class WebEngineZoom(browsertab.AbstractZoom):
 
     _widget: webview.WebEngineView
 
+    def connect_signals(self):
+        """Called from WebEngineTab.connect_signals."""
+        page = self._widget.page()
+        if machinery.IS_QT6:
+            try:
+                page.zoomFactorChanged.connect(self.factor_changed)
+            except AttributeError:
+                # Added in Qt 6.8
+                pass
+
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
+        if not hasattr(self._widget.page(), "zoomFactorChanged"):
+            self.factor_changed.emit(factor)
 
 
 class WebEngineElements(browsertab.AbstractElements):
@@ -1286,6 +1298,7 @@ class WebEngineTab(browsertab.AbstractTab):
     search: WebEngineSearch
     audio: WebEngineAudio
     printing: WebEnginePrinting
+    zoom: WebEngineZoom
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,
@@ -1760,5 +1773,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self.audio._connect_signals()
         self.search.connect_signals()
         self.printing.connect_signals()
+        self.zoom.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
