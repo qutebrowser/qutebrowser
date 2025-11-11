@@ -19,12 +19,6 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.7.0 (unreleased)
 -------------------
 
-Changed
-~~~~~~~
-
-- When switching between normal/fullscreen tabs, the fullscreen state now gets
-  left/restored properly. (#5283)
-
 [[v3.6.1]]
 v3.6.1 (2025-11-03)
 -------------------
