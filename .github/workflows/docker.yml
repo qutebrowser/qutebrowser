@@ -15,8 +15,6 @@ jobs:
         image:
           - archlinux-webengine
           - archlinux-webengine-unstable
-          - archlinux-webengine-unstable-qt6
-          - archlinux-webengine-qt6
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

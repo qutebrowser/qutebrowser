@@ -90,14 +90,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - testenv: py-qt5
+          - testenv: py
             image: archlinux-webengine
-          - testenv: py-qt5
+          - testenv: py
             image: archlinux-webengine-unstable
-          - testenv: py
-            image: archlinux-webengine-qt6
-          - testenv: py
-            image: archlinux-webengine-unstable-qt6
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:

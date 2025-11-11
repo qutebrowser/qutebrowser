@@ -10,21 +10,12 @@ RUN pacman -Su --noconfirm \
     python-tox \
     python-distlib \
     libxml2-legacy \
-    {% if qt6 %}
-      qt6-base \
-      qt6-declarative \
-      qt6-webengine \
-      python-pyqt6-webengine \
-      pdfjs \
-      python-pyqt6 \
-    {% else %}
-      qt5-base \
-      qt5-declarative \
-      openssl-1.1 \
-      qt5-webengine \
-      python-pyqtwebengine \
-      python-pyqt5 \
-    {% endif %}
+    qt6-base \
+    qt6-declarative \
+    qt6-webengine \
+    python-pyqt6-webengine \
+    pdfjs \
+    python-pyqt6 \
     xorg-xinit \
     xorg-server-xvfb \
     ttf-bitstream-vera \
@@ -36,12 +27,7 @@ RUN useradd user -u 1001 && \
     mkdir /home/user && \
     chown user:users /home/user
 
-{% if qt6 %}
-  {% set pyqt_module = 'PyQt6' %}
-{% else %}
-  {% set pyqt_module = 'PyQt5' %}
-{% endif %}
-RUN python3 -c "from {{ pyqt_module }} import QtWebEngineCore, QtWebEngineWidgets"
+RUN python3 -c "from PyQt6 import QtWebEngineCore, QtWebEngineWidgets"
 
 USER user
 WORKDIR /home/user
@@ -49,4 +35,4 @@ RUN git config --global --add safe.directory /outside/.git
 
 CMD git clone /outside qutebrowser.git && \
     cd qutebrowser.git && \
-    {{ python }} -m tox -e {% if qt6 %}py-qt6{% else %}py-qt5{% endif %}
+    {{ python }} -m tox -e py-qt6
