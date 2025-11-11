@@ -37,11 +37,6 @@ def _load_library(name: str) -> ctypes.CDLL:
         raise Error(f"Failed to load {name} library: {e}")
 
 
-def _load_libwayland_client() -> ctypes.CDLL:
-    """Load the Wayland client library."""
-    return _load_library("wayland-client")
-
-
 def _pid_from_fd(fd: int) -> int:
     """Get the process ID from a file descriptor using SO_PEERCRED.
 
@@ -121,7 +116,7 @@ def wayland_compositor_name() -> str:
     Approach based on:
     https://stackoverflow.com/questions/69302630/wayland-client-get-compositor-name
     """
-    wayland_client = _load_libwayland_client()
+    wayland_client = _load_library("wayland-client")
     with _wayland_display(wayland_client) as display:
         fd = _wayland_get_fd(wayland_client, display)
         pid = _pid_from_fd(fd)
@@ -142,11 +137,6 @@ class _X11DisplayStruct(ctypes.Structure):
 
 _X11Display = NewType("_X11Display", "ctypes._Pointer[_X11DisplayStruct]")
 _X11Window = NewType("_X11Window", int)
-
-
-def _x11_load_lib() -> ctypes.CDLL:
-    """Load the X11 library."""
-    return _load_library("X11")
 
 
 @contextlib.contextmanager
@@ -308,7 +298,7 @@ def _x11_get_wm_name(
 
 def x11_wm_name() -> str:
     """Get the name of the running X11 window manager."""
-    xlib = _x11_load_lib()
+    xlib = _load_library("X11")
     with _x11_open_display(xlib) as display:
         atoms = _X11Atoms(
             NET_SUPPORTING_WM_CHECK=_x11_intern_atom(

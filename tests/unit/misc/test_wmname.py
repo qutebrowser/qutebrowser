@@ -21,7 +21,7 @@ from qutebrowser.misc import wmname
 def test_load_libwayland_client():
     """Test loading the Wayland client library, which might or might not exist."""
     try:
-        wmname._load_libwayland_client()
+        wmname._load_library("wayland-client")
     except wmname.Error:
         pass
 
@@ -32,7 +32,7 @@ def test_load_libwayland_client_error(mocker: pytest_mock.MockerFixture):
     mocker.patch("ctypes.CDLL", side_effect=OSError("Library not found"))
 
     with pytest.raises(wmname.Error, match="Failed to load wayland-client"):
-        wmname._load_libwayland_client()
+        wmname._load_library("wayland-client")
 
 
 @pytest.fixture
@@ -178,7 +178,7 @@ def test_wayland_real():
 def test_load_xlib():
     """Test loading Xlib, which might or might not exist."""
     try:
-        wmname._x11_load_lib()
+        wmname._load_library("X11")
     except wmname.Error:
         pass
 
@@ -188,7 +188,7 @@ def test_load_xlib_not_found(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(ctypes.util, "find_library", lambda x: None)
 
     with pytest.raises(wmname.Error, match="X11 library not found"):
-        wmname._x11_load_lib()
+        wmname._load_library("X11")
 
 
 def test_load_xlib_error(mocker: pytest_mock.MockerFixture):
@@ -199,7 +199,7 @@ def test_load_xlib_error(mocker: pytest_mock.MockerFixture):
     with pytest.raises(
         wmname.Error, match="Failed to load X11 library: Failed to load library"
     ):
-        wmname._x11_load_lib()
+        wmname._load_library("X11")
 
 
 @pytest.fixture
@@ -290,7 +290,7 @@ def test_x11_get_wm_name(
     qtbot.add_widget(w)
     w.setWindowTitle("Test Window")
 
-    xlib = wmname._x11_load_lib()
+    xlib = wmname._load_library("X11")
     with wmname._x11_open_display(xlib) as display:
         atoms = wmname._X11Atoms(
             NET_SUPPORTING_WM_CHECK=-1,
