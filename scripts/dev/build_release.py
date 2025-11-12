@@ -368,6 +368,35 @@ def _get_windows_python_path() -> pathlib.Path:
         return pathlib.Path(winreg.QueryValueEx(key, 'ExecutablePath')[0])
     except FileNotFoundError:
         return fallback
+    
+
+def _generate_versions_file(out_path: pathlib.Path) -> None:
+    """Generate a versions.txt file with dependency versions."""
+    import pkg_resources
+    
+    versions_content = []
+    versions_content.append(f"qutebrowser {qutebrowser.__version__}\n")
+    versions_content.append(f"Python {sys.version}\n")
+    versions_content.append("\nDependencies:\n")
+    versions_content.append("-" * 40 + "\n")
+    
+    # List of key dependencies to include
+    dependencies = [
+        'PyQt6', 'PyQt6-Qt6', 'PyQt6-WebEngine', 'PyQt6-WebEngine-Qt6',
+        'setuptools', 'pip', 'wheel', 'pyinstaller'
+    ]
+    
+    for dep in dependencies:
+        try:
+            version = pkg_resources.get_distribution(dep).version
+            versions_content.append(f"{dep}: {version}\n")
+        except pkg_resources.DistributionNotFound:
+            versions_content.append(f"{dep}: not found\n")
+    
+    # Write versions.txt to the output directory
+    versions_file = out_path / "versions.txt"
+    versions_file.write_text("".join(versions_content), encoding="utf-8")
+    print(f"Generated {versions_file}")
 
 
 def _build_windows_single(
@@ -394,6 +423,9 @@ def _build_windows_single(
 
     utils.print_title("Running smoke test")
     smoke_test(exe_path, debug=debug)
+
+    utils.print_title("Generating versions.txt")
+    _generate_versions_file(out_path)
 
     if skip_packaging:
         return []
