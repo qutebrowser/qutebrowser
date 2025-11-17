@@ -66,7 +66,7 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions = Optional[Iterable[tuple[str, str]]]
+_Completions: TypeAlias = Optional[Iterable[tuple[str, str]]]
 _StrUnset: TypeAlias = str | usertypes.Unset
 _UnsetNone: TypeAlias = None | usertypes.Unset
 _StrUnsetNone: TypeAlias = str | _UnsetNone

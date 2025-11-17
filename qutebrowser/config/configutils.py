@@ -9,7 +9,7 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Optional)
+    TYPE_CHECKING, Any, Optional, TypeAlias)
 from collections.abc import Iterator, Sequence, MutableMapping
 
 from qutebrowser.qt.core import QUrl
@@ -69,7 +69,7 @@ class Values:
         _domain_map: A mapping from hostnames to all associated ScopedValues.
     """
 
-    _VmapKeyType = Optional[urlmatch.UrlPattern]
+    _VmapKeyType: TypeAlias = Optional[urlmatch.UrlPattern]
 
     def __init__(self,
                  opt: 'configdata.Option',
