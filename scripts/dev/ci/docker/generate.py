@@ -7,17 +7,14 @@
 
 """Generate Dockerfiles for qutebrowser's CI."""
 
-import sys
 import argparse
 
 import jinja2
 
 
 CONFIGS = {
-    'archlinux-webengine': {'unstable': False, 'qt6': False},
-    'archlinux-webengine-qt6': {'unstable': False, 'qt6': True},
-    'archlinux-webengine-unstable': {'unstable': True, 'qt6': False},
-    'archlinux-webengine-unstable-qt6': {'unstable': True, 'qt6': True},
+    'archlinux-webengine': {'unstable': False},
+    'archlinux-webengine-unstable': {'unstable': True},
 }
 
 

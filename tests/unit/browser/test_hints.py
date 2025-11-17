@@ -4,7 +4,6 @@
 
 import string
 import functools
-import itertools
 import operator
 
 import pytest
@@ -76,7 +75,7 @@ def test_match_benchmark(benchmark, tabbed_browser, qtbot, mode_manager, qapp,
 
 @pytest.mark.parametrize('min_len', [0, 3])
 @pytest.mark.parametrize('num_chars', [5, 9])
-@pytest.mark.parametrize('num_elements', itertools.chain(range(1, 26), [125]))
+@pytest.mark.parametrize('num_elements', [*range(1, 26), 125])
 def test_scattered_hints_count(min_len, num_chars, num_elements):
     """Test scattered hints function.
 

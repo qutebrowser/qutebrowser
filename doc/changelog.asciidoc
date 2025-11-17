@@ -19,11 +19,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.7.0 (unreleased)
 -------------------
 
-Changed
-~~~~~~~
+[[v3.6.2]]
+v3.6.2 (unreleased)
+-------------------
 
-- When switching between normal/fullscreen tabs, the fullscreen state now gets
-  left/restored properly. (#5283)
+Fixed
+~~~~~
+
+- The version info now includes the Wayland compositor name if wayland-client is
+  available under a different name than `libwayland-client.so` (#8771).
 
 [[v3.6.1]]
 v3.6.1 (2025-11-03)
