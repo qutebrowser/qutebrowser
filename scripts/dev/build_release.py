@@ -22,8 +22,11 @@ import collections
 import dataclasses
 import re
 import http
+import logging
 from typing import Optional, TYPE_CHECKING
 from collections.abc import Iterable
+
+logger = logging.getLogger(__name__)
 
 try:
     import winreg
@@ -359,15 +362,68 @@ def _get_windows_python_path() -> pathlib.Path:
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dot_ver = '.'.join(parts)
-
     path = rf'SOFTWARE\Python\PythonCore\{dot_ver}\InstallPath'
-    fallback = pathlib.Path('C:', f'Python{ver}', 'python.exe')
 
+    # try with HKEY_LOCAL_MACHINE
     try:
         key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, path)
+        print("[INFO] Python found via registry HKEY_LOCAL_MACHINE")
         return pathlib.Path(winreg.QueryValueEx(key, 'ExecutablePath')[0])
     except FileNotFoundError:
-        return fallback
+        pass
+    # try with HKEY_CURRENT_USER
+    try:
+        key = winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER, path)
+        print("[INFO] Python found via registry HKEY_CURRENT_USER")
+        return pathlib.Path(winreg.QueryValueEx(key, 'ExecutablePath')[0])
+    except FileNotFoundError:
+        # Known fallbacks
+        known_fallbacks = [
+            pathlib.Path(f"C:\\Python{ver}\\python.exe"),
+            pathlib.Path(f"C:\\Program Files\\Python{ver}\\python.exe"),
+            pathlib.Path(f"C:\\Program Files (x86)\\Python{ver}\\python.exe"),
+            pathlib.Path(sys.executable),
+        ]
+        for fallback in known_fallbacks:
+            if fallback.exists():
+                print(f"[INFO] Python found via fallback: {fallback}")
+                return fallback
+    raise FileNotFoundError(
+        f"Unable to find Python {dot_ver} installation. "
+        "Verify Python is installed."
+    )
+
+
+# Define NSIS path
+def _get_nsis_path() -> pathlib.Path:
+    """Get the path to makensis.exe on Windows."""
+    # NSIS may be located in several registry keys
+    registry_keys = [
+        r"SOFTWARE\NSIS\Unicode",
+        r"SOFTWARE\NSIS",
+        r"SOFTWARE\WOW6432Node\NSIS\Unicode",
+        r"SOFTWARE\WOW6432Node\NSIS",
+    ]
+
+    # Fallback: if makensis.exe is available in PATH
+    fallback = shutil.which("makensis.exe")
+    if fallback:
+        return pathlib.Path(fallback)
+
+    # Try each registry key until one works
+    for key_path in registry_keys:
+        try:
+            with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, key_path) as key:
+                install_dir = winreg.QueryValueEx(key, "InstallDir")[0]
+                exe = pathlib.Path(install_dir) / "makensis.exe"
+                if exe.exists():
+                    return exe
+        except FileNotFoundError:
+            continue
+
+    raise FileNotFoundError(
+        "Could not find makensis.exe. Install NSIS or ensure it is added to PATH."
+    )
 
 
 def _build_windows_single(
@@ -438,9 +494,10 @@ def _package_windows_single(
 
     dist_path = pathlib.Path("dist")
     utils.print_subtitle("Building installer...")
-    subprocess.run(['makensis.exe',
-                    f'/DVERSION={qutebrowser.__version__}',
-                    'misc/nsis/qutebrowser.nsi'], check=True)
+
+    # Call function to get nsis path
+    nsis_path = _get_nsis_path()  # return nsis path
+    subprocess.run([str(nsis_path), f'/DVERSION={qutebrowser.__version__}', 'misc/nsis/qutebrowser.nsi'], check=True)
 
     name_parts = [
         'qutebrowser',
