@@ -5,13 +5,13 @@ autocommand==2.2.2
 backports.tarfile==1.2.0
 beautifulsoup4==4.14.2
 blinker==1.9.0
-certifi==2025.10.5
+certifi==2025.11.12
 charset-normalizer==3.4.4
 cheroot==11.1.2
 click==8.1.8
 coverage==7.10.7
 exceptiongroup==1.3.0
-execnet==2.1.1
+execnet==2.1.2
 filelock==3.19.1
 Flask==3.1.2
 gherkin-official==29.0.0
