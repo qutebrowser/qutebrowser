@@ -4,7 +4,7 @@
 
 """Generic web element related code."""
 
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union, TypeAlias
 from collections.abc import Iterator
 import collections.abc
 
@@ -20,12 +20,12 @@ if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-JsValueType = Union[int, float, str, None]
+JsValueType: TypeAlias = Union[int, float, str, None]
 
 if machinery.IS_QT6:
     KeyboardModifierType = Qt.KeyboardModifier
 else:
-    KeyboardModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    KeyboardModifierType: TypeAlias = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
 
 
 class Error(Exception):

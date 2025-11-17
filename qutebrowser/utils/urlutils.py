@@ -11,7 +11,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Union, cast
+from typing import Optional, Union, cast, TypeAlias
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
@@ -29,7 +29,7 @@ from qutebrowser.browser.network import pac
 
 
 if machinery.IS_QT6:
-    UrlFlagsType = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+    UrlFlagsType: TypeAlias = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
 
     class FormatOption:
         """Simple wrapper around Qt enums to fix typing problems on Qt 5."""
@@ -42,7 +42,7 @@ if machinery.IS_QT6:
         REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
         REMOVE_QUERY = QUrl.UrlFormattingOption.RemoveQuery
 else:
-    UrlFlagsType = Union[
+    UrlFlagsType: TypeAlias = Union[
         QUrl.FormattingOptions,
         QUrl.UrlFormattingOption,
         QUrl.ComponentFormattingOption,

@@ -18,7 +18,7 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Optional, Union, overload, cast
+from typing import Optional, Union, overload, cast, TypeAlias
 from collections.abc import Iterator, Iterable, Mapping
 
 from qutebrowser.qt import machinery
@@ -63,7 +63,7 @@ if machinery.IS_QT6:
     _ModifierType = Qt.KeyboardModifier
 else:
     _KeyInfoType = int
-    _ModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    _ModifierType: TypeAlias = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
 
 
 _SPECIAL_NAMES = {

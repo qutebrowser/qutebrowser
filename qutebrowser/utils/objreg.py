@@ -8,7 +8,7 @@
 import collections
 import functools
 from typing import (TYPE_CHECKING, Any,
-                    Optional, Union)
+                    Optional, Union, TypeAlias)
 from collections.abc import MutableMapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import QObject, QTimer
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow
 
 
-_WindowTab = Union[str, int, None]
+_WindowTab: TypeAlias = Union[str, int, None]
 
 
 class RegistryUnavailableError(Exception):
@@ -38,7 +38,7 @@ class CommandOnlyError(Exception):
     """Raised when an object is requested which is used for commands only."""
 
 
-_IndexType = Union[str, int]
+_IndexType: TypeAlias = Union[str, int]
 
 
 # UserDict is only generic in Python 3.9+

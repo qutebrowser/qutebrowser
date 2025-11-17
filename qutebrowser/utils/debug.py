@@ -12,7 +12,7 @@ import functools
 import datetime
 import types
 from typing import (
-    Any, Optional, Union)
+    Any, Optional, Union, TypeAlias)
 from collections.abc import Mapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
@@ -89,9 +89,9 @@ def log_signals(obj: Union[QObject, type[QObject]]) -> Union[QObject, type[QObje
 
 
 if machinery.IS_QT6:
-    _EnumValueType = Union[enum.Enum, int]
+    _EnumValueType: TypeAlias = Union[enum.Enum, int]
 else:
-    _EnumValueType = Union[sip.simplewrapper, int]
+    _EnumValueType: TypeAlias = Union[sip.simplewrapper, int]
 
 
 def _qenum_key_python(

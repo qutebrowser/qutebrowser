@@ -10,7 +10,7 @@ import contextlib
 import posixpath
 import pathlib
 import importlib.resources
-from typing import Union
+from typing import Union, TypeAlias
 from collections.abc import Iterator, Iterable
 
 if sys.version_info >= (3, 11):  # pragma: no cover
@@ -24,7 +24,7 @@ _cache: dict[str, str] = {}
 _bin_cache: dict[str, bytes] = {}
 
 
-_ResourceType = Union[Traversable, pathlib.Path]
+_ResourceType: TypeAlias = Union[Traversable, pathlib.Path]
 
 
 def _path(filename: str) -> _ResourceType:

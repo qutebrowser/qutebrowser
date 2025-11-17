@@ -19,7 +19,7 @@ import pathlib
 import operator
 import contextlib
 from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Literal,
-                    Optional, Union, Protocol, cast, overload, TypeVar)
+                    Optional, Union, Protocol, cast, overload, TypeVar, TypeAlias)
 from collections.abc import Iterator
 
 from qutebrowser.qt import machinery, sip
@@ -207,7 +207,7 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-_QtSerializableType = Union[
+_QtSerializableType: TypeAlias = Union[
     QObject,
     QByteArray,
     QUrl,
@@ -499,7 +499,7 @@ class QtValueError(ValueError):
 if machinery.IS_QT6:
     _ProcessEventFlagType = QEventLoop.ProcessEventsFlag
 else:
-    _ProcessEventFlagType = Union[
+    _ProcessEventFlagType: TypeAlias = Union[
         QEventLoop.ProcessEventsFlag, QEventLoop.ProcessEventsFlags]
 
 

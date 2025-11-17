@@ -21,7 +21,7 @@ import sysconfig
 import mimetypes
 from typing import (Any, IO,
                     Optional, Union,
-                    TypeVar, Protocol)
+                    TypeVar, Protocol, TypeAlias)
 from collections.abc import Iterator, Sequence, Callable
 
 from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
@@ -408,7 +408,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType = Union[type[BaseException], tuple[type[BaseException]]]
+_ExceptionType: TypeAlias = Union[type[BaseException], tuple[type[BaseException]]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:

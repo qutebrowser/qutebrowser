@@ -125,7 +125,7 @@ import copy
 import enum
 import dataclasses
 import collections
-from typing import (Any, Optional, Union)
+from typing import (Any, Optional, Union, TypeAlias)
 from collections.abc import Iterator, Mapping, MutableMapping, Sequence
 
 from qutebrowser.config import config
@@ -340,7 +340,7 @@ _DEFINITIONS[Variant.qt_66] = _DEFINITIONS[Variant.qt_64].copy_add_setting(
 _DEFINITIONS[Variant.qt_67] = _DEFINITIONS[Variant.qt_66].copy_remove_setting('enabled')
 
 
-_SettingValType = Union[str, usertypes.Unset]
+_SettingValType: TypeAlias = Union[str, usertypes.Unset]
 _PREFERRED_COLOR_SCHEME_DEFINITIONS: MutableMapping[Variant, Mapping[_SettingValType, str]] = {
     Variant.qt_515_2: {
         # 0: no-preference (not exposed)

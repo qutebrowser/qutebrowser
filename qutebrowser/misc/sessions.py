@@ -10,7 +10,7 @@ import itertools
 import urllib
 import shutil
 import pathlib
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union, cast, TypeAlias
 from collections.abc import Iterable, MutableMapping, MutableSequence
 
 from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
@@ -37,7 +37,7 @@ class Sentinel:
 default = Sentinel()
 session_manager = cast('SessionManager', None)
 
-ArgType = Union[str, Sentinel]
+ArgType: TypeAlias = Union[str, Sentinel]
 
 
 def init(parent=None):

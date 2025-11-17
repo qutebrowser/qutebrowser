@@ -9,7 +9,7 @@ import pathlib
 import itertools
 import functools
 import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Optional, Union)
+from typing import (cast, TYPE_CHECKING, Any, Optional, Union, TypeAlias)
 from collections.abc import Iterable, Sequence, Callable
 
 from qutebrowser.qt import machinery
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 tab_id_gen = itertools.count(0)
-_WidgetType = Union["WebView", "WebEngineView"]
+_WidgetType: TypeAlias = Union["WebView", "WebEngineView"]
 
 
 def create(win_id: int,

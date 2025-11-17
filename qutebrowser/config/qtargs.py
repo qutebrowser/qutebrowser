@@ -11,7 +11,7 @@ import pathlib
 # Using deprecated typing.Callable as a WORKAROUND because
 # collections.abc.Callable inside Optional[...]/Union[...]
 # is broken on Python 3.9.0 and 3.9.1
-from typing import Any, Optional, Union, Callable
+from typing import Any, Optional, Union, Callable, TypeAlias
 from collections.abc import Iterator, Sequence
 
 from qutebrowser.qt import machinery
@@ -291,7 +291,7 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args(versions)
 
 
-_SettingValueType = Union[
+_SettingValueType: TypeAlias = Union[
     str,
     Callable[
         [
