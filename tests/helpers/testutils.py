@@ -375,7 +375,7 @@ def enum_members(base, enumtype):
         }
 
 
-def is_userns_restricted() -> Optional[bool]:
+def is_userns_restricted() -> bool | None:
     if not utils.is_linux:
         return None
 

@@ -4,11 +4,11 @@
 
 """Utilities related to javascript interaction."""
 
-from typing import Union, TypeAlias
+from typing import TypeAlias
 from collections.abc import Sequence
 
-_InnerJsArgType: TypeAlias = Union[None, str, bool, int, float]
-_JsArgType: TypeAlias = Union[_InnerJsArgType, Sequence[_InnerJsArgType]]
+_InnerJsArgType: TypeAlias = None | str | bool | int | float
+_JsArgType: TypeAlias = _InnerJsArgType | Sequence[_InnerJsArgType]
 
 
 def string_escape(text: str) -> str:

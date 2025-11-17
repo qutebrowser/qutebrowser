@@ -9,7 +9,7 @@ import html
 import collections
 import functools
 import dataclasses
-from typing import Optional, cast
+from typing import cast
 from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
@@ -270,7 +270,7 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
-        self._prompt: Optional[_BasePrompt] = None
+        self._prompt: _BasePrompt | None = None
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)

@@ -5,7 +5,7 @@
 """QtWebEngine specific part of the web element API."""
 
 from typing import (
-    TYPE_CHECKING, Any, Optional, Union)
+    TYPE_CHECKING, Any)
 from collections.abc import Iterator, Callable
 
 from qutebrowser.qt.core import QRect, QEventLoop
@@ -29,7 +29,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                  tab: 'webenginetab.WebEngineTab') -> None:
         super().__init__(tab)
         # Do some sanity checks on the data we get from JS
-        js_dict_types: dict[str, Union[type, tuple[type, ...]]] = {
+        js_dict_types: dict[str, type | tuple[type, ...]] = {
             'id': int,
             'text': str,
             'value': (str, int, float),
@@ -138,7 +138,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                        composed: bool = False) -> None:
         self._js_call('dispatch_event', event, bubbles, cancelable, composed)
 
-    def caret_position(self) -> Optional[int]:
+    def caret_position(self) -> int | None:
         """Get the text caret position for the current element.
 
         If the element is not a text element, None is returned.

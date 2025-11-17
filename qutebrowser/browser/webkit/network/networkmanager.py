@@ -7,7 +7,7 @@
 import collections
 import html
 import dataclasses
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray
@@ -246,7 +246,7 @@ class NetworkManager(QNetworkAccessManager):
         errors = certificateerror.CertificateErrorWrapper(reply, qt_errors)
         log.network.debug("Certificate errors: {!r}".format(errors))
         try:
-            host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
+            host_tpl: urlutils.HostTupleType | None = urlutils.host_tuple(
                 reply.url())
         except ValueError:
             host_tpl = None

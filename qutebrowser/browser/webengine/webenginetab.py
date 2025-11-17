@@ -10,7 +10,7 @@ import functools
 import dataclasses
 import re
 import html as html_utils
-from typing import cast, Union, Optional, TypeAlias
+from typing import cast, TypeAlias
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray, QTimer)
@@ -92,7 +92,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
 
 if machinery.IS_QT5:
-    _FindFlagType: TypeAlias = Union[QWebEnginePage.FindFlag, QWebEnginePage.FindFlags]
+    _FindFlagType: TypeAlias = QWebEnginePage.FindFlag | QWebEnginePage.FindFlags
 else:
     _FindFlagType = QWebEnginePage.FindFlag
 
@@ -1023,7 +1023,7 @@ class _Quirk:
         QWebEngineScript.InjectionPoint.DocumentCreation)
     world: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld
     predicate: bool = True
-    name: Optional[str] = None
+    name: str | None = None
 
     def __post_init__(self):
         if self.name is None:
@@ -1379,7 +1379,7 @@ class WebEngineTab(browsertab.AbstractTab):
             log.misc.debug("run_js_async called on deleted tab")
             return
 
-        world_id_type: TypeAlias = Union[QWebEngineScript.ScriptWorldId, int]
+        world_id_type: TypeAlias = QWebEngineScript.ScriptWorldId | int
         if world is None:
             world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
         elif isinstance(world, int):

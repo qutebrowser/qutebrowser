@@ -7,7 +7,7 @@
 import copy
 import contextlib
 import functools
-from typing import (TYPE_CHECKING, Any, Optional, cast)
+from typing import (TYPE_CHECKING, Any, cast)
 from collections.abc import Iterator, Mapping, MutableMapping, MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
@@ -69,7 +69,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
                 not configdata.is_valid_prefix(self._option)):
             raise configexc.NoOptionError(self._option)
 
-    def check_match(self, option: Optional[str]) -> bool:
+    def check_match(self, option: str | None) -> bool:
         """Check if the given option matches the filter."""
         if option is None:
             # Called directly, not from a config change event.
@@ -153,7 +153,7 @@ class KeyConfig:
                 bindings[key] = binding
         return bindings
 
-    def _implied_cmd(self, cmdline: str) -> Optional[str]:
+    def _implied_cmd(self, cmdline: str) -> str | None:
         """Return cmdline, or the implied cmd if cmdline is a cmd-set-text."""
         try:
             results = parser.CommandParser().parse_all(cmdline)
@@ -198,7 +198,7 @@ class KeyConfig:
     def get_command(self,
                     key: keyutils.KeySequence,
                     mode: str,
-                    default: bool = False) -> Optional[str]:
+                    default: bool = False) -> str | None:
         """Get the command for a given key (or None)."""
         self._validate(key, mode)
         if default:
@@ -415,7 +415,7 @@ class Config(QObject):
 
     def get_obj_for_pattern(
             self, name: str, *,
-            pattern: Optional[urlmatch.UrlPattern]
+            pattern: urlmatch.UrlPattern | None
     ) -> Any:
         """Get the given setting as object (for YAML/config.py).
 
