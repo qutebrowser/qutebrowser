@@ -75,6 +75,7 @@ Feature: Saving and loading sessions
   @qtwebkit_skip
   Scenario: Scrolling (qtwebengine)
     When I open data/scroll/simple.html
+    And I wait for "* simple loaded" in the log
     And I run :scroll-px 10 20
     And I wait until the scroll position changed to 10/20
     Then the session should look like:
