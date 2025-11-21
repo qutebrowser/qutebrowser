@@ -251,6 +251,7 @@ def test_optimize(request, quteproc_new, capfd, level):
 def test_version(request):
     """Test invocation with --version argument."""
     args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)
+    args.remove("--json-logging")
     # can't use quteproc_new here because it's confused by
     # early process termination
     proc = QProcess()
