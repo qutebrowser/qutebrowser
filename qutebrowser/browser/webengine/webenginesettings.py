@@ -458,14 +458,18 @@ def _clear_webengine_permissions_json():
         )
 
 
+def default_qt_profile() -> QWebEngineProfile:
+    """Get the default profile from Qt."""
+    if machinery.IS_QT6:
+        return QWebEngineProfile("Default")
+    else:
+        return QWebEngineProfile.defaultProfile()
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
-
-    if machinery.IS_QT6:
-        default_profile = QWebEngineProfile("Default")
-    else:
-        default_profile = QWebEngineProfile.defaultProfile()
+    default_profile = default_qt_profile()
     assert not default_profile.isOffTheRecord()
 
     assert parsed_user_agent is None  # avoid earlier profile initialization
