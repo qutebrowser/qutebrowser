@@ -525,6 +525,8 @@ class MainWindow(QWidget):
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
             self.status.percentage.set_perc)
+        self.tabbed_browser.cur_zoom_changed.connect(
+            self.status.zoom.on_zoom_changed)
         self.tabbed_browser.widget.tab_index_changed.connect(
             self.status.tabindex.on_tab_index_changed)
 
