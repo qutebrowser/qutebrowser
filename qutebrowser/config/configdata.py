@@ -9,7 +9,7 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
-from typing import (Any, Optional, Union, NoReturn, cast)
+from typing import (Any, NoReturn, cast)
 from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 import functools
 import dataclasses
@@ -21,7 +21,7 @@ from qutebrowser.misc import debugcachestats
 DATA = cast(Mapping[str, 'Option'], None)
 MIGRATIONS = cast('Migrations', None)
 
-_BackendDict = Mapping[str, Union[str, bool]]
+_BackendDict = Mapping[str, str | bool]
 
 
 @dataclasses.dataclass(order=True)
@@ -36,7 +36,7 @@ class Option:
     typ: configtypes.BaseType
     default: Any
     backends: Iterable[usertypes.Backend]
-    raw_backends: Optional[Mapping[str, bool]]
+    raw_backends: Mapping[str, bool] | None
     description: str
     supports_pattern: bool = False
     restart: bool = False
@@ -71,7 +71,7 @@ def _raise_invalid_node(name: str, what: str, node: Any) -> NoReturn:
 
 def _parse_yaml_type(
         name: str,
-        node: Union[str, Mapping[str, Any]],
+        node: str | Mapping[str, Any],
 ) -> configtypes.BaseType:
     if isinstance(node, str):
         # e.g:
@@ -157,7 +157,7 @@ def _parse_yaml_backends_dict(
 
 def _parse_yaml_backends(
         name: str,
-        node: Union[None, str, _BackendDict],
+        node: None | str | _BackendDict,
 ) -> Sequence[usertypes.Backend]:
     """Parse a backend node in the yaml.
 

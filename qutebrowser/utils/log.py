@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
 
 _log_inited = False
-_args: Optional[argparse.Namespace] = None
+_args: argparse.Namespace | None = None
 
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
@@ -146,7 +146,7 @@ LOGGER_NAMES = [
 
 
 ram_handler: Optional['RAMHandler'] = None
-console_handler: Optional[logging.Handler] = None
+console_handler: logging.Handler | None = None
 console_filter: Optional["LogFilter"] = None
 
 
@@ -426,7 +426,7 @@ class LogFilter(logging.Filter):
         self.only_debug = only_debug
 
     @classmethod
-    def parse(cls, filter_str: Optional[str], *,
+    def parse(cls, filter_str: str | None, *,
               only_debug: bool = True) -> 'LogFilter':
         """Parse a log filter from a string."""
         if filter_str is None or filter_str == 'none':
@@ -480,7 +480,7 @@ class RAMHandler(logging.Handler):
 
     def __init__(self, capacity: int) -> None:
         super().__init__()
-        self.html_formatter: Optional[HTMLFormatter] = None
+        self.html_formatter: HTMLFormatter | None = None
         if capacity != -1:
             self._data: MutableSequence[logging.LogRecord] = collections.deque(
                 maxlen=capacity

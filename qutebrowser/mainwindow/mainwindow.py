@@ -8,7 +8,7 @@ import binascii
 import base64
 import itertools
 import functools
-from typing import Optional, cast
+from typing import cast
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
@@ -184,8 +184,8 @@ class MainWindow(QWidget):
 
     def __init__(self, *,
                  private: bool,
-                 geometry: Optional[QByteArray] = None,
-                 parent: Optional[QWidget] = None) -> None:
+                 geometry: QByteArray | None = None,
+                 parent: QWidget | None = None) -> None:
         """Create a new main window.
 
         Args:

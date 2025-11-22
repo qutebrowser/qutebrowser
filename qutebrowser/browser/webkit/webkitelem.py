@@ -167,13 +167,13 @@ class WebKitElement(webelem.AbstractWebElement):
     def _parent(self) -> Optional['WebKitElement']:
         """Get the parent element of this element."""
         self._check_vanished()
-        elem = cast(Optional[QWebElement], self._elem.parent())
+        elem = cast(QWebElement | None, self._elem.parent())
         if elem is None or elem.isNull():
             return None
 
         return WebKitElement(elem, tab=self._tab)
 
-    def _rect_on_view_js(self) -> Optional[QRect]:
+    def _rect_on_view_js(self) -> QRect | None:
         """Javascript implementation for rect_on_view."""
         # FIXME:qtwebengine maybe we can reuse this?
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
@@ -203,7 +203,7 @@ class WebKitElement(webelem.AbstractWebElement):
                 rect = QRect(int(rect["left"]), int(rect["top"]),
                              int(width), int(height))
 
-                frame = cast(Optional[QWebFrame], self._elem.webFrame())
+                frame = cast(QWebFrame | None, self._elem.webFrame())
                 while frame is not None:
                     # Translate to parent frames' position (scroll position
                     # is taken care of inside getClientRects)
@@ -214,7 +214,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
         return None
 
-    def _rect_on_view_python(self, elem_geometry: Optional[QRect]) -> QRect:
+    def _rect_on_view_python(self, elem_geometry: QRect | None) -> QRect:
         """Python implementation for rect_on_view."""
         if elem_geometry is None:
             geometry = self._elem.geometry()
@@ -222,11 +222,11 @@ class WebKitElement(webelem.AbstractWebElement):
             geometry = elem_geometry
         rect = QRect(geometry)
 
-        frame = cast(Optional[QWebFrame], self._elem.webFrame())
+        frame = cast(QWebFrame | None, self._elem.webFrame())
         while frame is not None:
             rect.translate(frame.geometry().topLeft())
             rect.translate(frame.scrollPosition() * -1)
-            frame = cast(Optional[QWebFrame], frame.parentFrame())
+            frame = cast(QWebFrame | None, frame.parentFrame())
 
         return rect
 
@@ -320,7 +320,7 @@ class WebKitElement(webelem.AbstractWebElement):
         return all([visible_on_screen, visible_in_frame])
 
     def remove_blank_target(self) -> None:
-        elem: Optional[WebKitElement] = self
+        elem: WebKitElement | None = self
         for _ in range(5):
             if elem is None:
                 break

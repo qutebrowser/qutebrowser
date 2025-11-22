@@ -12,7 +12,7 @@ import functools
 import datetime
 import types
 from typing import (
-    Any, Optional, Union)
+    Any, TypeAlias)
 from collections.abc import Mapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
@@ -40,7 +40,7 @@ def log_events(klass: type[QObject]) -> type[QObject]:
     return klass
 
 
-def log_signals(obj: Union[QObject, type[QObject]]) -> Union[QObject, type[QObject]]:
+def log_signals(obj: QObject | type[QObject]) -> QObject | type[QObject]:
     """Log all signals of an object or class.
 
     Can be used as class decorator.
@@ -89,15 +89,15 @@ def log_signals(obj: Union[QObject, type[QObject]]) -> Union[QObject, type[QObje
 
 
 if machinery.IS_QT6:
-    _EnumValueType = Union[enum.Enum, int]
+    _EnumValueType: TypeAlias = enum.Enum | int
 else:
-    _EnumValueType = Union[sip.simplewrapper, int]
+    _EnumValueType: TypeAlias = sip.simplewrapper | int
 
 
 def _qenum_key_python(
     value: _EnumValueType,
     klass: type[_EnumValueType],
-) -> Optional[str]:
+) -> str | None:
     """New-style PyQt6: Try getting value from Python enum."""
     if isinstance(value, enum.Enum) and value.name:
         return value.name
@@ -119,7 +119,7 @@ def _qenum_key_qt(
     base: type[sip.simplewrapper],
     value: _EnumValueType,
     klass: type[_EnumValueType],
-) -> Optional[str]:
+) -> str | None:
     # On PyQt5, or PyQt6 with int passed: Try to ask Qt's introspection.
     # However, not every Qt enum value has a staticMetaObject
     try:
@@ -308,7 +308,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
     Usable as context manager or as decorator.
     """
 
-    def __init__(self, logger: Union[logging.Logger, str],
+    def __init__(self, logger: logging.Logger | str,
                  action: str = 'operation') -> None:
         """Constructor.
 
@@ -320,16 +320,16 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
             self._logger = logging.getLogger(logger)
         else:
             self._logger = logger
-        self._started: Optional[datetime.datetime] = None
+        self._started: datetime.datetime | None = None
         self._action = action
 
     def __enter__(self) -> None:
         self._started = datetime.datetime.now()
 
     def __exit__(self,
-                 _exc_type: Optional[type[BaseException]],
-                 _exc_val: Optional[BaseException],
-                 _exc_tb: Optional[types.TracebackType]) -> None:
+                 _exc_type: type[BaseException] | None,
+                 _exc_val: BaseException | None,
+                 _exc_tb: types.TracebackType | None) -> None:
         assert self._started is not None
         finished = datetime.datetime.now()
         delta = (finished - self._started).total_seconds()
