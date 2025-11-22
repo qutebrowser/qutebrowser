@@ -431,6 +431,17 @@ def _maybe_disable_hangouts_extension(profile: QWebEngineProfile) -> None:
         except AttributeError:
             return  # added in QtWebEngine 6.10
 
+        qtwe_versions = version.qtwebengine_versions(avoid_init=True)
+        if (
+            qtwe_versions.webengine == utils.VersionNumber(6, 10, 1)
+            and profile.isOffTheRecord()
+        ):
+            # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/8785
+            log.misc.warning(
+                "Not disabling Hangouts extension on private profile to avoid "
+                "QtWebEngine crash with Qt 6.10.1")
+            return
+
         assert ext_manager is not None  # mypy
         for info in ext_manager.extensions():
             if info.id() == pakjoy.HANGOUTS_EXT_ID:
