@@ -613,6 +613,7 @@ def test_service_worker_workaround(
         assert not service_worker_dir.exists()
 
 
+@pytest.mark.qt6_only
 def test_disable_hangouts_extension_crash(
     quteproc_new: quteprocess.QuteProc,
     request: pytest.FixtureRequest,
