@@ -27,6 +27,12 @@ Fixed
   accessibility on Qt versions with known issues. This works around a bug in Qt
   6.10.1 causing frequent segfaults (#8797).
 
+Removed
+~~~~~~
+
+- Support for Python 3.9 is dropped, and Python 3.10 is now required.
+
+
 [[v3.6.2]]
 v3.6.2 (2025-11-27)
 -------------------
