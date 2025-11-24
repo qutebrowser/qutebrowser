@@ -1925,6 +1925,136 @@ Feature: Tab management
             """
 
 
+    # :tab-title
+
+    Scenario: Set tab title
+        When I open data/title.html
+        And I open data/title.html in a new tab
+        And I run :tab-title renamed
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title:
+              - active: true
+                history:
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: renamed
+            """
+
+    Scenario: Set specific tab title using count
+        When I open data/title.html
+        And I open data/title.html in a new tab
+        And I run :tab-title renamed with count 1
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: renamed
+              - active: true
+                history:
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title:
+            """
+
+    Scenario: Set tab title with space
+        When I open data/title.html
+        And I open data/title.html in a new tab
+        And I run :tab-title 'a new title'
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title:
+              - active: true
+                history:
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: a new title
+            """
+
+    Scenario: Custom tab title when navigated
+        When I open data/numbers/1.txt
+        And I run :tab-title 'a new title'
+        And I open data/title.html
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+                  custom_title: a new title
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: a new title
+            """
+
+    Scenario: Cloning a tab with a custom tab title
+        When I open data/title.html
+        And I open data/title.html in a new tab
+        And I run :tab-title 'a new title'
+        And I run :tab-clone
+        And I wait until data/title.html is loaded
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title:
+              - history:
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: a new title
+              - active: true
+                history:
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: a new title
+            """
+
+    Scenario: Undo a tab with a custom tab title
+        When I open data/title.html
+        And I open data/title.html in a new tab
+        And I run :tab-title 'a new title'
+        And I run :tab-close --force
+        And I run :undo
+        And I wait until data/title.html is loaded
+        Then the session should look like:
+            """
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title:
+              - active: true
+                history:
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+                  custom_title: a new title
+            """
+
+
     Scenario: Focused webview after clicking link in bg
         When I open data/hints/link_input.html
         And I run :click-element id qute-input-existing
