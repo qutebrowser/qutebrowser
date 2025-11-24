@@ -111,9 +111,9 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py39`, `py310`, ...: Run pytest for python 3.9/3.10/... with the system-wide PyQt.
-  - `py39-pyqt515`, ..., `py39-pyqt65`: Run pytest with the given PyQt version (`py310-*` etc. also works).
-  - `py39-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
+  - `py310`, `py311`, ...: Run pytest for python 3.10/3.11/... with the system-wide PyQt.
+  - `py310-pyqt515`, ..., `py310-pyqt65`: Run pytest with the given PyQt version (`py311-*` etc. also works).
+  - `py310-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].
 * `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
   unused code portions.
@@ -169,16 +169,16 @@ Examples:
 
 ----
 # run only pytest tests which failed in last run:
-tox -e py39 -- --lf
+tox -e py310 -- --lf
 
 # run only the end2end feature tests:
-tox -e py39 -- tests/end2end/features
+tox -e py310 -- tests/end2end/features
 
 # run everything with undo in the generated name, based on the scenario text
-tox -e py39 -- tests/end2end/features/test_tabs_bdd.py -k undo
+tox -e py310 -- tests/end2end/features/test_tabs_bdd.py -k undo
 
 # run coverage test for specific file (updates htmlcov/index.html)
-tox -e py39-cov -- tests/unit/browser/test_webelem.py
+tox -e py310-cov -- tests/unit/browser/test_webelem.py
 ----
 
 Specifying the backend for tests
@@ -649,7 +649,7 @@ The hierarchy of widgets when QtWebEngine is involved looks like this:
 - The `WebEngineTab` has a `_widget` attribute, which is the https://doc.qt.io/qt-6/qwebengineview.html[QWebEngineView]
 - That view has a https://doc.qt.io/qt-6/qwebenginepage.html[QWebEnginePage] for everything which doesn't require rendering.
 - The view also has a layout with exactly one element (which also is its `focusProxy()`).
-    - Qt 5: That element is the https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp?h=5.15[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-6/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. 
+    - Qt 5: That element is the https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp?h=5.15[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-6/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW.
       It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
     - Qt 6: That element is the https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/api/qwebengineview.cpp[WebEngineQuickWidget] (it inherits https://doc.qt.io/qt-6/qquickwidget.html[QQuickWidget]).
       It can be obtained via `tab._widget.focusProxy()`.
