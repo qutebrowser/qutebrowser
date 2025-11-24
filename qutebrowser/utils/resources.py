@@ -34,20 +34,6 @@ def _path(filename: str) -> _ResourceType:
 
     return importlib.resources.files(qutebrowser) / filename
 
-@contextlib.contextmanager
-def _keyerror_workaround() -> Iterator[None]:
-    """Re-raise KeyErrors as FileNotFoundErrors.
-
-    WORKAROUND for zipfile.Path resources raising KeyError when a file was notfound:
-    https://bugs.python.org/issue43063
-
-    Only needed for Python 3.9.
-    """
-    try:
-        yield
-    except KeyError as e:
-        raise FileNotFoundError(str(e))
-
 
 def _glob(
     resource_path: _ResourceType,
@@ -102,8 +88,7 @@ def read_file(filename: str) -> str:
         return _cache[filename]
 
     path = _path(filename)
-    with _keyerror_workaround():
-        return path.read_text(encoding='utf-8')
+    return path.read_text(encoding='utf-8')
 
 
 def read_file_binary(filename: str) -> bytes:
@@ -119,5 +104,4 @@ def read_file_binary(filename: str) -> bytes:
         return _bin_cache[filename]
 
     path = _path(filename)
-    with _keyerror_workaround():
-        return path.read_bytes()
+    return path.read_bytes()
