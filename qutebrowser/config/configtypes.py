@@ -36,7 +36,7 @@ import functools
 import operator
 import json
 import dataclasses
-from typing import Any, Optional, Union, TypeAlias
+from typing import Any, Union, TypeAlias
 from re import Pattern
 from collections.abc import Iterable, Iterator, Sequence, Callable
 
@@ -66,7 +66,7 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions: TypeAlias = Optional[Iterable[tuple[str, str]]]
+_Completions: TypeAlias = Iterable[tuple[str, str]] | None
 _StrUnset: TypeAlias = str | usertypes.Unset
 _UnsetNone: TypeAlias = None | usertypes.Unset
 _StrUnsetNone: TypeAlias = str | _UnsetNone
