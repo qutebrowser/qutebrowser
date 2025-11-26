@@ -28,6 +28,10 @@ Fixed
 
 - The version info now includes the Wayland compositor name if wayland-client is
   available under a different name than `libwayland-client.so` (#8771).
+- The list of Chromium extensions in `--version` / `:version` now uses the
+  correct Chromium data profile, also fixing a crash with Qt 6.10.1 (#8785).
+- With Qt 6.10.1, `qt.workarounds.disable_hangouts_extension` now doesn't apply
+  on private profiles, avoiding a Qt bug leading to a crash (#8785).
 
 [[v3.6.1]]
 v3.6.1 (2025-11-03)

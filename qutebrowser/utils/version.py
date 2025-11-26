@@ -657,6 +657,7 @@ class WebEngineVersions:
 
         ## Qt 6.10
         utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
+        utils.VersionNumber(6, 10, 1): (_BASES[134], '142.0.7444.162'),  # 2025-11-11
     }
 
     def __post_init__(self) -> None:
@@ -930,12 +931,18 @@ def _webengine_extensions() -> Sequence[str]:
     lines: list[str] = []
     if (
         objects.backend == usertypes.Backend.QtWebEngine
-        and "avoid-chromium-init" not in objects.debug_flags
         and machinery.IS_QT6  # mypy; TODO early return once Qt 5 is dropped
     ):
-        from qutebrowser.qt.webenginecore import QWebEngineProfile
-        profile = QWebEngineProfile.defaultProfile()
-        assert profile is not None  # mypy
+        from qutebrowser.browser.webengine import webenginesettings
+        lines.append("WebExtensions:")
+
+        if webenginesettings.default_profile:
+            profile = webenginesettings.default_profile
+        elif "avoid-chromium-init" in objects.debug_flags:
+            lines[0] += " unknown (avoiding init)"
+            return lines
+        else:
+            profile = webenginesettings.default_qt_profile()
 
         try:
             ext_manager = profile.extensionManager()
@@ -944,7 +951,6 @@ def _webengine_extensions() -> Sequence[str]:
             return []
         assert ext_manager is not None  # mypy
 
-        lines.append("WebExtensions:")
         if not ext_manager.extensions():
             lines[0] += " none"
 

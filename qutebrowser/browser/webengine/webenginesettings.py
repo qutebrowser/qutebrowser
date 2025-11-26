@@ -431,6 +431,17 @@ def _maybe_disable_hangouts_extension(profile: QWebEngineProfile) -> None:
         except AttributeError:
             return  # added in QtWebEngine 6.10
 
+        qtwe_versions = version.qtwebengine_versions(avoid_init=True)
+        if (
+            qtwe_versions.webengine == utils.VersionNumber(6, 10, 1)
+            and profile.isOffTheRecord()
+        ):
+            # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/8785
+            log.misc.warning(
+                "Not disabling Hangouts extension on private profile to avoid "
+                "QtWebEngine crash with Qt 6.10.1")
+            return
+
         assert ext_manager is not None  # mypy
         for info in ext_manager.extensions():
             if info.id() == pakjoy.HANGOUTS_EXT_ID:
@@ -458,14 +469,18 @@ def _clear_webengine_permissions_json():
         )
 
 
+def default_qt_profile() -> QWebEngineProfile:
+    """Get the default profile from Qt."""
+    if machinery.IS_QT6:
+        return QWebEngineProfile("Default")
+    else:
+        return QWebEngineProfile.defaultProfile()
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
-
-    if machinery.IS_QT6:
-        default_profile = QWebEngineProfile("Default")
-    else:
-        default_profile = QWebEngineProfile.defaultProfile()
+    default_profile = default_qt_profile()
     assert not default_profile.isOffTheRecord()
 
     assert parsed_user_agent is None  # avoid earlier profile initialization
