@@ -159,10 +159,9 @@ def _qtwebengine_features(  # noqa: C901
         # TODO adjust if fixed in Qt 6.9.2+
         disabled_features.append('DocumentPictureInPictureAPI')
 
-    if versions.webengine >= utils.VersionNumber(6, 9):
+    if utils.VersionNumber(6, 9) <= versions.webengine < utils.VersionNumber(6, 10, 1):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-135787
         # and https://bugreports.qt.io/browse/QTBUG-141096
-        # TODO adjust if fixed in Qt 6.9.2+
         disabled_features.append('PermissionElement')
 
     if not config.val.input.media_keys:
