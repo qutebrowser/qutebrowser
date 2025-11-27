@@ -541,7 +541,7 @@ def _init_site_specific_quirks():
     #               "{qt_key}/{qt_version} "
     #               "{upstream_browser_key}/{upstream_browser_version_short} "
     #               "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:144.0) Gecko/20100101 Firefox/144.0"
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:145.0) Gecko/20100101 Firefox/145.0"
 
     # Needed for gitlab.gnome.org which blocks old Chromium versions outright,
     # except when QtWebEngine/... is in the UA.
