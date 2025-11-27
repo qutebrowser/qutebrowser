@@ -471,6 +471,9 @@ class TestWebEngineArgs:
         # Qt 6.9
         ('6.9.0', "DocumentPictureInPictureAPI,PermissionElement"),
         ('6.9.1', "DocumentPictureInPictureAPI,PermissionElement"),
+        # Qt 6.10
+        ('6.10.0', "DocumentPictureInPictureAPI,PermissionElement"),
+        ('6.10.1', "DocumentPictureInPictureAPI"),
     ])
     def test_disable_feature_workaround(
         self, parser, version_patcher, qt_version, disabled
