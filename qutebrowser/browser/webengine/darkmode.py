@@ -125,7 +125,7 @@ import copy
 import enum
 import dataclasses
 import collections
-from typing import (Any, Optional, Union)
+from typing import (Any, TypeAlias)
 from collections.abc import Iterator, Mapping, MutableMapping, Sequence
 
 from qutebrowser.config import config
@@ -205,14 +205,14 @@ class _Setting:
 
     option: str
     chromium_key: str
-    mapping: Optional[Mapping[Any, Union[str, int, None]]] = None
+    mapping: Mapping[Any, str | int | None] | None = None
 
     def _value_str(self, value: Any) -> str:
         if self.mapping is None:
             return str(value)
         return str(self.mapping[value])
 
-    def chromium_tuple(self, value: Any) -> Optional[tuple[str, str]]:
+    def chromium_tuple(self, value: Any) -> tuple[str, str] | None:
         """Get the Chromium key and value, or None if no value should be set."""
         if self.mapping is not None and self.mapping[value] is None:
             return None
@@ -244,7 +244,7 @@ class _Definition:
             *args: _Setting,
             mandatory: set[str],
             prefix: str,
-            switch_names: Mapping[Optional[str], str] = None,
+            switch_names: Mapping[str | None, str] = None,
     ) -> None:
         self._settings = args
         self.mandatory = mandatory
@@ -340,7 +340,7 @@ _DEFINITIONS[Variant.qt_66] = _DEFINITIONS[Variant.qt_64].copy_add_setting(
 _DEFINITIONS[Variant.qt_67] = _DEFINITIONS[Variant.qt_66].copy_remove_setting('enabled')
 
 
-_SettingValType = Union[str, usertypes.Unset]
+_SettingValType: TypeAlias = str | usertypes.Unset
 _PREFERRED_COLOR_SCHEME_DEFINITIONS: MutableMapping[Variant, Mapping[_SettingValType, str]] = {
     Variant.qt_515_2: {
         # 0: no-preference (not exposed)

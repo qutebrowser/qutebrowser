@@ -14,7 +14,7 @@ import traceback
 import configparser
 import contextlib
 import re
-from typing import (TYPE_CHECKING, Any, Optional, cast)
+from typing import (TYPE_CHECKING, Any, cast)
 from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 
 import yaml
@@ -114,7 +114,7 @@ class StateConfig(configparser.ConfigParser):
             return False
         return True
 
-    def _qtwe_versions(self) -> Optional[version.WebEngineVersions]:
+    def _qtwe_versions(self) -> version.WebEngineVersions | None:
         """Get the QtWebEngine versions."""
         if not self._has_webengine():
             return None
@@ -758,7 +758,7 @@ class ConfigAPI:
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
-    def bind(self, key: str, command: Optional[str], mode: str = 'normal') -> None:
+    def bind(self, key: str, command: str | None, mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error(f"binding '{key}'"):
             seq = keyutils.KeySequence.parse(key)
@@ -805,12 +805,12 @@ class ConfigPyWriter:
             self,
             options: list[
                 tuple[
-                    Optional[urlmatch.UrlPattern],
+                    urlmatch.UrlPattern | None,
                     configdata.Option,
                     Any
                 ]
             ],
-            bindings: MutableMapping[str, Mapping[str, Optional[str]]],
+            bindings: MutableMapping[str, Mapping[str, str | None]],
             *,
             commented: bool,
     ) -> None:

@@ -8,7 +8,6 @@ import string
 import types
 import dataclasses
 import traceback
-from typing import Optional
 from collections.abc import Mapping, MutableMapping, Sequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
@@ -25,7 +24,7 @@ class MatchResult:
     """The result of matching a keybinding."""
 
     match_type: QKeySequence.SequenceMatch
-    command: Optional[str]
+    command: str | None
     sequence: keyutils.KeySequence
 
     def __post_init__(self) -> None:
@@ -63,7 +62,7 @@ class BindingTrie:
 
     def __init__(self) -> None:
         self.children: MutableMapping[keyutils.KeyInfo, BindingTrie] = {}
-        self.command: Optional[str] = None
+        self.command: str | None = None
 
     def __setitem__(self, sequence: keyutils.KeySequence,
                     command: str) -> None:

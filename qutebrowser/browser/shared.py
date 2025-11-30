@@ -10,7 +10,6 @@ import html
 import enum
 import netrc
 import tempfile
-from typing import Optional
 from collections.abc import Mapping, Iterable, Iterator, Callable
 
 from qutebrowser.qt.core import QUrl, pyqtBoundSignal
@@ -513,7 +512,7 @@ def choose_file(qb_mode: FileSelectionMode) -> list[str]:
 def _execute_fileselect_command(
     command: list[str],
     qb_mode: FileSelectionMode,
-    tmpfilename: Optional[str] = None
+    tmpfilename: str | None = None
 ) -> list[str]:
     """Execute external command to choose file.
 
