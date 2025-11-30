@@ -4,7 +4,7 @@
 
 """Generic web element related code."""
 
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, TypeAlias
 from collections.abc import Iterator
 import collections.abc
 
@@ -20,12 +20,12 @@ if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-JsValueType = Union[int, float, str, None]
+JsValueType: TypeAlias = int | float | str | None
 
 if machinery.IS_QT6:
     KeyboardModifierType = Qt.KeyboardModifier
 else:
-    KeyboardModifierType = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    KeyboardModifierType: TypeAlias = Qt.KeyboardModifiers | Qt.KeyboardModifier
 
 
 class Error(Exception):
@@ -81,7 +81,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
 
     def __repr__(self) -> str:
         try:
-            html: Optional[str] = utils.compact_text(self.outer_xml(), 500)
+            html: str | None = utils.compact_text(self.outer_xml(), 500)
         except Error:
             html = None
         return utils.get_repr(self, html=html)
@@ -273,7 +273,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl: QUrl) -> Optional[QUrl]:
+    def resolve_url(self, baseurl: QUrl) -> QUrl | None:
         """Resolve the URL in the element's src/href attribute.
 
         Args:

@@ -4,7 +4,6 @@
 
 """Models for the command completion."""
 
-from typing import Optional
 from collections.abc import Sequence
 from qutebrowser.completion.models.util import DeleteFuncType
 from qutebrowser.qt.core import QAbstractItemModel
@@ -21,4 +20,4 @@ class BaseCategory(QAbstractItemModel):
 
     name: str
     columns_to_filter: Sequence[int]
-    delete_func: Optional[DeleteFuncType] = None
+    delete_func: DeleteFuncType | None = None

@@ -21,7 +21,7 @@ from qutebrowser.completion.models import miscmodels
 
 
 all_processes: dict[int, Optional['GUIProcess']] = {}
-last_pid: Optional[int] = None
+last_pid: int | None = None
 
 
 @cmdutils.register()
@@ -71,8 +71,8 @@ class ProcessOutcome:
 
     what: str
     running: bool = False
-    status: Optional[QProcess.ExitStatus] = None
-    code: Optional[int] = None
+    status: QProcess.ExitStatus | None = None
+    code: int | None = None
 
     def was_successful(self) -> bool:
         """Whether the process exited successfully.
@@ -95,7 +95,7 @@ class ProcessOutcome:
             self.code == signal.SIGTERM
         )
 
-    def _crash_signal(self) -> Optional[signal.Signals]:
+    def _crash_signal(self) -> signal.Signals | None:
         """Get a Python signal (e.g. signal.SIGTERM) from a crashed process."""
         assert self.status == QProcess.ExitStatus.CrashExit
         if self.code is None:
@@ -185,10 +185,10 @@ class GUIProcess(QObject):
         self.verbose = verbose
         self._output_messages = output_messages
         self.outcome = ProcessOutcome(what=what)
-        self.cmd: Optional[str] = None
-        self.resolved_cmd: Optional[str] = None
-        self.args: Optional[Sequence[str]] = None
-        self.pid: Optional[int] = None
+        self.cmd: str | None = None
+        self.resolved_cmd: str | None = None
+        self.args: Sequence[str] | None = None
+        self.pid: int | None = None
 
         self.stdout: str = ""
         self.stderr: str = ""

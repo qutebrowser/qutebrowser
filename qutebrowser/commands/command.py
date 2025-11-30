@@ -9,7 +9,7 @@ import collections
 import traceback
 import typing
 import dataclasses
-from typing import (Any, Union, Optional)
+from typing import (Any, Union)
 from collections.abc import MutableMapping, MutableSequence, Callable
 
 from qutebrowser.api import cmdutils
@@ -25,12 +25,12 @@ class ArgInfo:
 
     """Information about an argument."""
 
-    value: Optional[usertypes.CommandValue] = None
+    value: usertypes.CommandValue | None = None
     hide: bool = False
-    metavar: Optional[str] = None
-    flag: Optional[str] = None
-    completion: Optional[Callable[..., completionmodel.CompletionModel]] = None
-    choices: Optional[list[str]] = None
+    metavar: str | None = None
+    flag: str | None = None
+    completion: Callable[..., completionmodel.CompletionModel] | None = None
+    choices: list[str] | None = None
 
 
 class Command:

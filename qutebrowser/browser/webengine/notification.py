@@ -154,7 +154,7 @@ class AbstractNotificationAdapter(QObject):
         self,
         qt_notification: "QWebEngineNotification",
         *,
-        replaces_id: Optional[int],
+        replaces_id: int | None,
     ) -> int:
         """Show the given notification.
 
@@ -197,7 +197,7 @@ class NotificationBridgePresenter(QObject):
         super().__init__(parent)
 
         self._active_notifications: dict[int, 'QWebEngineNotification'] = {}
-        self._adapter: Optional[AbstractNotificationAdapter] = None
+        self._adapter: AbstractNotificationAdapter | None = None
 
         config.instance.changed.connect(self._init_adapter)
 
@@ -300,7 +300,7 @@ class NotificationBridgePresenter(QObject):
     def _find_replaces_id(
         self,
         new_notification: "QWebEngineNotification",
-    ) -> Optional[int]:
+    ) -> int | None:
         """Find an existing notification to replace.
 
         If no notification should be replaced or the notification to be replaced was not
@@ -441,7 +441,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         self,
         qt_notification: "QWebEngineNotification",
         *,
-        replaces_id: Optional[int],
+        replaces_id: int | None,
     ) -> int:
         utils.unused(replaces_id)  # QSystemTray can only show one message
         self.close_id.emit(self.NOTIFICATION_ID)
@@ -503,7 +503,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
         self,
         qt_notification: "QWebEngineNotification",
         *,
-        replaces_id: Optional[int],
+        replaces_id: int | None,
     ) -> int:
         markup = self._format_message(qt_notification)
         new_id = replaces_id if replaces_id is not None else next(self._id_gen)
@@ -563,7 +563,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         self,
         qt_notification: "QWebEngineNotification",
         *,
-        replaces_id: Optional[int],
+        replaces_id: int | None,
     ) -> int:
         if replaces_id is not None:
             self.on_web_closed(replaces_id)
@@ -647,11 +647,11 @@ class _ServerQuirks:
 
     """Quirks for certain DBus notification servers."""
 
-    spec_version: Optional[str] = None
+    spec_version: str | None = None
     avoid_actions: bool = False
     avoid_body_hyperlinks: bool = False
     escape_title: bool = False
-    icon_key: Optional[str] = None
+    icon_key: str | None = None
     skip_capabilities: bool = False
     wrong_replaces_id: bool = False
     no_padded_images: bool = False
@@ -778,7 +778,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         name: str,
         vendor: str,
         ver: str,
-    ) -> Optional[_ServerQuirks]:
+    ) -> _ServerQuirks | None:
         """Find quirks to use based on the server information."""
         if (name, vendor) == ("notify-osd", "Canonical Ltd"):
             # Shows a dialog box instead of a notification bubble as soon as a
@@ -1009,7 +1009,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self,
         qt_notification: "QWebEngineNotification",
         *,
-        replaces_id: Optional[int],
+        replaces_id: int | None,
     ) -> int:
         """Shows a notification over DBus."""
         if replaces_id is None:
@@ -1045,7 +1045,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self._verify_notification_id(notification_id, replaces_id=replaces_id)
         return notification_id
 
-    def _convert_image(self, qimage: QImage) -> Optional[QDBusArgument]:
+    def _convert_image(self, qimage: QImage) -> QDBusArgument | None:
         """Convert a QImage to the structure DBus expects.
 
         https://specifications.freedesktop.org/notification-spec/latest/ar01s05.html#icons-and-images-formats

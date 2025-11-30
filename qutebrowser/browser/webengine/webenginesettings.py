@@ -12,7 +12,7 @@ Module attributes:
 import os
 import operator
 import pathlib
-from typing import cast, Any, Optional, Union, TYPE_CHECKING
+from typing import cast, Any, TYPE_CHECKING
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.gui import QFont
@@ -33,11 +33,11 @@ if TYPE_CHECKING:
 # The default QWebEngineProfile
 default_profile = cast(QWebEngineProfile, None)
 # The QWebEngineProfile used for private (off-the-record) windows
-private_profile: Optional[QWebEngineProfile] = None
+private_profile: QWebEngineProfile | None = None
 # The global WebEngineSettings object
 _global_settings = cast('WebEngineSettings', None)
 
-parsed_user_agent: Optional[websettings.UserAgent] = None
+parsed_user_agent: websettings.UserAgent | None = None
 
 _qute_scheme_handler = cast(webenginequtescheme.QuteSchemeHandler, None)
 _req_interceptor = cast('interceptor.RequestInterceptor', None)
@@ -223,7 +223,7 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
 
     def set_unknown_url_scheme_policy(
-            self, policy: Union[str, usertypes.Unset]) -> None:
+            self, policy: str | usertypes.Unset) -> None:
         """Set the UnknownUrlSchemePolicy to use."""
         if isinstance(policy, usertypes.Unset):
             self._settings.resetUnknownUrlSchemePolicy()
@@ -231,7 +231,7 @@ class WebEngineSettings(websettings.AbstractSettings):
             new_value = self._UNKNOWN_URL_SCHEME_POLICY[policy]
             self._settings.setUnknownUrlSchemePolicy(new_value)
 
-    def _set_js_clipboard(self, value: Union[str, usertypes.Unset]) -> None:
+    def _set_js_clipboard(self, value: str | usertypes.Unset) -> None:
         attr_access = QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard
         attr_paste = QWebEngineSettings.WebAttribute.JavascriptCanPaste
 
