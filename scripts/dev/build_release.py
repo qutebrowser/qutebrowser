@@ -208,8 +208,12 @@ def smoke_test(executable: pathlib.Path, debug_build: bool) -> None:
         proc = _smoke_test_run(executable)
     except subprocess.CalledProcessError as e:
         print(f"Smoke test failed: {e}, running with --debug")
-        smoke_test_debug(executable, original_stdout=e.stdout.decode('utf-8'),
-                         original_stderr=e.stderr.decode('utf-8'))
+        smoke_test_debug(
+            executable,
+            original_stdout=e.stdout.decode("utf-8"),
+            original_stderr=e.stderr.decode("utf-8"),
+            issue_description=str(e),
+        )
         return
 
     if debug_build:
@@ -221,11 +225,20 @@ def smoke_test(executable: pathlib.Path, debug_build: bool) -> None:
 
     if stdout or stderr:
         print("Unexpected output, running with --debug")
-        smoke_test_debug(executable, original_stdout=stdout, original_stderr=stderr)
+        smoke_test_debug(
+            executable,
+            original_stdout=stdout,
+            original_stderr=stderr,
+            issue_description="Unexpected output",
+        )
 
 
 def smoke_test_debug(
-    executable: pathlib.Path, *, original_stdout: str, original_stderr: str
+    executable: pathlib.Path,
+    *,
+    original_stdout: str,
+    original_stderr: str,
+    issue_description: str,
 ) -> None:
     """Run smoke test in debug mode to get more output."""
     proc = _smoke_test_run(executable, '--debug')
@@ -233,7 +246,7 @@ def smoke_test_debug(
     debug_stderr = proc.stderr.decode('utf-8')
 
     lines = [
-        "Unexpected output!",
+        issue_description,
         "",
     ]
     if original_stdout:
