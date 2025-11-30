@@ -110,6 +110,7 @@ jobs:
       - name: Cherry-pick release commit
         if: ${{ inputs.release_type == 'patch' }}
         run: |
+            git fetch origin main
             git checkout main
             git cherry-pick -x v${{ steps.bump.outputs.version }}
             git push origin main
