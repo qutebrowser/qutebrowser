@@ -422,6 +422,19 @@ qt.workarounds.disable_hangouts_extension:
     disabled to avoid crashes on Qt 6.5.0 to 6.5.3 if dark mode is enabled,
     as well as on Qt 6.6.0.
 
+qt.workarounds.disable_accessibility:
+  type:
+    name: String
+    valid_values:
+      - always: Disable renderer accessibility
+      - auto: Disable on Qt versions with known issues, enable otherwise
+      - never: Enable renderer accessibility
+  default: auto
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Disable accessibility to avoid crashes on Qt 6.10.1.
+
 ## auto_save
 
 auto_save.interval:

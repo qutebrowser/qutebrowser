@@ -362,6 +362,16 @@ _WEBENGINE_SETTINGS: dict[str, dict[Any, Optional[_SettingValueType]]] = {
         and versions.webengine < utils.VersionNumber(6, 8, 2)
         else None,
     },
+    'qt.workarounds.disable_accessibility': {
+        'always': '--disable-renderer-accessibility',
+        'never': None,
+        # WORKAROUND for https://qt-project.atlassian.net/browse/QTBUG-142320
+        'auto': lambda versions: '--disable-renderer-accessibility'
+        if machinery.IS_QT6
+        and versions.webengine
+        and versions.webengine == utils.VersionNumber(6, 10, 1)
+        else None,
+    },
 }
 
 

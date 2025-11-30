@@ -302,6 +302,7 @@
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.workarounds.disable_accelerated_2d_canvas,qt.workarounds.disable_accelerated_2d_canvas>>|Disable accelerated 2d canvas to avoid graphical glitches.
+|<<qt.workarounds.disable_accessibility,qt.workarounds.disable_accessibility>>|Disable accessibility to avoid crashes on Qt 6.10.1.
 |<<qt.workarounds.disable_hangouts_extension,qt.workarounds.disable_hangouts_extension>>|Disable the Hangouts extension.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
@@ -3993,6 +3994,24 @@ Valid values:
  * +always+: Disable accelerated 2d canvas
  * +auto+: Disable on Qt versions with known issues, enable otherwise
  * +never+: Enable accelerated 2d canvas
+
+Default: +pass:[auto]+
+
+[[qt.workarounds.disable_accessibility]]
+=== qt.workarounds.disable_accessibility
+Disable accessibility to avoid crashes on Qt 6.10.1.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Disable renderer accessibility
+ * +auto+: Disable on Qt versions with known issues, enable otherwise
+ * +never+: Enable renderer accessibility
 
 Default: +pass:[auto]+
 
