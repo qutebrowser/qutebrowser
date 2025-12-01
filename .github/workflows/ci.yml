@@ -137,10 +137,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.15.2 (Python 3.9)
-          - testenv: py39-pyqt5152
+          ### PyQt 5.15.2 (Python 3.10)
+          - testenv: py310-pyqt5152
             os: ubuntu-22.04
-            python: "3.9"
+            python: "3.10"
           ### PyQt 5.15 (Python 3.10, with coverage)
           # FIXME:qt6
           # - testenv: py310-pyqt515-cov
@@ -150,18 +150,18 @@ jobs:
           - testenv: py311-pyqt515
             os: ubuntu-22.04
             python: "3.11"
-          ### PyQt 6.2 (Python 3.9)
-          - testenv: py39-pyqt62
+          ### PyQt 6.2 (Python 3.10)
+          - testenv: py310-pyqt62
             os: ubuntu-22.04
-            python: "3.9"
-          ### PyQt 6.3 (Python 3.9)
-          - testenv: py39-pyqt63
+            python: "3.10"
+          ### PyQt 6.3 (Python 3.10)
+          - testenv: py310-pyqt63
             os: ubuntu-22.04
-            python: "3.9"
-          ## PyQt 6.4 (Python 3.9)
-          - testenv: py39-pyqt64
+            python: "3.10"
+          ## PyQt 6.4 (Python 3.10)
+          - testenv: py310-pyqt64
             os: ubuntu-22.04
-            python: "3.9"
+            python: "3.10"
           ### PyQt 6.5 (Python 3.10)
           - testenv: py310-pyqt65
             os: ubuntu-22.04
