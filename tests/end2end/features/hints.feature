@@ -96,11 +96,22 @@ Feature: Using hints
         And I hint with args "all run message-info {hint-url}" and follow a
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
+    Scenario: Using :hint run
+        When I open data/hints/html/simple.html
+        And I hint with args "all run message-info '{hint-text}'" and follow a
+        Then the message "Follow me!" should be shown
+
     Scenario: Using :hint fill
         When I open data/hints/html/simple.html
         And I hint with args "all fill :message-info {hint-url}" and follow a
         And I press the key "<Enter>"
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
+
+    Scenario: Using :hint fill
+        When I open data/hints/html/simple.html
+        And I hint with args "all fill :message-info '{hint-text}'" and follow a
+        And I press the key "<Enter>"
+        Then the message "Follow me!" should be shown
 
     @posix
     Scenario: Using :hint userscript
