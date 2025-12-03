@@ -4,17 +4,13 @@
 
 """The progress bar in the statusbar."""
 
-from qutebrowser.qt.core import pyqtSlot, QSize
+from qutebrowser.qt.core import pyqtSlot, QSize, Qt
 from qutebrowser.qt.widgets import QProgressBar, QSizePolicy
-
-from qutebrowser.config import stylesheet
+from qutebrowser.qt.gui import QPainter, QColor
+from qutebrowser.config import stylesheet, config
 from qutebrowser.utils import utils, usertypes
 
-
 class Progress(QProgressBar):
-
-    """The progress bar part of the status bar."""
-
     STYLESHEET = """
         QProgressBar {
             border-radius: 0px;
@@ -22,12 +18,10 @@ class Progress(QProgressBar):
             background-color: transparent;
             font: {{ conf.fonts.statusbar }};
         }
-
         QProgressBar::chunk {
             background-color: {{ conf.colors.statusbar.progress.bg }};
         }
     """
-
     def __init__(self, parent=None):
         super().__init__(parent)
         stylesheet.set_register(self)
@@ -41,25 +35,16 @@ class Progress(QProgressBar):
 
     @pyqtSlot()
     def on_load_started(self):
-        """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
         self.setVisible(self.enabled)
 
     @pyqtSlot(int)
     def on_load_progress(self, value):
-        """Hide the statusbar when loading finished.
-
-        We use this instead of loadFinished because we sometimes get
-        loadStarted and loadProgress(100) without loadFinished from Qt.
-
-        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        """
         self.setValue(value)
         if value == 100:
             self.hide()
 
     def on_tab_changed(self, tab):
-        """Set the correct value when the current tab changed."""
         self.setValue(tab.progress())
         if self.enabled and tab.load_status() == usertypes.LoadStatus.loading:
             self.show()
@@ -67,10 +52,32 @@ class Progress(QProgressBar):
             self.hide()
 
     def sizeHint(self):
-        """Set the height to the text height."""
-        width = super().sizeHint().width()
-        height = self.fontMetrics().height()
-        return QSize(width, height)
+        style = getattr(config.val.statusbar.progress, 'style', 'default')
+        if style == 'ascii':
+            return QSize(self.fontMetrics().averageCharWidth() * 12, super().sizeHint().height())
+        return super().sizeHint()
 
     def minimumSizeHint(self):
         return self.sizeHint()
+
+    def paintEvent(self, event):
+        style = getattr(config.val.statusbar.progress, 'style', 'default')
+        
+        if style != 'ascii':
+            super().paintEvent(event)
+            return
+
+        painter = QPainter(self)
+        bg_color = QColor(config.val.colors.statusbar.normal.bg)
+        fg_color = QColor(config.val.colors.statusbar.normal.fg)
+
+        painter.fillRect(self.rect(), bg_color)
+        painter.setPen(fg_color)
+
+        pct = (self.value() - self.minimum()) / max(1, self.maximum() - self.minimum())
+        filled = int(10 * pct)
+        bar_content = ("=" * filled + ">").ljust(11)[:10]
+        if pct >= 1: bar_content = "=" * 10 
+
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, f"[{bar_content}]")
+        painter.end()

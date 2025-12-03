@@ -2212,6 +2212,16 @@ statusbar.widgets:
   default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
 
+statusbar.progress.style:
+  type:
+    name: String
+    valid_values:
+      - default: The standard graphical progress bar.
+      - ascii: A text-based progress bar (e.g. [===>   ]).
+  default: default
+  desc: >-
+    Style of the progress bar in the statusbar.
+
 ## tabs
 
 tabs.background:
