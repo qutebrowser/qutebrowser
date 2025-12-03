@@ -371,31 +371,28 @@ def _get_windows_python_path() -> pathlib.Path:
     
 
 def _generate_versions_file(out_path: pathlib.Path) -> None:
-    """Generate a versions.txt file with dependency versions."""
-    import pkg_resources
+    """Generate a versions.txt file with all installed packages."""
+    import json
+
+    lines = []
     
-    versions_content = []
-    versions_content.append(f"qutebrowser {qutebrowser.__version__}\n")
-    versions_content.append(f"Python {sys.version}\n")
-    versions_content.append("\nDependencies:\n")
-    versions_content.append("-" * 40 + "\n")
-    
-    # List of key dependencies to include
-    dependencies = [
-        'PyQt6', 'PyQt6-Qt6', 'PyQt6-WebEngine', 'PyQt6-WebEngine-Qt6',
-        'setuptools', 'pip', 'wheel', 'pyinstaller'
-    ]
-    
-    for dep in dependencies:
-        try:
-            version = pkg_resources.get_distribution(dep).version
-            versions_content.append(f"{dep}: {version}\n")
-        except pkg_resources.DistributionNotFound:
-            versions_content.append(f"{dep}: not found\n")
-    
-    # Write versions.txt to the output directory
+    try:
+        # Get the list of installed packages in JSON format
+        cmd = [sys.executable, '-m', 'pip', 'list', '--format=json']
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        packages = json.loads(result.stdout)
+        
+        # Write each package and its version to the versions.txt file
+        for pkg in sorted(packages, key=lambda x: x['name'].lower()):
+            lines.append(f"{pkg['name']}=={pkg['version']}\n")
+
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print(f"Error generating versions list: {e}")
+        lines.append(f"# Error fetching dependencies: {e}\n")
+
     versions_file = out_path / "versions.txt"
-    versions_file.write_text("".join(versions_content), encoding="utf-8")
+    versions_file.write_text("".join(lines), encoding="utf-8")
     print(f"Generated {versions_file}")
 
 
