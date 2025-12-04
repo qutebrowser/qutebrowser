@@ -40,7 +40,7 @@ packaging==25.0
 platformdirs==4.4.0
 prompt_toolkit==3.0.52
 pycparser==2.23
-pydantic==2.12.4
+pydantic==2.12.5
 pydantic-settings==2.11.0
 pydantic_core==2.41.5
 Pygments==2.19.2

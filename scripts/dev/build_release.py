@@ -134,7 +134,7 @@ def _smoke_test_run(
     return subprocess.run(argv, check=True, capture_output=True)
 
 
-def smoke_test(executable: pathlib.Path, debug: bool) -> None:
+def smoke_test(executable: pathlib.Path, debug_build: bool) -> None:
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
@@ -204,8 +204,19 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
              r'\(0x80004002\)'),
         ])
 
-    proc = _smoke_test_run(executable)
-    if debug:
+    try:
+        proc = _smoke_test_run(executable)
+    except subprocess.CalledProcessError as e:
+        print(f"Smoke test failed: {e}, running with --debug")
+        smoke_test_debug(
+            executable,
+            original_stdout=e.stdout.decode("utf-8"),
+            original_stderr=e.stderr.decode("utf-8"),
+            issue_description=str(e),
+        )
+        return
+
+    if debug_build:
         print("Skipping output check for debug build")
         return
 
@@ -214,48 +225,64 @@ def smoke_test(executable: pathlib.Path, debug: bool) -> None:
 
     if stdout or stderr:
         print("Unexpected output, running with --debug")
-        proc = _smoke_test_run(executable, '--debug')
-        debug_stdout = proc.stdout.decode('utf-8')
-        debug_stderr = proc.stderr.decode('utf-8')
+        smoke_test_debug(
+            executable,
+            original_stdout=stdout,
+            original_stderr=stderr,
+            issue_description="Unexpected output",
+        )
 
-        lines = [
-            "Unexpected output!",
+
+def smoke_test_debug(
+    executable: pathlib.Path,
+    *,
+    original_stdout: str,
+    original_stderr: str,
+    issue_description: str,
+) -> None:
+    """Run smoke test in debug mode to get more output."""
+    proc = _smoke_test_run(executable, '--debug')
+    debug_stdout = proc.stdout.decode('utf-8')
+    debug_stderr = proc.stderr.decode('utf-8')
+
+    lines = [
+        issue_description,
+        "",
+    ]
+    if original_stdout:
+        lines += [
+            "stdout",
+            "------",
+            "",
+            original_stdout,
             "",
         ]
-        if stdout:
-            lines += [
-                "stdout",
-                "------",
-                "",
-                stdout,
-                "",
-            ]
-        if stderr:
-            lines += [
-                "stderr",
-                "------",
-                "",
-                stderr,
-                "",
-            ]
-        if debug_stdout:
-            lines += [
-                "debug rerun stdout",
-                "------------------",
-                "",
-                debug_stdout,
-                "",
-            ]
-        if debug_stderr:
-            lines += [
-                "debug rerun stderr",
-                "------------------",
-                "",
-                debug_stderr,
-                "",
-            ]
+    if original_stderr:
+        lines += [
+            "stderr",
+            "------",
+            "",
+            original_stderr,
+            "",
+        ]
+    if debug_stdout:
+        lines += [
+            "debug rerun stdout",
+            "------------------",
+            "",
+            debug_stdout,
+            "",
+        ]
+    if debug_stderr:
+        lines += [
+            "debug rerun stderr",
+            "------------------",
+            "",
+            debug_stderr,
+            "",
+        ]
 
-        raise Exception("\n".join(lines))  # pylint: disable=broad-exception-raised
+    raise Exception("\n".join(lines))  # pylint: disable=broad-exception-raised
 
 
 def verify_windows_exe(exe_path: pathlib.Path) -> None:
@@ -311,7 +338,7 @@ def build_mac(
     dist_path = pathlib.Path("dist")
 
     utils.print_title("Running pre-dmg smoke test")
-    smoke_test(_mac_bin_path(dist_path), debug=debug)
+    smoke_test(_mac_bin_path(dist_path), debug_build=debug)
 
     if skip_packaging:
         return []
@@ -334,7 +361,7 @@ def build_mac(
             subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmp_path], check=True)
             try:
-                smoke_test(_mac_bin_path(tmp_path), debug=debug)
+                smoke_test(_mac_bin_path(tmp_path), debug_build=debug)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
@@ -393,7 +420,7 @@ def _build_windows_single(
     verify_windows_exe(exe_path)
 
     utils.print_title("Running smoke test")
-    smoke_test(exe_path, debug=debug)
+    smoke_test(exe_path, debug_build=debug)
 
     if skip_packaging:
         return []

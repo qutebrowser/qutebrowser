@@ -12,7 +12,7 @@ import pytest
 from qutebrowser.qt import machinery
 from qutebrowser import qutebrowser
 from qutebrowser.config import qtargs, configdata
-from qutebrowser.utils import usertypes, version
+from qutebrowser.utils import usertypes, version, utils
 
 
 @pytest.fixture
@@ -52,6 +52,7 @@ def reduce_args(config_stub, version_patcher, monkeypatch):
     config_stub.val.scrolling.bar = 'never'
     config_stub.val.qt.chromium.experimental_web_platform_features = 'never'
     config_stub.val.qt.workarounds.disable_accelerated_2d_canvas = 'never'
+    config_stub.val.qt.workarounds.disable_accessibility = 'never'
     monkeypatch.setattr(qtargs.utils, 'is_mac', False)
     # Avoid WebRTC pipewire feature
     monkeypatch.setattr(qtargs.utils, 'is_linux', False)
@@ -115,6 +116,14 @@ def test_no_webengine_available(monkeypatch, config_stub, parser, stubs):
     parsed = parser.parse_args([])
     args = qtargs.qt_args(parsed)
     assert args == [sys.argv[0]]
+
+
+_XFAIL_FUTURE_QT = (
+    pytest.mark.xfail(
+        utils.VersionNumber(6, 11) not in version.WebEngineVersions._CHROMIUM_VERSIONS,
+        reason="Unknown security patch version for Qt 6.11 so far",
+    ),
+)
 
 
 @pytest.mark.usefixtures('reduce_args')
@@ -189,6 +198,40 @@ class TestWebEngineArgs:
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
         assert ('--disable-accelerated-2d-canvas' in args) == has_arg
+
+    @pytest.mark.parametrize(
+        "qt_version, qt6, value, has_arg",
+        [
+            ("5.15.2", False, "auto", False),
+            # 6.8.5 is broken too, but commercial-only
+            ("6.10.0", True, "always", True),
+            ("6.10.0", True, "auto", False),
+            ("6.10.1", True, "auto", True),
+            ("6.10.1", True, "never", False),
+            ("6.10.2", True, "always", True),
+            ("6.10.2", True, "auto", False),
+            pytest.param("6.11.0", True, "always", True, marks=_XFAIL_FUTURE_QT),
+            pytest.param("6.11.0", True, "auto", False, marks=_XFAIL_FUTURE_QT),
+        ],
+    )
+    def test_disable_accessibility(
+        self,
+        parser,
+        version_patcher,
+        config_stub,
+        monkeypatch,
+        qt_version,
+        qt6,
+        value,
+        has_arg,
+    ):
+        version_patcher(qt_version)
+        config_stub.val.qt.workarounds.disable_accessibility = value
+        monkeypatch.setattr(machinery, 'IS_QT6', qt6)
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+        assert ('--disable-renderer-accessibility' in args) == has_arg
 
     @pytest.mark.parametrize('flags, args', [
         ([], []),
@@ -471,6 +514,9 @@ class TestWebEngineArgs:
         # Qt 6.9
         ('6.9.0', "DocumentPictureInPictureAPI,PermissionElement"),
         ('6.9.1', "DocumentPictureInPictureAPI,PermissionElement"),
+        # Qt 6.10
+        ('6.10.0', "DocumentPictureInPictureAPI,PermissionElement"),
+        ('6.10.1', "DocumentPictureInPictureAPI"),
     ])
     def test_disable_feature_workaround(
         self, parser, version_patcher, qt_version, disabled
