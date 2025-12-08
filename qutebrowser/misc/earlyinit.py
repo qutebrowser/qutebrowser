@@ -23,6 +23,7 @@ import datetime
 from typing import NoReturn
 try:
     import tkinter
+    import tkinter.messagebox
 except ImportError:
     tkinter = None  # type: ignore[assignment]
 
