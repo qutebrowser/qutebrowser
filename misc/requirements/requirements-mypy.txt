@@ -3,9 +3,10 @@
 chardet==5.2.0
 diff_cover==9.7.2
 Jinja2==3.1.6
+librt==0.7.3
 lxml==6.0.2
 MarkupSafe==3.0.3
-mypy==1.18.2
+mypy==1.19.0
 mypy_extensions==1.1.0
 pathspec==0.12.1
 pluggy==1.6.0
