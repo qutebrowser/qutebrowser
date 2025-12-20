@@ -345,9 +345,9 @@ qt.chromium.experimental_web_platform_features:
     Chromium. By default, this is enabled with Qt 5 to maximize compatibility
     despite an aging Chromium base.
 
-qt.chromium.use_recommended_page_lifecycle_state:
+qt.chromium.lifecycle_state.enabled:
   type: Bool
-  default: false
+  default: true
   backend: QtWebEngine
   # yamllint disable rule:line-length
   desc: >-
@@ -368,27 +368,33 @@ qt.chromium.use_recommended_page_lifecycle_state:
     See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
   # yamllint enable rule:line-length
 
-qt.chromium.lifecycle_state_freeze_delay:
+qt.chromium.lifecycle_state.freeze_delay:
   type:
     name: Int
     minval: 0
     maxval: maxint
-  default: 0
+  default: 30_000
   backend: QtWebEngine
   desc: >-
     The amount of time (in milliseconds) to wait before transitioning a page to
     the frozen lifecycle state.
+    This is a low-CPU state, where most DOM event processing, JavaScript
+    execution, and other tasks are suspended.
 
-qt.chromium.lifecycle_state_discard_delay:
+qt.chromium.lifecycle_state.discard_delay:
   type:
     name: Int
     minval: -1
     maxval: maxint
-  default: 0
+  default: 600_000
   backend: QtWebEngine
   desc: >-
     The amount of time (in milliseconds) to wait before transitioning a page to
     the discarded lifecycle state.
+    This state is an extreme resource-saving state, where the browsing context
+    of the web view is discarded and the renderer process is shut down.
+    Resource usage is therefore reduced to near-zero. The web page is
+    automatically reloaded when needed.
 
     Set to -1 to disable this state.
 

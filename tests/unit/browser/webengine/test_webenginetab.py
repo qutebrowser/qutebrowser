@@ -288,9 +288,9 @@ class TestPageLifecycle:
         discard_delay=0,
         enabled=True,
     ):
-        config_stub.val.qt.chromium.lifecycle_state_freeze_delay = freeze_delay
-        config_stub.val.qt.chromium.lifecycle_state_discard_delay = discard_delay
-        config_stub.val.qt.chromium.use_recommended_page_lifecycle_state = enabled
+        config_stub.val.qt.chromium.lifecycle_state.freeze_delay = freeze_delay
+        config_stub.val.qt.chromium.lifecycle_state.discard_delay = discard_delay
+        config_stub.val.qt.chromium.lifecycle_state.enabled = enabled
 
     def timer_for(self, tab, state):  # pylint: disable=inconsistent-return-statements
         if state == QWebEnginePage.LifecycleState.Frozen:
