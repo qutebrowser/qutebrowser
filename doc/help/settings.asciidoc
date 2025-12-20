@@ -3857,7 +3857,7 @@ This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
-Default: +pass:[600000]+
+Default: +pass:[-1]+
 
 [[qt.chromium.lifecycle_state.enabled]]
 === qt.chromium.lifecycle_state.enabled

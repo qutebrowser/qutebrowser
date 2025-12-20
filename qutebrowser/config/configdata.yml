@@ -386,7 +386,7 @@ qt.chromium.lifecycle_state.discard_delay:
     name: Int
     minval: -1
     maxval: maxint
-  default: 600_000
+  default: -1
   backend: QtWebEngine
   desc: >-
     The amount of time (in milliseconds) to wait before transitioning a page to
