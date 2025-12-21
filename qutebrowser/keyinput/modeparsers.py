@@ -11,7 +11,7 @@ Module attributes:
 import traceback
 import enum
 import functools
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSlot, Qt, QObject
@@ -145,7 +145,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
-        self._partial_match_events: List[keyutils.QueuedKeyEventPair] = []
+        self._partial_match_events: list[keyutils.QueuedKeyEventPair] = []
         self.keystring_updated.connect(self._hintmanager.handle_partial_key)
         self._command_parser.forward_partial_key.connect(
             self.forward_partial_match_event)

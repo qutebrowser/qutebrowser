@@ -7,8 +7,7 @@
 from qutebrowser.qt.widgets import QApplication
 
 import functools
-import dataclasses
-from typing import Union, cast, List
+from typing import Union, cast
 from collections.abc import Mapping, MutableMapping, Callable
 
 from qutebrowser.qt import machinery
@@ -256,7 +255,7 @@ class ModeManager(QObject):
         self._releaseevents_to_pass: set[keyutils.KeyEvent] = set()
         # Set after __init__
         self.hintmanager = cast(hints.HintManager, None)
-        self._partial_match_events: List[keyutils.QueuedKeyEventPair] = []
+        self._partial_match_events: list[keyutils.QueuedKeyEventPair] = []
         self.forward_partial_key.connect(self.forward_partial_match_event)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)

@@ -6,11 +6,12 @@
 
 from unittest import mock
 
-from qutebrowser.qt.core import Qt, QTimer
+from qutebrowser.qt.core import Qt
 from qutebrowser.qt.gui import QKeySequence
 
 import pytest
 
+from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import modeparsers, keyutils
 from qutebrowser.config import configexc
 
@@ -307,7 +308,7 @@ class TestHintKeyParser:
                 assert not timer.isActive()
             elif behavior == 'timer_reset':
                 # Timer should be reset after handling the key
-                half_timer = QTimer()
+                half_timer = usertypes.Timer()
                 half_timer.setSingleShot(True)
                 half_timer.setInterval(timeout//2)
                 half_timer.start()

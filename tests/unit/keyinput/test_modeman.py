@@ -4,7 +4,7 @@
 
 import pytest
 
-from qutebrowser.qt.core import Qt, QObject, pyqtSignal, QTimer, QEvent
+from qutebrowser.qt.core import Qt, QObject, pyqtSignal, QEvent
 from qutebrowser.qt.gui import QKeyEvent, QKeySequence
 
 from qutebrowser.utils import usertypes, objreg
@@ -140,7 +140,7 @@ def test_partial_keychain_timeout(modeman_with_timeout, config_stub, qtbot, data
             assert not parser.fake_clear_keystring_called
         elif behavior == 'timer_reset':
             # Timer should be reset after handling the key
-            half_timer = QTimer()
+            half_timer = usertypes.Timer()
             half_timer.setSingleShot(True)
             half_timer.setInterval(timeout//2)
             half_timer.start()

@@ -18,7 +18,7 @@ handle what we actually think we do.
 
 import itertools
 import dataclasses
-from typing import Optional, Union, overload, cast, Tuple
+from typing import Optional, Union, overload, cast
 from collections.abc import Iterator, Iterable, Mapping, Sequence
 
 from qutebrowser.qt import machinery

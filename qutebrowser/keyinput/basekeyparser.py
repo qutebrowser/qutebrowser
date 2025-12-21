@@ -8,7 +8,7 @@ import string
 import types
 import dataclasses
 import traceback
-from typing import Optional, List
+from typing import Optional
 from collections.abc import Mapping, MutableMapping, Sequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal
@@ -198,7 +198,7 @@ class BaseKeyParser(QObject):
         self._pure_sequence = keyutils.KeySequence()
         self._sequence = keyutils.KeySequence()
         self._count = ''
-        self._count_keyposs: List[int] = []
+        self._count_keyposs: list[int] = []
         self._mode = mode
         self._do_log = do_log
         self.passthrough = passthrough
