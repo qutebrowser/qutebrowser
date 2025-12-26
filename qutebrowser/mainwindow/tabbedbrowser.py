@@ -15,7 +15,7 @@ from typing import (
     Any, Optional)
 from collections.abc import Mapping, MutableMapping, MutableSequence
 
-from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
+from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication, QTabBar
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
 
 from qutebrowser.config import config
@@ -242,6 +242,8 @@ class TabbedBrowser(QWidget):
         self.default_window_icon = self._window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()
+        # Last opened tab tracking for tabs.select_on_remove = 'firefox'
+        self._opened_tab: Optional[weakref.ReferenceType[browsertab.AbstractTab]] = None
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
 
@@ -444,7 +446,30 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False):
+    def _should_select_opener(self, tab):
+        """Check if we should select the opener tab (behave like last-used).
+
+        Args:
+            tab: The tab that is about to be closed.
+
+        Return:
+            True if we should fall back to 'last-used' behavior to select the opener.
+            False if we should stick to the default (next).
+        """
+        # Only apply if config is 'firefox' mode
+        if config.val.tabs.select_on_remove != 'firefox':
+            return False
+
+        if self._opened_tab is None:
+            return False
+
+        opened = self._opened_tab()
+        self._opened_tab = None  # Clear state
+
+        return opened is tab
+
+    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False,
+                  allow_firefox_behavior=True):
         """Close a tab.
 
         Args:
@@ -452,6 +477,7 @@ class TabbedBrowser(QWidget):
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
             transfer: Whether the tab is closing because it is moving to a new window.
+            allow_firefox_behavior: Whether to try selecting the 'opener' tab (if configured).
         """
         if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
@@ -463,7 +489,19 @@ class TabbedBrowser(QWidget):
         if last_close == 'ignore' and count == 1:
             return
 
+        # Handle 'firefox' selection mode
+        restore_behavior = None
+        if allow_firefox_behavior and self._should_select_opener(tab):
+            # Temporarily switch to 'last-used' behavior, which will select the 'opener'
+            # since we verified the relationship and navigation state.
+            tabbar = self.widget.tabBar()
+            restore_behavior = tabbar.selectionBehaviorOnRemove()
+            tabbar.setSelectionBehaviorOnRemove(QTabBar.SelectionBehavior.SelectPreviousTab)
+
         self._remove_tab(tab, add_undo=add_undo, new_undo=new_undo)
+
+        if restore_behavior is not None:
+            self.widget.tabBar().setSelectionBehaviorOnRemove(restore_behavior)
 
         if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
@@ -659,6 +697,11 @@ class TabbedBrowser(QWidget):
 
         if background is None:
             background = config.val.tabs.background
+
+        # Track opened tab for tabs.select_on_remove = 'firefox'
+        if self.widget.count() > 0:
+            self._opened_tab = weakref.ref(tab)
+
         if background:
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
@@ -903,6 +946,13 @@ class TabbedBrowser(QWidget):
                 "on_current_changed got called with invalid index {}"
                 .format(idx))
             return
+
+        # Clear state if user switched to a tab that's not the opened tab
+        if self._opened_tab is not None:
+            opened = self._opened_tab()
+            if tab is not opened:
+                # User navigated to a third tab, forget opened tab
+                self._opened_tab = None
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
