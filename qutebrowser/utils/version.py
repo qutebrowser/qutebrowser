@@ -654,6 +654,7 @@ class WebEngineVersions:
         utils.VersionNumber(6, 9): (_BASES[130], '133.0.6943.141'),  # 2025-02-25
         utils.VersionNumber(6, 9, 1): (_BASES[130], '136.0.7103.114'),  # 2025-05-13
         utils.VersionNumber(6, 9, 2): (_BASES[130], '139.0.7258.67'),  # 2025-07-29
+        utils.VersionNumber(6, 9, 3): (_BASES[130], '140.0.7339.207'),  # 2025-09-22
 
         ## Qt 6.10
         utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
