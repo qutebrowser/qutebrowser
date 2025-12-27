@@ -494,14 +494,14 @@ class TabbedBrowser(QWidget):
         if allow_firefox_behavior and self._should_select_opener(tab):
             # Temporarily switch to 'last-used' behavior, which will select the 'opener'
             # since we verified the relationship and navigation state.
-            tabbar = self.widget.tabBar()
+            tabbar = self.widget.tab_bar()
             restore_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(QTabBar.SelectionBehavior.SelectPreviousTab)
 
         self._remove_tab(tab, add_undo=add_undo, new_undo=new_undo)
 
         if restore_behavior is not None:
-            self.widget.tabBar().setSelectionBehaviorOnRemove(restore_behavior)
+            self.widget.tab_bar().setSelectionBehaviorOnRemove(restore_behavior)
 
         if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
