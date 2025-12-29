@@ -139,16 +139,16 @@ class SelectionStrategy:
 
     """Base class for tab selection strategies (on remove)."""
 
-    def on_tab_opened(self, tabbed_browser: "TabbedBrowser", tab: browsertab.AbstractTab,
-                      related: bool, background: bool) -> None:
+    def on_tab_opened(self, _tabbed_browser: "TabbedBrowser", _tab: browsertab.AbstractTab,
+                      _related: bool, _background: bool) -> None:
         """Called when a new tab is opened."""
 
-    def on_current_changed(self, tabbed_browser: "TabbedBrowser",
-                           tab: browsertab.AbstractTab) -> None:
+    def on_current_changed(self, _tabbed_browser: "TabbedBrowser",
+                           _tab: browsertab.AbstractTab) -> None:
         """Called when the current tab changes."""
 
-    def should_select_parent(self, tabbed_browser: "TabbedBrowser",
-                             tab: browsertab.AbstractTab) -> bool:
+    def should_select_parent(self, _tabbed_browser: "TabbedBrowser",
+                             _tab: browsertab.AbstractTab) -> bool:
         """Return True if we should select the parent/opener instead of default behavior."""
         return False
 
@@ -312,13 +312,16 @@ class TabbedBrowser(QWidget):
 
     def _update_selection_strategy(self):
         """Update the selection strategy based on config."""
-        strategy = config.val.tabs.select_on_remove
-        if strategy == 'firefox':
-            if not isinstance(self._selection_strategy, FirefoxSelectionStrategy):
-                self._selection_strategy = FirefoxSelectionStrategy()
-        else:
-            if isinstance(self._selection_strategy, FirefoxSelectionStrategy):
-                self._selection_strategy = SelectionStrategy()
+        strategy_map = {
+            "default": SelectionStrategy,
+            "firefox": FirefoxSelectionStrategy,
+        }
+
+        strategy_key = config.val.tabs.select_on_remove or "default"
+        strategy_cls = strategy_map.get(strategy_key, SelectionStrategy)
+
+        if type(self._selection_strategy) is not strategy_cls:
+            self._selection_strategy = strategy_cls()
 
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
