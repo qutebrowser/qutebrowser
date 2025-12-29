@@ -237,7 +237,7 @@ class CommandDispatcher:
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            self._tabbed_browser.close_tab(tab, allow_firefox_behavior=False)
+            self._tabbed_browser.close_tab(tab, allow_selection_strategy=False)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

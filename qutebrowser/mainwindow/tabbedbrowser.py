@@ -135,6 +135,62 @@ class TabDeletedError(Exception):
     """Exception raised when _tab_index is called for a deleted tab."""
 
 
+class SelectionStrategy:
+
+    """Base class for tab selection strategies (on remove)."""
+
+    def on_tab_opened(self, tabbed_browser: "TabbedBrowser", tab: browsertab.AbstractTab,
+                      related: bool, background: bool) -> None:
+        """Called when a new tab is opened."""
+
+    def on_current_changed(self, tabbed_browser: "TabbedBrowser",
+                           tab: browsertab.AbstractTab) -> None:
+        """Called when the current tab changes."""
+
+    def should_select_parent(self, tabbed_browser: "TabbedBrowser",
+                             tab: browsertab.AbstractTab) -> bool:
+        """Return True if we should select the parent/opener instead of default behavior."""
+        return False
+
+
+class FirefoxSelectionStrategy(SelectionStrategy):
+
+    """Strategy implementing Firefox-like "return to parent" behavior."""
+
+    def __init__(self) -> None:
+        self._opened_tab: Optional[weakref.ReferenceType[browsertab.AbstractTab]] = None
+
+    def on_tab_opened(self, tabbed_browser: "TabbedBrowser", tab: browsertab.AbstractTab,
+                      related: bool, background: bool) -> None:
+        # Track opened tab
+        if tabbed_browser.widget.count() > 0:
+            if self._opened_tab is not None and background:
+                self._opened_tab = None
+            else:
+                self._opened_tab = weakref.ref(tab)
+
+    def on_current_changed(self, tabbed_browser: "TabbedBrowser",
+                           tab: browsertab.AbstractTab) -> None:
+        # Clear state if user switched to a tab that's not the opened tab
+        if self._opened_tab is not None:
+            opened = self._opened_tab()
+            if tab is not opened:
+                # User navigated to a third tab, forget opened tab
+                self._opened_tab = None
+
+    def should_select_parent(self, tabbed_browser: "TabbedBrowser",
+                             tab: browsertab.AbstractTab) -> bool:
+        if self._opened_tab is None:
+            return False
+
+        opened = self._opened_tab()
+        if opened is tab:
+            self._opened_tab = None  # Consume state
+            return True
+
+        return False
+
+
 class TabbedBrowser(QWidget):
 
     """A TabWidget with QWebViews inside.
@@ -242,8 +298,8 @@ class TabbedBrowser(QWidget):
         self.default_window_icon = self._window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()
-        # Last opened tab tracking for tabs.select_on_remove = 'firefox'
-        self._opened_tab: Optional[weakref.ReferenceType[browsertab.AbstractTab]] = None
+        self._selection_strategy: SelectionStrategy = SelectionStrategy()
+        self._update_selection_strategy()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
 
@@ -253,6 +309,16 @@ class TabbedBrowser(QWidget):
             newsize = None
         # We can't resize a collections.deque so just recreate it >:(
         self.undo_stack = collections.deque(self.undo_stack, maxlen=newsize)
+
+    def _update_selection_strategy(self):
+        """Update the selection strategy based on config."""
+        strategy = config.val.tabs.select_on_remove
+        if strategy == 'firefox':
+            if not isinstance(self._selection_strategy, FirefoxSelectionStrategy):
+                self._selection_strategy = FirefoxSelectionStrategy()
+        else:
+            if isinstance(self._selection_strategy, FirefoxSelectionStrategy):
+                self._selection_strategy = SelectionStrategy()
 
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
@@ -269,6 +335,8 @@ class TabbedBrowser(QWidget):
             self.widget.update_tab_titles()
         elif option == "tabs.focus_stack_size":
             self.tab_deque.update_size()
+        elif option == "tabs.select_on_remove":
+            self._update_selection_strategy()
 
     def _tab_index(self, tab):
         """Get the index of a given tab.
@@ -446,32 +514,8 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def _should_select_opener(self, tab):
-        """Check if we should select the opener tab (behave like last-used).
-
-        Args:
-            tab: The tab that is about to be closed.
-
-        Return:
-            True if we should fall back to 'last-used' behavior to select the opener.
-            False if we should stick to the default (next).
-        """
-        # Only apply if config is 'firefox' mode
-        if config.val.tabs.select_on_remove != 'firefox':
-            return False
-
-        if self._opened_tab is None:
-            return False
-
-        opened = self._opened_tab()
-        if opened is tab:
-            self._opened_tab = None  # Consume state
-            return True
-
-        return False
-
     def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False,
-                  allow_firefox_behavior=True):
+                  allow_selection_strategy=True):
         """Close a tab.
 
         Args:
@@ -479,7 +523,7 @@ class TabbedBrowser(QWidget):
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
             transfer: Whether the tab is closing because it is moving to a new window.
-            allow_firefox_behavior: Whether to try selecting the 'opener' tab (if configured).
+            allow_selection_strategy: Whether to try selecting the 'opener' tab (if configured).
         """
         if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
@@ -491,11 +535,9 @@ class TabbedBrowser(QWidget):
         if last_close == 'ignore' and count == 1:
             return
 
-        # Handle 'firefox' selection mode
         restore_behavior = None
-        if allow_firefox_behavior and self._should_select_opener(tab):
+        if allow_selection_strategy and self._selection_strategy.should_select_parent(self, tab):
             # Temporarily switch to 'last-used' behavior, which will select the 'opener'
-            # since we verified the relationship and navigation state.
             tabbar = self.widget.tab_bar()
             restore_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(QTabBar.SelectionBehavior.SelectPreviousTab)
@@ -700,12 +742,7 @@ class TabbedBrowser(QWidget):
         if background is None:
             background = config.val.tabs.background
 
-        # Track opened tab for tabs.select_on_remove = 'firefox'
-        if self.widget.count() > 0:
-            if self._opened_tab is not None and background:
-                self._opened_tab = None
-            else:
-                self._opened_tab = weakref.ref(tab)
+        self._selection_strategy.on_tab_opened(self, tab, related, background)
 
         if background:
             # Make sure the background tab has the correct initial size.
@@ -953,11 +990,7 @@ class TabbedBrowser(QWidget):
             return
 
         # Clear state if user switched to a tab that's not the opened tab
-        if self._opened_tab is not None:
-            opened = self._opened_tab()
-            if tab is not opened:
-                # User navigated to a third tab, forget opened tab
-                self._opened_tab = None
+        self._selection_strategy.on_current_changed(self, tab)
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
