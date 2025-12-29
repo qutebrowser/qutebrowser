@@ -464,9 +464,11 @@ class TabbedBrowser(QWidget):
             return False
 
         opened = self._opened_tab()
-        self._opened_tab = None  # Clear state
+        if opened is tab:
+            self._opened_tab = None  # Consume state
+            return True
 
-        return opened is tab
+        return False
 
     def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False,
                   allow_firefox_behavior=True):
@@ -700,7 +702,10 @@ class TabbedBrowser(QWidget):
 
         # Track opened tab for tabs.select_on_remove = 'firefox'
         if self.widget.count() > 0:
-            self._opened_tab = weakref.ref(tab)
+            if self._opened_tab is not None and background:
+                self._opened_tab = None
+            else:
+                self._opened_tab = weakref.ref(tab)
 
         if background:
             # Make sure the background tab has the correct initial size.
