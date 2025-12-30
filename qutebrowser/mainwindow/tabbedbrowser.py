@@ -314,7 +314,7 @@ class TabbedBrowser(QWidget):
         strategy_key = config.val.tabs.select_on_remove or "default"
         strategy_cls = strategy_map.get(strategy_key, SelectionStrategy)
 
-        if type(self._selection_strategy) is not strategy_cls: # pylint: disable=unidiomatic-typecheck
+        if type(self._selection_strategy) is not strategy_cls:  # pylint: disable=unidiomatic-typecheck
             self._selection_strategy = strategy_cls()
 
     def __repr__(self):
