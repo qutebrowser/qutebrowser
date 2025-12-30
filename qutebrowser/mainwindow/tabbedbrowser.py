@@ -145,20 +145,20 @@ class SelectionStrategy:
     def on_current_changed(self, _tab: browsertab.AbstractTab) -> None:
         """Called when the current tab changes."""
 
-    def should_select_parent(self, _tab: browsertab.AbstractTab) -> bool:
-        """Return True if we should select the parent/opener instead of default behavior."""
+    def should_select_opener(self, _tab: browsertab.AbstractTab) -> bool:
+        """Check if we should return to the opener tab."""
         return False
 
 
 class FirefoxSelectionStrategy(SelectionStrategy):
 
-    """Strategy implementing Firefox-like "return to parent" behavior."""
+    """Strategy for Firefox-like "return to opener" behavior."""
 
     def __init__(self) -> None:
         self._opened_tab: Optional[weakref.ReferenceType[browsertab.AbstractTab]] = None
 
     def on_tab_opened(self, tabbed_browser: "TabbedBrowser", tab: browsertab.AbstractTab, background: bool) -> None:
-        # Track opened tab
+        # Track relationship
         if tabbed_browser.widget.count() > 0:
             if self._opened_tab is not None and background:
                 self._opened_tab = None
@@ -166,14 +166,13 @@ class FirefoxSelectionStrategy(SelectionStrategy):
                 self._opened_tab = weakref.ref(tab)
 
     def on_current_changed(self, tab: browsertab.AbstractTab) -> None:
-        # Clear state if user switched to a tab that's not the opened tab
+        # Clear state if user switched away
         if self._opened_tab is not None:
             opened = self._opened_tab()
             if tab is not opened:
-                # User navigated to a third tab, forget opened tab
                 self._opened_tab = None
 
-    def should_select_parent(self, tab: browsertab.AbstractTab) -> bool:
+    def should_select_opener(self, tab: browsertab.AbstractTab) -> bool:
         if self._opened_tab is None:
             return False
 
@@ -533,8 +532,8 @@ class TabbedBrowser(QWidget):
             return
 
         restore_behavior = None
-        if allow_selection_strategy and self._selection_strategy.should_select_parent(tab):
-            # Temporarily switch to 'last-used' behavior, which will select the 'opener'
+        if allow_selection_strategy and self._selection_strategy.should_select_opener(tab):
+            # Temporarily switch to 'last-used' behavior to select the opener
             tabbar = self.widget.tab_bar()
             restore_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(QTabBar.SelectionBehavior.SelectPreviousTab)
