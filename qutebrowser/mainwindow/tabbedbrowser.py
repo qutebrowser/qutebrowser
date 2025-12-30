@@ -139,16 +139,13 @@ class SelectionStrategy:
 
     """Base class for tab selection strategies (on remove)."""
 
-    def on_tab_opened(self, _tabbed_browser: "TabbedBrowser", _tab: browsertab.AbstractTab,
-                      _related: bool, _background: bool) -> None:
+    def on_tab_opened(self, _tabbed_browser: "TabbedBrowser", _tab: browsertab.AbstractTab, _background: bool) -> None:
         """Called when a new tab is opened."""
 
-    def on_current_changed(self, _tabbed_browser: "TabbedBrowser",
-                           _tab: browsertab.AbstractTab) -> None:
+    def on_current_changed(self, _tab: browsertab.AbstractTab) -> None:
         """Called when the current tab changes."""
 
-    def should_select_parent(self, _tabbed_browser: "TabbedBrowser",
-                             _tab: browsertab.AbstractTab) -> bool:
+    def should_select_parent(self, _tab: browsertab.AbstractTab) -> bool:
         """Return True if we should select the parent/opener instead of default behavior."""
         return False
 
@@ -160,8 +157,7 @@ class FirefoxSelectionStrategy(SelectionStrategy):
     def __init__(self) -> None:
         self._opened_tab: Optional[weakref.ReferenceType[browsertab.AbstractTab]] = None
 
-    def on_tab_opened(self, tabbed_browser: "TabbedBrowser", tab: browsertab.AbstractTab,
-                      related: bool, background: bool) -> None:
+    def on_tab_opened(self, tabbed_browser: "TabbedBrowser", tab: browsertab.AbstractTab, background: bool) -> None:
         # Track opened tab
         if tabbed_browser.widget.count() > 0:
             if self._opened_tab is not None and background:
@@ -169,8 +165,7 @@ class FirefoxSelectionStrategy(SelectionStrategy):
             else:
                 self._opened_tab = weakref.ref(tab)
 
-    def on_current_changed(self, tabbed_browser: "TabbedBrowser",
-                           tab: browsertab.AbstractTab) -> None:
+    def on_current_changed(self, tab: browsertab.AbstractTab) -> None:
         # Clear state if user switched to a tab that's not the opened tab
         if self._opened_tab is not None:
             opened = self._opened_tab()
@@ -178,8 +173,7 @@ class FirefoxSelectionStrategy(SelectionStrategy):
                 # User navigated to a third tab, forget opened tab
                 self._opened_tab = None
 
-    def should_select_parent(self, tabbed_browser: "TabbedBrowser",
-                             tab: browsertab.AbstractTab) -> bool:
+    def should_select_parent(self, tab: browsertab.AbstractTab) -> bool:
         if self._opened_tab is None:
             return False
 
@@ -320,7 +314,7 @@ class TabbedBrowser(QWidget):
         strategy_key = config.val.tabs.select_on_remove or "default"
         strategy_cls = strategy_map.get(strategy_key, SelectionStrategy)
 
-        if type(self._selection_strategy) is not strategy_cls:
+        if type(self._selection_strategy) is not strategy_cls: # pylint: disable=unidiomatic-typecheck
             self._selection_strategy = strategy_cls()
 
     def __repr__(self):
@@ -539,7 +533,7 @@ class TabbedBrowser(QWidget):
             return
 
         restore_behavior = None
-        if allow_selection_strategy and self._selection_strategy.should_select_parent(self, tab):
+        if allow_selection_strategy and self._selection_strategy.should_select_parent(tab):
             # Temporarily switch to 'last-used' behavior, which will select the 'opener'
             tabbar = self.widget.tab_bar()
             restore_behavior = tabbar.selectionBehaviorOnRemove()
@@ -745,7 +739,7 @@ class TabbedBrowser(QWidget):
         if background is None:
             background = config.val.tabs.background
 
-        self._selection_strategy.on_tab_opened(self, tab, related, background)
+        self._selection_strategy.on_tab_opened(self, tab, background)
 
         if background:
             # Make sure the background tab has the correct initial size.
@@ -993,7 +987,7 @@ class TabbedBrowser(QWidget):
             return
 
         # Clear state if user switched to a tab that's not the opened tab
-        self._selection_strategy.on_current_changed(self, tab)
+        self._selection_strategy.on_current_changed(tab)
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
