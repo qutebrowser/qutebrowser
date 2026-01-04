@@ -10,7 +10,7 @@ from qutebrowser.qt.gui import QKeyEvent
 from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, message, usertypes, qtutils
+from qutebrowser.utils import log, message, usertypes, qtutils, version, utils
 from qutebrowser.keyinput import modeman, keyutils
 
 
@@ -55,16 +55,16 @@ class ChildEventFilter(QObject):
                 # - This is a child event filter on a tab (self._widget is not None)
                 # - We find an old existing child which is a QQuickWidget and is
                 #   currently focused.
-                # - We're using QtWebEngine >= 6.4 (older versions are not affected)
+                # - We're using an affected QtWebEngine version
                 children = [
                     c for c in self._widget.findChildren(
                         QWidget, "", Qt.FindChildOption.FindDirectChildrenOnly)
                     if c is not child and
                     c.hasFocus() and
                     c.metaObject() is not None and
-                    c.metaObject().className() == "QQuickWidget"
+                    c.metaObject().className() == "QQuickWidget"  # Qt 6.4+
                 ]
-                if children:
+                if children and version.qtwebengine_versions().webengine < utils.VersionNumber(6, 6, 3):
                     log.misc.debug("Focusing new child")
                     child.setFocus()
 
