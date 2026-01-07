@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python 3.9
@@ -41,7 +41,7 @@ jobs:
       - name: Run qutebrowser smoke test
         run: "xvfb-run .venv/bin/python3 -m qutebrowser --no-err-windows --nowindow --temp-basedir about:blank ':later 500 quit'"
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           committer: qutebrowser bot <bot@qutebrowser.org>
           author: qutebrowser bot <bot@qutebrowser.org>

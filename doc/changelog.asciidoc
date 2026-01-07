@@ -15,19 +15,48 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.7.0]]
-v3.7.0 (unreleased)
+[[v3.6.4]]
+v3.6.4 (unreleased)
 -------------------
 
-[[v3.6.2]]
-v3.6.2 (unreleased)
+Fixed
+~~~~~
+
+- datalist dropdowns not opening correctly on Wayland/Sway (#8831).
+  This was caused by an old workaround for a different QtWebEngine issue,
+  which is now disabled for QtWebEngine 6.6.3 and newer.
+
+[[v3.6.3]]
+v3.6.3 (2025-11-30)
 -------------------
+
+Fixed
+~~~~~
+
+- New `qt.workarounds.disable_accessibility` setting, which disables Chromium
+  accessibility support. By default, is it set to `auto`, which only disables
+  accessibility on Qt versions with known issues. This works around a bug in Qt
+  6.10.1 causing frequent segfaults (#8797).
+
+[[v3.6.2]]
+v3.6.2 (2025-11-27)
+-------------------
+
+Changed
+~~~~~~~
+
+* Windows and macOS releases now ship with Qt 6.10.1, which include
+  security patches up to Chromium 142.0.7444.162.
 
 Fixed
 ~~~~~
 
 - The version info now includes the Wayland compositor name if wayland-client is
   available under a different name than `libwayland-client.so` (#8771).
+- The list of Chromium extensions in `--version` / `:version` now uses the
+  correct Chromium data profile, also fixing a crash with Qt 6.10.1 (#8785).
+- With Qt 6.10.1, `qt.workarounds.disable_hangouts_extension` now doesn't apply
+  on private profiles, avoiding a Qt bug leading to a crash (#8785).
 
 [[v3.6.1]]
 v3.6.1 (2025-11-03)

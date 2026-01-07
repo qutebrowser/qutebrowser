@@ -50,13 +50,13 @@ def fresh_instance(quteproc):
     # on PyQt6.8 we disable that with the new API, otherwise restart the
     # browser to make it forget previous prompts.
     #
-    # Qt 6.10 Beta 4 accidentally persists some permissions;
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-140194
+    # Starting with Qt 6.10, QtWebEngine unconditionally persists some permissions;
+    # see https://bugreports.qt.io/browse/QTBUG-140194
     if (
         qtutils.version_check("6.8", compiled=False)
         and PYQT_WEBENGINE_VERSION
         and PYQT_WEBENGINE_VERSION < 0x60800
-    ) or qtutils.version_check("6.10", compiled=False, exact=True):
+    ) or qtutils.version_check("6.10", compiled=False):
         quteproc.terminate()
         quteproc.start()
 
