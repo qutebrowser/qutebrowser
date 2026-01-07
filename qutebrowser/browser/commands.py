@@ -9,7 +9,7 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Union, Optional
+from typing import cast
 from collections.abc import Callable
 
 from qutebrowser.qt.widgets import QApplication, QTabBar
@@ -105,7 +105,7 @@ class CommandDispatcher:
         background: bool = False,
         window: bool = False,
         related: bool = False,
-        private: Optional[bool] = None,
+        private: bool | None = None,
     ) -> None:
         """Helper function to open a page.
 
@@ -511,10 +511,10 @@ class CommandDispatcher:
         tab: bool,
         bg: bool,
         window: bool,
-        count: Optional[int],
+        count: int | None,
         forward: bool,
         quiet: bool,
-        index: Optional[int],
+        index: int | None,
     ) -> None:
         """Helper function for :back/:forward."""
         history = self._current_widget().history
@@ -975,7 +975,7 @@ class CommandDispatcher:
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
                        completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_focus(self, index: Union[str, int] = None,
+    def tab_focus(self, index: str | int = None,
                   count: int = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
 
@@ -1022,7 +1022,7 @@ class CommandDispatcher:
     @cmdutils.register(instance="command-dispatcher", scope="window")
     @cmdutils.argument("index", choices=["+", "-", "start", "end"])
     @cmdutils.argument("count", value=cmdutils.Value.count)
-    def tab_move(self, index: Union[str, int] = None, count: int = None) -> None:
+    def tab_move(self, index: str | int = None, count: int = None) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1702,7 +1702,7 @@ class CommandDispatcher:
                url: bool = False,
                quiet: bool = False,
                *,
-               world: Union[usertypes.JsWorld, int] = None) -> None:
+               world: usertypes.JsWorld | int = None) -> None:
         """Evaluate a JavaScript string.
 
         Args:

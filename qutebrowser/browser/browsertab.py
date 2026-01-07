@@ -9,7 +9,7 @@ import pathlib
 import itertools
 import functools
 import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Optional, Union)
+from typing import (cast, TYPE_CHECKING, Any, Optional, Union, TypeAlias)
 from collections.abc import Iterable, Sequence, Callable
 
 from qutebrowser.qt import machinery
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 tab_id_gen = itertools.count(0)
-_WidgetType = Union["WebView", "WebEngineView"]
+_WidgetType: TypeAlias = Union["WebView", "WebEngineView"]
 
 
 def create(win_id: int,
@@ -125,13 +125,13 @@ class TabData:
     viewing_source: bool = False
     inspector: Optional['AbstractWebInspector'] = None
     open_target: usertypes.ClickTarget = usertypes.ClickTarget.normal
-    override_target: Optional[usertypes.ClickTarget] = None
+    override_target: usertypes.ClickTarget | None = None
     pinned: bool = False
     fullscreen: bool = False
     netrc_used: bool = False
     input_mode: usertypes.KeyMode = usertypes.KeyMode.normal
-    last_navigation: Optional[usertypes.NavigationRequest] = None
-    splitter: Optional[miscwidgets.InspectorSplitter] = None
+    last_navigation: usertypes.NavigationRequest | None = None
+    splitter: miscwidgets.InspectorSplitter | None = None
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
@@ -225,7 +225,7 @@ class AbstractPrinting(QObject):
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._tab = tab
-        self._dialog: Optional[QPrintDialog] = None
+        self._dialog: QPrintDialog | None = None
         self.printing_finished.connect(self._on_printing_finished)
         self.pdf_printing_finished.connect(self._on_pdf_printing_finished)
 
@@ -373,7 +373,7 @@ class AbstractSearch(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(_WidgetType, None)
-        self.text: Optional[str] = None
+        self.text: str | None = None
         self.search_displayed = False
         self.match = SearchMatch()
 
@@ -878,7 +878,7 @@ class AbstractTabPrivate:
         self._tab = tab
         self._mode_manager = mode_manager
 
-    def event_target(self) -> Optional[QWidget]:
+    def event_target(self) -> QWidget | None:
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
@@ -913,7 +913,7 @@ class AbstractTabPrivate:
     def clear_ssl_errors(self) -> None:
         raise NotImplementedError
 
-    def networkaccessmanager(self) -> Optional[QNetworkAccessManager]:
+    def networkaccessmanager(self) -> QNetworkAccessManager | None:
         """Get the QNetworkAccessManager for this tab.
 
         This is only implemented for QtWebKit.
@@ -943,7 +943,7 @@ class AbstractTabPrivate:
         self._tab.data.inspector = None
         self.toggle_inspector(inspector.Position.window)
 
-    def toggle_inspector(self, position: Optional[inspector.Position]) -> None:
+    def toggle_inspector(self, position: inspector.Position | None) -> None:
         """Show/hide (and if needed, create) the web inspector for this tab."""
         tabdata = self._tab.data
         if tabdata.inspector is None:
@@ -1056,7 +1056,7 @@ class AbstractTab(QWidget):
         self._load_status = usertypes.LoadStatus.none
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
-        self.backend: Optional[usertypes.Backend] = None
+        self.backend: usertypes.Backend | None = None
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1270,7 +1270,7 @@ class AbstractTab(QWidget):
             self,
             code: str,
             callback: Callable[[Any], None] = None, *,
-            world: Union[usertypes.JsWorld, int] = None
+            world: usertypes.JsWorld | int = None
     ) -> None:
         """Run javascript async.
 
@@ -1298,7 +1298,7 @@ class AbstractTab(QWidget):
         self.data.pinned = pinned
         self.pinned_changed.emit(pinned)
 
-    def renderer_process_pid(self) -> Optional[int]:
+    def renderer_process_pid(self) -> int | None:
         """Get the PID of the underlying renderer process.
 
         Returns None if the PID can't be determined or if getting the PID isn't
@@ -1306,7 +1306,7 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def grab_pixmap(self, rect: QRect = None) -> Optional[QPixmap]:
+    def grab_pixmap(self, rect: QRect = None) -> QPixmap | None:
         """Grab a QPixmap of the displayed page.
 
         Returns None if we got a null pixmap from Qt.

@@ -9,7 +9,6 @@
 import functools
 import os
 import traceback
-from typing import Optional
 
 from qutebrowser.qt.core import QUrl
 from qutebrowser.qt.widgets import QApplication
@@ -264,7 +263,7 @@ def version(win_id: int, paste: bool = False) -> None:
         pastebin_version()
 
 
-_keytester_widget: Optional[miscwidgets.KeyTesterWidget] = None
+_keytester_widget: miscwidgets.KeyTesterWidget | None = None
 
 
 @cmdutils.register(debug=True)

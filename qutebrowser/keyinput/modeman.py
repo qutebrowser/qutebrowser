@@ -6,7 +6,7 @@
 
 import functools
 import dataclasses
-from typing import Union, cast
+from typing import cast
 from collections.abc import Mapping, MutableMapping, Callable
 
 from qutebrowser.qt import machinery
@@ -185,7 +185,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     return modeman
 
 
-def instance(win_id: Union[int, str]) -> 'ModeManager':
+def instance(win_id: int | str) -> 'ModeManager':
     """Get a modemanager object.
 
     Raises UnavailableError if there is no instance available yet.

@@ -35,7 +35,7 @@ Possible values:
 
 
 import inspect
-from typing import Any, Protocol, Optional, cast
+from typing import Any, Protocol, cast
 from collections.abc import Iterable, Callable
 
 from qutebrowser.utils import qtutils
@@ -102,7 +102,7 @@ class _CmdHandlerType(Protocol):
     Below, we cast the decorated function to _CmdHandlerType to make mypy aware of this.
     """
 
-    qute_args: Optional[dict[str, 'command.ArgInfo']]
+    qute_args: dict[str, 'command.ArgInfo'] | None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         ...

@@ -8,7 +8,7 @@ import re
 import argparse
 import functools
 import dataclasses
-from typing import Any, Optional, Union
+from typing import Any
 from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl, pyqtSlot, qVersion
@@ -32,7 +32,7 @@ class UserAgent:
     upstream_browser_key: str
     upstream_browser_version: str
     qt_key: str
-    qt_version: Optional[str]
+    qt_version: str | None
 
     @property
     def upstream_browser_version_short(self) -> str:
@@ -123,7 +123,7 @@ class AbstractSettings:
         info = self._ATTRIBUTES[name]
         return self._settings.testAttribute(info.attributes[0])
 
-    def set_font_size(self, name: str, value: Union[int, usertypes.Unset]) -> None:
+    def set_font_size(self, name: str, value: int | usertypes.Unset) -> None:
         """Set the given QWebSettings/QWebEngineSettings font size."""
         family = self._FONT_SIZES[name]
         if value is usertypes.UNSET:
@@ -134,7 +134,7 @@ class AbstractSettings:
     def set_font_family(
         self,
         name: str,
-        value: Union[str, None, usertypes.Unset],
+        value: str | None | usertypes.Unset,
     ) -> None:
         """Set the given QWebSettings/QWebEngineSettings font family.
 
@@ -152,7 +152,7 @@ class AbstractSettings:
         else:
             self._settings.setFontFamily(family, value)
 
-    def set_default_text_encoding(self, encoding: Union[str, usertypes.Unset]) -> None:
+    def set_default_text_encoding(self, encoding: str | usertypes.Unset) -> None:
         """Set the default text encoding to use."""
         assert encoding is not usertypes.UNSET  # unclear how to reset
         self._settings.setDefaultTextEncoding(encoding)

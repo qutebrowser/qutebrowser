@@ -8,7 +8,7 @@ import os
 import time
 import contextlib
 import pathlib
-from typing import cast, Optional
+from typing import cast
 from collections.abc import Mapping, MutableSequence
 
 from qutebrowser.qt import machinery
@@ -86,7 +86,7 @@ class CompletionMetaInfo(sql.SqlTable):
     }
 
     def __init__(self, database: sql.Database,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: QObject | None = None) -> None:
         self._fields = ['key', 'value']
         self._constraints = {'key': 'PRIMARY KEY'}
         super().__init__(database, "CompletionMetaInfo", self._fields,
@@ -134,7 +134,7 @@ class CompletionHistory(sql.SqlTable):
     """History which only has the newest entry for each URL."""
 
     def __init__(self, database: sql.Database,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime'],
                          constraints={'url': 'PRIMARY KEY',
                                       'title': 'NOT NULL',
@@ -159,7 +159,7 @@ class WebHistory(sql.SqlTable):
     url_cleared = pyqtSignal(QUrl)
 
     def __init__(self, database: sql.Database, progress: HistoryProgress,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(database, "History", ['url', 'title', 'atime', 'redirect'],
                          constraints={'url': 'NOT NULL',
                                       'title': 'NOT NULL',
@@ -472,7 +472,7 @@ def debug_dump_history(dest):
         raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
-def init(db_path: pathlib.Path, parent: Optional[QObject] = None) -> None:
+def init(db_path: pathlib.Path, parent: QObject | None = None) -> None:
     """Initialize the web history.
 
     Args:

@@ -31,7 +31,7 @@ import shutil
 import pathlib
 import dataclasses
 import contextlib
-from typing import ClassVar, IO, Optional
+from typing import ClassVar, IO
 from collections.abc import Iterator
 
 from qutebrowser.config import config
@@ -127,7 +127,7 @@ class PakParser:
         except ValueError:
             raise binparsing.ParseError("Couldn't find URL in manifest")
 
-    def _maybe_get_hangouts_manifest(self, entry: PakEntry) -> Optional[bytes]:
+    def _maybe_get_hangouts_manifest(self, entry: PakEntry) -> bytes | None:
         self.fobj.seek(entry.file_offset)
         data = self.fobj.read(entry.size)
 
@@ -210,7 +210,7 @@ def _find_webengine_resources() -> pathlib.Path:
         f"Couldn't find webengine resources dir, candidates:\n{candidates_str}")
 
 
-def copy_webengine_resources() -> Optional[pathlib.Path]:
+def copy_webengine_resources() -> pathlib.Path | None:
     """Copy qtwebengine resources to local dir for patching."""
     resources_dir = _find_webengine_resources()
     work_dir = pathlib.Path(standarddir.cache()) / CACHE_DIR_NAME
@@ -265,7 +265,7 @@ def _patch(file_to_patch: pathlib.Path) -> None:
             _error(e, "Failed to apply quirk to resources pak.")
 
 
-def _error(exc: Optional[BaseException], text: str) -> None:
+def _error(exc: BaseException | None, text: str) -> None:
     if config.val.qt.workarounds.disable_hangouts_extension:
         # Explicitly requested -> hard error
         lines = ["Failed to disable Hangouts extension:", text]

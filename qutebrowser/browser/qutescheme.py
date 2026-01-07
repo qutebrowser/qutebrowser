@@ -18,7 +18,7 @@ import textwrap
 import urllib
 import collections
 import secrets
-from typing import TypeVar, Optional, Union
+from typing import TypeVar
 from collections.abc import Sequence, Callable
 
 from qutebrowser.qt.core import QUrlQuery, QUrl
@@ -33,7 +33,7 @@ from qutebrowser.qt import sip
 
 
 pyeval_output = ":pyeval was never called"
-csrf_token: Optional[str] = None
+csrf_token: str | None = None
 
 
 _HANDLERS: dict[str, "_HandlerCallable"] = {}
@@ -78,7 +78,7 @@ class Redirect(Exception):
 
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
-_HandlerRet = tuple[str, Union[str, bytes]]
+_HandlerRet = tuple[str, str | bytes]
 _HandlerCallable = Callable[[QUrl], _HandlerRet]
 _Handler = TypeVar('_Handler', bound=_HandlerCallable)
 
@@ -93,7 +93,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self._function: Optional[_HandlerCallable] = None
+        self._function: _HandlerCallable | None = None
 
     def __call__(self, function: _Handler) -> _Handler:
         self._function = function
@@ -201,7 +201,7 @@ def qute_tabs(_url: QUrl) -> _HandlerRet:
 def history_data(
         start_time: float,
         offset: int = None
-) -> Sequence[dict[str, Union[str, int]]]:
+) -> Sequence[dict[str, str | int]]:
     """Return history data.
 
     Arguments:
@@ -349,7 +349,7 @@ def qute_gpl(_url: QUrl) -> _HandlerRet:
     return 'text/html', resources.read_file('html/license.html')
 
 
-def _asciidoc_fallback_path(html_path: str) -> Optional[str]:
+def _asciidoc_fallback_path(html_path: str) -> str | None:
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
     path = html_path.replace('.html', '.asciidoc')
     try:

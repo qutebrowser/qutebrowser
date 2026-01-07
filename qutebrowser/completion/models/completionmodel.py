@@ -4,7 +4,7 @@
 
 """A model that proxies access to one or more completion categories."""
 
-from typing import overload, Optional, Any
+from typing import overload, Any
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
@@ -39,7 +39,7 @@ class CompletionModel(QAbstractItemModel):
         self.column_widths = column_widths
         self._categories: MutableSequence[BaseCategory] = []
 
-    def _cat_from_idx(self, index: QModelIndex) -> Optional[BaseCategory]:
+    def _cat_from_idx(self, index: QModelIndex) -> BaseCategory | None:
         """Return the category pointed to by the given index.
 
         Args:
@@ -128,7 +128,7 @@ class CompletionModel(QAbstractItemModel):
 
     else:
         @overload
-        def parent(self) -> Optional[QObject]:
+        def parent(self) -> QObject | None:
             ...
 
     def parent(self, index=None):

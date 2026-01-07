@@ -29,7 +29,7 @@ class FakeDBusMessage:
         signature: str,
         *arguments: Any,
         typ: QDBusMessage.MessageType = QDBusMessage.MessageType.ReplyMessage,
-        error_name: Optional[str] = None,
+        error_name: str | None = None,
     ) -> None:
         self._signature = signature
         self._arguments = arguments
@@ -170,7 +170,7 @@ class FakeNotificationAdapter(notification.AbstractNotificationAdapter):
     def present(
         self,
         qt_notification: "QWebEngineNotification", *,
-        replaces_id: Optional[int],
+        replaces_id: int | None,
     ) -> int:
         self.presented.append(qt_notification)
         return next(self.id_gen)

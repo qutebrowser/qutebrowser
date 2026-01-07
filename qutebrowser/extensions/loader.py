@@ -10,7 +10,6 @@ import pathlib
 import importlib
 import argparse
 import dataclasses
-from typing import Optional
 from collections.abc import Iterator, Callable
 
 from qutebrowser.qt.core import pyqtSlot
@@ -47,10 +46,10 @@ class ModuleInfo:
     """
 
     skip_hooks: bool = False
-    init_hook: Optional[InitHookType] = None
+    init_hook: InitHookType | None = None
     config_changed_hooks: list[
         tuple[
-            Optional[str],
+            str | None,
             ConfigChangedHookType,
         ]
     ] = dataclasses.field(default_factory=list)

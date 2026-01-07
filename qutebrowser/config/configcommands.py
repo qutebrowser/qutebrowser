@@ -6,7 +6,7 @@
 
 import os.path
 import contextlib
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Any
 from collections.abc import Iterator
 
 from qutebrowser.qt.core import QUrl, QUrlQuery
@@ -40,7 +40,7 @@ class ConfigCommands:
         except configexc.Error as e:
             raise cmdutils.CommandError(str(e))
 
-    def _parse_pattern(self, pattern: Optional[str]) -> Optional[urlmatch.UrlPattern]:
+    def _parse_pattern(self, pattern: str | None) -> urlmatch.UrlPattern | None:
         """Parse a pattern string argument to a pattern."""
         if pattern is None:
             return None
@@ -58,7 +58,7 @@ class ConfigCommands:
         except keyutils.KeyParseError as e:
             raise cmdutils.CommandError(str(e))
 
-    def _print_value(self, option: str, pattern: Optional[urlmatch.UrlPattern]) -> None:
+    def _print_value(self, option: str, pattern: urlmatch.UrlPattern | None) -> None:
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
@@ -473,7 +473,7 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options: list[tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
+        options: list[tuple[urlmatch.UrlPattern | None, configdata.Option, Any]] = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
