@@ -547,6 +547,8 @@ class WebEngineVersions:
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
     # Dates based on https://chromium.googlesource.com/chromium/src/+refs
+    # and/or https://chromereleases.googleblog.com/
+
     _BASES: ClassVar[dict[int, str]] = {
         83: '83.0.4103.122',  # 2020-06-27, Qt 5.15.2
         87: '87.0.4280.144',  # 2021-01-08, Qt 5.15
@@ -562,7 +564,6 @@ class WebEngineVersions:
         134: '134.0.6998.208',  # 2025-04-16, Qt 6.10
     }
 
-    # Dates based on https://chromereleases.googleblog.com/
     _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
         # ====== UNSUPPORTED =====
 
@@ -659,6 +660,9 @@ class WebEngineVersions:
         ## Qt 6.10
         utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
         utils.VersionNumber(6, 10, 1): (_BASES[134], '142.0.7444.162'),  # 2025-11-11
+
+        ## Qt 6.11 (WIP, Beta 2)
+        utils.VersionNumber(6, 11): (_BASES[134], '142.0.7444.176'),  # 2025-11-17
     }
 
     def __post_init__(self) -> None:
