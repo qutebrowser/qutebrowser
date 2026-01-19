@@ -1188,6 +1188,12 @@ class CommandDispatcher:
         return runner
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    def quickmarks_reload(self):
+        """Reload quickmarks from disk."""
+        quickmark_manager = objreg.get('quickmark-manager')
+        quickmark_manager.reload()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
         """Save the current page as a quickmark."""
         quickmark_manager = objreg.get('quickmark-manager')

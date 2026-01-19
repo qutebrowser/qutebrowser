@@ -67,12 +67,8 @@ class UrlMarkManager(QObject):
 
         self.marks: MutableMapping[str, str] = collections.OrderedDict()
 
-        self._init_lineparser()
-        for line in self._lineparser:
-            if not line.strip() or line.startswith('#'):
-                # Ignore empty or whitespace-only lines and comments.
-                continue
-            self._parse_line(line)
+        self.reload()
+
         self._init_savemanager(objreg.get('save-manager'))
 
     def _init_lineparser(self):
@@ -102,6 +98,17 @@ class UrlMarkManager(QObject):
         """Delete all marks."""
         self.marks.clear()
         self.changed.emit()
+
+    def reload(self):
+        """Reload quickmarks from disk."""
+        self.marks.clear()
+
+        self._init_lineparser()
+        for line in self._lineparser:
+            if not line.strip() or line.startswith('#'):
+                # Ignore empty or whitespace-only lines and comments.
+                continue
+            self._parse_line(line)
 
 
 class QuickmarkManager(UrlMarkManager):
