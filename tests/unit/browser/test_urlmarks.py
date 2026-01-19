@@ -130,7 +130,7 @@ def test_reload(bm_file, fake_save_manager, qtbot):
         'http://example.com Example Site 2',
     ]))
 
-    bm.reload();
+    bm.reload()
 
     assert list(bm.marks.items()) == [
         ('http://example.com', 'Example Site 2'),
