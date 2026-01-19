@@ -100,7 +100,7 @@ class UrlMarkManager(QObject):
         self.changed.emit()
 
     def reload(self):
-        """Reload quickmarks from disk."""
+        """Reload quickmarks/bookmarks from disk."""
         self.marks.clear()
 
         self._init_lineparser()
