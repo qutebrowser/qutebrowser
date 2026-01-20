@@ -625,7 +625,7 @@ def test_disable_hangouts_extension_crash(
         '-s', 'qt.workarounds.disable_hangouts_extension', 'true',
     ]
     quteproc_new.start(args)
-    if webengine_versions.webengine == utils.VersionNumber(6, 10, 1):
+    if webengine_versions.webengine >= utils.VersionNumber(6, 10, 1):
         line = quteproc_new.wait_for(message="Not disabling Hangouts extension *")
         line.expected = True
 
