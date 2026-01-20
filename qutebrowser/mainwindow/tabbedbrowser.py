@@ -903,6 +903,10 @@ class TabbedBrowser(QWidget):
                 "on_current_changed got called with invalid index {}"
                 .format(idx))
             return
+        self._tab_insert_idx_left = self.widget.currentIndex()
+        self._tab_insert_idx_right = self.widget.currentIndex() + 1
+        if self._now_focused is tab:
+            return
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
@@ -928,8 +932,6 @@ class TabbedBrowser(QWidget):
         self.current_tab_changed.emit(tab)
         self.cur_search_match_changed.emit(tab.search.match)
         QTimer.singleShot(0, self._update_window_title)
-        self._tab_insert_idx_left = self.widget.currentIndex()
-        self._tab_insert_idx_right = self.widget.currentIndex() + 1
 
     @pyqtSlot()
     def on_cmd_return_pressed(self):
