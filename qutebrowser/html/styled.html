@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block style %}
+
 a {
     text-decoration: none;
-    color: #2562dc
+    color: var(--color-link);
 }
 
 a:hover {
@@ -11,7 +12,6 @@ a:hover {
 }
 
 body {
-    background: #fefefe;
     font-family: sans-serif;
     margin: 0 auto;
     max-width: 1280px;
@@ -20,7 +20,7 @@ body {
 }
 
 h1 {
-    color: #444;
+    color: var(--color-fg-heading);
     font-weight: normal;
 }
 
@@ -34,7 +34,7 @@ table {
 }
 
 tbody tr:nth-child(odd) {
-    background-color: #f8f8f8;
+    background-color: var(--color-bg);
 }
 
 td {
