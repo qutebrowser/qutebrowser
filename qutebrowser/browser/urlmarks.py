@@ -109,6 +109,7 @@ class UrlMarkManager(QObject):
                 # Ignore empty or whitespace-only lines and comments.
                 continue
             self._parse_line(line)
+        self.changed.emit()
 
 
 class QuickmarkManager(UrlMarkManager):

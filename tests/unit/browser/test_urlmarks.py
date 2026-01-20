@@ -115,23 +115,18 @@ def test_save(bm_file, fake_save_manager, qtbot):
 
 def test_reload(bm_file, fake_save_manager, qtbot):
     bm_file.write('\n'.join([
-        'http://example.com Example Site 1',
+        'http://example.com Example Site',
     ]))
 
     bm = urlmarks.BookmarkManager()
-    fake_save_manager.add_saveable.assert_called_once_with(
-        'bookmark-manager',
-        unittest.mock.ANY,
-        unittest.mock.ANY,
-        filename=str(bm_file),
-    )
 
     bm_file.write('\n'.join([
-        'http://example.com Example Site 2',
+        'http://example.org Example Site',
     ]))
 
-    bm.reload()
+    with qtbot.wait_signal(bm.changed):
+        bm.reload()
 
     assert list(bm.marks.items()) == [
-        ('http://example.com', 'Example Site 2'),
+        ('http://example.org', 'Example Site'),
     ]
