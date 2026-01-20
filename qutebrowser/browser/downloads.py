@@ -7,6 +7,7 @@
 import re
 import sys
 import html
+import io as _io
 import os.path
 import collections
 import functools
@@ -813,7 +814,8 @@ class AbstractDownloadItem(QObject):
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-        self.pdfjs_requested.emit(os.path.basename(filename),
+        dirname = os.path.basename(os.path.dirname(filename))
+        self.pdfjs_requested.emit(os.path.join(dirname, os.path.basename(filename)),
                                   self.url())
 
     def cancel_for_origin(self) -> bool:
@@ -1373,8 +1375,8 @@ class TempDownloadManager:
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
         # pylint: disable=consider-using-with
-        fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
-                                           suffix='_' + suggested_name)
+        tmpfiledir = tempfile.mkdtemp(dir=tmpdir.name)
+        fobj = _io.open(os.path.join(tmpfiledir, suggested_name), 'w+b')
         self.files.append(fobj)
         return fobj
 
