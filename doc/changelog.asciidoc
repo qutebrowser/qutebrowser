@@ -25,6 +25,9 @@ Fixed
 - datalist dropdowns not opening correctly on Wayland/Sway (#8831).
   This was caused by an old workaround for a different QtWebEngine issue,
   which is now disabled for QtWebEngine 6.6.3 and newer.
+- The workaround avoiding crashes with Qt 6.10.1 and
+  `qt.workarounds.disable_hangouts_extension` (or `--version`) has now been
+  extended to Qt 6.11 as well (#8785, #8841).
 
 [[v3.6.3]]
 v3.6.3 (2025-11-30)
