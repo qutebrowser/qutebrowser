@@ -632,9 +632,14 @@ class HintManager(QObject):
                 "Current tab changed ({} -> {}) before _start_cb is run."
                 .format(self._context.tab.tab_id, tab.tab_id))
             return
+            
+        unique, urls = self._get_unique_url_elems_collection(elems)
 
-        strings = self._hint_strings(elems)
+        strings = self._hint_strings(unique)
         log.hints.debug("hints: {}".format(', '.join(strings)))
+        
+        #urls = dict(map(lambda e: (e[1][1], e[1]), urls.items()))
+        strings = list(map(lambda e: strings[unique.index(e)] if e in unique else strings[unique.index([item[0] for item in urls.values() if e in item][0])], elems))
 
         for elem, string in zip(elems, strings):
             label = HintLabel(elem, self._context)
@@ -656,6 +661,24 @@ class HintManager(QObject):
             return
         # to make auto_follow == 'always' work
         self._handle_auto_follow()
+    
+    def _get_unique_url_elems_collection(self, elems):
+        unique = list()
+        urls = dict()
+        
+        for elem in elems:
+            tag = elem.tag_name()
+            if (tag in ('a', 'img')):
+                url = elem['href' if tag == 'a' else 'src']
+                if url in urls.keys():
+                    urls[url].append(elem)
+                else:
+                    urls[url] = [elem]
+                    unique.append(elem)
+            else:
+                unique.append(elem)
+        
+        return unique, urls
 
     @cmdutils.register(instance='hintmanager', scope='window', name='hint',
                        star_args_optional=True, maxsplit=2)
