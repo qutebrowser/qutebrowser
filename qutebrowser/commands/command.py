@@ -105,6 +105,8 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
+        if hasattr(self.parser, "color"):  # Python 3.14+
+            self.parser.color = False
         self.opt_args: MutableMapping[str, tuple[str, str]] = collections.OrderedDict()
         self.namespace = None
         self._count = None
