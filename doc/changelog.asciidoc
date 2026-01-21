@@ -15,6 +15,16 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v3.7.0]]
+v3.7.0 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- New `:quickmark-reload` and `:bookmark-reload` commands to reload
+  quick-/bookmarks from disk (#8845).
+
 [[v3.6.4]]
 v3.6.4 (unreleased)
 -------------------
@@ -28,6 +38,10 @@ Fixed
 - The workaround avoiding crashes with Qt 6.10.1 and
   `qt.workarounds.disable_hangouts_extension` (or `--version`) has now been
   extended to Qt 6.11 as well (#8785, #8841).
+- ANSI color codes now don't end up in `commands.asciidoc` anymore when
+  regenerating it using Python 3.14.
+- The `GenericName` in the `.desktop` file is now correct for Ukraiian and
+  Chinese (#8836).
 
 [[v3.6.3]]
 v3.6.3 (2025-11-30)
