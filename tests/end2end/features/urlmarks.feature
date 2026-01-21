@@ -133,6 +133,10 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-load -d http://localhost:(port)/data/numbers/8.txt
         Then the bookmark file should not contain "http://localhost:*/data/numbers/8.txt *"
 
+    Scenario:
+        When I run :bookmarks-reload
+        Then the message "Bookmarks reloaded." should be shown
+
     ## quickmarks
 
     Scenario: Saving a quickmark (:quickmark-add)
@@ -298,3 +302,7 @@ Feature: quickmarks and bookmarks
         And I wait until qute://bookmarks is loaded
         And I run :forward
         Then data/numbers/1.txt should be loaded
+
+    Scenario:
+        When I run :quickmarks-reload
+        Then the message "Quickmarks reloaded." should be shown

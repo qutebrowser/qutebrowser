@@ -1188,6 +1188,14 @@ class CommandDispatcher:
         return runner
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    def quickmarks_reload(self):
+        """Reload quickmarks from disk."""
+        quickmark_manager = objreg.get('quickmark-manager')
+        quickmark_manager.reload()
+
+        message.info("Quickmarks reloaded.")
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
         """Save the current page as a quickmark."""
         quickmark_manager = objreg.get('quickmark-manager')
@@ -1349,6 +1357,14 @@ class CommandDispatcher:
         if jump:
             url.setFragment('bookmarks')
         self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def bookmarks_reload(self):
+        """Reload bookmarks from disk."""
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmark_manager.reload()
+
+        message.info("Bookmarks reloaded.")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def download(self, url=None, *, mhtml_=False, dest=None):
