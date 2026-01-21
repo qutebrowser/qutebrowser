@@ -208,6 +208,10 @@ class CommandDispatcher:
                 raise cmdutils.CommandError(
                     "-o is not supported with 'tabs.select_on_remove' set to "
                     "'last-used'!")
+            elif conf_selection == 'firefox':
+                raise cmdutils.CommandError(
+                    "-o is not supported with 'tabs.select_on_remove' set to "
+                    "'firefox'!")
             else:  # pragma: no cover
                 raise ValueError("Invalid select_on_remove value "
                                  "{!r}!".format(conf_selection))
@@ -233,7 +237,7 @@ class CommandDispatcher:
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            self._tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab, allow_selection_strategy=False)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
