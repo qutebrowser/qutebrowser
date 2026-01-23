@@ -293,6 +293,9 @@
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.chromium.experimental_web_platform_features,qt.chromium.experimental_web_platform_features>>|Enables Web Platform features that are in development.
+|<<qt.chromium.lifecycle_state.discard_delay,qt.chromium.lifecycle_state.discard_delay>>|The amount of time (in milliseconds) to wait before transitioning a page to the discarded lifecycle state. This state is an extreme resource-saving state, where the browsing context of the web view is discarded and the renderer process is shut down. Resource usage is therefore reduced to near-zero. The web page is automatically reloaded when needed.
+|<<qt.chromium.lifecycle_state.enabled,qt.chromium.lifecycle_state.enabled>>|Use recommended page lifecycle state.
+|<<qt.chromium.lifecycle_state.freeze_delay,qt.chromium.lifecycle_state.freeze_delay>>|The amount of time (in milliseconds) to wait before transitioning a page to the frozen lifecycle state. This is a low-CPU state, where most DOM event processing, JavaScript execution, and other tasks are suspended.
 |<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.chromium.process_model,qt.chromium.process_model>>|Which Chromium process model to use.
 |<<qt.chromium.sandboxing,qt.chromium.sandboxing>>|What sandboxing mechanisms in Chromium to use.
@@ -3844,6 +3847,42 @@ Valid values:
  * +never+: Disable experimental web platform features.
 
 Default: +pass:[auto]+
+
+[[qt.chromium.lifecycle_state.discard_delay]]
+=== qt.chromium.lifecycle_state.discard_delay
+The amount of time (in milliseconds) to wait before transitioning a page to the discarded lifecycle state. This state is an extreme resource-saving state, where the browsing context of the web view is discarded and the renderer process is shut down. Resource usage is therefore reduced to near-zero. The web page is automatically reloaded when needed.
+Set to -1 to disable this state.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Int>>
+
+Default: +pass:[-1]+
+
+[[qt.chromium.lifecycle_state.enabled]]
+=== qt.chromium.lifecycle_state.enabled
+Use recommended page lifecycle state.
+This puts webpages into one of three lifecycle states: active, frozen, or discarded. Using the recommended lifecycle state lets the browser use less resources by freezing or discarding web views when it's safe to do so.
+This results in significant battery life savings.
+Ongoing page activity is taken into account when determining the recommended lifecycle state, as to not disrupt your browsing.
+This feature is only available on QtWebEngine 6.5+. On older versions this setting is ignored.
+See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[qt.chromium.lifecycle_state.freeze_delay]]
+=== qt.chromium.lifecycle_state.freeze_delay
+The amount of time (in milliseconds) to wait before transitioning a page to the frozen lifecycle state. This is a low-CPU state, where most DOM event processing, JavaScript execution, and other tasks are suspended.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Int>>
+
+Default: +pass:[30000]+
 
 [[qt.chromium.low_end_device_mode]]
 === qt.chromium.low_end_device_mode
