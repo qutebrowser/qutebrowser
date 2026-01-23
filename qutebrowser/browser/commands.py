@@ -259,6 +259,24 @@ class CommandDispatcher:
         self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
+                       name='tab-title')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    @cmdutils.argument('title')
+    def tab_title(self, count=None, title=None):
+        """Set/Unset the current/[count]th tab's title.
+
+        Set the text to empty to unset the tab's title.
+
+        Args:
+            count: The tab index to set or unset tab's title, or None
+            title: The tab title to renamed to, or empty to reset it
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        tab.set_title(title or '')
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_pin(self, count=None):
@@ -426,6 +444,7 @@ class CommandDispatcher:
         newtab.history.private_api.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
 
+        newtab.set_title(curtab.data.custom_title)
         newtab.set_pinned(curtab.data.pinned)
         return newtab
 

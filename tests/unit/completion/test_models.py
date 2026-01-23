@@ -1413,12 +1413,15 @@ def test_undo_completion(tabbed_browser_stubs, info):
     """Test :undo completion."""
     entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
                                       history=None, index=None, pinned=None,
+                                      title=None,
                                       created_at=datetime(2020, 1, 1))
     entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
                                       history=None, index=None, pinned=None,
+                                      title=None,
                                       created_at=datetime(2020, 1, 2))
     entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
                                       history=None, index=None, pinned=None,
+                                      title=None,
                                       created_at=datetime(2020, 1, 2))
 
     # Most recently closed is at the end
@@ -1453,7 +1456,7 @@ def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
         tabbedbrowser._UndoEntry(
             url=QUrl(f'https://example.org/{idx}'),
             history=None, index=None, pinned=None,
-            created_at=created_dt,
+            title=None, created_at=created_dt,
         )
         for idx in range(1, 11)
     ]
