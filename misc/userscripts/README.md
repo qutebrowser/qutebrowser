@@ -48,7 +48,7 @@ The following userscripts are included in the current directory.
 
 The following userscripts can be found on their own repositories.
 
-- [qurlshare](https://github.com/sim590/qurlshare): *secure* sharing of a URL between qutebrowser
+- [qurlshare](https://github.com/sim590/qurlshare): _secure_ sharing of a URL between qutebrowser
   instances using a distributed hash table.
 - [qutebrowser-userscripts](https://github.com/cryzed/qutebrowser-userscripts):
   a small pack of userscripts.
@@ -72,7 +72,7 @@ The following userscripts can be found on their own repositories.
 - [Qute-Translate](https://github.com/AckslD/Qute-Translate): Translate URLs or
   selections via Google Translate.
 - [qute-snippets](https://github.com/Aledosim/qute-snippets): Bind text snippets to a keyword
-   and retrieve they when you want.
+  and retrieve they when you want.
 - [doi](https://github.com/cadadr/configuration/blob/default/dotfiles/qutebrowser/userscripts/doi):
   Opens DOIs on Sci-Hub.
 - [qute-1password](https://github.com/fmartingr/qute-1password):
@@ -97,7 +97,7 @@ The following userscripts can be found on their own repositories.
   substitution)
 - [pseudo per domain stylesheets](https://github.com/bschnitz/qute): Userscript
   for generating url restricted greasemonkey scripts to apply user styles.
-- [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
+- [qute-containers](https://github.com/s-praveen-kumar/qute-containers):
   A simple interface to manage browser containers by manipulating the basedir
   parameter.
 - [qutebrowser-metascript](https://codeberg.org/mister_monster/qutebrowser-metascript):
@@ -108,7 +108,9 @@ The following userscripts can be found on their own repositories.
   automatically mutates input URLs based on configurable rules
 - [qute-translate-popup](https://github.com/JohnBardoe/qute-translate-popup):
   selected text translation, with a qute popup!
-  
+- [greasyupd](https://github.com/darukutsu/dotfiles/blob/master/qutebrowser/userscripts/greasyupd):
+  update your greasemonkey plugins
+
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/
