@@ -99,6 +99,7 @@ Added
     * Loaded WebExtensions (partial support landed in QtWebEngine 6.10, no
       official qutebrowser support yet).
 - Support for hinting elements which are part of an (open) shadow DOM.
+- Show zoom percentage in statusbar. (#2870)
 
 Changed
 ~~~~~~~
