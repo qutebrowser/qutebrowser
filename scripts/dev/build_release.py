@@ -367,6 +367,21 @@ def build_mac(
         settings_file=str(settings_file)
     )
 
+    utils.print_title("Running smoke test")
+
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            subprocess.run(['hdiutil', 'attach', dmg_path,
+                            '-mountpoint', tmp_path], check=True)
+            try:
+                smoke_test(_mac_bin_path(tmp_path), debug_build=debug)
+            finally:
+                print("Waiting 10s for dmg to be detachable...")
+                time.sleep(10)
+                subprocess.run(['hdiutil', 'detach', tmp_path], check=False)
+    except PermissionError as e:
+        print(f"Failed to remove tempdir: {e}")
     arch_to_desc = {"x86_64": "Intel", "arm64": "Apple Silicon"}
     desc_arch = arch_to_desc[arch]
 
