@@ -132,18 +132,6 @@ def update_pdfjs(target_version=None, legacy=True, gh_token=None):
     urllib.request.urlcleanup()
 
 
-def update_dmg_makefile():
-    """Update fancy-dmg Makefile.
-
-    See https://el-tramo.be/blog/fancy-dmg/
-    """
-    print("Updating fancy-dmg Makefile...")
-    url = 'https://raw.githubusercontent.com/remko/fancy-dmg/master/Makefile'
-    target_path = os.path.join('scripts', 'dev', 'Makefile-dmg')
-    urllib.request.urlretrieve(url, target_path)
-    urllib.request.urlcleanup()
-
-
 def update_ace():
     """Update ACE.
 
@@ -173,7 +161,7 @@ def test_dicts():
                 print('ERROR: {}'.format(response.status))
 
 
-def run(*, nsis=False, ace=False, pdfjs=True, modern_pdfjs=False, fancy_dmg=False,
+def run(*, nsis=False, ace=False, pdfjs=True, modern_pdfjs=False,
         pdfjs_version=None, dicts=False, gh_token=None):
     """Update components based on the given arguments."""
     if nsis:
@@ -182,8 +170,6 @@ def run(*, nsis=False, ace=False, pdfjs=True, modern_pdfjs=False, fancy_dmg=Fals
         update_pdfjs(pdfjs_version, legacy=not modern_pdfjs, gh_token=gh_token)
     if ace:
         update_ace()
-    if fancy_dmg:
-        update_dmg_makefile()
     if dicts:
         test_dicts()
 
@@ -200,8 +186,6 @@ def main():
     parser.add_argument("--modern-pdfjs",
                         help="Use PDF.js modern build (only supports latest Chromium)",
                         action='store_true')
-    parser.add_argument('--fancy-dmg', help="Update fancy-dmg Makefile",
-                        action='store_true')
     parser.add_argument(
         '--dicts', '-d',
         help='Test whether all available dictionaries '
@@ -210,7 +194,7 @@ def main():
     parser.add_argument(
         '--gh-token', help="GitHub token to use.", nargs='?')
     args = parser.parse_args()
-    run(nsis=False, ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
+    run(nsis=False, ace=True, pdfjs=True,
         pdfjs_version=args.pdfjs, modern_pdfjs=args.modern_pdfjs,
         dicts=args.dicts, gh_token=args.gh_token)
 
