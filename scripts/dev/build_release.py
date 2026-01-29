@@ -337,9 +337,6 @@ def build_mac(
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r', debug=debug)
 
-    utils.print_title("Cleaning up metadata files")
-    subprocess.run(['find', 'dist/qutebrowser.app', '-name', '._*', '-delete'], check=True)
-
     utils.print_title("Verifying .app")
     verify_mac_app()
 
