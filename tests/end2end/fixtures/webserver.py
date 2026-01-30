@@ -70,6 +70,8 @@ class Request(testprocess.Line):
 
             '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
             '/500': [HTTPStatus.INTERNAL_SERVER_ERROR],
+
+            '/fail-once': [HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.OK],
         }
         for i in range(25):
             path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]

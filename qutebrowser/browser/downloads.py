@@ -444,12 +444,10 @@ class AbstractDownloadItem(QObject):
     def __init__(self, manager, parent=None):
         super().__init__(parent)
         self._manager = manager
-        self.done = False
         self.stats = DownloadItemStats(self)
+        self._reset()
         self.index = 0
-        self.error_msg = None
         self.basename = '???'
-        self.successful = False
 
         self.fileobj: Union[
             UnsupportedAttribute, IO[bytes], None
@@ -459,6 +457,13 @@ class AbstractDownloadItem(QObject):
         ] = UnsupportedAttribute()
 
         self._filename: Optional[str] = None
+
+    def _reset(self):
+        """Reset the download to initial state for retrying."""
+        self.stats.done = None
+        self.done = False
+        self.successful = False
+        self.error_msg = None
         self._dead = False
 
     def __repr__(self):

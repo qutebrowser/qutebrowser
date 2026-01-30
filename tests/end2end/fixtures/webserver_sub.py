@@ -25,6 +25,7 @@ import flask
 
 app = flask.Flask(__name__)
 _redirect_later_event = None
+_fail_once_failed = False
 
 
 END2END_DIR = pathlib.Path(__file__).resolve().parents[1]
@@ -48,6 +49,38 @@ def send_data(path):
     if (data_dir / path).is_dir():
         path += '/index.html'
     return flask.send_from_directory(data_dir, path)
+
+
+@app.route('/fail-once')
+def fail_once():
+    """Fail with a 500 error once, then succeed."""
+    global _fail_once_failed
+
+    sleep = float(flask.request.args.get("sleep", "0"))
+
+    def generate_bytes():
+        yield b"*"
+        time.sleep(sleep)
+        yield b"*"
+
+    if not _fail_once_failed:
+        _fail_once_failed = True
+        response = app.make_response('')
+        response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+        return response
+    else:
+        return flask.Response(generate_bytes(), headers={
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "2",
+        })
+
+
+@app.route('/fail-once-reset')
+def fail_once_reset():
+    # return to referrer
+    global _fail_once_failed
+    _fail_once_failed = False
+    return flask.redirect(flask.request.referrer)
 
 
 @app.route('/redirect-later')

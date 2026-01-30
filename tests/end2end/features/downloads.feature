@@ -199,6 +199,17 @@ Feature: Downloading things from a website.
             does-not-exist
             """
 
+    Scenario: Pass after fail
+        When I set downloads.location.prompt to false
+        And I open data/downloads/issue8849.html
+        And I run :click-element id download
+        And I wait for the error "Download error: General server failure"
+        And I run :download-retry
+        And I wait until the download is finished
+        # crash does not happen immediately
+        And I wait 0.8s
+        Then the downloaded file fail-once should contain Success after failure.
+
     @flaky
     Scenario: Retrying with count
         When I run :download http://localhost:(port)/data/downloads/download.bin

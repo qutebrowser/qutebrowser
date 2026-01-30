@@ -90,12 +90,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        if machinery.IS_QT5:
-            self._qt_item.downloadProgress.disconnect()
-        else:  # Qt 6
-            self._qt_item.receivedBytesChanged.disconnect()
-            self._qt_item.totalBytesChanged.disconnect()
-
         if self._qt_item.state() != QWebEngineDownloadRequest.DownloadState.DownloadInterrupted:
             self._qt_item.cancel()
 
@@ -108,12 +102,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def retry(self):
         state = self._qt_item.state()
-        if state != QWebEngineDownloadRequest.DownloadState.DownloadInterrupted:
-            log.downloads.warning(
-                "Refusing to retry download in state {}".format(
-                    debug.qenum_key(QWebEngineDownloadRequest, state)))
-            return
-
+        assert state == QWebEngineDownloadRequest.DownloadState.DownloadInterrupted, (
+            state
+        )
+        self._reset()
         self._qt_item.resume()
 
     def _get_open_filename(self):
