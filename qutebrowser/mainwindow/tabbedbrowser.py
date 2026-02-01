@@ -826,7 +826,16 @@ class TabbedBrowser(QWidget):
         """
         if not url.isValid():
             return
+
+        # Fix issue #8308
         mode = config.instance.get('input.mode_override', url=url)
+        if not mode:
+            return
+
+        current_mode = modeman.instance(self._win_id).mode
+        if current_mode == usertypes.KeyMode.command:
+            return
+
         if mode:
             log.modes.debug(f"Mode change to {mode} triggered for url {url}")
             modeman.enter(
