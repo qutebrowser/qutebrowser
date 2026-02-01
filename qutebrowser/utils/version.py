@@ -757,10 +757,10 @@ class WebEngineVersions:
         # we ignore the security version as that one will have changed from .0
         # and is thus unknown.
         minor_version = pyqt_webengine_version.strip_patch()
-        chromium_ver, _security_ver = cls._CHROMIUM_VERSIONS.get(
+        chromium_ver, security_ver = cls._CHROMIUM_VERSIONS.get(
             minor_version, (None, None))
 
-        return chromium_ver, None
+        return chromium_ver, security_ver
 
     @classmethod
     def from_api(
