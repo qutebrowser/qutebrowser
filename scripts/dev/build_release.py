@@ -295,6 +295,15 @@ def verify_windows_exe(exe_path: pathlib.Path) -> None:
 def verify_mac_app() -> None:
     """Re-sign and verify the Mac .app."""
     app_path = pathlib.Path('dist') / 'qutebrowser.app'
+    # Re-sign with ad-hoc signature
+    subprocess.run([
+        'codesign',
+        '--force',
+        '--deep',
+        '-s',
+        '-',
+        app_path,
+    ], check=True)
     subprocess.run([
         'codesign',
         '--verify',
@@ -318,20 +327,16 @@ def build_mac(
 ) -> list[Artifact]:
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
-    for f in ['wc.dmg', 'template.dmg']:
-        try:
-            os.remove(f)
-        except FileNotFoundError:
-            pass
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
 
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, modern_pdfjs=False, fancy_dmg=False,
+    update_3rdparty.run(ace=False, pdfjs=True, modern_pdfjs=False,
                         gh_token=gh_token)
 
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r', debug=debug)
+
     utils.print_title("Verifying .app")
     verify_mac_app()
 
@@ -344,14 +349,20 @@ def build_mac(
         return []
 
     utils.print_title("Building .dmg")
-    dmg_makefile_path = REPO_ROOT / "scripts" / "dev" / "Makefile-dmg"
-    subprocess.run(['make', '-f', dmg_makefile_path], check=True)
+    import dmgbuild
 
     arch = platform.machine()
     suffix = "-debug" if debug else ""
     suffix += f"-{arch}"
     dmg_path = dist_path / f'qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
-    pathlib.Path('qutebrowser.dmg').rename(dmg_path)
+
+    settings_file = REPO_ROOT / "misc" / "dmgbuild" / "settings.py"
+
+    dmgbuild.build_dmg(
+        filename=str(dmg_path),
+        volume_name="qutebrowser",
+        settings_file=str(settings_file)
+    )
 
     utils.print_title("Running smoke test")
 
@@ -368,7 +379,6 @@ def build_mac(
                 subprocess.run(['hdiutil', 'detach', tmp_path], check=False)
     except PermissionError as e:
         print(f"Failed to remove tempdir: {e}")
-
     arch_to_desc = {"x86_64": "Intel", "arm64": "Apple Silicon"}
     desc_arch = arch_to_desc[arch]
 
@@ -440,7 +450,7 @@ def build_windows(
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, modern_pdfjs=False,
-                        fancy_dmg=False, gh_token=gh_token)
+                        gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
 
