@@ -225,8 +225,16 @@ class FakeWebTabHistory(browsertab.AbstractHistory):
 
 class FakeWebTabAudio(browsertab.AbstractAudio):
 
+    def __init__(self, tab):
+        super().__init__(tab)
+        self._is_muted = False
+
     def is_muted(self):
-        return False
+        return self._is_muted
+
+    def set_muted(self, muted: bool, override: bool = False) -> None:
+        """Set muted state."""
+        self._is_muted = muted
 
     def is_recently_audible(self):
         return False
