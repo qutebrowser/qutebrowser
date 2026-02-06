@@ -273,14 +273,19 @@ def _parse_keystring(keystr: str) -> Iterator[str]:
     for c in keystr:
         if c == '>':
             if special:
-                yield _parse_special_key(key)
-                key = ''
-                special = False
+                if key.endswith('+'):
+                    key += '>'
+                else:
+                    yield _parse_special_key(key)
+                    key = ''
+                    special = False
             else:
-                yield '>'
-                assert not key, key
+                yield _parse_single_key('>')
         elif c == '<':
-            special = True
+            if special:
+                key += '<'
+            else:
+                special = True
         elif special:
             key += c
         else:
