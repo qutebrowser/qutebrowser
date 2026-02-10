@@ -21,7 +21,7 @@ from qutebrowser.misc import miscwidgets
 
 
 # FIXME:mypy How to annotate this properly without running into Liskov issues?
-_WidgetType = Any
+_WidgetType = Any  # pylint: disable=invalid-name
 
 
 class Position(enum.Enum):
