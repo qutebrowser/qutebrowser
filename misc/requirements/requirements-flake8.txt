@@ -2,19 +2,20 @@
 
 attrs==25.4.0
 flake8==7.3.0
-flake8-bugbear==24.12.12
-flake8-builtins==3.0.0
+flake8-bugbear==25.11.29
+flake8-builtins==3.1.0
 flake8-comprehensions==3.17.0
 flake8-debugger==4.1.2
-flake8-deprecated==2.2.1
+flake8-deprecated==2.3.0
 flake8-docstrings==1.7.0
 flake8-future-import==0.4.7
 flake8-plugin-utils==1.3.3
-flake8-pytest-style==2.1.0
+flake8-pytest-style==2.2.0
 flake8-string-format==0.3.0
 flake8-tidy-imports==4.12.0
 flake8-tuple==0.4.1
 mccabe==0.7.0
+packaging==26.0
 pep8-naming==0.15.1
 pycodestyle==2.14.0
 pydocstyle==6.3.0
