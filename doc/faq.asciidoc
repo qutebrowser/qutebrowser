@@ -545,7 +545,7 @@ privacy policies.
 
 When qutebrowser crashes or you use the `:report` command, you have the
 possibility to send a crash report. If you decide to do so, your crash report
-is stored on qutebrowser's server, where qutebrowser's maintainer (Florian Bruhin / The
+is stored on qutebrowser's server, where qutebrowser's maintainer (Freya Bruhin / The
 Compiler) can access it. Before February 2021, other core qutebrowser developers (a
 maximum of four people total) could access the reports as well (access was restricted
 based on the sensitive nature of those reports, not because of any known issues with

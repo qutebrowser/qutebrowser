@@ -189,7 +189,7 @@ image:doc/img/sponsors/hsr.png["HSR Hochschule für Technik Rapperswil",link="ht
 Authors
 -------
 
-qutebrowser's primary author is Florian Bruhin (The Compiler), but qutebrowser
+qutebrowser's primary author is Freya Bruhin (The Compiler), but qutebrowser
 wouldn't be what it is without the help of
 https://github.com/qutebrowser/qutebrowser/graphs/contributors[hundreds of contributors]!
 
