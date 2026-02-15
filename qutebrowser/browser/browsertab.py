@@ -832,6 +832,14 @@ class AbstractElements:
         """
         raise NotImplementedError
 
+    def find_xpath(self, xpath: str, callback: _MultiCallback) -> None:
+        """Find all HTML elements matching the given XPath.
+
+        Args:
+            xpath: The XPath to search for.
+            callback: The callback to be called when the search finished.
+        """
+
 
 class AbstractAudio(QObject):
 
