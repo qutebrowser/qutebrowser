@@ -445,6 +445,10 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
                             Qt.KeyboardModifier.NoModifier)
         self._tab.send_event(event)
 
+    def info_str(self) -> Optional[str]:
+        """Return the contents of the element's title or alt tag for display."""
+        return self.get("title") or self.get("alt") or None
+
     def right_click(self) -> None:
         """Simulate a right-click on the element."""
         self._click_fake_event(usertypes.ClickTarget.normal,
