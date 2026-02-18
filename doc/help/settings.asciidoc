@@ -341,6 +341,7 @@
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
 |<<tabs.show,tabs.show>>|When to show the tab bar.
+|<<tabs.show_on_close,tabs.show_on_close>>|Show the tab bar for a short duration when a tab is closed, if tabs.show is set to 'switching'.
 |<<tabs.show_switching_delay,tabs.show_switching_delay>>|Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
@@ -4522,6 +4523,14 @@ Valid values:
  * +switching+: Show the tab bar when switching tabs.
 
 Default: +pass:[always]+
+
+[[tabs.show_on_close]]
+=== tabs.show_on_close
+Show the tab bar for a short duration when a tab is closed, if tabs.show is set to 'switching'.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[tabs.show_switching_delay]]
 === tabs.show_switching_delay
