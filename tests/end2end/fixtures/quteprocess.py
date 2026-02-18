@@ -96,7 +96,7 @@ def is_ignored_chromium_message(line):
         (\d+:\d+:)?  # Process/Thread ID
         \d{4}/[\d.]+:  # MMDD/Time
         (?P<loglevel>[A-Z]+):  # Log level
-        [^ :]+    # filename / line
+        [^ ]+    # filename / line
         \]
         \ (?P<message>.*)  # message
     """, re.VERBOSE)
