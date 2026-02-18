@@ -21,6 +21,17 @@
 #   (comments and video suggestions), i.e. only the videos should disappear
 #   when mpv is started. And that's precisely what the present script does.
 #
+# Arguments:
+#   -f
+#     Fast download, spawn yt-dlp to download the video, instead of
+#     letting mpv do it. This allows for much faster video downloads but is a
+#     bit more fragile: a) if you seek past the end of the mpv cache it'll
+#     likely break b) if you have custom formats set for yt-dlp the download
+#     speed will regress again.
+#   -u {url}
+#     Pass an URL as argument. This is meant to be used with the `{hint-url}`
+#     argument from qutebrowser keymap system.
+#
 # Thorsten Wißmann, 2015 (thorsten` on Libera Chat)
 # Any feedback is welcome!
 
@@ -48,9 +59,42 @@ msg() {
 }
 
 MPV_COMMAND=${MPV_COMMAND:-mpv}
+YTDLP_COMMAND=${YTDLP_COMMAND:-yt-dlp}
 # Warning: spaces in single flags are not supported
+YT_DLP_FLAGS=${YT_DLP_AUDIO_FLAGS:- --cookies-from-browser chromium:~/.local/share/qutebrowser -N 8 --downloader=http -f 'bestvideo*+bestaudio/best'}
+YT_DLP_AUDIO_FLAGS=${YT_DLP_AUDIO_FLAGS:- --cookies-from-browser chromium:~/.local/share/qutebrowser --downloader=aria2c -f bestaudio}
 MPV_FLAGS=${MPV_FLAGS:- --force-window --quiet --keep-open=yes --ytdl}
 IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
+IFS=" " read -r -a yt_dlp_video_command <<< "$YTDLP_COMMAND $YT_DLP_FLAGS"
+IFS=" " read -r -a yt_dlp_audio_command <<< "$YTDLP_COMMAND $YT_DLP_AUDIO_FLAGS"
+
+program_name=$0 options='fu:' loptions='fast,url'
+if ! getopt_out=$(getopt --name "$program_name" --options "$options" --longoptions "$loptions" -- "$@"); then exit 1; fi
+
+#sets the positionnal parameters with getopt's output
+eval set -- "$getopt_out"
+
+URL="$QUTE_URL"
+NO_JS=false
+while [[ $1 != "--" ]]; do
+  case "$1" in
+  -u|--url)
+    URL=$2
+    NO_JS=true
+    shift 2
+    ;;
+  -f|--fast)
+    USE_YTDLP_FOR_DOWNLOAD=${USE_YTDLP_FOR_DOWNLOAD:-"yes"}
+    shift
+    ;;
+  *)
+    msg error "$0: Unknown arg '$1'"
+    exit 2
+    ;;
+  esac
+done
+# shift away from the last optional parameter (--)
+shift
 
 js() {
 cat <<EOF
@@ -136,7 +180,25 @@ EOF
 printjs() {
     js | sed 's,//.*$,,' | tr '\n' ' '
 }
-echo "jseval -q -w main $(printjs)" >> "$QUTE_FIFO"
+if ! [[ $NO_JS == "true" ]]; then
+  echo "jseval -q -w main $(printjs)" >> "$QUTE_FIFO"
+fi
 
-msg info "Opening $QUTE_URL with mpv"
-"${video_command[@]}" "$@" "$QUTE_URL"
+msg info "Opening $URL with mpv"
+if [[ $USE_YTDLP_FOR_DOWNLOAD == "yes" ]]; then
+  mkdir -p "$HOME/.cache/qutebrowser/view_in_mpv"
+  tmpdir=$(mktemp -p "$HOME/.cache/qutebrowser/view_in_mpv" -d)
+  ( cd "$tmpdir" && "${yt_dlp_audio_command[@]}" -o - "$URL" >"$tmpdir/ytdlp_audio" ) &
+  audio_ytdlp_pid=$!
+  sleep 2
+
+  MPV_FLAGS="$MPV_FLAGS --audio-file=$tmpdir/ytdlp_audio"
+  IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
+
+  ( cd "$tmpdir" && "${yt_dlp_video_command[@]}" -o - "$URL" | "${video_command[@]}" --title="$(yt-dlp --cookies-from-browser chromium:~/.local/share/qutebrowser --get-title "$URL") - mpv" "$@" - )
+
+  ps $audio_ytdlp_pid >/dev/null && kill $audio_ytdlp_pid
+  rm -rf "$tmpdir"
+else
+  "${video_command[@]}" "$@" "$URL"
+fi
