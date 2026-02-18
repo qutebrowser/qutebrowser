@@ -500,6 +500,28 @@ class AbstractDownloadItem(QObject):
                         remaining=remaining, perc=perc, down=down,
                         total=total, errmsg=errmsg))
 
+    def _find_next_filename(self) -> None:
+        """Append unique numeric suffix to filename and rerun _set_filename."""
+        assert self._filename is not None
+        path, file = os.path.split(self._filename)
+        # Pull out filename extension which could be a two part one like
+        # `tar.gz`. Use a more restrictive character set for the first part of
+        # a two part extension to avoid matching numbers.
+        match = re.fullmatch(r'(.+?)((\.[a-z]+)?\.[^.]+)', file)
+        if match:
+            base, suffix = match[1], match[2]
+        else:
+            base = file
+            suffix = ''
+
+        for i in range(2, 1000):
+            filename = os.path.join(path, f'{base}_{i}{suffix}')
+            if not (os.path.exists(filename) or self._get_conflicting_download()):
+                self._set_filename(filename)
+                break
+        else:
+            self._die('Alternative filename not available.')
+
     def _do_die(self):
         """Do cleanup steps after a download has died."""
         raise NotImplementedError
@@ -650,7 +672,8 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None,
+                              custom_no_action=None):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
@@ -746,19 +769,21 @@ class AbstractDownloadItem(QObject):
 
         log.downloads.debug("Setting filename to {}".format(self._filename))
         if self._get_conflicting_download():
-            txt = ("<b>{}</b> is already downloading. Cancel and "
-                   "re-download?".format(html.escape(self._filename)))
+            txt = ("<b>{}</b> is already downloading. Cancel and re-download?"
+                   "(\"No\" renames.)".format(html.escape(self._filename)))
             self._ask_confirm_question(
                 "Cancel other download?", txt,
-                custom_yes_action=self._cancel_conflicting_download)
+                custom_yes_action=self._cancel_conflicting_download,
+                custom_no_action=self._find_next_filename)
         elif force_overwrite:
             self._after_set_filename()
         elif os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            txt = "<b>{}</b> already exists. Overwrite?".format(
+            txt = "<b>{}</b> already exists. Overwrite? (\"No\" renames.)".format(
                 html.escape(self._filename))
-            self._ask_confirm_question("Overwrite existing file?", txt)
+            self._ask_confirm_question("Overwrite existing file?", txt,
+                custom_no_action=self._find_next_filename)
         # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and
               not os.path.isdir(self._filename)):
