@@ -10,11 +10,11 @@ click==8.3.1
 coverage==7.13.4
 exceptiongroup==1.3.1
 execnet==2.1.2
-filelock==3.20.3
-Flask==3.1.2
+filelock==3.24.3
+Flask==3.1.3
 gherkin-official==29.0.0
 hunter==3.9.0
-hypothesis==6.151.5
+hypothesis==6.151.9
 idna==3.11
 importlib_resources==6.5.2
 iniconfig==2.3.0
@@ -27,10 +27,10 @@ manhole==1.8.1
 # MarkupSafe==3.0.3
 more-itertools==10.8.0
 packaging==26.0
-parse==1.21.0
+parse==1.21.1
 parse_type==0.6.6
-pillow==12.1.0
-platformdirs==4.5.1
+pillow==12.1.1
+platformdirs==4.9.2
 pluggy==1.6.0
 py-cpuinfo==9.0.0
 Pygments==2.19.2
@@ -56,4 +56,4 @@ tomli==2.4.0
 typing_extensions==4.15.0
 urllib3==2.6.3
 vulture==2.14
-Werkzeug==3.1.5
+Werkzeug==3.1.6
