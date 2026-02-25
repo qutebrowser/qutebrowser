@@ -320,7 +320,6 @@ class SignalHandler(QObject):
         self._app = app
         self._quitter = quitter
         self._notifier = None
-        self._timer = usertypes.Timer(self, 'python_hacks')
         self._orig_handlers: MutableMapping[int, 'signal._HANDLER'] = {}
         self._activated = False
         self._orig_wakeup_fd: Optional[int] = None
@@ -352,22 +351,18 @@ class SignalHandler(QObject):
         for sig, handler in self._handlers.items():
             self._orig_handlers[sig] = signal.signal(sig, handler)
 
-        if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
-            # pylint: disable=import-error,no-member,useless-suppression
-            import fcntl
-            read_fd, write_fd = os.pipe()
-            for fd in [read_fd, write_fd]:
-                flags = fcntl.fcntl(fd, fcntl.F_GETFL)
-                fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
-                                             QSocketNotifier.Type.Read,
-                                             self)
-            self._notifier.activated.connect(self.handle_signal_wakeup)
-            self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
-            # pylint: enable=import-error,no-member,useless-suppression
-        else:
-            self._timer.start(1000)
-            self._timer.timeout.connect(lambda: None)
+        # pylint: disable=import-error,no-member,useless-suppression
+        import fcntl
+        read_fd, write_fd = os.pipe()
+        for fd in [read_fd, write_fd]:
+            flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
+                                            QSocketNotifier.Type.Read,
+                                            self)
+        self._notifier.activated.connect(self.handle_signal_wakeup)
+        self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
+        # pylint: enable=import-error,no-member,useless-suppression
         self._activated = True
 
     def deactivate(self):
@@ -383,8 +378,6 @@ class SignalHandler(QObject):
             os.close(wfd)
         for sig, handler in self._orig_handlers.items():
             signal.signal(sig, handler)
-        self._timer.stop()
-        self._activated = False
 
     @pyqtSlot()
     def handle_signal_wakeup(self):
