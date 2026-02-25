@@ -77,3 +77,19 @@ def test_debug_trace_no_hunter(monkeypatch):
     with pytest.raises(cmdutils.CommandError, match="You need to install "
                        "'hunter' to use this command!"):
         misccommands.debug_trace()
+
+
+@pytest.mark.parametrize("initial_muted,mute_arg,expected_muted", [
+    (False, None, True),      # Toggle: Unmuted → muted
+    (True, None, False),      # Toggle: Muted → unmuted
+    (False, 'true', True),    # Force mute
+    (True, 'true', True),     # Force mute (idempotent)
+    (False, 'false', False),  # Force unmute (idempotent)
+    (True, 'false', False),   # Force unmute
+])
+def test_tab_mute(fake_web_tab, initial_muted, mute_arg, expected_muted):
+    """Test tab_mute with different states and parameters."""
+    tab = fake_web_tab()
+    tab.audio.set_muted(initial_muted)
+    misccommands.tab_mute(tab, mute=mute_arg)
+    assert tab.audio.is_muted() == expected_muted
