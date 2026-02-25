@@ -334,6 +334,11 @@
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
+|<<tabs.new_position.tree.demote,tabs.new_position.tree.demote>>|Position at which a tab is placed among its new siblings after being demoted with `:tree-tab-demote`
+|<<tabs.new_position.tree.new_child,tabs.new_position.tree.new_child>>|Position of new children among siblings, e.g. after calling `:open --relative ...` or following a link.
+|<<tabs.new_position.tree.new_sibling,tabs.new_position.tree.new_sibling>>|Position of siblings, e.g. after calling `:open --sibling ...`.
+|<<tabs.new_position.tree.new_toplevel,tabs.new_position.tree.new_toplevel>>|Position of new top-level tabs related to the topmost ancestor of current tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
+|<<tabs.new_position.tree.promote,tabs.new_position.tree.promote>>|Position at which a tab is placed among its new siblings after being promoted with `:tree-tab-promote`
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
 |<<tabs.pinned.frozen,tabs.pinned.frozen>>|Force pinned tabs to stay at fixed URL.
@@ -348,6 +353,7 @@
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
+|<<tabs.tree_tabs,tabs.tree_tabs>>|Enable tree-tabs mode.
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of closed tabs (per window) and closed windows to remember for :undo (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
@@ -374,7 +380,7 @@ The keys of the given dictionary are the aliases, while the values are the comma
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[q]+: +pass:[close]+
 - +pass:[qa]+: +pass:[quit]+
@@ -481,7 +487,7 @@ This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[caret]+:
 
@@ -750,6 +756,17 @@ Default:
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
+* +pass:[zG]+: +pass:[cmd-set-text -s :tree-tab-create-group]+
+* +pass:[zH]+: +pass:[tree-tab-promote]+
+* +pass:[zJ]+: +pass:[tab-next -s]+
+* +pass:[zK]+: +pass:[tab-prev -s]+
+* +pass:[zL]+: +pass:[tree-tab-demote]+
+* +pass:[zO]+: +pass:[cmd-set-text --space :open -tS]+
+* +pass:[za]+: +pass:[tree-tab-toggle-hide]+
+* +pass:[zd]+: +pass:[tab-close -r]+
+* +pass:[zg]+: +pass:[cmd-set-text -s :tree-tab-create-group -r]+
+* +pass:[zo]+: +pass:[cmd-set-text --space :open -tr]+
+* +pass:[zp]+: +pass:[tab-focus parent]+
 * +pass:[{{]+: +pass:[navigate prev -t]+
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
@@ -807,7 +824,7 @@ Note that when a key is bound (via `bindings.default` or `bindings.commands`), t
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
 - +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
@@ -881,7 +898,7 @@ May be a single color to use for all columns or a list of three colors, one for 
 
 Type: <<types,List of QtColor&#44; or QtColor>>
 
-Default: 
+Default:
 
 - +pass:[white]+
 - +pass:[white]+
@@ -1836,7 +1853,7 @@ Valid values:
  * +history+
  * +filesystem+
 
-Default: 
+Default:
 
 - +pass:[searchengines]+
 - +pass:[quickmarks]+
@@ -1941,7 +1958,7 @@ Valid values:
  * +downloads+: Show a confirmation if downloads are running
  * +never+: Never show a confirmation.
 
-Default: 
+Default:
 
 - +pass:[never]+
 
@@ -1972,7 +1989,7 @@ need to find the link to the raw `.txt` file (e.g. by extracting it from the
 
 Type: <<types,List of Url>>
 
-Default: 
+Default:
 
 - +pass:[https://easylist.to/easylist/easylist.txt]+
 - +pass:[https://easylist.to/easylist/easyprivacy.txt]+
@@ -2017,7 +2034,7 @@ The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
 Type: <<types,List of Url>>
 
-Default: 
+Default:
 
 - +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
@@ -2402,7 +2419,7 @@ The following levels are valid: `none`, `debug`, `info`, `warning`, `error`.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[error]+: +pass:[debug]+
 - +pass:[info]+: +pass:[debug]+
@@ -2962,7 +2979,7 @@ The following placeholders are defined:
 
 Type: <<types,ShellCommand>>
 
-Default: 
+Default:
 
 - +pass:[gvim]+
 - +pass:[-f]+
@@ -3024,7 +3041,7 @@ The following placeholders are defined:
 
 Type: <<types,ShellCommand>>
 
-Default: 
+Default:
 
 - +pass:[xterm]+
 - +pass:[-e]+
@@ -3040,7 +3057,7 @@ The following placeholders are defined:
 
 Type: <<types,ShellCommand>>
 
-Default: 
+Default:
 
 - +pass:[xterm]+
 - +pass:[-e]+
@@ -3395,7 +3412,7 @@ Comma-separated list of regular expressions to use for 'next' links.
 
 Type: <<types,List of Regex>>
 
-Default: 
+Default:
 
 - +pass:[\bnext\b]+
 - +pass:[\bmore\b]+
@@ -3410,7 +3427,7 @@ Padding (in pixels) for hints.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[0]+
 - +pass:[left]+: +pass:[3]+
@@ -3423,7 +3440,7 @@ Comma-separated list of regular expressions to use for 'prev' links.
 
 Type: <<types,List of Regex>>
 
-Default: 
+Default:
 
 - +pass:[\bprev(ious)?\b]+
 - +pass:[\bback\b]+
@@ -3458,7 +3475,7 @@ This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[all]+:
 
@@ -4196,7 +4213,7 @@ Padding (in pixels) for the statusbar.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[1]+
 - +pass:[left]+: +pass:[0]+
@@ -4249,7 +4266,7 @@ Valid values:
  * +text:foo+: Display the static text after the colon, `foo` in the example.
  * +clock+: Display current time. The format can be changed by adding a format string via `clock:...`. For supported format strings, see https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the Python datetime documentation].
 
-Default: 
+Default:
 
 - +pass:[keypress]+
 - +pass:[search_match]+
@@ -4334,7 +4351,7 @@ Padding (in pixels) for tab indicators.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[2]+
 - +pass:[left]+: +pass:[0]+
@@ -4434,6 +4451,77 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[tabs.new_position.tree.demote]]
+=== tabs.new_position.tree.demote
+Position at which a tab is placed among its new siblings after being demoted with `:tree-tab-demote`
+
+Type: <<types,NewChildPosition>>
+
+Valid values:
+
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[last]+
+
+[[tabs.new_position.tree.new_child]]
+=== tabs.new_position.tree.new_child
+Position of new children among siblings, e.g. after calling `:open --relative ...` or following a link.
+
+Type: <<types,NewChildPosition>>
+
+Valid values:
+
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[first]+
+
+[[tabs.new_position.tree.new_sibling]]
+=== tabs.new_position.tree.new_sibling
+Position of siblings, e.g. after calling `:open --sibling ...`.
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[first]+
+
+[[tabs.new_position.tree.new_toplevel]]
+=== tabs.new_position.tree.new_toplevel
+Position of new top-level tabs related to the topmost ancestor of current tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[last]+
+
+[[tabs.new_position.tree.promote]]
+=== tabs.new_position.tree.promote
+Position at which a tab is placed among its new siblings after being promoted with `:tree-tab-promote`
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[next]+
+
 [[tabs.new_position.unrelated]]
 === tabs.new_position.unrelated
 Position of new tabs which are not opened from another tab.
@@ -4456,7 +4544,7 @@ Padding (in pixels) around text for tabs.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[0]+
 - +pass:[left]+: +pass:[5]+
@@ -4574,6 +4662,8 @@ Format to use for the tab title.
 The following placeholders are defined:
 
 * `{perc}`: Percentage as a string like `[10%]`.
+* `{collapsed}`: If children tabs are hidden, the string `[...]`, empty otherwise
+* `{tree}`: The ASCII tree prefix of current tab.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
 * `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string `" - "` if a title is set, empty otherwise.
@@ -4593,7 +4683,7 @@ The following placeholders are defined:
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{audio}{index}: {current_title}]+
+Default: +pass:[{tree}{collapsed}{audio}{index}: {current_title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
@@ -4611,6 +4701,16 @@ Note this setting only affects windows opened after it has been set.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[tabs.tree_tabs]]
+=== tabs.tree_tabs
+Enable tree-tabs mode.
+
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[tabs.undo_stack_size]]
 === tabs.undo_stack_size
@@ -4674,7 +4774,7 @@ Valid values:
  * +query+
  * +anchor+
 
-Default: 
+Default:
 
 - +pass:[path]+
 - +pass:[query]+
@@ -4716,7 +4816,7 @@ term, e.g. `:open google qutebrowser`.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[DEFAULT]+: +pass:[https://duckduckgo.com/?q={}]+
 
@@ -4734,7 +4834,7 @@ URL parameters to strip when yanking a URL.
 
 Type: <<types,List of String>>
 
-Default: 
+Default:
 
 - +pass:[ref]+
 - +pass:[utm_source]+
@@ -4795,7 +4895,7 @@ Available zoom levels.
 
 Type: <<types,List of Perc>>
 
-Default: 
+Default:
 
 - +pass:[25%]+
 - +pass:[33%]+
@@ -4872,6 +4972,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |ListOrValue|A list of values, or a single value.
 |LogLevel|A logging level.
+|NewChildPosition|How new children are positioned.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.

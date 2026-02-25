@@ -8,6 +8,7 @@ from collections.abc import Sequence, Callable
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
+from qutebrowser.config import config
 
 
 DeleteFuncType = Callable[[Sequence[str]], None]
@@ -31,8 +32,9 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
         hide_debug = obj.debug and not objects.args.debug
         hide_mode = (usertypes.KeyMode.normal not in obj.modes and
                      not include_hidden)
+        hide_tree = obj.tree_tab and not config.cache['tabs.tree_tabs']
         hide_ni = obj.name == 'Ni!'
-        if not (hide_debug or hide_mode or obj.deprecated or hide_ni):
+        if not (hide_tree or hide_debug or hide_mode or obj.deprecated or hide_ni):
             bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 
