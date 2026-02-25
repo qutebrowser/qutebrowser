@@ -321,7 +321,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
 
-    container = config.ConfigContainer(conf)
+    container = config.ConfigContainerInternal(conf)
     monkeypatch.setattr(config, 'val', container)
     monkeypatch.setattr(configapi, 'val', container)
 
