@@ -16,6 +16,11 @@ import shutil
 import argparse
 import shlex
 
+try:
+    import line_profiler
+except ImportError:
+    line_profiler = None
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
@@ -39,6 +44,8 @@ def parse_args():
                         help="The filename to use with --profile-tool=none")
     parser.add_argument('--profile-test', action='store_true',
                         help="Run pytest instead of qutebrowser")
+    parser.add_argument('--line-profiler', action='store_true',
+                        help="Use line_profiler instead of cProfile")
     return parser.parse_known_args()
 
 
@@ -53,19 +60,30 @@ def main():
 
     sys.argv = [sys.argv[0]] + remaining
 
-    profiler = cProfile.Profile()
-
     if args.profile_test:
         import pytest
-        profiler.runcall(pytest.main)
+        target = pytest.main
     else:
-        profiler.runcall(qutebrowser.qutebrowser.main)
+        target = qutebrowser.qutebrowser.main
+
+    if args.line_profiler:
+        if line_profiler is None:
+            sys.exit("line_profiler is not installed.")
+        profiler = line_profiler.LineProfiler()
+        profiler.add_function(target)
+        profiler.runcall(target)
+    else:
+        profiler = cProfile.Profile()
+        profiler.runcall(target)
 
     # If we have an exception after here, we don't want the qutebrowser
     # exception hook to take over.
     sys.excepthook = sys.__excepthook__
     profiler.dump_stats(profilefile)
 
+    if args.line_profiler:
+        profiler.print_stats()
+        sys.exit(0)
     if args.profile_tool == 'none':
         print("Profile data written to {}".format(profilefile))
     elif args.profile_tool == 'gprof2dot':
