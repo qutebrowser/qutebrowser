@@ -65,4 +65,6 @@ uritemplate==4.2.0
 # urllib3==2.6.3
 wcmatch==10.1
 wcwidth==0.6.0
+wheel==0.45.1
 zipp==3.23.0
+dmgbuild ; sys_platform=="darwin"
