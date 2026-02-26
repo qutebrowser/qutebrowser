@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # SPDX-FileCopyrightText: Claude (longneck) <longneck@scratchbook.ch>
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -352,7 +352,7 @@ class SignalHandler(QObject):
         for sig, handler in self._handlers.items():
             self._orig_handlers[sig] = signal.signal(sig, handler)
 
-        if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
+        if utils.is_posix:
             # pylint: disable=import-error,no-member,useless-suppression
             import fcntl
             read_fd, write_fd = os.pipe()

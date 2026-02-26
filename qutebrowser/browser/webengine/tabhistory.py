@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -34,13 +34,13 @@ def _serialize_item(item, stream):
     #
     # Sample data:
     # [TabHistoryItem(active=True,
-    #                 original_url=QUrl('file:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt'),
+    #                 original_url=QUrl('file:///home/freya/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt'),
     #                 title='1.txt',
-    #                 url=QUrl('file:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt'),
+    #                 url=QUrl('file:///home/freya/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt'),
     #                 user_data={'zoom': 1.0, 'scroll-pos': QPoint()})]
 
     ## toQt(entry->GetVirtualURL());
-    # \x00\x00\x00Jfile:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt
+    # \x00\x00\x00Jfile:///home/freya/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt
     qtutils.serialize_stream(stream, item.url)
 
     ## toQt(entry->GetTitle());
@@ -70,7 +70,7 @@ def _serialize_item(item, stream):
     stream.writeInt32(0)  # WebReferrerPolicyAlways
 
     ## toQt(entry->GetOriginalRequestURL());
-    # \x00\x00\x00Jfile:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt
+    # \x00\x00\x00Jfile:///home/freya/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt
     qtutils.serialize_stream(stream, item.original_url)
 
     ## entry->GetIsOverridingUserAgent();

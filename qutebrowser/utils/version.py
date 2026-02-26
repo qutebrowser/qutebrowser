@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -660,9 +660,10 @@ class WebEngineVersions:
         ## Qt 6.10
         utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
         utils.VersionNumber(6, 10, 1): (_BASES[134], '142.0.7444.162'),  # 2025-11-11
+        utils.VersionNumber(6, 10, 2): (_BASES[134], '144.0.7559.96'),  # 2026-01-17
 
-        ## Qt 6.11 (WIP, Beta 2)
-        utils.VersionNumber(6, 11): (_BASES[134], '142.0.7444.176'),  # 2025-11-17
+        ## Qt 6.11 (WIP, Beta 3)
+        utils.VersionNumber(6, 11): (_BASES[134], '144.0.7559.132'),  # 2026-02-02
     }
 
     def __post_init__(self) -> None:

@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'qutebrowser extensions'
-copyright = '2018-2019, Florian Bruhin'
-author = 'Florian Bruhin'
+copyright = '2018-2019, Freya Bruhin'
+author = 'Freya Bruhin'
 
 # The short X.Y version
 version = ''
@@ -132,7 +132,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'qutebrowserextensions.tex', 'qutebrowser extensions Documentation',
-     'Florian Bruhin', 'manual'),
+     'Freya Bruhin', 'manual'),
 ]
 
 

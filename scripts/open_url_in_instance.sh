@@ -1,5 +1,5 @@
 #!/bin/sh
-# initial idea: Florian Bruhin (The-Compiler)
+# initial idea: Freya Bruhin (The-Compiler)
 # author: Thore Bödecker (foxxx0)
 
 _url="$1"
