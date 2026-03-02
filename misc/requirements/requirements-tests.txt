@@ -3,14 +3,14 @@
 backports.tarfile==1.2.0
 beautifulsoup4==4.14.3
 blinker==1.9.0
-certifi==2026.1.4
+certifi==2026.2.25
 charset-normalizer==3.4.4
 cheroot==11.1.2
 click==8.3.1
 coverage==7.13.4
 exceptiongroup==1.3.1
 execnet==2.1.2
-filelock==3.24.3
+filelock==3.25.0
 Flask==3.1.3
 gherkin-official==29.0.0
 hunter==3.9.0

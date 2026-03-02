@@ -2,7 +2,7 @@
 
 alabaster==1.0.0
 babel==2.18.0
-certifi==2026.1.4
+certifi==2026.2.25
 charset-normalizer==3.4.4
 docutils==0.21.2
 idna==3.11
