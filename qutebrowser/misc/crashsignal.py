@@ -320,7 +320,7 @@ class SignalHandler(QObject):
         self._app = app
         self._quitter = quitter
         self._notifier = None
-        self._timer = usertypes.Timer(self, 'python_hacks')
+        self._timer = None
         self._orig_handlers: MutableMapping[int, 'signal._HANDLER'] = {}
         self._activated = False
         self._orig_wakeup_fd: Optional[int] = None
@@ -366,6 +366,7 @@ class SignalHandler(QObject):
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression
         else:
+            self._timer = usertypes.Timer(self, 'python_hacks')
             self._timer.start(1000)
             self._timer.timeout.connect(lambda: None)
         self._activated = True
@@ -383,7 +384,8 @@ class SignalHandler(QObject):
             os.close(wfd)
         for sig, handler in self._orig_handlers.items():
             signal.signal(sig, handler)
-        self._timer.stop()
+        if self._timer is not None:
+            self._timer.stop()
         self._activated = False
 
     @pyqtSlot()
