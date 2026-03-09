@@ -3,14 +3,14 @@
 backports.tarfile==1.2.0
 beautifulsoup4==4.14.3
 blinker==1.9.0
-certifi==2026.1.4
-charset-normalizer==3.4.4
+certifi==2026.2.25
+charset-normalizer==3.4.5
 cheroot==11.1.2
 click==8.3.1
 coverage==7.13.4
 exceptiongroup==1.3.1
 execnet==2.1.2
-filelock==3.24.3
+filelock==3.25.0
 Flask==3.1.3
 gherkin-official==29.0.0
 hunter==3.9.0
@@ -19,7 +19,7 @@ idna==3.11
 importlib_resources==6.5.2
 iniconfig==2.3.0
 itsdangerous==2.2.0
-jaraco.context==6.1.0
+jaraco.context==6.1.1
 jaraco.functools==4.4.0
 # Jinja2==3.1.6
 Mako==1.3.10
@@ -30,7 +30,7 @@ packaging==26.0
 parse==1.21.1
 parse_type==0.6.6
 pillow==12.1.1
-platformdirs==4.9.2
+platformdirs==4.9.4
 pluggy==1.6.0
 py-cpuinfo==9.0.0
 Pygments==2.19.2
@@ -55,5 +55,5 @@ tldextract==5.3.1
 tomli==2.4.0
 typing_extensions==4.15.0
 urllib3==2.6.3
-vulture==2.14
+vulture==2.15
 Werkzeug==3.1.6

@@ -2,11 +2,11 @@
 
 alabaster==1.0.0
 babel==2.18.0
-certifi==2026.1.4
-charset-normalizer==3.4.4
+certifi==2026.2.25
+charset-normalizer==3.4.5
 docutils==0.21.2
 idna==3.11
-imagesize==1.4.1
+imagesize==2.0.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 packaging==26.0
