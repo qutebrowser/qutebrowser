@@ -2,4 +2,4 @@
 
 packaging==26.0
 tomli==2.4.0
-vulture==2.14
+vulture==2.15
