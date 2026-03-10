@@ -6,6 +6,7 @@ requests
 pyqt-builder
 build
 twine
+#@ add: dmgbuild ; sys_platform=="darwin"
 
 # Included to override setuptools' vendored version that is being included in
 # the lock file by pip freeze.
