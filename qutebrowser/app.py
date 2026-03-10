@@ -413,10 +413,8 @@ def on_focus_changed(_old, new):
 
     window = new.window()
     if isinstance(window, mainwindow.MainWindow):
-        objreg.register('last-focused-main-window', window, update=True)
-        # A focused window must also be visible, and in this case we should
-        # consider it as the most recently looked-at window
-        objreg.register('last-visible-main-window', window, update=True)
+        objreg.window_visibility_history.append(window)
+        objreg.window_focus_history.append(window)
 
 
 def open_desktopservices_url(url):
