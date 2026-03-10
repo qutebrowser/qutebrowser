@@ -17,6 +17,7 @@ from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg, message, utils
 from qutebrowser.config import config
+from qutebrowser.commands import parser
 
 
 class Command(misc.CommandLineEdit):
@@ -49,6 +50,7 @@ class Command(misc.CommandLineEdit):
     def __init__(self, *, win_id: int,
                  private: bool,
                  parent: QWidget = None) -> None:
+        self._parser = parser.CommandParser()
         super().__init__(parent)
         self._win_id = win_id
         if not private:
@@ -187,8 +189,16 @@ class Command(misc.CommandLineEdit):
         was_search = self._handle_search()
 
         text = self.text()
-        if not (self.prefix() == ':' and text[1:].startswith(' ')):
-            self.history.append(text)
+        if self.prefix() == ':' and not text[1:].startswith(' '):
+            try:
+                should_exclude = any(
+                    cmd.cmd.name == 'open' and ('-p' in cmd.args or '--private' in cmd.args)
+                    for cmd in self._parser.parse_all(text[1:])
+                )
+            except:
+                should_exclude = False
+            if not should_exclude:
+                self.history.append(text)
 
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
