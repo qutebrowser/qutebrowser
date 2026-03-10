@@ -19,6 +19,7 @@ from qutebrowser.utils import usertypes, log, objreg, message, utils
 from qutebrowser.config import config
 from qutebrowser.commands import parser
 
+
 class Command(misc.CommandLineEdit):
 
     """The commandline part of the statusbar.
@@ -191,7 +192,7 @@ class Command(misc.CommandLineEdit):
         exclude = text[1:].startswith(' ')
         if not exclude:
             parsed = self._parser.parse(text[1:])
-            exclude = parsed.cmd.name == 'open' and(
+            exclude = parsed.cmd.name == 'open' and (
                 '-p' in parsed.args or '--private' in parsed.args)
         if not (self.prefix() == ':' and exclude):
             self.history.append(text)
