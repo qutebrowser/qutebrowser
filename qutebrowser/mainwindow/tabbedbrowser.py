@@ -241,6 +241,7 @@ class TabbedBrowser(QWidget):
         self._global_marks: MutableMapping[str, tuple[QPoint, QUrl]] = {}
         self.default_window_icon = self._window().windowIcon()
         self.is_private = private
+        self.session = "_nosession"
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
@@ -317,6 +318,9 @@ class TabbedBrowser(QWidget):
             return
         fields = self.widget.get_tab_fields(idx)
         fields['id'] = self._win_id
+        #TODO update on window session changed
+        #TODO don't leak _nosession into window title
+        fields['session'] = self.session
 
         title = title_format.format(**fields)
         # prevent hanging WMs and similar issues with giant URLs
