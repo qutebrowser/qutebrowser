@@ -190,12 +190,15 @@ class Command(misc.CommandLineEdit):
 
         text = self.text()
         if self.prefix() == ':' and not text[1:].startswith(' '):
-             should_exclude = any(
-                 cmd.cmd.name == 'open' and ('-p' in cmd.args or '--private' in cmd.args)
-                 for cmd in self._parser.parse_all(text[1:])
-             )
-             if not should_exclude:
-                 self.history.append(text)
+            try:
+                should_exclude = any(
+                    cmd.cmd.name == 'open' and ('-p' in cmd.args or '--private' in cmd.args)
+                    for cmd in self._parser.parse_all(text[1:])
+                )
+            except:
+                should_exclude = False
+            if not should_exclude:
+                self.history.append(text)
 
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
