@@ -3707,6 +3707,7 @@ bindings.default:
       K: tab-prev
       <Ctrl-PgUp>: tab-prev
       gC: tab-clone
+      tt: cmd-set-text -s :tab-title
       r: reload
       <F5>: reload
       R: reload -f
