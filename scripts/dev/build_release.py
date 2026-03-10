@@ -349,7 +349,7 @@ def build_mac(
         return []
 
     utils.print_title("Building .dmg")
-    import dmgbuild # pylint: disable=import-error
+    import dmgbuild  # pylint: disable=import-error
 
     arch = platform.machine()
     suffix = "-debug" if debug else ""
