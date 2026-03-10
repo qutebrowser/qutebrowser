@@ -173,6 +173,7 @@ class HintContext:
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
+        text_filter: Optional text filter to apply to hints.
     """
 
     tab: 'browsertab.AbstractTab'
@@ -184,6 +185,7 @@ class HintContext:
     baseurl: QUrl
     args: list[str]
     group: str
+    text_filter: Optional[str] = None
 
     all_labels: list[HintLabel] = dataclasses.field(default_factory=list)
     labels: dict[str, HintLabel] = dataclasses.field(default_factory=dict)
@@ -621,6 +623,26 @@ class HintManager(QObject):
             message.error("No elements found.")
             return
 
+        # Apply text filter if provided
+        if self._context.text_filter:
+            filtered_elems = []
+            for elem in elems:
+                # Get text content, value, and placeholder for filtering
+                elemstr = str(elem)  # textContent
+                elem_value = elem.value() or ""  # input value
+                elem_placeholder = elem.get('placeholder', '')  # placeholder attribute
+                
+                # Combine all text sources for filtering
+                combined_text = f"{elemstr} {elem_value} {elem_placeholder}".strip()
+                
+                if self._filter_matches(self._context.text_filter, combined_text):
+                    filtered_elems.append(elem)
+            elems = filtered_elems
+            
+            if not elems:
+                message.error(f"No elements found matching text filter: {self._context.text_filter}")
+                return
+
         # Because _start_cb is called asynchronously, it's possible that the
         # user switched to another tab or closed the tab/window. In that case
         # we should not start hinting.
@@ -666,7 +688,8 @@ class HintManager(QObject):
               mode: str = None,
               add_history: bool = False,
               rapid: bool = False,
-              first: bool = False) -> None:
+              first: bool = False,
+              text: str = None) -> None:
         """Start hinting.
 
         Args:
@@ -715,6 +738,10 @@ class HintManager(QObject):
                 - `letter`: Use the chars in the hints.chars setting.
                 - `word`: Use hint words based on the html elements and the
                           extra words.
+
+            text: Filter hints to only show elements containing this text as a
+                  substring. The filtering is case-insensitive and supports
+                  multi-word matching.
 
             *args: Arguments for spawn/userscript/run/fill.
 
@@ -769,6 +796,7 @@ class HintManager(QObject):
             baseurl=baseurl,
             args=list(args),
             group=group,
+            text_filter=text,
         )
 
         try:
@@ -890,7 +918,15 @@ class HintManager(QObject):
         visible = []
         for label in self._context.all_labels:
             try:
-                if self._filter_matches(filterstr, str(label.elem)):
+                # Get text content, value, and placeholder for filtering
+                elemstr = str(label.elem)  # textContent
+                elem_value = label.elem.value() or ""  # input value
+                elem_placeholder = label.elem.get('placeholder', '')  # placeholder attribute
+                
+                # Combine all text sources for filtering
+                combined_text = f"{elemstr} {elem_value} {elem_placeholder}".strip()
+                
+                if self._filter_matches(filterstr, combined_text):
                     visible.append(label)
                     # Show label again if it was hidden before
                     label.show()
