@@ -55,3 +55,11 @@ TODO
 /misc/nsis/include
 /misc/nsis/plugins
 /wheels
+
+# --- candidate/jason/ai-explain branch additions ---
+# Exclude markdown files
+*.md
+
+# Exclude secrets / environment files
+.env
+.env.*
