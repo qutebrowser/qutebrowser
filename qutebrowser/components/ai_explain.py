@@ -12,7 +12,7 @@ import re
 import html
 import json
 import logging
-from typing import Optional, Any
+from typing import Any
 
 from qutebrowser.qt.core import QObject, QThread, pyqtSignal
 
@@ -22,16 +22,41 @@ from qutebrowser.config import config as configmodule
 from qutebrowser.keyinput import keyutils
 
 # ---------------------------------------------------------------------------
+# Logging, constants, and module-level helpers
+# ---------------------------------------------------------------------------
+
+_LOGGER = logging.getLogger('ai_explain')
+_TOOLTIP_DISMISS_MS: int = 15_000
+
+
+def _env_int(name: str, default: int) -> int:
+    """Read *name* from the environment as an integer.
+
+    Returns *default* and logs a warning on missing or invalid values,
+    preventing import-time crashes from misconfigured environments.
+    """
+    raw = os.environ.get(name, '')
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        _LOGGER.warning(
+            "ai-explain: %s=%r is not a valid integer, using default %d",
+            name, raw, default,
+        )
+        return default
+
+
+# ---------------------------------------------------------------------------
 # Configuration — all values from environment variables only
 # ---------------------------------------------------------------------------
 
 _AI_API_KEY: str = os.environ.get('AI_API_KEY', '')
 _AI_MODEL: str = os.environ.get('AI_MODEL', 'claude-haiku-4-5')
 _AI_BASE_URL: str = os.environ.get('AI_BASE_URL', 'https://api.anthropic.com')
-_AI_MAX_PAGE_CHARS: int = int(os.environ.get('AI_MAX_PAGE_CHARS', '12000'))
-_AI_TIMEOUT_SECONDS: int = int(os.environ.get('AI_TIMEOUT_SECONDS', '30'))
-
-_LOGGER = logging.getLogger('ai_explain')
+_AI_MAX_PAGE_CHARS: int = _env_int('AI_MAX_PAGE_CHARS', 12_000)
+_AI_TIMEOUT_SECONDS: int = _env_int('AI_TIMEOUT_SECONDS', 30)
 
 # ---------------------------------------------------------------------------
 # Optional dependency — graceful degradation if not installed
@@ -46,17 +71,22 @@ except ImportError:
 # Module-level state
 # ---------------------------------------------------------------------------
 
-# Initialized in @hook.init() — None means feature is disabled
-_client: Optional[Any] = None
+# anthropic.Anthropic instance once initialized; None means feature is disabled
+_client: Any = None
 
 # Tab IDs currently waiting for an LLM response — prevents double-firing
 _pending: set[int] = set()
 
 # Keeps (QThread, _LLMWorker) alive while in-flight (GC protection)
-_active_threads: dict[int, tuple] = {}
+_active_threads: dict[int, tuple[QThread, '_LLMWorker']] = {}
 
 # Tab IDs whose load_started signal is already connected to cleanup
 _connected_tabs: set[int] = set()
+
+# Per-tab request generation counter. Incremented on each new request and on
+# navigation. Callbacks compare against this to discard superseded results —
+# thread.quit() alone cannot interrupt a blocking network call.
+_tab_generation: dict[int, int] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +94,6 @@ _connected_tabs: set[int] = set()
 # ---------------------------------------------------------------------------
 
 class _LLMWorker(QObject):
-
     """Calls the Anthropic API synchronously inside a dedicated QThread.
 
     Emits finished(text) on success or error(msg) on failure.
@@ -82,10 +111,14 @@ class _LLMWorker(QObject):
 
     def run(self) -> None:
         """Entry point — called by QThread.started signal."""
+        # _client is set once at startup (main thread) and never mutated after;
+        # reading it here without a lock is safe under CPython's GIL.
         if _client is None:
             self.error.emit("ai-explain: client not initialized")
             return
 
+        # Invariant: _anthropic_module is non-None whenever _client is non-None
+        # (_client is only assigned when the import succeeded — see _init).
         prompt = _build_prompt(self._selected, self._context, self._page_text)
         _LOGGER.debug("ai-explain: sending request (model=%s)", _AI_MODEL)
 
@@ -105,6 +138,10 @@ class _LLMWorker(QObject):
                 for block in final.content
                 if hasattr(block, 'text') and block.type == 'text'
             ).strip()
+
+            if not explanation:
+                self.error.emit("ai-explain: no explanation was produced")
+                return
 
             _LOGGER.debug(
                 "ai-explain: received explanation (%d chars, %s input tokens)",
@@ -128,13 +165,15 @@ class _LLMWorker(QObject):
 # ---------------------------------------------------------------------------
 
 _SYSTEM_PROMPT = (
-    "You are a precise technical explainer embedded in a web browser. "
-    "Explain the selected text in 2-4 concise sentences. "
-    "If it is code, explain what it does. "
-    "If it is a concept or term, define it in the context of the surrounding text. "
-    "Do not use markdown headers or bullet points. "
-    "You may use **bold** sparingly for key terms. "
-    "Do not restate the selected text or start with 'This is...'."
+    "You are a precise technical explainer embedded in a web browser.\n"
+    "Give a concise explanation of the selected text.\n\n"
+    "Formatting rules — follow exactly:\n"
+    "- Write each sentence on its own line (hard newline after every period).\n"
+    "- For concepts with multiple aspects, write one short intro sentence "
+    "then 2-4 bullet points (- prefix), one per line.\n"
+    "- You may use **bold** for key terms.\n"
+    "- No markdown headers.\n"
+    "- Do not restate the selected text or start with 'This is...'."
 )
 
 
@@ -145,9 +184,9 @@ def _build_prompt(selected: str, context: str, page_text: str) -> str:
 
     return (
         f"Page content (background context):\n{page_text}\n\n"
-        f"---\n"
+        "---\n"
         f"Text surrounding the selection:\n{context}\n\n"
-        f"---\n"
+        "---\n"
         f'Explain this specific text in 2-4 sentences: "{selected}"'
     )
 
@@ -180,27 +219,91 @@ _JS_DISMISS = """
 """.strip()
 
 
+_LIST_OPEN = {
+    'ul': '<ul style="margin:4px 0 4px 16px;padding:0;">',
+    'ol': '<ol style="margin:4px 0 4px 16px;padding:0;">',
+}
+_BOLD_RE = re.compile(r'\*\*(.*?)\*\*')
+
+
+def _render_markdown(text: str) -> str:
+    """Convert a small Markdown subset to safe HTML for the tooltip.
+
+    Handles **bold**, unordered lists (- or *), and ordered lists (1.).
+    All other non-empty lines become <p> elements.
+    Bold is applied per-element (not on the joined string) to prevent the
+    regex from accidentally matching across HTML tag boundaries.
+    """
+    # Safety net: if the model ignores the newline-per-sentence instruction and
+    # returns a wall of text, split at sentence boundaries so each sentence
+    # gets its own <p>. Splits on ". " followed by an uppercase letter to
+    # avoid breaking abbreviations like "e.g. foo" (lowercase after dot).
+    text = re.sub(r'\. ([A-Z])', r'.\n\1', text)
+
+    escaped = html.escape(text)
+    parts: list[str] = []
+    current_list = ''  # '' | 'ul' | 'ol'
+
+    def _bold(s: str) -> str:
+        return _BOLD_RE.sub(r'<strong>\1</strong>', s)
+
+    def _switch_list(new_type: str) -> None:
+        nonlocal current_list
+        if current_list != new_type:
+            if current_list:
+                parts.append(f'</{current_list}>')
+            if new_type:
+                parts.append(_LIST_OPEN[new_type])
+            current_list = new_type
+
+    for raw_line in escaped.split('\n'):
+        line = raw_line.strip()
+        m_ul = re.match(r'^[-*]\s+(.*)', line)
+        m_ol = m_ul is None and re.match(r'^\d+\.\s+(.*)', line)
+
+        if m_ul:
+            _switch_list('ul')
+            parts.append(f'<li style="margin-bottom:2px;">{_bold(m_ul.group(1))}</li>')
+        elif m_ol:
+            _switch_list('ol')
+            parts.append(f'<li style="margin-bottom:2px;">{_bold(m_ol.group(1))}</li>')
+        else:
+            _switch_list('')
+            if line:
+                parts.append(f'<p style="margin:0 0 6px 0;">{_bold(line)}</p>')
+
+    _switch_list('')  # close any open list
+
+    return ''.join(parts)
+
+
 def _build_tooltip_js(explanation: str) -> str:
     """Return a JS string that injects a floating tooltip into the page."""
-    # Convert **bold** → <strong>bold</strong>, escape everything else
-    escaped = html.escape(explanation)
-    formatted = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', escaped)
-    formatted = formatted.replace('\n', '<br>')
+    formatted = _render_markdown(explanation)
 
     tooltip_html = (
         '<div id="qute-ai-tooltip" style="'
         'position:fixed;bottom:20px;right:20px;'
-        'max-width:420px;min-width:180px;'
+        'max-width:440px;min-width:200px;'
         'background:#1e1e2e;color:#cdd6f4;'
-        'border:1px solid #45475a;border-radius:8px;'
-        'padding:14px 16px;'
+        'border:1px solid #313244;'
+        'border-left:3px solid #89b4fa;'
+        'border-radius:8px;'
+        'padding:14px 16px 12px 16px;'
         'font-family:system-ui,-apple-system,sans-serif;'
-        'font-size:13px;line-height:1.6;'
+        'font-size:13px;line-height:1.65;'
         'z-index:2147483647;'
-        'box-shadow:0 4px 24px rgba(0,0,0,0.5);'
+        'box-shadow:0 8px 32px rgba(0,0,0,0.65);'
         'pointer-events:none;">'
-        '<div style="font-size:10px;color:#6c7086;'
-        'margin-bottom:8px;letter-spacing:0.5px;">AI EXPLAIN</div>'
+        # Header row: coloured label + subtle divider
+        '<div style="'
+        'display:flex;align-items:center;gap:8px;'
+        'margin-bottom:10px;padding-bottom:8px;'
+        'border-bottom:1px solid #313244;">'
+        '<span style="'
+        'font-size:9px;font-weight:700;letter-spacing:1.2px;'
+        'color:#89b4fa;text-transform:uppercase;">AI Explain</span>'
+        '</div>'
         f'{formatted}'
         '</div>'
     )
@@ -216,7 +319,7 @@ def _build_tooltip_js(explanation: str) -> str:
     wrapper.innerHTML = {escaped_html};
     var el = wrapper.firstElementChild;
     document.body.appendChild(el);
-    setTimeout(function() {{ if (el.parentNode) el.remove(); }}, 15000);
+    setTimeout(function() {{ if (el.parentNode) el.remove(); }}, {_TOOLTIP_DISMISS_MS});
 }})()
 """.strip()
 
@@ -228,6 +331,7 @@ def _build_tooltip_js(explanation: str) -> str:
 def _run_llm_in_thread(
     tab: apitypes.Tab,
     tab_id: int,
+    gen: int,
     selected: str,
     context: str,
     page_text: str,
@@ -240,16 +344,25 @@ def _run_llm_in_thread(
     thread.started.connect(worker.run)
 
     worker.finished.connect(
-        lambda text: _on_llm_finished(tab, tab_id, text)
+        lambda text: _on_llm_finished(tab, tab_id, gen, text)
     )
     worker.finished.connect(thread.quit)
 
-    worker.error.connect(lambda err: _on_llm_error(tab_id, err))
+    worker.error.connect(lambda err: _on_llm_error(tab_id, gen, err))
     worker.error.connect(thread.quit)
 
-    # Cleanup: remove from active dict once thread stops
     thread.finished.connect(thread.deleteLater)
-    thread.finished.connect(lambda: _active_threads.pop(tab_id, None))
+
+    # Guard against the ABA problem: if navigation cancels this thread and a new
+    # request immediately stores a replacement entry under the same tab_id, a
+    # late-finishing old thread must NOT evict the new entry.  Capture `thread`
+    # by identity so the pop is conditional on still owning the slot.
+    def _evict_thread_entry(t: QThread = thread) -> None:
+        entry = _active_threads.get(tab_id)
+        if entry is not None and entry[0] is t:
+            del _active_threads[tab_id]
+
+    thread.finished.connect(_evict_thread_entry)
 
     # Keep references alive — Python GC would collect them otherwise
     _active_threads[tab_id] = (thread, worker)
@@ -257,21 +370,42 @@ def _run_llm_in_thread(
     thread.start()
 
 
-def _on_llm_finished(tab: apitypes.Tab, tab_id: int, explanation: str) -> None:
-    """Main-thread callback: inject tooltip into page."""
+def _claim_pending(tab_id: int, gen: int) -> bool:
+    """Return True if this generation is still current and remove tab from _pending.
+
+    Returns False when superseded by a navigation event or a newer request —
+    callers should silently discard the result in that case.
+    """
+    if _tab_generation.get(tab_id) != gen:
+        return False
     _pending.discard(tab_id)
+    return True
+
+
+def _on_llm_finished(
+    tab: apitypes.Tab, tab_id: int, gen: int, explanation: str
+) -> None:
+    """Main-thread callback: inject tooltip only if the request is still current."""
+    if not _claim_pending(tab_id, gen):
+        return
     js = _build_tooltip_js(explanation)
     tab.run_js_async(js, world=usertypes.JsWorld.jseval)
 
 
-def _on_llm_error(tab_id: int, error_msg: str) -> None:
-    """Main-thread callback: surface error in status bar."""
-    _pending.discard(tab_id)
+def _on_llm_error(tab_id: int, gen: int, error_msg: str) -> None:
+    """Main-thread callback: surface error only if the request is still current."""
+    if not _claim_pending(tab_id, gen):
+        return
     message.error(error_msg)
 
 
 def _connect_tab_cleanup(tab: apitypes.Tab) -> None:
-    """Connect load_started to cleanup once per tab."""
+    """Connect load_started to cleanup exactly once per tab lifetime.
+
+    The handler is intentionally permanent: removing tab_id from _connected_tabs
+    inside _cleanup would allow a second handler to be re-connected on the next
+    ai-explain call, causing duplicate callbacks on every subsequent navigation.
+    """
     tab_id = tab.tab_id
     if tab_id in _connected_tabs:
         return
@@ -279,13 +413,14 @@ def _connect_tab_cleanup(tab: apitypes.Tab) -> None:
 
     def _cleanup() -> None:
         _pending.discard(tab_id)
-        _connected_tabs.discard(tab_id)
-        # Cancel in-flight thread if any
+        # Advance the generation so any in-flight callback discards its result.
+        # thread.quit() signals the Qt event loop to stop but cannot interrupt
+        # a blocking network call; the generation guard is the real safety net.
+        _tab_generation[tab_id] = _tab_generation.get(tab_id, 0) + 1
         entry = _active_threads.pop(tab_id, None)
         if entry:
             thread, _ = entry
             thread.quit()
-        # Dismiss tooltip
         tab.run_js_async(_JS_DISMISS, world=usertypes.JsWorld.jseval)
 
     tab.load_started.connect(_cleanup)
@@ -317,7 +452,6 @@ def _init(_context: apitypes.InitContext) -> None:
         message.warning("ai-explain: AI_API_KEY not set — feature disabled")
         return
 
-    # Warn if sending data to a non-default external endpoint
     _is_custom_endpoint = (
         _AI_BASE_URL
         and _AI_BASE_URL != 'https://api.anthropic.com'
@@ -326,11 +460,12 @@ def _init(_context: apitypes.InitContext) -> None:
     )
     if _is_custom_endpoint:
         message.warning(
-            f"ai-explain: page content will be sent to external endpoint: {_AI_BASE_URL}"
+            "ai-explain: page content will be sent to "
+            f"external endpoint: {_AI_BASE_URL}"
         )
 
     try:
-        kwargs: dict = {"api_key": _AI_API_KEY}
+        kwargs: dict[str, Any] = {"api_key": _AI_API_KEY}
         if _AI_BASE_URL != 'https://api.anthropic.com':
             kwargs["base_url"] = _AI_BASE_URL
 
@@ -387,6 +522,8 @@ def ai_explain(tab: apitypes.Tab) -> None:
             return
 
         _pending.add(tab_id)
+        _tab_generation[tab_id] = _tab_generation.get(tab_id, 0) + 1
+        gen = _tab_generation[tab_id]
         message.info("ai-explain: explaining…")
 
         def _on_context(context: Any) -> None:
@@ -398,7 +535,7 @@ def ai_explain(tab: apitypes.Tab) -> None:
                     "ai-explain: selected=%d, context=%d, page=%d chars",
                     len(selected_text), len(context_text), len(text),
                 )
-                _run_llm_in_thread(tab, tab_id, selected_text, context_text, text)
+                _run_llm_in_thread(tab, tab_id, gen, selected_text, context_text, text)
 
             tab.dump_async(_on_page, plain=True)
 

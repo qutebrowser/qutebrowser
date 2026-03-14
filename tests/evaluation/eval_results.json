@@ -1,0 +1,152 @@
+{
+  "config": {
+    "model": "claude-haiku-4-5",
+    "judge_model": "claude-haiku-4-5"
+  },
+  "aggregate": {
+    "faithfulness": 0.9667,
+    "relevance": 1.0,
+    "conciseness": 0.1667,
+    "clarity": 1.0
+  },
+  "samples": [
+    {
+      "fixture": "coroutine",
+      "selected_text": "coroutine",
+      "explanation": "A **coroutine** is a function component that can pause its execution and later resume from where it left off, enabling cooperative multitasking without requiring the operating system to forcibly interrupt it. In Python, coroutines are defined with `async def` and use the `await` keyword to suspend execution when waiting for I/O operations or other async operations to complete. Unlike traditional functions that run to completion in one go, coroutines allow multiple tasks to share execution time by voluntarily yielding control back to an event loop, which then schedules other coroutines to run.",
+      "scores": {
+        "faithfulness": {
+          "score": 0.95,
+          "reason": "The explanation accurately reflects the context and page text: coroutines allow suspension/resumption, use async/await syntax, enable cooperative multitasking, and work with an event loop for scheduling\u2014all directly supported by the source material."
+        },
+        "relevance": {
+          "score": 1,
+          "reason": "The explanation directly addresses what a coroutine is and how it functions, rather than discussing Python generally or unrelated topics."
+        },
+        "conciseness": {
+          "score": 0,
+          "reason": "The explanation exceeds 4 sentences with three lengthy sentences that could be condensed, violating the 2\u20134 sentence requirement."
+        },
+        "clarity": {
+          "score": 1,
+          "reason": "The explanation uses clear, accessible language suitable for a general technical audience, with concrete examples like async def and await that aid understanding."
+        }
+      }
+    },
+    {
+      "fixture": "garbage_collection",
+      "selected_text": "garbage-collected",
+      "explanation": "**Garbage collection** is an automatic memory management process that identifies and removes objects from memory that are no longer in use by the program. In Python's case, this works alongside reference counting to clean up circular references that simple reference counting cannot detect on its own. This means developers don't need to manually free memory when objects are no longer needed.",
+      "scores": {
+        "faithfulness": {
+          "score": 0.95,
+          "reason": "The explanation accurately reflects that Python uses garbage collection to handle memory automatically and mentions reference counting and circular references, all directly supported by the page text."
+        },
+        "relevance": {
+          "score": 1,
+          "reason": "The explanation directly addresses what 'garbage-collected' means in the context of Python, rather than discussing Python broadly."
+        },
+        "conciseness": {
+          "score": 0,
+          "reason": "The explanation is 3 sentences but includes some restating of the selected term ('Garbage collection is...') and slightly redundant phrasing about what developers don't need to do."
+        },
+        "clarity": {
+          "score": 1,
+          "reason": "The explanation uses clear, plain language accessible to a general technical audience, explaining both the general concept and Python's specific implementation."
+        }
+      }
+    },
+    {
+      "fixture": "global_interpreter_lock",
+      "selected_text": "Global Interpreter Lock",
+      "explanation": "The **Global Interpreter Lock** (GIL) is a mutual exclusion lock that ensures only one thread can execute Python bytecode in CPython at any given moment. It exists because CPython's reference counting memory management system is not thread-safe and would corrupt memory if multiple threads modified object counts simultaneously. While this design simplifies memory management, it prevents true parallel execution of Python code on multi-core systems, making it a significant limitation for CPU-intensive threaded programs.",
+      "scores": {
+        "faithfulness": {
+          "score": 0.95,
+          "reason": "The explanation accurately reflects that the GIL ensures only one thread executes bytecode, exists for thread-safety reasons, and limits CPU-bound parallelism; the specific mention of 'reference counting' is not in the provided sources but is well-established technical fact about CPython."
+        },
+        "relevance": {
+          "score": 1,
+          "reason": "The explanation directly addresses the Global Interpreter Lock term and concept without digressing into unrelated topics."
+        },
+        "conciseness": {
+          "score": 1,
+          "reason": "The explanation is exactly three sentences with no unnecessary repetition or padding."
+        },
+        "clarity": {
+          "score": 1,
+          "reason": "The explanation uses clear, plain language accessible to a general technical audience, explaining the what, why, and impact of the GIL."
+        }
+      }
+    },
+    {
+      "fixture": "list_comprehension",
+      "selected_text": "list comprehension",
+      "explanation": "A **list comprehension** is a compact syntax for creating a new list by applying an expression to each element of an iterable, optionally filtering with conditions. It uses the form `[expr for var in iterable if condition]` and is functionally equivalent to a traditional for loop that appends items to a list, but with cleaner, more readable code that typically executes faster. For example, `[x**2 for x in range(10)]` generates a list of squared numbers in a single line rather than requiring multiple lines of loop code.",
+      "scores": {
+        "faithfulness": {
+          "score": 0.95,
+          "reason": "The explanation accurately reflects the context and page text, correctly describing the syntax, purpose, and example; the claim about execution speed is supported by the source text."
+        },
+        "relevance": {
+          "score": 1,
+          "reason": "The explanation directly addresses list comprehension with specific syntax, mechanics, and a concrete example rather than generic information."
+        },
+        "conciseness": {
+          "score": 0,
+          "reason": "The explanation exceeds 4 sentences with redundant phrasing ('functionally equivalent to a traditional for loop that appends items' is restated as 'rather than requiring multiple lines of loop code')."
+        },
+        "clarity": {
+          "score": 1,
+          "reason": "The explanation uses plain language, clear structure with syntax examples, and is easily understood by a technical audience."
+        }
+      }
+    },
+    {
+      "fixture": "duck_typing",
+      "selected_text": "duck typing",
+      "explanation": "**Duck typing** is a programming approach where an object's suitability for use depends on whether it implements the required methods, rather than its declared type or class inheritance. Instead of checking \"what is this object?\" you effectively ask \"can this object do what I need?\" \u2014 if it has the right methods, it works, regardless of what class it actually belongs to. This enables flexible, reusable code since any object with the matching interface can be substituted for another.",
+      "scores": {
+        "faithfulness": {
+          "score": 1.0,
+          "reason": "The explanation accurately reflects the CONTEXT statement that 'the type or class of an object is less important than the methods it defines' and the PAGE TEXT definition of duck typing, with no contradictions or unsupported claims."
+        },
+        "relevance": {
+          "score": 1,
+          "reason": "The explanation directly addresses duck typing as a specific concept and how it works, rather than discussing Python's dynamic typing or other related topics."
+        },
+        "conciseness": {
+          "score": 0,
+          "reason": "The explanation is three sentences but contains some redundancy (the second sentence essentially restates the first in slightly different terms) and could be more concise."
+        },
+        "clarity": {
+          "score": 1,
+          "reason": "The explanation uses plain language and provides a clear, accessible description of duck typing with practical reasoning about 'what can it do' rather than type checking."
+        }
+      }
+    },
+    {
+      "fixture": "significant_indentation",
+      "selected_text": "significant indentation",
+      "explanation": "**Significant indentation** refers to Python's requirement that indentation (whitespace at the beginning of lines) is syntactically meaningful and used to delimit code blocks, rather than being merely stylistic as in other languages. Instead of using braces `{}` or keywords like `begin`/`end`, Python interprets indentation depth to determine which statements belong together in loops, conditionals, functions, and classes. This forces all Python code to follow a consistent visual structure, making the code's logical organization immediately apparent to readers.",
+      "scores": {
+        "faithfulness": {
+          "score": 1.0,
+          "reason": "All claims about significant indentation being syntactically meaningful, replacing braces/keywords, and enforcing consistent visual structure are directly supported by both the context and page text."
+        },
+        "relevance": {
+          "score": 1,
+          "reason": "The explanation directly addresses what 'significant indentation' means in Python rather than discussing the language more broadly."
+        },
+        "conciseness": {
+          "score": 0,
+          "reason": "The explanation spans three sentences with detailed examples (braces, keywords, code constructs) that, while helpful, exceed the 2\u20134 sentence guideline and include some elaboration beyond strict necessity."
+        },
+        "clarity": {
+          "score": 1,
+          "reason": "The explanation is clear and accessible, using plain language and concrete examples (braces, keywords, code constructs) that a general technical audience would understand."
+        }
+      }
+    }
+  ]
+}
