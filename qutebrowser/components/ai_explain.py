@@ -7,25 +7,24 @@ Default key bindings (registered automatically):
     ,d  — ai-dismiss (normal + caret modes)
 """
 
-import os
-import re
 import html
 import json
 import logging
+import os
+import re
 from typing import Any
 
-from qutebrowser.qt.core import QObject, QThread, pyqtSignal
-
-from qutebrowser.api import cmdutils, apitypes, message, hook
-from qutebrowser.utils import usertypes
+from qutebrowser.api import apitypes, cmdutils, hook, message
 from qutebrowser.config import config as configmodule
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt.core import QObject, QThread, pyqtSignal
+from qutebrowser.utils import usertypes
 
 # ---------------------------------------------------------------------------
 # Logging, constants, and module-level helpers
 # ---------------------------------------------------------------------------
 
-_LOGGER = logging.getLogger('ai_explain')
+_LOGGER = logging.getLogger("ai_explain")
 _TOOLTIP_DISMISS_MS: int = 15_000
 
 
@@ -35,7 +34,7 @@ def _env_int(name: str, default: int) -> int:
     Returns *default* and logs a warning on missing or invalid values,
     preventing import-time crashes from misconfigured environments.
     """
-    raw = os.environ.get(name, '')
+    raw = os.environ.get(name, "")
     if not raw:
         return default
     try:
@@ -43,7 +42,9 @@ def _env_int(name: str, default: int) -> int:
     except ValueError:
         _LOGGER.warning(
             "ai-explain: %s=%r is not a valid integer, using default %d",
-            name, raw, default,
+            name,
+            raw,
+            default,
         )
         return default
 
@@ -52,11 +53,11 @@ def _env_int(name: str, default: int) -> int:
 # Configuration — all values from environment variables only
 # ---------------------------------------------------------------------------
 
-_AI_API_KEY: str = os.environ.get('AI_API_KEY', '')
-_AI_MODEL: str = os.environ.get('AI_MODEL', 'claude-haiku-4-5')
-_AI_BASE_URL: str = os.environ.get('AI_BASE_URL', 'https://api.anthropic.com')
-_AI_MAX_PAGE_CHARS: int = _env_int('AI_MAX_PAGE_CHARS', 12_000)
-_AI_TIMEOUT_SECONDS: int = _env_int('AI_TIMEOUT_SECONDS', 30)
+_AI_API_KEY: str = os.environ.get("AI_API_KEY", "")
+_AI_MODEL: str = os.environ.get("AI_MODEL", "claude-haiku-4-5")
+_AI_BASE_URL: str = os.environ.get("AI_BASE_URL", "https://api.anthropic.com")
+_AI_MAX_PAGE_CHARS: int = _env_int("AI_MAX_PAGE_CHARS", 12_000)
+_AI_TIMEOUT_SECONDS: int = _env_int("AI_TIMEOUT_SECONDS", 30)
 
 # ---------------------------------------------------------------------------
 # Optional dependency — graceful degradation if not installed
@@ -78,7 +79,7 @@ _client: Any = None
 _pending: set[int] = set()
 
 # Keeps (QThread, _LLMWorker) alive while in-flight (GC protection)
-_active_threads: dict[int, tuple[QThread, '_LLMWorker']] = {}
+_active_threads: dict[int, tuple[QThread, "_LLMWorker"]] = {}
 
 # Tab IDs whose load_started signal is already connected to cleanup
 _connected_tabs: set[int] = set()
@@ -92,6 +93,7 @@ _tab_generation: dict[int, int] = {}
 # ---------------------------------------------------------------------------
 # LLM worker — runs in a background QThread, never blocks the Qt event loop
 # ---------------------------------------------------------------------------
+
 
 class _LLMWorker(QObject):
     """Calls the Anthropic API synchronously inside a dedicated QThread.
@@ -133,10 +135,10 @@ class _LLMWorker(QObject):
                 final = stream.get_final_message()
 
             # Extract text blocks only (skip thinking blocks)
-            explanation = '\n'.join(
+            explanation = "\n".join(
                 block.text
                 for block in final.content
-                if hasattr(block, 'text') and block.type == 'text'
+                if hasattr(block, "text") and block.type == "text"
             ).strip()
 
             if not explanation:
@@ -146,7 +148,7 @@ class _LLMWorker(QObject):
             _LOGGER.debug(
                 "ai-explain: received explanation (%d chars, %s input tokens)",
                 len(explanation),
-                getattr(final.usage, 'input_tokens', '?'),
+                getattr(final.usage, "input_tokens", "?"),
             )
             self.finished.emit(explanation)
 
@@ -180,7 +182,7 @@ _SYSTEM_PROMPT = (
 def _build_prompt(selected: str, context: str, page_text: str) -> str:
     """Build the user message for the LLM."""
     if len(page_text) > _AI_MAX_PAGE_CHARS:
-        page_text = page_text[:_AI_MAX_PAGE_CHARS] + '\n[...truncated]'
+        page_text = page_text[:_AI_MAX_PAGE_CHARS] + "\n[...truncated]"
 
     return (
         f"Page content (background context):\n{page_text}\n\n"
@@ -220,10 +222,10 @@ _JS_DISMISS = """
 
 
 _LIST_OPEN = {
-    'ul': '<ul style="margin:4px 0 4px 16px;padding:0;">',
-    'ol': '<ol style="margin:4px 0 4px 16px;padding:0;">',
+    "ul": '<ul style="margin:4px 0 4px 16px;padding:0;">',
+    "ol": '<ol style="margin:4px 0 4px 16px;padding:0;">',
 }
-_BOLD_RE = re.compile(r'\*\*(.*?)\*\*')
+_BOLD_RE = re.compile(r"\*\*(.*?)\*\*")
 
 
 def _render_markdown(text: str) -> str:
@@ -238,43 +240,43 @@ def _render_markdown(text: str) -> str:
     # returns a wall of text, split at sentence boundaries so each sentence
     # gets its own <p>. Splits on ". " followed by an uppercase letter to
     # avoid breaking abbreviations like "e.g. foo" (lowercase after dot).
-    text = re.sub(r'\. ([A-Z])', r'.\n\1', text)
+    text = re.sub(r"\. ([A-Z])", r".\n\1", text)
 
     escaped = html.escape(text)
     parts: list[str] = []
-    current_list = ''  # '' | 'ul' | 'ol'
+    current_list = ""  # '' | 'ul' | 'ol'
 
     def _bold(s: str) -> str:
-        return _BOLD_RE.sub(r'<strong>\1</strong>', s)
+        return _BOLD_RE.sub(r"<strong>\1</strong>", s)
 
     def _switch_list(new_type: str) -> None:
         nonlocal current_list
         if current_list != new_type:
             if current_list:
-                parts.append(f'</{current_list}>')
+                parts.append(f"</{current_list}>")
             if new_type:
                 parts.append(_LIST_OPEN[new_type])
             current_list = new_type
 
-    for raw_line in escaped.split('\n'):
+    for raw_line in escaped.split("\n"):
         line = raw_line.strip()
-        m_ul = re.match(r'^[-*]\s+(.*)', line)
-        m_ol = m_ul is None and re.match(r'^\d+\.\s+(.*)', line)
+        m_ul = re.match(r"^[-*]\s+(.*)", line)
+        m_ol = m_ul is None and re.match(r"^\d+\.\s+(.*)", line)
 
         if m_ul:
-            _switch_list('ul')
+            _switch_list("ul")
             parts.append(f'<li style="margin-bottom:2px;">{_bold(m_ul.group(1))}</li>')
         elif m_ol:
-            _switch_list('ol')
+            _switch_list("ol")
             parts.append(f'<li style="margin-bottom:2px;">{_bold(m_ol.group(1))}</li>')
         else:
-            _switch_list('')
+            _switch_list("")
             if line:
                 parts.append(f'<p style="margin:0 0 6px 0;">{_bold(line)}</p>')
 
-    _switch_list('')  # close any open list
+    _switch_list("")  # close any open list
 
-    return ''.join(parts)
+    return "".join(parts)
 
 
 def _build_tooltip_js(explanation: str) -> str:
@@ -283,29 +285,29 @@ def _build_tooltip_js(explanation: str) -> str:
 
     tooltip_html = (
         '<div id="qute-ai-tooltip" style="'
-        'position:fixed;bottom:20px;right:20px;'
-        'max-width:440px;min-width:200px;'
-        'background:#1e1e2e;color:#cdd6f4;'
-        'border:1px solid #313244;'
-        'border-left:3px solid #89b4fa;'
-        'border-radius:8px;'
-        'padding:14px 16px 12px 16px;'
-        'font-family:system-ui,-apple-system,sans-serif;'
-        'font-size:13px;line-height:1.65;'
-        'z-index:2147483647;'
-        'box-shadow:0 8px 32px rgba(0,0,0,0.65);'
+        "position:fixed;bottom:20px;right:20px;"
+        "max-width:440px;min-width:200px;"
+        "background:#1e1e2e;color:#cdd6f4;"
+        "border:1px solid #313244;"
+        "border-left:3px solid #89b4fa;"
+        "border-radius:8px;"
+        "padding:14px 16px 12px 16px;"
+        "font-family:system-ui,-apple-system,sans-serif;"
+        "font-size:13px;line-height:1.65;"
+        "z-index:2147483647;"
+        "box-shadow:0 8px 32px rgba(0,0,0,0.65);"
         'pointer-events:none;">'
         # Header row: coloured label + subtle divider
         '<div style="'
-        'display:flex;align-items:center;gap:8px;'
-        'margin-bottom:10px;padding-bottom:8px;'
+        "display:flex;align-items:center;gap:8px;"
+        "margin-bottom:10px;padding-bottom:8px;"
         'border-bottom:1px solid #313244;">'
         '<span style="'
-        'font-size:9px;font-weight:700;letter-spacing:1.2px;'
+        "font-size:9px;font-weight:700;letter-spacing:1.2px;"
         'color:#89b4fa;text-transform:uppercase;">AI Explain</span>'
-        '</div>'
-        f'{formatted}'
-        '</div>'
+        "</div>"
+        f"{formatted}"
+        "</div>"
     )
 
     # json.dumps ensures correct JS string escaping
@@ -328,6 +330,7 @@ def _build_tooltip_js(explanation: str) -> str:
 # Thread management helpers
 # ---------------------------------------------------------------------------
 
+
 def _run_llm_in_thread(
     tab: apitypes.Tab,
     tab_id: int,
@@ -343,9 +346,7 @@ def _run_llm_in_thread(
 
     thread.started.connect(worker.run)
 
-    worker.finished.connect(
-        lambda text: _on_llm_finished(tab, tab_id, gen, text)
-    )
+    worker.finished.connect(lambda text: _on_llm_finished(tab, tab_id, gen, text))
     worker.finished.connect(thread.quit)
 
     worker.error.connect(lambda err: _on_llm_error(tab_id, gen, err))
@@ -430,14 +431,15 @@ def _connect_tab_cleanup(tab: apitypes.Tab) -> None:
 # Extension init hook
 # ---------------------------------------------------------------------------
 
+
 @hook.init()
 def _init(_context: apitypes.InitContext) -> None:
     """Initialize the ai-explain extension on startup."""
     global _client  # noqa: PLW0603
 
     # Register default key bindings so users don't need to touch config.py
-    for mode in ('normal', 'caret'):
-        for key, cmd in [(',e', 'ai-explain'), (',d', 'ai-dismiss')]:
+    for mode in ("normal", "caret"):
+        for key, cmd in [(",e", "ai-explain"), (",d", "ai-dismiss")]:
             seq = keyutils.KeySequence.parse(key)
             configmodule.key_instance.bind(seq, cmd, mode=mode)
 
@@ -454,9 +456,9 @@ def _init(_context: apitypes.InitContext) -> None:
 
     _is_custom_endpoint = (
         _AI_BASE_URL
-        and _AI_BASE_URL != 'https://api.anthropic.com'
-        and 'localhost' not in _AI_BASE_URL
-        and '127.0.0.1' not in _AI_BASE_URL
+        and _AI_BASE_URL != "https://api.anthropic.com"
+        and "localhost" not in _AI_BASE_URL
+        and "127.0.0.1" not in _AI_BASE_URL
     )
     if _is_custom_endpoint:
         message.warning(
@@ -466,7 +468,7 @@ def _init(_context: apitypes.InitContext) -> None:
 
     try:
         kwargs: dict[str, Any] = {"api_key": _AI_API_KEY}
-        if _AI_BASE_URL != 'https://api.anthropic.com':
+        if _AI_BASE_URL != "https://api.anthropic.com":
             kwargs["base_url"] = _AI_BASE_URL
 
         _client = _anthropic_module.Anthropic(**kwargs)
@@ -483,8 +485,9 @@ def _init(_context: apitypes.InitContext) -> None:
 # Commands
 # ---------------------------------------------------------------------------
 
-@cmdutils.register(name='ai-explain')
-@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+
+@cmdutils.register(name="ai-explain")
+@cmdutils.argument("tab", value=cmdutils.Value.cur_tab)
 def ai_explain(tab: apitypes.Tab) -> None:
     """Explain the currently selected text using AI.
 
@@ -516,7 +519,7 @@ def ai_explain(tab: apitypes.Tab) -> None:
     _connect_tab_cleanup(tab)
 
     def _on_selection(selected: Any) -> None:
-        selected_text = (selected or '').strip()
+        selected_text = (selected or "").strip()
         if not selected_text:
             message.info("ai-explain: select some text first")
             return
@@ -527,13 +530,15 @@ def ai_explain(tab: apitypes.Tab) -> None:
         message.info("ai-explain: explaining…")
 
         def _on_context(context: Any) -> None:
-            context_text = (context or '').strip()
+            context_text = (context or "").strip()
 
             def _on_page(page_text: Any) -> None:
-                text = (page_text or '').strip()
+                text = (page_text or "").strip()
                 _LOGGER.debug(
                     "ai-explain: selected=%d, context=%d, page=%d chars",
-                    len(selected_text), len(context_text), len(text),
+                    len(selected_text),
+                    len(context_text),
+                    len(text),
                 )
                 _run_llm_in_thread(tab, tab_id, gen, selected_text, context_text, text)
 
@@ -544,8 +549,8 @@ def ai_explain(tab: apitypes.Tab) -> None:
     tab.run_js_async(_JS_GET_SELECTION, _on_selection)
 
 
-@cmdutils.register(name='ai-dismiss')
-@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+@cmdutils.register(name="ai-dismiss")
+@cmdutils.argument("tab", value=cmdutils.Value.cur_tab)
 def ai_dismiss(tab: apitypes.Tab) -> None:
     """Dismiss the AI explain tooltip from the current page."""
     tab.run_js_async(_JS_DISMISS, world=usertypes.JsWorld.jseval)

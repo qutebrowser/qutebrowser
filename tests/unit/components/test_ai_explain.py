@@ -11,19 +11,19 @@ import pytest
 
 from qutebrowser.components import ai_explain
 from qutebrowser.components.ai_explain import (
+    _JS_DISMISS,
+    _JS_GET_CONTEXT,
+    _JS_GET_SELECTION,
     _build_prompt,
     _build_tooltip_js,
     _claim_pending,
     _env_int,
-    _JS_DISMISS,
-    _JS_GET_SELECTION,
-    _JS_GET_CONTEXT,
 )
-
 
 # ---------------------------------------------------------------------------
 # Checkpoint 4 — Prompt builder
 # ---------------------------------------------------------------------------
+
 
 class TestBuildPrompt:
 
@@ -40,17 +40,17 @@ class TestBuildPrompt:
         assert "full page content" in result
 
     def test_page_text_truncated_at_limit(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_AI_MAX_PAGE_CHARS', 10)
+        monkeypatch.setattr(ai_explain, "_AI_MAX_PAGE_CHARS", 10)
         long_page = "x" * 100
         result = _build_prompt("sel", "ctx", long_page)
-        assert '[...truncated]' in result
+        assert "[...truncated]" in result
         # Verify the actual page text portion is capped
-        assert 'x' * 11 not in result
+        assert "x" * 11 not in result
 
     def test_page_text_not_truncated_when_short(self):
         short_page = "short page"
         result = _build_prompt("sel", "ctx", short_page)
-        assert '[...truncated]' not in result
+        assert "[...truncated]" not in result
         assert short_page in result
 
     def test_empty_context_still_produces_prompt(self):
@@ -63,6 +63,7 @@ class TestBuildPrompt:
 # Checkpoint 5 — Tooltip JS builder
 # ---------------------------------------------------------------------------
 
+
 class TestBuildTooltipJs:
 
     def test_returns_string(self):
@@ -71,59 +72,61 @@ class TestBuildTooltipJs:
 
     def test_contains_tooltip_id(self):
         js = _build_tooltip_js("explanation")
-        assert 'qute-ai-tooltip' in js
+        assert "qute-ai-tooltip" in js
 
     def test_html_special_chars_escaped(self):
         js = _build_tooltip_js("<script>alert(1)</script>")
         # Raw <script> tag must not appear unescaped
-        assert '<script>' not in js
+        assert "<script>" not in js
 
     def test_bold_markdown_converted(self):
         js = _build_tooltip_js("This is **important** text")
-        assert '<strong>important</strong>' in js
+        assert "<strong>important</strong>" in js
 
     def test_js_string_is_valid_json_encoded(self):
-        explanation = 'Text with "quotes" and \'apostrophes\' and\nnewlines'
+        explanation = "Text with \"quotes\" and 'apostrophes' and\nnewlines"
         js = _build_tooltip_js(explanation)
         # The HTML must be wrapped as a valid JSON string inside the JS
-        assert 'innerHTML' in js
+        assert "innerHTML" in js
 
     def test_auto_dismiss_timeout_present(self):
         js = _build_tooltip_js("test")
-        assert 'setTimeout' in js
-        assert '15000' in js
+        assert "setTimeout" in js
+        assert "15000" in js
 
     def test_dismiss_js_removes_by_id(self):
-        assert 'qute-ai-tooltip' in _JS_DISMISS
-        assert 'remove()' in _JS_DISMISS
+        assert "qute-ai-tooltip" in _JS_DISMISS
+        assert "remove()" in _JS_DISMISS
 
 
 # ---------------------------------------------------------------------------
 # Checkpoint 3 — Config / init
 # ---------------------------------------------------------------------------
 
+
 class TestConfig:
 
     def test_api_key_read_from_env(self, monkeypatch):
-        monkeypatch.setenv('AI_API_KEY', 'sk-ant-test-key')
+        monkeypatch.setenv("AI_API_KEY", "sk-ant-test-key")
         # Re-read: the module reads at import time, so test the pattern
-        key = os.environ.get('AI_API_KEY', '') if False else 'sk-ant-test-key'
-        assert key == 'sk-ant-test-key'
+        key = os.environ.get("AI_API_KEY", "") if False else "sk-ant-test-key"
+        assert key == "sk-ant-test-key"
 
     def test_model_defaults_to_haiku(self):
         import os
-        model = os.environ.get('AI_MODEL', 'claude-haiku-4-5')
-        assert model == 'claude-haiku-4-5'
+
+        model = os.environ.get("AI_MODEL", "claude-haiku-4-5")
+        assert model == "claude-haiku-4-5"
 
     def test_missing_api_key_disables_feature(self, monkeypatch):
         """When AI_API_KEY is missing, _init should show a warning and not set _client."""
-        monkeypatch.setattr(ai_explain, '_AI_API_KEY', '')
-        monkeypatch.setattr(ai_explain, '_client', None)
-        monkeypatch.setattr(ai_explain.configmodule, 'key_instance', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_AI_API_KEY", "")
+        monkeypatch.setattr(ai_explain, "_client", None)
+        monkeypatch.setattr(ai_explain.configmodule, "key_instance", mock.MagicMock())
 
         warned = []
         monkeypatch.setattr(
-            'qutebrowser.api.message.warning',
+            "qutebrowser.api.message.warning",
             lambda msg: warned.append(msg),
         )
 
@@ -131,17 +134,17 @@ class TestConfig:
         ai_explain._init(ctx)
 
         assert ai_explain._client is None
-        assert any('AI_API_KEY' in w for w in warned)
+        assert any("AI_API_KEY" in w for w in warned)
 
     def test_missing_anthropic_package_shows_warning(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_anthropic_module', None)
-        monkeypatch.setattr(ai_explain, '_AI_API_KEY', 'sk-ant-fake')
-        monkeypatch.setattr(ai_explain, '_client', None)
-        monkeypatch.setattr(ai_explain.configmodule, 'key_instance', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_anthropic_module", None)
+        monkeypatch.setattr(ai_explain, "_AI_API_KEY", "sk-ant-fake")
+        monkeypatch.setattr(ai_explain, "_client", None)
+        monkeypatch.setattr(ai_explain.configmodule, "key_instance", mock.MagicMock())
 
         warned = []
         monkeypatch.setattr(
-            'qutebrowser.api.message.warning',
+            "qutebrowser.api.message.warning",
             lambda msg: warned.append(msg),
         )
 
@@ -149,30 +152,33 @@ class TestConfig:
         ai_explain._init(ctx)
 
         assert ai_explain._client is None
-        assert any('anthropic' in w for w in warned)
+        assert any("anthropic" in w for w in warned)
 
     def test_external_endpoint_shows_warning(self, monkeypatch):
         fake_anthropic = mock.MagicMock()
-        monkeypatch.setattr(ai_explain, '_anthropic_module', fake_anthropic)
-        monkeypatch.setattr(ai_explain, '_AI_API_KEY', 'sk-ant-fake')
-        monkeypatch.setattr(ai_explain, '_AI_BASE_URL', 'https://external.llm.example.com')
-        monkeypatch.setattr(ai_explain.configmodule, 'key_instance', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_anthropic_module", fake_anthropic)
+        monkeypatch.setattr(ai_explain, "_AI_API_KEY", "sk-ant-fake")
+        monkeypatch.setattr(
+            ai_explain, "_AI_BASE_URL", "https://external.llm.example.com"
+        )
+        monkeypatch.setattr(ai_explain.configmodule, "key_instance", mock.MagicMock())
 
         warned = []
         monkeypatch.setattr(
-            'qutebrowser.api.message.warning',
+            "qutebrowser.api.message.warning",
             lambda msg: warned.append(msg),
         )
 
         ctx = mock.MagicMock()
         ai_explain._init(ctx)
 
-        assert any('external' in w for w in warned)
+        assert any("external" in w for w in warned)
 
 
 # ---------------------------------------------------------------------------
 # Checkpoint 6 — ai_explain command guards
 # ---------------------------------------------------------------------------
+
 
 class TestAiExplainCommand:
 
@@ -183,26 +189,26 @@ class TestAiExplainCommand:
         return tab
 
     def test_private_tab_shows_warning(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_client', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
 
         warned = []
         monkeypatch.setattr(
-            'qutebrowser.api.message.warning',
+            "qutebrowser.api.message.warning",
             lambda msg: warned.append(msg),
         )
 
         tab = self._make_tab(is_private=True)
         ai_explain.ai_explain(tab)
 
-        assert any('private' in w for w in warned)
+        assert any("private" in w for w in warned)
         tab.run_js_async.assert_not_called()
 
     def test_no_client_shows_warning(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_client', None)
+        monkeypatch.setattr(ai_explain, "_client", None)
 
         warned = []
         monkeypatch.setattr(
-            'qutebrowser.api.message.warning',
+            "qutebrowser.api.message.warning",
             lambda msg: warned.append(msg),
         )
 
@@ -213,12 +219,12 @@ class TestAiExplainCommand:
         tab.run_js_async.assert_not_called()
 
     def test_double_fire_blocked(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_client', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
         tab = self._make_tab(tab_id=99)
 
         infos = []
         monkeypatch.setattr(
-            'qutebrowser.api.message.info',
+            "qutebrowser.api.message.info",
             lambda msg: infos.append(msg),
         )
 
@@ -226,87 +232,88 @@ class TestAiExplainCommand:
         ai_explain._pending.add(99)
         try:
             ai_explain.ai_explain(tab)
-            assert any('wait' in i for i in infos)
+            assert any("wait" in i for i in infos)
             tab.run_js_async.assert_not_called()
         finally:
             ai_explain._pending.discard(99)
 
     def test_runs_js_to_get_selection(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_client', mock.MagicMock())
-        monkeypatch.setattr(
-            'qutebrowser.api.message.info', lambda msg: None
-        )
-        monkeypatch.setattr(
-            'qutebrowser.api.message.warning', lambda msg: None
-        )
+        monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
+        monkeypatch.setattr("qutebrowser.api.message.info", lambda msg: None)
+        monkeypatch.setattr("qutebrowser.api.message.warning", lambda msg: None)
 
         tab = self._make_tab(tab_id=77)
         ai_explain.ai_explain(tab)
 
         # The first JS call must be the selection getter
         first_call_code = tab.run_js_async.call_args_list[0][0][0]
-        assert 'getSelection' in first_call_code
+        assert "getSelection" in first_call_code
 
 
 # ---------------------------------------------------------------------------
 # Checkpoint 7 — Secrets guardrail
 # ---------------------------------------------------------------------------
 
+
 class TestSecretsGuardrail:
 
     def test_no_api_key_in_source(self):
         """Confirm the source file contains no hardcoded API key patterns."""
         import pathlib
-        source = pathlib.Path(ai_explain.__file__).read_text(encoding='utf-8')
+
+        source = pathlib.Path(ai_explain.__file__).read_text(encoding="utf-8")
         # Anthropic key pattern
-        assert 'sk-ant-' not in source
+        assert "sk-ant-" not in source
         # OpenAI key pattern
-        assert 'sk-proj-' not in source
+        assert "sk-proj-" not in source
 
     def test_api_key_not_in_log_messages(self):
         """Confirm _AI_API_KEY is never formatted into log messages."""
         import pathlib
-        source = pathlib.Path(ai_explain.__file__).read_text(encoding='utf-8')
-        assert '_AI_API_KEY' not in source.replace(
-            "_AI_API_KEY: str = os.environ.get('AI_API_KEY', '')", ''
-        ).replace("if not _AI_API_KEY:", '').replace(
-            'kwargs["api_key"] = _AI_API_KEY', ''
-        ).replace('kwargs: dict[str, Any] = {"api_key": _AI_API_KEY}', '')
+
+        source = pathlib.Path(ai_explain.__file__).read_text(encoding="utf-8")
+        assert "_AI_API_KEY" not in source.replace(
+            '_AI_API_KEY: str = os.environ.get("AI_API_KEY", "")', ""
+        ).replace("if not _AI_API_KEY:", "").replace(
+            'kwargs: dict[str, Any] = {"api_key": _AI_API_KEY}', ""
+        )
 
 
 # ---------------------------------------------------------------------------
 # Checkpoint 8 — _env_int safe parsing
 # ---------------------------------------------------------------------------
 
+
 class TestEnvInt:
 
     def test_valid_integer_returned(self, monkeypatch):
-        monkeypatch.setenv('_TEST_ENV_INT', '42')
-        assert _env_int('_TEST_ENV_INT', 99) == 42
+        monkeypatch.setenv("_TEST_ENV_INT", "42")
+        assert _env_int("_TEST_ENV_INT", 99) == 42
 
     def test_missing_var_returns_default(self, monkeypatch):
-        monkeypatch.delenv('_TEST_ENV_INT', raising=False)
-        assert _env_int('_TEST_ENV_INT', 99) == 99
+        monkeypatch.delenv("_TEST_ENV_INT", raising=False)
+        assert _env_int("_TEST_ENV_INT", 99) == 99
 
     def test_invalid_value_returns_default(self, monkeypatch, caplog):
-        monkeypatch.setenv('_TEST_ENV_INT', 'abc')
-        with caplog.at_level(logging.WARNING, logger='ai_explain'):
-            assert _env_int('_TEST_ENV_INT', 99) == 99
+        monkeypatch.setenv("_TEST_ENV_INT", "abc")
+        with caplog.at_level(logging.WARNING, logger="ai_explain"):
+            assert _env_int("_TEST_ENV_INT", 99) == 99
 
     def test_invalid_value_logs_warning(self, monkeypatch, caplog):
-        monkeypatch.setenv('_TEST_ENV_INT', 'bad')
-        with caplog.at_level(logging.WARNING, logger='ai_explain'):
-            _env_int('_TEST_ENV_INT', 5)
-        assert any('not a valid integer' in r.message for r in caplog.records)
+        monkeypatch.setenv("_TEST_ENV_INT", "bad")
+        with caplog.at_level(logging.WARNING, logger="ai_explain"):
+            _env_int("_TEST_ENV_INT", 5)
+        assert any("not a valid integer" in r.message for r in caplog.records)
 
     def test_empty_string_returns_default(self, monkeypatch):
-        monkeypatch.setenv('_TEST_ENV_INT', '')
-        assert _env_int('_TEST_ENV_INT', 7) == 7
+        monkeypatch.setenv("_TEST_ENV_INT", "")
+        assert _env_int("_TEST_ENV_INT", 7) == 7
 
 
 # ---------------------------------------------------------------------------
 # Checkpoint 9 — Empty selection guard
 # ---------------------------------------------------------------------------
+
 
 class TestEmptySelection:
 
@@ -317,49 +324,54 @@ class TestEmptySelection:
         return tab
 
     def test_empty_selection_shows_info(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_client', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
 
         infos = []
-        monkeypatch.setattr('qutebrowser.api.message.info', lambda msg: infos.append(msg))
-        monkeypatch.setattr('qutebrowser.api.message.warning', lambda msg: None)
+        monkeypatch.setattr(
+            "qutebrowser.api.message.info", lambda msg: infos.append(msg)
+        )
+        monkeypatch.setattr("qutebrowser.api.message.warning", lambda msg: None)
 
         tab = self._make_tab()
 
         # Capture the JS callback passed to run_js_async and invoke it with ''
         def fake_run_js(code, callback=None, **kwargs):
             if callback is not None:
-                callback('')  # simulate empty selection
+                callback("")  # simulate empty selection
 
         tab.run_js_async.side_effect = fake_run_js
         ai_explain.ai_explain(tab)
 
-        assert any('select some text' in i for i in infos)
+        assert any("select some text" in i for i in infos)
         # Must not be added to _pending
         assert tab.tab_id not in ai_explain._pending
 
     def test_whitespace_only_selection_shows_info(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_client', mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
 
         infos = []
-        monkeypatch.setattr('qutebrowser.api.message.info', lambda msg: infos.append(msg))
-        monkeypatch.setattr('qutebrowser.api.message.warning', lambda msg: None)
+        monkeypatch.setattr(
+            "qutebrowser.api.message.info", lambda msg: infos.append(msg)
+        )
+        monkeypatch.setattr("qutebrowser.api.message.warning", lambda msg: None)
 
         tab = self._make_tab()
 
         def fake_run_js(code, callback=None, **kwargs):
             if callback is not None:
-                callback('   ')  # whitespace only
+                callback("   ")  # whitespace only
 
         tab.run_js_async.side_effect = fake_run_js
         ai_explain.ai_explain(tab)
 
-        assert any('select some text' in i for i in infos)
+        assert any("select some text" in i for i in infos)
         assert tab.tab_id not in ai_explain._pending
 
 
 # ---------------------------------------------------------------------------
 # Checkpoint 10 — Generation counter (stale result suppression)
 # ---------------------------------------------------------------------------
+
 
 class TestClaimPending:
 
@@ -392,8 +404,8 @@ class TestClaimPending:
 
     def test_stale_on_llm_finished_does_not_inject_js(self, monkeypatch):
         """Navigation-superseded callback must not touch the page."""
-        monkeypatch.setattr(ai_explain, '_tab_generation', {200: 5})
-        monkeypatch.setattr(ai_explain, '_pending', set())
+        monkeypatch.setattr(ai_explain, "_tab_generation", {200: 5})
+        monkeypatch.setattr(ai_explain, "_pending", set())
 
         tab = mock.MagicMock()
         # gen=4 is stale (current is 5)
@@ -402,11 +414,13 @@ class TestClaimPending:
         tab.run_js_async.assert_not_called()
 
     def test_stale_on_llm_error_does_not_surface_error(self, monkeypatch):
-        monkeypatch.setattr(ai_explain, '_tab_generation', {200: 5})
-        monkeypatch.setattr(ai_explain, '_pending', set())
+        monkeypatch.setattr(ai_explain, "_tab_generation", {200: 5})
+        monkeypatch.setattr(ai_explain, "_pending", set())
 
         errors = []
-        monkeypatch.setattr('qutebrowser.api.message.error', lambda msg: errors.append(msg))
+        monkeypatch.setattr(
+            "qutebrowser.api.message.error", lambda msg: errors.append(msg)
+        )
 
         ai_explain._on_llm_error(200, 4, "some error")
 
@@ -417,12 +431,13 @@ class TestClaimPending:
 # Checkpoint 11 — Empty LLM response guard
 # ---------------------------------------------------------------------------
 
+
 class TestEmptyLLMResponse:
 
     def _make_fake_client(self, text_content):
         """Build a mock _client whose messages.stream() context returns *text_content*."""
         fake_block = mock.MagicMock()
-        fake_block.type = 'text'
+        fake_block.type = "text"
         fake_block.text = text_content
 
         fake_message = mock.MagicMock()
@@ -439,29 +454,29 @@ class TestEmptyLLMResponse:
         return fake_client
 
     def test_empty_response_emits_error_signal(self, monkeypatch):
-        fake_client = self._make_fake_client('')  # empty string
-        monkeypatch.setattr(ai_explain, '_client', fake_client)
-        monkeypatch.setattr(ai_explain, '_anthropic_module', mock.MagicMock())
+        fake_client = self._make_fake_client("")  # empty string
+        monkeypatch.setattr(ai_explain, "_client", fake_client)
+        monkeypatch.setattr(ai_explain, "_anthropic_module", mock.MagicMock())
 
-        worker = ai_explain._LLMWorker('term', 'ctx', 'page')
+        worker = ai_explain._LLMWorker("term", "ctx", "page")
         errors = []
         worker.error.connect(lambda msg: errors.append(msg))
 
         worker.run()
 
         assert errors
-        assert 'no explanation' in errors[0]
+        assert "no explanation" in errors[0]
 
     def test_whitespace_only_response_emits_error_signal(self, monkeypatch):
-        fake_client = self._make_fake_client('   \n\n   ')
-        monkeypatch.setattr(ai_explain, '_client', fake_client)
-        monkeypatch.setattr(ai_explain, '_anthropic_module', mock.MagicMock())
+        fake_client = self._make_fake_client("   \n\n   ")
+        monkeypatch.setattr(ai_explain, "_client", fake_client)
+        monkeypatch.setattr(ai_explain, "_anthropic_module", mock.MagicMock())
 
-        worker = ai_explain._LLMWorker('term', 'ctx', 'page')
+        worker = ai_explain._LLMWorker("term", "ctx", "page")
         errors = []
         worker.error.connect(lambda msg: errors.append(msg))
 
         worker.run()
 
         assert errors
-        assert 'no explanation' in errors[0]
+        assert "no explanation" in errors[0]

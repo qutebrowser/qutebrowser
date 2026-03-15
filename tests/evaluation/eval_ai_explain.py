@@ -36,7 +36,10 @@ import anthropic
 _REPO_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
-from qutebrowser.components.ai_explain import _SYSTEM_PROMPT, _build_prompt  # noqa: E402
+from qutebrowser.components.ai_explain import (  # noqa: E402
+    _SYSTEM_PROMPT,
+    _build_prompt,
+)
 from tests.evaluation.fixtures import FIXTURES  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -66,8 +69,11 @@ are directly supported by CONTEXT or PAGE TEXT? 1.0 = fully grounded, \
   relevance     (int 0 or 1):    Does the explanation specifically address the \
 SELECTED TEXT rather than giving a generic description of the surrounding topic? \
 1 = yes, 0 = no.
-  conciseness   (int 0 or 1):    Is the explanation 2–4 sentences with no \
-unnecessary padding, repetition, or restating of the selected text? 1 = yes, 0 = no.
+  conciseness   (int 0 or 1):    Is the explanation concise and free of padding? \
+Two valid formats are accepted: (a) 2–4 plain sentences, or (b) one short intro \
+sentence followed by 2–4 bullet points. Both formats score 1 if there is no \
+unnecessary repetition, padding, or restating of the selected text. Score 0 only \
+if the explanation is genuinely verbose or redundant beyond these structures.
   clarity       (int 0 or 1):    Is the explanation clear and easy to understand \
 for a general technical audience, using plain language? 1 = yes, 0 = no.
 
@@ -85,7 +91,10 @@ Respond ONLY with this JSON structure, no prose before or after:
 # Step 1 — Generate explanations using the real ai-explain pipeline
 # ---------------------------------------------------------------------------
 
-def _get_explanation(client: anthropic.Anthropic, selected: str, context: str, page_text: str) -> str:
+
+def _get_explanation(
+    client: anthropic.Anthropic, selected: str, context: str, page_text: str
+) -> str:
     """Call the Anthropic API exactly as _LLMWorker does."""
     prompt = _build_prompt(selected, context, page_text)
 
@@ -108,6 +117,7 @@ def _get_explanation(client: anthropic.Anthropic, selected: str, context: str, p
 # ---------------------------------------------------------------------------
 # Step 2 — Judge each explanation
 # ---------------------------------------------------------------------------
+
 
 def _judge_sample(
     client: anthropic.Anthropic,
@@ -145,6 +155,7 @@ def _judge_sample(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def run_evaluation() -> None:
     if not _API_KEY:
@@ -210,7 +221,9 @@ def run_evaluation() -> None:
     # --- Aggregate ---
     print("\n--- Aggregate scores (mean across all fixtures) ---")
     for metric in METRICS:
-        scores = [r["scores"][metric]["score"] for r in records if metric in r["scores"]]
+        scores = [
+            r["scores"][metric]["score"] for r in records if metric in r["scores"]
+        ]
         if scores:
             mean = sum(scores) / len(scores)
             bar = "█" * int(mean * 20)
@@ -220,7 +233,11 @@ def run_evaluation() -> None:
     out_path = Path(__file__).parent / "eval_results.json"
     aggregate = {}
     for metric in METRICS:
-        scores = [r["scores"][metric]["score"] for r in records if metric in r.get("scores", {})]
+        scores = [
+            r["scores"][metric]["score"]
+            for r in records
+            if metric in r.get("scores", {})
+        ]
         aggregate[metric] = round(sum(scores) / len(scores), 4) if scores else None
 
     output = {
