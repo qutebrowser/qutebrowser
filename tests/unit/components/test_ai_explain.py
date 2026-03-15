@@ -5,10 +5,11 @@
 import json
 import logging
 import os
-import unittest.mock as mock
+from unittest import mock
 
 import pytest
 
+from qutebrowser.api import message
 from qutebrowser.components import ai_explain
 from qutebrowser.components.ai_explain import (
     _JS_DISMISS,
@@ -119,39 +120,59 @@ class TestConfig:
         assert model == "claude-haiku-4-5"
 
     def test_missing_api_key_disables_feature(self, monkeypatch):
-        """When AI_API_KEY is missing, _init should show a warning and not set _client."""
+        """When AI_API_KEY is missing, _init must not set _client (no startup warning —
+        warning is deferred to first command invocation to avoid polluting the log
+        for users who don't use the feature)."""
         monkeypatch.setattr(ai_explain, "_AI_API_KEY", "")
         monkeypatch.setattr(ai_explain, "_client", None)
+        monkeypatch.setattr(ai_explain, "_anthropic_module", mock.MagicMock())
         monkeypatch.setattr(ai_explain.configmodule, "key_instance", mock.MagicMock())
-
-        warned = []
-        monkeypatch.setattr(
-            "qutebrowser.api.message.warning",
-            lambda msg: warned.append(msg),
-        )
 
         ctx = mock.MagicMock()
         ai_explain._init(ctx)
 
         assert ai_explain._client is None
+
+    def test_missing_api_key_command_shows_warning(self, monkeypatch):
+        """When _client is None because AI_API_KEY is missing, the command warns."""
+        monkeypatch.setattr(ai_explain, "_client", None)
+        monkeypatch.setattr(ai_explain, "_anthropic_module", mock.MagicMock())
+        monkeypatch.setattr(ai_explain, "_AI_API_KEY", "")
+
+        warned = []
+        monkeypatch.setattr(message, "warning", lambda msg: warned.append(msg))
+
+        tab = mock.MagicMock()
+        tab.is_private = False
+        ai_explain.ai_explain(tab)
+
         assert any("AI_API_KEY" in w for w in warned)
 
-    def test_missing_anthropic_package_shows_warning(self, monkeypatch):
+    def test_missing_anthropic_package_disables_feature(self, monkeypatch):
+        """When anthropic is not installed, _init must not set _client (no startup
+        warning — deferred to first command invocation)."""
         monkeypatch.setattr(ai_explain, "_anthropic_module", None)
         monkeypatch.setattr(ai_explain, "_AI_API_KEY", "sk-ant-fake")
         monkeypatch.setattr(ai_explain, "_client", None)
         monkeypatch.setattr(ai_explain.configmodule, "key_instance", mock.MagicMock())
 
-        warned = []
-        monkeypatch.setattr(
-            "qutebrowser.api.message.warning",
-            lambda msg: warned.append(msg),
-        )
-
         ctx = mock.MagicMock()
         ai_explain._init(ctx)
 
         assert ai_explain._client is None
+
+    def test_missing_anthropic_package_command_shows_warning(self, monkeypatch):
+        """When _client is None because anthropic is not installed, the command warns."""
+        monkeypatch.setattr(ai_explain, "_client", None)
+        monkeypatch.setattr(ai_explain, "_anthropic_module", None)
+
+        warned = []
+        monkeypatch.setattr(message, "warning", lambda msg: warned.append(msg))
+
+        tab = mock.MagicMock()
+        tab.is_private = False
+        ai_explain.ai_explain(tab)
+
         assert any("anthropic" in w for w in warned)
 
     def test_external_endpoint_shows_warning(self, monkeypatch):
@@ -164,10 +185,7 @@ class TestConfig:
         monkeypatch.setattr(ai_explain.configmodule, "key_instance", mock.MagicMock())
 
         warned = []
-        monkeypatch.setattr(
-            "qutebrowser.api.message.warning",
-            lambda msg: warned.append(msg),
-        )
+        monkeypatch.setattr(message, "warning", lambda msg: warned.append(msg))
 
         ctx = mock.MagicMock()
         ai_explain._init(ctx)
@@ -239,8 +257,8 @@ class TestAiExplainCommand:
 
     def test_runs_js_to_get_selection(self, monkeypatch):
         monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
-        monkeypatch.setattr("qutebrowser.api.message.info", lambda msg: None)
-        monkeypatch.setattr("qutebrowser.api.message.warning", lambda msg: None)
+        monkeypatch.setattr(message, "info", lambda msg: None)
+        monkeypatch.setattr(message, "warning", lambda msg: None)
 
         tab = self._make_tab(tab_id=77)
         ai_explain.ai_explain(tab)
@@ -327,10 +345,8 @@ class TestEmptySelection:
         monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
 
         infos = []
-        monkeypatch.setattr(
-            "qutebrowser.api.message.info", lambda msg: infos.append(msg)
-        )
-        monkeypatch.setattr("qutebrowser.api.message.warning", lambda msg: None)
+        monkeypatch.setattr(message, "info", lambda msg: infos.append(msg))
+        monkeypatch.setattr(message, "warning", lambda msg: None)
 
         tab = self._make_tab()
 
@@ -350,10 +366,8 @@ class TestEmptySelection:
         monkeypatch.setattr(ai_explain, "_client", mock.MagicMock())
 
         infos = []
-        monkeypatch.setattr(
-            "qutebrowser.api.message.info", lambda msg: infos.append(msg)
-        )
-        monkeypatch.setattr("qutebrowser.api.message.warning", lambda msg: None)
+        monkeypatch.setattr(message, "info", lambda msg: infos.append(msg))
+        monkeypatch.setattr(message, "warning", lambda msg: None)
 
         tab = self._make_tab()
 

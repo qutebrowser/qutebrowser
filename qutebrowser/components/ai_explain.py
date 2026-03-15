@@ -66,7 +66,7 @@ _AI_TIMEOUT_SECONDS: int = _env_int("AI_TIMEOUT_SECONDS", 30)
 try:
     import anthropic as _anthropic_module
 except ImportError:
-    _anthropic_module = None  # type: ignore[assignment]
+    _anthropic_module = None
 
 # ---------------------------------------------------------------------------
 # Module-level state
@@ -444,14 +444,11 @@ def _init(_context: apitypes.InitContext) -> None:
             configmodule.key_instance.bind(seq, cmd, mode=mode)
 
     if _anthropic_module is None:
-        message.warning(
-            "ai-explain: 'anthropic' package not installed. "
-            "Run: pip install anthropic"
-        )
+        _LOGGER.debug("ai-explain: 'anthropic' package not installed — feature disabled")
         return
 
     if not _AI_API_KEY:
-        message.warning("ai-explain: AI_API_KEY not set — feature disabled")
+        _LOGGER.debug("ai-explain: AI_API_KEY not set — feature disabled")
         return
 
     _is_custom_endpoint = (
@@ -500,9 +497,18 @@ def ai_explain(tab: apitypes.Tab) -> None:
     Requires the AI_API_KEY environment variable to be set.
     """
     if _client is None:
-        message.warning(
-            "ai-explain: not available — set AI_API_KEY and restart qutebrowser"
-        )
+        if _anthropic_module is None:
+            message.warning(
+                "ai-explain: 'anthropic' package not installed — "
+                "run: pip install anthropic"
+            )
+        elif not _AI_API_KEY:
+            message.warning(
+                "ai-explain: AI_API_KEY not set — "
+                "set the environment variable and restart qutebrowser"
+            )
+        else:
+            message.warning("ai-explain: not available — restart qutebrowser")
         return
 
     if tab.is_private:

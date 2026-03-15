@@ -120,6 +120,7 @@ def whitelist_generator():  # noqa: C901
     yield 'qutebrowser.components.braveadblock.on_lists_changed'
     yield 'qutebrowser.components.hostblock.on_method_changed'
     yield 'qutebrowser.components.braveadblock.on_method_changed'
+    yield 'qutebrowser.components.ai_explain._init'
 
     # used in type comments
     yield 'pending_download_type'

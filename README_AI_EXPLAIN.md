@@ -308,9 +308,9 @@ validated end-to-end.
 
 **Observability** — all major steps logged at DEBUG level; every error surfaces to the user via `message.error()` or `message.warning()`; token usage logged after each call.
 
-**Tests** — 38 unit tests covering prompt builder, config loading, all error handlers, guardrails, generation-counter logic, empty selection, and empty LLM response. Two gaps remain: end-to-end integration test with a fully mocked `anthropic.Anthropic` client, and automation of the manual test matrix.
+**Tests** — 40 unit tests covering prompt builder, config loading, all error handlers, guardrails, generation-counter logic, empty selection, and empty LLM response. Two gaps remain: end-to-end integration test with a fully mocked `anthropic.Anthropic` client, and automation of the manual test matrix.
 
-**Lint/style** — black, isort, and flake8 all clean.
+**Lint/style** — black, isort, flake8, mypy (strict), and vulture all clean.
 
 **Documentation** — README claims match the current implementation and point to reproducible artifacts.
 
@@ -318,10 +318,12 @@ validated end-to-end.
 
 | Check | Command | Result |
 |---|---|---|
-| Unit tests | `pytest -q tests/unit/components/test_ai_explain.py` | **38 passed** |
+| Unit tests | `pytest -q tests/unit/components/test_ai_explain.py` | **40 passed** |
 | Formatting | `black --check qutebrowser/components/ai_explain.py tests/unit/components/test_ai_explain.py` | **clean** |
 | Import order | `isort --check --profile black qutebrowser/components/ai_explain.py tests/unit/components/test_ai_explain.py` | **clean** |
 | Lint | `flake8 qutebrowser/components/ai_explain.py --max-complexity=10` | **clean** |
+| Type check | `mypy qutebrowser/components/ai_explain.py` | **clean** |
+| Dead code | `python scripts/dev/run_vulture.py qutebrowser/components/ai_explain.py` | **clean** |
 | LLM eval | `python tests/evaluation/eval_ai_explain.py` | see table below |
 
 | Metric | Score |
@@ -355,7 +357,7 @@ Remaining gap: inline `` `code` `` → `<code>` rendering is not yet implemented
 
 **4. Qt threading lifecycle tests.**
 What remains untested at the Qt level is ABA-safe thread entry eviction and the
-behaviour when a `QThread` finishes after a new request has already started.
+behavior when a `QThread` finishes after a new request has already started.
 These require `QSignalSpy` and a live Qt event loop, which the current pytest
 setup does not provide.
 

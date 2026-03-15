@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""LLM-as-a-judge evaluation of ai-explain explanation quality.
+r"""LLM-as-a-judge evaluation of ai-explain explanation quality.
 
 Uses RAGAS for dataset structure and a custom structured Claude judge
 that returns both a score AND a reason for each metric:

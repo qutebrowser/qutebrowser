@@ -12,7 +12,8 @@ graft misc/requirements
 recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
-include LICENSE doc/* README.asciidoc
+include LICENSE doc/* README.asciidoc README_AI_EXPLAIN.md
+recursive-include docs *.png
 include misc/org.qutebrowser.qutebrowser.desktop
 include misc/org.qutebrowser.qutebrowser.appdata.xml
 include misc/Makefile
