@@ -197,6 +197,9 @@ class Command(misc.CommandLineEdit):
             if not should_exclude:
                 self.history.append(text)
 
+        if not self.prefix() == ':':
+            self.history.append(text)
+
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'cmd accept')
