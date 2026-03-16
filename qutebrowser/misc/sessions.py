@@ -6,8 +6,6 @@
 
 import os
 import os.path
-import itertools
-import urllib
 import shutil
 import pathlib
 from typing import Any, Optional, Union, cast
@@ -231,6 +229,15 @@ class SessionManager(QObject):
             active: Whether the tab is currently active.
             with_history: Include the tab's history.
         """
+        if tab.data.lazy_session_data is not None:
+            # Tab was never loaded — preserve the original session data
+            data = dict(tab.data.lazy_session_data)
+            if active:
+                data['active'] = True
+            else:
+                data.pop('active', None)
+            return data
+
         data: _JsonType = {'history': []}
         if active:
             data['active'] = True
@@ -377,18 +384,8 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
-        lazy_load: MutableSequence[_JsonType] = []
-        # use len(data['history'])
-        # -> dropwhile empty if not session.lazy_session
-        lazy_index = len(data['history'])
-        gen = itertools.chain(
-            itertools.takewhile(lambda _: not lazy_load,
-                                enumerate(data['history'])),
-            enumerate(lazy_load),
-            itertools.dropwhile(lambda i: i[0] < lazy_index,
-                                enumerate(data['history'])))
 
-        for i, histentry in gen:
+        for i, histentry in enumerate(data['history']):
             user_data = {}
 
             if 'zoom' in data:
@@ -411,20 +408,6 @@ class SessionManager(QObject):
 
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
-
-            if (config.val.session.lazy_restore and
-                    histentry.get('active', False) and
-                    not histentry['url'].startswith('qute://back')):
-                # remove "active" mark and insert back page marked as active
-                lazy_index = i + 1
-                lazy_load.append({
-                    'title': histentry['title'],
-                    'url':
-                        'qute://back#' +
-                        urllib.parse.quote(histentry['title']),
-                    'active': True
-                })
-                histentry['active'] = False
 
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
@@ -463,10 +446,24 @@ class SessionManager(QObject):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
+        lazy_restore = config.val.session.lazy_restore
         for i, tab in enumerate(win['tabs']):
             new_tab = tabbed_browser.tabopen(background=False)
-            self._load_tab(new_tab, tab)
-            if tab.get('active', False):
+            is_active = tab.get('active', False)
+
+            if lazy_restore and not is_active:
+                # Defer loading: store session data, set title for tab bar
+                new_tab.data.lazy_session_data = tab
+                for histentry in reversed(tab.get('history', [])):
+                    if histentry.get('active', False):
+                        new_tab.title_changed.emit(histentry.get('title', ''))
+                        if 'pinned' in histentry:
+                            new_tab.data.pinned = histentry['pinned']
+                        break
+            else:
+                self._load_tab(new_tab, tab)
+
+            if is_active:
                 tab_to_focus = i
             if new_tab.data.pinned:
                 new_tab.set_pinned(True)

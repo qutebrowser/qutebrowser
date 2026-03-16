@@ -132,6 +132,7 @@ class TabData:
     input_mode: usertypes.KeyMode = usertypes.KeyMode.normal
     last_navigation: Optional[usertypes.NavigationRequest] = None
     splitter: Optional[miscwidgets.InspectorSplitter] = None
+    lazy_session_data: Optional[dict] = None
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
