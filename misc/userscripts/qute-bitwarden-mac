@@ -37,6 +37,13 @@ The session key will be cached in macOS Keychain for the duration specified by
 To use in qutebrowser, run: `spawn --userscript qute-bitwarden-mac`
 """
 
+EPILOG = """Dependencies: tldextract (Python 3 module), pyperclip (optional
+Python module, used for TOTP codes), Bitwarden CLI (1.7.4 is known to work
+but older versions may well also work)
+
+WARNING: The login details are viewable as plaintext in qutebrowser's debug log
+(qute://log) and might be shared if you decide to submit a crash report!"""
+
 import argparse
 import enum
 import functools
