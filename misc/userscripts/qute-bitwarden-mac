@@ -1,4 +1,4 @@
-#!/Users/benfrancom/.qutebrowser/.venv/bin/python3
+#!/usr/bin/env python3
 
 # Ben Francom (bfrancom) created based on qutebrowser's qute-bitwarden userscript by Chris Braun (cryzed)
 # SPDX-License-Identifier: GPL-3.0-or-later
