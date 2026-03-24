@@ -79,11 +79,13 @@ def main():
     # If we have an exception after here, we don't want the qutebrowser
     # exception hook to take over.
     sys.excepthook = sys.__excepthook__
-    profiler.dump_stats(profilefile)
 
     if args.line_profiler:
         profiler.print_stats()
         sys.exit(0)
+
+    profiler.dump_stats(profilefile)
+
     if args.profile_tool == 'none':
         print("Profile data written to {}".format(profilefile))
     elif args.profile_tool == 'gprof2dot':
