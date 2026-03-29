@@ -193,44 +193,12 @@ def download() -> str:
 
 def _init_runtime(args: Optional[argparse.Namespace]) -> None:
     """Initialize location for runtime data."""
-    if utils.is_mac or utils.is_windows:
-        # RuntimeLocation is a weird path on macOS and Windows.
-        typ = QStandardPaths.StandardLocation.TempLocation
-    else:
-        typ = QStandardPaths.StandardLocation.RuntimeLocation
+    from qutebrowser.misc.ipc_client import _get_runtime_dir
 
-    path = _from_args(typ, args)
+    basedir = getattr(args, 'basedir', None)
+    path = _get_runtime_dir(basedir, appname=APPNAME)
     if path is None:
-        try:
-            path = _writable_location(typ)
-        except EmptyValueError:
-            # Fall back to TempLocation when RuntimeLocation is misconfigured
-            if typ == QStandardPaths.StandardLocation.TempLocation:
-                raise
-            path = _writable_location(  # pragma: no cover
-                QStandardPaths.StandardLocation.TempLocation)
-
-        # This is generic, but per-user.
-        # _writable_location makes sure we have a qutebrowser-specific subdir.
-        #
-        # For TempLocation:
-        # "The returned value might be application-specific, shared among
-        # other applications for this user, or even system-wide."
-        #
-        # Unfortunately this path could get too long for sockets (which have a
-        # maximum length of 104 chars), so we don't add the username here...
-
-        if version.is_flatpak():
-            # We need a path like
-            # /run/user/1000/app/org.qutebrowser.qutebrowser rather than
-            # /run/user/1000/qutebrowser on Flatpak, since that's bind-mounted
-            # in a way that it is accessible by any other qutebrowser
-            # instances.
-            *parts, app_name = os.path.split(path)
-            assert app_name == APPNAME, app_name
-            flatpak_id = version.flatpak_id()
-            assert flatpak_id is not None
-            path = os.path.join(*parts, 'app', flatpak_id)
+        raise EmptyValueError("Could not determine runtime directory!")
 
     _create(path)
     _locations[_Location.runtime] = path
@@ -290,7 +258,6 @@ def _from_args(
         QStandardPaths.StandardLocation.AppLocalDataLocation: 'data',
         QStandardPaths.StandardLocation.CacheLocation: 'cache',
         QStandardPaths.StandardLocation.DownloadLocation: 'download',
-        QStandardPaths.StandardLocation.RuntimeLocation: 'runtime',
     }
 
     if getattr(args, 'basedir', None) is None:

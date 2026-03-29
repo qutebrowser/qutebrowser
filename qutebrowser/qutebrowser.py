@@ -19,6 +19,7 @@ qutebrowser's initialization process roughly looks like this:
   See the docstring of app.py for details.
 """
 
+import os
 import sys
 import json
 
@@ -41,6 +42,33 @@ check_python_version()
 import argparse
 from qutebrowser.misc import earlyinit
 from qutebrowser.qt import machinery
+
+
+def _fast_ipc_send(args):
+    """Try to send args to a running instance via IPC.
+
+    Uses a lightweight socketname computation to avoid importing heavy
+    qutebrowser modules, then delegates to the shared send_to_running_instance.
+
+    Returns True if successfully sent, False otherwise.
+    """
+    # temp basedir means new instance
+    if getattr(args, 'temp_basedir', False):
+        return False
+
+    # --version should go through the normal path
+    if getattr(args, 'version', False):
+        return False
+
+    from qutebrowser.misc.ipc_client import _get_socketname, send_to_running_instance
+    socketname = _get_socketname(getattr(args, 'basedir', None))
+    if socketname is None or not os.path.exists(socketname):
+        return False
+    return send_to_running_instance(
+        socketname,
+        getattr(args, 'command', []),
+        getattr(args, 'target', None),
+    )
 
 
 def get_argparser():
@@ -227,6 +255,12 @@ def main():
     args = parser.parse_args(argv)
     if args.json_args is not None:
         args = _unpack_json_args(args)
+
+    # Fast path: try to send to a running instance using raw sockets,
+    # avoiding the overhead of importing Qt and all browser modules.
+    if _fast_ipc_send(args):
+        sys.exit(0)
+
     earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # version checking and other early initialization)

@@ -21,6 +21,7 @@ from qutebrowser.qt.test import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
+from qutebrowser.misc import ipc_client
 from qutebrowser.utils import standarddir, utils, version
 from helpers import stubs, testutils
 
@@ -84,6 +85,8 @@ class FakeSocket(QObject):
         _state_val: The value returned for state().
         _connect_successful: The value returned for waitForConnected().
     """
+
+    LocalSocketState = QLocalSocket.LocalSocketState
 
     readyRead = pyqtSignal()  # noqa: N815
     disconnected = pyqtSignal()
@@ -171,7 +174,7 @@ class TestSocketName:
 
     @pytest.fixture(autouse=True)
     def patch_user(self, monkeypatch):
-        monkeypatch.setattr(ipc.getpass, 'getuser', lambda: 'testusername')
+        monkeypatch.setattr(ipc_client.getpass, 'getuser', lambda: 'testusername')
 
     @pytest.mark.parametrize('basedir, expected', WINDOWS_TESTS)
     @pytest.mark.windows
@@ -181,16 +184,16 @@ class TestSocketName:
 
     @pytest.mark.parametrize('basedir, expected', WINDOWS_TESTS)
     def test_windows_on_posix(self, basedir, expected):
-        socketname = ipc._get_socketname_windows(basedir)
+        socketname = ipc_client._get_socketname_windows(basedir)
         assert socketname == expected
 
     def test_windows_broken_getpass(self, monkeypatch):
         def _fake_username():
             raise ImportError
-        monkeypatch.setattr(ipc.getpass, 'getuser', _fake_username)
+        monkeypatch.setattr(ipc_client.getpass, 'getuser', _fake_username)
 
         with pytest.raises(ipc.Error, match='USERNAME'):
-            ipc._get_socketname_windows(basedir=None)
+            ipc_client._get_socketname_windows(basedir=None)
 
     @pytest.mark.mac
     @pytest.mark.parametrize('basedir, expected', [
@@ -205,13 +208,17 @@ class TestSocketName:
 
     @pytest.mark.linux
     @pytest.mark.not_flatpak
-    @pytest.mark.parametrize('basedir, expected', [
-        (None, 'ipc-{}'.format(md5('testusername'))),
-        ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
+    @pytest.mark.parametrize('basedir, expected_dir_suffix, expected', [
+        (None, 'qutebrowser', 'ipc-{}'.format(md5('testusername'))),
+        ('/x', None, 'ipc-{}'.format(md5('testusername-/x'))),
     ])
-    def test_linux(self, basedir, fake_runtime_dir, expected):
+    def test_linux(self, basedir, expected_dir_suffix, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
-        expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)
+        if basedir is not None:
+            expected_path = os.path.join(
+                os.path.abspath(os.path.join(basedir, 'runtime')), expected)
+        else:
+            expected_path = str(fake_runtime_dir / expected_dir_suffix / expected)
         assert socketname == expected_path
 
     # We can't use the fake_flatpak fixture here, because it conflicts with
@@ -230,8 +237,12 @@ class TestSocketName:
             monkeypatch.delenv('FLATPAK_ID', raising=False)
 
         socketname = ipc._get_socketname(basedir)
-        expected_path = str(
-            fake_runtime_dir / 'app' / 'org.qutebrowser.qutebrowser' / expected)
+        if basedir is not None:
+            expected_path = os.path.join(
+                os.path.abspath(os.path.join(basedir, 'runtime')), expected)
+        else:
+            expected_path = str(
+                fake_runtime_dir / 'app' / 'org.qutebrowser.qutebrowser' / expected)
         assert socketname == expected_path
 
     def test_other_unix(self):
@@ -552,7 +563,7 @@ class TestSendToRunningInstance:
                                       timeout=5000) as raw_blocker:
                     with testutils.change_cwd(tmp_path):
                         if not has_cwd:
-                            m = mocker.patch('qutebrowser.misc.ipc.os')
+                            m = mocker.patch('qutebrowser.misc.ipc_client.os')
                             m.getcwd.side_effect = OSError
                         sent = ipc.send_to_running_instance(
                             'qute-test', ['foo'], None)
@@ -635,8 +646,9 @@ class TestSendOrListen:
         target: Optional[str]
 
     @pytest.fixture
-    def args(self):
-        return self.Args(no_err_windows=True, basedir='/basedir/for/testing',
+    def args(self, tmp_path):
+        (tmp_path / 'runtime').mkdir()
+        return self.Args(no_err_windows=True, basedir=str(tmp_path),
                          command=['test'], target=None)
 
     @pytest.fixture
@@ -649,7 +661,7 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalsocket_mock(self, mocker):
-        m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
+        m = mocker.patch('qutebrowser.misc.ipc_client.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
         m.LocalSocketError = QLocalSocket.LocalSocketError
         m.LocalSocketState = QLocalSocket.LocalSocketState
@@ -692,8 +704,8 @@ class TestSendOrListen:
         qlocalsocket_mock().waitForConnected.side_effect = [False, True]
         qlocalsocket_mock().error.side_effect = [
             QLocalSocket.LocalSocketError.ServerNotFoundError,
+            QLocalSocket.LocalSocketError.ServerNotFoundError,  # for debug.qenum_key
             QLocalSocket.LocalSocketError.UnknownSocketError,
-            QLocalSocket.LocalSocketError.UnknownSocketError,  # error() gets called twice
         ]
 
         ret = ipc.send_or_listen(args)
@@ -701,9 +713,9 @@ class TestSendOrListen:
         assert "Got AddressInUseError, trying again." in caplog.messages
 
     @pytest.mark.parametrize('has_error, exc_name, exc_msg', [
-        (True, 'SocketError',
+        (True, 'misc.ipc_client.SocketError',
          'Error while writing to running instance: Error string (ConnectionRefusedError)'),
-        (False, 'AddressInUseError',
+        (False, 'misc.ipc.AddressInUseError',
          'Error while listening to IPC server: Error string (AddressInUseError)'),
     ])
     def test_address_in_use_error(self, qlocalserver_mock, qlocalsocket_mock,
@@ -726,10 +738,10 @@ class TestSendOrListen:
         # If it fails, that's the "not sent" case above.
         qlocalsocket_mock().waitForConnected.side_effect = [False, has_error]
         qlocalsocket_mock().error.side_effect = [
-            QLocalSocket.LocalSocketError.ServerNotFoundError,
-            QLocalSocket.LocalSocketError.ServerNotFoundError,
-            QLocalSocket.LocalSocketError.ConnectionRefusedError,
-            QLocalSocket.LocalSocketError.ConnectionRefusedError,  # error() gets called twice
+            QLocalSocket.LocalSocketError.ServerNotFoundError,  # 1st call check
+            QLocalSocket.LocalSocketError.ServerNotFoundError,  # 1st call qenum_key
+            QLocalSocket.LocalSocketError.ConnectionRefusedError,  # 2nd call check
+            QLocalSocket.LocalSocketError.ConnectionRefusedError,  # 2nd call: SocketError init or qenum_key
         ]
         # For debug.qenum_key() on Qt 5
         value_to_key = qlocalsocket_mock.staticMetaObject.enumerator().valueToKey
@@ -740,7 +752,7 @@ class TestSendOrListen:
                 ipc.send_or_listen(args)
 
         error_msgs = [
-            'Handling fatal misc.ipc.{} with --no-err-windows!'.format(
+            'Handling fatal {} with --no-err-windows!'.format(
                 exc_name),
             '',
             'title: Error while connecting to running instance!',
