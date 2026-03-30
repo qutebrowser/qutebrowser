@@ -25,10 +25,6 @@ Added
 - New `:quickmark-reload` and `:bookmark-reload` commands to reload
   quick-/bookmarks from disk (#8845).
 
-[[v3.6.4]]
-v3.6.4 (unreleased)
--------------------
-
 Fixed
 ~~~~~
 
