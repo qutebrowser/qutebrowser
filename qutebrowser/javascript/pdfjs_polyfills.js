@@ -43,4 +43,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
             return out;
         }
     }
+
+    // Chromium 145 / QtWebEngine 6.12 (?)
+    // https://caniuse.com/mdn-javascript_builtins_map_getorinsertcomputed
+    // https://github.com/tc39/proposal-upsert?tab=readme-ov-file#polyfill
+    if (typeof Map.getOrInsert === "undefined") {
+        Map.prototype.getOrInsert = function(key, defaultValue) {
+            if (!this.has(key)) {
+                this.set(key, defaultValue);
+            }
+            return this.get(key);
+        }
+
+        Map.prototype.getOrInsertComputed = function(key, callbackFunction) {
+            if (!this.has(key)) {
+                this.set(key, callbackFunction(key));
+            }
+            return this.get(key);
+        }
+    }
 })();
