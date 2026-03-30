@@ -28,6 +28,7 @@ Added
 Fixed
 ~~~~~
 
+- Added a workaround for graphic/flickering issues with Qt 6.11.0, AMD graphics and Wayland (#8908).
 - Compatibility with PDF.js >= 5.5.207 (#8885).
 - datalist dropdowns not opening correctly on Wayland/Sway (#8831).
   This was caused by an old workaround for a different QtWebEngine issue,

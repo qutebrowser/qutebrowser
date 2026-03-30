@@ -1138,12 +1138,7 @@ class OpenGLInfo:
 
 @functools.lru_cache(maxsize=1)
 def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
-    """Get the OpenGL vendor used.
-
-    This returns a string such as 'nouveau' or
-    'Intel Open Source Technology Center'; or None if the vendor can't be
-    determined.
-    """
+    """Get the OpenGL vendor used."""
     assert QApplication.instance()
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
