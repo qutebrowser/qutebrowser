@@ -9,4 +9,5 @@ ignore = [
     "qutebrowser/html/doc/*",
     "qutebrowser/html/doc/img/cheatsheet-*.png",
     "*/__pycache__",
+    "misc/dmgbuild/settings.py",
 ]
