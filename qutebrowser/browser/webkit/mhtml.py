@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: Daniel Schadt
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -100,11 +100,11 @@ MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
 # Encode the file using base64 encoding.
-E_BASE64 = email.encoders.encode_base64
+E_BASE64 = email.encoders.encode_base64  # pylint: disable=invalid-name
 
 
 # Encode the file using MIME quoted-printable encoding.
-E_QUOPRI = _encode_quopri_mhtml
+E_QUOPRI = _encode_quopri_mhtml  # pylint: disable=invalid-name
 
 
 class MHTMLWriter:

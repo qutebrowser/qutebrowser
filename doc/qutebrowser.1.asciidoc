@@ -172,5 +172,5 @@ https://matrix.to/#qutebrowser:libera.chat[via Matrix])
 * Github: https://github.com/qutebrowser/qutebrowser
 
 == AUTHOR
-*qutebrowser* was written by Florian Bruhin. All contributors can be found in
+*qutebrowser* was written by Freya Bruhin. All contributors can be found in
 the README file distributed with qutebrowser.

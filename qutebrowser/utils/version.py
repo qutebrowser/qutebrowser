@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -547,6 +547,8 @@ class WebEngineVersions:
     chromium_major: Optional[int] = dataclasses.field(init=False)
 
     # Dates based on https://chromium.googlesource.com/chromium/src/+refs
+    # and/or https://chromereleases.googleblog.com/
+
     _BASES: ClassVar[dict[int, str]] = {
         83: '83.0.4103.122',  # 2020-06-27, Qt 5.15.2
         87: '87.0.4280.144',  # 2021-01-08, Qt 5.15
@@ -562,7 +564,6 @@ class WebEngineVersions:
         134: '134.0.6998.208',  # 2025-04-16, Qt 6.10
     }
 
-    # Dates based on https://chromereleases.googleblog.com/
     _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
         # ====== UNSUPPORTED =====
 
@@ -659,6 +660,10 @@ class WebEngineVersions:
         ## Qt 6.10
         utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
         utils.VersionNumber(6, 10, 1): (_BASES[134], '142.0.7444.162'),  # 2025-11-11
+        utils.VersionNumber(6, 10, 2): (_BASES[134], '144.0.7559.96'),  # 2026-01-17
+
+        ## Qt 6.11
+        utils.VersionNumber(6, 11): (_BASES[134], '146.0.7680.80'),  # 2026-03-13
     }
 
     def __post_init__(self) -> None:
@@ -1133,12 +1138,7 @@ class OpenGLInfo:
 
 @functools.lru_cache(maxsize=1)
 def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
-    """Get the OpenGL vendor used.
-
-    This returns a string such as 'nouveau' or
-    'Intel Open Source Technology Center'; or None if the vendor can't be
-    determined.
-    """
+    """Get the OpenGL vendor used."""
     assert QApplication.instance()
 
     override = os.environ.get('QUTE_FAKE_OPENGL')

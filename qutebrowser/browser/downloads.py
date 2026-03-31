@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -1041,7 +1041,7 @@ class DownloadModel(QAbstractListModel):
             webengine_manager.begin_remove_row.connect(
                 functools.partial(self._on_begin_remove_row, webengine=True))
             webengine_manager.end_insert_row.connect(self.endInsertRows)
-            webengine_manager.end_remove_row.connect(self.endRemoveRows)
+            webengine_manager.end_remove_row.connect(self._on_end_remove_row)
 
     def _all_downloads(self):
         """Combine downloads from both downloaders."""
@@ -1073,6 +1073,9 @@ class DownloadModel(QAbstractListModel):
         self.beginInsertRows(QModelIndex(), idx, idx)
 
     def _on_begin_remove_row(self, idx, webengine=False):
+        if sip.isdeleted(self):
+            # https://github.com/qutebrowser/qutebrowser/issues/5865
+            return
         log.downloads.debug("_on_begin_remove_row with idx {}, "
                             "webengine {}".format(idx, webengine))
         if idx == -1:
@@ -1084,6 +1087,12 @@ class DownloadModel(QAbstractListModel):
             idx += len(self._qtnetwork_manager.downloads)
         self.beginRemoveRows(QModelIndex(), idx, idx)
 
+    def _on_end_remove_row(self):
+        if sip.isdeleted(self):
+            # https://github.com/qutebrowser/qutebrowser/issues/5865
+            return
+        self.endRemoveRows()
+
     def _on_data_changed(self, idx, *, webengine):
         """Called when a downloader's data changed.
 
@@ -1093,6 +1102,9 @@ class DownloadModel(QAbstractListModel):
             webengine: If given, the QtNetwork download length is added to the
                       index.
         """
+        if sip.isdeleted(self):
+            # https://github.com/qutebrowser/qutebrowser/issues/5865
+            return
         if idx == -1:
             start_index = self.index(0, 0)
             end_index = self.last_index()

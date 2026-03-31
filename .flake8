@@ -5,6 +5,7 @@ exclude = .*,__pycache__,resources.py
 # B011: Do not call assert False since python -O removes these calls. Instead
 #       callers should raise AssertionError().
 # B028: Missing stacklevel= for warnings
+# B042: Exception class with `__init__` should pass all args to `super().__init__()`
 # B305: .next() (false-positives)
 # E128: continuation line under-indented for visual indent
 # E226: missing whitespace around arithmetic operator
@@ -47,7 +48,7 @@ exclude = .*,__pycache__,resources.py
 # PT011: pytest.raises(ValueError) is too broad, set the match parameter or use a more specific exception
 # PT012: pytest.raises() block should contain a single simple statement
 ignore =
-    B001,B008,B305,
+    B001,B008,B305,B042,
     E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
     N802,N818,

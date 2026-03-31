@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 # encoding: iso-8859-1
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -41,7 +41,7 @@ ShowUninstDetails hide
 !define PRODUCT_NAME "qutebrowser" ; name of the application as displayed to the user
 !define PROGEXE "qutebrowser.exe" ; main application filename
 !define COMPANY_NAME "qutebrowser.org" ; company, used for registry tree hierarchy
-!define COPYRIGHT "© 2014-2018 Florian Bruhin (The Compiler)"
+!define COPYRIGHT "© 2014-2018 Freya Bruhin (The Compiler)"
 !define TM "qutebrowser is free software under the GNU General Public License"
 !define URL_ABOUT "https://qutebrowser.org/"
 !define URL_UPDATE "https://qutebrowser.org/doc/install.html"

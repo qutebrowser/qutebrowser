@@ -38,6 +38,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-list,bookmark-list>>|Show all bookmarks/quickmarks.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
+|<<bookmarks-reload,bookmarks-reload>>|Reload bookmarks from disk.
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
@@ -98,6 +99,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<quickmark-del,quickmark-del>>|Delete a quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
+|<<quickmarks-reload,quickmarks-reload>>|Reload quickmarks from disk.
 |<<quit,quit>>|Quit qutebrowser.
 |<<reload,reload>>|Reload the current/[count]th tab.
 |<<report,report>>|Report a bug in qutebrowser.
@@ -249,6 +251,10 @@ Load a bookmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[bookmarks-reload]]
+=== bookmarks-reload
+Reload bookmarks from disk.
 
 [[clear-keychain]]
 === clear-keychain
@@ -1104,6 +1110,10 @@ Load a quickmark.
 [[quickmark-save]]
 === quickmark-save
 Save the current page as a quickmark.
+
+[[quickmarks-reload]]
+=== quickmarks-reload
+Reload quickmarks from disk.
 
 [[quit]]
 === quit

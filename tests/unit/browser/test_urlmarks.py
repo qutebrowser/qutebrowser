@@ -111,3 +111,22 @@ def test_save(bm_file, fake_save_manager, qtbot):
         'http://example.com Example Site',
         'http://example.com/notitle ',
     ]
+
+
+def test_reload(bm_file, fake_save_manager, qtbot):
+    bm_file.write('\n'.join([
+        'http://example.com Example Site',
+    ]))
+
+    bm = urlmarks.BookmarkManager()
+
+    bm_file.write('\n'.join([
+        'http://example.org Example Site',
+    ]))
+
+    with qtbot.wait_signal(bm.changed):
+        bm.reload()
+
+    assert list(bm.marks.items()) == [
+        ('http://example.org', 'Example Site'),
+    ]

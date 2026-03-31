@@ -15,16 +15,34 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v3.6.4]]
-v3.6.4 (unreleased)
+[[v3.7.0]]
+v3.7.0 (unreleased)
 -------------------
+
+Added
+~~~~~
+
+- New `:quickmark-reload` and `:bookmark-reload` commands to reload
+  quick-/bookmarks from disk (#8845).
 
 Fixed
 ~~~~~
 
+- Added a workaround for graphic/flickering issues with Qt 6.11.0, AMD graphics and Wayland (#8908).
+- Compatibility with PDF.js >= 5.5.207 (#8885).
 - datalist dropdowns not opening correctly on Wayland/Sway (#8831).
   This was caused by an old workaround for a different QtWebEngine issue,
   which is now disabled for QtWebEngine 6.6.3 and newer.
+- The workaround avoiding Google blocking sign ins from qutebrowser was updated,
+  although it's unclear if this will fix the issue as the behavior is wildly
+  inconsistent.
+- The workaround avoiding crashes with Qt 6.10.1 and
+  `qt.workarounds.disable_hangouts_extension` (or `--version`) has now been
+  extended to Qt 6.11 as well (#8785, #8841).
+- ANSI color codes now don't end up in `commands.asciidoc` anymore when
+  regenerating it using Python 3.14.
+- The `GenericName` in the `.desktop` file is now correct for Ukraiian and
+  Chinese (#8836).
 
 [[v3.6.3]]
 v3.6.3 (2025-11-30)

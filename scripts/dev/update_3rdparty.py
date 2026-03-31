@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # SPDX-FileCopyrightText: Daniel Schadt
-# SPDX-FileCopyrightText: Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# SPDX-FileCopyrightText: Freya Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -121,7 +121,7 @@ def update_pdfjs(target_version=None, legacy=True, gh_token=None):
     try:
         (archive_path, _headers) = urllib.request.urlretrieve(url)
     except urllib.error.HTTPError as error:
-        print("Could not retrieve pdfjs {}: {}".format(version, error))
+        print(f"Could not retrieve pdfjs {version} from {url}: {error}")
         return
     if os.path.isdir(target_path):
         print("Removing old version in {}".format(target_path))

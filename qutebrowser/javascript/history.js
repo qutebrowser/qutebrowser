@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Imran Sobir
-// SPDX-FileCopyrightText: Florian Bruhin (The-Compiler) <me@the-compiler.org>
+// SPDX-FileCopyrightText: Freya Bruhin (The-Compiler) <me@the-compiler.org>
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
