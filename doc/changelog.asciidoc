@@ -25,6 +25,11 @@ Added
 - New `:quickmark-reload` and `:bookmark-reload` commands to reload
   quick-/bookmarks from disk (#8845).
 
+Removed
+~~~~~~~
+
+- The `src2asciidoc.py` development script now needs Python 3.13 or newer.
+
 Fixed
 ~~~~~
 

@@ -85,10 +85,10 @@ class UsageFormatter(argparse.HelpFormatter):
                 return (result, ) * tuple_size
         return fmt
 
-    def _format_actions_usage(self, actions, groups):
-        """Override _format_actions_usage to add asciidoc markup to flags.
+    def _get_actions_usage_parts(self, actions, groups):
+        """Override _get_actions_usage_parts to add asciidoc markup to flags.
 
-        Because argparse.py's _format_actions_usage is very complex, we first
+        Because argparse.py's _get_actions_usage_parts is very complex, we first
         monkey-patch the option strings to include the asciidoc markup, then
         run the original method, then undo the patching.
         """
@@ -97,7 +97,7 @@ class UsageFormatter(argparse.HelpFormatter):
             old_option_strings[action] = action.option_strings[:]
             action.option_strings = ['*{}*'.format(s)
                                      for s in action.option_strings]
-        ret = super()._format_actions_usage(actions, groups)
+        ret = super()._get_actions_usage_parts(actions, groups)
         for action in actions:
             action.option_strings = old_option_strings[action]
         return ret
@@ -560,6 +560,10 @@ def regenerate_cheatsheet():
 def main():
     """Regenerate all documentation."""
     utils.change_cwd()
+    if sys.version_info < (3, 13):
+        print("Python 3.13 or newer is required to run this script!")
+        sys.exit(1)
+
     loader.load_components(skip_hooks=True)
     print("Generating manpage...")
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
