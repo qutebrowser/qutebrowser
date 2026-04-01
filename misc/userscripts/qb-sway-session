@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: sim590
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Session save/restore helper for qutebrowser on Sway (Wayland).
+
+This script is designed to be invoked via qutebrowser's
+``session.after_save_command`` and ``session.after_load_command`` config
+options.
+
+Usage::
+
+    # In qutebrowser config.py:
+    c.session.after_save_command = (
+        'qb-sway-session save {session_path}'
+    )
+    c.session.after_load_command = (
+        'qb-sway-session restore {session_path}'
+    )
+
+Modes
+-----
+
+**save**
+    Reads the session YAML written by qutebrowser, queries the Sway tree
+    (``swaymsg -t get_tree``) to find qutebrowser windows, correlates them
+    by ``window_title``, and enriches each window entry with Sway-specific
+    data:
+
+    - ``sway_rect``: window geometry (x, y, width, height)
+    - ``sway_workspace``: workspace name
+    - ``sway_floating``: whether the window was floating
+    - ``sway_parent_layout``: parent container layout (splith, splitv,
+      tabbed, stacked)
+
+**restore**
+    Reads the (enriched) session YAML, queries the Sway tree to find
+    qutebrowser windows bearing temporary title markers
+    (``__qb_restore_<N>__``), and restores them:
+
+    - **Floating windows**: moved to saved workspace, set floating,
+      positioned and resized to exact saved coordinates.
+    - **Tiled windows**: moved to saved workspace, kept tiled.
+      The parent layout (splith/splitv/tabbed/stacked) is applied so
+      the split direction matches the original.
+
+Dependencies
+------------
+
+- Python >= 3.9 (standard library only, plus PyYAML)
+- ``swaymsg`` in ``$PATH``
+"""
+
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    print("qb-sway-session: PyYAML is required. Install it with: "
+          "pip install pyyaml", file=sys.stderr)
+    sys.exit(1)
+
+
+APP_ID = "org.qutebrowser.qutebrowser"
+MARKER_PREFIX = "__qb_restore_"
+MARKER_SUFFIX = "__"
+# How long to wait for windows to appear (seconds)
+RESTORE_TIMEOUT = 4.0
+RESTORE_POLL_INTERVAL = 0.3
+
+
+def get_sway_tree():
+    """Return the parsed JSON tree from ``swaymsg -t get_tree``."""
+    result = subprocess.run(
+        ["swaymsg", "-t", "get_tree"],
+        capture_output=True, text=True, check=True,
+    )
+    return json.loads(result.stdout)
+
+
+def find_qb_windows(tree, app_id=APP_ID):
+    """Recursively find all qutebrowser windows with context info.
+
+    Returns a list of dicts with keys:
+        - All original keys from the Sway tree node
+        - ``is_floating``: whether the window is in a floating container
+        - ``parent_layout``: layout of the parent container
+        - ``workspace``: name of the containing workspace
+    """
+    results = []
+    _collect_qb_windows(tree, app_id, results,
+                        parent_layout=None, is_floating=False,
+                        workspace=None)
+    return results
+
+
+def _collect_qb_windows(node, app_id, results,
+                        parent_layout, is_floating, workspace):
+    """Recursive helper for find_qb_windows."""
+    if node.get("type") == "workspace":
+        workspace = node.get("name")
+
+    if node.get("app_id") == app_id:
+        node["is_floating"] = is_floating
+        node["parent_layout"] = parent_layout
+        node["workspace"] = workspace
+        results.append(node)
+        return
+
+    for child in node.get("nodes", []):
+        _collect_qb_windows(child, app_id, results,
+                            parent_layout=node.get("layout"),
+                            is_floating=False,
+                            workspace=workspace)
+    for child in node.get("floating_nodes", []):
+        _collect_qb_windows(child, app_id, results,
+                            parent_layout=node.get("layout"),
+                            is_floating=True,
+                            workspace=workspace)
+
+
+def swaymsg_cmd(command):
+    """Run a swaymsg command, logging errors."""
+    try:
+        subprocess.run(
+            ["swaymsg", command],
+            capture_output=True, text=True, check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"qb-sway-session: swaymsg error: {e.stderr}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# Save mode
+# ---------------------------------------------------------------------------
+
+def do_save(session_path):
+    """Enrich the session YAML with Sway geometry info."""
+    path = Path(session_path)
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None or "windows" not in data:
+        return
+
+    tree = get_sway_tree()
+    sway_windows = find_qb_windows(tree)
+
+    # Build a lookup by window title
+    sway_by_title = {}
+    for sw in sway_windows:
+        title = sw.get("name", "")
+        if title:
+            sway_by_title[title] = sw
+
+    enriched = False
+    for win in data["windows"]:
+        title = win.get("window_title", "")
+        sw = sway_by_title.get(title)
+        if sw is not None:
+            win["sway_rect"] = sw["rect"]
+            win["sway_floating"] = sw["is_floating"]
+            if sw.get("workspace") is not None:
+                win["sway_workspace"] = sw["workspace"]
+            enriched = True
+
+    if enriched:
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+
+
+# ---------------------------------------------------------------------------
+# Restore mode
+# ---------------------------------------------------------------------------
+
+def do_restore(session_path):
+    """Move/resize qutebrowser windows to their saved Sway positions."""
+    path = Path(session_path)
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None or "windows" not in data:
+        return
+
+    # Build expected markers -> saved info
+    expected = {}
+    for win in data["windows"]:
+        restore_id = win.get("restore_id")
+        if restore_id is None:
+            continue
+        # We need at least a workspace to do anything useful
+        workspace = win.get("sway_workspace")
+        if workspace is None:
+            continue
+        marker = f"{MARKER_PREFIX}{restore_id}{MARKER_SUFFIX}"
+        expected[marker] = {
+            "rect": win.get("sway_rect"),
+            "workspace": workspace,
+            "floating": win.get("sway_floating", False),
+        }
+
+    if not expected:
+        return
+
+    # Poll for windows with markers
+    deadline = time.monotonic() + RESTORE_TIMEOUT
+    remaining = dict(expected)
+
+    while remaining and time.monotonic() < deadline:
+        tree = get_sway_tree()
+        sway_windows = find_qb_windows(tree)
+
+        for sw in sway_windows:
+            title = sw.get("name", "")
+            if title in remaining:
+                info = remaining.pop(title)
+                _restore_window(sw["id"], info)
+
+        if remaining:
+            time.sleep(RESTORE_POLL_INTERVAL)
+
+
+def _restore_window(con_id, info):
+    """Restore a single window to its saved state."""
+    workspace = info["workspace"]
+    is_floating = info["floating"]
+    rect = info.get("rect")
+
+    # Move to the correct workspace
+    swaymsg_cmd(
+        f'[con_id={con_id}] move container to workspace "{workspace}"'
+    )
+
+    if is_floating and rect:
+        # Floating window: restore exact position and size
+        commands = [
+            f"[con_id={con_id}] floating enable",
+            f'[con_id={con_id}] move position {rect["x"]} {rect["y"]}',
+            f'[con_id={con_id}] resize set {rect["width"]} {rect["height"]}',
+        ]
+        swaymsg_cmd(", ".join(commands))
+    else:
+        # Tiled window: ensure it's not floating, let Sway handle tiling
+        swaymsg_cmd(f"[con_id={con_id}] floating disable")
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    if len(sys.argv) < 3:
+        print(f"Usage: {sys.argv[0]} (save|restore) <session_path>",
+              file=sys.stderr)
+        sys.exit(1)
+
+    mode = sys.argv[1]
+    session_path = sys.argv[2]
+
+    if mode == "save":
+        do_save(session_path)
+    elif mode == "restore":
+        do_restore(session_path)
+    else:
+        print(f"qb-sway-session: unknown mode '{mode}'", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

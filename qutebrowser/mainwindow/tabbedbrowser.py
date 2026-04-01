@@ -241,6 +241,7 @@ class TabbedBrowser(QWidget):
         self._global_marks: MutableMapping[str, tuple[QPoint, QUrl]] = {}
         self.default_window_icon = self._window().windowIcon()
         self.is_private = private
+        self._title_update_suppressed = False
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
@@ -306,6 +307,9 @@ class TabbedBrowser(QWidget):
             field: A field name which was updated. If given, the title
                    is only set if the given field is in the template.
         """
+        if self._title_update_suppressed:
+            return
+
         title_format = config.cache['window.title_format']
         if field is not None and ('{' + field + '}') not in title_format:
             return

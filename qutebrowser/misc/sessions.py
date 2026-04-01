@@ -7,6 +7,8 @@
 import os
 import os.path
 import itertools
+import shlex
+import subprocess
 import urllib
 import shutil
 import pathlib
@@ -282,6 +284,9 @@ class SessionManager(QObject):
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
+            win_data['win_id'] = win_id
+            win_data['window_title'] = main_window.windowTitle()
+            win_data['restore_id'] = len(data['windows'])
             win_data['tabs'] = []
             if tabbed_browser.is_private:
                 win_data['private'] = True
@@ -348,6 +353,19 @@ class SessionManager(QObject):
 
         if load_next_time:
             configfiles.state['general']['session'] = name
+
+        after_save = config.val.session.after_save_command
+        if after_save:
+            cmd = after_save.replace('{session_path}', str(path))
+            try:
+                subprocess.run(shlex.split(cmd), timeout=10)
+            except subprocess.TimeoutExpired:
+                log.sessions.warning(
+                    "after_save_command timed out after 10s")
+            except OSError as e:
+                log.sessions.error(
+                    "Failed to run after_save_command: {}".format(e))
+
         return name
 
     def _save_autosave(self):
@@ -473,9 +491,27 @@ class SessionManager(QObject):
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
 
+        # Set temporary title marker for external restore scripts.
+        # The restore_id lets the script correlate session data with
+        # the actual window on the compositor side.
+        restore_id = win.get('restore_id')
+        if restore_id is not None:
+            marker = '__qb_restore_{}__'.format(restore_id)
+            tabbed_browser._title_update_suppressed = True
+            window.setWindowTitle(marker)
+            QTimer.singleShot(
+                5000,
+                lambda tb=tabbed_browser: self._unsuppress_title(tb))
+
         window.show()
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+
+    @staticmethod
+    def _unsuppress_title(tabbed_browser):
+        """Re-enable automatic window title updates after restore."""
+        tabbed_browser._title_update_suppressed = False
+        tabbed_browser._update_window_title()
 
     def load(self, name, temp=False):
         """Load a named session.
@@ -507,6 +543,15 @@ class SessionManager(QObject):
             self.did_load = True
         if not name.startswith('_') and not temp:
             self.current = name
+
+        after_load = config.val.session.after_load_command
+        if after_load:
+            cmd = after_load.replace('{session_path}', str(path))
+            try:
+                subprocess.Popen(shlex.split(cmd))
+            except OSError as e:
+                log.sessions.error(
+                    "Failed to run after_load_command: {}".format(e))
 
     def delete(self, name):
         """Delete a session."""

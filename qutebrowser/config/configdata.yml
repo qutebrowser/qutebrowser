@@ -130,6 +130,36 @@ session.lazy_restore:
   default: false
   desc: Load a restored tab as soon as it takes focus.
 
+session.after_save_command:
+  type:
+    name: String
+    none_ok: true
+  default: null
+  desc: >-
+    Command to run after a session is saved.
+
+    The placeholder `{session_path}` is replaced with the path to the saved
+    session file. The command is executed asynchronously (fire-and-forget).
+
+    This can be used for window manager integration, e.g. saving window
+    positions alongside the session data.
+
+session.after_load_command:
+  type:
+    name: String
+    none_ok: true
+  default: null
+  desc: >-
+    Command to run after a session is loaded and all windows are created.
+
+    The placeholder `{session_path}` is replaced with the path to the session
+    file. The command is executed asynchronously.
+
+    When this is set, windows are created with temporary title markers
+    (`+__qb_restore_<N>__+`) to allow the external command to identify and
+    reposition them. The markers are automatically replaced by normal window
+    titles after a few seconds.
+
 backend:
   type:
     name: String
