@@ -36,9 +36,10 @@ Fixed
 - The workaround avoiding Google blocking sign ins from qutebrowser was updated,
   although it's unclear if this will fix the issue as the behavior is wildly
   inconsistent.
+- Added a workaround for QtWebEngine 6.11 crashing on Google Mail / Meet (#8914).
 - The workaround avoiding crashes with Qt 6.10.1 and
   `qt.workarounds.disable_hangouts_extension` (or `--version`) has now been
-  extended to Qt 6.11 as well (#8785, #8841).
+  extended to Qt 6.10.2 as well (#8785, #8841).
 - ANSI color codes now don't end up in `commands.asciidoc` anymore when
   regenerating it using Python 3.14.
 - The `GenericName` in the `.desktop` file is now correct for Ukraiian and
