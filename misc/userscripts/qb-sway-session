@@ -20,21 +20,37 @@ Usage::
         'qb-sway-session restore {session_path}'
     )
 
+File layout
+-----------
+
+The session YAML written by qutebrowser is **never modified** by this
+script.  All Sway-specific data is stored in a companion *sidecar* file
+next to the session file::
+
+    data/sessions/default.yml        ← written by qutebrowser (untouched)
+    data/sessions/default.sway.yml   ← written by this script
+
+The sidecar is written atomically (temp-file + ``os.replace``) so it is
+either fully written or not written at all — a crash can never corrupt
+the session file.
+
 Modes
 -----
 
 **save**
-    Reads the session YAML written by qutebrowser, queries the Sway tree
-    (``swaymsg -t get_tree``) to find qutebrowser windows, correlates them
-    by ``window_title``, and enriches the session file with:
+    Reads the session YAML (read-only) and queries the Sway tree
+    (``swaymsg -t get_tree``) to find qutebrowser windows.  Correlates
+    them by ``window_title`` and writes the sidecar with:
 
-    - Per-window: ``sway_rect``, ``sway_workspace``, ``sway_floating``
-    - Global: ``sway_trees`` — a pruned tiling tree per workspace that
-      captures the container hierarchy (split directions) between
-      qutebrowser windows.
+    - Per-window (keyed by ``restore_id``): ``sway_rect``,
+      ``sway_workspace``, ``sway_floating``
+    - ``sway_trees`` — a pruned tiling tree per workspace that captures
+      the container hierarchy (split directions) between qutebrowser
+      windows.
 
 **restore**
-    Reads the enriched session YAML and restores window layout:
+    Reads the session YAML (for ``restore_id`` marker titles) and the
+    sidecar (for Sway positions and tree data), then restores the layout:
 
     - **Floating windows**: exact position and size via ``swaymsg``.
     - **Tiled windows**: reconstructs the container hierarchy from
@@ -43,7 +59,9 @@ Modes
       stacked).
 
     Falls back to simple workspace placement if ``sway_trees`` is absent
-    (backward compatibility).
+    (backward compatibility).  If the sidecar file is missing the script
+    exits silently — the session loads normally, just without position
+    restoration.
 
 Dependencies
 ------------
@@ -53,8 +71,10 @@ Dependencies
 """
 
 import json
+import os
 import subprocess
 import sys
+import tempfile
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -186,11 +206,51 @@ def _prune_node(node, sway_id_to_restore_id):
 
 
 # ---------------------------------------------------------------------------
+# Sidecar file helpers
+# ---------------------------------------------------------------------------
+
+def _sidecar_path(session_path):
+    """Derive the sidecar file path from the session file path.
+
+    ``default.yml`` → ``default.sway.yml``
+    """
+    p = Path(session_path)
+    return p.with_name(p.stem + ".sway.yml")
+
+
+def _atomic_write_yaml(path, data):
+    """Write *data* as YAML to *path* atomically.
+
+    Uses a temporary file in the same directory followed by
+    ``os.replace()`` (atomic on POSIX) so the file is either fully
+    written or not touched at all.
+    """
+    path = Path(path)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=path.parent, suffix=".tmp", prefix=path.name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+        os.replace(tmp_path, path)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+
+
+# ---------------------------------------------------------------------------
 # Save mode
 # ---------------------------------------------------------------------------
 
 def do_save(session_path):
-    """Enrich the session YAML with Sway geometry and tree info."""
+    """Write Sway geometry and tree info to a sidecar file.
+
+    The session YAML is read but **never modified**.  All Sway-specific
+    data is written to a companion ``.sway.yml`` file next to the
+    session file, keyed by ``restore_id``.
+    """
     path = Path(session_path)
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -211,23 +271,28 @@ def do_save(session_path):
     # sway con_id -> restore_id for tree pruning (unique, no collision)
     sway_id_to_restore_id = {}
 
-    enriched = False
+    # Build sidecar data — keyed by restore_id
+    sidecar_windows = {}
     for win in data["windows"]:
         title = win.get("window_title", "")
+        restore_id = win.get("restore_id")
+        if restore_id is None:
+            continue
+
         candidates = sway_by_title.get(title, [])
         if not candidates:
             continue
         sw = candidates.pop(0)
 
-        win["sway_rect"] = sw["rect"]
-        win["sway_floating"] = sw["is_floating"]
+        sidecar_windows[restore_id] = {
+            "sway_rect": sw["rect"],
+            "sway_floating": sw["is_floating"],
+        }
         if sw.get("workspace") is not None:
-            win["sway_workspace"] = sw["workspace"]
+            sidecar_windows[restore_id]["sway_workspace"] = sw["workspace"]
 
-        if not sw["is_floating"] and win.get("restore_id") is not None:
-            sway_id_to_restore_id[sw["id"]] = win["restore_id"]
-
-        enriched = True
+        if not sw["is_floating"]:
+            sway_id_to_restore_id[sw["id"]] = restore_id
 
     # Build per-workspace pruned trees for tiled windows
     sway_trees = {}
@@ -239,12 +304,14 @@ def do_save(session_path):
         if pruned is not None:
             sway_trees[ws_name] = pruned
 
-    if sway_trees:
-        data["sway_trees"] = sway_trees
+    if not sidecar_windows and not sway_trees:
+        return
 
-    if enriched or sway_trees:
-        with open(path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+    sidecar = {"windows": sidecar_windows}
+    if sway_trees:
+        sidecar["sway_trees"] = sway_trees
+
+    _atomic_write_yaml(_sidecar_path(path), sidecar)
 
 
 # ---------------------------------------------------------------------------
@@ -364,27 +431,55 @@ def _get_focused_workspace():
 
 
 def do_restore(session_path):
-    """Restore qutebrowser windows to their saved Sway layout."""
+    """Restore qutebrowser windows to their saved Sway layout.
+
+    Reads the session YAML (for ``restore_id`` values used as marker
+    titles) and the companion ``.sway.yml`` sidecar (for Sway-specific
+    positions and tree data).  The session file is never modified.
+    """
     path = Path(session_path)
+    sc_path = _sidecar_path(path)
+
+    # ---- read sidecar (sway-specific data) ----------------------------
+    if not sc_path.exists():
+        return
+
+    with open(sc_path, encoding="utf-8") as f:
+        sidecar = yaml.safe_load(f)
+
+    if not sidecar or "windows" not in sidecar:
+        return
+
+    sidecar_windows = sidecar.get("windows", {})
+
+    # ---- read session YAML (for restore_ids) --------------------------
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     if data is None or "windows" not in data:
         return
 
-    # Build expected markers -> window info
+    # ---- build expected markers → window info -------------------------
     expected = {}
     for win in data["windows"]:
         restore_id = win.get("restore_id")
-        workspace = win.get("sway_workspace")
-        if restore_id is None or workspace is None:
+        if restore_id is None:
             continue
+
+        sw_data = sidecar_windows.get(restore_id)
+        if sw_data is None:
+            continue
+
+        workspace = sw_data.get("sway_workspace")
+        if workspace is None:
+            continue
+
         marker = f"{MARKER_PREFIX}{restore_id}{MARKER_SUFFIX}"
         expected[marker] = {
             "restore_id": restore_id,
-            "rect": win.get("sway_rect"),
+            "rect": sw_data.get("sway_rect"),
             "workspace": workspace,
-            "floating": win.get("sway_floating", False),
+            "floating": sw_data.get("sway_floating", False),
         }
 
     if not expected:
@@ -408,7 +503,7 @@ def do_restore(session_path):
             _restore_floating(info["con_id"], info)
 
     # Restore tiled windows
-    sway_trees = data.get("sway_trees")
+    sway_trees = sidecar.get("sway_trees")
     if sway_trees:
         # Tree-based reconstruction
         for workspace, tree_node in sway_trees.items():
