@@ -46,7 +46,7 @@ Modes
     the sidecar with:
 
     - Per-window (keyed by ``restore_id``): ``sway_rect``,
-      ``sway_workspace``, ``sway_floating``
+      ``sway_workspace``, ``sway_output``, ``sway_floating``
     - ``sway_trees`` — a pruned tiling tree per workspace that captures
       the container hierarchy (split directions) between qutebrowser
       windows.
@@ -55,6 +55,10 @@ Modes
     Reads the session YAML (for ``restore_id`` marker titles) and the
     sidecar (for Sway positions and tree data), then restores the layout:
 
+    - **Multi-monitor**: focuses the correct output immediately before
+      each ``move container to workspace`` command so that sway creates
+      the workspace on the right monitor, even when the workspace does
+      not exist yet at restore time.
     - **Floating windows**: exact position and size via ``swaymsg``.
     - **Tiled windows**: reconstructs the container hierarchy from
       ``sway_trees`` using Sway's ``mark`` + ``move container to mark``
@@ -117,31 +121,37 @@ def find_qb_windows(tree, app_id=APP_ID):
     """Recursively find all qutebrowser windows with context info.
 
     Returns a list of dicts with added keys:
-        ``is_floating``, ``workspace``
+        ``is_floating``, ``workspace``, ``output``
     """
     results = []
     _collect_qb_windows(tree, app_id, results,
-                        is_floating=False, workspace=None)
+                        is_floating=False, workspace=None, output=None)
     return results
 
 
-def _collect_qb_windows(node, app_id, results, is_floating, workspace):
+def _collect_qb_windows(node, app_id, results, is_floating, workspace,
+                        output):
     """Recursive helper for find_qb_windows."""
+    if node.get("type") == "output":
+        output = node.get("name")
     if node.get("type") == "workspace":
         workspace = node.get("name")
 
     if node.get("app_id") == app_id:
         node["is_floating"] = is_floating
         node["workspace"] = workspace
+        node["output"] = output
         results.append(node)
         return
 
     for child in node.get("nodes", []):
         _collect_qb_windows(child, app_id, results,
-                            is_floating=False, workspace=workspace)
+                            is_floating=False, workspace=workspace,
+                            output=output)
     for child in node.get("floating_nodes", []):
         _collect_qb_windows(child, app_id, results,
-                            is_floating=True, workspace=workspace)
+                            is_floating=True, workspace=workspace,
+                            output=output)
 
 
 def swaymsg_cmd(command):
@@ -302,6 +312,8 @@ def do_save(session_path):
         }
         if sw.get("workspace") is not None:
             sidecar_windows[restore_id]["sway_workspace"] = sw["workspace"]
+        if sw.get("output") is not None:
+            sidecar_windows[restore_id]["sway_output"] = sw["output"]
 
         if not sw["is_floating"]:
             sway_id_to_restore_id[sw["id"]] = restore_id
@@ -324,6 +336,25 @@ def do_save(session_path):
         sidecar["sway_trees"] = sway_trees
 
     _atomic_write_yaml(_sidecar_path(path), sidecar)
+
+
+# ---------------------------------------------------------------------------
+# Multi-monitor helper
+# ---------------------------------------------------------------------------
+
+def _focus_output_for_workspace(workspace, ws_to_output):
+    """Focus the output where *workspace* should live.
+
+    When a workspace does not exist yet, sway creates it on whichever
+    output currently has focus.  By focusing the correct output right
+    before a ``move container to workspace`` command, we ensure the
+    workspace (and thus the window) ends up on the right monitor.
+
+    This is a no-op if *workspace* is not in *ws_to_output*.
+    """
+    output = ws_to_output.get(workspace)
+    if output:
+        swaymsg_cmd(f'focus output "{output}"')
 
 
 # ---------------------------------------------------------------------------
@@ -354,7 +385,8 @@ def _apply_layout(con_id, layout):
         swaymsg_cmd("splith")
 
 
-def _restore_tree_node(node, id_to_con, workspace, reference_con_id):
+def _restore_tree_node(node, id_to_con, workspace, reference_con_id,
+                       ws_to_output=None):
     """Recursively restore tiled windows according to saved tree structure.
 
     The algorithm uses Sway's ``mark`` mechanism:
@@ -368,6 +400,10 @@ def _restore_tree_node(node, id_to_con, workspace, reference_con_id):
     - Subsequent children use ``move container to mark`` on the
       previously placed sibling, entering the same container.
 
+    For multi-monitor support, ``focus output`` is issued immediately
+    before any ``move container to workspace`` command (root level only)
+    to ensure sway creates the workspace on the correct output.
+
     Args:
         node: saved tree node — either ``{"restore_id": N}`` (leaf) or
               ``{"layout": "...", "children": [...]}`` (container).
@@ -375,11 +411,16 @@ def _restore_tree_node(node, id_to_con, workspace, reference_con_id):
         workspace: target workspace name.
         reference_con_id: if set, place next to this window via mark.
             ``None`` means place at the workspace root.
+        ws_to_output: mapping of workspace → output name for
+            multi-monitor placement.
 
     Returns:
         ``con_id`` of the last leaf window placed, or ``None`` if no
         windows could be placed.
     """
+    if ws_to_output is None:
+        ws_to_output = {}
+
     if "restore_id" in node:
         # Leaf: place the window
         con_id = id_to_con.get(node["restore_id"])
@@ -393,6 +434,7 @@ def _restore_tree_node(node, id_to_con, workspace, reference_con_id):
                 f'[con_id={con_id}] move container to mark {LAYOUT_MARK}')
             swaymsg_cmd(f'unmark {LAYOUT_MARK}')
         else:
+            _focus_output_for_workspace(workspace, ws_to_output)
             swaymsg_cmd(
                 f'[con_id={con_id}] move container to workspace "{workspace}"')
 
@@ -408,14 +450,16 @@ def _restore_tree_node(node, id_to_con, workspace, reference_con_id):
         if i == 0:
             # First child inherits the reference (or workspace root)
             last_placed = _restore_tree_node(
-                child, id_to_con, workspace, reference_con_id)
+                child, id_to_con, workspace, reference_con_id,
+                ws_to_output=ws_to_output)
             # Set the layout direction for this container
             if last_placed is not None and len(children) > 1:
                 _apply_layout(last_placed, layout)
         else:
             # Subsequent children: reference is the last placed window
             result = _restore_tree_node(
-                child, id_to_con, workspace, last_placed)
+                child, id_to_con, workspace, last_placed,
+                ws_to_output=ws_to_output)
             if result is not None:
                 last_placed = result
 
@@ -491,6 +535,7 @@ def do_restore(session_path):
             "restore_id": restore_id,
             "rect": sw_data.get("sway_rect"),
             "workspace": workspace,
+            "output": sw_data.get("sway_output"),
             "floating": sw_data.get("sway_floating", False),
         }
 
@@ -499,6 +544,18 @@ def do_restore(session_path):
 
     # Remember current workspace to restore focus at the end
     original_ws = _get_focused_workspace()
+
+    # ---- build workspace → output mapping ------------------------------
+    # Used by restoration functions to focus the correct output
+    # immediately before each ``move container to workspace`` command.
+    # This ensures sway creates the workspace on the correct monitor
+    # even if it doesn't exist yet.
+    ws_to_output = {}
+    for info in expected.values():
+        ws = info.get("workspace")
+        output = info.get("output")
+        if ws and output:
+            ws_to_output.setdefault(ws, output)
 
     # Poll until windows appear or timeout
     found = _poll_for_windows(expected)
@@ -512,7 +569,7 @@ def do_restore(session_path):
     # Restore floating windows (exact position)
     for info in found.values():
         if info["floating"] and info.get("rect"):
-            _restore_floating(info["con_id"], info)
+            _restore_floating(info["con_id"], info, ws_to_output)
 
     # Restore tiled windows
     sway_trees = sidecar.get("sway_trees")
@@ -520,11 +577,14 @@ def do_restore(session_path):
         # Tree-based reconstruction
         for workspace, tree_node in sway_trees.items():
             _restore_tree_node(tree_node, id_to_con, workspace,
-                               reference_con_id=None)
+                               reference_con_id=None,
+                               ws_to_output=ws_to_output)
     else:
         # Fallback: simple workspace placement (no tree data)
         for info in found.values():
             if not info["floating"]:
+                _focus_output_for_workspace(
+                    info["workspace"], ws_to_output)
                 swaymsg_cmd(
                     f'[con_id={info["con_id"]}] move container to '
                     f'workspace "{info["workspace"]}"')
@@ -568,10 +628,13 @@ def _poll_for_windows(expected):
     return found
 
 
-def _restore_floating(con_id, info):
+def _restore_floating(con_id, info, ws_to_output=None):
     """Restore a floating window to its exact saved position and size."""
+    if ws_to_output is None:
+        ws_to_output = {}
     rect = info["rect"]
     workspace = info["workspace"]
+    _focus_output_for_workspace(workspace, ws_to_output)
     swaymsg_cmd(
         f'[con_id={con_id}] move container to workspace "{workspace}"')
     swaymsg_cmd(
