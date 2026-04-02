@@ -356,6 +356,30 @@ class SessionManager(QObject):
 
         after_save = config.val.session.after_save_command
         if after_save:
+            # Temporarily replace window titles with unique markers so the
+            # external script can correlate session windows with Sway (or
+            # other WM) windows by win_id instead of the page title.
+            # The after_save_command runs synchronously, so the markers are
+            # only visible for the duration of the external command.
+            save_marker_prefix = "__qb_save_"
+            save_marker_suffix = "__"
+            for wid in objreg.window_registry:
+                try:
+                    mw = objreg.get('main-window', scope='window',
+                                    window=wid)
+                    if not sip.isdeleted(mw):
+                        mw.setWindowTitle(
+                            f"{save_marker_prefix}{wid}"
+                            f"{save_marker_suffix}")
+                except KeyError:
+                    pass
+
+            # Flush pending Wayland/X11 requests so the compositor sees
+            # the new titles before the external command queries the
+            # window tree.
+            from qutebrowser.qt.widgets import QApplication
+            QApplication.processEvents()
+
             cmd = after_save.replace('{session_path}', str(path))
             try:
                 subprocess.run(shlex.split(cmd), timeout=10)
@@ -365,6 +389,16 @@ class SessionManager(QObject):
             except OSError as e:
                 log.sessions.error(
                     "Failed to run after_save_command: {}".format(e))
+            finally:
+                # Restore real window titles
+                for wid in objreg.window_registry:
+                    try:
+                        tb = objreg.get('tabbed-browser', scope='window',
+                                        window=wid)
+                        if not sip.isdeleted(tb):
+                            tb._update_window_title()
+                    except KeyError:
+                        pass
 
         return name
 

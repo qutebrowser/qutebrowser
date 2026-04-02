@@ -40,7 +40,10 @@ Modes
 **save**
     Reads the session YAML (read-only) and queries the Sway tree
     (``swaymsg -t get_tree``) to find qutebrowser windows.  Correlates
-    them by ``window_title`` and writes the sidecar with:
+    them via temporary title markers (``__qb_save_<win_id>__``) that
+    qutebrowser sets on each window right before running this command,
+    giving exact 1:1 matching even with duplicate page titles.  Writes
+    the sidecar with:
 
     - Per-window (keyed by ``restore_id``): ``sway_rect``,
       ``sway_workspace``, ``sway_floating``
@@ -72,11 +75,11 @@ Dependencies
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
 import time
-from collections import defaultdict
 from pathlib import Path
 
 try:
@@ -90,6 +93,7 @@ except ImportError:
 APP_ID = "org.qutebrowser.qutebrowser"
 MARKER_PREFIX = "__qb_restore_"
 MARKER_SUFFIX = "__"
+SAVE_MARKER_RE = re.compile(r"^__qb_save_(\d+)__$")
 LAYOUT_MARK = "__qb_layout_ref__"
 # How long to wait for windows to appear (seconds)
 RESTORE_TIMEOUT = 4.0
@@ -250,6 +254,12 @@ def do_save(session_path):
     The session YAML is read but **never modified**.  All Sway-specific
     data is written to a companion ``.sway.yml`` file next to the
     session file, keyed by ``restore_id``.
+
+    Correlation between session windows and Sway windows is done via
+    temporary title markers (``__qb_save_<win_id>__``) that qutebrowser
+    sets on each window just before running this command.  This gives
+    exact 1:1 matching even when multiple windows share the same page
+    title.
     """
     path = Path(session_path)
     with open(path, encoding="utf-8") as f:
@@ -261,12 +271,15 @@ def do_save(session_path):
     tree = get_sway_tree()
     sway_windows = find_qb_windows(tree)
 
-    # Build title -> list of sway windows (handles duplicate titles)
-    sway_by_title = defaultdict(list)
+    # Build win_id -> sway window via save markers in the title.
+    # qutebrowser sets each window's title to __qb_save_<win_id>__
+    # right before running after_save_command.
+    sway_by_win_id = {}
     for sw in sway_windows:
         title = sw.get("name", "")
-        if title:
-            sway_by_title[title].append(sw)
+        m = SAVE_MARKER_RE.match(title)
+        if m:
+            sway_by_win_id[int(m.group(1))] = sw
 
     # sway con_id -> restore_id for tree pruning (unique, no collision)
     sway_id_to_restore_id = {}
@@ -274,15 +287,14 @@ def do_save(session_path):
     # Build sidecar data — keyed by restore_id
     sidecar_windows = {}
     for win in data["windows"]:
-        title = win.get("window_title", "")
+        win_id = win.get("win_id")
         restore_id = win.get("restore_id")
-        if restore_id is None:
+        if win_id is None or restore_id is None:
             continue
 
-        candidates = sway_by_title.get(title, [])
-        if not candidates:
+        sw = sway_by_win_id.get(win_id)
+        if sw is None:
             continue
-        sw = candidates.pop(0)
 
         sidecar_windows[restore_id] = {
             "sway_rect": sw["rect"],
