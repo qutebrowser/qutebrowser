@@ -356,51 +356,53 @@ class SessionManager(QObject):
 
         after_save = config.val.session.after_save_command
         if after_save:
-            # Temporarily replace window titles with unique markers so the
-            # external script can correlate session windows with Sway (or
-            # other WM) windows by win_id instead of the page title.
-            # The after_save_command runs synchronously, so the markers are
-            # only visible for the duration of the external command.
-            save_marker_prefix = "__qb_save_"
-            save_marker_suffix = "__"
-            for wid in objreg.window_registry:
-                try:
-                    mw = objreg.get('main-window', scope='window',
-                                    window=wid)
-                    if not sip.isdeleted(mw):
-                        mw.setWindowTitle(
-                            f"{save_marker_prefix}{wid}"
-                            f"{save_marker_suffix}")
-                except KeyError:
-                    pass
-
-            # Flush pending Wayland/X11 requests so the compositor sees
-            # the new titles before the external command queries the
-            # window tree.
-            from qutebrowser.qt.widgets import QApplication
-            QApplication.processEvents()
-
-            cmd = after_save.replace('{session_path}', str(path))
-            try:
-                subprocess.run(shlex.split(cmd), timeout=10)
-            except subprocess.TimeoutExpired:
-                log.sessions.warning(
-                    "after_save_command timed out after 10s")
-            except OSError as e:
-                log.sessions.error(
-                    "Failed to run after_save_command: {}".format(e))
-            finally:
-                # Restore real window titles
-                for wid in objreg.window_registry:
-                    try:
-                        tb = objreg.get('tabbed-browser', scope='window',
-                                        window=wid)
-                        if not sip.isdeleted(tb):
-                            tb._update_window_title()
-                    except KeyError:
-                        pass
+            self._run_after_save_command(after_save, path)
 
         return name
+
+    def _run_after_save_command(self, after_save, path):
+        """Run the after_save_command with temporary title markers.
+
+        Temporarily replaces window titles with unique markers so the
+        external script can correlate session windows with compositor
+        windows by win_id.  The command runs synchronously, so the
+        markers are only visible for its duration.
+        """
+        for wid in objreg.window_registry:
+            try:
+                mw = objreg.get('main-window', scope='window',
+                                window=wid)
+                if not sip.isdeleted(mw):
+                    mw.setWindowTitle(
+                        f"__qb_save_{wid}__")
+            except KeyError:
+                pass
+
+        # Flush pending Wayland/X11 requests so the compositor sees
+        # the new titles before the external command queries the
+        # window tree.
+        from qutebrowser.qt.widgets import QApplication
+        QApplication.processEvents()
+
+        cmd = after_save.replace('{session_path}', str(path))
+        try:
+            subprocess.run(shlex.split(cmd), check=False, timeout=10)
+        except subprocess.TimeoutExpired:
+            log.sessions.warning(
+                "after_save_command timed out after 10s")
+        except OSError as e:
+            log.sessions.error(
+                "Failed to run after_save_command: {}".format(e))
+        finally:
+            # Restore real window titles
+            for wid in objreg.window_registry:
+                try:
+                    tb = objreg.get('tabbed-browser', scope='window',
+                                    window=wid)
+                    if not sip.isdeleted(tb):
+                        tb.refresh_window_title()
+                except KeyError:
+                    pass
 
     def _save_autosave(self):
         """Save the autosave session."""
@@ -531,21 +533,11 @@ class SessionManager(QObject):
         restore_id = win.get('restore_id')
         if restore_id is not None:
             marker = '__qb_restore_{}__'.format(restore_id)
-            tabbed_browser._title_update_suppressed = True
-            window.setWindowTitle(marker)
-            QTimer.singleShot(
-                5000,
-                lambda tb=tabbed_browser: self._unsuppress_title(tb))
+            tabbed_browser.suppress_title_update(marker)
 
         window.show()
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
-
-    @staticmethod
-    def _unsuppress_title(tabbed_browser):
-        """Re-enable automatic window title updates after restore."""
-        tabbed_browser._title_update_suppressed = False
-        tabbed_browser._update_window_title()
 
     def load(self, name, temp=False):
         """Load a named session.
@@ -581,11 +573,12 @@ class SessionManager(QObject):
         after_load = config.val.session.after_load_command
         if after_load:
             cmd = after_load.replace('{session_path}', str(path))
-            try:
-                subprocess.Popen(shlex.split(cmd))
-            except OSError as e:
-                log.sessions.error(
-                    "Failed to run after_load_command: {}".format(e))
+            parts = shlex.split(cmd)
+            # Lazy import to avoid circular dependency:
+            # sessions -> guiprocess -> apitypes -> browsertab -> sessions
+            from qutebrowser.misc import guiprocess
+            proc = guiprocess.GUIProcess('after-load-command')
+            proc.start(parts[0], parts[1:])
 
     def delete(self, name):
         """Delete a session."""

@@ -25,6 +25,7 @@ from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils,
                                urlutils, message, jinja, version)
 from qutebrowser.misc import quitter, objects
+from qutebrowser.qt import sip
 
 
 @dataclasses.dataclass
@@ -327,6 +328,34 @@ class TabbedBrowser(QWidget):
         title = utils.elide(title, 1024)
 
         self._window().setWindowTitle(title)
+
+    def suppress_title_update(self, marker_title, timeout_ms=5000):
+        """Temporarily suppress automatic title updates and set a marker.
+
+        Used during session restore so that external scripts (e.g. a
+        window-manager integration) can identify windows by a known
+        marker title before the real page title overwrites it.
+
+        Args:
+            marker_title: The temporary title to set on the window.
+            timeout_ms: How long (in milliseconds) to keep the marker
+                before restoring automatic title updates.  Defaults to
+                5 000 ms (5 seconds).
+        """
+        self._title_update_suppressed = True
+        self._window().setWindowTitle(marker_title)
+        QTimer.singleShot(timeout_ms, self._unsuppress_title_update)
+
+    def _unsuppress_title_update(self):
+        """Re-enable automatic window title updates after a marker timeout."""
+        if sip.isdeleted(self):
+            return
+        self._title_update_suppressed = False
+        self._update_window_title()
+
+    def refresh_window_title(self):
+        """Force-refresh the window title from current tab state."""
+        self._update_window_title()
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
