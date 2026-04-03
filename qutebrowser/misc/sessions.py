@@ -510,7 +510,7 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
-    def _load_window(self, win):
+    def _load_window(self, win, no_hooks=False):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
                                        private=win.get('private', None))
@@ -530,21 +530,24 @@ class SessionManager(QObject):
         # Set temporary title marker for external restore scripts.
         # The restore_id lets the script correlate session data with
         # the actual window on the compositor side.
-        restore_id = win.get('restore_id')
-        if restore_id is not None:
-            marker = '__qb_restore_{}__'.format(restore_id)
-            tabbed_browser.suppress_title_update(marker)
+        if not no_hooks:
+            restore_id = win.get('restore_id')
+            if restore_id is not None:
+                marker = '__qb_restore_{}__'.format(restore_id)
+                tabbed_browser.suppress_title_update(marker)
 
         window.show()
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
-    def load(self, name, temp=False):
+    def load(self, name, temp=False, no_hooks=False):
         """Load a named session.
 
         Args:
             name: The name of the session to load.
             temp: If given, don't set the current session.
+            no_hooks: If given, don't run after_load_command and don't
+                inject title markers.
         """
         path = self._get_session_path(name, check_exists=True)
         try:
@@ -563,22 +566,23 @@ class SessionManager(QObject):
                                    "in single process mode.")
 
         for win in data['windows']:
-            self._load_window(win)
+            self._load_window(win, no_hooks=no_hooks)
 
         if data['windows']:
             self.did_load = True
         if not name.startswith('_') and not temp:
             self.current = name
 
-        after_load = config.val.session.after_load_command
-        if after_load:
-            cmd = after_load.replace('{session_path}', str(path))
-            parts = shlex.split(cmd)
-            # Lazy import to avoid circular dependency:
-            # sessions -> guiprocess -> apitypes -> browsertab -> sessions
-            from qutebrowser.misc import guiprocess
-            proc = guiprocess.GUIProcess('after-load-command')
-            proc.start(parts[0], parts[1:])
+        if not no_hooks:
+            after_load = config.val.session.after_load_command
+            if after_load:
+                cmd = after_load.replace('{session_path}', str(path))
+                parts = shlex.split(cmd)
+                # Lazy import to avoid circular dependency:
+                # sessions -> guiprocess -> apitypes -> browsertab -> sessions
+                from qutebrowser.misc import guiprocess
+                proc = guiprocess.GUIProcess('after-load-command')
+                proc.start(parts[0], parts[1:])
 
     def delete(self, name):
         """Delete a session."""
@@ -604,7 +608,8 @@ def session_load(name: str, *,
                  clear: bool = False,
                  temp: bool = False,
                  force: bool = False,
-                 delete: bool = False) -> None:
+                 delete: bool = False,
+                 no_hooks: bool = False) -> None:
     """Load a session.
 
     Args:
@@ -613,13 +618,15 @@ def session_load(name: str, *,
         temp: Don't set the current session for :session-save.
         force: Force loading internal sessions (starting with an underline).
         delete: Delete the saved session once it has loaded.
+        no_hooks: Don't run session.after_load_command and don't inject
+            title markers for external restore scripts.
     """
     if name.startswith('_') and not force:
         raise cmdutils.CommandError("{} is an internal session, use --force "
                                     "to load anyways.".format(name))
     old_windows = list(objreg.window_registry.values())
     try:
-        session_manager.load(name, temp=temp)
+        session_manager.load(name, temp=temp, no_hooks=no_hooks)
     except SessionNotFoundError:
         raise cmdutils.CommandError("Session {} not found!".format(name))
     except SessionError as e:
