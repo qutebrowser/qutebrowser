@@ -25,10 +25,10 @@ File layout
 
 The session YAML written by qutebrowser is **never modified** by this
 script.  All Sway-specific data is stored in a companion *sidecar* file
-next to the session file::
+in a ``sway/`` subdirectory next to the session file::
 
     data/sessions/default.yml        ← written by qutebrowser (untouched)
-    data/sessions/default.sway.yml   ← written by this script
+    data/sessions/sway/default.yml   ← written by this script
 
 The sidecar is written atomically (temp-file + ``os.replace``) so it is
 either fully written or not written at all — a crash can never corrupt
@@ -239,20 +239,21 @@ def _prune_node(node, sway_id_to_restore_id):
 def _sidecar_path(session_path):
     """Derive the sidecar file path from the session file path.
 
-    ``default.yml`` → ``default.sway.yml``
+    ``data/sessions/default.yml`` → ``data/sessions/sway/default.yml``
     """
     p = Path(session_path)
-    return p.with_name(p.stem + ".sway.yml")
+    return p.parent / "sway" / p.name
 
 
 def _atomic_write_yaml(path, data):
     """Write *data* as YAML to *path* atomically.
 
-    Uses a temporary file in the same directory followed by
-    ``os.replace()`` (atomic on POSIX) so the file is either fully
-    written or not touched at all.
+    Creates parent directories if needed.  Uses a temporary file in the
+    same directory followed by ``os.replace()`` (atomic on POSIX) so the
+    file is either fully written or not touched at all.
     """
     path = Path(path)
+    os.makedirs(path.parent, exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(
         dir=path.parent, suffix=".tmp", prefix=path.name)
     try:
@@ -275,8 +276,8 @@ def do_save(session_path):
     """Write Sway geometry and tree info to a sidecar file.
 
     The session YAML is read but **never modified**.  All Sway-specific
-    data is written to a companion ``.sway.yml`` file next to the
-    session file, keyed by ``restore_id``.
+    data is written to a companion sidecar file in a ``sway/``
+    subdirectory (e.g. ``sway/default.yml``), keyed by ``restore_id``.
 
     Correlation between session windows and Sway windows is done via
     temporary title markers (``__qb_save_<win_id>__``) that qutebrowser
@@ -602,8 +603,9 @@ def do_restore(session_path):
     """Restore qutebrowser windows to their saved Sway layout.
 
     Reads the session YAML (for ``restore_id`` values used as marker
-    titles) and the companion ``.sway.yml`` sidecar (for Sway-specific
-    positions and tree data).  The session file is never modified.
+    titles) and the companion sidecar in the ``sway/`` subdirectory
+    (for Sway-specific positions and tree data).  The session file is
+    never modified.
     """
     path = Path(session_path)
     sc_path = _sidecar_path(path)
