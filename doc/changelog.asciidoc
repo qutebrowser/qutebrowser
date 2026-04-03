@@ -16,7 +16,7 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
 [[v3.7.0]]
-v3.7.0 (unreleased)
+v3.7.0 (2026-04-03)
 -------------------
 
 Added
