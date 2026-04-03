@@ -48,8 +48,8 @@ Modes
     - Per-window (keyed by ``restore_id``): ``sway_rect``,
       ``sway_workspace``, ``sway_output``, ``sway_floating``
     - ``sway_trees`` — a pruned tiling tree per workspace that captures
-      the container hierarchy (split directions) between qutebrowser
-      windows.
+      the container hierarchy (split directions and pixel dimensions)
+      between qutebrowser windows.
 
 **restore**
     Reads the session YAML (for ``restore_id`` marker titles) and the
@@ -63,7 +63,7 @@ Modes
     - **Tiled windows**: reconstructs the container hierarchy from
       ``sway_trees`` using Sway's ``mark`` + ``move container to mark``
       mechanism, preserving split directions (splith, splitv, tabbed,
-      stacked).
+      stacked) and proportional sizes via ``resize set … ppt``.
 
     Falls back to simple workspace placement if ``sway_trees`` is absent
     (backward compatibility).  If the sidecar file is missing the script
@@ -184,20 +184,30 @@ def _prune_node(node, sway_id_to_restore_id):
     """Build a pruned tree containing only tiled qutebrowser windows.
 
     Returns:
-        ``{"restore_id": N}`` for a leaf window,
-        ``{"layout": "...", "children": [...]}`` for a container,
-        or ``None`` if no qb windows found in this subtree.
+        ``{"restore_id": N, "rect": {...}}`` for a leaf window,
+        ``{"layout": "...", "children": [...], "rect": {...}}``
+        for a container, or ``None`` if no qb windows found in this
+        subtree.
+
+    Each node includes its ``rect`` (pixel dimensions from the Sway
+    tree) when available, which is used during restore to compute
+    proportional sizes (see :func:`_resize_children`).
 
     Single-child containers are collapsed (the child is returned
     directly) since a lone window fills its container regardless
     of layout.
     """
+    rect = node.get("rect")
+
     # Leaf: qutebrowser window
     if node.get("app_id") == APP_ID:
         sway_id = node.get("id")
         restore_id = sway_id_to_restore_id.get(sway_id)
         if restore_id is not None:
-            return {"restore_id": restore_id}
+            result = {"restore_id": restore_id}
+            if rect:
+                result["rect"] = rect
+            return result
         return None
 
     # Container: recurse into tiled children only (skip floating_nodes)
@@ -213,10 +223,13 @@ def _prune_node(node, sway_id_to_restore_id):
     if len(pruned_children) == 1:
         return pruned_children[0]  # collapse single-child container
 
-    return {
+    result = {
         "layout": node.get("layout", "splith"),
         "children": pruned_children,
     }
+    if rect:
+        result["rect"] = rect
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -385,6 +398,101 @@ def _apply_layout(con_id, layout):
         swaymsg_cmd("splith")
 
 
+def _first_leaf_con_id(node, id_to_con):
+    """Return the ``con_id`` of the first leaf descendant of *node*.
+
+    Returns ``None`` if no leaf with a known ``con_id`` is found.
+    """
+    if "restore_id" in node:
+        return id_to_con.get(node["restore_id"])
+    for child in node.get("children", []):
+        result = _first_leaf_con_id(child, id_to_con)
+        if result is not None:
+            return result
+    return None
+
+
+def _tree_depth(node):
+    """Return the depth from *node* to its first leaf descendant.
+
+    A leaf node (``restore_id`` present) has depth 0.  A container's
+    depth is 1 + depth of its first child.
+    """
+    if "restore_id" in node:
+        return 0
+    children = node.get("children", [])
+    if not children:
+        return 0
+    return 1 + _tree_depth(children[0])
+
+
+def _resize_children(children, layout, id_to_con):
+    """Resize children proportionally based on saved ``rect`` data.
+
+    For ``splith``: proportions are computed from ``rect.width``.
+    For ``splitv``: proportions are computed from ``rect.height``.
+    For ``tabbed``/``stacked``: no resizing (children overlap).
+
+    Each child except the last is resized to its saved proportion
+    (in ppt — percentage points).  The last child automatically
+    takes the remaining space.
+
+    For container children (not direct leaves), focuses a leaf
+    descendant first, then uses ``focus parent`` to reach the
+    container level before resizing.
+    """
+    if layout not in ("splith", "splitv"):
+        return
+
+    dim = "width" if layout == "splith" else "height"
+
+    # Collect sizes for children that have rect data
+    sizes = []
+    for child in children:
+        rect = child.get("rect")
+        if rect and dim in rect:
+            sizes.append(rect[dim])
+        else:
+            sizes.append(None)
+
+    # Need at least 2 children with valid sizes to compute proportions
+    valid = [s for s in sizes if s is not None]
+    if len(valid) < 2:
+        return
+
+    total = sum(s for s in sizes if s is not None)
+    if total <= 0:
+        return
+
+    # Resize all children except the last
+    for i, child in enumerate(children[:-1]):
+        if sizes[i] is None:
+            continue
+
+        ppt = round(sizes[i] / total * 100)
+        if ppt <= 0 or ppt >= 100:
+            continue
+
+        # Find a focusable con_id for this child
+        if "restore_id" in child:
+            con_id = id_to_con.get(child["restore_id"])
+            if con_id is None:
+                continue
+            swaymsg_cmd(f'[con_id={con_id}] focus')
+        else:
+            # Container child: focus a leaf descendant, then ascend
+            leaf_con_id = _first_leaf_con_id(child, id_to_con)
+            if leaf_con_id is None:
+                continue
+            swaymsg_cmd(f'[con_id={leaf_con_id}] focus')
+            depth = _tree_depth(child)
+            for _ in range(depth):
+                swaymsg_cmd('focus parent')
+
+        resize_dim = "width" if layout == "splith" else "height"
+        swaymsg_cmd(f'resize set {resize_dim} {ppt} ppt')
+
+
 def _restore_tree_node(node, id_to_con, workspace, reference_con_id,
                        ws_to_output=None):
     """Recursively restore tiled windows according to saved tree structure.
@@ -462,6 +570,10 @@ def _restore_tree_node(node, id_to_con, workspace, reference_con_id,
                 ws_to_output=ws_to_output)
             if result is not None:
                 last_placed = result
+
+    # Restore proportional sizes from saved rect data
+    if last_placed is not None and len(children) > 1:
+        _resize_children(children, layout, id_to_con)
 
     return last_placed
 
