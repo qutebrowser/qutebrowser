@@ -6,4 +6,3 @@ PyQt6-Qt6==6.10.2
 PyQt6-WebEngine==6.10.0
 PyQt6-WebEngine-Qt6==6.10.2
 PyQt6_sip==13.11.1
---extra-index-url https://www.riverbankcomputing.com/pypi/simple/
