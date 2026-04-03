@@ -13,6 +13,7 @@ import sys
 import shutil
 import inspect
 import subprocess
+import contextlib
 import tempfile
 import argparse
 
@@ -85,22 +86,44 @@ class UsageFormatter(argparse.HelpFormatter):
                 return (result, ) * tuple_size
         return fmt
 
-    def _get_actions_usage_parts(self, actions, groups):
-        """Override _get_actions_usage_parts to add asciidoc markup to flags.
+    @contextlib.contextmanager
+    def _patch_option_strings(self, actions):
+        """Override argparse functionality to add asciidoc markup to flags.
 
-        Because argparse.py's _get_actions_usage_parts is very complex, we first
-        monkey-patch the option strings to include the asciidoc markup, then
-        run the original method, then undo the patching.
+        Because argparse.py's _get_actions_usage_parts/_format_actions_usage is
+        very complex, we first monkey-patch the option strings to include the
+        asciidoc markup, then run the original method, then undo the patching.
         """
         old_option_strings = {}
         for action in actions:
             old_option_strings[action] = action.option_strings[:]
-            action.option_strings = ['*{}*'.format(s)
-                                     for s in action.option_strings]
-        ret = super()._get_actions_usage_parts(actions, groups)
-        for action in actions:
-            action.option_strings = old_option_strings[action]
-        return ret
+            action.option_strings = [f"*{s}*" for s in action.option_strings]
+        try:
+            yield
+        finally:
+            for action in actions:
+                action.option_strings = old_option_strings[action]
+
+    def _get_actions_usage_parts(self, actions, groups):
+        """Override _get_actions_usage_parts to add asciidoc markup to flags.
+
+        This only exists with Python 3.13+.
+        """
+        with self._patch_option_strings(actions):
+            # pylint: disable=no-member
+            return super()._get_actions_usage_parts(actions, groups)
+
+    def _format_actions_usage(self, actions, groups):
+        """Override _format_actions_usage to add asciidoc markup to flags.
+
+        For Python <= 3.12.
+        """
+        if hasattr(super(), '_get_actions_usage_parts'):
+            # Use the patching above
+            return super()._format_actions_usage(actions, groups)
+
+        with self._patch_option_strings(actions):
+            return super()._format_actions_usage(actions, groups)
 
     def _format_args(self, action, default_metavar):
         """Backport simplified star nargs usage.
@@ -560,10 +583,6 @@ def regenerate_cheatsheet():
 def main():
     """Regenerate all documentation."""
     utils.change_cwd()
-    if sys.version_info < (3, 13):
-        print("Python 3.13 or newer is required to run this script!")
-        sys.exit(1)
-
     loader.load_components(skip_hooks=True)
     print("Generating manpage...")
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
