@@ -7,11 +7,12 @@
 import textwrap
 
 import pytest
+from types import SimpleNamespace
 from qutebrowser.qt.core import QUrl
 
 from qutebrowser.qt import machinery
 from qutebrowser.utils import utils, usertypes
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, commands
 
 
 @pytest.fixture
@@ -346,6 +347,47 @@ class TestSearch:
         caret.move_to_end_of_line()
         selection.check('wei drei')
 
+    @pytest.mark.no_xvfb
+    def test_search_next_after_caret_mode_continues_from_previous_match(self, webengine_tab, mode_manager, qtbot, config_stub,):
+        webengine_tab.container.expose()
+
+        with qtbot.wait_signal(webengine_tab.load_finished, timeout=10000):
+            webengine_tab.load_url(QUrl('qute://testdata/data/caret.html'))
+
+        with qtbot.wait_callback() as callback:
+            webengine_tab.search.search('w', result_cb=callback)
+        callback.assert_called_with(True)
+
+        with qtbot.wait_callback() as callback:
+            webengine_tab.search.next_result(callback=callback)
+        callback.assert_called_with(browsertab.SearchNavigationResult.found)
+
+        before = webengine_tab.search.match.current
+        total = webengine_tab.search.match.total
+        expected = before + 1 if before < total else 1
+
+        with qtbot.wait_signal(webengine_tab.caret.selection_toggled):
+            mode_manager.enter(usertypes.KeyMode.caret)
+        mode_manager.leave(usertypes.KeyMode.caret)
+
+        dispatcher = commands.CommandDispatcher(
+            win_id=0,
+            tabbed_browser=SimpleNamespace(
+                search_text='w',
+                search_options={
+                    'ignore_case': config_stub.val.search.ignore_case,
+                    'reverse': False,
+                },
+            ),
+        )
+        dispatcher._current_widget = lambda: webengine_tab
+
+        dispatcher.search_next()
+
+        qtbot.wait_until(
+            lambda: webengine_tab.search.match.current == expected,
+            timeout=10000,
+        )
 
 class TestFollowSelected:
 

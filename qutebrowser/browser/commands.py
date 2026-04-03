@@ -1662,6 +1662,23 @@ class CommandDispatcher:
             tab.search.search(window_text, **window_options)
             count -= 1
 
+        elif window_text is not None and not tab.search.search_displayed:
+            # Restore a temporarily hidden search (e.g. after entering/leaving
+            # caret mode), then continue navigation from the current context.
+            restore_match_current = None
+
+            if hasattr(tab.search, 'take_restore_match_current'):
+                restore_match_current = tab.search.take_restore_match_current()
+
+                if restore_match_current is not None:
+                    tab.search.search(window_text, **window_options)
+
+                    if restore_match_current > 1:
+                        # Restore search state
+                        wrap = config.val.search.wrap
+                        for _ in range(restore_match_current - 1):
+                            tab.search.next_result(wrap=wrap)
+
         if count == 0:
             return
 
