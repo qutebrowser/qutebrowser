@@ -25,6 +25,18 @@ Added
 - New `:quickmark-reload` and `:bookmark-reload` commands to reload
   quick-/bookmarks from disk (#8845).
 
+Changed
+~~~~~~~
+
+- Windows and macOS releases now ship with Qt 6.11.0, which is based on Chromium
+  140.0.7339.225 with security patches up to 146.0.7680.80.
+
+Deprecated
+~~~~~~~~~~
+
+- Support for Python 3.9 is not tested anymore, and will be fully removed in
+  the next release (#8731).
+
 Fixed
 ~~~~~
 
