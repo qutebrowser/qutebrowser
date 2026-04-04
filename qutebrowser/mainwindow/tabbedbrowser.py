@@ -24,7 +24,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils,
                                urlutils, message, jinja, version)
-from qutebrowser.misc import quitter, objects
+from qutebrowser.misc import quitter, objects, sessions
 
 
 @dataclasses.dataclass
@@ -906,6 +906,11 @@ class TabbedBrowser(QWidget):
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
+
+        if tab.data.lazy_session_data is not None:
+            session_data = tab.data.lazy_session_data
+            tab.data.lazy_session_data = None
+            sessions.session_manager._load_tab(tab, session_data)
 
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
 
