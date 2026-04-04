@@ -1890,6 +1890,11 @@ class SelectOnRemove(MappingType):
             QTabBar.SelectionBehavior.SelectPreviousTab,
             "Select the previously selected tab.",
         ),
+        'firefox': (
+            'firefox',
+            ("Select the tab that was opened before this tab (if closed immediately "
+             "without switching away). Falls back to 'next' otherwise."),
+        ),
     }
 
 
