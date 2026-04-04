@@ -970,8 +970,20 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             hints["x-kde-origin-name"] = origin_url_str
 
         if icon.isNull():
-            filename = 'icons/qutebrowser-64x64.png'
-            icon = QImage.fromData(resources.read_file_binary(filename))
+            icon_custom = config.val.app.icon
+            icon_default = 'icons/qutebrowser-64x64.png'
+
+            def get_icon_data() -> bytes:
+                if icon_custom is None:
+                    return resources.read_file_binary(icon_default)
+
+                try:
+                    return resources.read_absolute_file_binary(icon_custom)
+                except FileNotFoundError:
+                    log.init.warning("Custom icon not found: {}. Falling back to default".format(icon_custom))
+                    return resources.read_file_binary(icon_default)
+
+            icon = QImage.fromData(get_icon_data())
 
         key = self._quirks.icon_key or "image-data"
         data = self._convert_image(icon)
