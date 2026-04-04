@@ -168,6 +168,7 @@ class TabbedBrowser(QWidget):
         cur_load_started: Current tab started loading (load_started)
         cur_load_finished: Current tab finished loading (load_finished)
         cur_url_changed: Current URL changed.
+        cur_zoom_changed: Zoom factor of current tab changed.
         cur_link_hovered: Link hovered in current tab (link_hovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
@@ -189,6 +190,7 @@ class TabbedBrowser(QWidget):
     cur_url_changed = pyqtSignal(QUrl)
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
+    cur_zoom_changed = pyqtSignal(float)
     cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
     cur_search_match_changed = pyqtSignal(browsertab.SearchMatch)
     cur_fullscreen_requested = pyqtSignal(bool)
@@ -337,6 +339,8 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_load_started, tab))
         tab.scroller.perc_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
+        tab.zoom.factor_changed.connect(
+            self._filter.create(self.cur_zoom_changed, tab))
         tab.url_changed.connect(
             self._filter.create(self.cur_url_changed, tab))
         tab.load_status_changed.connect(

@@ -2208,9 +2208,20 @@ statusbar.widgets:
          format string via `clock:...`. For supported format strings, see
          https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the
          Python datetime documentation]."
+        - zoom: "Display zoom percentage (e.g. `200%`)"
     none_ok: true
-  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
+  default: ['keypress', 'search_match', 'url', 'zoom', 'scroll',
+            'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
+
+statusbar.zoom.show:
+  default: non-default
+  type:
+    name: String
+    valid_values:
+      - always: Always show the zoom percentage.
+      - non-default: Show the zoom percentage when it is not 100%.
+  desc: When to show the zoom percentage in the statusbar.
 
 ## tabs
 
