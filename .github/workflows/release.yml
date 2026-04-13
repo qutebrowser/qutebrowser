@@ -122,7 +122,7 @@ jobs:
       - name: Create GitHub draft release
         if: ${{ inputs.release_type != 'reupload' }}
         id: create-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.bump.outputs.version }}
           draft: true
