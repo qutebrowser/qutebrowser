@@ -2373,12 +2373,12 @@ tabs.title.alignment:
 tabs.title.audio.playing:
   default: '[A] '
   type: String
-  desc: "String or a symbol to indicate that audio is playing in a tab. See
+  desc: "String or symbol to indicate that audio is playing in a tab. See
     `tabs.title.format` for how to display this in the tab title."
 tabs.title.audio.muted:
   default: '[M] '
   type: String
-  desc: "String or a symbol to indicate that tab has been muted. See
+  desc: "String or symbol to indicate that tab has been muted. See
     `tabs.title.format` for how to display this in the tab title."
 
 tabs.title.elide:

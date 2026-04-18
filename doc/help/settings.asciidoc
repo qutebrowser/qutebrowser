@@ -344,8 +344,8 @@
 |<<tabs.show_switching_delay,tabs.show_switching_delay>>|Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
-|<<tabs.title.audio.muted,tabs.title.audio.muted>>|String or a symbol to indicate that tab has been muted. See `tabs.title.format` for how to display this in the tab title.
-|<<tabs.title.audio.playing,tabs.title.audio.playing>>|String or a symbol to indicate that audio is playing in a tab. See `tabs.title.format` for how to display this in the tab title.
+|<<tabs.title.audio.muted,tabs.title.audio.muted>>|String or symbol to indicate that tab has been muted. See `tabs.title.format` for how to display this in the tab title.
+|<<tabs.title.audio.playing,tabs.title.audio.playing>>|String or symbol to indicate that audio is playing in a tab. See `tabs.title.format` for how to display this in the tab title.
 |<<tabs.title.elide,tabs.title.elide>>|Position of ellipsis in truncated title of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
@@ -4557,7 +4557,7 @@ Default: +pass:[left]+
 
 [[tabs.title.audio.muted]]
 === tabs.title.audio.muted
-String or a symbol to indicate that tab has been muted. See `tabs.title.format` for how to display this in the tab title.
+String or symbol to indicate that tab has been muted. See `tabs.title.format` for how to display this in the tab title.
 
 Type: <<types,String>>
 
@@ -4565,7 +4565,7 @@ Default: +pass:[[M\] ]+
 
 [[tabs.title.audio.playing]]
 === tabs.title.audio.playing
-String or a symbol to indicate that audio is playing in a tab. See `tabs.title.format` for how to display this in the tab title.
+String or symbol to indicate that audio is playing in a tab. See `tabs.title.format` for how to display this in the tab title.
 
 Type: <<types,String>>
 
