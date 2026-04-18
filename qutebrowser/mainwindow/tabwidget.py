@@ -4,7 +4,6 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-import enum
 import functools
 import contextlib
 import dataclasses
