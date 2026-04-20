@@ -4,6 +4,7 @@
 
 """Handling of HTTP cookies."""
 
+from typing import Optional
 from collections.abc import Sequence
 
 from qutebrowser.qt.network import QNetworkCookie, QNetworkCookieJar
@@ -14,8 +15,8 @@ from qutebrowser.utils import utils, standarddir, objreg, log
 from qutebrowser.misc import lineparser, objects
 
 
-cookie_jar = None
-ram_cookie_jar = None
+cookie_jar: Optional["CookieJar"] = None
+ram_cookie_jar: Optional["RAMCookieJar"] = None
 
 
 class RAMCookieJar(QNetworkCookieJar):

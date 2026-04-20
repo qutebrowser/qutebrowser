@@ -3,18 +3,18 @@
 cachetools==7.0.5
 colorama==0.4.6
 distlib==0.4.0
-filelock==3.25.2
-packaging==26.0
+filelock==3.29.0
+packaging==26.1
 pip==26.0.1
-platformdirs==4.9.4
+platformdirs==4.9.6
 pluggy==1.6.0
 pyproject-api==1.10.0
-python-discovery==1.2.1
+python-discovery==1.2.2
 setuptools==82.0.1
 tomli==2.4.1
 tomli_w==1.2.0
-tox==4.52.0 ; python_full_version!="3.14.0b1"
+tox==4.53.0 ; python_full_version!="3.14.0b1"
 typing_extensions==4.15.0
-virtualenv==21.2.0
+virtualenv==21.2.4
 wheel==0.46.3
 tox @ git+https://github.com/tox-dev/tox ; python_full_version=="3.14.0b1"
