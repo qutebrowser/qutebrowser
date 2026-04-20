@@ -169,6 +169,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
 
     - If --qt-wrapper is given, use that.
     - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
+    - Otherwise, the hardcoded _WRAPPER_OVERRIDE, if set.
     - Otherwise, try the wrappers in WRAPPER in order (PyQt6 -> PyQt5)
     """
     # If any Qt wrapper has been imported before this, something strange might
