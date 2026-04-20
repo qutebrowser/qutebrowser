@@ -1,0 +1,783 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: Simon Désaulniers (sim590) <sim.desaulniers@gmail.com>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Session save/restore helper for qutebrowser on Sway (Wayland).
+
+This script is designed to be invoked via qutebrowser's
+``session.after_save_command`` and ``session.after_load_command`` config
+options.
+
+Usage::
+
+    # In qutebrowser config.py:
+    c.session.after_save_command = (
+        'qb-sway-session save {session_path}'
+    )
+    c.session.after_load_command = (
+        'qb-sway-session restore {session_path}'
+    )
+
+File layout
+-----------
+
+The session YAML written by qutebrowser is **never modified** by this
+script.  All Sway-specific data is stored in a companion *sidecar* file
+in a ``sway/`` subdirectory next to the session file::
+
+    data/sessions/default.yml        ← written by qutebrowser (untouched)
+    data/sessions/sway/default.yml   ← written by this script
+
+The sidecar is written atomically (temp-file + ``os.replace``) so it is
+either fully written or not written at all — a crash can never corrupt
+the session file.
+
+Modes
+-----
+
+**save**
+    Reads the session YAML (read-only) and queries the Sway tree
+    (``swaymsg -t get_tree``) to find qutebrowser windows.  Correlates
+    them via temporary title markers (``__qb_save_<win_id>__``) that
+    qutebrowser sets on each window right before running this command,
+    giving exact 1:1 matching even with duplicate page titles.  Writes
+    the sidecar with:
+
+    - Per-window (keyed by ``restore_id``): ``sway_rect``,
+      ``sway_workspace``, ``sway_output``, ``sway_floating``
+    - ``sway_trees`` — a pruned tiling tree per workspace that captures
+      the container hierarchy (split directions and pixel dimensions)
+      between qutebrowser windows.
+
+**restore**
+    Reads the session YAML (for ``restore_id`` marker titles) and the
+    sidecar (for Sway positions and tree data), then restores the layout:
+
+    - **Multi-monitor**: focuses the correct output immediately before
+      each ``move container to workspace`` command so that sway creates
+      the workspace on the right monitor, even when the workspace does
+      not exist yet at restore time.
+    - **Floating windows**: exact position and size via ``swaymsg``.
+    - **Tiled windows**: reconstructs the container hierarchy from
+      ``sway_trees`` using Sway's ``mark`` + ``move container to mark``
+      mechanism, preserving split directions (splith, splitv, tabbed,
+      stacked) and proportional sizes via ``resize set … ppt``.
+
+    Falls back to simple workspace placement if ``sway_trees`` is absent
+    (backward compatibility).  If the sidecar file is missing the script
+    exits silently — the session loads normally, just without position
+    restoration.
+
+Dependencies
+------------
+
+- Python >= 3.9 (standard library only, plus PyYAML)
+- ``swaymsg`` in ``$PATH``
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    print("qb-sway-session: PyYAML is required. Install it with: "
+          "pip install pyyaml", file=sys.stderr)
+    sys.exit(1)
+
+
+APP_ID = "org.qutebrowser.qutebrowser"
+MARKER_PREFIX = "__qb_restore_"
+MARKER_SUFFIX = "__"
+SAVE_MARKER_RE = re.compile(r"^__qb_save_(\d+)__$")
+LAYOUT_MARK = "__qb_layout_ref__"
+# How long to wait for windows to appear (seconds)
+RESTORE_TIMEOUT = 4.0
+RESTORE_POLL_INTERVAL = 0.3
+
+
+# ---------------------------------------------------------------------------
+# Sway helpers
+# ---------------------------------------------------------------------------
+
+def get_sway_tree():
+    """Return the parsed JSON tree from ``swaymsg -t get_tree``."""
+    result = subprocess.run(
+        ["swaymsg", "-t", "get_tree"],
+        capture_output=True, text=True, check=True,
+    )
+    return json.loads(result.stdout)
+
+
+def find_qb_windows(tree, app_id=APP_ID):
+    """Recursively find all qutebrowser windows with context info.
+
+    Returns a list of dicts with added keys:
+        ``is_floating``, ``workspace``, ``output``
+    """
+    results = []
+    _collect_qb_windows(tree, app_id, results,
+                        is_floating=False, workspace=None, output=None)
+    return results
+
+
+def _collect_qb_windows(node, app_id, results, is_floating, workspace,
+                        output):
+    """Recursive helper for find_qb_windows."""
+    if node.get("type") == "output":
+        output = node.get("name")
+    if node.get("type") == "workspace":
+        workspace = node.get("name")
+
+    if node.get("app_id") == app_id:
+        node["is_floating"] = is_floating
+        node["workspace"] = workspace
+        node["output"] = output
+        results.append(node)
+        return
+
+    for child in node.get("nodes", []):
+        _collect_qb_windows(child, app_id, results,
+                            is_floating=False, workspace=workspace,
+                            output=output)
+    for child in node.get("floating_nodes", []):
+        _collect_qb_windows(child, app_id, results,
+                            is_floating=True, workspace=workspace,
+                            output=output)
+
+
+def swaymsg_cmd(command):
+    """Run a swaymsg command, logging errors to stderr."""
+    try:
+        subprocess.run(
+            ["swaymsg", command],
+            capture_output=True, text=True, check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"qb-sway-session: swaymsg error: {e.stderr}",
+              file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# Tree pruning (save)
+# ---------------------------------------------------------------------------
+
+def _find_workspaces(node):
+    """Recursively find all workspace nodes in the Sway tree."""
+    workspaces = []
+    if node.get("type") == "workspace":
+        workspaces.append(node)
+    for child in node.get("nodes", []) + node.get("floating_nodes", []):
+        workspaces.extend(_find_workspaces(child))
+    return workspaces
+
+
+def _prune_node(node, sway_id_to_restore_id):
+    """Build a pruned tree containing only tiled qutebrowser windows.
+
+    Returns:
+        ``{"restore_id": N, "rect": {...}}`` for a leaf window,
+        ``{"layout": "...", "children": [...], "rect": {...}}``
+        for a container, or ``None`` if no qb windows found in this
+        subtree.
+
+    Each node includes its ``rect`` (pixel dimensions from the Sway
+    tree) when available, which is used during restore to compute
+    proportional sizes (see :func:`_resize_children`).
+
+    Single-child containers are collapsed (the child is returned
+    directly) since a lone window fills its container regardless
+    of layout.
+    """
+    rect = node.get("rect")
+
+    # Leaf: qutebrowser window
+    if node.get("app_id") == APP_ID:
+        sway_id = node.get("id")
+        restore_id = sway_id_to_restore_id.get(sway_id)
+        if restore_id is not None:
+            result = {"restore_id": restore_id}
+            if rect:
+                result["rect"] = rect
+            return result
+        return None
+
+    # Container: recurse into tiled children only (skip floating_nodes)
+    pruned_children = []
+    for child in node.get("nodes", []):
+        pruned = _prune_node(child, sway_id_to_restore_id)
+        if pruned is not None:
+            pruned_children.append(pruned)
+
+    if not pruned_children:
+        return None
+
+    if len(pruned_children) == 1:
+        return pruned_children[0]  # collapse single-child container
+
+    result = {
+        "layout": node.get("layout", "splith"),
+        "children": pruned_children,
+    }
+    if rect:
+        result["rect"] = rect
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Sidecar file helpers
+# ---------------------------------------------------------------------------
+
+def _sidecar_path(session_path):
+    """Derive the sidecar file path from the session file path.
+
+    ``data/sessions/default.yml`` → ``data/sessions/sway/default.yml``
+    """
+    p = Path(session_path)
+    return p.parent / "sway" / p.name
+
+
+def _atomic_write_yaml(path, data):
+    """Write *data* as YAML to *path* atomically.
+
+    Creates parent directories if needed.  Uses a temporary file in the
+    same directory followed by ``os.replace()`` (atomic on POSIX) so the
+    file is either fully written or not touched at all.
+    """
+    path = Path(path)
+    os.makedirs(path.parent, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=path.parent, suffix=".tmp", prefix=path.name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+        os.replace(tmp_path, path)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+
+
+# ---------------------------------------------------------------------------
+# Save mode
+# ---------------------------------------------------------------------------
+
+def do_save(session_path):
+    """Write Sway geometry and tree info to a sidecar file.
+
+    The session YAML is read but **never modified**.  All Sway-specific
+    data is written to a companion sidecar file in a ``sway/``
+    subdirectory (e.g. ``sway/default.yml``), keyed by ``restore_id``.
+
+    Correlation between session windows and Sway windows is done via
+    temporary title markers (``__qb_save_<win_id>__``) that qutebrowser
+    sets on each window just before running this command.  This gives
+    exact 1:1 matching even when multiple windows share the same page
+    title.
+    """
+    path = Path(session_path)
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None or "windows" not in data:
+        return
+
+    tree = get_sway_tree()
+    sway_windows = find_qb_windows(tree)
+
+    # Build win_id -> sway window via save markers in the title.
+    # qutebrowser sets each window's title to __qb_save_<win_id>__
+    # right before running after_save_command.
+    sway_by_win_id = {}
+    for sw in sway_windows:
+        title = sw.get("name", "")
+        m = SAVE_MARKER_RE.match(title)
+        if m:
+            sway_by_win_id[int(m.group(1))] = sw
+
+    # sway con_id -> restore_id for tree pruning (unique, no collision)
+    sway_id_to_restore_id = {}
+
+    # Build sidecar data — keyed by restore_id
+    sidecar_windows = {}
+    for win in data["windows"]:
+        win_id = win.get("win_id")
+        restore_id = win.get("restore_id")
+        if win_id is None or restore_id is None:
+            continue
+
+        sw = sway_by_win_id.get(win_id)
+        if sw is None:
+            continue
+
+        sidecar_windows[restore_id] = {
+            "sway_rect": sw["rect"],
+            "sway_floating": sw["is_floating"],
+        }
+        if sw.get("workspace") is not None:
+            sidecar_windows[restore_id]["sway_workspace"] = sw["workspace"]
+        if sw.get("output") is not None:
+            sidecar_windows[restore_id]["sway_output"] = sw["output"]
+
+        if not sw["is_floating"]:
+            sway_id_to_restore_id[sw["id"]] = restore_id
+
+    # Build per-workspace pruned trees for tiled windows
+    sway_trees = {}
+    for ws in _find_workspaces(tree):
+        ws_name = ws.get("name")
+        if not ws_name:
+            continue
+        pruned = _prune_node(ws, sway_id_to_restore_id)
+        if pruned is not None:
+            sway_trees[ws_name] = pruned
+
+    if not sidecar_windows and not sway_trees:
+        return
+
+    sidecar = {"windows": sidecar_windows}
+    if sway_trees:
+        sidecar["sway_trees"] = sway_trees
+
+    _atomic_write_yaml(_sidecar_path(path), sidecar)
+
+
+# ---------------------------------------------------------------------------
+# Multi-monitor helper
+# ---------------------------------------------------------------------------
+
+def _focus_output_for_workspace(workspace, ws_to_output):
+    """Focus the output where *workspace* should live.
+
+    When a workspace does not exist yet, sway creates it on whichever
+    output currently has focus.  By focusing the correct output right
+    before a ``move container to workspace`` command, we ensure the
+    workspace (and thus the window) ends up on the right monitor.
+
+    This is a no-op if *workspace* is not in *ws_to_output*.
+    """
+    output = ws_to_output.get(workspace)
+    if output:
+        swaymsg_cmd(f'focus output "{output}"')
+
+
+# ---------------------------------------------------------------------------
+# Tree reconstruction (restore)
+# ---------------------------------------------------------------------------
+
+def _apply_layout(con_id, layout):
+    """Set the split/layout direction for the container around con_id.
+
+    For splith/splitv: uses the ``split`` command which creates a new
+    container around the window (if it has siblings) with the given
+    orientation.
+
+    For tabbed/stacked: first creates a container with ``split``, then
+    changes its layout.  This ensures we don't accidentally change the
+    parent workspace's layout.
+    """
+    swaymsg_cmd(f'[con_id={con_id}] focus')
+    if layout in ("splith", "splitv"):
+        swaymsg_cmd(layout)
+    elif layout == "tabbed":
+        swaymsg_cmd("splith")
+        swaymsg_cmd("layout tabbed")
+    elif layout == "stacked":
+        swaymsg_cmd("splith")
+        swaymsg_cmd("layout stacking")
+    else:
+        swaymsg_cmd("splith")
+
+
+def _first_leaf_con_id(node, id_to_con):
+    """Return the ``con_id`` of the first leaf descendant of *node*.
+
+    Returns ``None`` if no leaf with a known ``con_id`` is found.
+    """
+    if "restore_id" in node:
+        return id_to_con.get(node["restore_id"])
+    for child in node.get("children", []):
+        result = _first_leaf_con_id(child, id_to_con)
+        if result is not None:
+            return result
+    return None
+
+
+def _tree_depth(node):
+    """Return the depth from *node* to its first leaf descendant.
+
+    A leaf node (``restore_id`` present) has depth 0.  A container's
+    depth is 1 + depth of its first child.
+    """
+    if "restore_id" in node:
+        return 0
+    children = node.get("children", [])
+    if not children:
+        return 0
+    return 1 + _tree_depth(children[0])
+
+
+def _resize_children(children, layout, id_to_con):
+    """Resize children proportionally based on saved ``rect`` data.
+
+    For ``splith``: proportions are computed from ``rect.width``.
+    For ``splitv``: proportions are computed from ``rect.height``.
+    For ``tabbed``/``stacked``: no resizing (children overlap).
+
+    Each child except the last is resized to its saved proportion
+    (in ppt — percentage points).  The last child automatically
+    takes the remaining space.
+
+    For container children (not direct leaves), focuses a leaf
+    descendant first, then uses ``focus parent`` to reach the
+    container level before resizing.
+    """
+    if layout not in ("splith", "splitv"):
+        return
+
+    dim = "width" if layout == "splith" else "height"
+
+    # Collect sizes for children that have rect data
+    sizes = []
+    for child in children:
+        rect = child.get("rect")
+        if rect and dim in rect:
+            sizes.append(rect[dim])
+        else:
+            sizes.append(None)
+
+    # Need at least 2 children with valid sizes to compute proportions
+    valid = [s for s in sizes if s is not None]
+    if len(valid) < 2:
+        return
+
+    total = sum(s for s in sizes if s is not None)
+    if total <= 0:
+        return
+
+    # Resize all children except the last
+    for i, child in enumerate(children[:-1]):
+        if sizes[i] is None:
+            continue
+
+        ppt = round(sizes[i] / total * 100)
+        if ppt <= 0 or ppt >= 100:
+            continue
+
+        # Find a focusable con_id for this child
+        if "restore_id" in child:
+            con_id = id_to_con.get(child["restore_id"])
+            if con_id is None:
+                continue
+            swaymsg_cmd(f'[con_id={con_id}] focus')
+        else:
+            # Container child: focus a leaf descendant, then ascend
+            leaf_con_id = _first_leaf_con_id(child, id_to_con)
+            if leaf_con_id is None:
+                continue
+            swaymsg_cmd(f'[con_id={leaf_con_id}] focus')
+            depth = _tree_depth(child)
+            for _ in range(depth):
+                swaymsg_cmd('focus parent')
+
+        resize_dim = "width" if layout == "splith" else "height"
+        swaymsg_cmd(f'resize set {resize_dim} {ppt} ppt')
+
+
+def _restore_tree_node(node, id_to_con, workspace, reference_con_id,
+                       ws_to_output=None):
+    """Recursively restore tiled windows according to saved tree structure.
+
+    The algorithm uses Sway's ``mark`` mechanism:
+
+    - The first child of a container is placed using either
+      ``move container to workspace`` (root level) or
+      ``move container to mark`` (nested — placed next to the reference
+      window, entering its parent container).
+    - After placing the first child, ``split`` is applied to set the
+      container's layout direction.
+    - Subsequent children use ``move container to mark`` on the
+      previously placed sibling, entering the same container.
+
+    For multi-monitor support, ``focus output`` is issued immediately
+    before any ``move container to workspace`` command (root level only)
+    to ensure sway creates the workspace on the correct output.
+
+    Args:
+        node: saved tree node — either ``{"restore_id": N}`` (leaf) or
+              ``{"layout": "...", "children": [...]}`` (container).
+        id_to_con: mapping of ``restore_id`` → sway ``con_id``.
+        workspace: target workspace name.
+        reference_con_id: if set, place next to this window via mark.
+            ``None`` means place at the workspace root.
+        ws_to_output: mapping of workspace → output name for
+            multi-monitor placement.
+
+    Returns:
+        ``con_id`` of the last leaf window placed, or ``None`` if no
+        windows could be placed.
+    """
+    if ws_to_output is None:
+        ws_to_output = {}
+
+    if "restore_id" in node:
+        # Leaf: place the window
+        con_id = id_to_con.get(node["restore_id"])
+        if con_id is None:
+            return None
+
+        if reference_con_id is not None:
+            swaymsg_cmd(
+                f'[con_id={reference_con_id}] mark --add {LAYOUT_MARK}')
+            swaymsg_cmd(
+                f'[con_id={con_id}] move container to mark {LAYOUT_MARK}')
+            swaymsg_cmd(f'unmark {LAYOUT_MARK}')
+        else:
+            _focus_output_for_workspace(workspace, ws_to_output)
+            swaymsg_cmd(
+                f'[con_id={con_id}] move container to workspace "{workspace}"')
+
+        swaymsg_cmd(f'[con_id={con_id}] floating disable')
+        return con_id
+
+    # Container: process children recursively
+    layout = node.get("layout", "splith")
+    children = node.get("children", [])
+
+    last_placed = None
+    for i, child in enumerate(children):
+        if i == 0:
+            # First child inherits the reference (or workspace root)
+            last_placed = _restore_tree_node(
+                child, id_to_con, workspace, reference_con_id,
+                ws_to_output=ws_to_output)
+            # Set the layout direction for this container
+            if last_placed is not None and len(children) > 1:
+                _apply_layout(last_placed, layout)
+        else:
+            # Subsequent children: reference is the last placed window
+            result = _restore_tree_node(
+                child, id_to_con, workspace, last_placed,
+                ws_to_output=ws_to_output)
+            if result is not None:
+                last_placed = result
+
+    # Restore proportional sizes from saved rect data
+    if last_placed is not None and len(children) > 1:
+        _resize_children(children, layout, id_to_con)
+
+    return last_placed
+
+
+# ---------------------------------------------------------------------------
+# Restore mode
+# ---------------------------------------------------------------------------
+
+def _get_focused_workspace():
+    """Get the currently focused workspace name."""
+    try:
+        result = subprocess.run(
+            ["swaymsg", "-t", "get_workspaces"],
+            capture_output=True, text=True, check=True,
+        )
+        workspaces = json.loads(result.stdout)
+        for ws in workspaces:
+            if ws.get("focused"):
+                return ws["name"]
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        pass
+    return None
+
+
+def do_restore(session_path):
+    """Restore qutebrowser windows to their saved Sway layout.
+
+    Reads the session YAML (for ``restore_id`` values used as marker
+    titles) and the companion sidecar in the ``sway/`` subdirectory
+    (for Sway-specific positions and tree data).  The session file is
+    never modified.
+    """
+    path = Path(session_path)
+    sc_path = _sidecar_path(path)
+
+    # ---- read sidecar (sway-specific data) ----------------------------
+    if not sc_path.exists():
+        return
+
+    with open(sc_path, encoding="utf-8") as f:
+        sidecar = yaml.safe_load(f)
+
+    if not sidecar or "windows" not in sidecar:
+        return
+
+    sidecar_windows = sidecar.get("windows", {})
+
+    # ---- read session YAML (for restore_ids) --------------------------
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None or "windows" not in data:
+        return
+
+    # ---- build expected markers → window info -------------------------
+    expected = {}
+    for win in data["windows"]:
+        restore_id = win.get("restore_id")
+        if restore_id is None:
+            continue
+
+        sw_data = sidecar_windows.get(restore_id)
+        if sw_data is None:
+            continue
+
+        workspace = sw_data.get("sway_workspace")
+        if workspace is None:
+            continue
+
+        marker = f"{MARKER_PREFIX}{restore_id}{MARKER_SUFFIX}"
+        expected[marker] = {
+            "restore_id": restore_id,
+            "rect": sw_data.get("sway_rect"),
+            "workspace": workspace,
+            "output": sw_data.get("sway_output"),
+            "floating": sw_data.get("sway_floating", False),
+        }
+
+    if not expected:
+        return
+
+    # Remember current workspace to restore focus at the end
+    original_ws = _get_focused_workspace()
+
+    # ---- build workspace → output mapping ------------------------------
+    # Used by restoration functions to focus the correct output
+    # immediately before each ``move container to workspace`` command.
+    # This ensures sway creates the workspace on the correct monitor
+    # even if it doesn't exist yet.
+    ws_to_output = {}
+    for info in expected.values():
+        ws = info.get("workspace")
+        output = info.get("output")
+        if ws and output:
+            ws_to_output.setdefault(ws, output)
+
+    # Poll until windows appear or timeout
+    found = _poll_for_windows(expected)
+
+    # Build restore_id -> con_id mapping
+    id_to_con = {
+        info["restore_id"]: info["con_id"]
+        for info in found.values()
+    }
+
+    # Restore floating windows (exact position)
+    for info in found.values():
+        if info["floating"] and info.get("rect"):
+            _restore_floating(info["con_id"], info, ws_to_output)
+
+    # Restore tiled windows
+    sway_trees = sidecar.get("sway_trees")
+    if sway_trees:
+        # Tree-based reconstruction
+        for workspace, tree_node in sway_trees.items():
+            _restore_tree_node(tree_node, id_to_con, workspace,
+                               reference_con_id=None,
+                               ws_to_output=ws_to_output)
+    else:
+        # Fallback: simple workspace placement (no tree data)
+        for info in found.values():
+            if not info["floating"]:
+                _focus_output_for_workspace(
+                    info["workspace"], ws_to_output)
+                swaymsg_cmd(
+                    f'[con_id={info["con_id"]}] move container to '
+                    f'workspace "{info["workspace"]}"')
+                swaymsg_cmd(
+                    f'[con_id={info["con_id"]}] floating disable')
+
+    # Restore focus to the workspace the user was on before restore.
+    # After moving containers during restore, the workspace's focus
+    # may be stuck at a parent container level (as if "focus parent"
+    # had been pressed repeatedly).  We switch back to the original
+    # workspace and then descend the focus to a leaf window.
+    if original_ws:
+        swaymsg_cmd(f'workspace "{original_ws}"')
+    # Descend focus to a leaf window.  "focus child" descends one
+    # level; repeating it enough times reaches a leaf from any depth.
+    # It is a no-op when already at a leaf, so extra calls are harmless.
+    for _ in range(10):
+        swaymsg_cmd('focus child')
+
+
+def _poll_for_windows(expected):
+    """Poll the Sway tree until expected marker windows appear or timeout."""
+    deadline = time.monotonic() + RESTORE_TIMEOUT
+    remaining = dict(expected)
+    found = {}
+
+    while remaining and time.monotonic() < deadline:
+        tree = get_sway_tree()
+        sway_windows = find_qb_windows(tree)
+
+        for sw in sway_windows:
+            title = sw.get("name", "")
+            if title in remaining:
+                info = remaining.pop(title)
+                info["con_id"] = sw["id"]
+                found[title] = info
+
+        if remaining:
+            time.sleep(RESTORE_POLL_INTERVAL)
+
+    return found
+
+
+def _restore_floating(con_id, info, ws_to_output=None):
+    """Restore a floating window to its exact saved position and size."""
+    if ws_to_output is None:
+        ws_to_output = {}
+    rect = info["rect"]
+    workspace = info["workspace"]
+    _focus_output_for_workspace(workspace, ws_to_output)
+    swaymsg_cmd(
+        f'[con_id={con_id}] move container to workspace "{workspace}"')
+    swaymsg_cmd(
+        f'[con_id={con_id}] floating enable, '
+        f'[con_id={con_id}] move position {rect["x"]} {rect["y"]}, '
+        f'[con_id={con_id}] resize set {rect["width"]} {rect["height"]}')
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    if len(sys.argv) < 3:
+        print(f"Usage: {sys.argv[0]} (save|restore) <session_path>",
+              file=sys.stderr)
+        sys.exit(1)
+
+    mode = sys.argv[1]
+    session_path = sys.argv[2]
+
+    if mode == "save":
+        do_save(session_path)
+    elif mode == "restore":
+        do_restore(session_path)
+    else:
+        print(f"qb-sway-session: unknown mode '{mode}'", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

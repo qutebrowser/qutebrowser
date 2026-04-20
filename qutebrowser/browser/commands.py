@@ -1158,6 +1158,7 @@ class CommandDispatcher:
         env = {
             'QUTE_MODE': 'command',
             'QUTE_SELECTED_TEXT': selection,
+            'QUTE_WIN_ID': str(self._win_id),
         }
 
         if count is not None:
