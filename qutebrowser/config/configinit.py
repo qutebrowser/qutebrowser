@@ -30,8 +30,8 @@ def early_init(args: argparse.Namespace) -> None:
     yaml_config = configfiles.YamlConfig()
 
     config.instance = config.Config(yaml_config=yaml_config)
-    config.val = config.ConfigContainer(config.instance)
-    configapi.val = config.ConfigContainer(config.instance)
+    config.val = config.ConfigContainerInternal(config.instance)
+    configapi.val = config.ConfigContainerInternal(config.instance)
     config.key_instance = config.KeyConfig(config.instance)
     config.cache = configcache.ConfigCache()
     yaml_config.setParent(config.instance)
