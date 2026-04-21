@@ -395,6 +395,32 @@ def _get_windows_python_path() -> pathlib.Path:
         return pathlib.Path(winreg.QueryValueEx(key, 'ExecutablePath')[0])
     except FileNotFoundError:
         return fallback
+    
+
+def _generate_versions_file(out_path: pathlib.Path) -> None:
+    """Generate a versions.txt file with all installed packages."""
+    import json
+
+    lines = []
+    
+    try:
+        # Get the list of installed packages in JSON format
+        cmd = [sys.executable, '-m', 'pip', 'list', '--format=json']
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        packages = json.loads(result.stdout)
+        
+        # Write each package and its version to the versions.txt file
+        for pkg in sorted(packages, key=lambda x: x['name'].lower()):
+            lines.append(f"{pkg['name']}=={pkg['version']}\n")
+
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print(f"Error generating versions list: {e}")
+        lines.append(f"# Error fetching dependencies: {e}\n")
+
+    versions_file = out_path / "versions.txt"
+    versions_file.write_text("".join(lines), encoding="utf-8")
+    print(f"Generated {versions_file}")
 
 
 def _build_windows_single(
@@ -421,6 +447,9 @@ def _build_windows_single(
 
     utils.print_title("Running smoke test")
     smoke_test(exe_path, debug_build=debug)
+
+    utils.print_title("Generating versions.txt")
+    _generate_versions_file(out_path)
 
     if skip_packaging:
         return []
