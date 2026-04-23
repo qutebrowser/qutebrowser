@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
+from PyQt5.QtGui import QKeySequence
 
 import pytest
 from qutebrowser.qt.core import Qt
@@ -113,3 +114,9 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
+
+    def test_tab_root(self, get_prompt, qtbot):
+        prompt = get_prompt('/')
+        qtbot.keyPress(prompt._lineedit, Qt.Key_U, Qt.ControlModifier)
+        prompt.item_focus('next')
+        assert prompt._lineedit.text() == '/'
