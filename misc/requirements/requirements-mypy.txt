@@ -6,10 +6,10 @@ Jinja2==3.1.6
 librt==0.9.0
 lxml==6.1.0
 MarkupSafe==3.0.3
-mypy==1.20.1
+mypy==1.20.2
 mypy_extensions==1.1.0
-packaging==26.1
-pathspec==1.0.4
+packaging==26.2
+pathspec==1.1.1
 pluggy==1.6.0
 Pygments==2.20.0
 PyQt5-stubs==5.15.6.0
