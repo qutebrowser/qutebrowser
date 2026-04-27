@@ -1,0 +1,1131 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: Simon Désaulniers (sim590) <sim.desaulniers@gmail.com>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Session save/restore helper for qutebrowser on Hyprland (Wayland).
+
+This script is designed to be invoked via qutebrowser's
+``session.after_save_command`` and ``session.after_load_command`` config
+options.
+
+Usage::
+
+    # In qutebrowser config.py:
+    c.session.after_save_command = (
+        'qb-hyprland-session save {session_path}'
+    )
+    c.session.after_load_command = (
+        'qb-hyprland-session restore {session_path}'
+    )
+
+File layout
+-----------
+
+The session YAML written by qutebrowser is **never modified** by this
+script.  All Hyprland-specific data is stored in a companion *sidecar*
+file in a ``hyprland/`` subdirectory next to the session file::
+
+    data/sessions/default.yml            ← written by qutebrowser (untouched)
+    data/sessions/hyprland/default.yml   ← written by this script
+
+The sidecar is written atomically (temp-file + ``os.replace``) so it is
+either fully written or not written at all — a crash can never corrupt
+the session file.
+
+Modes
+-----
+
+The script supports two modes of operation depending on whether the
+Hy3 plugin (https://github.com/outfoxxed/hy3) is loaded:
+
+**With Hy3** (full reconstruction):
+    Hy3 provides an i3/Sway-like manual tiling layout with an explicit
+    container tree (splith, splitv, tabbed).  The script parses the
+    ``hy3:debugnodes`` output to save and reconstruct the full tiling
+    hierarchy, including proportional window sizes and tabbed groups.
+
+**Without Hy3** (basic mode):
+    Only workspace assignment, monitor placement, and floating window
+    positions are restored.  The tiling layout (dwindle/master) is
+    managed automatically by Hyprland and cannot be reconstructed.
+
+**save**
+    Reads the session YAML (read-only) and queries Hyprland via
+    ``hyprctl`` to find qutebrowser windows.  Correlates them via
+    temporary title markers (``__qb_save_<win_id>__``) that qutebrowser
+    sets on each window right before running this command, giving
+    exact 1:1 matching even with duplicate page titles.  Writes the
+    sidecar with per-window data and (if Hy3 is active) the container
+    tree.
+
+**restore**
+    Reads the session YAML (for ``restore_id`` marker titles) and the
+    sidecar (for Hyprland positions and tree data), then restores the
+    layout.
+
+Dependencies
+------------
+
+- Python >= 3.9 (standard library only, plus PyYAML)
+- ``hyprctl`` in ``$PATH``
+- Optional: Hy3 plugin for full tiling tree reconstruction
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    print("qb-hyprland-session: PyYAML is required. Install it with: "
+          "pip install pyyaml", file=sys.stderr)
+    sys.exit(1)
+
+
+WINDOW_CLASS = "org.qutebrowser.qutebrowser"
+MARKER_PREFIX = "__qb_restore_"
+MARKER_SUFFIX = "__"
+SAVE_MARKER_RE = re.compile(r"^__qb_save_(\d+)__$")
+# How long to wait for windows to appear (seconds)
+RESTORE_TIMEOUT = 4.0
+RESTORE_POLL_INTERVAL = 0.3
+
+
+# ---------------------------------------------------------------------------
+# Hyprland helpers
+# ---------------------------------------------------------------------------
+
+def _hyprctl_json(command):
+    """Run ``hyprctl -j <command>`` and return parsed JSON."""
+    result = subprocess.run(
+        ["hyprctl", "-j", command],
+        capture_output=True, text=True, check=True,
+    )
+    return json.loads(result.stdout)
+
+
+def _hyprctl_dispatch(dispatcher, args=""):
+    """Run ``hyprctl dispatch <dispatcher> <args>``."""
+    cmd = f"{dispatcher} {args}".strip() if args else dispatcher
+    try:
+        subprocess.run(
+            ["hyprctl", "dispatch", cmd],
+            capture_output=True, text=True, check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"qb-hyprland-session: hyprctl dispatch error: {e.stderr}",
+              file=sys.stderr)
+
+
+def _hyprctl_dispatch_batch(commands):
+    """Run multiple dispatch commands in a single IPC call via --batch."""
+    if not commands:
+        return
+    batch = " ; ".join(f"dispatch {c}" for c in commands)
+    try:
+        subprocess.run(
+            ["hyprctl", "--batch", batch],
+            capture_output=True, text=True, check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"qb-hyprland-session: hyprctl batch error: {e.stderr}",
+              file=sys.stderr)
+
+
+def get_hypr_clients():
+    """Return a list of all windows from ``hyprctl -j clients``."""
+    return _hyprctl_json("clients")
+
+
+def get_hypr_monitors():
+    """Return a list of monitors from ``hyprctl -j monitors``."""
+    return _hyprctl_json("monitors")
+
+
+def get_hypr_workspaces():
+    """Return a list of workspaces from ``hyprctl -j workspaces``."""
+    return _hyprctl_json("workspaces")
+
+
+def find_qb_windows(clients, window_class=WINDOW_CLASS):
+    """Filter clients to qutebrowser windows only."""
+    return [c for c in clients if c.get("class") == window_class]
+
+
+# ---------------------------------------------------------------------------
+# Hy3 detection and tree parsing
+# ---------------------------------------------------------------------------
+
+def _is_hy3_active():
+    """Check if the Hy3 plugin is loaded."""
+    try:
+        result = subprocess.run(
+            ["hyprctl", "plugin", "list"],
+            capture_output=True, text=True, check=True,
+        )
+        return "hy3" in result.stdout.lower()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def _get_hy3_debug_nodes():
+    """Run ``hy3:debugnodes`` and capture output from hyprctl.
+
+    ``hy3:debugnodes`` writes its output to Hyprland's log, but it also
+    returns the tree via the dispatch command's stdout.  We capture the
+    output from the dispatch command directly.
+    """
+    try:
+        result = subprocess.run(
+            ["hyprctl", "dispatch", "hy3:debugnodes"],
+            capture_output=True, text=True, check=True,
+        )
+        output = result.stdout.strip()
+        if output and output != "ok":
+            return output
+    except subprocess.CalledProcessError:
+        pass
+
+    # Fallback: read from Hyprland's log
+    return _read_debug_nodes_from_log()
+
+
+def _read_debug_nodes_from_log():
+    """Read hy3:debugnodes output from Hyprland's log file."""
+    sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+    if not sig:
+        return None
+
+    log_path = Path(f"/tmp/hypr/{sig}/hyprland.log")
+    if not log_path.exists():
+        # Try XDG_RUNTIME_DIR
+        runtime = os.environ.get("XDG_RUNTIME_DIR", "")
+        if runtime:
+            log_path = Path(runtime) / "hypr" / sig / "hyprland.log"
+        if not log_path.exists():
+            return None
+
+    try:
+        with open(log_path, encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+    except OSError:
+        return None
+
+    # Find the last debugnodes output block — lines containing
+    # "group(" or "window(" patterns, preceded by a hy3 log prefix
+    debug_lines = []
+    in_block = False
+    for line in reversed(lines):
+        stripped = line.strip()
+        # hy3:debugnodes output lines start with group( or |-
+        if ("group(" in stripped or "window(" in stripped
+                or stripped.startswith("|-")):
+            debug_lines.append(stripped)
+            in_block = True
+        elif in_block:
+            break
+
+    if not debug_lines:
+        return None
+
+    debug_lines.reverse()
+    return "\n".join(debug_lines)
+
+
+# Regex patterns for parsing hy3:debugnodes output
+_HY3_GROUP_RE = re.compile(
+    r"group\(0x[0-9a-f]+ of (?:0x[0-9a-f]*|0)\)\s+"
+    r"\[(\w+(?:\s+\d+)?)\]\s+size ratio:\s*([\d.]+)"
+)
+_HY3_WINDOW_RE = re.compile(
+    r"window\(0x[0-9a-f]+ of 0x[0-9a-f]+\)\s+"
+    r"\[hypr\s+(0x[0-9a-f]+)\]\s+size ratio:\s*([\d.]+)"
+)
+
+
+def _parse_hy3_tree(text):
+    """Parse the textual output of ``hy3:debugnodes`` into a tree.
+
+    Returns a list of root nodes (one per workspace).  Each node is
+    either::
+
+        {"type": "group", "layout": "splith|splitv|tab",
+         "workspace": N_or_None, "ratio": float,
+         "children": [...]}
+
+    or::
+
+        {"type": "window", "address": "0x...", "ratio": float}
+
+    The indentation is 2 spaces per ``|-`` prefix per nesting level.
+    """
+    if not text:
+        return []
+
+    lines = text.strip().splitlines()
+    roots = []
+    stack = []  # (indent_level, node)
+
+    for line in lines:
+        # Determine indentation level.
+        # Root nodes have no prefix (level 0).
+        # Children are prefixed by "|-" with 2 spaces per additional
+        # nesting level:
+        #   group(... of 0) [root 6] ...        ← level 0
+        #   |-group(... of 0x...) [splith] ...  ← level 1
+        #     |-window(...)                     ← level 2
+        stripped = line.lstrip()
+        leading = len(line) - len(stripped)
+        if stripped.startswith("|-"):
+            indent = (leading // 2) + 1
+            stripped = stripped[2:]
+        else:
+            indent = leading // 2
+
+        gm = _HY3_GROUP_RE.match(stripped)
+        wm = _HY3_WINDOW_RE.match(stripped)
+
+        if gm:
+            group_type = gm.group(1)
+            ratio = float(gm.group(2))
+
+            # Parse group type
+            workspace = None
+            if group_type.startswith("root"):
+                parts = group_type.split()
+                layout = "root"
+                if len(parts) > 1:
+                    workspace = parts[1]
+            else:
+                layout = group_type
+
+            node = {
+                "type": "group",
+                "layout": layout,
+                "ratio": ratio,
+                "children": [],
+            }
+            if workspace is not None:
+                node["workspace"] = workspace
+
+            # Find parent in stack
+            while stack and stack[-1][0] >= indent:
+                stack.pop()
+
+            if stack:
+                stack[-1][1]["children"].append(node)
+            else:
+                roots.append(node)
+
+            stack.append((indent, node))
+
+        elif wm:
+            address = wm.group(1)
+            ratio = float(wm.group(2))
+
+            node = {
+                "type": "window",
+                "address": address,
+                "ratio": ratio,
+            }
+
+            while stack and stack[-1][0] >= indent:
+                stack.pop()
+
+            if stack:
+                stack[-1][1]["children"].append(node)
+            else:
+                roots.append(node)
+
+    return roots
+
+
+def _prune_hy3_tree(node, addr_to_restore_id):
+    """Prune an Hy3 tree to contain only qutebrowser windows.
+
+    Similar to the Sway version's ``_prune_node()``.
+
+    Returns:
+        ``{"restore_id": N, "ratio": float}`` for a leaf window,
+        ``{"layout": "...", "ratio": float, "children": [...]}``
+        for a container, or ``None`` if no qb windows found.
+    """
+    if node["type"] == "window":
+        restore_id = addr_to_restore_id.get(node["address"])
+        if restore_id is not None:
+            return {"restore_id": restore_id, "ratio": node["ratio"]}
+        return None
+
+    # Group node: recurse into children
+    pruned_children = []
+    for child in node.get("children", []):
+        pruned = _prune_hy3_tree(child, addr_to_restore_id)
+        if pruned is not None:
+            pruned_children.append(pruned)
+
+    if not pruned_children:
+        return None
+
+    if len(pruned_children) == 1:
+        return pruned_children[0]  # collapse single-child container
+
+    layout = node.get("layout", "splith")
+    # Skip "root" layout — it's just a wrapper
+    if layout == "root":
+        layout = "splith"
+
+    return {
+        "layout": layout,
+        "ratio": node.get("ratio", 1.0),
+        "children": pruned_children,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Sidecar file helpers
+# ---------------------------------------------------------------------------
+
+def _sidecar_path(session_path):
+    """Derive the sidecar file path from the session file path.
+
+    ``data/sessions/default.yml`` → ``data/sessions/hyprland/default.yml``
+    """
+    p = Path(session_path)
+    return p.parent / "hyprland" / p.name
+
+
+def _atomic_write_yaml(path, data):
+    """Write *data* as YAML to *path* atomically.
+
+    Creates parent directories if needed.
+    """
+    path = Path(path)
+    os.makedirs(path.parent, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=path.parent, suffix=".tmp", prefix=path.name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+        os.replace(tmp_path, path)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+
+
+# ---------------------------------------------------------------------------
+# Save mode
+# ---------------------------------------------------------------------------
+
+def do_save(session_path):
+    """Write Hyprland geometry and tree info to a sidecar file.
+
+    The session YAML is read but **never modified**.
+    """
+    path = Path(session_path)
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None or "windows" not in data:
+        return
+
+    clients = get_hypr_clients()
+    qb_windows = find_qb_windows(clients)
+
+    # Build win_id -> hyprland window via save markers in the title.
+    # qutebrowser sets each window's title to __qb_save_<win_id>__
+    # right before running after_save_command.  On Hyprland the title
+    # update may not have reached the compositor yet, so we poll
+    # briefly if no markers are found on the first try.
+    hypr_by_win_id = {}
+    for attempt in range(10):
+        if attempt > 0:
+            time.sleep(0.1)
+            clients = get_hypr_clients()
+            qb_windows = find_qb_windows(clients)
+
+        hypr_by_win_id.clear()
+        for qw in qb_windows:
+            title = qw.get("title", "")
+            m = SAVE_MARKER_RE.match(title)
+            if m:
+                hypr_by_win_id[int(m.group(1))] = qw
+
+        if hypr_by_win_id:
+            break
+
+    # Build monitor ID -> monitor name mapping
+    monitors = get_hypr_monitors()
+    monitor_id_to_name = {m["id"]: m["name"] for m in monitors}
+
+    # Build win_id -> hyprland window via save markers in the title
+    hypr_by_win_id = {}
+    for qw in qb_windows:
+        title = qw.get("title", "")
+        m = SAVE_MARKER_RE.match(title)
+        if m:
+            hypr_by_win_id[int(m.group(1))] = qw
+
+    # address -> restore_id for tree pruning
+    addr_to_restore_id = {}
+
+    # Build sidecar data — keyed by restore_id
+    sidecar_windows = {}
+    for win in data["windows"]:
+        win_id = win.get("win_id")
+        restore_id = win.get("restore_id")
+        if win_id is None or restore_id is None:
+            continue
+
+        qw = hypr_by_win_id.get(win_id)
+        if qw is None:
+            continue
+
+        monitor_name = monitor_id_to_name.get(qw.get("monitor"))
+        ws_name = str(qw.get("workspace", {}).get("name", ""))
+
+        sidecar_windows[restore_id] = {
+            "floating": qw.get("floating", False),
+            "at": qw.get("at"),
+            "size": qw.get("size"),
+        }
+        if ws_name:
+            sidecar_windows[restore_id]["workspace"] = ws_name
+        if monitor_name:
+            sidecar_windows[restore_id]["monitor"] = monitor_name
+
+        if not qw.get("floating", False):
+            addr_to_restore_id[qw["address"]] = restore_id
+
+    # Build per-workspace pruned trees (Hy3 only)
+    hy3_trees = {}
+    hy3_active = _is_hy3_active()
+    if hy3_active:
+        debug_text = _get_hy3_debug_nodes()
+        if debug_text:
+            roots = _parse_hy3_tree(debug_text)
+            for root in roots:
+                ws = root.get("workspace")
+                if not ws:
+                    continue
+                pruned = _prune_hy3_tree(root, addr_to_restore_id)
+                if pruned is not None:
+                    hy3_trees[ws] = pruned
+
+    if not sidecar_windows and not hy3_trees:
+        return
+
+    sidecar = {"windows": sidecar_windows}
+    if hy3_trees:
+        sidecar["hy3_trees"] = hy3_trees
+
+    _atomic_write_yaml(_sidecar_path(path), sidecar)
+
+
+# ---------------------------------------------------------------------------
+# Restore mode — basic (no Hy3)
+# ---------------------------------------------------------------------------
+
+def _move_to_workspace(address, workspace, ws_to_monitor, monitors):
+    """Move a window to a workspace, ensuring correct monitor placement.
+
+    Hyprland creates new workspaces on the currently focused monitor.
+    To ensure the workspace ends up on the right monitor, we:
+
+    1. Focus the target monitor.
+    2. Move the window to the workspace.
+    3. Explicitly move the workspace to the correct monitor if it
+       ended up on the wrong one.
+    """
+    monitor = ws_to_monitor.get(workspace)
+    if monitor:
+        _hyprctl_dispatch("focusmonitor", monitor)
+    _hyprctl_dispatch("movetoworkspacesilent",
+                      f"{workspace},address:{address}")
+    # Belt and suspenders: force the workspace onto the right monitor
+    # in case focusmonitor wasn't enough (e.g. with
+    # split-monitor-workspaces plugin).
+    if monitor:
+        _hyprctl_dispatch("moveworkspacetomonitor", f"{workspace} {monitor}")
+
+
+def _restore_floating(address, info, ws_to_monitor, monitors):
+    """Restore a floating window to its exact saved position and size."""
+    workspace = info.get("workspace")
+    if workspace:
+        _move_to_workspace(address, workspace, ws_to_monitor, monitors)
+
+    at = info.get("at")
+    size = info.get("size")
+
+    cmds = [f"togglefloating address:{address}"]
+    if at:
+        cmds.append(f"movewindowpixel exact {at[0]} {at[1]},address:{address}")
+    if size:
+        cmds.append(
+            f"resizewindowpixel exact {size[0]} {size[1]},address:{address}")
+
+    _hyprctl_dispatch_batch(cmds)
+
+
+# ---------------------------------------------------------------------------
+# Restore mode — Hy3 tree reconstruction
+# ---------------------------------------------------------------------------
+
+def _restore_hy3_tree(node, id_to_addr, workspace, ws_to_monitor, monitors,
+                      is_first_in_workspace=True, sidecar_windows=None):
+    """Recursively restore the Hy3 tiling tree.
+
+    Strategy:
+    1. Move the first leaf to the target workspace.
+    2. Focus it.
+    3. For subsequent children in a group: focus the previous sibling,
+       use ``hy3:makegroup`` to set the split direction, then move
+       the next window into the workspace (it will join the group).
+
+    Returns the address of the last placed window, or None.
+    """
+    if "restore_id" in node:
+        # Leaf window
+        address = id_to_addr.get(node["restore_id"])
+        if address is None:
+            return None
+
+        if is_first_in_workspace:
+            _move_to_workspace(address, workspace, ws_to_monitor, monitors)
+        else:
+            # Move to workspace — Hy3 will auto-tile it next to focused
+            _hyprctl_dispatch("movetoworkspacesilent",
+                              f"{workspace},address:{address}")
+
+        # Ensure it's tiled
+        clients = get_hypr_clients()
+        for c in clients:
+            if c["address"] == address and c.get("floating"):
+                _hyprctl_dispatch("togglefloating", f"address:{address}")
+                break
+
+        return address
+
+    # Group node: process children
+    layout = node.get("layout", "splith")
+    children = node.get("children", [])
+
+    if not children:
+        return None
+
+    last_placed = None
+    for i, child in enumerate(children):
+        if i == 0:
+            # First child: place it
+            last_placed = _restore_hy3_tree(
+                child, id_to_addr, workspace, ws_to_monitor, monitors,
+                is_first_in_workspace=is_first_in_workspace,
+                sidecar_windows=sidecar_windows)
+
+            # Set the group direction after the first child is placed
+            if last_placed is not None and len(children) > 1:
+                _hyprctl_dispatch("focuswindow", f"address:{last_placed}")
+                hy3_dir = {"splith": "h", "splitv": "v",
+                           "tab": "tab"}.get(layout, "h")
+                _hyprctl_dispatch("hy3:makegroup", hy3_dir)
+        else:
+            # Subsequent children: focus the last placed window first
+            if last_placed is not None:
+                _hyprctl_dispatch("focuswindow", f"address:{last_placed}")
+
+            result = _restore_hy3_tree(
+                child, id_to_addr, workspace, ws_to_monitor, monitors,
+                is_first_in_workspace=False,
+                sidecar_windows=sidecar_windows)
+            if result is not None:
+                last_placed = result
+
+    # Resize children proportionally based on saved pixel sizes
+    if last_placed is not None and len(children) > 1:
+        _resize_hy3_children(children, layout, id_to_addr,
+                             sidecar_windows or {})
+
+    return last_placed
+
+
+def _first_leaf_address(node, id_to_addr):
+    """Return the address of the first leaf in a tree node."""
+    if "restore_id" in node:
+        return id_to_addr.get(node["restore_id"])
+    for child in node.get("children", []):
+        result = _first_leaf_address(child, id_to_addr)
+        if result is not None:
+            return result
+    return None
+
+
+def _resize_hy3_children(children, layout, id_to_addr, sidecar_windows):
+    """Resize children proportionally based on saved pixel sizes.
+
+    Uses the ``at`` and ``size`` data from the sidecar to compute
+    the target proportion of each child, then applies ``resizeactive``
+    to the first N-1 children.  The last child takes the remaining
+    space automatically.
+
+    For ``splith``: proportions are computed from ``size[0]`` (width).
+    For ``splitv``: proportions are computed from ``size[1]`` (height).
+    For ``tab``: no resizing (children overlap).
+    """
+    if layout not in ("splith", "splitv"):
+        return
+
+    dim_idx = 0 if layout == "splith" else 1
+
+    # Collect saved sizes for each child (via first leaf's restore_id)
+    saved_sizes = []
+    for child in children:
+        rid = _first_leaf_restore_id(child)
+        if rid is None:
+            saved_sizes.append(None)
+            continue
+        win_data = sidecar_windows.get(rid, {})
+        sz = win_data.get("size")
+        at = win_data.get("at")
+        if sz:
+            saved_sizes.append(sz[dim_idx])
+        else:
+            saved_sizes.append(None)
+
+    # For containers (non-leaf children), the saved size of a single
+    # leaf isn't the container's full size.  We need to compute the
+    # container extent from the leftmost/topmost to rightmost/bottommost
+    # leaf.
+    for i, child in enumerate(children):
+        if "restore_id" not in child and child.get("children"):
+            extent = _container_extent(child, dim_idx, sidecar_windows)
+            if extent is not None:
+                saved_sizes[i] = extent
+
+    valid = [s for s in saved_sizes if s is not None]
+    if len(valid) < 2:
+        return
+
+    total = sum(s for s in saved_sizes if s is not None)
+    if total <= 0:
+        return
+
+    # Read current sizes from hyprctl
+    clients = get_hypr_clients()
+    addr_to_current = {}
+    for c in clients:
+        addr_to_current[c["address"]] = c
+
+    # Resize all children except the last.  Focus a leaf in the
+    # child, then use resizeactive to adjust.
+    for child in children[:-1]:
+        target_size = saved_sizes[children.index(child)]
+        if target_size is None:
+            continue
+
+        target_pct = target_size / total
+        addr = _first_leaf_address(child, id_to_addr)
+        if addr is None:
+            continue
+
+        # Get current size of this leaf
+        current = addr_to_current.get(addr)
+        if current is None:
+            continue
+
+        current_size = current["size"][dim_idx]
+
+        # Compute what this child's size SHOULD be.
+        # We need the total workspace dimension.  Approximate from
+        # current window positions.
+        # Better approach: compute target delta from proportions.
+        # Current total ≈ sum of all children's current sizes.
+        current_total = 0
+        for c2 in children:
+            a2 = _first_leaf_address(c2, id_to_addr)
+            if a2 and a2 in addr_to_current:
+                c2_size = addr_to_current[a2]["size"][dim_idx]
+                if "restore_id" not in c2 and c2.get("children"):
+                    ext = _current_container_extent(
+                        c2, dim_idx, id_to_addr, addr_to_current)
+                    if ext is not None:
+                        c2_size = ext
+                current_total += c2_size
+
+        if current_total <= 0:
+            continue
+
+        desired = round(target_pct * current_total)
+        # For containers, use the container extent as current_size
+        if "restore_id" not in child and child.get("children"):
+            ext = _current_container_extent(
+                child, dim_idx, id_to_addr, addr_to_current)
+            if ext is not None:
+                current_size = ext
+
+        delta = desired - current_size
+        if abs(delta) < 2:
+            continue
+
+        _hyprctl_dispatch("focuswindow", f"address:{addr}")
+        if layout == "splith":
+            _hyprctl_dispatch("resizeactive", f"{delta} 0")
+        else:
+            _hyprctl_dispatch("resizeactive", f"0 {delta}")
+
+
+def _first_leaf_restore_id(node):
+    """Return the restore_id of the first leaf in a tree node."""
+    if "restore_id" in node:
+        return node["restore_id"]
+    for child in node.get("children", []):
+        result = _first_leaf_restore_id(child)
+        if result is not None:
+            return result
+    return None
+
+
+def _container_extent(node, dim_idx, sidecar_windows):
+    """Compute a container's extent along a dimension from saved data.
+
+    For splith (dim_idx=0): sum of all children's widths.
+    For splitv (dim_idx=1): sum of all children's heights.
+    For the orthogonal direction: max of children.
+
+    This returns the extent along the parent's split dimension.
+    """
+    if "restore_id" in node:
+        win_data = sidecar_windows.get(node["restore_id"], {})
+        sz = win_data.get("size")
+        return sz[dim_idx] if sz else None
+
+    layout = node.get("layout", "splith")
+    child_dim_idx = 0 if layout == "splith" else 1
+
+    # If this container splits along the SAME axis as the parent,
+    # its extent is the sum of its children.
+    # If it splits along the OTHER axis, its extent is the max.
+    extents = []
+    for child in node.get("children", []):
+        ext = _container_extent(child, dim_idx, sidecar_windows)
+        if ext is not None:
+            extents.append(ext)
+
+    if not extents:
+        return None
+
+    if (layout == "splith" and dim_idx == 0) or \
+       (layout == "splitv" and dim_idx == 1):
+        return sum(extents)
+    else:
+        return max(extents)
+
+
+def _current_container_extent(node, dim_idx, id_to_addr, addr_to_current):
+    """Compute a container's current extent from live hyprctl data."""
+    if "restore_id" in node:
+        addr = id_to_addr.get(node["restore_id"])
+        if addr and addr in addr_to_current:
+            return addr_to_current[addr]["size"][dim_idx]
+        return None
+
+    layout = node.get("layout", "splith")
+    extents = []
+    for child in node.get("children", []):
+        ext = _current_container_extent(
+            child, dim_idx, id_to_addr, addr_to_current)
+        if ext is not None:
+            extents.append(ext)
+
+    if not extents:
+        return None
+
+    if (layout == "splith" and dim_idx == 0) or \
+       (layout == "splitv" and dim_idx == 1):
+        return sum(extents)
+    else:
+        return max(extents)
+
+
+# ---------------------------------------------------------------------------
+# Restore mode
+# ---------------------------------------------------------------------------
+
+def do_restore(session_path):
+    """Restore qutebrowser windows to their saved Hyprland layout."""
+    path = Path(session_path)
+    sc_path = _sidecar_path(path)
+
+    # ---- read sidecar (hyprland-specific data) ------------------------
+    if not sc_path.exists():
+        return
+
+    with open(sc_path, encoding="utf-8") as f:
+        sidecar = yaml.safe_load(f)
+
+    if not sidecar or "windows" not in sidecar:
+        return
+
+    sidecar_windows = sidecar.get("windows", {})
+
+    # ---- read session YAML (for restore_ids) --------------------------
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if data is None or "windows" not in data:
+        return
+
+    # ---- build expected markers → window info -------------------------
+    expected = {}
+    for win in data["windows"]:
+        restore_id = win.get("restore_id")
+        if restore_id is None:
+            continue
+
+        sw_data = sidecar_windows.get(restore_id)
+        if sw_data is None:
+            continue
+
+        workspace = sw_data.get("workspace")
+        if workspace is None:
+            continue
+
+        marker = f"{MARKER_PREFIX}{restore_id}{MARKER_SUFFIX}"
+        expected[marker] = {
+            "restore_id": restore_id,
+            "workspace": workspace,
+            "monitor": sw_data.get("monitor"),
+            "floating": sw_data.get("floating", False),
+            "at": sw_data.get("at"),
+            "size": sw_data.get("size"),
+        }
+
+    if not expected:
+        return
+
+    # ---- build workspace → monitor mapping ----------------------------
+    ws_to_monitor = {}
+    for info in expected.values():
+        ws = info.get("workspace")
+        monitor = info.get("monitor")
+        if ws and monitor:
+            ws_to_monitor.setdefault(ws, monitor)
+
+    monitors = get_hypr_monitors()
+
+    # Remember current workspace
+    original_ws = None
+    for m in monitors:
+        if m.get("focused"):
+            original_ws = str(m["activeWorkspace"]["name"])
+            break
+
+    # Poll until windows appear or timeout
+    found = _poll_for_windows(expected)
+
+    # Build restore_id -> address mapping
+    id_to_addr = {
+        info["restore_id"]: info["address"]
+        for info in found.values()
+    }
+
+    # Restore floating windows (exact position)
+    for info in found.values():
+        if info["floating"]:
+            _restore_floating(info["address"], info, ws_to_monitor, monitors)
+
+    # Restore tiled windows
+    hy3_trees = sidecar.get("hy3_trees")
+    if hy3_trees:
+        # Hy3 tree-based reconstruction
+        for workspace, tree_node in hy3_trees.items():
+            _restore_hy3_tree(tree_node, id_to_addr, workspace,
+                              ws_to_monitor, monitors,
+                              sidecar_windows=sidecar_windows)
+        # Nudge windows toward their saved positions.  When
+        # non-qutebrowser windows occupy the same workspace, the
+        # tree reconstruction may place qb windows at the wrong
+        # position within the tree.  This phase repeatedly pushes
+        # each misplaced window in the direction of its saved
+        # coordinates using hy3:movewindow.
+        _nudge_windows(found, sidecar_windows, id_to_addr)
+    else:
+        # Basic mode: simple workspace placement
+        for info in found.values():
+            if not info["floating"]:
+                _move_to_workspace(info["address"], info["workspace"],
+                                   ws_to_monitor, monitors)
+
+    # Restore focus to original workspace
+    if original_ws:
+        _hyprctl_dispatch("workspace", original_ws)
+
+
+def _nudge_windows(found, sidecar_windows, id_to_addr):
+    """Push tiled qb windows toward their saved positions.
+
+    After tree reconstruction, windows that share a workspace with
+    non-qutebrowser windows may end up at the wrong position in the
+    tiling tree.  This function iteratively moves each misplaced
+    window using ``hy3:movewindow`` until its position is close enough
+    to the saved coordinates, or a maximum number of iterations is
+    reached.
+
+    The heuristic is simple: compare the window's current ``at``
+    (top-left corner) with the saved ``at``.  If it's too far to the
+    left of the target, push it right, etc.  A tolerance of 50 pixels
+    is used to account for gaps/borders.
+
+    Oscillation detection: if a window returns to a position it has
+    already visited, it means no further progress can be made (e.g.
+    because the number of windows in the workspace has changed since
+    the save).  In that case, the window is moved back to the position
+    that minimises the distance to the target and excluded from
+    further nudging.
+    """
+    TOLERANCE = 50
+    MAX_MOVES = 20
+
+    tiled = []
+    for info in found.values():
+        if info["floating"]:
+            continue
+        rid = info["restore_id"]
+        sw = sidecar_windows.get(rid, {})
+        saved_at = sw.get("at")
+        if saved_at is None:
+            continue
+        tiled.append({
+            "address": info["address"],
+            "saved_x": saved_at[0],
+            "saved_y": saved_at[1],
+            "history": [],     # list of (x, y) positions visited
+            "settled": False,  # True once converged or oscillating
+        })
+
+    if not tiled:
+        return
+
+    for _ in range(MAX_MOVES):
+        clients = get_hypr_clients()
+        addr_to_client = {c["address"]: c for c in clients}
+
+        moved_any = False
+        for win in tiled:
+            if win["settled"]:
+                continue
+
+            c = addr_to_client.get(win["address"])
+            if c is None:
+                win["settled"] = True
+                continue
+
+            cur_x, cur_y = c["at"]
+            dx = win["saved_x"] - cur_x
+            dy = win["saved_y"] - cur_y
+
+            # Close enough — converged.
+            if abs(dx) <= TOLERANCE and abs(dy) <= TOLERANCE:
+                win["settled"] = True
+                continue
+
+            cur_pos = (cur_x, cur_y)
+
+            # Oscillation detection: we've been here before.
+            if cur_pos in win["history"]:
+                # Find the best position among all visited positions
+                # (the one closest to the target).
+                best_pos = min(
+                    win["history"],
+                    key=lambda p: abs(p[0] - win["saved_x"])
+                                + abs(p[1] - win["saved_y"]),
+                )
+                # Move back to the best position if we're not there.
+                best_dx = best_pos[0] - cur_x
+                best_dy = best_pos[1] - cur_y
+                if abs(best_dx) > TOLERANCE or abs(best_dy) > TOLERANCE:
+                    _hyprctl_dispatch(
+                        "focuswindow", f"address:{win['address']}")
+                    if abs(best_dx) > TOLERANCE:
+                        direction = "r" if best_dx > 0 else "l"
+                        _hyprctl_dispatch("hy3:movewindow", direction)
+                win["settled"] = True
+                continue
+
+            win["history"].append(cur_pos)
+
+            _hyprctl_dispatch("focuswindow",
+                              f"address:{win['address']}")
+
+            # Move in the axis with the largest delta first
+            if abs(dx) > TOLERANCE:
+                direction = "r" if dx > 0 else "l"
+                _hyprctl_dispatch("hy3:movewindow", direction)
+                moved_any = True
+            elif abs(dy) > TOLERANCE:
+                direction = "d" if dy > 0 else "u"
+                _hyprctl_dispatch("hy3:movewindow", direction)
+                moved_any = True
+
+        if not moved_any:
+            break
+
+
+def _poll_for_windows(expected):
+    """Poll hyprctl clients until expected marker windows appear or timeout."""
+    deadline = time.monotonic() + RESTORE_TIMEOUT
+    remaining = dict(expected)
+    found = {}
+
+    while remaining and time.monotonic() < deadline:
+        clients = get_hypr_clients()
+        qb_windows = find_qb_windows(clients)
+
+        for qw in qb_windows:
+            title = qw.get("title", "")
+            if title in remaining:
+                info = remaining.pop(title)
+                info["address"] = qw["address"]
+                found[title] = info
+
+        if remaining:
+            time.sleep(RESTORE_POLL_INTERVAL)
+
+    return found
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    if len(sys.argv) < 3:
+        print(f"Usage: {sys.argv[0]} (save|restore) <session_path>",
+              file=sys.stderr)
+        sys.exit(1)
+
+    mode = sys.argv[1]
+    session_path = sys.argv[2]
+
+    if mode == "save":
+        do_save(session_path)
+    elif mode == "restore":
+        do_restore(session_path)
+    else:
+        print(f"qb-hyprland-session: unknown mode '{mode}'",
+              file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
