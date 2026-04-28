@@ -504,7 +504,7 @@ def do_save(session_path):
         if monitor_name:
             sidecar_windows[restore_id]["monitor"] = monitor_name
 
-        if not qw.get("floating", False):
+        if not qw.get("floating", False) and not ws_name.startswith("special:"):
             addr_to_restore_id[qw["address"]] = restore_id
 
     # Build per-workspace pruned trees (Hy3 only)
@@ -546,17 +546,29 @@ def _move_to_workspace(address, workspace, ws_to_monitor, monitors):
     2. Move the window to the workspace.
     3. Explicitly move the workspace to the correct monitor if it
        ended up on the wrong one.
+
+    Special workspaces (scratchpad, e.g. ``special:magic``) are handled
+    separately: they are not bound to a specific monitor and do not
+    need monitor focusing or workspace-to-monitor moves.
     """
-    monitor = ws_to_monitor.get(workspace)
-    if monitor:
-        _hyprctl_dispatch("focusmonitor", monitor)
+    is_special = workspace.startswith("special:")
+
+    if not is_special:
+        monitor = ws_to_monitor.get(workspace)
+        if monitor:
+            _hyprctl_dispatch("focusmonitor", monitor)
+
     _hyprctl_dispatch("movetoworkspacesilent",
                       f"{workspace},address:{address}")
-    # Belt and suspenders: force the workspace onto the right monitor
-    # in case focusmonitor wasn't enough (e.g. with
-    # split-monitor-workspaces plugin).
-    if monitor:
-        _hyprctl_dispatch("moveworkspacetomonitor", f"{workspace} {monitor}")
+
+    if not is_special:
+        # Belt and suspenders: force the workspace onto the right monitor
+        # in case focusmonitor wasn't enough (e.g. with
+        # split-monitor-workspaces plugin).
+        monitor = ws_to_monitor.get(workspace)
+        if monitor:
+            _hyprctl_dispatch("moveworkspacetomonitor",
+                              f"{workspace} {monitor}")
 
 
 def _restore_floating(address, info, ws_to_monitor, monitors):
@@ -944,6 +956,16 @@ def do_restore(session_path):
         if info["floating"]:
             _restore_floating(info["address"], info, ws_to_monitor, monitors)
 
+    # Restore windows in special workspaces (scratchpad, etc.)
+    # These are not part of the Hy3 tiling tree and just need to be
+    # moved to the correct special workspace.
+    special_restore_ids = set()
+    for info in found.values():
+        ws = info.get("workspace", "")
+        if ws.startswith("special:") and not info["floating"]:
+            _move_to_workspace(info["address"], ws, ws_to_monitor, monitors)
+            special_restore_ids.add(info["restore_id"])
+
     # Restore tiled windows
     hy3_trees = sidecar.get("hy3_trees")
     if hy3_trees:
@@ -999,6 +1021,10 @@ def _nudge_windows(found, sidecar_windows, id_to_addr):
     tiled = []
     for info in found.values():
         if info["floating"]:
+            continue
+        # Skip windows in special workspaces (scratchpad, etc.)
+        ws = info.get("workspace", "")
+        if ws.startswith("special:"):
             continue
         rid = info["restore_id"]
         sw = sidecar_windows.get(rid, {})
