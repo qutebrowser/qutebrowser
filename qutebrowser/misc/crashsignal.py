@@ -24,7 +24,7 @@ from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
 from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.api import cmdutils
-from qutebrowser.config import configfiles, configexc
+from qutebrowser.config import config, configfiles, configexc
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils, message
 from qutebrowser.qt import sip
@@ -277,7 +277,7 @@ class CrashHandler(QObject):
         self.is_crashing = True
 
         self._app.closeAllWindows()
-        if self._args.no_err_windows:
+        if self._args.no_err_windows or not config.val.crash_reporter.enabled:
             crashdialog.dump_exception_info(exc, info.pages, info.cmd_history,
                                             info.objects)
         else:

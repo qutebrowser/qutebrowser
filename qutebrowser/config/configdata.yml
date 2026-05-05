@@ -1463,6 +1463,13 @@ completion.use_best_match:
   default: false
   desc: Execute the best-matching command on a partial match.
 
+## crash reporter
+
+crash_reporter.enabled:
+  type: Bool
+  default: true
+  desc: Open the crash reporter dialog automatically after a crash.
+
 ## downloads
 
 downloads.location.directory:
