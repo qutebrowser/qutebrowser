@@ -277,7 +277,8 @@ class CrashHandler(QObject):
         self.is_crashing = True
 
         self._app.closeAllWindows()
-        if self._args.no_err_windows or not config.val.crash_reporter.enabled:
+        if (self._args.no_err_windows or
+                config.val.crash_reporter.enabled not in ("exceptions", "both")):
             crashdialog.dump_exception_info(exc, info.pages, info.cmd_history,
                                             info.objects)
         else:

@@ -1466,8 +1466,14 @@ completion.use_best_match:
 ## crash reporter
 
 crash_reporter.enabled:
-  type: Bool
-  default: true
+  type:
+    name: String
+    valid_values:
+      - none: Don't open the crash reporter.
+      - exceptions: After crashes from python exceptions.
+      - signals: After crashes from signals.
+      - both: After crashes from signals and python exceptions.
+  default: both
   desc: Open the crash reporter dialog automatically after a crash.
 
 ## downloads
