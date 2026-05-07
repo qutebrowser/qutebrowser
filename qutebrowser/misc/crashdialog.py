@@ -632,7 +632,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
         qobjects: A list of all QObjects as string.
     """
     print(file=sys.stderr)
-    print("\n\n===== Handling exception with --no-err-windows... =====\n\n",
+    print("\n\n===== Handling exception without a dialog... =====\n\n",
           file=sys.stderr)
     print("\n---- Exceptions ----", file=sys.stderr)
     print(''.join(traceback.format_exception(*exc)), file=sys.stderr)
