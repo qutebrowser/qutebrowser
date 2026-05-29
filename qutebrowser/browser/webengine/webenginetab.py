@@ -15,6 +15,7 @@ from typing import cast, Union, Optional
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray, QTimer)
 from qutebrowser.qt.network import QAuthenticator
+from qutebrowser.qt.widgets import QWidget
 from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
@@ -805,6 +806,74 @@ class WebEngineElements(browsertab.AbstractElements):
         self._tab.run_js_async(js_code, js_cb)
 
 
+class WebEngineZapper(browsertab.AbstractZapper):
+    """QtWebEngine implementation for the zapper element selection tool.
+
+    Allows users to hover over and select page elements for hiding.
+    """
+
+    _tab: 'WebEngineTab'
+
+    def __init__(self, tab: 'WebEngineTab', parent: Optional[QWidget] = None) -> None:
+        super().__init__(tab=tab, parent=parent)
+        # Declared for type consistency with other components, but not used
+        self._widget = cast(webview.WebEngineView, None)
+
+    def zapper_select(self) -> None:
+        """Toggle the zapper selection mode.
+
+        Activates/deactivates a mode where hovering highlights elements
+        and clicking adds persistent highlighting. Pressing Enter hides
+        the currently highlighted element.
+        """
+        js_code = resources.read_file('javascript/zapper.js')
+
+        def _show_result(result):
+            if result is None:
+                message.info("Zapper toggled.")
+            else:
+                message.info("{}.".format(str(result).capitalize()))
+
+        self._tab.run_js_async(js_code, _show_result)
+
+    def save_hidden_elements_setting(self) -> None:
+        """Save hidden elements configuration for this URL.
+
+        Collect selectors for elements marked with the zapper persist
+        class and store them in the site's `localStorage` so they are
+        hidden on future visits.
+        """
+        js_code = resources.read_file('javascript/zapper_save.js')
+
+        def _cb(result):
+            try:
+                n = len(result) if result is not None else 0
+            except Exception:
+                n = 0
+            if n:
+                message.info("Hiding {} element(s){}.".format(
+                    n, 's' if n != 1 else ''))
+            else:
+                message.info('No elements saved.')
+
+        self._tab.run_js_async(js_code, _cb)
+
+    def reset_hidden_elements_setting(self) -> None:
+        """Reset hidden elements for this URL by removing the stored
+        selectors from `localStorage` and reloading the page.
+        """
+        js_code = resources.read_file('javascript/zapper_restore.js')
+
+        def _cb(_):
+            message.info('Zapper settings cleared.')
+            try:
+                self._tab.reload()
+            except Exception:
+                pass
+
+        self._tab.run_js_async(js_code, _cb)
+
+
 class WebEngineAudio(browsertab.AbstractAudio):
 
     """QtWebEngine implementations related to audio/muting.
@@ -1304,6 +1373,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(tab=self, parent=self)
+        self.zapper = WebEngineZapper(tab=self, parent=self)
         self.private_api = WebEngineTabPrivate(mode_manager=mode_manager,
                                                tab=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
@@ -1582,6 +1652,15 @@ class WebEngineTab(browsertab.AbstractTab):
             self.dump_async(functools.partial(
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
+
+        # Inject persisted zapper hiding rules (if any) so saved selectors
+        # are applied automatically on page load.
+        try:
+            if ok and self.settings.test_attribute('content.javascript.enabled'):
+                js_code = resources.read_file('javascript/zapper_load.js')
+                self.run_js_async(js_code)
+        except Exception as e:  # pragma: no cover - defensive
+            log.webview.debug("Failed to run zapper_load.js: {}".format(e))
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):

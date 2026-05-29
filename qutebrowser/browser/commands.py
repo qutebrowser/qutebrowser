@@ -1900,3 +1900,33 @@ class CommandDispatcher:
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def zapper(self):
+        """Toggle a hover-highlighting mode for the current page.
+
+        Activates/deactivates a tool where:
+        - Hovering highlights elements with a red outline
+        - Clicking adds persistent green highlighting to elements
+        - Pressing Enter hides the currently highlighted element
+        """
+        tab = self._current_widget()
+        tab.zapper.zapper_select()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def zapper_save(self):
+        """Save zapper settings for the current urls for future visits."""
+        tab = self._current_widget()
+        try:
+            tab.zapper.save_hidden_elements_setting()
+        except Exception as e:
+            message.error('Failed to save zapper settings: {}'.format(e))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def zapper_restore(self):
+        """Reset zapper settings for the current url."""
+        tab = self._current_widget()
+        try:
+            tab.zapper.reset_hidden_elements_setting()
+        except Exception as e:
+            message.error('Failed to reset zapper settings: {}'.format(e))
