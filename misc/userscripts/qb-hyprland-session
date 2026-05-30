@@ -103,6 +103,124 @@ RESTORE_POLL_INTERVAL = 0.3
 # Hyprland helpers
 # ---------------------------------------------------------------------------
 
+# Config provider detection: "lua" or "hyprlang".
+# In Hyprland >= 0.55 with a Lua config, ``hyprctl dispatch`` routes all
+# arguments through the Lua evaluator, which breaks plugin dispatchers that
+# contain colons (e.g. ``hy3:makegroup``).  We detect Lua mode once at
+# startup and use ``hyprctl eval`` with the structured Lua API instead.
+_CONFIG_PROVIDER = None  # set by _detect_config_provider()
+
+
+def _detect_config_provider():
+    """Detect whether Hyprland uses Lua or hyprlang config.
+
+    Returns ``"lua"`` if ``hyprctl eval "return 'ok'"`` succeeds and
+    returns ``"ok"``, otherwise ``"hyprlang"``.
+    """
+    try:
+        result = subprocess.run(
+            ["hyprctl", "eval", "return 'ok'"],
+            capture_output=True, text=True, check=True,
+        )
+        if result.stdout.strip() == "ok":
+            return "lua"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    return "hyprlang"
+
+
+def _dispatch_to_lua(dispatcher, args=""):
+    """Translate a hyprlang-style dispatch call to a Lua API expression.
+
+    Returns a Lua expression string suitable for ``hyprctl eval``.
+    """
+    # --- Hy3 plugin dispatchers ---
+    if dispatcher == "hy3:makegroup":
+        return f"hl.dispatch(hl.plugin.hy3.make_group('{args}'))"
+    if dispatcher == "hy3:movewindow":
+        return f"hl.dispatch(hl.plugin.hy3.move_window('{args}'))"
+    if dispatcher == "hy3:debugnodes":
+        return "hl.dispatch(hl.plugin.hy3.debug_nodes())"
+
+    # --- Built-in dispatchers ---
+    if dispatcher == "focuswindow":
+        # args: "address:0x..."
+        return f"hl.dispatch(hl.dsp.focus({{window='{args}'}}))"
+    if dispatcher == "focusmonitor":
+        # args: monitor name e.g. "DP-1"
+        return f"hl.dispatch(hl.dsp.focus({{monitor='{args}'}}))"
+    if dispatcher == "workspace":
+        # args: workspace name/number
+        return f"hl.dispatch(hl.dsp.focus({{workspace='{args}'}}))"
+    if dispatcher == "movetoworkspacesilent":
+        # args: "WS,address:0x..." or "WS,title:..."
+        parts = args.split(",", 1)
+        ws = parts[0]
+        if len(parts) > 1:
+            win = parts[1]
+            return (f"hl.dispatch(hl.dsp.window.move("
+                    f"{{workspace='{ws}', window='{win}', silent=true}}))")
+        return (f"hl.dispatch(hl.dsp.window.move("
+                f"{{workspace='{ws}', silent=true}}))")
+    if dispatcher == "togglefloating":
+        # args: "address:0x..."
+        if args:
+            return f"hl.dispatch(hl.dsp.window.float({{window='{args}'}}))"
+        return "hl.dispatch(hl.dsp.window.float({}))"
+    if dispatcher == "moveworkspacetomonitor":
+        # args: "WS MON"
+        parts = args.split(None, 1)
+        ws = parts[0] if parts else ""
+        mon = parts[1] if len(parts) > 1 else ""
+        return (f"hl.dispatch(hl.dsp.workspace.move("
+                f"{{name='{ws}', monitor='{mon}'}}))")
+    if dispatcher == "resizeactive":
+        # args: "X Y" — relative resize of the focused window
+        parts = args.split()
+        x = parts[0] if parts else "0"
+        y = parts[1] if len(parts) > 1 else "0"
+        return f"hl.dispatch(hl.dsp.window.resize({{x={x}, y={y}, relative=true}}))"
+    if dispatcher == "movewindowpixel":
+        # args: "exact X Y,address:0x..."
+        # Parse: "exact <X> <Y>,<window>"
+        m = re.match(r"exact\s+(\d+)\s+(\d+),(.+)", args)
+        if m:
+            x, y, win = m.group(1), m.group(2), m.group(3)
+            return (f"hl.dispatch(hl.dsp.window.move("
+                    f"{{x={x}, y={y}, window='{win}'}}))")
+        return f"hl.dispatch(hl.dsp.window.move({{x=0, y=0}}))"
+    if dispatcher == "resizewindowpixel":
+        # args: "exact W H,address:0x..."
+        m = re.match(r"exact\s+(\d+)\s+(\d+),(.+)", args)
+        if m:
+            w, h, win = m.group(1), m.group(2), m.group(3)
+            return (f"hl.dispatch(hl.dsp.window.resize("
+                    f"{{x={w}, y={h}, relative=false, window='{win}'}}))")
+        return f"hl.dispatch(hl.dsp.window.resize({{x=0, y=0, relative=false}}))"
+
+    # Fallback: generic string dispatch (may fail in Lua mode for
+    # unhandled dispatchers, but at least logs the attempt)
+    print(f"qb-hyprland-session: WARNING: no Lua mapping for dispatcher "
+          f"'{dispatcher}' with args '{args}'", file=sys.stderr)
+    return f"hl.dispatch(hl.dsp.exec_raw('{dispatcher} {args}'))"
+
+
+def _dispatch_batch_to_lua(commands):
+    """Translate a list of hyprlang-style dispatch strings to a single Lua
+    expression containing multiple ``hl.dispatch()`` calls.
+
+    Each command in *commands* is a string like ``"focuswindow address:0x..."``
+    or ``"togglefloating address:0x..."``.
+    """
+    lua_parts = []
+    for cmd in commands:
+        parts = cmd.split(None, 1)
+        dispatcher = parts[0]
+        args = parts[1] if len(parts) > 1 else ""
+        lua_parts.append(_dispatch_to_lua(dispatcher, args))
+    return "; ".join(lua_parts)
+
+
 def _hyprctl_json(command):
     """Run ``hyprctl -j <command>`` and return parsed JSON."""
     result = subprocess.run(
@@ -112,8 +230,30 @@ def _hyprctl_json(command):
     return json.loads(result.stdout)
 
 
+def _hyprctl_eval(lua_code):
+    """Run ``hyprctl eval <lua_code>`` and return stdout."""
+    try:
+        result = subprocess.run(
+            ["hyprctl", "eval", lua_code],
+            capture_output=True, text=True, check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"qb-hyprland-session: hyprctl eval error: {e.stderr}",
+              file=sys.stderr)
+        return None
+
+
 def _hyprctl_dispatch(dispatcher, args=""):
-    """Run ``hyprctl dispatch <dispatcher> <args>``."""
+    """Run ``hyprctl dispatch <dispatcher> <args>``.
+
+    In Lua mode, translates to the structured Lua API and uses
+    ``hyprctl eval`` instead.
+    """
+    if _CONFIG_PROVIDER == "lua":
+        lua_code = _dispatch_to_lua(dispatcher, args)
+        _hyprctl_eval(lua_code)
+        return
     cmd = f"{dispatcher} {args}".strip() if args else dispatcher
     try:
         subprocess.run(
@@ -126,8 +266,16 @@ def _hyprctl_dispatch(dispatcher, args=""):
 
 
 def _hyprctl_dispatch_batch(commands):
-    """Run multiple dispatch commands in a single IPC call via --batch."""
+    """Run multiple dispatch commands in a single IPC call.
+
+    In Lua mode, joins all translated Lua calls into a single
+    ``hyprctl eval`` invocation.  In hyprlang mode, uses ``--batch``.
+    """
     if not commands:
+        return
+    if _CONFIG_PROVIDER == "lua":
+        lua_code = _dispatch_batch_to_lua(commands)
+        _hyprctl_eval(lua_code)
         return
     batch = " ; ".join(f"dispatch {c}" for c in commands)
     try:
@@ -177,12 +325,18 @@ def _is_hy3_active():
 
 
 def _get_hy3_debug_nodes():
-    """Run ``hy3:debugnodes`` and capture output from hyprctl.
+    """Run ``hy3:debugnodes`` and capture output.
 
-    ``hy3:debugnodes`` writes its output to Hyprland's log, but it also
-    returns the tree via the dispatch command's stdout.  We capture the
-    output from the dispatch command directly.
+    In hyprlang mode, the dispatch command returns the tree on stdout.
+    In Lua mode, stdout is not available from ``hyprctl eval``, so we
+    trigger the dispatch and then read the output from Hyprland's log.
     """
+    if _CONFIG_PROVIDER == "lua":
+        # Trigger debugnodes via Lua API; output goes to Hyprland log
+        _hyprctl_eval("hl.dispatch(hl.plugin.hy3.debug_nodes())")
+        time.sleep(0.05)  # brief pause for log flush
+        return _read_debug_nodes_from_log()
+
     try:
         result = subprocess.run(
             ["hyprctl", "dispatch", "hy3:debugnodes"],
@@ -348,10 +502,15 @@ def _parse_hy3_tree(text):
     return roots
 
 
-def _prune_hy3_tree(node, addr_to_restore_id):
+def _prune_hy3_tree(node, addr_to_restore_id, addr_to_client=None):
     """Prune an Hy3 tree to contain only qutebrowser windows.
 
     Similar to the Sway version's ``_prune_node()``.
+
+    The *addr_to_client* dict maps window addresses to hyprctl client
+    dicts (with ``at`` and ``size``).  This is used to infer the real
+    layout direction because ``hy3:debugnodes`` always reports
+    ``[splith]`` regardless of the actual split direction.
 
     Returns:
         ``{"restore_id": N, "ratio": float}`` for a leaf window,
@@ -367,7 +526,7 @@ def _prune_hy3_tree(node, addr_to_restore_id):
     # Group node: recurse into children
     pruned_children = []
     for child in node.get("children", []):
-        pruned = _prune_hy3_tree(child, addr_to_restore_id)
+        pruned = _prune_hy3_tree(child, addr_to_restore_id, addr_to_client)
         if pruned is not None:
             pruned_children.append(pruned)
 
@@ -382,11 +541,52 @@ def _prune_hy3_tree(node, addr_to_restore_id):
     if layout == "root":
         layout = "splith"
 
+    # Infer the real layout direction from window positions, because
+    # hy3:debugnodes incorrectly reports [splith] for splitv groups.
+    if layout == "splith" and addr_to_client and len(pruned_children) >= 2:
+        inferred = _infer_layout_from_children(
+            pruned_children, addr_to_restore_id, addr_to_client)
+        if inferred:
+            layout = inferred
+
     return {
         "layout": layout,
         "ratio": node.get("ratio", 1.0),
         "children": pruned_children,
     }
+
+
+def _infer_layout_from_children(pruned_children, addr_to_restore_id,
+                                addr_to_client):
+    """Infer splith vs splitv from the positions of the first two leaves."""
+    def _first_leaf_addr(node, a2r):
+        """Find the address of the first leaf in a pruned node."""
+        if "restore_id" in node:
+            # Reverse lookup: restore_id -> address
+            for addr, rid in a2r.items():
+                if rid == node["restore_id"]:
+                    return addr
+            return None
+        for child in node.get("children", []):
+            result = _first_leaf_addr(child, a2r)
+            if result is not None:
+                return result
+        return None
+
+    addr1 = _first_leaf_addr(pruned_children[0], addr_to_restore_id)
+    addr2 = _first_leaf_addr(pruned_children[1], addr_to_restore_id)
+    if not addr1 or not addr2:
+        return None
+    c1 = addr_to_client.get(addr1)
+    c2 = addr_to_client.get(addr2)
+    if not c1 or not c2:
+        return None
+
+    dx = abs(c1["at"][0] - c2["at"][0])
+    dy = abs(c1["at"][1] - c2["at"][1])
+    if dy > dx:
+        return "splitv"
+    return "splith"
 
 
 # ---------------------------------------------------------------------------
@@ -518,7 +718,10 @@ def do_save(session_path):
                 ws = root.get("workspace")
                 if not ws:
                     continue
-                pruned = _prune_hy3_tree(root, addr_to_restore_id)
+                # Build addr -> client dict for layout inference
+                addr_to_client = {c["address"]: c for c in clients}
+                pruned = _prune_hy3_tree(root, addr_to_restore_id,
+                                         addr_to_client)
                 if pruned is not None:
                     hy3_trees[ws] = pruned
 
@@ -663,11 +866,6 @@ def _restore_hy3_tree(node, id_to_addr, workspace, ws_to_monitor, monitors,
             if result is not None:
                 last_placed = result
 
-    # Resize children proportionally based on saved pixel sizes
-    if last_placed is not None and len(children) > 1:
-        _resize_hy3_children(children, layout, id_to_addr,
-                             sidecar_windows or {})
-
     return last_placed
 
 
@@ -680,6 +878,42 @@ def _first_leaf_address(node, id_to_addr):
         if result is not None:
             return result
     return None
+
+
+def _resize_tree_pass(node, id_to_addr, sidecar_windows):
+    """Recursively apply proportional resize to a placed tree."""
+    if "restore_id" in node:
+        return  # leaf, nothing to resize
+    children = node.get("children", [])
+    layout = node.get("layout", "splith")
+    if len(children) > 1:
+        _wait_for_stable_sizes(children, id_to_addr)
+        _resize_hy3_children(children, layout, id_to_addr,
+                             sidecar_windows or {})
+    for child in children:
+        _resize_tree_pass(child, id_to_addr, sidecar_windows)
+
+
+def _wait_for_stable_sizes(children, id_to_addr, timeout=2.0, interval=0.15):
+    """Wait until window sizes stop changing (Hy3 has settled)."""
+    def _get_sizes():
+        clients = get_hypr_clients()
+        addr_map = {c["address"]: c for c in clients}
+        sizes = {}
+        for child in children:
+            addr = _first_leaf_address(child, id_to_addr)
+            if addr and addr in addr_map:
+                sizes[addr] = tuple(addr_map[addr]["size"])
+        return sizes
+
+    prev = _get_sizes()
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        time.sleep(interval)
+        curr = _get_sizes()
+        if curr == prev and curr:
+            return
+        prev = curr
 
 
 def _resize_hy3_children(children, layout, id_to_addr, sidecar_windows):
@@ -790,6 +1024,7 @@ def _resize_hy3_children(children, layout, id_to_addr, sidecar_windows):
             continue
 
         _hyprctl_dispatch("focuswindow", f"address:{addr}")
+        time.sleep(0.1)
         if layout == "splith":
             _hyprctl_dispatch("resizeactive", f"{delta} 0")
         else:
@@ -969,11 +1204,43 @@ def do_restore(session_path):
     # Restore tiled windows
     hy3_trees = sidecar.get("hy3_trees")
     if hy3_trees:
-        # Hy3 tree-based reconstruction
+        # Filter id_to_addr per workspace to avoid placing windows in the
+        # wrong workspace when the tree data is stale or incomplete.
+        placed_ids = set()
         for workspace, tree_node in hy3_trees.items():
-            _restore_hy3_tree(tree_node, id_to_addr, workspace,
+            # Build a restricted mapping: only include windows that
+            # actually belong to this workspace according to sidecar_windows
+            ws_id_to_addr = {}
+            for rid, addr in id_to_addr.items():
+                win_info = sidecar_windows.get(rid, {})
+                if str(win_info.get("workspace", "")) == str(workspace):
+                    ws_id_to_addr[rid] = addr
+            _restore_hy3_tree(tree_node, ws_id_to_addr, workspace,
                               ws_to_monitor, monitors,
                               sidecar_windows=sidecar_windows)
+            placed_ids.update(ws_id_to_addr.keys())
+
+        # Place any tiled windows whose workspace differs from all
+        # tree workspaces (e.g. windows on a workspace with no tree).
+        for info in found.values():
+            rid = info.get("restore_id")
+            if rid is not None and rid not in placed_ids and not info["floating"]:
+                ws = info.get("workspace", "")
+                if not ws.startswith("special:"):
+                    _move_to_workspace(info["address"], ws,
+                                       ws_to_monitor, monitors)
+
+        # Second pass: resize after all windows are in their correct
+        # workspaces.  Wait for Hy3 to settle, then apply proportional
+        # resize per tree.
+        time.sleep(0.3)
+        for workspace, tree_node in hy3_trees.items():
+            ws_id_to_addr = {}
+            for rid, addr in id_to_addr.items():
+                win_info = sidecar_windows.get(rid, {})
+                if str(win_info.get("workspace", "")) == str(workspace):
+                    ws_id_to_addr[rid] = addr
+            _resize_tree_pass(tree_node, ws_id_to_addr, sidecar_windows)
         # Nudge windows toward their saved positions.  When
         # non-qutebrowser windows occupy the same workspace, the
         # tree reconstruction may place qb windows at the wrong
@@ -1135,10 +1402,13 @@ def _poll_for_windows(expected):
 # ---------------------------------------------------------------------------
 
 def main():
+    global _CONFIG_PROVIDER
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} (save|restore) <session_path>",
               file=sys.stderr)
         sys.exit(1)
+
+    _CONFIG_PROVIDER = _detect_config_provider()
 
     mode = sys.argv[1]
     session_path = sys.argv[2]
