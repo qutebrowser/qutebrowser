@@ -859,17 +859,15 @@ class WebEngineZapper(browsertab.AbstractZapper):
         self._tab.run_js_async(js_code, _cb)
 
     def reset_hidden_elements_setting(self) -> None:
-        """Reset hidden elements for this URL by removing the stored
-        selectors from `localStorage` and reloading the page.
+        """Reset hidden elements for this URL.
+
+        Removes stored selectors from `localStorage` and unhides elements
+        in-place without reloading the page.
         """
         js_code = resources.read_file('javascript/zapper_restore.js')
 
         def _cb(_):
             message.info('Zapper settings cleared.')
-            try:
-                self._tab.reload()
-            except Exception:
-                pass
 
         self._tab.run_js_async(js_code, _cb)
 

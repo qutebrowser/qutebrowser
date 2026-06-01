@@ -5,13 +5,14 @@
 """End-to-end tests for the zapper element-hiding tool."""
 
 import pytest
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 pytestmark = pytest.mark.flaky(reruns=3)
 
 
 @pytest.fixture(autouse=True)
-def _zapper_cleanup(quteproc: Any) -> Generator[None, None, None]:
+def _zapper_cleanup(quteproc: Any) -> Generator[None]:
     yield
     try:
         quteproc.send_cmd(':zapper-restore')
@@ -21,7 +22,6 @@ def _zapper_cleanup(quteproc: Any) -> Generator[None, None, None]:
 
 def _element_state(quteproc: Any, element_id: str) -> str:
     """Return the state of an element."""
-
     marker = f'qute-{element_id}'
 
     script = f"""
@@ -92,7 +92,16 @@ def assert_not_visible(quteproc: Any, element_id: str) -> None:
             }} catch (e) {{ /* ignore */ }}
 
             // Fallback: after timeout, report current state
-            setTimeout(function() {{ const el = document.getElementById(id); if (!el) {{ console.log(marker + ':missing'); return; }} const style = window.getComputedStyle(el); const visible = style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null; console.log(marker + (visible ? ':visible' : ':hidden')); }}, 3000);
+            setTimeout(function() {{
+                const el = document.getElementById(id);
+                if (!el) {{ console.log(marker + ':missing'); return; }}
+                const style = window.getComputedStyle(el);
+                const visible =
+                    style.display !== 'none' &&
+                    style.visibility !== 'hidden' &&
+                    el.offsetParent !== null;
+                console.log(marker + (visible ? ':visible' : ':hidden'));
+            }}, 3000);
         }})();
     """
 
@@ -190,6 +199,8 @@ def test_zapper_without_save_leave_and_back_to_site(quteproc: Any) -> None:
 
     quteproc.send_cmd(':back')
 
+    quteproc.wait_for_load_finished('data/zapper.html')
+
     assert_visible(quteproc, 'button1')
 
 
@@ -279,20 +290,27 @@ def test_all_comands_multiple_sites(quteproc: Any) -> None:
 
     quteproc.send_cmd(':back')
 
+    quteproc.wait_for_load_finished('data/zapper.html')
+
     assert_not_visible(quteproc, 'button1')
 
     quteproc.send_cmd(':forward')
 
+    quteproc.wait_for_load_finished('data/zapper2.html')
+
     assert_not_visible(quteproc, 'button2')
 
     quteproc.send_cmd(':zapper-restore')
-    
     quteproc.send_cmd(':back')
+
+    quteproc.wait_for_load_finished('data/zapper.html')
 
     quteproc.send_cmd(':zapper-restore')
 
     assert_visible(quteproc, 'button1')
 
     quteproc.send_cmd(':forward')
+
+    quteproc.wait_for_load_finished('data/zapper2.html')
 
     assert_visible(quteproc, 'button2')

@@ -13,8 +13,17 @@
         return `__qute_zapper_persist_${ encoded}`;
     }
 
-    // Get website zapper settings (selectors for previously hidden elements)
-    const stored = localStorage.getItem(getStorageKey());
+    // data: some URLs disable web storage
+    if (window.location.origin === "null") {
+        return;
+    }
+
+    let stored;
+    try {
+        stored = localStorage.getItem(getStorageKey());
+    } catch (err) {
+        return;
+    }
     if (!stored) {return;}
 
     let selectors;
@@ -33,6 +42,7 @@
     function injectStyle(doc) {
         try {
             const style = doc.createElement("style");
+            style.id = "__qute_zapper_load_style";
             style.textContent = css;
             (doc.head || doc.documentElement).appendChild(style);
         } catch (err) {

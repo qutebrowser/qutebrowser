@@ -914,10 +914,11 @@ class QuteProc(testprocess.Process):
                              .format(message))
 
     def click_element_by_id(self, element_id):
-        """Click the element with the given id by dispatching pointer/mouse
-        events targeting the element center. This sets `button` and `buttons`
-        and dispatches `pointerdown` so page handlers that rely on coordinates
-        (e.g. zapper) see the same element as `document.elementFromPoint`.
+        """Click the element with the given id.
+
+        Dispatches pointer/mouse events targeting the element center, setting
+        `button` and `buttons` and firing `pointerdown` so handlers that rely
+        on coordinates (e.g. zapper) see the correct element.
         """
         script = (
             'var _e = document.getElementById({id}); '
