@@ -10,6 +10,7 @@ from collections.abc import Callable, Iterator, Sequence
 
 from qutebrowser.qt.core import QUrl
 
+from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
 if TYPE_CHECKING:
@@ -94,6 +95,30 @@ def tab_for_url(
         (tab for tab in all_tabs()
          if bool(tab.is_private) == bool(private) and tab.url() == url),
         None)
+
+
+def switch_to_open_url(
+    url: QUrl,
+    *,
+    private: Optional[bool],
+    reuse: bool = True,
+) -> Optional['browsertab.AbstractTab']:
+    """Switch to a tab already showing url, if tabs.switch_to_open_url is set.
+
+    Returns the tab switched to, or None if nothing was switched (feature off,
+    reuse suppressed, or no matching tab in the same privacy context).
+
+    Args:
+        url: The URL to switch to.
+        private: The privacy context to match (see tab_for_url).
+        reuse: Pass False to force a fresh open (e.g. when taking a tab).
+    """
+    if not (reuse and config.val.tabs.switch_to_open_url):
+        return None
+    tab = tab_for_url(url, private=bool(private))
+    if tab is not None:
+        switch_to_tab(tab)
+    return tab
 
 
 def _delete_tab_func(i: int, data: Sequence[str]) -> None:

@@ -288,10 +288,9 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
     """
     target = target or config.val.new_instance_open_target
 
-    existing_tab = tabutils.tab_for_url(
+    existing_tab = tabutils.switch_to_open_url(
         url, private=target == 'private-window')
-    if config.val.tabs.switch_to_open_url and existing_tab is not None:
-        tabutils.switch_to_tab(existing_tab)
+    if existing_tab is not None:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=existing_tab.win_id)
         return tabbed_browser.widget.window()

@@ -123,11 +123,9 @@ class CommandDispatcher:
         """
         urlutils.raise_cmdexc_if_invalid(url)
 
-        existing_tab = tabutils.tab_for_url(
-            url, private=self._tabbed_browser.is_private)
-        if config.val.tabs.switch_to_open_url and reuse and \
-                existing_tab is not None:
-            tabutils.switch_to_tab(existing_tab)
+        if tabutils.switch_to_open_url(
+                url, private=self._tabbed_browser.is_private,
+                reuse=reuse) is not None:
             return
 
         tabbed_browser = self._tabbed_browser
@@ -321,11 +319,10 @@ class CommandDispatcher:
             if secure and cur_url.scheme() == 'http':
                 cur_url.setScheme('https')
 
-            # The current-tab path below bypasses _open(), so check here too.
-            existing_tab = tabutils.tab_for_url(
-                cur_url, private=self._tabbed_browser.is_private)
-            if config.val.tabs.switch_to_open_url and existing_tab is not None:
-                tabutils.switch_to_tab(existing_tab)
+            # The current-tab path below bypasses _open(), so switch here too.
+            if tabutils.switch_to_open_url(
+                    cur_url, private=self._tabbed_browser.is_private) \
+                    is not None:
                 continue
 
             if not window and i > 0:
