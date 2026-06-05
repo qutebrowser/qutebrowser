@@ -1087,8 +1087,8 @@ class TestWebEngineVersions:
         security = utils.VersionNumber.parse(qWebEngineChromiumSecurityPatchVersion())
         assert security >= base
 
-    def test_chromium_security_version_dict(self, qapp):
-        """Check if we infer the QtWebEngine security version properly.
+    def test_chromium_version_dict(self, qapp):
+        """Check if we infer the QtWebEngine versions properly.
 
         Note this test mostly tests that our overview in version.py (also
         intended for human readers) is accurate. The code we call here is never
@@ -1097,6 +1097,7 @@ class TestWebEngineVersions:
         try:
             from qutebrowser.qt.webenginecore import (
                 qWebEngineVersion,
+                qWebEngineChromiumVersion,
                 qWebEngineChromiumSecurityPatchVersion,
             )
         except ImportError:
@@ -1105,6 +1106,8 @@ class TestWebEngineVersions:
         print(version.qtwebengine_versions())  # useful when adding new versions
         inferred = version.WebEngineVersions.from_webengine(
             qWebEngineVersion(), source="API")
+
+        assert inferred.chromium == qWebEngineChromiumVersion()
         assert inferred.chromium_security == qWebEngineChromiumSecurityPatchVersion()
 
 

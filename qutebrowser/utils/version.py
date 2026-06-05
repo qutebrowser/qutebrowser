@@ -562,6 +562,7 @@ class WebEngineVersions:
         122: '122.0.6261.171',  # 2024-04-15, Qt 6.8
         130: '130.0.6723.192',  # 2025-01-06, Qt 6.9
         134: '134.0.6998.208',  # 2025-04-16, Qt 6.10
+        140: '140.0.7339.225',  # 2025-09-24, Qt 6.11
     }
 
     _CHROMIUM_VERSIONS: ClassVar[dict[utils.VersionNumber, tuple[str, Optional[str]]]] = {
@@ -663,7 +664,7 @@ class WebEngineVersions:
         utils.VersionNumber(6, 10, 2): (_BASES[134], '144.0.7559.96'),  # 2026-01-17
 
         ## Qt 6.11
-        utils.VersionNumber(6, 11): (_BASES[134], '146.0.7680.80'),  # 2026-03-13
+        utils.VersionNumber(6, 11): (_BASES[140], '146.0.7680.80'),  # 2026-03-13
     }
 
     def __post_init__(self) -> None:
