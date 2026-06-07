@@ -38,7 +38,7 @@ from qutebrowser.utils import log
 # sed -i 's/_WRAPPER_OVERRIDE = .*/_WRAPPER_OVERRIDE = "PyQt6"/' qutebrowser/qt/machinery.py
 #
 # Users: Set the QUTE_QT_WRAPPER environment variable to change the default wrapper.
-_WRAPPER_OVERRIDE = None  # type: ignore[var-annotated]
+_WRAPPER_OVERRIDE = None
 
 WRAPPERS = [
     "PyQt6",
@@ -169,6 +169,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
 
     - If --qt-wrapper is given, use that.
     - Otherwise, if the QUTE_QT_WRAPPER environment variable is set, use that.
+    - Otherwise, the hardcoded _WRAPPER_OVERRIDE, if set.
     - Otherwise, try the wrappers in WRAPPER in order (PyQt6 -> PyQt5)
     """
     # If any Qt wrapper has been imported before this, something strange might
@@ -194,7 +195,7 @@ def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
         return SelectionInfo(wrapper=env_wrapper, reason=SelectionReason.env)
 
     if _WRAPPER_OVERRIDE is not None:
-        assert _WRAPPER_OVERRIDE in WRAPPERS
+        assert _WRAPPER_OVERRIDE in WRAPPERS  # type: ignore[unreachable]
         return SelectionInfo(wrapper=_WRAPPER_OVERRIDE, reason=SelectionReason.override)
 
     return _autoselect_wrapper()

@@ -180,5 +180,7 @@
   "blinker": "https://blinker.readthedocs.io/en/stable/#changes",
   "exceptiongroup": "https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst",
   "nh3": "https://github.com/messense/nh3/commits/main",
-  "pillow": "https://github.com/python-pillow/Pillow/releases"
+  "pillow": "https://github.com/python-pillow/Pillow/releases",
+  "python-discovery": "https://github.com/tox-dev/python-discovery/releases",
+  "tomli_w": "https://github.com/hukkin/tomli-w/blob/master/CHANGELOG.md"
 }

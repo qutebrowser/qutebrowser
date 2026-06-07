@@ -600,8 +600,10 @@ Feature: Various utility commands.
 
     ## Renderer crashes
 
-    # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix
+    # Disabled because for unknown reasons, on more modern systems,
+    # navigating to chrome://crash hangs for ~40s before displaying the crash
+    # message.
+    @xfail_norun
     Scenario: Renderer crash
         When I run :open -t chrome://crash
         Then "Renderer process crashed (status *)" should be logged

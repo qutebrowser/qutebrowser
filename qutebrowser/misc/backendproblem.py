@@ -453,6 +453,34 @@ class _BackendProblemChecker:
                 "This may break hardware rendering on Wayland."
             )
 
+    def _fix_wayland_amd_gbm(self) -> None:
+        """Force GBM to off with Qt 6.11.0 and AMD GPUs on Wayland."""
+        if objects.qapp.platformName() != "wayland":
+            return
+
+        versions = version.qtwebengine_versions(avoid_init=True)
+        if versions.webengine != utils.VersionNumber(6, 11):
+            # Older versions are not affected; assuming fixed with Qt 6.11.1
+            return
+
+        opengl_info = version.opengl_info()
+        if opengl_info is None or opengl_info.vendor != "AMD":
+            return
+
+        env_var = "QTWEBENGINE_FORCE_USE_GBM"
+        env_value = os.environ.get(env_var, "0")
+        if env_value != "0":
+            log.init.warning(
+                f"{env_var} environment variable is set to {env_value!r}. "
+                "This may cause issues with AMD GPUs on Wayland with Qt 6.11.0."
+            )
+            return
+
+        log.init.warning(
+            "Disabling GBM support to avoid issues with AMD GPUs on Wayland with "
+            "Qt 6.11.0")
+        os.environ[env_var] = "0"
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -465,6 +493,7 @@ class _BackendProblemChecker:
             self._handle_serviceworker_nuking()
             self._check_software_rendering()
             self._force_wayland_hardware_acceleration()
+            self._fix_wayland_amd_gbm()
             self._confirm_chromium_version_changes()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
