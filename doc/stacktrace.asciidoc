@@ -25,44 +25,96 @@ Getting debugging symbols
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Debian/Ubuntu/...
-^^^^^^^^^^^^^^^^^
-
+ ^^^^^^^^^^^^^^^^^
+ 
 For Debian based systems (Debian, Ubuntu, Linux Mint, ...), debug information
 is for QtWebEngine is available in a dedicated repository. Enable that repository
 (https://wiki.debian.org/HowToGetABacktrace#Installing_the_debugging_symbols[Debian],
 https://wiki.ubuntu.com/Debug%20Symbol%20Packages[Ubuntu],
 https://www.linuxmint.com/rel_tessa_mate_whatsnew.php[Linux Mint]) and install
 the debug packages:
+For Debian based systems (Debian, Ubuntu, Linux Mint, ...), automatic debug
+symbol packages (`*-dbgsym`) are available from a dedicated repository.
 
+NOTE: The older `-dbg` packages (such as `python3-dbg`, `python3-pyqt5-dbg`,
+`python3-pyqt5.qtwebengine-dbg`) are https://wiki.ubuntu.com/PythonDebugPackages[deprecated]
+and have been removed from recent releases.  Use the `*-dbgsym` packages instead.
+
+First, enable the debug symbol repository.
+
+On **Debian**, add the appropriate debug suite for your release (see
+https://wiki.debian.org/AutomaticDebugPackages[AutomaticDebugPackages]):
+ 
 ----
 # apt install python3-dbg python3-pyqt5-dbg python3-pyqt5.qtwebengine-dbg libqt5webengine5-dbgsym libqt5webenginecore5-dbgsym
+# echo "deb http://deb.debian.org/debian-debug/ $(lsb_release -cs)-debug main" \
+    > /etc/apt/sources.list.d/debian-debug.list
+# apt update
 ----
 
 or with the QtWebKit backend:
+On **Ubuntu**, import the signing key and add the ddebs repository
+(see https://wiki.ubuntu.com/Debug%20Symbol%20Packages[Debug Symbol Packages]):
 
 ----
 # apt install python3-dbg python3-pyqt5-dbg python3-pyqt5.qtwebkit-dbg libqt5webkit5-dbg
+# apt install ubuntu-dbgsym-keyring
+# echo "deb http://ddebs.ubuntu.com/ $(lsb_release -cs) main restricted universe multiverse" \
+    > /etc/apt/sources.list.d/ddebs.list
+# apt update
 ----
 
 Fedora
 ^^^^^^
+Then install the debug symbol packages matching your installed packages.
+The exact package names depend on your distribution version and whether
+qutebrowser is using Qt 5 or Qt 6 (qutebrowser supports Qt 6 since v3.0 and
+uses it by default).  You can check which backend is in use by running
+`qutebrowser --version`.
 
 For Fedora you first need to install the dnf/yum-utils:
+For the **Qt 6 WebEngine** backend (default on recent distributions):
 
 ----
 # dnf install dnf-utils
+# apt install python3-dbgsym python3-pyqt6-dbgsym qt6-webengine-dbgsym
 ----
 
 Or:
+NOTE: The `-dbgsym` packages are generated automatically and their exact
+names may vary between distributions.  If the above command fails, use
+`apt-cache search dbgsym` (after enabling the debug repository) to find
+the correct package names for your setup.  You can also use `apt install
+<package>-dbgsym` as a general pattern for any installed package.
+
+For the **Qt 5 WebEngine** backend (fallback or older distributions):
 
 ----
 # yum install yum-utils
+# apt install python3-dbgsym python3-pyqt5-dbgsym libqt5webengine5-dbgsym libqt5webenginecore5-dbgsym
 ----
 
 Then install the needed debuginfo packages:
+Fedora
+^^^^^^
+
+For Fedora, install `debuginfo-install` from `dnf-utils` and then install
+the needed debuginfo packages.  The exact packages depend on whether qutebrowser
+is using Qt 5 or Qt 6 (check with `qutebrowser --version`).
+
+For the **Qt 6 WebEngine** backend:
 
 ----
+# dnf install dnf-utils
+# debuginfo-install python3 qt6-qtwebengine python3-pyqt6 qt6-qtbase
+----
 # debuginfo-install python3 qt5-qtwebengine python3-qt5-webengine python3-qt5-base python-qt5 python3-qt5 python3-qt5-webkit
+
+For the **Qt 5 WebEngine** backend:
+
+----
+# dnf install dnf-utils
+# debuginfo-install python3 qt5-qtwebengine python3-qt5-webengine python3-qt5-base
 ----
 
 Archlinux
