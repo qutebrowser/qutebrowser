@@ -2737,9 +2737,7 @@ Default: +pass:[true]+
 [[content.push_service.enabled]]
 === content.push_service.enabled
 Allow websites to use the Push API (via QtWebEngine's push service).
-This is only applied to the default profile at startup, so changing it requires a restart. It is never enabled for private (off-the-record) windows.
-
-This setting requires a restart.
+This is never enabled for private (off-the-record) windows.
 
 This setting is only available with the QtWebEngine backend.
 

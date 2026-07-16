@@ -337,8 +337,7 @@ class ProfileSetter:
     def set_push_service(self):
         """Enable/disable the push service for the profile.
 
-        This is applied at profile construction time only (hence restart: true),
-        and never enabled for private (off-the-record) profiles.
+        Never enabled for private (off-the-record) profiles.
         """
         if self._profile.isOffTheRecord():
             return
