@@ -59,6 +59,7 @@ from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
+from qutebrowser.misc.ai import commands as aicommands
 from qutebrowser.browser import commands
 # pylint: enable=unused-import
 
