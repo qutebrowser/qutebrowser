@@ -1,0 +1,7 @@
+# Required Python packages for the AI natural-language command translator.
+# Install with: pip install -r misc/requirements/requirements-ai.txt
+#
+# sentence-transformers pulls torch, transformers, tokenizers, and
+# huggingface-hub as transitive dependencies (~4 GB total).
+
+sentence-transformers>=3.0,<6.0

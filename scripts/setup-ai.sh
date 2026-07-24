@@ -6,63 +6,48 @@ set -euo pipefail
 # Usage:  bash scripts/setup-ai.sh
 #
 # What it does:
-#   1. Checks that Ollama is installed and reachable.
-#   2. Pulls the default generation model (gemma2:2b).
-#   3. Installs the optional sentence-transformers package for
-#      semantic retrieval (skipped if already installed).
+#   1. Installs Python dependencies from misc/requirements/requirements-ai.txt.
+#   2. Pre-downloads the all-MiniLM-L6-v2 embedding model into the huggingface
+#      cache so no network requests happen at runtime.
 #
-# After this script completes, launch qutebrowser and run
-#   :ai-do "your request here"
+# The LLM endpoint (Ollama, cloud provider, etc.) is configured via
+# environment variables — see .env.example.
 
-AI_MODEL="${AI_MODEL:-gemma2:2b}"
+REQUIREMENTS_FILE="misc/requirements/requirements-ai.txt"
 
-# ----- Ollama check --------------------------------------------------------
-if ! command -v ollama &>/dev/null; then
-  echo "Error: 'ollama' not found on PATH."
-  echo "Install it first:  https://ollama.com"
-  exit 1
-fi
+# ----- Install Python dependencies -----------------------------------------
+echo "Installing Python dependencies from ${REQUIREMENTS_FILE} ..."
+pip install -r "${REQUIREMENTS_FILE}"
+echo "Python dependencies installed."
 
-echo "Checking that Ollama is running ..."
-if ! ollama list &>/dev/null; then
-  echo "Ollama daemon does not appear to be running."
-  echo "Start it with:  ollama serve"
-  echo "(Or on most systems: systemctl --user start ollama)"
-  exit 1
-fi
-echo "Ollama is running."
-
-# ----- Pull model ----------------------------------------------------------
-echo "Pulling model '${AI_MODEL}' (this may take a while the first time) ..."
-ollama pull "${AI_MODEL}"
-echo "Model '${AI_MODEL}' ready."
-
-# ----- Optional: sentence-transformers ------------------------------------
-if python -c "import sentence_transformers" 2>/dev/null; then
-  echo "sentence-transformers already installed."
-else
-  echo "Installing sentence-transformers (optional, ~80 MB) ..."
-  pip install sentence-transformers
-  echo "sentence-transformers installed."
-fi
+# ----- Pre-download sentence-transformers model ----------------------------
+echo "Pre-downloading all-MiniLM-L6-v2 embedding model to cache ..."
+python3 -c "
+from sentence_transformers import SentenceTransformer
+SentenceTransformer('all-MiniLM-L6-v2')
+print('Embedding model cached.')
+"
+echo "Pre-download complete — no network requests at runtime."
 
 # ----- Summary -------------------------------------------------------------
 cat <<'EOF'
 
 ── Setup complete ──────────────────────────────────────────────────────
-  • Model:       gemma2:2b  (or $AI_MODEL if overridden)
-  • Retrieval:   sentence-transformers (if installed) → sklearn → stdlib
-  • LLM backend: Ollama at http://localhost:11434/v1
+  • Embeddings:   all-MiniLM-L6-v2 (cached)
+  • Retrieval:    sentence-transformers → sklearn → stdlib
 
-Launch qutebrowser and try:
+Set AI_BASE_URL to point to your LLM endpoint (Ollama, cloud provider,
+etc.) and launch qutebrowser. For example:
+
+  export AI_BASE_URL="http://localhost:11434/v1"
+  export AI_MODEL="gemma4:e4b"
+  qutebrowser
+
+Then try:
   :ai-do "close every tab except the current one"
   :ai-do "mute all tabs and reload"
   :ai-do "open github.com"
 
-Override defaults via environment variables:
-  AI_BASE_URL   (default http://localhost:11434/v1)
-  AI_MODEL      (default gemma2:2b)
-  AI_API_KEY    (only needed for cloud providers)
-  AI_TOP_K      (default 8)
+See .env.example for all available options.
 ─────────────────────────────────────────────────────────────────────────
 EOF

@@ -30,6 +30,10 @@ Correct single command:
   Request: "close the current tab"
   Response: [{"command": "tab-close", "args": []}]
 
+Correct with flag argument:
+  Request: "close the tab with wikipedia"
+  Response: [{"command": "tab-close", "args": ["--url", "wikipedia"]}]
+
 Correct multi-step:
   Request: "close all tabs except this one and go fullscreen"
   Response: [{"command": "tab-only", "args": []}, {"command": "fullscreen", "args": ["--enter"]}]

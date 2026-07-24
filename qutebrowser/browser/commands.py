@@ -236,10 +236,36 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
+    def _tab_close_by_url(self, url_pattern, force, prev, next_, opposite):
+        """Close all tabs whose URL or title contains *url_pattern*.
+
+        Iterates in reverse so index shifts from closing don't affect
+        remaining indices.
+        """
+        tab_widget = self._tabbed_browser.widget
+        pattern = url_pattern.lower()
+        to_close: list[int] = []
+        for i in range(tab_widget.count()):
+            widget = tab_widget.widget(i)
+            url_str = widget.url().toString().lower()
+            title_str = widget.title().lower()
+            if pattern in url_str or pattern in title_str:
+                to_close.append(i)
+
+        if not to_close:
+            raise cmdutils.CommandError(
+                "No tab matches: {}".format(url_pattern))
+
+        for idx in reversed(to_close):
+            tab = tab_widget.widget(idx)
+            close = functools.partial(
+                self._tab_close, tab, prev, next_, opposite)
+            self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_close(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+                  force=False, count=None, *, url=''):
         """Close the current/[count]th tab.
 
         Args:
@@ -249,7 +275,11 @@ class CommandDispatcher:
                       what's configured in 'tabs.select_on_remove'.
             force: Avoid confirmation for pinned tabs.
             count: The tab index to close, or None
+            url: Close tabs matching this substring in their URL or title.
         """
+        if url:
+            self._tab_close_by_url(url, force, prev, next_, opposite)
+            return
         tab = self._cntwidget(count)
         if tab is None:
             return

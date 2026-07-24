@@ -68,7 +68,7 @@ _load_dotenv()
 # ---------------------------------------------------------------------------
 
 _API_KEY: str = os.environ.get('AI_API_KEY', '')
-_MODEL: str = os.environ.get('AI_MODEL', 'gemma2:2b')
+_MODEL: str = os.environ.get('AI_MODEL', 'gemma4:e4b')
 _BASE_URL: str = os.environ.get(
     'AI_BASE_URL', 'http://localhost:11434/v1',
 )

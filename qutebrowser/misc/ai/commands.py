@@ -18,7 +18,7 @@ from qutebrowser.misc.ai import translator
 logger = logging.getLogger('ai')
 
 
-@cmdutils.register()
+@cmdutils.register(maxsplit=0)
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 def ai_do(query: str, win_id: int) -> None:
     """Translate a natural-language request into qutebrowser commands.

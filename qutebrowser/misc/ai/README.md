@@ -30,11 +30,11 @@ Note on scope: qutebrowser's built-in `:` completion already does excellent fuzz
 bash scripts/setup-ai.sh
 ```
 
-This installs [Ollama](https://ollama.com) (if missing), pulls the default model (`gemma2:2b`), and installs the optional `sentence-transformers` package for semantic retrieval.
+This installs [Ollama](https://ollama.com) (if missing), pulls the default model (`gemma4:e4b`), and installs the optional `sentence-transformers` package for semantic retrieval.
 
 **Or, step by step:**
 1. Install [Ollama](https://ollama.com) and make sure it's running (`ollama serve` or `systemctl --user start ollama`).
-2. Pull the default model: `ollama pull gemma2:2b`
+2. Pull the default model: `ollama pull gemma4:e4b`
 3. (Optional) `pip install sentence-transformers` — if skipped, retrieval falls back to lexical matching (no loss of functionality, just a different backend).
 
 ### Optional: run against a cloud provider instead
@@ -77,10 +77,24 @@ This means the whole pipeline is reviewable with nothing installed beyond qutebr
 | Variable | Default | Purpose |
 |---|---|---|
 | `AI_BASE_URL` | `http://localhost:11434/v1` | OpenAI-compatible endpoint for the generation model |
-| `AI_MODEL` | `gemma2:2b` | Model name sent in the request |
+| `AI_MODEL` | `gemma4:e4b` | Model name sent in the request |
 | `AI_API_KEY` | (unset) | Only needed for providers that require auth (local Ollama doesn't) |
 | `AI_TOP_K` | `8` | Number of candidate commands retrieval surfaces to the model |
 | `AI_AUTO_CONFIRM` | `false` | If `true`, skips the y/n prompt — off by default for safety, exists mainly for automated testing |
+
+### Hardware requirements
+
+| Component | Disk | RAM | Notes |
+|---|---|---|---|
+| PyTorch + CUDA libs | ~3.5 GB | — | Installed as a dependency of `sentence-transformers` |
+| all-MiniLM-L6-v2 (model cache) | ~90 MB | ~500 MB at inference | Downloaded on first use, cached under `~/.cache/huggingface/` |
+| Ollama runtime | ~600 MB | ~200 MB (idle) | Go binary + serving infra |
+| `gemma4:e4b` (LLM) | ~2.5 GB | ~4 GB at inference | Quantized 4-bit; pulled into `~/.ollama/` |
+| **Total with sentence-transformers** | **~7 GB** | **~5 GB** | Peak at inference time when both models are loaded |
+
+All inference runs on CPU by default — no GPU required. The all-MiniLM-L6-v2 model loads lazily on the first `:ai-do` invocation and stays cached in memory for subsequent calls.
+
+Without `sentence-transformers`, the total drops to ~3 GB disk and ~4 GB RAM (Ollama + LLM only), since retrieval falls back to sklearn TF-IDF.
 
 ### Dependencies added
 

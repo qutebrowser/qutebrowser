@@ -8,6 +8,12 @@ Three backends (tried in order):
   1. sentence-transformers (all-MiniLM-L6-v2) – highest quality.
   2. scikit-learn TfidfVectorizer – good lexical matching.
   3. Pure-stdlib TF-IDF fallback – zero extra dependencies.
+
+Important: ``sentence_transformers`` is imported eagerly at module level so
+that PyTorch's shared libraries load before ``QApplication`` is created.
+A lazy import would trigger the segfault because PyTorch registers its own
+signal handlers and memory allocator, which conflicts with Qt's already-
+initialized environment.
 """
 
 from __future__ import annotations
@@ -22,6 +28,17 @@ from qutebrowser.misc.ai.types import CandidateCommand
 logger = logging.getLogger('ai')
 
 # ---------------------------------------------------------------------------
+#  Eager import — must happen before QApplication is created to avoid
+#  segfault from PyTorch/Qt signal-handler conflict.
+# ---------------------------------------------------------------------------
+
+try:
+    from sentence_transformers import SentenceTransformer as _SentenceTransformer
+    _CAN_USE_ST = True
+except ImportError:
+    _CAN_USE_ST = False
+
+# ---------------------------------------------------------------------------
 #  Embedding-based path (sentence-transformers)
 # ---------------------------------------------------------------------------
 
@@ -33,13 +50,28 @@ def _get_embedder():
     global _EMBEDDER  # noqa: PLW0603
     if _EMBEDDER is not None:
         return _EMBEDDER
+    if not _CAN_USE_ST:
+        _EMBEDDER = False
+        logger.info("sentence-transformers unavailable, using fallback")
+        return _EMBEDDER
     try:
-        from sentence_transformers import SentenceTransformer
-        _EMBEDDER = SentenceTransformer('all-MiniLM-L6-v2')
-        logger.info("Loaded sentence-transformers model")
+        _EMBEDDER = _SentenceTransformer(
+            'all-MiniLM-L6-v2', local_files_only=True)
+        logger.info("Loaded sentence-transformers model (cached)")
+    except OSError:
+        logger.info(
+            "sentence-transformers model not cached, downloading ...")
+        try:
+            _EMBEDDER = _SentenceTransformer('all-MiniLM-L6-v2')
+            logger.info("Downloaded and loaded sentence-transformers model")
+        except Exception as exc:
+            _EMBEDDER = False
+            logger.info(
+                "sentence-transformers model loading failed: %s", exc)
     except Exception as exc:
         _EMBEDDER = False
-        logger.info("sentence-transformers unavailable, using fallback: %s", exc)
+        logger.info(
+            "sentence-transformers model loading failed: %s", exc)
     return _EMBEDDER
 
 
@@ -104,8 +136,8 @@ def _retrieve_tfidf_sklearn(
 
     corpus_texts = [_text_for_entry(e) for e in corpus]
     vectorizer = TfidfVectorizer(
-        analyzer='char_wb',
-        ngram_range=(3, 6),
+        analyzer='word',
+        ngram_range=(1, 2),
         lowercase=True,
     )
     tfidf_matrix = vectorizer.fit_transform(corpus_texts)
