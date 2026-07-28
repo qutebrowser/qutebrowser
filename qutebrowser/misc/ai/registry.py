@@ -27,6 +27,7 @@ def get_corpus() -> list[CandidateCommand]:
                 'required': False,
                 'arg_type': 'flag',
             }
+            _enrich_arg(cmd, param_name, arg_info)
             arg_list.append(arg_info)
         for param_name, display_name in cmd.pos_args:
             arg_info = {
@@ -35,6 +36,7 @@ def get_corpus() -> list[CandidateCommand]:
                 'required': True,
                 'arg_type': 'positional',
             }
+            _enrich_arg(cmd, param_name, arg_info)
             arg_list.append(arg_info)
 
         entry = CandidateCommand(
@@ -44,3 +46,19 @@ def get_corpus() -> list[CandidateCommand]:
         )
         corpus.append(entry)
     return corpus
+
+
+def _enrich_arg(cmd, param_name: str, arg_info: dict) -> None:
+    """Augment *arg_info* with choices, description, and type from *cmd*."""
+    qute_arg = cmd._qute_args.get(param_name)
+    if qute_arg is not None:
+        if qute_arg.choices:
+            arg_info['choices'] = qute_arg.choices
+
+    arg_desc = cmd.docparser.arg_descs.get(param_name)
+    if arg_desc:
+        arg_info['desc'] = arg_desc
+
+    type_hint = cmd._type_hints.get(param_name)
+    if type_hint:
+        arg_info['type'] = type_hint.__name__

@@ -12,6 +12,9 @@ import pytest
 from qutebrowser.misc.ai import provider
 from qutebrowser.misc.ai.types import CandidateCommand, ResolvedCommand
 
+# Re-usable mock for _chat_completion dict return.
+_MOCK_MSG = {'content': ''}
+
 
 @pytest.fixture
 def sample_candidates():
@@ -116,9 +119,9 @@ class TestTranslate:
         self, mock_chat, sample_candidates,
     ):
         """A successful LLM response is parsed and returned."""
-        mock_chat.return_value = json.dumps([
+        mock_chat.return_value = {'content': json.dumps([
             {'command': 'tab-mute', 'args': ['--all']},
-        ])
+        ])}
         result = provider.translate('mute all', sample_candidates)
         assert len(result) == 1
         assert result[0] == ResolvedCommand(
@@ -130,9 +133,9 @@ class TestTranslate:
         self, mock_chat, sample_candidates,
     ):
         """When LLM returns only hallucinated commands, mock is used."""
-        mock_chat.return_value = json.dumps([
+        mock_chat.return_value = {'content': json.dumps([
             {'command': 'fake-command', 'args': []},
-        ])
+        ])}
         result = provider.translate('close tab', sample_candidates)
         # Should fall back to mock since all were hallucinated
         assert len(result) >= 1

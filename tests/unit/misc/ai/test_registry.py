@@ -14,11 +14,16 @@ from qutebrowser.misc.ai.types import CandidateCommand
 
 def _make_fake_command(name, desc, pos_args=None, opt_args=None):
     """Build a fake Command-like object."""
-    cmd = mock.Mock(spec=['name', 'desc', 'opt_args', 'pos_args'])
+    cmd = mock.Mock(spec=['name', 'desc', 'opt_args', 'pos_args',
+                          '_qute_args', 'docparser', '_type_hints'])
     cmd.name = name
     cmd.desc = desc
     cmd.opt_args = opt_args or {}
     cmd.pos_args = pos_args or []
+    cmd._qute_args = {}
+    cmd._type_hints = {}
+    cmd.docparser = mock.Mock()
+    cmd.docparser.arg_descs = {}
     return cmd
 
 

@@ -20,12 +20,22 @@ from __future__ import annotations
 
 import logging
 import math
+import os
 import re
+import time
 from collections import Counter
 
 from qutebrowser.misc.ai.types import CandidateCommand
 
 logger = logging.getLogger('ai')
+
+# ---------------------------------------------------------------------------
+#  Network isolation – set env vars *before* huggingface_hub is imported
+#  (via sentence_transformers below) so it never phones home.
+# ---------------------------------------------------------------------------
+
+os.environ.setdefault('HF_HUB_OFFLINE', '1')
+os.environ.setdefault('HF_HUB_DISABLE_TELEMETRY', '1')
 
 # ---------------------------------------------------------------------------
 #  Eager import — must happen before QApplication is created to avoid
@@ -46,7 +56,7 @@ _EMBEDDER = None
 
 
 def _get_embedder():
-    """Lazy-load the sentence-transformers model."""
+    """Lazy-load the sentence-transformers model (cached only)."""
     global _EMBEDDER  # noqa: PLW0603
     if _EMBEDDER is not None:
         return _EMBEDDER
@@ -54,20 +64,17 @@ def _get_embedder():
         _EMBEDDER = False
         logger.info("sentence-transformers unavailable, using fallback")
         return _EMBEDDER
+    t0 = time.monotonic()
     try:
         _EMBEDDER = _SentenceTransformer(
             'all-MiniLM-L6-v2', local_files_only=True)
-        logger.info("Loaded sentence-transformers model (cached)")
+        elapsed = time.monotonic() - t0
+        logger.info(
+            "Loaded sentence-transformers model (cached) in %.1fs", elapsed)
     except OSError:
         logger.info(
-            "sentence-transformers model not cached, downloading ...")
-        try:
-            _EMBEDDER = _SentenceTransformer('all-MiniLM-L6-v2')
-            logger.info("Downloaded and loaded sentence-transformers model")
-        except Exception as exc:
-            _EMBEDDER = False
-            logger.info(
-                "sentence-transformers model loading failed: %s", exc)
+            "sentence-transformers model not cached – run setup-ai.sh first")
+        _EMBEDDER = False
     except Exception as exc:
         _EMBEDDER = False
         logger.info(
@@ -86,7 +93,13 @@ def _retrieve_embeddings(
 
     texts = [_text_for_entry(e) for e in corpus]
     all_texts = texts + [query]
+    t0 = time.monotonic()
     embeddings = embedder.encode(all_texts)
+    elapsed = time.monotonic() - t0
+    logger.info(
+        "[perf] encoded %d texts in %.1fs",
+        len(all_texts), elapsed,
+    )
     query_emb = embeddings[-1]
     scores = []
     for doc_emb in embeddings[:-1]:
@@ -245,15 +258,40 @@ def retrieve(
 ) -> list[CandidateCommand]:
     """Return the top-*k* candidate commands ranked by relevance to *query*.
 
-    Tries the sentence-transformers embedder first; falls back to TF-IDF
-    (via scikit-learn if available, otherwise pure-stdlib).
+    Uses **hybrid scoring** when both the embedding model and TF-IDF are
+    available::
+
+        score = α · embedding_cosine  +  (1 − α) · tfidf_cosine
+
+    This ensures that exact lexical matches (e.g. "open" in query → ``open``
+    command) are never drowned out by the semantic embedder, while still
+    benefiting from the embedder's ability to match paraphrases.
+
+    Falls back to TF-IDF only when embeddings are unavailable.
     """
     if not corpus:
         return []
 
-    scores = _retrieve_embeddings(query, corpus)
-    if not scores:
+    t0 = time.monotonic()
+    emb_scores = _retrieve_embeddings(query, corpus)
+    if emb_scores:
+        tfidf_scores = _retrieve_tfidf(query, corpus)
+        if tfidf_scores:
+            # Hybrid: semantic + lexical
+            alpha = 0.6
+            scores = [
+                alpha * e + (1.0 - alpha) * t
+                for e, t in zip(emb_scores, tfidf_scores)
+            ]
+            logger.info("[perf] hybrid scores (alpha=%.1f)", alpha)
+        else:
+            scores = emb_scores
+    else:
+        logger.info("[perf] embedding path skipped, using TF-IDF")
         scores = _retrieve_tfidf(query, corpus)
+
+    elapsed = time.monotonic() - t0
+    logger.info("[perf] retrieval took %.1fs", elapsed)
 
     indexed: list[tuple[float, int, CandidateCommand]] = []
     for i, entry in enumerate(corpus):

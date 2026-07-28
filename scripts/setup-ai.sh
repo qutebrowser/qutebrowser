@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# qutebrowser AI feature — one-shot setup script
+# qutebrowser AI feature — dependency installer
 #
 # Usage:  bash scripts/setup-ai.sh
 #
@@ -10,8 +10,12 @@ set -euo pipefail
 #   2. Pre-downloads the all-MiniLM-L6-v2 embedding model into the huggingface
 #      cache so no network requests happen at runtime.
 #
-# The LLM endpoint (Ollama, cloud provider, etc.) is configured via
-# environment variables — see .env.example.
+# What it does NOT do:
+#   - It does NOT install or manage Ollama or any LLM backend.
+#   - The LLM endpoint is configured separately via environment variables
+#     (AI_BASE_URL, AI_MODEL, AI_API_KEY) — see .env.example.
+#   - Without a configured LLM endpoint the feature still runs in mock
+#     mode (degraded but functional).
 
 REQUIREMENTS_FILE="misc/requirements/requirements-ai.txt"
 
@@ -36,18 +40,18 @@ cat <<'EOF'
   • Embeddings:   all-MiniLM-L6-v2 (cached)
   • Retrieval:    sentence-transformers → sklearn → stdlib
 
-Set AI_BASE_URL to point to your LLM endpoint (Ollama, cloud provider,
-etc.) and launch qutebrowser. For example:
+IMPORTANT: You still need an LLM endpoint. This script does NOT install
+Ollama or any other LLM backend. The AI feature works in mock mode
+without one, but for real translations you need either:
 
-  export AI_BASE_URL="http://localhost:11434/v1"
-  export AI_MODEL="gemma4:e4b"
-  qutebrowser
-
-Then try:
-  :ai-do "close every tab except the current one"
-  :ai-do "mute all tabs and reload"
-  :ai-do "open github.com"
+  a) Local Ollama → ollama pull gemma4:e4b  (see https://ollama.com)
+  b) A cloud provider → set AI_BASE_URL / AI_MODEL / AI_API_KEY
 
 See .env.example for all available options.
+
+Examples once an LLM endpoint is available:
+  :ai-do close every tab except the current one
+  :ai-do mute all tabs and reload
+  :ai-do open github.com
 ─────────────────────────────────────────────────────────────────────────
 EOF
