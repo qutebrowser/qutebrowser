@@ -1097,8 +1097,7 @@ class DownloadModel(QAbstractListModel):
         """Called when a downloader's data changed.
 
         Args:
-            start: The first changed index as int.
-            end: The last changed index as int, or -1 for all indices.
+            idx: The changed index as int.
             webengine: If given, the QtNetwork download length is added to the
                       index.
         """

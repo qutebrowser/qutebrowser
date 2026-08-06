@@ -144,7 +144,7 @@ class TabEventFilter(QObject):
         """Handle releasing of a mouse button.
 
         Args:
-            e: The QMouseEvent.
+            _e: The QMouseEvent.
 
         Return:
             True if the event should be filtered, False otherwise.

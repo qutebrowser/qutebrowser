@@ -220,9 +220,6 @@ class _CrashDialog(QDialog):
         """Gather crash information to display.
 
         Args:
-            pages: A list of lists of the open pages (URLs as strings)
-            cmdhist: A list with the command history (as strings)
-            exc: An exception tuple (type, value, traceback)
         """
         try:
             launch_time = objects.qapp.launch_time.ctime()

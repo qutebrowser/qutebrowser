@@ -222,7 +222,6 @@ class CommandDispatcher:
             next_: Force selecting the tab after the current tab.
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs.select_on_remove'.
-            count: The tab index to close, or None
         """
         tabbar = self._tabbed_browser.widget.tabBar()
         selection_override = self._get_selection_override(prev, next_,

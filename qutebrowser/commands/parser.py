@@ -46,7 +46,6 @@ class CommandParser:
 
         Args:
             text: The text to parse.
-            aliases: A map of aliases to commands.
             default : Default value to return when alias was not found.
 
         Return:

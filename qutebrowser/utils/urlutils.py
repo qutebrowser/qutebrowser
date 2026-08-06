@@ -206,7 +206,7 @@ def _is_url_dns(urlstr: str) -> bool:
     """Check if a URL is really a URL via DNS.
 
     Args:
-        url: The URL to check for as a string.
+        urlstr: The URL to check for as a string.
 
     Return:
         True if the URL really is a URL, False otherwise.

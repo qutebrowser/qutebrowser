@@ -143,7 +143,7 @@ class HostBlocker:
         """Read hosts from the given line.
 
         Args:
-            line: The bytes object to read.
+            raw_line: The bytes object to read.
 
         Returns:
             A set containing valid hosts found

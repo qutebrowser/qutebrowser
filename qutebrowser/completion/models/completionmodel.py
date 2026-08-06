@@ -43,7 +43,7 @@ class CompletionModel(QAbstractItemModel):
         """Return the category pointed to by the given index.
 
         Args:
-            idx: A QModelIndex
+            index: A QModelIndex
         Returns:
             A category if the index points at one, else None
         """
