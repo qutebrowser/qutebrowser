@@ -217,10 +217,7 @@ class _CrashDialog(QDialog):
         self._vbox.addWidget(info_label)
 
     def _gather_crash_info(self):
-        """Gather crash information to display.
-
-        Args:
-        """
+        """Gather crash information to display."""
         try:
             launch_time = objects.qapp.launch_time.ctime()
             crash_time = datetime.datetime.now().ctime()
