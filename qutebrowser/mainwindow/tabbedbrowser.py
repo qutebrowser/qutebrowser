@@ -302,7 +302,6 @@ class TabbedBrowser(QWidget):
         """Change the window title to match the current tab.
 
         Args:
-            idx: The tab index to update.
             field: A field name which was updated. If given, the title
                    is only set if the given field is in the template.
         """

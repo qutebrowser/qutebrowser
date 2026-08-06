@@ -195,7 +195,7 @@ class BaseKeyParser(QObject):
         """Log a message to the debug log if logging is active.
 
         Args:
-            message: The message to log.
+            msg: The message to log.
         """
         if self._do_log:
             prefix = '{} for mode {}: '.format(self.__class__.__name__,
