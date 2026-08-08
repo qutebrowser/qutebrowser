@@ -477,9 +477,10 @@ class TabBar(QTabBar):
         """Hide the tab bar if needed."""
         show = config.val.tabs.show
         tab = self._current_tab()
-        if (show in ['never', 'switching'] or
+        # Ensure the tab bar remains visible during drag-and-drop operations.
+        if ((show in ['never', 'switching'] or
                 (show == 'multiple' and self.count() == 1) or
-                (tab and tab.data.fullscreen)):
+                (tab and tab.data.fullscreen)) and not self.drag_in_progress):
             self.hide()
         else:
             self.show()

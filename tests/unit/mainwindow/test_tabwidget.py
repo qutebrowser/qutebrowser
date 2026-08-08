@@ -182,6 +182,29 @@ class TestTabWidget:
 
         benchmark(_run_bench)
 
+    def test_maybe_hide_respects_drag (self, widget, config_stub):
+        """`maybe_hide()` should not hide the tab bar if a drag is in progress.
+        
+        Set `tabs.show` to "never" to ensure that the default behavior 
+        of hiding the tab bar is in place; when `tab_bar._drag_in_progress` is true,
+        the bar must be visible. 
+        """
+
+        bar = widget.tabBar()
+        assert bar.isVisible()
+
+        config_stub.val.tabs.show = "never"
+
+        # when dragging, the tab bar should remain visible
+        bar.drag_in_progress = True
+        bar.maybe_hide()
+        assert bar.isVisible()
+
+        # when not dragging, the tab bar should be hidden
+        bar.drag_in_progress = False
+        bar.maybe_hide()
+        assert not bar.isVisible()
+
     def test_tab_pinned_benchmark(self, benchmark, widget, fake_web_tab):
         """Benchmark for _tab_pinned."""
         widget.addTab(fake_web_tab(), 'foobar')
