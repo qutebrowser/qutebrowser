@@ -127,6 +127,7 @@ class TabData:
     open_target: usertypes.ClickTarget = usertypes.ClickTarget.normal
     override_target: Optional[usertypes.ClickTarget] = None
     pinned: bool = False
+    custom_title: Optional[str] = None
     fullscreen: bool = False
     netrc_used: bool = False
     input_mode: usertypes.KeyMode = usertypes.KeyMode.normal
@@ -1132,12 +1133,13 @@ class AbstractTab(QWidget):
         qtutils.ensure_valid(url)
         url_string = url.toDisplayString()
         log.webview.debug("Going to start loading: {}".format(url_string))
-        self.title_changed.emit(url_string)
+        if not self.title() and not self.data.custom_title:
+            self.title_changed.emit(url_string)
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url: QUrl) -> None:
         """Update title when URL has changed and no title is available."""
-        if url.isValid() and not self.title():
+        if url.isValid() and not self.title() and not self.data.custom_title:
             self.title_changed.emit(url.toDisplayString())
         self.url_changed.emit(url)
 
@@ -1189,7 +1191,7 @@ class AbstractTab(QWidget):
 
         self.load_finished.emit(ok)
 
-        if not self.title():
+        if not self.title() and not self.data.custom_title:
             self.title_changed.emit(self.url().toDisplayString())
 
         self.zoom.reapply()
@@ -1285,8 +1287,24 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def title(self) -> str:
+    def raw_title(self) -> str:
         raise NotImplementedError
+
+    def title(self) -> str:
+        return self.data.custom_title or self.raw_title()
+
+    def set_title(self, title: str) -> None:
+        """Set a custom tab's title, or reset it if empty is passed.
+
+        Args:
+            title: A custom tab's title
+        """
+        if title:
+            self.data.custom_title = title
+            self.title_changed.emit(title)
+        else:
+            self.data.custom_title = None
+            self.title_changed.emit(self.raw_title())
 
     def icon(self) -> QIcon:
         raise NotImplementedError
