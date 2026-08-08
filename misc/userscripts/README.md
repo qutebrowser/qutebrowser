@@ -40,6 +40,12 @@ The following userscripts are included in the current directory.
 - [kodi](./kodi): Play videos in Kodi.
 - [add-nextcloud-bookmarks](./add-nextcloud-bookmarks): Create bookmarks in Nextcloud's Bookmarks app.
 - [add-nextcloud-cookbook](./add-nextcloud-cookbook): Add recipes to Nextcloud's Cookbook app.
+- [qb-sway-session](./qb-sway-session): Save and restore window positions
+  and layouts on the Sway compositor (Wayland).
+- [qb-hyprland-session](./qb-hyprland-session): Save and restore window
+  positions and layouts on the Hyprland compositor (Wayland).  Supports
+  basic mode (workspace/monitor/floating) and full tiling tree
+  reconstruction with the [Hy3](https://github.com/outfoxxed/hy3) plugin.
 
 [castnow]: https://github.com/xat/castnow
 [youtube-dl]: https://rg3.github.io/youtube-dl/
