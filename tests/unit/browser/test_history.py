@@ -326,6 +326,53 @@ class TestInit:
             assert default_interface is None
 
 
+class TestHistoryClearSite:
+
+    def test_normalize_url(self):
+        from qutebrowser.browser.history import _normalize_url
+        assert _normalize_url('example.com').toString() == 'https://example.com'
+        assert _normalize_url('https://example.com/page').toString() == 'https://example.com/page'
+        assert _normalize_url('').toString() == ''
+
+    def test_find_matching_history_urls_exact(self, web_history):
+        from qutebrowser.browser.history import _find_matching_history_urls, _normalize_url
+        web_history.add_url(QUrl('https://example.com/page'), atime=12345)
+        qurl = _normalize_url('https://example.com/page')
+        matches = _find_matching_history_urls(qurl)
+        assert len(matches) == 1
+
+    def test_find_matching_history_urls_no_match(self, web_history):
+        from qutebrowser.browser.history import _find_matching_history_urls, _normalize_url
+        web_history.add_url(QUrl('https://example.com/page'), atime=12345)
+        qurl = _normalize_url('https://other.com')
+        matches = _find_matching_history_urls(qurl)
+        assert len(matches) == 0
+
+    def test_history_clear_site_force(self, web_history, mocker):
+        web_history.add_url(QUrl('https://example.com/page'), atime=12345)
+        m = mocker.patch('qutebrowser.browser.history.message.info')
+        history.history_clear_site('https://example.com/page', force=True)
+        assert m.called
+        assert not list(web_history)
+
+    def test_history_clear_site_no_match(self, web_history, mocker):
+        web_history.add_url(QUrl('https://example.com/page'), atime=12345)
+        m = mocker.patch('qutebrowser.browser.history.message.info')
+        history.history_clear_site('https://other.com', force=True)
+        m.assert_called_once_with("No history entries found for: https://other.com")
+        assert len(web_history) == 1
+
+    def test_history_clear_site_invalid_url(self):
+        with pytest.raises(cmdutils.CommandError, match="Invalid URL"):
+            history.history_clear_site('not a url', force=True)
+
+    def test_history_clear_site_confirm(self, web_history, mocker):
+        web_history.add_url(QUrl('https://example.com/page'), atime=12345)
+        m = mocker.patch('qutebrowser.browser.history.message.confirm_async')
+        history.history_clear_site('https://example.com/page')
+        assert m.called
+
+
 class TestDump:
 
     def test_debug_dump_history(self, web_history, tmpdir):
