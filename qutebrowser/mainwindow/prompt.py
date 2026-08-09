@@ -665,6 +665,8 @@ class FilenamePrompt(_BasePrompt):
         self._init_texts(question)
         self._init_key_label()
 
+        self._user_expanded = False
+
         self._lineedit = LineEdit(self)
         if question.default:
             self._lineedit.setText(question.default)
@@ -697,6 +699,11 @@ class FilenamePrompt(_BasePrompt):
         separators = os.sep
         if os.altsep is not None:
             separators += os.altsep
+
+        # If the path is not the same as the path with expanduser set a boolean
+        if os.path.expanduser(path) != path:
+            path = os.path.expanduser(path)
+            self._user_expanded = True
 
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
@@ -745,6 +752,9 @@ class FilenamePrompt(_BasePrompt):
         else:
             # On Windows, when we have C:\foo and tab over .., we get C:\
             path = path.rstrip(os.sep)
+
+        if self._user_expanded:
+            path = path.replace(os.path.expanduser('~'), '~', 1)
 
         log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
