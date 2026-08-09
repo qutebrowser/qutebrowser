@@ -16,7 +16,7 @@ load-plugins=qute_pylint.config,
              pylint.extensions.dunder
 
 persistent=n
-py-version=3.9
+py-version=3.10
 
 [MESSAGES CONTROL]
 enable=all
