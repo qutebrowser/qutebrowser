@@ -597,6 +597,36 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
     })
 
 
+def test_url_completion_tabs(qtmodeltester, config_stub, fake_web_tab,
+                             win_registry, tabbed_browser_stubs,
+                             quickmark_manager_stub, bookmark_manager_stub,
+                             info):
+    """The tabs category shows open tabs when 'tabs' is in open_categories.
+
+    It is gated only on the category being enabled, independent of
+    tabs.switch_to_open_url.
+    """
+    config_stub.val.completion.open_categories = ['tabs']
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Tabs': [
+            ('https://github.com', 'GitHub', '0/1'),
+            ('https://wikipedia.org', 'Wikipedia', '0/2'),
+            ('https://wiki.archlinux.org', 'ArchWiki', '1/1'),
+        ],
+    })
+
+
 def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
                              quickmarks, bookmarks, info):
     """Test that search engines are not shown with only the default engine."""

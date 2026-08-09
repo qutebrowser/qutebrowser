@@ -533,7 +533,9 @@ def mode_manager(win_registry, config_stub, key_config_stub, qapp):
     mm = modeman.init(win_id=0, parent=qapp)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
-    mm.deleteLater()
+    # Delete synchronously (not deleteLater) so the key parsers'
+    # QApplication-parented timers don't survive into later tests.
+    sip.delete(mm)
 
 
 def standarddir_tmpdir(folder, monkeypatch, tmpdir):
