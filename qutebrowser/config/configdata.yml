@@ -2360,6 +2360,13 @@ tabs.show_switching_delay:
   desc: "Duration (in milliseconds) to show the tab bar before hiding it when
     tabs.show is set to 'switching'."
 
+tabs.show_on_close:
+  type: Bool
+  default: false
+  desc: >-
+    Show the tab bar for a short duration when a tab is closed, if
+    tabs.show is set to 'switching'.
+
 tabs.tabs_are_windows:
   default: false
   type: Bool

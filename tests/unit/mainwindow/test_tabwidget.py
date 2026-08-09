@@ -187,3 +187,59 @@ class TestTabWidget:
         widget.addTab(fake_web_tab(), 'foobar')
         tab_bar = widget.tabBar()
         benchmark(functools.partial(tab_bar._tab_pinned, 0))
+
+
+class TestTabBarShowOnClose:
+
+    @pytest.fixture
+    def widget(self, qtbot, monkeypatch, config_stub, fake_web_tab):
+        """A tab widget with two tabs."""
+        w = tabwidget.TabWidget(0)
+        qtbot.add_widget(w)
+        monkeypatch.setattr(tabwidget.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
+        w.addTab(fake_web_tab(), 'tab1')
+        w.addTab(fake_web_tab(), 'tab2')
+        w.show()
+        return w
+
+    def test_show_on_close_true_and_switching(self, widget, config_stub, qtbot):
+        """Test tabs.show_on_close=True and tabs.show='switching'."""
+        config_stub.val.tabs.show = 'switching'
+        config_stub.val.tabs.show_on_close = True
+        tab_bar = widget.tabBar()
+        qtbot.wait(1)
+        assert not tab_bar.isVisible()
+
+        widget.removeTab(0)
+        assert tab_bar.isVisible()
+
+        qtbot.wait(config_stub.val.tabs.show_switching_delay)
+        assert not tab_bar.isVisible()
+
+    def test_show_on_close_false(self, widget, config_stub, qtbot):
+        """Test tabs.show_on_close=False."""
+        config_stub.val.tabs.show = 'switching'
+        config_stub.val.tabs.show_on_close = False
+        tab_bar = widget.tabBar()
+        qtbot.wait(1)
+        assert not tab_bar.isVisible()
+
+        widget.removeTab(0)
+        assert not tab_bar.isVisible()
+
+    @pytest.mark.parametrize('show_val,is_visible', [
+        ('always', True),
+        ('never', False),
+    ])
+    def test_show_on_close_true_not_switching(self, widget, config_stub, qtbot,
+                                              show_val, is_visible):
+        """Test tabs.show_on_close=True and tabs.show!='switching'."""
+        config_stub.val.tabs.show = show_val
+        config_stub.val.tabs.show_on_close = True
+        tab_bar = widget.tabBar()
+        qtbot.wait(1)
+        assert tab_bar.isVisible() is is_visible
+
+        widget.removeTab(0)
+        assert tab_bar.isVisible() is is_visible
