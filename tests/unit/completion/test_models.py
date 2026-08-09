@@ -1445,19 +1445,22 @@ def test_undo_completion(tabbed_browser_stubs, info):
     })
 
 
-def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
+def test_undo_completion_retains_sort_order(tabbed_browser_stubs, info):
     """Test :undo completion sort order with > 10 entries."""
     created_dt = datetime(2020, 1, 1)
-    created_str = "2020-01-02 00:00"
+    created_str = "2020-01-01 00:00"
 
     tabbed_browser_stubs[0].undo_stack = [
-        tabbedbrowser._UndoEntry(
-            url=QUrl(f'https://example.org/{idx}'),
-            history=None, index=None, pinned=None,
-            created_at=created_dt,
-        )
-        for idx in range(1, 11)
+        [
+            tabbedbrowser._UndoEntry(
+                url=QUrl(f'https://example.org/{idx}'),
+                history=None, index=None, pinned=None,
+            )
+        ]
+        for idx in reversed(range(1, 11))
     ]
+    for entries in tabbed_browser_stubs[0].undo_stack:
+        entries[0].created_at = created_dt
 
     model = miscmodels.undo(info=info)
     model.set_pattern('')
