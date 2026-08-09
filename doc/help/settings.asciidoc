@@ -4677,6 +4677,8 @@ The following placeholders are defined:
 * `{current_url}`: URL of the current web page.
 * `{protocol}`: Protocol (http/https/...) of the current web page.
 * `{audio}`: Indicator for audio/mute status.
+* `{collapsed}`: If children tabs are hidden, the string `[...]`, empty otherwise
+* `{tree}`: The ASCII tree prefix of current tab.
 
 
 Type: <<types,FormatString>>
