@@ -1412,14 +1412,15 @@ def test_forward_completion(tab_with_history, info):
 def test_undo_completion(tabbed_browser_stubs, info):
     """Test :undo completion."""
     entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 1))
+                                      history=None, index=None, pinned=None)
     entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 2))
+                                      history=None, index=None, pinned=None)
     entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
-                                      history=None, index=None, pinned=None,
-                                      created_at=datetime(2020, 1, 2))
+                                      history=None, index=None, pinned=None)
+
+    entry1.created_at = datetime(2020, 1, 1)
+    for entry in [entry2, entry3]:
+        entry.created_at = datetime(2020, 1, 2)
 
     # Most recently closed is at the end
     tabbed_browser_stubs[0].undo_stack = [
