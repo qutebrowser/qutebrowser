@@ -191,11 +191,25 @@ class HintContext:
     first_run: bool = True
     filterstr: Optional[str] = None
 
-    def get_args(self, urlstr: str) -> Sequence[str]:
-        """Get the arguments, with {hint-url} replaced by the given URL."""
+    def get_elem_url(self, elem: webelem.AbstractWebElement) -> QUrl:
+        """Get the Url of the given element."""
+        url = elem.resolve_url(self.baseurl)
+        if url is None:
+            raise HintingError("No suitable link found for this element.")
+        return url
+
+    def get_args(self, elem: webelem.AbstractWebElement) -> Sequence[str]:
+        """Get the arguments, with {hint-url} and {hint-text} replaced.
+
+        Args:
+            elem: The QWebElement to get the text and URL from.
+        """
+        url = self.get_elem_url(elem)
+        urlstr = url.toString(urlutils.FormatOption.ENCODED | urlutils.FormatOption.REMOVE_PASSWORD)
         args = []
         for arg in self.args:
             arg = arg.replace('{hint-url}', urlstr)
+            arg = arg.replace('{hint-text}', str(elem))
             args.append(arg)
         return args
 
@@ -239,11 +253,12 @@ class HintActions:
         except webelem.Error as e:
             raise HintingError(str(e))
 
-    def yank(self, url: QUrl, context: HintContext) -> None:
+    def yank(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Yank an element to the clipboard or primary selection."""
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
+        url = context.get_elem_url(elem)
         urlstr = urlutils.get_url_yank_text(url, pretty=False)
         new_content = urlstr
 
@@ -262,17 +277,15 @@ class HintActions:
             urlstr)
         message.info(msg, replace='rapid-hints' if context.rapid else None)
 
-    def run_cmd(self, url: QUrl, context: HintContext) -> None:
+    def run_cmd(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(urlutils.FormatOption.ENCODED)
-        args = context.get_args(urlstr)
+        args = context.get_args(elem)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
-    def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
+    def preset_cmd_text(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        urlstr = url.toDisplayString(urlutils.FormatOption.ENCODED)
-        args = context.get_args(urlstr)
+        args = context.get_args(elem)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
             raise HintingError("Invalid command text '{}'.".format(text))
@@ -288,9 +301,7 @@ class HintActions:
             elem: The QWebElement to download.
             context: The HintContext to use.
         """
-        url = elem.resolve_url(context.baseurl)
-        if url is None:
-            raise HintingError("No suitable link found for this element.")
+        url = context.get_elem_url(elem)
 
         prompt = False if context.rapid else None
         qnam = context.tab.private_api.networkaccessmanager()
@@ -335,16 +346,14 @@ class HintActions:
                _context: HintContext) -> None:
         elem.delete()
 
-    def spawn(self, url: QUrl, context: HintContext) -> None:
+    def spawn(self, elem: webelem.AbstractWebElement, context: HintContext) -> None:
         """Spawn a simple command from a hint.
 
         Args:
-            url: The URL to open as a QUrl.
+            elem: The QWebElement to get the text and URL from.
             context: The HintContext to use.
         """
-        urlstr = url.toString(
-            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword)
-        args = context.get_args(urlstr)
+        args = context.get_args(elem)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
 
@@ -719,16 +728,16 @@ class HintManager(QObject):
             *args: Arguments for spawn/userscript/run/fill.
 
                 - With `spawn`: The executable and arguments to spawn.
-                                `{hint-url}` will get replaced by the selected
-                                URL.
+                                `{hint-url}` will get replaced by the selected URL,
+                                `{hint-text}` will get replaced by the selected element text.
                 - With `userscript`: The userscript to execute. Either store
                                      the userscript in
                                      `~/.local/share/qutebrowser/userscripts`
                                      (or `$XDG_DATA_HOME`), or use an absolute
                                      path.
                 - With `fill`: The command to fill the statusbar with.
-                                `{hint-url}` will get replaced by the selected
-                                URL.
+                                `{hint-url}` will get replaced by the selected URL,
+                                `{hint-text}` will get replaced by the selected element text.
                 - With `run`: Same as `fill`.
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -946,14 +955,11 @@ class HintManager(QObject):
             Target.download: self._actions.download,
             Target.userscript: self._actions.call_userscript,
             Target.delete: self._actions.delete,
-        }
-        # Handlers which take a QUrl
-        url_handlers = {
-            Target.yank: self._actions.yank,
-            Target.yank_primary: self._actions.yank,
             Target.run: self._actions.run_cmd,
             Target.fill: self._actions.preset_cmd_text,
             Target.spawn: self._actions.spawn,
+            Target.yank: self._actions.yank,
+            Target.yank_primary: self._actions.yank,
         }
         elem = self._context.labels[keystr].elem
 
@@ -964,15 +970,12 @@ class HintManager(QObject):
         if self._context.target in elem_handlers:
             handler = functools.partial(elem_handlers[self._context.target],
                                         elem, self._context)
-        elif self._context.target in url_handlers:
-            url = elem.resolve_url(self._context.baseurl)
-            if url is None:
-                message.error("No suitable link found for this element.")
-                return
-            handler = functools.partial(url_handlers[self._context.target],
-                                        url, self._context)
             if self._context.add_history:
-                history.web_history.add_url(url, "")
+                try:
+                    url = self._context.get_elem_url(elem)
+                    history.web_history.add_url(url, "")
+                except HintingError:
+                    pass
         else:
             raise ValueError("No suitable handler found!")
 
