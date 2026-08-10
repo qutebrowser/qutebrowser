@@ -180,17 +180,28 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 @add_handler('tabs')
 def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs: dict[str, list[tuple[str, str]]] = collections.defaultdict(list)
+    tabs: dict[str, list[tuple[str, str, str, bool]]] = collections.defaultdict(list)
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window',
                                     window=win_id)
-        for tab in tabbed_browser.widgets():
-            if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
-                urlstr = tab.url().toDisplayString()
-                tabs[str(win_id)].append((tab.title(), urlstr))
+        if getattr(tabbed_browser, 'is_treetabbedbrowser', False):
+            # Render the tree structure with ASCII prefixes.
+            for symbol, node in tabbed_browser.widget.tree_root.render():
+                tab = node.value
+                if tab is None:
+                    continue  # root node has no tab
+                if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
+                    urlstr = tab.url().toDisplayString()
+                    tabs[str(win_id)].append(
+                        (symbol, tab.title(), urlstr, node.collapsed))
+        else:
+            for tab in tabbed_browser.widgets():
+                if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
+                    urlstr = tab.url().toDisplayString()
+                    tabs[str(win_id)].append(('', tab.title(), urlstr, False))
 
     src = jinja.render('tabs.html',
                        title='Tabs',
@@ -576,6 +587,18 @@ def qute_warning(url: QUrl) -> _HandlerRet:
                            prefix=sys.prefix)
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
+    return 'text/html', src
+
+
+@add_handler('treegroup')
+def qute_treegroup(url):
+    """Handler for qute://treegroup/x.
+
+    Makes an empty tab with a title, for use with tree-tabs as a grouping
+    feature.
+    """
+    src = jinja.render('tree_group.html',
+                       title=url.path()[1:])
     return 'text/html', src
 
 
