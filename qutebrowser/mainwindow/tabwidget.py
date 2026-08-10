@@ -13,7 +13,7 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from qutebrowser.qt.widgets import (QTabWidget, QTabBar, QSizePolicy, QProxyStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QCommonStyle)
+                             QCommonStyle, QWidget)
 from qutebrowser.qt.gui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -23,7 +23,6 @@ from qutebrowser.browser import browsertab
 
 
 class TabWidget(QTabWidget):
-
     """The tab widget used for TabbedBrowser.
 
     Signals:
@@ -42,18 +41,20 @@ class TabWidget(QTabWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._tabbed_browser = parent
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
-        bar.tabMoved.connect(functools.partial(
-            QTimer.singleShot, 0, self.update_tab_titles))
+        bar.tabMoved.connect(self.update_tab_titles)
         bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setDocumentMode(True)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
+        self._tab_title_update_disabled = False
+
         self._init_config()
         config.instance.changed.connect(self._init_config)
 
@@ -79,7 +80,7 @@ class TabWidget(QTabWidget):
         assert isinstance(bar, TabBar), bar
         return bar
 
-    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
+    def _tab_by_idx(self, idx: int) -> Optional[QWidget]:
         """Get the tab at the given index."""
         tab = self.widget(idx)
         if tab is not None:
@@ -124,6 +125,12 @@ class TabWidget(QTabWidget):
             field: A field name which was updated. If given, the title
                    is only set if the given field is in the template.
         """
+        if self._tab_title_update_disabled:
+            return
+
+        if self._tabbed_browser.is_shutting_down:
+            return
+
         assert idx != -1
         tab = self._tab_by_idx(idx)
         assert tab is not None
@@ -176,6 +183,9 @@ class TabWidget(QTabWidget):
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.is_private else ''
+        fields['tree'] = ''
+        fields['collapsed'] = ''
+
         try:
             if tab.audio.is_muted():
                 fields['audio'] = TabWidget.MUTE_STRING
@@ -238,8 +248,17 @@ class TabWidget(QTabWidget):
             bar.setVisible(True)
             bar.setUpdatesEnabled(True)
 
+    @contextlib.contextmanager
+    def _disable_tab_title_updates(self):
+        self._tab_title_update_disabled = True
+        yield
+        self._tab_title_update_disabled = False
+
     def update_tab_titles(self):
         """Update all texts."""
+        if self._tab_title_update_disabled:
+            return
+
         with self._toggle_visibility():
             for idx in range(self.count()):
                 self.update_tab_title(idx)
@@ -334,7 +353,7 @@ class TabWidget(QTabWidget):
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: browsertab.AbstractTab) -> None:
+    def update_tab_favicon(self, tab: QWidget) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
