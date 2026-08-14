@@ -121,3 +121,18 @@ def read_file_binary(filename: str) -> bytes:
     path = _path(filename)
     with _keyerror_workaround():
         return path.read_bytes()
+
+
+def read_absolute_file_binary(filepath: str) -> bytes:
+    """Get the contents of an binary file at an absolute path. 
+    This file may exist outside of qutebrowser-owned directories.
+
+    Args:
+        filepath: The absolute filepath to open as string.
+
+    Return:
+        The file contents as a bytes object.
+    """
+    path = pathlib.Path(filepath)
+    with _keyerror_workaround():
+        return path.read_bytes()
