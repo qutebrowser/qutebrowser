@@ -322,16 +322,23 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def tab_mute(tab: Optional[apitypes.Tab]) -> None:
+@cmdutils.argument('to_set', choices=['true', 'false'])
+def tab_mute(tab: Optional[apitypes.Tab], to_set: str = None) -> None:
     """Mute/Unmute the current/[count]th tab.
 
     Args:
         count: The tab index to mute or unmute, or None
+        to_set: The mute setting to force: 'true' 'false' or 'None
     """
     if tab is None:
         return
     try:
-        tab.audio.set_muted(not tab.audio.is_muted(), override=True)
+        if to_set == 'true':
+            tab.audio.set_muted(True, override=True)
+        elif to_set == 'false':
+            tab.audio.set_muted(False, override=True)
+        else:
+            tab.audio.set_muted(not tab.audio.is_muted(), override=True)
     except apitypes.WebTabError as e:
         raise cmdutils.CommandError(e)
 
