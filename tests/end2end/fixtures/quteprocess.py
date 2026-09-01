@@ -914,6 +914,70 @@ class QuteProc(testprocess.Process):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 
+    def click_element_by_id(self, element_id):
+        """Click the element with the given id.
+
+        Dispatches pointer/mouse events targeting the element center, setting
+        `button` and `buttons` and firing `pointerdown` so handlers that rely
+        on coordinates (e.g. zapper) see the correct element.
+        """
+        script = (
+            'var _e = document.getElementById({id}); '
+            'if (!_e) {{ console.log("qute:no elem"); }} '
+            'else {{ '
+            '  var rect = _e.getBoundingClientRect(), x = rect.left + rect.width / 2, y = rect.top + rect.height / 2; '
+            '  var target = document.elementFromPoint(x, y) || _e, base = {{ bubbles: true, cancelable: true, view: window, clientX: x, clientY: y }}; '
+            '  window.dispatchEvent(new PointerEvent("mousemove", base)); '
+            '  var down = {{ bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0, buttons: 1, pointerId: 1, pointerType: "mouse", isPrimary: true }}; '
+            '  target.dispatchEvent(new PointerEvent("pointerdown", down)); '
+            '  target.dispatchEvent(new MouseEvent("mousedown", down)); '
+            '  setTimeout(function() {{ '
+            '    var up = {{ bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0, buttons: 0, pointerId: 1, pointerType: "mouse", isPrimary: true }}; '
+            '    target.dispatchEvent(new PointerEvent("pointerup", up)); '
+            '    target.dispatchEvent(new MouseEvent("mouseup", up)); '
+            '    target.dispatchEvent(new MouseEvent("click", up)); '
+            '    console.log("qute:okay"); '
+            '  }}, 20); '
+            '}}'
+        ).format(id=repr(element_id))
+        self.send_cmd(':jseval ' + script, escape=False)
+        message = self.wait_for_js('qute:*').message
+        if 'qute:no elem' in message:
+            raise ValueError('No element with id {!r} found'.format(element_id))
+        if 'qute:okay' not in message:
+            raise ValueError('Invalid response from qutebrowser: {}'.format(message))
+
+    def get_element_outline_color(self, element_id):
+        """Get the outline color of an element by id.
+
+        Args:
+            element_id: The id of the element
+
+        Return:
+            The computed outline color (e.g., 'rgb(255, 0, 0)' or 'red')
+        """
+        script = (
+            'var _e = document.getElementById({id}); '
+            'if (!_e) {{ console.log("qute:no elem"); }} '
+            'else {{ var color = window.getComputedStyle(_e).outlineColor; console.log("qute:color " + color); }}'
+        ).format(id=repr(element_id))
+        self.send_cmd(':jseval ' + script, escape=False)
+        message = self.wait_for_js('qute:color *').message
+
+        if 'qute:no elem' in message:
+            raise ValueError('No element with id {!r} found'.format(element_id))
+        if 'qute:color ' not in message:
+            raise ValueError('Invalid response from qutebrowser: {}'
+                             .format(message))
+
+        # Extract the color value from the message
+        # Message format: '[*] qute:color rgb(255, 0, 0)'
+        parts = message.split('qute:color ', 1)
+        if len(parts) == 2:
+            return parts[1].strip()
+        else:
+            raise ValueError('Failed to parse color from: {}'.format(message))
+
     def compare_session(self, expected, *, flags="--with-private"):
         """Compare the current sessions against the given template.
 
