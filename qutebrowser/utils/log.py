@@ -363,7 +363,7 @@ def change_console_formatter(level: int) -> None:
         assert isinstance(old_formatter, JSONFormatter), old_formatter
 
 
-def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
+def init_from_config(conf: 'configmodule.ConfigContainerInternal') -> None:
     """Initialize logging settings from the config.
 
     init_log is called before the config module is initialized, so config-based

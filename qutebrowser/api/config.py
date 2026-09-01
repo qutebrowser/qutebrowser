@@ -20,7 +20,7 @@ from qutebrowser.config import config
 #: This also supports setting configuration values::
 #:
 #:   config.val.content.javascript.enabled = False
-val = cast('config.ConfigContainer', None)
+val = cast('config.ConfigContainerInternal', None)
 
 
 def get(name: str, url: QUrl = None) -> Any:

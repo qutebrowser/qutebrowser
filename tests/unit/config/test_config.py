@@ -751,7 +751,7 @@ class TestContainer:
 
     @pytest.fixture
     def container(self, config_stub):
-        return config.ConfigContainer(config_stub)
+        return config.ConfigContainerInternal(config_stub)
 
     def test_getattr_invalid_private(self, container):
         """Make sure an invalid _attribute doesn't try getting a container."""
@@ -813,4 +813,4 @@ class TestContainer:
         pattern = urlmatch.UrlPattern('https://example.com/')
         with pytest.raises(TypeError,
                            match="Can't use pattern without configapi!"):
-            config.ConfigContainer(config_stub, pattern=pattern)
+            config.ConfigContainerInternal(config_stub, pattern=pattern)
