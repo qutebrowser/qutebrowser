@@ -154,7 +154,7 @@ def data_for_url(url: QUrl) -> tuple[str, bytes]:
         raise SchemeOSError(e)
 
     assert mimetype is not None, url
-    if mimetype == 'text/html' and isinstance(data, str):
+    if mimetype in ['text/html', 'text/javascript'] and isinstance(data, str):
         # We let handlers return HTML as text
         data = data.encode('utf-8', errors='xmlcharrefreplace')
     assert isinstance(data, bytes)
@@ -540,8 +540,11 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
                 raise UrlInvalidError("Missing source")
             raise Redirect(QUrl(source))
 
-        data = pdfjs.generate_pdfjs_page(filename, url)
-        return 'text/html', data
+        text_data = pdfjs.generate_pdfjs_page(filename, url)
+        return 'text/html', text_data
+    elif url.path() == "/qb.js":
+        text_data = pdfjs.generate_pdfjs_script()
+        return 'text/javascript', text_data
 
     try:
         data = pdfjs.get_pdfjs_res(url.path())
