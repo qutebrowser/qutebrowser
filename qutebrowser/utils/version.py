@@ -662,9 +662,15 @@ class WebEngineVersions:
         utils.VersionNumber(6, 10): (_BASES[134], '140.0.7339.207'),  # 2025-09-22
         utils.VersionNumber(6, 10, 1): (_BASES[134], '142.0.7444.162'),  # 2025-11-11
         utils.VersionNumber(6, 10, 2): (_BASES[134], '144.0.7559.96'),  # 2026-01-17
+        utils.VersionNumber(6, 10, 3): (_BASES[134], '146.0.7680.164'),  # 2026-03-20
 
         ## Qt 6.11
         utils.VersionNumber(6, 11): (_BASES[140], '146.0.7680.80'),  # 2026-03-13
+        utils.VersionNumber(6, 11, 1): (_BASES[140], '148.0.7778.96'),  # 2026-04-28
+        utils.VersionNumber(6, 11, 2): (_BASES[140], '151.0.7922.71'),  # 2026-07-28
+
+        ## Qt 6.12 (Beta 3)
+        utils.VersionNumber(6, 12): (_BASES[140], '151.0.7922.71'),  # 2026-07-28
     }
 
     def __post_init__(self) -> None:
