@@ -11,5 +11,5 @@ open pull requests.
 - If you are stuck somewhere or have questions,
   https://github.com/qutebrowser/qutebrowser/blob/main/doc/help/index.asciidoc#getting-help[please ask]!
 
-See the link:../doc/contributing.asciidoc[full contribution documentation] for
+See the link:/doc/contributing.asciidoc[full contribution documentation] for
 details and other useful hints.
