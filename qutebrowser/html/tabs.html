@@ -10,6 +10,17 @@ h1 {
     color: #444;
 }
 
+.tree-symbol {
+    color: #888;
+    white-space: pre;
+    font-family: monospace;
+}
+
+.collapsed {
+    color: #888;
+    font-style: italic;
+}
+
 th {
     text-align: left;
 }
@@ -38,9 +49,10 @@ details {
 <h2>Window {{ win_id }}</h2>
 <table class="tabs_win{{win_id}}">
     <tbody>
-    {% for name, url in tabs %}
+    {% for symbol, name, url, collapsed in tabs %}
     <tr>
-        <td class="name"><a href="{{url}}">{{name}}</a></td>
+        <td class="tree-symbol">{{symbol}}</td>
+        <td class="name"><a href="{{url}}">{{name}}</a>{% if collapsed %} <span class="collapsed">[collapsed]</span>{% endif %}</td>
         <td class="url"><a href="{{url}}">{{url}}</a></td>
     </tr>
     {% endfor %}
@@ -50,7 +62,7 @@ details {
 <details>
     <summary>Raw list</summary>
 <code>
-{% for win_id, tabs in tab_list_by_window.items() %}{% for name, url in tabs %}
+{% for win_id, tabs in tab_list_by_window.items() %}{% for symbol, name, url, collapsed in tabs %}
 {{url}}</br>{% endfor %}
 {% endfor %}
 </code>
