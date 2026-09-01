@@ -141,7 +141,7 @@ class TestSaveAll:
         # FIXME can this ever actually happen?
         assert not objreg.window_registry
         data = sess_man._save_all()
-        assert not data['windows']
+        assert not data
 
     @webengine_refactoring_xfail
     def test_no_active_window(self, sess_man, fake_window, stubs,
