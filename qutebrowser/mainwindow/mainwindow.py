@@ -623,13 +623,22 @@ class MainWindow(QWidget):
         self.tabbed_browser.widget.tab_bar().refresh()
 
     def showEvent(self, e):
-        """Extend showEvent to register us as the last-visible-main-window.
+        """Extend showEvent to update window-visibility-history.
 
         Args:
             e: The QShowEvent
         """
         super().showEvent(e)
-        objreg.register('last-visible-main-window', self, update=True)
+        objreg.window_visibility_history.append(self)
+
+    def hideEvent(self, e):
+        """Extend hideEvent to update window-visibility-history.
+
+        Args:
+            e: The QHideEvent
+        """
+        super().hideEvent(e)
+        objreg.window_visibility_history.remove(self)
 
     def _confirm_quit(self):
         """Confirm that this window should be closed.
@@ -689,13 +698,8 @@ class MainWindow(QWidget):
 
         e.accept()
 
-        for key in ['last-visible-main-window', 'last-focused-main-window']:
-            try:
-                win = objreg.get(key)
-                if self is win:
-                    objreg.delete(key)
-            except KeyError:
-                pass
+        objreg.window_focus_history.remove(self)
+        objreg.window_visibility_history.remove(self)
 
         sessions.session_manager.save_last_window_session()
         self._save_geometry()
