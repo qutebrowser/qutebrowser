@@ -11,7 +11,6 @@ from hypothesis import strategies as hst
 
 from qutebrowser.misc import elf, binparsing
 from qutebrowser.utils import utils
-from qutebrowser.utils.utils import VersionNumber
 
 
 @pytest.mark.parametrize('fmt, expected', [
@@ -46,8 +45,7 @@ def test_result(webengine_versions, qapp, caplog):
     pytest.importorskip('qutebrowser.qt.webenginecore')
 
     versions = elf.parse_webenginecore()
-    qtwe_version = webengine_versions.webengine
-    if qtwe_version == VersionNumber(5, 15, 19) or qtwe_version >= VersionNumber(6, 5):
+    if webengine_versions.webengine >= utils.VersionNumber(6, 5):
         assert versions is None
         pytest.xfail("ELF file structure not supported")
 

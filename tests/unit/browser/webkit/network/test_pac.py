@@ -12,6 +12,7 @@ from qutebrowser.qt.network import (QNetworkProxy, QNetworkProxyQuery, QHostInfo
                              QHostAddress)
 
 from qutebrowser.browser.network import pac
+from qutebrowser.utils import utils
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
@@ -79,6 +80,7 @@ def _pac_noexcept_test(call):
     ("known.domain", "'1.2.3.4'"),
     ("bogus.domain.foobar", "null")
 ])
+@pytest.mark.xfail(utils.is_mac, reason="QHostInfo.fromName() returns empty on macOS")
 def test_dnsResolve(monkeypatch, domain, expected):
     def mock_fromName(host):
         info = QHostInfo()
@@ -89,6 +91,7 @@ def test_dnsResolve(monkeypatch, domain, expected):
     _pac_equality_test("dnsResolve('{}')".format(domain), expected)
 
 
+@pytest.mark.xfail(utils.is_mac, reason="QHostInfo.fromName() returns empty on macOS")
 def test_myIpAddress():
     _pac_equality_test("isResolvable(myIpAddress())", "true")
 

@@ -80,7 +80,7 @@ def log_signals(obj: Union[QObject, type[QObject]]) -> Union[QObject, type[QObje
             old_init(self, *args, **kwargs)
             connect_log_slot(self)
 
-        obj.__init__ = new_init
+        obj.__init__ = new_init  # type: ignore[method-assign]
     else:
         assert isinstance(obj, QObject)
         connect_log_slot(obj)

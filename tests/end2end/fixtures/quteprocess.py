@@ -44,6 +44,7 @@ def is_ignored_lowlevel_message(message):
         # Qt 6.2 / 6.3
         'Fontconfig error: Cannot load default config file: No such file: (null)',
         'Fontconfig error: Cannot load default config file',
+        'Fontconfig error: Cannot load default config file: File not found',
 
         # Qt 6.4, from certificate error below, but on separate lines
         '----- Certificate i=0 (*,CN=localhost,O=qutebrowser test certificate) -----',
