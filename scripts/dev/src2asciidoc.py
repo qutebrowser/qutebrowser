@@ -500,8 +500,10 @@ def _format_block(filename, what, data):
     what = what.upper()
     oshandle, tmpname = tempfile.mkstemp()
     try:
-        with _open_file(filename, mode='r') as infile, \
-                _open_file(oshandle, mode='w') as temp:
+        with (
+            _open_file(filename, mode="r") as infile,
+            _open_file(oshandle, mode="w") as temp,
+        ):
             found_start = False
             found_end = False
             for line in infile:

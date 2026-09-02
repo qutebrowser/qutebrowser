@@ -86,8 +86,10 @@ class AsciiDoc:
         for src, dst in files:
             assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
-            with modified_src.open('w', encoding='utf-8') as moded_f, \
-                    src.open('r', encoding='utf-8') as f:
+            with (
+                modified_src.open("w", encoding="utf-8") as moded_f,
+                src.open("r", encoding="utf-8") as f,
+            ):
                 for line in f:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)
