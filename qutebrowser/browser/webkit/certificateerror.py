@@ -21,7 +21,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         self._reply = reply
         self._errors = tuple(errors)  # needs to be hashable
         try:
-            self._host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(reply.url())
+            self._host_tpl: urlutils.HostTupleType | None = urlutils.host_tuple(reply.url())
         except ValueError:
             self._host_tpl = None
 

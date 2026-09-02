@@ -22,7 +22,7 @@ _CACHE_FUNCTIONS: MutableMapping[str, Any] = weakref.WeakValueDictionary()
 _T = TypeVar('_T', bound=Callable[..., Any])
 
 
-def register(name: Optional[str] = None) -> Callable[[_T], _T]:
+def register(name: str | None = None) -> Callable[[_T], _T]:
     """Register a lru_cache wrapped function for debug_cache_stats."""
     def wrapper(fn: _T) -> _T:
         fn_name = fn.__name__ if name is None else name

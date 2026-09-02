@@ -62,7 +62,7 @@ def _unset_organization() -> Iterator[None]:
             qapp.setOrganizationName(orgname)
 
 
-def _init_config(args: Optional[argparse.Namespace]) -> None:
+def _init_config(args: argparse.Namespace | None) -> None:
     """Initialize the location for configs."""
     typ = QStandardPaths.StandardLocation.ConfigLocation
     path = _from_args(typ, args)
@@ -113,7 +113,7 @@ def config_py() -> str:
     return _locations[_Location.config_py]
 
 
-def _init_data(args: Optional[argparse.Namespace]) -> None:
+def _init_data(args: argparse.Namespace | None) -> None:
     """Initialize the location for data."""
     typ = QStandardPaths.StandardLocation.AppDataLocation
     path = _from_args(typ, args)
@@ -154,7 +154,7 @@ def data(system: bool = False) -> str:
     return _locations[_Location.data]
 
 
-def _init_cache(args: Optional[argparse.Namespace]) -> None:
+def _init_cache(args: argparse.Namespace | None) -> None:
     """Initialize the location for the cache."""
     typ = QStandardPaths.StandardLocation.CacheLocation
     path = _from_args(typ, args)
@@ -174,7 +174,7 @@ def cache() -> str:
     return _locations[_Location.cache]
 
 
-def _init_download(args: Optional[argparse.Namespace]) -> None:
+def _init_download(args: argparse.Namespace | None) -> None:
     """Initialize the location for downloads.
 
     Note this is only the default directory as found by Qt.
@@ -191,7 +191,7 @@ def download() -> str:
     return _locations[_Location.download]
 
 
-def _init_runtime(args: Optional[argparse.Namespace]) -> None:
+def _init_runtime(args: argparse.Namespace | None) -> None:
     """Initialize location for runtime data."""
     if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
@@ -277,8 +277,8 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 
 def _from_args(
         typ: QStandardPaths.StandardLocation,
-        args: Optional[argparse.Namespace]
-) -> Optional[str]:
+        args: argparse.Namespace | None
+) -> str | None:
     """Get the standard directory from an argparse namespace.
 
     Return:
@@ -337,7 +337,7 @@ def _init_dirs(args: argparse.Namespace = None) -> None:
     _init_runtime(args)
 
 
-def init(args: Optional[argparse.Namespace]) -> None:
+def init(args: argparse.Namespace | None) -> None:
     """Initialize all standard dirs."""
     if args is not None:
         # args can be None during tests

@@ -35,11 +35,11 @@ class AsciiDoc:
         'install', 'stacktrace'
     ]
 
-    def __init__(self, website: Optional[str]) -> None:
+    def __init__(self, website: str | None) -> None:
         self._website = website
-        self._homedir: Optional[pathlib.Path] = None
-        self._themedir: Optional[pathlib.Path] = None
-        self._tempdir: Optional[pathlib.Path] = None
+        self._homedir: pathlib.Path | None = None
+        self._themedir: pathlib.Path | None = None
+        self._tempdir: pathlib.Path | None = None
         self._failed = False
 
     def prepare(self) -> None:

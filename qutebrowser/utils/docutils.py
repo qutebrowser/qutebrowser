@@ -81,11 +81,11 @@ class DocstringParser:
             func: The function to parse the docstring for.
         """
         self._state = self.State.short
-        self._cur_arg_name: Optional[str] = None
+        self._cur_arg_name: str | None = None
         self._short_desc_parts: list[str] = []
         self._long_desc_parts: list[str] = []
         self.arg_descs: MutableMapping[
-            str, Union[str, list[str]]] = collections.OrderedDict()
+            str, str | list[str]] = collections.OrderedDict()
         doc = inspect.getdoc(func)
         handlers = {
             self.State.short: self._parse_short,

@@ -176,7 +176,7 @@ class IPCServer(QObject):
             self._atime_timer.timeout.connect(self.update_atime)
             self._atime_timer.setTimerType(Qt.TimerType.VeryCoarseTimer)
 
-        self._server: Optional[QLocalServer] = QLocalServer(self)
+        self._server: QLocalServer | None = QLocalServer(self)
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None

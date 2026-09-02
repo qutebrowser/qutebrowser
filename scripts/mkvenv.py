@@ -43,7 +43,7 @@ class Error(Exception):
         self.code = code
 
 
-def print_command(*cmd: Union[str, pathlib.Path], venv: bool) -> None:
+def print_command(*cmd: str | pathlib.Path, venv: bool) -> None:
     """Print a command being run."""
     prefix = 'venv$ ' if venv else '$ '
     utils.print_col(prefix + ' '.join([str(e) for e in cmd]), 'blue')

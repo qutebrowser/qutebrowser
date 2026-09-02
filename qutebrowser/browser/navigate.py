@@ -79,7 +79,7 @@ def incdec(url, count, inc_or_dec):
         inc_or_dec: Either 'increment' or 'decrement'.
     """
     urlutils.ensure_valid(url)
-    segments: Optional[set[str]] = (
+    segments: set[str] | None = (
         set(config.val.url.incdec_segments)
     )
 

@@ -312,7 +312,7 @@ def _mac_bin_path(base: pathlib.Path) -> pathlib.Path:
 
 def build_mac(
     *,
-    gh_token: Optional[str],
+    gh_token: str | None,
     skip_packaging: bool,
     debug: bool,
 ) -> list[Artifact]:
@@ -573,9 +573,9 @@ def test_makefile() -> None:
 
 
 def read_github_token(
-    arg_token: Optional[str], *,
+    arg_token: str | None, *,
     optional: bool = False,
-) -> Optional[str]:
+) -> str | None:
     """Read the GitHub API token from disk."""
     if arg_token is not None:
         return arg_token

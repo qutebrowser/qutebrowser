@@ -145,7 +145,7 @@ def _check_spelling_all(
     args: argparse.Namespace,
     ignored: list[pathlib.Path],
     patterns: list[tuple[re.Pattern, str]],
-) -> Optional[bool]:
+) -> bool | None:
     try:
         ok = True
         for path in _get_files(verbose=args.verbose, ignored=ignored):
@@ -159,7 +159,7 @@ def _check_spelling_all(
         return None
 
 
-def check_spelling(args: argparse.Namespace) -> Optional[bool]:
+def check_spelling(args: argparse.Namespace) -> bool | None:
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
@@ -296,7 +296,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
-def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
+def check_pyqt_imports(args: argparse.Namespace) -> bool | None:
     """Check for direct PyQt imports."""
     ignored = [
         pathlib.Path("qutebrowser", "qt"),
@@ -316,7 +316,7 @@ def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
     return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
-def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
+def check_vcs_conflict(args: argparse.Namespace) -> bool | None:
     """Check VCS conflict markers."""
     try:
         ok = True

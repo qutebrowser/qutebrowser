@@ -28,10 +28,10 @@ class Key:
     """
 
     attribute: str
-    name: Optional[str] = None
+    name: str | None = None
     text: str = ''
     uppertext: str = ''
-    member: Optional[int] = None
+    member: int | None = None
     qtest: bool = True
 
     def __post_init__(self):
@@ -54,8 +54,8 @@ class Modifier:
     """
 
     attribute: str
-    name: Optional[str] = None
-    member: Optional[int] = None
+    name: str | None = None
+    member: int | None = None
 
     def __post_init__(self):
         self.member = getattr(Qt.KeyboardModifier, self.attribute + 'Modifier')

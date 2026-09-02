@@ -1023,7 +1023,7 @@ class _Quirk:
         QWebEngineScript.InjectionPoint.DocumentCreation)
     world: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld
     predicate: bool = True
-    name: Optional[str] = None
+    name: str | None = None
 
     def __post_init__(self):
         if self.name is None:

@@ -47,7 +47,7 @@ class Language:
     code: str
     name: str
     remote_filename: str
-    local_filename: Optional[str] = None
+    local_filename: str | None = None
 
     def __post_init__(self):
         if self.local_filename is None:

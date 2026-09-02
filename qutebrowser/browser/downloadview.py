@@ -67,7 +67,7 @@ class DownloadView(QListView):
 
     def __repr__(self):
         model = qtutils.add_optional(self.model())
-        count: Union[int, str]
+        count: int | str
         if model is None:
             count = 'None'
         else:
@@ -116,7 +116,7 @@ class DownloadView(QListView):
 
     def _get_menu_actions(
             self,
-            item: Optional[downloads.AbstractDownloadItem]
+            item: downloads.AbstractDownloadItem | None
     ) -> _ActionListType:
         """Get the available context menu actions for a given DownloadItem.
 

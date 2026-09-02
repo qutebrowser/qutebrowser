@@ -80,7 +80,7 @@ class AbstractWebElement(collections.abc.MutableMapping[str, str]):
 
     def __repr__(self) -> str:
         try:
-            html: Optional[str] = utils.compact_text(self.outer_xml(), 500)
+            html: str | None = utils.compact_text(self.outer_xml(), 500)
         except Error:
             html = None
         return utils.get_repr(self, html=html)
@@ -272,7 +272,7 @@ class AbstractWebElement(collections.abc.MutableMapping[str, str]):
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl: QUrl) -> Optional[QUrl]:
+    def resolve_url(self, baseurl: QUrl) -> QUrl | None:
         """Resolve the URL in the element's src/href attribute.
 
         Args:

@@ -35,7 +35,7 @@ class ModelRole(enum.IntEnum):
 
 
 # Remember the last used directory
-last_used_directory: Optional[str] = None
+last_used_directory: str | None = None
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
@@ -221,7 +221,7 @@ def suggested_fn_from_title(url_path, title=None):
     ext_whitelist = [".html", ".htm", ".php", ""]
     _, ext = os.path.splitext(url_path)
 
-    suggested_fn: Optional[str] = None
+    suggested_fn: str | None = None
     if ext.lower() in ext_whitelist and title:
         suggested_fn = utils.sanitize_filename(title, shorten=True)
         if not suggested_fn.lower().endswith((".html", ".htm")):
@@ -451,14 +451,10 @@ class AbstractDownloadItem(QObject):
         self.basename = '???'
         self.successful = False
 
-        self.fileobj: Union[
-            UnsupportedAttribute, IO[bytes], None
-        ] = UnsupportedAttribute()
-        self.raw_headers: Union[
-            UnsupportedAttribute, dict[bytes, bytes]
-        ] = UnsupportedAttribute()
+        self.fileobj: UnsupportedAttribute | IO[bytes] | None = UnsupportedAttribute()
+        self.raw_headers: UnsupportedAttribute | dict[bytes, bytes] = UnsupportedAttribute()
 
-        self._filename: Optional[str] = None
+        self._filename: str | None = None
         self._dead = False
 
     def __repr__(self):
