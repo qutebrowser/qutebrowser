@@ -8,7 +8,7 @@ import os
 import sys
 import argparse
 import pathlib
-from typing import Any, Optional, Union
+from typing import Any, Optional, TypeAlias, Union
 from collections.abc import Iterator, Sequence, Callable
 
 from qutebrowser.qt import machinery
@@ -287,7 +287,7 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args(versions)
 
 
-_SettingValueType = Union[
+_SettingValueType: TypeAlias = Union[
     str,
     Callable[
         [

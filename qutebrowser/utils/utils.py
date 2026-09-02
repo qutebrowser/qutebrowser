@@ -20,7 +20,7 @@ import shlex
 import sysconfig
 import mimetypes
 from typing import (Any, IO,
-                    Optional, Union,
+                    Optional, TypeAlias, Union,
                     TypeVar, Protocol)
 from collections.abc import Iterator, Sequence, Callable
 
@@ -408,7 +408,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType = Union[type[BaseException], tuple[type[BaseException]]]
+_ExceptionType: TypeAlias = Union[type[BaseException], tuple[type[BaseException]]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:

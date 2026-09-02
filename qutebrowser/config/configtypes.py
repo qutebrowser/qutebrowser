@@ -36,7 +36,7 @@ import functools
 import operator
 import json
 import dataclasses
-from typing import Any, Optional, Union
+from typing import Any, Optional, TypeAlias, Union
 from re import Pattern
 from collections.abc import Iterable, Iterator, Sequence, Callable
 
@@ -66,10 +66,10 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions = Optional[Iterable[tuple[str, str]]]
-_StrUnset = Union[str, usertypes.Unset]
-_UnsetNone = Union[None, usertypes.Unset]
-_StrUnsetNone = Union[str, _UnsetNone]
+_Completions: TypeAlias = Optional[Iterable[tuple[str, str]]]
+_StrUnset: TypeAlias = Union[str, usertypes.Unset]
+_UnsetNone: TypeAlias = Union[None, usertypes.Unset]
+_StrUnsetNone: TypeAlias = Union[str, _UnsetNone]
 
 
 def _validate_encoding(encoding: str | None, value: str) -> None:
