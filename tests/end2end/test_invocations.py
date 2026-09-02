@@ -23,6 +23,7 @@ from qutebrowser.qt.core import QProcess, QPoint
 from helpers import testutils
 from end2end.fixtures import quteprocess
 from qutebrowser.utils import qtutils, utils, version
+from qutebrowser.misc import checkpyver
 
 
 # For some reason (some floating point rounding differences?), color values are
@@ -245,7 +246,7 @@ def test_launching_with_old_python(python):
     except FileNotFoundError:
         pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.9 is required to run qutebrowser"
+    error = f"At least Python {checkpyver.MIN_PYTHON_VERSION_STR} is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 

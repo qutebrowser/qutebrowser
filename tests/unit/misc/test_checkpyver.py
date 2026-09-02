@@ -12,10 +12,11 @@ import unittest.mock
 import pytest
 
 from qutebrowser.misc import checkpyver
+from helpers import testutils
 
 
-TEXT = (r"At least Python 3.9 is required to run qutebrowser, but it's "
-        r"running with \d+\.\d+\.\d+.")
+TEXT = (f"At least Python {checkpyver.MIN_PYTHON_VERSION_STR} is required to run "
+        r"qutebrowser, but it's running with \d+\.\d+\.\d+.")
 
 
 @pytest.mark.not_frozen
