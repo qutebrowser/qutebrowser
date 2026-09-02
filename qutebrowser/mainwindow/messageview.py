@@ -4,7 +4,6 @@
 
 """Showing messages above the statusbar."""
 
-from typing import Optional
 from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt

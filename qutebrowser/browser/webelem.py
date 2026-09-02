@@ -4,7 +4,7 @@
 
 """Generic web element related code."""
 
-from typing import Optional, TYPE_CHECKING, TypeAlias, Union
+from typing import TYPE_CHECKING, TypeAlias
 from collections.abc import Iterator
 import collections.abc
 

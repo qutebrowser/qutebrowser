@@ -14,7 +14,7 @@ import traceback
 import configparser
 import contextlib
 import re
-from typing import (TYPE_CHECKING, Any, Optional, cast)
+from typing import (TYPE_CHECKING, Any, cast)
 from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 
 import yaml

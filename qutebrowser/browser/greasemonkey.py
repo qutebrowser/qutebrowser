@@ -12,7 +12,7 @@ import functools
 import glob
 import textwrap
 import dataclasses
-from typing import cast, Optional
+from typing import cast
 from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl

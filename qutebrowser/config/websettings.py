@@ -8,7 +8,7 @@ import re
 import argparse
 import functools
 import dataclasses
-from typing import Any, Optional, Union
+from typing import Any
 from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl, pyqtSlot, qVersion

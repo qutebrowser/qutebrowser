@@ -29,7 +29,6 @@ import tempfile
 import pathlib
 import datetime
 import argparse
-from typing import Optional
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery

@@ -31,7 +31,7 @@ import shutil
 import pathlib
 import dataclasses
 import contextlib
-from typing import ClassVar, IO, Optional
+from typing import ClassVar, IO
 from collections.abc import Iterator
 
 from qutebrowser.config import config

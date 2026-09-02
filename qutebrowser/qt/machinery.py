@@ -30,7 +30,6 @@ import argparse
 import warnings
 import importlib
 import dataclasses
-from typing import Optional
 
 from qutebrowser.utils import log
 

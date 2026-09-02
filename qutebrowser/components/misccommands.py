@@ -11,7 +11,6 @@ import os
 import signal
 import logging
 import pathlib
-from typing import Optional
 from collections.abc import Sequence, Callable
 
 try:

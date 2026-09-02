@@ -15,7 +15,6 @@ import subprocess
 import tokenize
 import traceback
 import pathlib
-from typing import Optional
 from collections.abc import Iterator
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]

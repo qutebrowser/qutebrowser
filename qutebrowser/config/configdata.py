@@ -9,7 +9,7 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
-from typing import (Any, Optional, Union, NoReturn, cast)
+from typing import (Any, NoReturn, cast)
 from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 import functools
 import dataclasses

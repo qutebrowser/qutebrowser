@@ -8,7 +8,7 @@ import os
 import sys
 import argparse
 import pathlib
-from typing import Any, Optional, TypeAlias, Union
+from typing import Any, TypeAlias
 from collections.abc import Iterator, Sequence, Callable
 
 from qutebrowser.qt import machinery

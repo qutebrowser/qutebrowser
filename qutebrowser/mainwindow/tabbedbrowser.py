@@ -12,7 +12,7 @@ import weakref
 import datetime
 import dataclasses
 from typing import (
-    Any, Optional)
+    Any)
 from collections.abc import Mapping, MutableMapping, MutableSequence
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication

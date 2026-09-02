@@ -12,7 +12,7 @@ Module attributes:
 import os
 import operator
 import pathlib
-from typing import cast, Any, Optional, Union, TYPE_CHECKING
+from typing import cast, Any, TYPE_CHECKING
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.gui import QFont

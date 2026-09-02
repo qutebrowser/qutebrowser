@@ -8,7 +8,7 @@
 import collections
 import functools
 from typing import (TYPE_CHECKING, Any,
-                    Optional, TypeAlias, Union)
+                    TypeAlias)
 from collections.abc import MutableMapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import QObject, QTimer

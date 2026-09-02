@@ -7,7 +7,6 @@
 import argparse
 import os.path
 import sys
-from typing import Optional
 
 from qutebrowser.qt.widgets import QMessageBox
 

@@ -7,7 +7,6 @@
 import pathlib
 import textwrap
 import dataclasses
-from typing import Optional
 
 import pytest
 import bs4

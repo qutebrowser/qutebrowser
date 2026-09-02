@@ -9,7 +9,7 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Any, Optional, Union
+from typing import Any
 from collections.abc import Iterator, Mapping, MutableSequence
 
 from qutebrowser.qt.core import QObject, pyqtSignal

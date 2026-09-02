@@ -4,7 +4,7 @@
 
 """Global Qt event filter which dispatches key events."""
 
-from typing import cast, Optional
+from typing import cast
 
 from qutebrowser.qt.core import pyqtSlot, QObject, QEvent, qVersion
 from qutebrowser.qt.gui import QKeyEvent, QWindow

@@ -6,7 +6,7 @@
 
 import os
 import functools
-from typing import IO, Optional
+from typing import IO
 
 from qutebrowser.qt.core import QUrl, QObject, pyqtSignal
 

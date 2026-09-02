@@ -4,7 +4,7 @@
 
 """Utilities related to javascript interaction."""
 
-from typing import TypeAlias, Union
+from typing import TypeAlias
 from collections.abc import Sequence
 
 _InnerJsArgType: TypeAlias = None | str | bool | int | float

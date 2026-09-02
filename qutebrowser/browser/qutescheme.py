@@ -18,7 +18,7 @@ import textwrap
 import urllib
 import collections
 import secrets
-from typing import TypeVar, Optional, Union
+from typing import TypeVar
 from collections.abc import Sequence, Callable
 
 from qutebrowser.qt.core import QUrlQuery, QUrl

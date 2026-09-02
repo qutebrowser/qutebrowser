@@ -6,7 +6,7 @@
 
 import functools
 import dataclasses
-from typing import Union, cast
+from typing import cast
 from collections.abc import Mapping, MutableMapping, Callable
 
 from qutebrowser.qt import machinery

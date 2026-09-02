@@ -7,7 +7,7 @@
 import re
 import functools
 import xml.etree.ElementTree
-from typing import cast, Optional
+from typing import cast
 from collections.abc import Iterable
 
 from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize

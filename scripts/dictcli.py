@@ -19,7 +19,6 @@ import sys
 import re
 import urllib.request
 import dataclasses
-from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell

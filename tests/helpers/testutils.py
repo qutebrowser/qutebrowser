@@ -17,7 +17,6 @@ import shutil
 import subprocess
 import importlib.util
 import importlib.machinery
-from typing import Optional
 
 import pytest
 

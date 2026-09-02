@@ -5,7 +5,7 @@
 """The ListView to display downloads in."""
 
 import functools
-from typing import Union, Optional, TypeAlias
+from typing import TypeAlias
 from collections.abc import MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QSize, Qt

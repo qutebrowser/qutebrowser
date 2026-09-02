@@ -17,7 +17,7 @@ https://chromium.googlesource.com/chromium/src/+/6f4a6681eae01c2036336c18b06303e
 import ipaddress
 import fnmatch
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 from qutebrowser.qt.core import QUrl
 

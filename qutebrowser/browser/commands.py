@@ -9,7 +9,7 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Union, Optional
+from typing import cast
 from collections.abc import Callable
 
 from qutebrowser.qt.widgets import QApplication, QTabBar

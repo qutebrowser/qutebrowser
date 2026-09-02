@@ -9,7 +9,7 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Optional, TypeAlias, Union)
+    TYPE_CHECKING, Any, TypeAlias)
 from collections.abc import Iterator, Sequence, MutableMapping
 
 from qutebrowser.qt.core import QUrl

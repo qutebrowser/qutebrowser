@@ -49,7 +49,7 @@ import re
 import dataclasses
 import mmap
 import pathlib
-from typing import IO, ClassVar, Optional, cast
+from typing import IO, ClassVar, cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.utils import log, version, qtutils

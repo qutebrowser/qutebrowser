@@ -14,7 +14,6 @@ is harder to achieve via pathlib.
 import glob
 import os
 import os.path
-from typing import Optional
 from collections.abc import Iterable
 
 from qutebrowser.qt.core import QAbstractListModel, QModelIndex, QObject, Qt, QUrl

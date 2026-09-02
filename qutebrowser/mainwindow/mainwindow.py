@@ -8,7 +8,7 @@ import binascii
 import base64
 import itertools
 import functools
-from typing import Optional, cast
+from typing import cast
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery

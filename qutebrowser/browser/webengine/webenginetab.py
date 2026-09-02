@@ -10,7 +10,7 @@ import functools
 import dataclasses
 import re
 import html as html_utils
-from typing import cast, TypeAlias, Union, Optional
+from typing import cast, TypeAlias
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray, QTimer)

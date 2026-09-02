@@ -7,7 +7,7 @@
 import functools
 import contextlib
 import dataclasses
-from typing import Optional, Any
+from typing import Any
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)

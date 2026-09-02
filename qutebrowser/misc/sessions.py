@@ -10,7 +10,7 @@ import itertools
 import urllib
 import shutil
 import pathlib
-from typing import Any, Optional, TypeAlias, Union, cast
+from typing import Any, TypeAlias, cast
 from collections.abc import Iterable, MutableMapping, MutableSequence
 
 from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime

@@ -13,7 +13,7 @@ import shutil
 import os.path
 import argparse
 import dataclasses
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Sequence
 
 from qutebrowser.qt import machinery

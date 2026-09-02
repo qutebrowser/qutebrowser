@@ -7,7 +7,7 @@
 import collections
 import html
 import dataclasses
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray

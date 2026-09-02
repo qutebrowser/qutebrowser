@@ -7,7 +7,7 @@
 import base64
 import binascii
 import enum
-from typing import cast, Optional, Any
+from typing import cast, Any
 
 from qutebrowser.qt.widgets import QWidget
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QEvent

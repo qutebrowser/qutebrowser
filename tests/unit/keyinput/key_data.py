@@ -8,7 +8,6 @@
 """Data used by test_keyutils.py to test all keys."""
 
 import dataclasses
-from typing import Optional
 
 from qutebrowser.qt.core import Qt
 from qutebrowser.keyinput import keyutils

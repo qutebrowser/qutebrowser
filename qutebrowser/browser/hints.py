@@ -12,7 +12,7 @@ import html
 import enum
 import dataclasses
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Optional)
+from typing import (TYPE_CHECKING)
 from collections.abc import (
     Iterable,
     Iterator,

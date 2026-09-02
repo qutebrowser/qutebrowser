@@ -11,7 +11,6 @@ import pathlib
 import itertools
 import urllib.request
 import tempfile
-from typing import Optional
 
 URL = "https://raw.githubusercontent.com/brave/adblock-rust/master/data/ublock-matches.tsv"
 CACHE_PATH = pathlib.Path(tempfile.gettempdir(), "ublock-matches-cache.tsv")

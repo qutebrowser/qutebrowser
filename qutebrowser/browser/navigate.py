@@ -6,7 +6,6 @@
 
 import re
 import posixpath
-from typing import Optional
 
 from qutebrowser.qt.core import QUrl
 

@@ -7,7 +7,6 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
-from typing import Optional
 import re
 import os
 import sys

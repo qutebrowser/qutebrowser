@@ -9,7 +9,6 @@
 import functools
 import os
 import traceback
-from typing import Optional
 
 from qutebrowser.qt.core import QUrl
 from qutebrowser.qt.widgets import QApplication

@@ -10,7 +10,6 @@ import pathlib
 import importlib
 import argparse
 import dataclasses
-from typing import Optional
 from collections.abc import Iterator, Callable
 
 from qutebrowser.qt.core import pyqtSlot

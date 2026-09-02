@@ -22,7 +22,7 @@ import collections
 import dataclasses
 import re
 import http
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from collections.abc import Iterable
 
 try:

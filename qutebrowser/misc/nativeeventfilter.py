@@ -7,7 +7,7 @@
 This entire file is a giant WORKAROUND for https://bugreports.qt.io/browse/QTBUG-114334.
 """
 
-from typing import Union, Optional
+from typing import Optional
 import enum
 import ctypes
 import ctypes.util

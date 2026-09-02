@@ -17,7 +17,6 @@ import shutil
 import venv as pyvenv
 import subprocess
 import platform
-from typing import Union
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt

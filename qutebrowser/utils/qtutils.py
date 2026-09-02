@@ -19,7 +19,7 @@ import pathlib
 import operator
 import contextlib
 from typing import (Any, TYPE_CHECKING, BinaryIO, IO, Literal,
-                    Optional, TypeAlias, Union, Protocol, cast, overload, TypeVar)
+                    TypeAlias, Union, Protocol, cast, overload, TypeVar)
 from collections.abc import Iterator
 
 from qutebrowser.qt import machinery, sip

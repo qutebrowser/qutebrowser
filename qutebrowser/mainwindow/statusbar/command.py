@@ -4,7 +4,7 @@
 
 """The commandline in the statusbar."""
 
-from typing import Optional, cast
+from typing import cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt, QSize

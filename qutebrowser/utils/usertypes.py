@@ -10,7 +10,7 @@ import enum
 import time
 import dataclasses
 import logging
-from typing import Optional, TypeVar, Union
+from typing import TypeVar
 from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer

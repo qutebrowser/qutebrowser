@@ -12,7 +12,7 @@ import functools
 import datetime
 import types
 from typing import (
-    Any, Optional, TypeAlias, Union)
+    Any, TypeAlias)
 from collections.abc import Mapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal

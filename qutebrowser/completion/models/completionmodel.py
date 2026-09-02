@@ -4,7 +4,7 @@
 
 """A model that proxies access to one or more completion categories."""
 
-from typing import overload, Optional, Any
+from typing import overload, Any
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery

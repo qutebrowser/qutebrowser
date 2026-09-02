@@ -4,7 +4,6 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
-from typing import Optional
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.webenginewidgets import QWebEngineView

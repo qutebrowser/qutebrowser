@@ -4,7 +4,6 @@
 
 """Misc. widgets used at different places."""
 
-from typing import Optional
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from qutebrowser.qt.widgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,

@@ -12,7 +12,6 @@ import json
 import hashlib
 import dataclasses
 from unittest import mock
-from typing import Optional
 
 import pytest
 from qutebrowser.qt.core import pyqtSignal, QObject

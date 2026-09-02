@@ -11,7 +11,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, TypeAlias, Union, cast
+from typing import TypeAlias, cast
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery

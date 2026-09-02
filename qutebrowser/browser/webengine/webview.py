@@ -5,7 +5,6 @@
 """The main browser widget for QtWebEngine."""
 
 import mimetypes
-from typing import Optional
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery

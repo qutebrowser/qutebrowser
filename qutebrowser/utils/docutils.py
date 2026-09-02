@@ -10,7 +10,7 @@ import inspect
 import os.path
 import collections
 import enum
-from typing import Any, Optional, Union
+from typing import Any
 from collections.abc import MutableMapping, Callable
 
 import qutebrowser

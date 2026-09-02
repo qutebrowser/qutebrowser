@@ -20,7 +20,7 @@ import shlex
 import sysconfig
 import mimetypes
 from typing import (Any, IO,
-                    Optional, TypeAlias, Union,
+                    TypeAlias, 
                     TypeVar, Protocol)
 from collections.abc import Iterator, Sequence, Callable
 

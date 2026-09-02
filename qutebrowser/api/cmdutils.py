@@ -35,7 +35,7 @@ Possible values:
 
 
 import inspect
-from typing import Any, Protocol, Optional, cast
+from typing import Any, Protocol, cast
 from collections.abc import Iterable, Callable
 
 from qutebrowser.utils import qtutils

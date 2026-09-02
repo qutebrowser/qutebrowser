@@ -5,7 +5,6 @@
 """Handling of Qt qss stylesheets."""
 
 import functools
-from typing import Optional
 
 from qutebrowser.qt.core import pyqtSlot, QObject
 from qutebrowser.qt.widgets import QWidget

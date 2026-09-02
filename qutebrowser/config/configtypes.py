@@ -36,7 +36,7 @@ import functools
 import operator
 import json
 import dataclasses
-from typing import Any, Optional, TypeAlias, Union
+from typing import Any, TypeAlias, Union
 from re import Pattern
 from collections.abc import Iterable, Iterator, Sequence, Callable
 

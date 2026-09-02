@@ -9,7 +9,7 @@ import sys
 import html
 import argparse
 import typing
-from typing import Any, Optional, Union
+from typing import Any
 import dataclasses
 
 import pytest

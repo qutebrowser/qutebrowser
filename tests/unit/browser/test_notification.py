@@ -7,7 +7,7 @@
 import logging
 import itertools
 import inspect
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import pytest
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject

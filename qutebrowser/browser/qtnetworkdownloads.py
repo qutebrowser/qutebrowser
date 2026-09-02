@@ -9,7 +9,7 @@ import os.path
 import shutil
 import functools
 import dataclasses
-from typing import IO, Optional
+from typing import IO
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QTimer, QUrl
 from qutebrowser.qt.widgets import QApplication

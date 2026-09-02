@@ -13,7 +13,7 @@ import functools
 import pathlib
 import tempfile
 import enum
-from typing import Any, IO, Optional, Union
+from typing import Any, IO
 from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,

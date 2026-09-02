@@ -6,7 +6,7 @@
 
 import os.path
 import contextlib
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Any
 from collections.abc import Iterator
 
 from qutebrowser.qt.core import QUrl, QUrlQuery

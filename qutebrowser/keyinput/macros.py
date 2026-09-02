@@ -5,7 +5,7 @@
 
 """Keyboard macro system."""
 
-from typing import cast, Optional
+from typing import cast
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils

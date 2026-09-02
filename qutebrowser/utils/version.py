@@ -19,7 +19,7 @@ import getpass
 import functools
 import dataclasses
 import importlib.metadata
-from typing import (Optional, ClassVar, Any,
+from typing import (ClassVar, Any,
                     TYPE_CHECKING)
 from collections.abc import Mapping, Sequence
 

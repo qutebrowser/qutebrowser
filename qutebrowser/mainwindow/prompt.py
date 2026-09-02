@@ -9,7 +9,7 @@ import html
 import collections
 import functools
 import dataclasses
-from typing import Optional, cast
+from typing import cast
 from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,

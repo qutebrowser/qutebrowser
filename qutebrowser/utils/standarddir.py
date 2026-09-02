@@ -11,7 +11,6 @@ import contextlib
 import enum
 import argparse
 import tempfile
-from typing import Optional
 from collections.abc import Iterator
 
 from qutebrowser.qt.core import QStandardPaths

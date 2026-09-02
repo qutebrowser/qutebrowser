@@ -6,7 +6,7 @@
 
 import sys
 import functools
-from typing import Optional, cast
+from typing import cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, pyqtSignal, pyqtSlot, QUrl

@@ -8,7 +8,7 @@ Defines a CompletionView which uses CompletionFilterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from qutebrowser.qt.widgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
