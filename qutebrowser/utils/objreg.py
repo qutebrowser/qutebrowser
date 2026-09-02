@@ -42,7 +42,7 @@ _IndexType = Union[str, int]
 
 
 # UserDict is only generic in Python 3.9+
-class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
+class ObjectRegistry(collections.UserDict[_IndexType, Any]):
 
     """A registry of long-living objects in qutebrowser.
 

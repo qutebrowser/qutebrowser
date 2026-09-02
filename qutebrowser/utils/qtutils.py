@@ -342,11 +342,10 @@ class PyQIODevice(io.BufferedIOBase):
         if not self.writable():
             raise OSError("Trying to write to unwritable file!")
 
-    # contextlib.closing is only generic in Python 3.9+
     def open(
         self,
         mode: QIODevice.OpenModeFlag,
-    ) -> contextlib.closing:  # type: ignore[type-arg]
+    ) -> contextlib.closing["PyQIODevice"]:
         """Open the underlying device and ensure opening succeeded.
 
         Raises OSError if opening failed.
