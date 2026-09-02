@@ -7,7 +7,7 @@
 import base64
 import binascii
 import enum
-from typing import cast, Any
+from typing import cast, Any, TypeAlias
 
 from qutebrowser.qt.widgets import QWidget
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QEvent
@@ -21,7 +21,7 @@ from qutebrowser.misc import miscwidgets
 
 
 # FIXME:mypy How to annotate this properly without running into Liskov issues?
-_WidgetType = Any  # pylint: disable=invalid-name
+_WidgetType: TypeAlias = Any
 
 
 class Position(enum.Enum):

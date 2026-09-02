@@ -60,6 +60,7 @@ disable=locally-disabled,
         wrong-import-order,  # doesn't work with qutebrowser.qt, even with known-third-party set
         ungrouped-imports,   # ditto
         use-implicit-booleaness-not-comparison-to-zero,
+        consider-alternative-union-syntax,  # doesn't ignore string annotations
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

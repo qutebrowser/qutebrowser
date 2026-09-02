@@ -32,7 +32,7 @@ except NameError:
 
 def read_file(name):
     """Get the string contained in the file named name."""
-    with common.open_file(name, 'r', encoding='utf-8') as f:
+    with open(name, 'r', encoding='utf-8') as f:
         return f.read()
 
 

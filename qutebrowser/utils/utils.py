@@ -19,9 +19,7 @@ import contextlib
 import shlex
 import sysconfig
 import mimetypes
-from typing import (Any, IO,
-                    TypeAlias, 
-                    TypeVar, Protocol)
+from typing import Any, IO, TypeAlias, TypeVar, Protocol
 from collections.abc import Iterator, Sequence, Callable
 
 from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint

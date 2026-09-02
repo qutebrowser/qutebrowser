@@ -12,13 +12,6 @@ import subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 
-if sys.hexversion >= 0x03000000:
-    open_file = open
-else:
-    import codecs
-    open_file = codecs.open
-
-
 BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                        os.path.pardir)
 
@@ -59,5 +52,5 @@ def write_git_file():
     if gitstr is None:
         gitstr = ''
     path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
-    with open_file(path, 'w', encoding='ascii') as f:
+    with open(path, 'w', encoding='ascii') as f:
         f.write(gitstr)

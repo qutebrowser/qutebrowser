@@ -183,7 +183,7 @@ def test_untested_branches(covtest):
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficient_coverage,
         'module.py',
-        f'module.py has 83.33% line and 50.00% branch coverage!')
+        'module.py has 83.33% line and 50.00% branch coverage!')
     assert covtest.check() == [expected]
 
 
