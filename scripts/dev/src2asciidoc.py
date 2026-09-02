@@ -110,7 +110,7 @@ class UsageFormatter(argparse.HelpFormatter):
         This only exists with Python 3.13+.
         """
         with self._patch_option_strings(actions):
-            # pylint_ disable-next=no-member,useless-suppression
+            # pylint: disable-next=no-member,useless-suppression
             return super()._get_actions_usage_parts(actions, groups)
 
     def _format_actions_usage(self, actions, groups):
