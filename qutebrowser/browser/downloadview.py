@@ -5,7 +5,7 @@
 """The ListView to display downloads in."""
 
 import functools
-from typing import Union, Optional
+from typing import Union, Optional, TypeAlias
 from collections.abc import MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QSize, Qt
@@ -16,11 +16,9 @@ from qutebrowser.config import stylesheet
 from qutebrowser.utils import qtutils, utils
 
 
-_ActionListType = MutableSequence[
-    Union[
-        tuple[None, None],  # separator
-        tuple[str, Callable[[], None]],
-    ]
+_ActionListType: TypeAlias = MutableSequence[
+    tuple[None, None]  # separator
+    | tuple[str, Callable[[], None]]
 ]
 
 
