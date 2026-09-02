@@ -4,6 +4,7 @@
 
 """Contains the Command class, a skeleton for a command."""
 
+import types
 import inspect
 import collections
 import traceback
@@ -393,13 +394,16 @@ class Command:
                 self.name))
 
         origin = typing.get_origin(typ)
-        if origin is Union:
-            types = list(typing.get_args(typ))
+        # `str | int` results in types.UnionType instead of Union with Python
+        # 3.10 to 3.13. With Python 3.14, types.UnionType is an alias for typing.Union
+        # again, so we can remove this again once we drop support for Python 3.13.
+        if origin in [Union, types.UnionType]:
+            arg_types = list(typing.get_args(typ))
             if param.default is not inspect.Parameter.empty:
-                types.append(type(param.default))
+                arg_types.append(type(param.default))
 
             choices = self.get_arg_info(param).choices
-            value = argparser.multitype_conv(param, types, value,
+            value = argparser.multitype_conv(param, arg_types, value,
                                              str_choices=choices)
         elif typ is str:
             choices = self.get_arg_info(param).choices
