@@ -197,6 +197,7 @@
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
+|<<content.push_service.enabled,content.push_service.enabled>>|Allow websites to use the Push API (via QtWebEngine's push service).
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 |<<content.site_specific_quirks.enabled,content.site_specific_quirks.enabled>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.site_specific_quirks.skip,content.site_specific_quirks.skip>>|Disable a list of named quirks.
@@ -2732,6 +2733,17 @@ This setting is only available with the QtWebKit backend.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.push_service.enabled]]
+=== content.push_service.enabled
+Allow websites to use the Push API (via QtWebEngine's push service).
+This is never enabled for private (off-the-record) windows.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[content.register_protocol_handler]]
 === content.register_protocol_handler

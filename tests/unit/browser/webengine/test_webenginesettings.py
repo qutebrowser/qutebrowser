@@ -148,6 +148,29 @@ def test_spell_check_disabled(config_stub, monkeypatch, global_settings,
         assert not profile.isSpellCheckEnabled()
 
 
+push_service_available = hasattr(QWebEngineProfile, 'setPushServiceEnabled')
+
+
+@pytest.mark.skipif(not push_service_available,
+                    reason="setPushServiceEnabled is new in QtWebEngine 6.5")
+@pytest.mark.parametrize('value', [True, False])
+def test_push_service(config_stub, default_profile, value):
+    """Push service should follow the config value on the default profile."""
+    config_stub.val.content.push_service.enabled = value
+    default_profile.setter.set_push_service()
+    assert default_profile.isPushServiceEnabled() == value
+
+
+@pytest.mark.skipif(not push_service_available,
+                    reason="setPushServiceEnabled is new in QtWebEngine 6.5")
+def test_push_service_private_profile(config_stub, private_profile):
+    """Push service should never be enabled on an off-the-record profile."""
+    assert private_profile.isOffTheRecord()
+    config_stub.val.content.push_service.enabled = True
+    private_profile.setter.set_push_service()
+    assert not private_profile.isPushServiceEnabled()
+
+
 def test_parsed_user_agent(qapp):
     webenginesettings.init_user_agent()
     parsed = webenginesettings.parsed_user_agent
