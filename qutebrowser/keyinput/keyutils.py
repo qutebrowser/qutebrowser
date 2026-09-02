@@ -63,7 +63,7 @@ if machinery.IS_QT6:
     _ModifierType: TypeAlias = Qt.KeyboardModifier
 else:
     _KeyInfoType = int
-    _ModifierType: TypeAlias = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    _ModifierType: TypeAlias = Qt.KeyboardModifiers | Qt.KeyboardModifier
 
 
 _SPECIAL_NAMES = {

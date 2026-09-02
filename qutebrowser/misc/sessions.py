@@ -37,7 +37,7 @@ class Sentinel:
 default = Sentinel()
 session_manager = cast('SessionManager', None)
 
-ArgType: TypeAlias = Union[str, Sentinel]
+ArgType: TypeAlias = str | Sentinel
 
 
 def init(parent=None):

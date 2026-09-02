@@ -287,15 +287,7 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args(versions)
 
 
-_SettingValueType: TypeAlias = Union[
-    str,
-    Callable[
-        [
-            version.WebEngineVersions,
-        ],
-        str | None,
-    ],
-]
+_SettingValueType: TypeAlias = str | Callable[[version.WebEngineVersions], str | None]
 _WEBENGINE_SETTINGS: dict[str, dict[Any, _SettingValueType | None]] = {
     'qt.force_software_rendering': {
         'software-opengl': None,

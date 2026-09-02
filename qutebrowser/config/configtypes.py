@@ -66,10 +66,10 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions: TypeAlias = Optional[Iterable[tuple[str, str]]]
-_StrUnset: TypeAlias = Union[str, usertypes.Unset]
-_UnsetNone: TypeAlias = Union[None, usertypes.Unset]
-_StrUnsetNone: TypeAlias = Union[str, _UnsetNone]
+_Completions: TypeAlias = Iterable[tuple[str, str]] | None
+_StrUnset: TypeAlias = str | usertypes.Unset
+_UnsetNone: TypeAlias = None | usertypes.Unset
+_StrUnsetNone: TypeAlias = str | _UnsetNone
 
 
 def _validate_encoding(encoding: str | None, value: str) -> None:

@@ -408,7 +408,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType: TypeAlias = Union[type[BaseException], tuple[type[BaseException]]]
+_ExceptionType: TypeAlias = type[BaseException] | tuple[type[BaseException]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:

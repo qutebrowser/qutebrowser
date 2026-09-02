@@ -89,9 +89,9 @@ def log_signals(obj: QObject | type[QObject]) -> QObject | type[QObject]:
 
 
 if machinery.IS_QT6:
-    _EnumValueType: TypeAlias = Union[enum.Enum, int]
+    _EnumValueType: TypeAlias = enum.Enum | int
 else:
-    _EnumValueType: TypeAlias = Union[sip.simplewrapper, int]
+    _EnumValueType: TypeAlias = sip.simplewrapper | int
 
 
 def _qenum_key_python(

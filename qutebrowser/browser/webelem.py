@@ -20,12 +20,12 @@ if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-JsValueType: TypeAlias = Union[int, float, str, None]
+JsValueType: TypeAlias = int | float | str | None
 
 if machinery.IS_QT6:
     KeyboardModifierType: TypeAlias = Qt.KeyboardModifier
 else:
-    KeyboardModifierType: TypeAlias = Union[Qt.KeyboardModifiers, Qt.KeyboardModifier]
+    KeyboardModifierType: TypeAlias = Qt.KeyboardModifiers | Qt.KeyboardModifier
 
 
 class Error(Exception):

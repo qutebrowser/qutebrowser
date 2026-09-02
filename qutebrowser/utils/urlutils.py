@@ -29,7 +29,7 @@ from qutebrowser.browser.network import pac
 
 
 if machinery.IS_QT6:
-    UrlFlagsType: TypeAlias = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+    UrlFlagsType: TypeAlias = QUrl.UrlFormattingOption | QUrl.ComponentFormattingOption
 
     class FormatOption:
         """Simple wrapper around Qt enums to fix typing problems on Qt 5."""
@@ -42,12 +42,7 @@ if machinery.IS_QT6:
         REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
         REMOVE_QUERY = QUrl.UrlFormattingOption.RemoveQuery
 else:
-    UrlFlagsType: TypeAlias = Union[
-        QUrl.FormattingOptions,
-        QUrl.UrlFormattingOption,
-        QUrl.ComponentFormattingOption,
-        QUrl.ComponentFormattingOptions,
-    ]
+    UrlFlagsType: TypeAlias = QUrl.FormattingOptions | QUrl.UrlFormattingOption | QUrl.ComponentFormattingOption | QUrl.ComponentFormattingOptions
 
     class _QtFormattingOptions(QUrl.FormattingOptions):
         """WORKAROUND for invalid stubs.

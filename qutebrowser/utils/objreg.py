@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow
 
 
-_WindowTab: TypeAlias = Union[str, int, None]
+_WindowTab: TypeAlias = str | int | None
 
 
 class RegistryUnavailableError(Exception):
@@ -38,7 +38,7 @@ class CommandOnlyError(Exception):
     """Raised when an object is requested which is used for commands only."""
 
 
-_IndexType: TypeAlias = Union[str, int]
+_IndexType: TypeAlias = str | int
 
 
 # UserDict is only generic in Python 3.9+

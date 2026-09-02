@@ -498,8 +498,7 @@ class QtValueError(ValueError):
 if machinery.IS_QT6:
     _ProcessEventFlagType: TypeAlias = QEventLoop.ProcessEventsFlag
 else:
-    _ProcessEventFlagType: TypeAlias = Union[
-        QEventLoop.ProcessEventsFlag, QEventLoop.ProcessEventsFlags]
+    _ProcessEventFlagType: TypeAlias = QEventLoop.ProcessEventsFlag | QEventLoop.ProcessEventsFlags
 
 
 class EventLoop(QEventLoop):

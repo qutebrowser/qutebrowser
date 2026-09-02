@@ -92,7 +92,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
 
 if machinery.IS_QT5:
-    _FindFlagType: TypeAlias = Union[QWebEnginePage.FindFlag, QWebEnginePage.FindFlags]
+    _FindFlagType: TypeAlias = QWebEnginePage.FindFlag | QWebEnginePage.FindFlags
 else:
     _FindFlagType: TypeAlias = QWebEnginePage.FindFlag
 
@@ -1379,7 +1379,7 @@ class WebEngineTab(browsertab.AbstractTab):
             log.misc.debug("run_js_async called on deleted tab")
             return
 
-        world_id_type: TypeAlias = Union[QWebEngineScript.ScriptWorldId, int]
+        world_id_type: TypeAlias = QWebEngineScript.ScriptWorldId | int
         if world is None:
             world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
         elif isinstance(world, int):
