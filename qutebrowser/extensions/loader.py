@@ -10,6 +10,7 @@ import pathlib
 import importlib
 import argparse
 import dataclasses
+from typing import TypeAlias
 from collections.abc import Iterator, Callable
 
 from qutebrowser.qt.core import pyqtSlot
@@ -23,8 +24,8 @@ from qutebrowser.misc import objects
 # ModuleInfo objects for all loaded plugins
 _module_infos: list["ModuleInfo"] = []
 
-InitHookType = Callable[['InitContext'], None]
-ConfigChangedHookType = Callable[[], None]
+InitHookType: TypeAlias = Callable[['InitContext'], None]
+ConfigChangedHookType: TypeAlias = Callable[[], None]
 
 
 @dataclasses.dataclass

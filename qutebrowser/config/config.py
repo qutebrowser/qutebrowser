@@ -7,7 +7,7 @@
 import copy
 import contextlib
 import functools
-from typing import (TYPE_CHECKING, Any, cast)
+from typing import (TYPE_CHECKING, Any, TypeAlias, cast)
 from collections.abc import Iterator, Mapping, MutableMapping, MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
@@ -131,7 +131,7 @@ class KeyConfig:
         _config: The Config object to be used.
     """
 
-    _ReverseBindings = dict[str, MutableSequence[str]]
+    _ReverseBindings: TypeAlias = dict[str, MutableSequence[str]]
 
     def __init__(self, config: 'Config') -> None:
         self._config = config

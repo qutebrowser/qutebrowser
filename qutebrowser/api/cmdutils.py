@@ -35,7 +35,7 @@ Possible values:
 
 
 import inspect
-from typing import Any, Protocol, cast
+from typing import Any, Protocol, TypeAlias, cast
 from collections.abc import Iterable, Callable
 
 from qutebrowser.utils import qtutils
@@ -91,7 +91,7 @@ def check_exclusive(flags: Iterable[bool], names: Iterable[str]) -> None:
         raise CommandError("Only one of {} can be given!".format(argstr))
 
 
-_CmdHandlerFunc = Callable[..., Any]
+_CmdHandlerFunc: TypeAlias = Callable[..., Any]
 
 
 class _CmdHandlerType(Protocol):

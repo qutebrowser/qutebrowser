@@ -8,7 +8,7 @@ import binascii
 import base64
 import itertools
 import functools
-from typing import cast
+from typing import TypeAlias, cast
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
@@ -101,7 +101,7 @@ def get_target_window():
         return None
 
 
-_OverlayInfoType = tuple[QWidget, pyqtBoundSignal, bool, str]
+_OverlayInfoType: TypeAlias = tuple[QWidget, pyqtBoundSignal, bool, str]
 
 
 class MainWindow(QWidget):

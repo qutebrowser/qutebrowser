@@ -14,7 +14,7 @@ import traceback
 import configparser
 import contextlib
 import re
-from typing import (TYPE_CHECKING, Any, cast)
+from typing import (TYPE_CHECKING, Any, TypeAlias, cast)
 from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 
 import yaml
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 state = cast('StateConfig', None)
 
 
-_SettingsType = dict[str, dict[str, Any]]
+_SettingsType: TypeAlias = dict[str, dict[str, Any]]
 
 
 class VersionChange(enum.Enum):

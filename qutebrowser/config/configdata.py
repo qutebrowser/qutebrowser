@@ -9,7 +9,7 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
-from typing import (Any, NoReturn, cast)
+from typing import (Any, NoReturn, TypeAlias, cast)
 from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 import functools
 import dataclasses
@@ -21,7 +21,7 @@ from qutebrowser.misc import debugcachestats
 DATA = cast(Mapping[str, 'Option'], None)
 MIGRATIONS = cast('Migrations', None)
 
-_BackendDict = Mapping[str, str | bool]
+_BackendDict: TypeAlias = Mapping[str, str | bool]
 
 
 @dataclasses.dataclass(order=True)

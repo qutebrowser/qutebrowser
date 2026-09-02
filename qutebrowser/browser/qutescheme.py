@@ -18,7 +18,7 @@ import textwrap
 import urllib
 import collections
 import secrets
-from typing import TypeVar
+from typing import TypeAlias, TypeVar
 from collections.abc import Sequence, Callable
 
 from qutebrowser.qt.core import QUrlQuery, QUrl
@@ -78,8 +78,8 @@ class Redirect(Exception):
 
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
-_HandlerRet = tuple[str, str | bytes]
-_HandlerCallable = Callable[[QUrl], _HandlerRet]
+_HandlerRet: TypeAlias = tuple[str, str | bytes]
+_HandlerCallable: TypeAlias = Callable[[QUrl], _HandlerRet]
 _Handler = TypeVar('_Handler', bound=_HandlerCallable)
 
 

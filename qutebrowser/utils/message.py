@@ -10,7 +10,7 @@
 
 import dataclasses
 import traceback
-from typing import Any
+from typing import Any, TypeAlias
 from collections.abc import Iterable, Callable
 
 from qutebrowser.qt.core import pyqtSignal, pyqtBoundSignal, QObject
@@ -173,7 +173,7 @@ def ask_async(title: str,
     global_bridge.ask(question, blocking=False)
 
 
-_ActionType = Callable[[], Any]
+_ActionType: TypeAlias = Callable[[], Any]
 
 
 def confirm_async(*, yes_action: _ActionType,

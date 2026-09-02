@@ -5,7 +5,7 @@
 
 """Keyboard macro system."""
 
-from typing import cast
+from typing import TypeAlias, cast
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -13,7 +13,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
 
-_CommandType = tuple[str, int]  # command, type
+_CommandType: TypeAlias = tuple[str, int]  # command, type
 
 macro_recorder = cast('MacroRecorder', None)
 

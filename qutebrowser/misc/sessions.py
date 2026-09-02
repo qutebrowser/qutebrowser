@@ -26,7 +26,7 @@ from qutebrowser.qt import sip
 from qutebrowser.misc import objects, throttle
 
 
-_JsonType = MutableMapping[str, Any]
+_JsonType: TypeAlias = MutableMapping[str, Any]
 
 
 class Sentinel:

@@ -366,8 +366,8 @@ class AbstractSearch(QObject):
     match_changed = pyqtSignal(SearchMatch)
     cleared = pyqtSignal()
 
-    _Callback = Callable[[bool], None]
-    _NavCallback = Callable[[SearchNavigationResult], None]
+    _Callback: TypeAlias = Callable[[bool], None]
+    _NavCallback: TypeAlias = Callable[[SearchNavigationResult], None]
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
@@ -776,9 +776,9 @@ class AbstractElements:
 
     """Finding and handling of elements on the page."""
 
-    _MultiCallback = Callable[[Sequence['webelem.AbstractWebElement']], None]
-    _SingleCallback = Callable[[Optional['webelem.AbstractWebElement']], None]
-    _ErrorCallback = Callable[[Exception], None]
+    _MultiCallback: TypeAlias = Callable[[Sequence['webelem.AbstractWebElement']], None]
+    _SingleCallback: TypeAlias = Callable[[Optional['webelem.AbstractWebElement']], None]
+    _ErrorCallback: TypeAlias = Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = cast(_WidgetType, None)

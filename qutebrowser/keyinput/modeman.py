@@ -6,7 +6,7 @@
 
 import functools
 import dataclasses
-from typing import cast
+from typing import TypeAlias, cast
 from collections.abc import Mapping, MutableMapping, Callable
 
 from qutebrowser.qt import machinery
@@ -25,7 +25,7 @@ INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 
 # FIXME:mypy TypedDict?
-ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
+ParserDictType: TypeAlias = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
 @dataclasses.dataclass(frozen=True)

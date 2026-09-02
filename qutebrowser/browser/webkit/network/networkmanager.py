@@ -7,7 +7,7 @@
 import collections
 import html
 import dataclasses
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 from collections.abc import MutableMapping
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray
@@ -109,7 +109,7 @@ def init():
         ssl_config.setCiphers(good_ciphers)
 
 
-_SavedErrorsType = MutableMapping[
+_SavedErrorsType: TypeAlias = MutableMapping[
     urlutils.HostTupleType,
     set[certificateerror.CertificateErrorWrapper],
 ]

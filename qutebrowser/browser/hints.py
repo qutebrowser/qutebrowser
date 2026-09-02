@@ -12,7 +12,7 @@ import html
 import enum
 import dataclasses
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING)
+from typing import (TYPE_CHECKING, TypeAlias)
 from collections.abc import (
     Iterable,
     Iterator,
@@ -349,8 +349,8 @@ class HintActions:
         commandrunner.run_safely('spawn ' + ' '.join(args))
 
 
-_ElemsType = Sequence[webelem.AbstractWebElement]
-_HintStringsType = MutableSequence[str]
+_ElemsType: TypeAlias = Sequence[webelem.AbstractWebElement]
+_HintStringsType: TypeAlias = MutableSequence[str]
 
 
 class HintManager(QObject):
@@ -1077,7 +1077,7 @@ class WordHinter:
             self, elem: webelem.AbstractWebElement
     ) -> Iterator[str]:
         """Extract tag words form the given element."""
-        _extractor_type = Callable[[webelem.AbstractWebElement], str]
+        _extractor_type: TypeAlias = Callable[[webelem.AbstractWebElement], str]
         attr_extractors: Mapping[str, _extractor_type] = {
             "alt": lambda elem: elem["alt"],
             "name": lambda elem: elem["name"],

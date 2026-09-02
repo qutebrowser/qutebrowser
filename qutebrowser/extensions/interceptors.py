@@ -6,6 +6,7 @@
 
 import enum
 import dataclasses
+from typing import TypeAlias
 from collections.abc import Callable
 
 from qutebrowser.qt.core import QUrl
@@ -87,7 +88,7 @@ class Request:
 
 
 #: Type annotation for an interceptor function.
-InterceptorType = Callable[[Request], None]
+InterceptorType: TypeAlias = Callable[[Request], None]
 
 
 _interceptors: list[InterceptorType] = []

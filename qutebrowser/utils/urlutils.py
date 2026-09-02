@@ -460,7 +460,7 @@ def filename_from_url(url: QUrl, fallback: str = None) -> str | None:
         return fallback
 
 
-HostTupleType = tuple[str, str, int]
+HostTupleType: TypeAlias = tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:
