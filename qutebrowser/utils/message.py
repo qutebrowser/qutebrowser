@@ -43,8 +43,8 @@ def _log_stack(typ: str, stack: str) -> None:
 
 def error(
     message: str, *,
-    stack: str = None,
-    replace: str = None,
+    stack: str | None = None,
+    replace: str | None = None,
     rich: bool = False,
 ) -> None:
     """Display an error message.
@@ -70,7 +70,7 @@ def error(
     )
 
 
-def warning(message: str, *, replace: str = None, rich: bool = False) -> None:
+def warning(message: str, *, replace: str | None = None, rich: bool = False) -> None:
     """Display a warning message.
 
     Args:
@@ -88,7 +88,7 @@ def warning(message: str, *, replace: str = None, rich: bool = False) -> None:
     )
 
 
-def info(message: str, *, replace: str = None, rich: bool = False) -> None:
+def info(message: str, *, replace: str | None = None, rich: bool = False) -> None:
     """Display an info message.
 
     Args:
@@ -106,12 +106,12 @@ def info(message: str, *, replace: str = None, rich: bool = False) -> None:
 
 
 def _build_question(title: str,
-                    text: str = None, *,
+                    text: str | None = None, *,
                     mode: usertypes.PromptMode,
                     default: None | bool | str = None,
                     abort_on: Iterable[pyqtBoundSignal] = (),
-                    url: str = None,
-                    option: bool = None) -> usertypes.Question:
+                    url: str | None = None,
+                    option: bool | None = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
     question = usertypes.Question()
     question.title = title
@@ -177,8 +177,8 @@ _ActionType: TypeAlias = Callable[[], Any]
 
 
 def confirm_async(*, yes_action: _ActionType,
-                  no_action: _ActionType = None,
-                  cancel_action: _ActionType = None,
+                  no_action: _ActionType | None = None,
+                  cancel_action: _ActionType | None = None,
                   **kwargs: Any) -> usertypes.Question:
     """Ask a yes/no question to the user and execute the given actions.
 
@@ -237,7 +237,7 @@ class GlobalMessageBridge(QObject):
     mode_left = pyqtSignal(usertypes.KeyMode)
     clear_messages = pyqtSignal()
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._connected = False
         self._cache: list[MessageInfo] = []
@@ -262,7 +262,7 @@ class GlobalMessageBridge(QObject):
         self,
         level: usertypes.MessageLevel,
         text: str,
-        replace: str = None,
+        replace: str | None = None,
         rich: bool = False,
     ) -> None:
         """Show the given message."""

@@ -57,7 +57,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     def __init__(self, splitter: miscwidgets.InspectorSplitter,
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: QWidget | None = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
         self._settings: webenginesettings.WebEngineSettings | None = None

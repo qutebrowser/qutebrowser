@@ -48,7 +48,7 @@ def print_command(*cmd: str | pathlib.Path, venv: bool) -> None:
     utils.print_col(prefix + ' '.join([str(e) for e in cmd]), 'blue')
 
 
-def parse_args(argv: list[str] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--update',

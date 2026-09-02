@@ -48,7 +48,7 @@ class Command(misc.CommandLineEdit):
 
     def __init__(self, *, win_id: int,
                  private: bool,
-                 parent: QWidget = None) -> None:
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         if not private:
@@ -114,7 +114,7 @@ class Command(misc.CommandLineEdit):
                        scope='window', maxsplit=0, deprecated_name='set-cmd-text')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def cmd_set_text_command(self, text: str,
-                             count: int = None,
+                             count: int | None = None,
                              space: bool = False,
                              append: bool = False,
                              run_on_count: bool = False) -> None:

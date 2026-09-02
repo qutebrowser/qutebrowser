@@ -92,7 +92,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         return len(self._js_dict['attributes'])
 
     def _js_call(self, name: str, *args: webelem.JsValueType,
-                 callback: Callable[[Any], None] = None) -> None:
+                 callback: Callable[[Any], None] | None = None) -> None:
         """Wrapper to run stuff from webelem.js."""
         if self._tab.is_deleted():
             raise webelem.OrphanedError("Tab containing element vanished")
@@ -151,7 +151,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.webelem.debug("Inserting text into element {!r}".format(self))
         self._js_call('insert_text', text)
 
-    def rect_on_view(self, *, elem_geometry: QRect = None,
+    def rect_on_view(self, *, elem_geometry: QRect | None = None,
                      no_js: bool = False) -> QRect:
         """Get the geometry of the element relative to the webview.
 

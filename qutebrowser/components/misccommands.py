@@ -151,7 +151,7 @@ def screenshot(
         tab: apitypes.Tab,
         filename: pathlib.Path,
         *,
-        rect: str = None,
+        rect: str | None = None,
         force: bool = False,
 ) -> None:
     """Take a screenshot of the currently shown part of the page.
@@ -227,7 +227,7 @@ _FILTER_ERRORS = {
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
-def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,  # noqa: C901
+def click_element(tab: apitypes.Tab, filter_: str, value: str | None = None, *,  # noqa: C901
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
                   force_event: bool = False,
@@ -414,7 +414,7 @@ def debug_trace(expr: str = "") -> None:
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('position', completion=miscmodels.inspector_position)
 def devtools(tab: apitypes.Tab,
-             position: apitypes.InspectorPosition = None) -> None:
+             position: apitypes.InspectorPosition | None = None) -> None:
     """Toggle the developer tools (web inspector).
 
     Args:

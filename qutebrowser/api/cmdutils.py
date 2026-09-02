@@ -113,9 +113,9 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
     """Decorator to register a new command handler."""
 
     def __init__(self, *,
-                 instance: str = None,
-                 name: str = None,
-                 deprecated_name: str = None,
+                 instance: str | None = None,
+                 name: str | None = None,
+                 deprecated_name: str | None = None,
                  **kwargs: Any) -> None:
         """Save decorator arguments.
 

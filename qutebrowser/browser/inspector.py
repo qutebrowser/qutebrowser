@@ -81,7 +81,7 @@ class AbstractWebInspector(QWidget):
 
     def __init__(self, splitter: 'miscwidgets.InspectorSplitter',
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._layout = miscwidgets.WrapperLayout(self)

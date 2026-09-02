@@ -226,7 +226,7 @@ def _is_url_dns(urlstr: str) -> bool:
 
 
 def fuzzy_url(urlstr: str,
-              cwd: str = None,
+              cwd: str | None = None,
               relative: bool = False,
               do_search: bool = True,
               force_search: bool = False) -> QUrl:
@@ -383,7 +383,7 @@ def raise_cmdexc_if_invalid(url: QUrl) -> None:
 
 
 def get_path_if_valid(pathstr: str,
-                      cwd: str = None,
+                      cwd: str | None = None,
                       relative: bool = False,
                       check_exists: bool = False) -> str | None:
     """Check if path is a valid path.
@@ -430,7 +430,7 @@ def get_path_if_valid(pathstr: str,
     return path
 
 
-def filename_from_url(url: QUrl, fallback: str = None) -> str | None:
+def filename_from_url(url: QUrl, fallback: str | None = None) -> str | None:
     """Get a suitable filename from a URL.
 
     Args:

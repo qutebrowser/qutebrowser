@@ -98,8 +98,8 @@ class _Dialog(QDialog):
                  text: str,
                  backend: usertypes.Backend,
                  suggest_other_backend: bool = True,
-                 buttons: Sequence[_Button] = None,
-                 parent: QWidget = None) -> None:
+                 buttons: Sequence[_Button] | None = None,
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
 

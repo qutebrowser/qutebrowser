@@ -1172,7 +1172,7 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def download_open(self, cmdline: str = None, count: int = 0,
+    def download_open(self, cmdline: str | None = None, count: int = 0,
                       dir_: bool = False) -> None:
         """Open the last/[count]th download.
 

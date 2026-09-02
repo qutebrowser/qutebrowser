@@ -399,7 +399,7 @@ class PromptContainer(QWidget):
 
     @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
-    def prompt_open_download(self, cmdline: str = None,
+    def prompt_open_download(self, cmdline: str | None = None,
                              pdfjs: bool = False) -> None:
         """Immediately open a download.
 

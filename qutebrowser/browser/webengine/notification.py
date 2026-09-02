@@ -193,7 +193,7 @@ class NotificationBridgePresenter(QObject):
     - Switching out adapters if the current one emitted its error signal.
     """
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
 
         self._active_notifications: dict[int, 'QWebEngineNotification'] = {}
@@ -426,7 +426,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
     NAME = "systray"
     NOTIFICATION_ID = 1  # only one concurrent notification supported
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         if not QSystemTrayIcon.isSystemTrayAvailable():
             raise Error("No system tray available")
@@ -495,7 +495,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
 
     NAME = "messages"
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._id_gen = itertools.count(1)
 
@@ -547,7 +547,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     NAME = "herbe"
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         # Also cleans up potentially hanging semaphores from herbe.
         # https://github.com/dudik/herbe#notifications-dont-show-up
@@ -712,7 +712,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
     NAME = "libnotify"
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
 
         if utils.is_windows:

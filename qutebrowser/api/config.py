@@ -23,6 +23,6 @@ from qutebrowser.config import config
 val = cast('config.ConfigContainer', None)
 
 
-def get(name: str, url: QUrl = None) -> Any:
+def get(name: str, url: QUrl | None = None) -> Any:
     """Get a value from the config based on a string name."""
     return config.instance.get(name, url)

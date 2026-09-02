@@ -39,7 +39,7 @@ class MacroRecorder:
 
     @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def macro_record(self, win_id: int, register: str = None) -> None:
+    def macro_record(self, win_id: int, register: str | None = None) -> None:
         """Start or stop recording a macro.
 
         Args:
@@ -65,7 +65,7 @@ class MacroRecorder:
     @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def macro_run(self, win_id: int, count: int = 1, register: str = None) -> None:
+    def macro_run(self, win_id: int, count: int = 1, register: str | None = None) -> None:
         """Run a recorded macro.
 
         Args:

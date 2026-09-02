@@ -37,7 +37,7 @@ class _ReadlineBridge:
             return None
 
     def _dispatch(self, name: str, *,
-                  mark: bool = None,
+                  mark: bool | None = None,
                   delete: bool = False) -> None:
         widget = self._widget()
         if widget is None:

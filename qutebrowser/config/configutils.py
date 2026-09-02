@@ -136,7 +136,7 @@ class Values:
             raise configexc.NoPatternError(self.opt.name)
 
     def add(self, value: Any,
-            pattern: urlmatch.UrlPattern = None, *,
+            pattern: urlmatch.UrlPattern | None = None, *,
             hide_userconfig: bool = False) -> None:
         """Add a value with the given pattern to the list of values.
 
@@ -156,7 +156,7 @@ class Values:
         host = scoped.pattern.host if scoped.pattern else None
         self._domain_map[host].add(scoped)
 
-    def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
+    def remove(self, pattern: urlmatch.UrlPattern | None = None) -> bool:
         """Remove the value with the given pattern.
 
         If a matching pattern was removed, True is returned.
@@ -190,7 +190,7 @@ class Values:
         else:
             return usertypes.UNSET
 
-    def get_for_url(self, url: QUrl = None, *, fallback: bool = True) -> Any:
+    def get_for_url(self, url: QUrl | None = None, *, fallback: bool = True) -> Any:
         """Get a config value, falling back when needed.
 
         This first tries to find a value matching the URL (if given).

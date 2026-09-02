@@ -28,7 +28,7 @@ last_pid: int | None = None
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('pid', completion=miscmodels.process)
 @cmdutils.argument('action', choices=['show', 'terminate', 'kill'])
-def process(tab: apitypes.Tab, pid: int = None, action: str = 'show') -> None:
+def process(tab: apitypes.Tab, pid: int | None = None, action: str = 'show') -> None:
     """Manage processes spawned by qutebrowser.
 
     Note that processes with a successful exit get cleaned up after 1h.
@@ -175,7 +175,7 @@ class GUIProcess(QObject):
             what: str,
             *,
             verbose: bool = False,
-            additional_env: Mapping[str, str] = None,
+            additional_env: Mapping[str, str] | None = None,
             output_messages: bool = False,
     ):
         # We do not accept a parent, as GUIProcesses keep track of themselves

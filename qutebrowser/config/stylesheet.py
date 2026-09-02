@@ -15,7 +15,7 @@ from qutebrowser.utils import jinja, log
 
 
 def set_register(obj: QWidget,
-                 stylesheet: str = None, *,
+                 stylesheet: str | None = None, *,
                  update: bool = True) -> None:
     """Set the stylesheet for an object.
 

@@ -578,7 +578,7 @@ def session_save(name: ArgType = default, *,
                  only_active_window: bool = False,
                  with_private: bool = False,
                  no_history: bool = False,
-                 win_id: int = None) -> None:
+                 win_id: int | None = None) -> None:
     """Save a session.
 
     Args:

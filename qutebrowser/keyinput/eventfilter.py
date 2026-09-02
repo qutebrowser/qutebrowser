@@ -24,7 +24,7 @@ class EventFilter(QObject):
                    event.
     """
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._activated = True
         self._handlers = {

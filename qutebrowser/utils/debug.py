@@ -143,7 +143,7 @@ def _qenum_key_qt(
 def qenum_key(
     base: type[sip.simplewrapper],
     value: _EnumValueType,
-    klass: type[_EnumValueType] = None,
+    klass: type[_EnumValueType] | None = None,
 ) -> str:
     """Convert a Qt Enum value to its key as a string.
 
@@ -177,7 +177,7 @@ def qenum_key(
 
 def qflags_key(base: type[sip.simplewrapper],
                value: _EnumValueType,
-               klass: type[_EnumValueType] = None) -> str:
+               klass: type[_EnumValueType] | None = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
     Note: Passing a combined value (such as Qt.AlignmentFlag.AlignCenter) will get the names
@@ -254,7 +254,7 @@ def signal_name(sig: pyqtBoundSignal) -> str:
     return m.group('name')
 
 
-def format_args(args: Sequence[Any] = None, kwargs: Mapping[str, Any] = None) -> str:
+def format_args(args: Sequence[Any] | None = None, kwargs: Mapping[str, Any] | None = None) -> str:
     """Format a list of arguments/kwargs to a function-call like string."""
     if args is not None:
         arglist = [utils.compact_text(repr(arg), 200) for arg in args]
@@ -280,8 +280,8 @@ def dbg_signal(sig: pyqtBoundSignal, args: Any) -> str:
 
 
 def format_call(func: Callable[..., Any],
-                args: Sequence[Any] = None,
-                kwargs: Mapping[str, Any] = None,
+                args: Sequence[Any] | None = None,
+                kwargs: Mapping[str, Any] | None = None,
                 full: bool = True) -> str:
     """Get a string representation of a function calls with the given args.
 
@@ -362,7 +362,7 @@ def _get_pyqt_objects(lines: MutableSequence[str],
         _get_pyqt_objects(lines, kid, depth + 1)
 
 
-def get_all_objects(start_obj: QObject = None, *, qapp: QApplication = None) -> str:
+def get_all_objects(start_obj: QObject | None = None, *, qapp: QApplication | None = None) -> str:
     """Get all children of an object recursively as a string."""
     if qapp is None:
         assert objects.qapp is not None

@@ -603,10 +603,10 @@ class TabbedBrowser(QWidget):
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
     def tabopen(
-            self, url: QUrl = None,
-            background: bool = None,
+            self, url: QUrl | None = None,
+            background: bool | None = None,
             related: bool = True,
-            idx: int = None,
+            idx: int | None = None,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 

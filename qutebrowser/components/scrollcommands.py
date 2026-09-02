@@ -69,8 +69,8 @@ def scroll(tab: apitypes.Tab, direction: str, count: int = 1) -> None:
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 @cmdutils.argument('horizontal', flag='x')
-def scroll_to_perc(tab: apitypes.Tab, count: int = None,
-                   perc: float = None, horizontal: bool = False) -> None:
+def scroll_to_perc(tab: apitypes.Tab, count: int | None = None,
+                   perc: float | None = None, horizontal: bool = False) -> None:
     """Scroll to a specific percentage of the page.
 
     The percentage can be given either as argument or as count.

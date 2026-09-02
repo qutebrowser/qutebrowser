@@ -324,7 +324,7 @@ def _create(path: str) -> None:
     os.makedirs(path, 0o700, exist_ok=True)
 
 
-def _init_dirs(args: argparse.Namespace = None) -> None:
+def _init_dirs(args: argparse.Namespace | None = None) -> None:
     """Create and cache standard directory locations.
 
     Mainly in a separate function because we need to call it in tests.

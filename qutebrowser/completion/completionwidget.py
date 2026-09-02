@@ -99,7 +99,7 @@ class CompletionView(QTreeView):
     def __init__(self, *,
                  cmd: 'command.Command',
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.pattern: str | None = None
         self._win_id = win_id

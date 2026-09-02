@@ -49,7 +49,7 @@ class Quitter(QObject):
 
     def __init__(self, *,
                  args: argparse.Namespace,
-                 parent: QObject = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(parent)
         self.quit_status = {
             'crash': True,
@@ -84,8 +84,8 @@ class Quitter(QObject):
 
     def _get_restart_args(
             self, pages: Iterable[str] = (),
-            session: str = None,
-            override_args: Mapping[str, str] = None
+            session: str | None = None,
+            override_args: Mapping[str, str] | None = None
     ) -> Sequence[str]:
         """Get args to relaunch qutebrowser.
 
@@ -144,8 +144,8 @@ class Quitter(QObject):
         return args
 
     def restart(self, pages: Sequence[str] = (),
-                session: str = None,
-                override_args: Mapping[str, str] = None) -> bool:
+                session: str | None = None,
+                override_args: Mapping[str, str] | None = None) -> bool:
         """Inner logic to restart qutebrowser.
 
         The "better" way to restart is to pass a session (_restart usually) as
@@ -203,7 +203,7 @@ class Quitter(QObject):
             return True
 
     def shutdown(self, status: int = 0,
-                 session: sessions.ArgType = None,
+                 session: sessions.ArgType | None = None,
                  last_window: bool = False,
                  is_restart: bool = False) -> None:
         """Quit qutebrowser.
@@ -271,7 +271,7 @@ class Quitter(QObject):
 @cmdutils.register(name='quit')
 @cmdutils.argument('session', completion=miscmodels.session)
 def quit_(save: bool = False,
-          session: sessions.ArgType = None) -> None:
+          session: sessions.ArgType | None = None) -> None:
     """Quit qutebrowser.
 
     Args:

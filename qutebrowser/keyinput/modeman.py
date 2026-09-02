@@ -200,7 +200,7 @@ def instance(win_id: int | str) -> 'ModeManager':
 
 def enter(win_id: int,
           mode: usertypes.KeyMode,
-          reason: str = None,
+          reason: str | None = None,
           only_if_normal: bool = False) -> None:
     """Enter the mode 'mode'."""
     instance(win_id).enter(mode, reason, only_if_normal)
@@ -208,7 +208,7 @@ def enter(win_id: int,
 
 def leave(win_id: int,
           mode: usertypes.KeyMode,
-          reason: str = None, *,
+          reason: str | None = None, *,
           maybe: bool = False) -> None:
     """Leave the mode 'mode'."""
     instance(win_id).leave(mode, reason, maybe=maybe)
@@ -247,7 +247,7 @@ class ModeManager(QObject):
     left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
     keystring_updated = pyqtSignal(usertypes.KeyMode, str)
 
-    def __init__(self, win_id: int, parent: QObject = None) -> None:
+    def __init__(self, win_id: int, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self.parsers: ParserDictType = {}
@@ -345,7 +345,7 @@ class ModeManager(QObject):
             functools.partial(self.keystring_updated.emit, mode))
 
     def enter(self, mode: usertypes.KeyMode,
-              reason: str = None,
+              reason: str | None = None,
               only_if_normal: bool = False) -> None:
         """Enter a new mode.
 
@@ -408,7 +408,7 @@ class ModeManager(QObject):
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
     def leave(self, mode: usertypes.KeyMode,
-              reason: str = None,
+              reason: str | None = None,
               maybe: bool = False) -> None:
         """Leave a key mode.
 

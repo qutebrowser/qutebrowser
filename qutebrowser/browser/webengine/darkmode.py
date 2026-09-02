@@ -244,7 +244,7 @@ class _Definition:
             *args: _Setting,
             mandatory: set[str],
             prefix: str,
-            switch_names: Mapping[str | None, str] = None,
+            switch_names: Mapping[str | None, str] | None = None,
     ) -> None:
         self._settings = args
         self.mandatory = mandatory

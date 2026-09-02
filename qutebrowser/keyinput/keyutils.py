@@ -600,7 +600,7 @@ class KeySequence:
         else:
             return infos[item]
 
-    def _validate(self, keystr: str = None) -> None:
+    def _validate(self, keystr: str | None = None) -> None:
         try:
             for info in self:
                 if info.key < Qt.Key.Key_Space or info.key >= Qt.Key.Key_unknown:

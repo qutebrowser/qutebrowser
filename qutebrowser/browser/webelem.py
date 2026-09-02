@@ -135,7 +135,7 @@ class AbstractWebElement(collections.abc.MutableMapping[str, str]):
         """Insert the given text into the element."""
         raise NotImplementedError
 
-    def rect_on_view(self, *, elem_geometry: QRect = None,
+    def rect_on_view(self, *, elem_geometry: QRect | None = None,
                      no_js: bool = False) -> QRect:
         """Get the geometry of the element relative to the webview.
 

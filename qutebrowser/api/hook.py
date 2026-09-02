@@ -69,7 +69,7 @@ class config_changed:
             ...
     """
 
-    def __init__(self, option_filter: str = None) -> None:
+    def __init__(self, option_filter: str | None = None) -> None:
         self._filter = option_filter
 
     def __call__(

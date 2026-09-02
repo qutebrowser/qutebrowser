@@ -390,7 +390,7 @@ class HintManager(QObject):
 
     set_text = pyqtSignal(str)
 
-    def __init__(self, win_id: int, parent: QObject = None) -> None:
+    def __init__(self, win_id: int, parent: QObject | None = None) -> None:
         """Constructor."""
         super().__init__(parent)
         self._win_id = win_id
@@ -663,7 +663,7 @@ class HintManager(QObject):
               group: str = 'all',
               target: Target = Target.normal,
               *args: str,
-              mode: str = None,
+              mode: str | None = None,
               add_history: bool = False,
               rapid: bool = False,
               first: bool = False) -> None:
@@ -806,7 +806,7 @@ class HintManager(QObject):
             self,
             keystr: str = "",
             filterstr: str = "",
-            visible: Mapping[str, HintLabel] = None
+            visible: Mapping[str, HintLabel] | None = None
     ) -> None:
         """Handle the auto_follow option."""
         assert self._context is not None
@@ -996,7 +996,7 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='window',
                        modes=[usertypes.KeyMode.hint])
-    def hint_follow(self, select: bool = False, keystring: str = None) -> None:
+    def hint_follow(self, select: bool = False, keystring: str | None = None) -> None:
         """Follow a hint.
 
         Args:

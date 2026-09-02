@@ -60,7 +60,7 @@ def cmd_later(duration: str, command: str, win_id: int) -> None:
                    deprecated_name='repeat')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def cmd_repeat(times: int, command: str, win_id: int, count: int = None) -> None:
+def cmd_repeat(times: int, command: str, win_id: int, count: int | None = None) -> None:
     """Repeat a given command.
 
     Args:
@@ -171,7 +171,7 @@ def debug_pyeval(s: str, file: bool = False, quiet: bool = False) -> None:
 
 
 @cmdutils.register(debug=True)
-def debug_set_fake_clipboard(s: str = None) -> None:
+def debug_set_fake_clipboard(s: str | None = None) -> None:
     """Put data into the fake clipboard and enable logging, used for tests.
 
     Args:
@@ -186,7 +186,7 @@ def debug_set_fake_clipboard(s: str = None) -> None:
 @cmdutils.register(deprecated_name='repeat-command')
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def cmd_repeat_last(win_id: int, count: int = None) -> None:
+def cmd_repeat_last(win_id: int, count: int | None = None) -> None:
     """Repeat the last executed command.
 
     Args:

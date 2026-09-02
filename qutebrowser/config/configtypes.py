@@ -395,14 +395,14 @@ class String(BaseType):
 
     def __init__(
             self, *,
-            minlen: int = None,
-            maxlen: int = None,
-            forbidden: str = None,
-            regex: str = None,
-            encoding: str = None,
+            minlen: int | None = None,
+            maxlen: int | None = None,
+            forbidden: str | None = None,
+            regex: str | None = None,
+            encoding: str | None = None,
             none_ok: bool = False,
             completions: _Completions = None,
-            valid_values: ValidValues = None,
+            valid_values: ValidValues | None = None,
     ) -> None:
         super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = valid_values
@@ -487,7 +487,7 @@ class List(BaseType):
             self,
             valtype: BaseType,
             *,
-            length: int = None,
+            length: int | None = None,
             none_ok: bool = False,
             completions: _Completions = None,
     ) -> None:
@@ -663,8 +663,8 @@ class FlagList(List):
             self, *,
             none_ok: bool = False,
             completions: _Completions = None,
-            valid_values: ValidValues = None,
-            length: int = None,
+            valid_values: ValidValues | None = None,
+            length: int | None = None,
     ) -> None:
         super().__init__(
             valtype=String(),
@@ -806,8 +806,8 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
 
     def __init__(
             self, *,
-            minval: int = None,
-            maxval: int = None,
+            minval: int | None = None,
+            maxval: int | None = None,
             zero_ok: bool = True,
             none_ok: bool = False,
             completions: _Completions = None,
@@ -954,10 +954,10 @@ class PercOrInt(_Numeric):
 
     def __init__(
             self, *,
-            minperc: int = None,
-            maxperc: int = None,
-            minint: int = None,
-            maxint: int = None,
+            minperc: int | None = None,
+            maxperc: int | None = None,
+            minint: int | None = None,
+            maxint: int | None = None,
             none_ok: bool = False,
             completions: _Completions = None,
     ) -> None:
@@ -1295,7 +1295,7 @@ class Regex(BaseType):
 
     def __init__(
             self, *,
-            flags: str = None,
+            flags: str | None = None,
             none_ok: bool = False,
             completions: _Completions = None,
     ) -> None:
@@ -1367,8 +1367,8 @@ class Dict(BaseType):
             self, *,
             keytype: Union[String, 'Key'],
             valtype: BaseType,
-            fixed_keys: Iterable = None,
-            required_keys: Iterable = None,
+            fixed_keys: Iterable | None = None,
+            required_keys: Iterable | None = None,
             none_ok: bool = False,
             completions: _Completions = None,
     ) -> None:
@@ -1547,7 +1547,7 @@ class FormatString(BaseType):
             self, *,
             fields: Iterable[str],
             none_ok: bool = False,
-            encoding: str = None,
+            encoding: str | None = None,
             completions: _Completions = None,
     ) -> None:
         super().__init__(

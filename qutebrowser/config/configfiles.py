@@ -244,7 +244,7 @@ class YamlConfig(QObject):
     VERSION = 2
     changed = pyqtSignal()
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
@@ -415,12 +415,12 @@ class YamlConfig(QObject):
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
     def set_obj(self, name: str, value: Any, *,
-                pattern: urlmatch.UrlPattern = None) -> None:
+                pattern: urlmatch.UrlPattern | None = None) -> None:
         """Set the given setting to the given value."""
         self._values[name].add(value, pattern)
         self._mark_changed()
 
-    def unset(self, name: str, *, pattern: urlmatch.UrlPattern = None) -> None:
+    def unset(self, name: str, *, pattern: urlmatch.UrlPattern | None = None) -> None:
         """Remove the given option name if it's configured."""
         changed = self._values[name].remove(pattern)
         if changed:
@@ -440,7 +440,7 @@ class YamlMigrations(QObject):
     changed = pyqtSignal()
 
     # Note: settings is Any because it's not validated yet.
-    def __init__(self, settings: Any, parent: QObject = None) -> None:
+    def __init__(self, settings: Any, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._settings = settings
 
@@ -603,7 +603,7 @@ class YamlMigrations(QObject):
                               new_name: str,
                               true_value: str,
                               false_value: str,
-                              ask_value: str = None) -> None:
+                              ask_value: str | None = None) -> None:
         if old_name not in self._settings:
             return
 
@@ -746,13 +746,13 @@ class ConfigAPI:
             with self._handle_error("reading 'autoconfig.yml'"):
                 read_autoconfig()
 
-    def get(self, name: str, pattern: str = None) -> Any:
+    def get(self, name: str, pattern: str | None = None) -> Any:
         """Get a setting value from the config, optionally with a pattern."""
         with self._handle_error(f"getting '{name}'"):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             return self._config.get_mutable_obj(name, pattern=urlpattern)
 
-    def set(self, name: str, value: Any, pattern: str = None) -> None:
+    def set(self, name: str, value: Any, pattern: str | None = None) -> None:
         """Set a setting value in the config, optionally with a pattern."""
         with self._handle_error(f"setting '{name}'"):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None

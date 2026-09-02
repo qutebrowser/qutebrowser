@@ -197,7 +197,7 @@ def elide_filename(filename: str, length: int) -> str:
         return filename[:left] + elidestr + filename[-right:]
 
 
-def compact_text(text: str, elidelength: int = None) -> str:
+def compact_text(text: str, elidelength: int | None = None) -> str:
     """Remove leading whitespace and newlines from a text and maybe elide it.
 
     Args:
@@ -565,7 +565,7 @@ def supports_selection() -> bool:
     return _clipboard().supportsSelection()
 
 
-def open_file(filename: str, cmdline: str = None) -> None:
+def open_file(filename: str, cmdline: str | None = None) -> None:
     """Open the given file.
 
     If cmdline is not given, downloads.open_dispatcher is used.
@@ -685,7 +685,7 @@ def yaml_load(f: str | IO[str]) -> Any:
     return data
 
 
-def yaml_dump(data: Any, f: IO[str] = None) -> str | None:
+def yaml_dump(data: Any, f: IO[str] | None = None) -> str | None:
     """Wrapper over yaml.dump using the C dumper if possible.
 
     Also returns a str instead of bytes.

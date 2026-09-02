@@ -200,7 +200,7 @@ def qute_tabs(_url: QUrl) -> _HandlerRet:
 
 def history_data(
         start_time: float,
-        offset: int = None
+        offset: int | None = None
 ) -> Sequence[dict[str, str | int]]:
     """Return history data.
 

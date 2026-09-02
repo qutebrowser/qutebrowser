@@ -492,7 +492,7 @@ class RAMHandler(logging.Handler):
         self._data.append(record)
 
     def dump_log(self, html: bool = False, level: str = 'vdebug',
-                 logfilter: LogFilter = None) -> str:
+                 logfilter: LogFilter | None = None) -> str:
         """Dump the complete formatted log data as string.
 
         FIXME: We should do all the HTML formatting via jinja2.
@@ -604,7 +604,7 @@ class HTMLFormatter(logging.Formatter):
         return msg
 
     def formatTime(self, record: logging.LogRecord,
-                   datefmt: str = None) -> str:
+                   datefmt: str | None = None) -> str:
         out = super().formatTime(record, datefmt)
         return pyhtml.escape(out)
 

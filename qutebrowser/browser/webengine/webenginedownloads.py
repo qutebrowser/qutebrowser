@@ -27,7 +27,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def __init__(self, qt_item: QWebEngineDownloadRequest,
                  manager: downloads.AbstractDownloadManager,
-                 parent: QObject = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
         if machinery.IS_QT5:

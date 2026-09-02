@@ -303,7 +303,7 @@ class InspectorSplitter(QSplitter):
     _SMALL_SIZE_THRESHOLD = 300
 
     def __init__(self, win_id: int, main_webview: QWidget,
-                 parent: QWidget = None) -> None:
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self.addWidget(main_webview)

@@ -73,9 +73,9 @@ class ConfigCommands:
     @cmdutils.argument('value', completion=configmodel.value)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('pattern', flag='u')
-    def set(self, win_id: int, option: str = None, value: str = None,
+    def set(self, win_id: int, option: str | None = None, value: str | None = None,
             temp: bool = False, print_: bool = False,
-            *, pattern: str = None) -> None:
+            *, pattern: str | None = None) -> None:
         """Set an option.
 
         If the option name ends with '?' or no value is provided, the
@@ -121,7 +121,7 @@ class ConfigCommands:
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def bind(self, win_id: str, key: str = None, command: str = None, *,
+    def bind(self, win_id: str, key: str | None = None, command: str | None = None, *,
              mode: str = 'normal', default: bool = False) -> None:
         """Bind a key to a command.
 
@@ -187,7 +187,7 @@ class ConfigCommands:
     @cmdutils.argument('values', completion=configmodel.value)
     @cmdutils.argument('pattern', flag='u')
     def config_cycle(self, option: str, *values: str,
-                     pattern: str = None,
+                     pattern: str | None = None,
                      temp: bool = False, print_: bool = False) -> None:
         """Cycle an option between multiple values.
 
@@ -238,7 +238,7 @@ class ConfigCommands:
         self,
         option: str,
         *,
-        pattern: str = None,
+        pattern: str | None = None,
         temp: bool = False,
     ) -> None:
         """Unset an option.
@@ -405,7 +405,7 @@ class ConfigCommands:
         self._config.clear(save_yaml=save)
 
     @cmdutils.register(instance='config-commands')
-    def config_source(self, filename: str = None, clear: bool = False) -> None:
+    def config_source(self, filename: str | None = None, clear: bool = False) -> None:
         """Read a config.py file.
 
         Args:
@@ -453,7 +453,7 @@ class ConfigCommands:
         ed.edit_file(filename)
 
     @cmdutils.register(instance='config-commands')
-    def config_write_py(self, filename: str = None,
+    def config_write_py(self, filename: str | None = None,
                         force: bool = False, defaults: bool = False) -> None:
         """Write the current configuration to a config.py file.
 

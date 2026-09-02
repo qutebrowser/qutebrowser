@@ -26,7 +26,7 @@ from qutebrowser.utils import log
 class FilePathCategory(QAbstractListModel, BaseCategory):
     """Represent filesystem paths matching a pattern."""
 
-    def __init__(self, name: str, parent: QObject = None) -> None:
+    def __init__(self, name: str, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._paths: list[str] = []
         self.name = name

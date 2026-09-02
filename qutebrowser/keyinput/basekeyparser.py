@@ -167,7 +167,7 @@ class BaseKeyParser(QObject):
 
     def __init__(self, *, mode: usertypes.KeyMode,
                  win_id: int,
-                 parent: QObject = None,
+                 parent: QObject | None = None,
                  do_log: bool = True,
                  passthrough: bool = False,
                  supports_count: bool = True) -> None:
@@ -352,7 +352,7 @@ class BaseKeyParser(QObject):
             assert cmd
             self.bindings[key] = cmd
 
-    def execute(self, cmdstr: str, count: int = None) -> None:
+    def execute(self, cmdstr: str, count: int | None = None) -> None:
         """Handle a completed keychain.
 
         Args:

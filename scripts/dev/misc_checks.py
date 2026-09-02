@@ -30,7 +30,7 @@ BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
 def _get_files(
         *,
         verbose: bool,
-        ignored: list[pathlib.Path] = None
+        ignored: list[pathlib.Path] | None = None
 ) -> Iterator[pathlib.Path]:
     """Iterate over all files and yield filenames."""
     filenames = subprocess.run(
@@ -64,7 +64,7 @@ def _get_files(
         yield path
 
 
-def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
+def check_changelog_urls(_args: argparse.Namespace | None = None) -> bool:
     """Ensure we have changelog URLs for all requirements."""
     ok = True
     all_requirements = set()
@@ -105,7 +105,7 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
     return ok
 
 
-def check_git(_args: argparse.Namespace = None) -> bool:
+def check_git(_args: argparse.Namespace | None = None) -> bool:
     """Check for uncommitted git files."""
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
@@ -335,7 +335,7 @@ def check_vcs_conflict(args: argparse.Namespace) -> bool | None:
         return None
 
 
-def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
+def check_userscripts_descriptions(_args: argparse.Namespace | None = None) -> bool:
     """Make sure all userscripts are described properly."""
     folder = pathlib.Path('misc/userscripts')
     readme = folder / 'README.md'

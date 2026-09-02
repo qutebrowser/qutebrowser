@@ -105,7 +105,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         """
         if self._function:
             @functools.wraps(func)
-            def func_wrapper(option: str = None) -> Any:
+            def func_wrapper(option: str | None = None) -> Any:
                 """Call the underlying function."""
                 if self.check_match(option):
                     return func()
@@ -113,7 +113,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
             return func_wrapper
         else:
             @functools.wraps(func)
-            def meth_wrapper(wrapper_self: Any, option: str = None) -> Any:
+            def meth_wrapper(wrapper_self: Any, option: str | None = None) -> Any:
                 """Call the underlying function."""
                 if self.check_match(option):
                     return func(wrapper_self)
@@ -289,7 +289,7 @@ class Config(QObject):
 
     def __init__(self,
                  yaml_config: 'configfiles.YamlConfig',
-                 parent: QObject = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._mutables: MutableMapping[str, tuple[Any, Any]] = {}
         self._yaml = yaml_config
@@ -319,7 +319,7 @@ class Config(QObject):
     def _set_value(self,
                    opt: 'configdata.Option',
                    value: Any,
-                   pattern: urlmatch.UrlPattern = None,
+                   pattern: urlmatch.UrlPattern | None = None,
                    hide_userconfig: bool = False) -> None:
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
@@ -376,7 +376,7 @@ class Config(QObject):
 
     def get(self,
             name: str,
-            url: QUrl = None, *,
+            url: QUrl | None = None, *,
             fallback: bool = True) -> Any:
         """Get the given setting converted for Python code.
 
@@ -402,7 +402,7 @@ class Config(QObject):
 
     def get_obj(self,
                 name: str, *,
-                url: QUrl = None,
+                url: QUrl | None = None,
                 fallback: bool = True) -> Any:
         """Get the given setting as object (for YAML/config.py).
 
@@ -427,7 +427,7 @@ class Config(QObject):
         return self._maybe_copy(value)
 
     def get_mutable_obj(self, name: str, *,
-                        pattern: urlmatch.UrlPattern = None) -> Any:
+                        pattern: urlmatch.UrlPattern | None = None) -> Any:
         """Get an object which can be mutated, e.g. in a config.py.
 
         If a pattern is given, return the value for that pattern.
@@ -453,7 +453,7 @@ class Config(QObject):
         return copy_value
 
     def get_str(self, name: str, *,
-                pattern: urlmatch.UrlPattern = None) -> str:
+                pattern: urlmatch.UrlPattern | None = None) -> str:
         """Get the given setting as string.
 
         If a pattern is given, get the setting for the given pattern or
@@ -466,7 +466,7 @@ class Config(QObject):
 
     def set_obj(self, name: str,
                 value: Any, *,
-                pattern: urlmatch.UrlPattern = None,
+                pattern: urlmatch.UrlPattern | None = None,
                 save_yaml: bool = False,
                 hide_userconfig: bool = False) -> None:
         """Set the given setting from a YAML/config.py object.
@@ -485,7 +485,7 @@ class Config(QObject):
 
     def set_str(self, name: str,
                 value: str, *,
-                pattern: urlmatch.UrlPattern = None,
+                pattern: urlmatch.UrlPattern | None = None,
                 save_yaml: bool = False) -> None:
         """Set the given setting from a string.
 
@@ -503,7 +503,7 @@ class Config(QObject):
 
     def unset(self, name: str, *,
               save_yaml: bool = False,
-              pattern: urlmatch.UrlPattern = None) -> bool:
+              pattern: urlmatch.UrlPattern | None = None) -> bool:
         """Set the given setting back to its default.
 
         Return:
@@ -582,9 +582,9 @@ class ConfigContainer:
     """
 
     def __init__(self, config: Config,
-                 configapi: 'configfiles.ConfigAPI' = None,
+                 configapi: 'configfiles.ConfigAPI | None' = None,
                  prefix: str = '',
-                 pattern: urlmatch.UrlPattern = None) -> None:
+                 pattern: urlmatch.UrlPattern | None = None) -> None:
         self._config = config
         self._prefix = prefix
         self._configapi = configapi
