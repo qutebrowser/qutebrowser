@@ -456,7 +456,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_give(self, win_id: int = None, keep: bool = False,
+    def tab_give(self, win_id: int | None = None, keep: bool = False,
                  count: int = None, private: bool = False) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
@@ -974,8 +974,8 @@ class CommandDispatcher:
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
                        completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_focus(self, index: str | int = None,
-                  count: int = None, no_last: bool = False) -> None:
+    def tab_focus(self, index: str | int | None = None,
+                  count: int | None = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -1021,7 +1021,7 @@ class CommandDispatcher:
     @cmdutils.register(instance="command-dispatcher", scope="window")
     @cmdutils.argument("index", choices=["+", "-", "start", "end"])
     @cmdutils.argument("count", value=cmdutils.Value.count)
-    def tab_move(self, index: str | int = None, count: int = None) -> None:
+    def tab_move(self, index: str | int | None = None, count: int = None) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1717,7 +1717,7 @@ class CommandDispatcher:
                url: bool = False,
                quiet: bool = False,
                *,
-               world: usertypes.JsWorld | int = None) -> None:
+               world: usertypes.JsWorld | int | None = None) -> None:
         """Evaluate a JavaScript string.
 
         Args:

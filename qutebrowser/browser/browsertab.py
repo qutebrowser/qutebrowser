@@ -1270,7 +1270,7 @@ class AbstractTab(QWidget):
             self,
             code: str,
             callback: Callable[[Any], None] = None, *,
-            world: usertypes.JsWorld | int = None
+            world: usertypes.JsWorld | int | None = None
     ) -> None:
         """Run javascript async.
 

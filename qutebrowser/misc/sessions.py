@@ -260,7 +260,7 @@ class SessionManager(QObject):
         """Get a dict with data for all windows/tabs."""
         data: _JsonType = {'windows': []}
         if only_window is not None:
-            winlist: Iterable[int] = [only_window]
+            winlist: Iterable[str | int] = [only_window]
         else:
             winlist = objreg.window_registry
 

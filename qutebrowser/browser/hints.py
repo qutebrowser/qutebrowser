@@ -1077,8 +1077,7 @@ class WordHinter:
             self, elem: webelem.AbstractWebElement
     ) -> Iterator[str]:
         """Extract tag words form the given element."""
-        _extractor_type: TypeAlias = Callable[[webelem.AbstractWebElement], str]
-        attr_extractors: Mapping[str, _extractor_type] = {
+        attr_extractors: Mapping[str, Callable[[webelem.AbstractWebElement], str]] = {
             "alt": lambda elem: elem["alt"],
             "name": lambda elem: elem["name"],
             "title": lambda elem: elem["title"],

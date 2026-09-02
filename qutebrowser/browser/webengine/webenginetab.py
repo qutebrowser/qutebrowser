@@ -1379,9 +1379,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.misc.debug("run_js_async called on deleted tab")
             return
 
-        WorldIdType: TypeAlias = QWebEngineScript.ScriptWorldId | int
         if world is None:
-            world_id: WorldIdType = QWebEngineScript.ScriptWorldId.ApplicationWorld
+            app_world = QWebEngineScript.ScriptWorldId.ApplicationWorld
+            world_id: QWebEngineScript.ScriptWorldId | int = app_world
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
