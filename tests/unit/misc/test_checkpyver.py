@@ -20,16 +20,13 @@ TEXT = (f"At least Python {checkpyver.MIN_PYTHON_VERSION_STR} is required to run
 
 
 @pytest.mark.not_frozen
-@pytest.mark.parametrize('python', ['python2', 'python3.6'])
+@pytest.mark.parametrize('python', testutils.old_python_versions())
 def test_old_python(python):
     """Run checkpyver with old python versions."""
-    try:
-        proc = subprocess.run(
-            [python, checkpyver.__file__, '--no-err-windows'],
-            capture_output=True,
-            check=False)
-    except FileNotFoundError:
-        pytest.skip(f"{python} not found")
+    proc = subprocess.run(
+        [python, checkpyver.__file__, '--no-err-windows'],
+        capture_output=True,
+        check=False)
     assert not proc.stdout
     stderr = proc.stderr.decode('utf-8').rstrip()
     assert re.fullmatch(TEXT, stderr), stderr

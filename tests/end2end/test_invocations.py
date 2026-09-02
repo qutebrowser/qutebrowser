@@ -236,15 +236,12 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-@pytest.mark.parametrize('python', ['python2', 'python3.6', 'python3.7'])
+@pytest.mark.parametrize('python', testutils.old_python_versions())
 def test_launching_with_old_python(python):
-    try:
-        proc = subprocess.run(
-            [python, '-m', 'qutebrowser', '--no-err-windows'],
-            stderr=subprocess.PIPE,
-            check=False)
-    except FileNotFoundError:
-        pytest.skip(f"{python} not found")
+    proc = subprocess.run(
+        [python, '-m', 'qutebrowser', '--no-err-windows'],
+        stderr=subprocess.PIPE,
+        check=False)
     assert proc.returncode == 1
     error = f"At least Python {checkpyver.MIN_PYTHON_VERSION_STR} is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
