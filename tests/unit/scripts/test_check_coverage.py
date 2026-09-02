@@ -180,11 +180,10 @@ def test_untested_branches(covtest):
             func2(True)
     """)
     covtest.run()
-    line_coverage = "83.33%" if sys.version_info[:2] >= (3, 10) else "100.00%"
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficient_coverage,
         'module.py',
-        f'module.py has {line_coverage} line and 50.00% branch coverage!')
+        f'module.py has 83.33% line and 50.00% branch coverage!')
     assert covtest.check() == [expected]
 
 

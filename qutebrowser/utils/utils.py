@@ -804,16 +804,6 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
             "text/n3": ".n3",
             "text/vtt": ".vtt",
         })
-    if sys.version_info[:2] < (3, 10):
-        overrides.update({
-            "application/x-hdf5": ".h5",
-            "audio/3gpp": ".3gp",
-            "audio/3gpp2": ".3g2",
-            "audio/aac": ".aac",
-            "audio/opus": ".opus",
-            "image/heic": ".heic",
-            "image/heif": ".heif",
-        })
     if mimetype in overrides:
         return overrides[mimetype]
     return mimetypes.guess_extension(mimetype, strict=False)

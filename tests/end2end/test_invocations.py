@@ -25,11 +25,6 @@ from end2end.fixtures import quteprocess
 from qutebrowser.utils import qtutils, utils, version
 
 
-ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
-                                  reason="Python >= 3.7 doesn't force ASCII "
-                                  "locale with LC_ALL=C")
-
-
 # For some reason (some floating point rounding differences?), color values are
 # slightly different (and wrong!) on ARM machines. We adjust our expected values
 # accordingly, since we don't really care about the exact value, we just want to
@@ -94,96 +89,6 @@ def temp_basedir_env(tmp_path, runtime_tmpdir):
         'XDG_CACHE_HOME': str(cache_dir),
     }
     return env
-
-
-@pytest.mark.linux
-@ascii_locale
-def test_downloads_with_ascii_locale(request, server, tmp_path, quteproc_new):
-    """Test downloads with LC_ALL=C set.
-
-    https://github.com/qutebrowser/qutebrowser/issues/908
-    https://github.com/qutebrowser/qutebrowser/issues/1726
-    """
-    args = ['--temp-basedir'] + _base_args(request.config)
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('downloads.location.directory', str(tmp_path))
-
-    # Test a normal download
-    quteproc_new.set_setting('downloads.location.prompt', 'false')
-    url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
-        port=server.port)
-    quteproc_new.send_cmd(':download {}'.format(url))
-    quteproc_new.wait_for(category='downloads',
-                          message='Download ?-issue908.bin finished')
-
-    # Test :prompt-open-download
-    quteproc_new.set_setting('downloads.location.prompt', 'true')
-    quteproc_new.send_cmd(':download {}'.format(url))
-    quteproc_new.send_cmd(':prompt-open-download "{}" -c pass'
-                          .format(sys.executable))
-    quteproc_new.wait_for(category='downloads',
-                          message='Download ä-issue908.bin finished')
-    quteproc_new.wait_for(category='misc',
-                          message='Opening * with [*python*]')
-
-    assert len(list(tmp_path.iterdir())) == 1
-    assert (tmp_path / '?-issue908.bin').exists()
-
-
-@pytest.mark.linux
-@pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
-@ascii_locale
-def test_open_with_ascii_locale(request, server, tmp_path, quteproc_new, url):
-    """Test opening non-ascii URL with LC_ALL=C set.
-
-    https://github.com/qutebrowser/qutebrowser/issues/1450
-    """
-    args = ['--temp-basedir'] + _base_args(request.config)
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('url.auto_search', 'never')
-
-    # Test opening a file whose name contains non-ascii characters.
-    # No exception thrown means test success.
-    quteproc_new.send_cmd(':open {}'.format(url))
-
-    if not request.config.webengine:
-        line = quteproc_new.wait_for(message="Error while loading *: Error "
-                                     "opening /*: No such file or directory")
-        line.expected = True
-
-    quteproc_new.wait_for(message="load status for <* tab_id=* "
-                          "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
-
-    if request.config.webengine:
-        line = quteproc_new.wait_for(message='Load error: ERR_FILE_NOT_FOUND')
-        line.expected = True
-
-
-@pytest.mark.linux
-@ascii_locale
-def test_open_command_line_with_ascii_locale(request, server, tmp_path,
-                                             quteproc_new):
-    """Test opening file via command line with a non-ascii name with LC_ALL=C.
-
-    https://github.com/qutebrowser/qutebrowser/issues/1450
-    """
-    # The file does not actually have to exist because the relevant checks will
-    # all be called. No exception thrown means test success.
-    args = (['--temp-basedir'] + _base_args(request.config) +
-            ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
-
-    if not request.config.webengine:
-        line = quteproc_new.wait_for(message="Error while loading *: Error "
-                                     "opening /*: No such file or directory")
-        line.expected = True
-
-    quteproc_new.wait_for(message="load status for <* tab_id=* "
-                          "url='*/f*.html'>: LoadStatus.error")
-
-    if request.config.webengine:
-        line = quteproc_new.wait_for(message="Load error: ERR_FILE_NOT_FOUND")
-        line.expected = True
 
 
 @pytest.mark.linux

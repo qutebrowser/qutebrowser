@@ -89,13 +89,9 @@ class TestReadFile:
         assert content.splitlines()[0] == b"Hello World!"
 
     @pytest.mark.parametrize('name', ['read_file', 'read_file_binary'])
-    @pytest.mark.parametrize('fake_exception', [KeyError, FileNotFoundError, None])
+    @pytest.mark.parametrize('fake_exception', [FileNotFoundError, None])
     def test_not_found(self, name, fake_exception, monkeypatch):
-        """Test behavior when a resources file wasn't found.
-
-        With fake_exception, we emulate the rather odd error handling of certain Python
-        versions: https://bugs.python.org/issue43063
-        """
+        """Test behavior when a resources file wasn't found."""
         class BrokenFileFake:
 
             def __init__(self, exc):

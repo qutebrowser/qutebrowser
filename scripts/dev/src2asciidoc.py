@@ -125,19 +125,6 @@ class UsageFormatter(argparse.HelpFormatter):
         with self._patch_option_strings(actions):
             return super()._format_actions_usage(actions, groups)
 
-    def _format_args(self, action, default_metavar):
-        """Backport simplified star nargs usage.
-
-        https://github.com/python/cpython/pull/17106
-        """
-        if sys.version_info >= (3, 9) or action.nargs != argparse.ZERO_OR_MORE:
-            return super()._format_args(action, default_metavar)
-
-        get_metavar = self._metavar_formatter(action, default_metavar)
-        metavar = get_metavar(1)
-        assert len(metavar) == 1
-        return f'[{metavar[0]} ...]'
-
 
 def _open_file(name, mode='w'):
     """Open a file with a preset newline/encoding mode."""
