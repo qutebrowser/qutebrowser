@@ -198,11 +198,12 @@ def transform_path(path):
     # Paths like COM1, ...
     # See https://github.com/qutebrowser/qutebrowser/issues/82
     if sys.version_info[:2] >= (3, 13):
+        # pylint: disable=no-member,useless-suppression
         if os.path.isreserved(path):
             return None
     else:
-        # pylint: disable=else-if-used
-        if pathlib.Path(path).is_reserved():  # pylint: disable=deprecated-method
+        # pylint: disable-next=else-if-used,deprecated-method,useless-suppression
+        if pathlib.Path(path).is_reserved():
             return None
 
     return path
