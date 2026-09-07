@@ -1316,6 +1316,14 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._scripts.init()
+
+        self._lifecycle_timer_freeze = usertypes.Timer(self)
+        self._lifecycle_timer_freeze.setSingleShot(True)
+        self._lifecycle_timer_freeze.timeout.connect(functools.partial(self._set_lifecycle_state, QWebEnginePage.LifecycleState.Frozen))
+        self._lifecycle_timer_discard = usertypes.Timer(self)
+        self._lifecycle_timer_discard.setSingleShot(True)
+        self._lifecycle_timer_discard.timeout.connect(functools.partial(self._set_lifecycle_state, QWebEnginePage.LifecycleState.Discarded))
+
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         self._needs_qtbug65223_workaround = (
             version.qtwebengine_versions().webengine < utils.VersionNumber(5, 15, 5))
@@ -1423,6 +1431,14 @@ class WebEngineTab(browsertab.AbstractTab):
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
+
+    def _set_lifecycle_state(
+        self,
+        new_state: QWebEnginePage.LifecycleState,
+    ) -> None:
+        """Set the lifecycle state of the current tab."""
+        log.webview.debug(f"Setting page lifecycle state of {self} to {new_state}")
+        self._widget.page().setLifecycleState(new_state)
 
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
@@ -1724,6 +1740,62 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
+    def _schedule_lifecycle_transition(
+        self,
+        state: Optional[QWebEnginePage.LifecycleState] = None,
+    ) -> None:
+        """Schedule, or cancel, a page lifecycle transition.
+
+        Schedule a lifecycle transition to `state`, according to the user's
+        config.
+        If a transition into `state` is already schedule, do nothing.
+        If `state` is `None`, cancel any scheduled transition.
+        """
+        timers = {
+            QWebEnginePage.LifecycleState.Frozen: (
+                self._lifecycle_timer_freeze,
+                config.val.qt.chromium.lifecycle_state.freeze_delay,
+            ),
+            QWebEnginePage.LifecycleState.Discarded: (
+                self._lifecycle_timer_discard,
+                config.val.qt.chromium.lifecycle_state.discard_delay,
+            ),
+        }
+
+        to_start = delay = None
+        if state is not None:
+            try:
+                to_start, delay = timers[state]
+            except KeyError:
+                raise utils.Unreachable(state)
+
+        for timer, _ in timers.values():
+            if timer != to_start:
+                timer.stop()
+
+        if to_start and not to_start.isActive() and delay != -1:
+            log.webview.debug(f"Scheduling recommended lifecycle change {delay=} {state=} tab={self}")
+            to_start.start(delay)
+
+    @pyqtSlot(QWebEnginePage.LifecycleState)
+    def _on_recommended_state_changed(
+            self,
+            recommended_state: QWebEnginePage.LifecycleState,
+    ) -> None:
+        if self._widget.page().lifecycleState() == recommended_state:
+            self._schedule_lifecycle_transition(None)
+            return
+
+        disabled = not config.val.qt.chromium.lifecycle_state.enabled
+
+        if recommended_state == QWebEnginePage.LifecycleState.Active:
+            self._schedule_lifecycle_transition(None)
+            self._set_lifecycle_state(recommended_state)
+        elif disabled or self.data.pinned:
+            self._schedule_lifecycle_transition(None)
+        else:
+            self._schedule_lifecycle_transition(recommended_state)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1741,6 +1813,9 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
+
+        if version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 5):
+            page.recommendedStateChanged.connect(self._on_recommended_state_changed)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
