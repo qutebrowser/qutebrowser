@@ -4,14 +4,14 @@ set +e
 
 # JS field injection code from https://github.com/qutebrowser/qutebrowser/blob/main/misc/userscripts/password_fill
 javascript_escape() {
-    # print the first argument in an escaped way, such that it can safely
-    # be used within javascripts double quotes
-    # shellcheck disable=SC2001
-    sed "s,[\\\\'\"\/],\\\\&,g" <<< "$1"
+  # print the first argument in an escaped way, such that it can safely
+  # be used within javascripts double quotes
+  # shellcheck disable=SC2001
+  sed "s,[\\\\'\"\/],\\\\&,g" <<<"$1"
 }
 
 js() {
-cat <<EOF
+  cat <<EOF
     function isVisible(elem) {
         var style = elem.ownerDocument.defaultView.getComputedStyle(elem, null);
         if (style.getPropertyValue("visibility") !== "visible" ||
@@ -38,13 +38,13 @@ cat <<EOF
             if (isVisible(input) && (input.type == "text" || input.type == "email")) {
                 input.focus();
                 input.value = "$(javascript_escape "${USERNAME}")";
-                input.dispatchEvent(new Event('change'));
+                input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.blur();
             }
             if (input.type == "password") {
                 input.focus();
                 input.value = "$(javascript_escape "${PASSWORD}")";
-                input.dispatchEvent(new Event('change'));
+                input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.blur();
             }
         }
@@ -62,63 +62,110 @@ cat <<EOF
 EOF
 }
 
-URL=$(echo "$QUTE_URL" | awk -F/ '{print $3}' | sed 's/www.//g')
+# --- 1. Derive the registrable domain (eTLD+1) -----------------------------
+host=${QUTE_URL#*://} # strip scheme
+host=${host%%/*}      # strip path
+host=${host%%:*}      # strip port
+host=${host#www.}     # drop leading www.
+
+# crude eTLD+1 extraction (works for most cases)
+IFS=. read -r -a parts <<<"$host"
+n=${#parts[@]}
+if ((n > 2)); then # login.google.com → google.com
+  domain="${parts[n - 2]}.${parts[n - 1]}"
+else
+  domain=$host # example.com stays example.com
+fi
+URL=$domain # the name you already use
+
 TOKEN_TMPDIR="${TMPDIR:-/tmp}"
 TOKEN_CACHE="$TOKEN_TMPDIR/1pass.token"
 
-echo "message-info 'Looking for password for $URL...'" >> "$QUTE_FIFO"
+echo "message-info 'Looking for password for $URL...'" >>"$QUTE_FIFO"
 
 if [ -f "$TOKEN_CACHE" ]; then
-    TOKEN=$(cat "$TOKEN_CACHE")
-    if ! op signin --session="$TOKEN" --output=raw > /dev/null; then
-        TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
-        echo "$TOKEN" > "$TOKEN_CACHE"
-    fi
+  TOKEN=$(cat "$TOKEN_CACHE")
+  if ! op signin --session="$TOKEN" --raw >/dev/null; then
+    TOKEN=$(rofi -dmenu -password -p "1password: " | op signin --raw) || TOKEN=""
+    echo "$TOKEN" >"$TOKEN_CACHE"
+  fi
 else
-    TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
-    install -m 600 /dev/null "$TOKEN_CACHE"
-    echo "$TOKEN" > "$TOKEN_CACHE"
+  TOKEN=$(rofi -dmenu -password -p "1password: " | op signin --raw) || TOKEN=""
+  install -m 600 /dev/null "$TOKEN_CACHE"
+  echo "$TOKEN" >"$TOKEN_CACHE"
 fi
 
-
 if [ -n "$TOKEN" ]; then
-    UUID=$(op list items --cache --session="$TOKEN" | jq --arg url "$URL" -r '[.[] | {uuid, url: [.overview.URLs[]?.u, .overview.url][]?} | select(.uuid != null) | select(.url != null) | select(.url|test(".*\($url).*"))][.0].uuid') || UUID="" 
+  #  UUID=$(op item list --cache --session="$TOKEN" --long --format=json | jq --arg url "$URL" -r 'first(.[] | {id,url:.urls[]?.href} | select(.id != null) | select(.url != null) | select(.url|test(".*\($url).*")).id') || UUID=""
+  # Find all items matching the domain, getting id and title
+  MATCHES_JSON=$(op item list --cache --session="$TOKEN" --format=json | \
+    jq -c --arg domain "$URL" '
+      map(select(.urls != null and any(.urls[]?.href; test("(^|\\.)"+$domain+"(/|$)")))) |
+      map({id, title})')
 
-    if [ -z "$UUID" ] || [ "$UUID" == "null" ];then
-        echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
-        TITLE=$(op list items --cache --session="$TOKEN" | jq -r '.[].overview.title' | rofi -dmenu -i) || TITLE=""
-        if [ -n "$TITLE" ]; then
-            UUID=$(op list items --cache --session="$TOKEN" | jq --arg title "$TITLE" -r '[.[] | {uuid, title:.overview.title}|select(.title|test("\($title)"))][.0].uuid') || UUID=""
-        else
-            UUID=""
-        fi
-    fi
+  MATCH_COUNT=$(echo "$MATCHES_JSON" | jq 'length')
 
-    if [ -n "$UUID" ];then
-        ITEM=$(op get item --cache --session="$TOKEN" "$UUID")
+  if [ "$MATCH_COUNT" -eq 1 ]; then
+    # Exactly one match found
+    UUID=$(echo "$MATCHES_JSON" | jq -r '.[0].id')
+    echo "message-info 'Found unique match for $URL'" >>"$QUTE_FIFO"
+  elif [ "$MATCH_COUNT" -gt 1 ]; then
+    # Multiple matches found, prompt user with rofi
+    echo "message-info 'Multiple matches found for $URL, prompting for selection...'" >>"$QUTE_FIFO"
+    TITLES=$(echo "$MATCHES_JSON" | jq -r '.[].title')
+    SELECTED_TITLE=$(echo -e "$TITLES" | rofi -dmenu -i -p "Select login:")
+    ROFI_EXIT_CODE=$?
 
-        PASSWORD=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="password") | .value')
-
-        if [ -n "$PASSWORD" ]; then
-            TITLE=$(echo "$ITEM" | jq -r '.overview.title')
-            USERNAME=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="username") | .value')
-
-            printjs() {
-                js | sed 's,//.*$,,' | tr '\n' ' '
-            }
-            echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
-
-            TOTP=$(echo "$ITEM" | op get totp --cache --session="$TOKEN" "$UUID") || TOTP=""
-            if [ -n "$TOTP" ]; then
-                echo "$TOTP" | xclip -in -selection clipboard
-                echo "message-info 'Pasted one time password for $TITLE to clipboard'" >> "$QUTE_FIFO" 
-            fi
-        else
-            echo "message-error 'No password found for $URL'" >> "$QUTE_FIFO"
-        fi
+    if [ $ROFI_EXIT_CODE -eq 0 ] && [ -n "$SELECTED_TITLE" ]; then
+      # User selected an item
+      UUID=$(echo "$MATCHES_JSON" | jq -r --arg title "$SELECTED_TITLE" '.[] | select(.title == $title).id')
+      echo "message-info 'User selected entry'" >>"$QUTE_FIFO" # Avoid logging title itself
     else
-        echo "message-error 'Entry not found for $UUID'" >> "$QUTE_FIFO"
+      # Rofi cancelled or selection empty
+      echo "message-info 'Login selection cancelled.'" >>"$QUTE_FIFO"
+      UUID=""
     fi
+  else
+    # No matches found based on URL
+    UUID=""
+  fi
+  if [ -z "$UUID" ] || [ "$UUID" == "null" ]; then
+    echo "message-error 'No entry found for $URL'" >>"$QUTE_FIFO"
+    TITLE=$(op item list --cache --session="$TOKEN" --long --format=json | jq --arg url "$URL" -r '.[] | {title} | select(.title != null).title' | rofi -dmenu -i) || TITLE=""
+
+    if [ -n "$TITLE" ]; then
+      TITLE=$(echo "$TITLE" | sed 's/(/\\(/g' | sed 's/)/\\)/g')
+      UUID=$(op item list --cache --session="$TOKEN" --long --format=json | jq --arg title "$TITLE" -r 'first(.[] | {id,title} | select(.title != null) | select(.title|test("\($title)")).id)') || UUID=""
+    else
+      UUID=""
+    fi
+  fi
+
+  if [ -n "$UUID" ]; then
+    ITEM=$(op item get --cache --format=json --session="$TOKEN" "$UUID")
+
+    PASSWORD=$(echo "$ITEM" | jq -r '.fields | .[1].value')
+
+    if [ -n "$PASSWORD" ]; then
+      TITLE=$(echo "$ITEM" | jq -r '.title')
+      USERNAME=$(echo "$ITEM" | jq -r '.fields | .[0].value')
+
+      printjs() {
+        js | sed 's,//.*$,,' | tr '\n' ' '
+      }
+      echo "jseval -q $(printjs)" >>"$QUTE_FIFO"
+
+      TOTP=$(echo "$ITEM" | op item get --cache --session="$TOKEN" "$UUID" --otp) || TOTP=""
+      if [ -n "$TOTP" ]; then
+        echo "$TOTP" | xclip -in -selection clipboard
+        echo "message-info 'Pasted one time password for $TITLE to clipboard'" >>"$QUTE_FIFO"
+      fi
+    else
+      echo "message-error 'No password found for $URL'" >>"$QUTE_FIFO"
+    fi
+  else
+    echo "message-error 'Entry not found for $UUID'" >>"$QUTE_FIFO"
+  fi
 else
-    echo "message-error 'Wrong master password'" >> "$QUTE_FIFO"
+  echo "message-error 'Wrong master password'" >>"$QUTE_FIFO"
 fi
