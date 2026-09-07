@@ -40,15 +40,24 @@ import sys
 import json
 import tldextract
 
+
+def _is_wayland():
+    return "WAYLAND_DISPLAY" in os.environ
+
+
+_DMENU_CMD = 'wofi' if _is_wayland() else 'rofi'
+_DMENU_DEFAULT = '{} -dmenu -i -p Bitwarden'.format(_DMENU_CMD)
+_PASSWORD_DEFAULT = '{} -dmenu -p "Master Password" -password -lines 0'.format(_DMENU_CMD)
+
 argument_parser = argparse.ArgumentParser(
     description=__doc__,
     usage=USAGE,
     epilog=EPILOG,
 )
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu -i -p Bitwarden',
+argument_parser.add_argument('--dmenu-invocation', '-d', default=_DMENU_DEFAULT,
                              help='Invocation used to execute a dmenu-provider')
-argument_parser.add_argument('--password-prompt-invocation', '-p', default='rofi -dmenu -p "Master Password" -password -lines 0',
+argument_parser.add_argument('--password-prompt-invocation', '-p', default=_PASSWORD_DEFAULT,
                              help='Invocation used to prompt the user for their Bitwarden password')
 argument_parser.add_argument('--no-insert-mode', '-n', dest='insert_mode', action='store_false',
                              help="Don't automatically enter insert mode")
