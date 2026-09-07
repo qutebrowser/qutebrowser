@@ -4,13 +4,15 @@
 
 """Wrapper over a WebEngineView."""
 
+import contextlib
 import math
 import struct
 import functools
 import dataclasses
 import re
 import html as html_utils
-from typing import cast, TypeAlias
+from collections.abc import Callable
+from typing import cast, Any, TypeAlias
 
 from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QByteArray, QTimer)
@@ -24,7 +26,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webengineinspector)
 
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               resources, message, jinja, debug, version, urlutils)
+                               resources, message, jinja, debug, version, urlutils, bidir_cycle)
 from qutebrowser.qt import sip, machinery
 from qutebrowser.misc import objects, miscwidgets
 
@@ -142,6 +144,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
+    SEARCH_REGEX_PREFIX = r"\v"
+
     _widget: webview.WebEngineView
 
     def __init__(self, tab, parent=None):
@@ -150,6 +154,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._pending_searches = 0
         self.match = browsertab.SearchMatch()
         self._old_match = browsertab.SearchMatch()
+        self._search_terms: bidir_cycle.BidirectionalCycle[str] | None = None
 
     def _store_flags(self, reverse, ignore_case):
         self._flags.case_sensitive = self._is_case_sensitive(ignore_case)
@@ -212,6 +217,40 @@ class WebEngineSearch(browsertab.AbstractSearch):
         log.webview.debug(f"Active search match: {self.match}")
         self.match_changed.emit(self.match)
 
+    @classmethod
+    def _is_search_regex(cls, text: str) -> bool:
+        r"""Determine whether the provided text is a search regex or not.
+
+        Any string starting with "\v" - i.e. a single backslash followed by the character v when
+        written in the search bar - followed by at least one more character is considered a regex.
+        The \v prefix is removed from the pattern before the regex is compiled.
+        """
+        return text.startswith(cls.SEARCH_REGEX_PREFIX) and len(text) > len(cls.SEARCH_REGEX_PREFIX)
+
+    @classmethod
+    def _extract_regex_from_search(cls, text: str) -> str:
+        """Strip the search regex prefix from the provided text."""
+        assert cls._is_search_regex(text), f"'{text}' is not a valid search regex"
+        return text[len(cls.SEARCH_REGEX_PREFIX):]
+
+    def _regex_search(
+        self,
+        html: str,
+        *,
+        regex: re.Pattern[str],
+        flags: _FindFlags,
+        result_cb: Callable[[Any], None] | None
+    ) -> None:
+        """Gather character sequences matching the provided regex and commence the search."""
+        matches = regex.findall(" ".join(html.split("\n")))
+        if not matches:
+            if result_cb is not None:
+                result_cb(browsertab.SearchNavigationResult.not_found)
+            return
+
+        self._search_terms = bidir_cycle.BidirectionalCycle[str](matches, backward=flags.backward)
+        self._find(next(self._search_terms), flags, result_cb, 'search')
+
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
                reverse=False, result_cb=None):
         # Don't go to next entry on duplicate search
@@ -225,6 +264,24 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._store_flags(reverse, ignore_case)
         self.match.reset()
 
+        if self._is_search_regex(text):
+            # If the text can be compiled to a re.Pattern, perform a regex search. Otherwise,
+            # fall back on a standard one.
+            with contextlib.suppress(re.error):
+                regex = re.compile(self._extract_regex_from_search(text))
+                bound = functools.partial(
+                    self._regex_search,
+                    regex=regex,
+                    flags=self._flags,
+                    result_cb=result_cb
+                )
+
+                # Get the plain HTML to gather search terms
+                self._widget.page().toPlainText(bound)
+                return
+
+        # Not a regex, only ever going to be searching for `text`
+        self._search_terms = bidir_cycle.BidirectionalCycle[str]([text], backward=self._flags.backward)
         self._find(text, self._flags, result_cb, 'search')
 
     def clear(self):
@@ -264,7 +321,9 @@ class WebEngineSearch(browsertab.AbstractSearch):
             return
 
         cb = functools.partial(self._prev_next_cb, going_up=going_up, callback=callback)
-        self._find(self.text, flags, cb, 'prev_result')
+        assert self._search_terms is not None, "Search terms not populated"
+        self._search_terms.backward = going_up
+        self._find(next(self._search_terms), flags, cb, 'prev_result')
 
     def next_result(self, *, wrap=False, callback=None):
         going_up = self._flags.backward
@@ -277,8 +336,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 callback(res)
             return
 
+        assert self._search_terms is not None, "Search terms not populated"
+        self._search_terms.backward = going_up
         cb = functools.partial(self._prev_next_cb, going_up=going_up, callback=callback)
-        self._find(self.text, self._flags, cb, 'next_result')
+        self._find(next(self._search_terms), self._flags, cb, 'next_result')
 
 
 class WebEngineCaret(browsertab.AbstractCaret):
