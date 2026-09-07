@@ -488,7 +488,8 @@ def _init_modules(*, args):
     log.init.debug("Initializing sessions...")
     sessions.init(objects.qapp)
 
-    if not args.no_err_windows:
+    if (config.val.crash_reporter.enabled in ("signals", "both") and
+            not args.no_err_windows):
         crashsignal.crash_handler.display_faulthandler()
 
     log.init.debug("Initializing quickmarks...")
