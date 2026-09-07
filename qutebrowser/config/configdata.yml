@@ -1196,6 +1196,15 @@ content.notifications.show_origin:
 
     Note that with the `qt` presenter, origins are never shown.
 
+content.push_service.enabled:
+  default: false
+  type: Bool
+  backend: QtWebEngine
+  desc: >-
+    Allow websites to use the Push API (via QtWebEngine's push service).
+
+    This is never enabled for private (off-the-record) windows.
+
 content.pdfjs:
   default: false
   type: Bool

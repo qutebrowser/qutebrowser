@@ -38,6 +38,8 @@ Added
 
 - New `:quickmark-reload` and `:bookmark-reload` commands to reload
   quick-/bookmarks from disk (#8845).
+- New `content.push_service.enabled` setting to allow websites to use the
+  Push API via QtWebEngine (#7533).
 
 Changed
 ~~~~~~~
