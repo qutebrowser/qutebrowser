@@ -70,48 +70,57 @@ echo "message-info 'Looking for password for $URL...'" >> "$QUTE_FIFO"
 
 if [ -f "$TOKEN_CACHE" ]; then
     TOKEN=$(cat "$TOKEN_CACHE")
-    if ! op signin --session="$TOKEN" --output=raw > /dev/null; then
-        TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
+    if ! op signin --session="$TOKEN" --raw > /dev/null; then
+        TOKEN=$(rofi -dmenu -password -p "1password: " | op signin --raw) || TOKEN=""
         echo "$TOKEN" > "$TOKEN_CACHE"
     fi
 else
-    TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
+    TOKEN=$(rofi -dmenu -password -p "1password: " | op signin --raw) || TOKEN=""
     install -m 600 /dev/null "$TOKEN_CACHE"
     echo "$TOKEN" > "$TOKEN_CACHE"
 fi
 
 
 if [ -n "$TOKEN" ]; then
-    UUID=$(op list items --cache --session="$TOKEN" | jq --arg url "$URL" -r '[.[] | {uuid, url: [.overview.URLs[]?.u, .overview.url][]?} | select(.uuid != null) | select(.url != null) | select(.url|test(".*\($url).*"))][.0].uuid') || UUID="" 
+    # find entry matching the exact host of our domain
+    UUID=$(op item list --format=json --session="$TOKEN" | \
+        jq --arg url "$URL" -r '
+            [ .[]
+            | select((.urls[]?.href // .url? // "")
+                | split("/")[2] == $url)
+            | .id
+            ]
+            | first
+        ') || UUID=""
 
-    if [ -z "$UUID" ] || [ "$UUID" == "null" ];then
-        echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
-        TITLE=$(op list items --cache --session="$TOKEN" | jq -r '.[].overview.title' | rofi -dmenu -i) || TITLE=""
+    if [ -z "$UUID" ] || [ "$UUID" == "null" ]; then
+        TITLE=$(op item list --format=json --session="$TOKEN" | jq -r '.[].title' | rofi -dmenu -i) || TITLE=""
         if [ -n "$TITLE" ]; then
-            UUID=$(op list items --cache --session="$TOKEN" | jq --arg title "$TITLE" -r '[.[] | {uuid, title:.overview.title}|select(.title|test("\($title)"))][.0].uuid') || UUID=""
-        else
-            UUID=""
+            # fallback: pick entry whose title contains the chosen string
+            UUID=$(op item list --format=json --session="$TOKEN" | \
+                jq --arg title "$TITLE" -r '[.[] | select(.title | contains($title))][0].id') || UUID=""
         fi
     fi
 
-    if [ -n "$UUID" ];then
-        ITEM=$(op get item --cache --session="$TOKEN" "$UUID")
+    if [ -n "$UUID" ]; then
+        ITEM=$(op item get --format=json --session="$TOKEN" "$UUID")
 
-        PASSWORD=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="password") | .value')
+        # extract password field (fallback to any concealed field if purpose missing)
+        PASSWORD=$(echo "$ITEM" | jq -r '(.fields[] | select(.purpose=="PASSWORD") | .value) // (.fields[] | select(.type=="CONCEALED") | .value)' | head -n1)
 
         if [ -n "$PASSWORD" ]; then
-            TITLE=$(echo "$ITEM" | jq -r '.overview.title')
-            USERNAME=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="username") | .value')
+            TITLE=$(echo "$ITEM" | jq -r '.title')
+            USERNAME=$(echo "$ITEM" | jq -r '.fields[] | select(.purpose=="USERNAME") | .value')
 
             printjs() {
                 js | sed 's,//.*$,,' | tr '\n' ' '
             }
             echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
 
-            TOTP=$(echo "$ITEM" | op get totp --cache --session="$TOKEN" "$UUID") || TOTP=""
+            TOTP=$(op item get --otp --session="$TOKEN" "$UUID") || TOTP=""
             if [ -n "$TOTP" ]; then
                 echo "$TOTP" | xclip -in -selection clipboard
-                echo "message-info 'Pasted one time password for $TITLE to clipboard'" >> "$QUTE_FIFO" 
+                echo "message-info 'Pasted one time password for $TITLE to clipboard'" >> "$QUTE_FIFO"
             fi
         else
             echo "message-error 'No password found for $URL'" >> "$QUTE_FIFO"
@@ -122,3 +131,4 @@ if [ -n "$TOKEN" ]; then
 else
     echo "message-error 'Wrong master password'" >> "$QUTE_FIFO"
 fi
+
