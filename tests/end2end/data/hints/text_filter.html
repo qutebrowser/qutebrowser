@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Text Filter Test</title>
+    </head>
+    <body>
+        <h1>Text Filter Test Page</h1>
+        
+        <!-- Links with different text content -->
+        <a href="/hello.txt" id="link-home">Home</a>
+        <a href="/about.txt" id="link-about">About Us</a>
+        <a href="/contact.txt" id="link-contact">Contact Information</a>
+        
+        <!-- Buttons with text -->
+        <button id="btn-submit">Submit Form</button>
+        <button id="btn-cancel">Cancel Operation</button>
+        
+        <!-- Input fields with placeholders -->
+        <form>
+            <input type="text" id="input-username" placeholder="Enter username" />
+            <input type="email" id="input-email" placeholder="user@example.com" />
+            <input type="password" id="input-password" placeholder="Enter secure password" />
+            <input type="search" id="input-search" placeholder="Search here..." />
+        </form>
+        
+        <!-- Input fields with values -->
+        <form>
+            <input type="text" id="input-prefilled" value="existing content" />
+            <input type="text" id="input-mixed" value="current value" placeholder="backup placeholder" />
+        </form>
+        
+        <!-- Nested elements -->
+        <div>
+            <span>Click <a href="/nested.txt" id="link-nested">this nested link</a> here</span>
+        </div>
+        
+        <!-- Elements with both text and attributes -->
+        <button id="btn-save" title="Save document">Save</button>
+        <input type="submit" id="input-submit" value="Submit Now" placeholder="fallback text" />
+        
+    </body>
+</html>
