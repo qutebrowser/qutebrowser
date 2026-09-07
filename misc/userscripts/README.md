@@ -23,6 +23,8 @@ The following userscripts are included in the current directory.
   dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 - [qute-lastpass](./qute-lastpass): Similar to qute-pass, for Lastpass.
 - [qute-bitwarden](./qute-bitwarden): Similar to qute-pass, for Bitwarden.
+- [qute-bitwarden-mac](./qute-bitwarden-mac): Similar to qute-pass, for Bitwarden on
+  macOS.
 - [qute-1pass](./qute-1pass): Insert login information using onepassword and rofi.
 - [qutedmenu](./qutedmenu): Handle open -s && open -t with bemenu.
 - [readability](./readability): Executes python-readability on current page and
@@ -97,7 +99,7 @@ The following userscripts can be found on their own repositories.
   substitution)
 - [pseudo per domain stylesheets](https://github.com/bschnitz/qute): Userscript
   for generating url restricted greasemonkey scripts to apply user styles.
-- [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
+- [qute-containers](https://github.com/s-praveen-kumar/qute-containers):
   A simple interface to manage browser containers by manipulating the basedir
   parameter.
 - [qutebrowser-metascript](https://codeberg.org/mister_monster/qutebrowser-metascript):
@@ -108,7 +110,7 @@ The following userscripts can be found on their own repositories.
   automatically mutates input URLs based on configurable rules
 - [qute-translate-popup](https://github.com/JohnBardoe/qute-translate-popup):
   selected text translation, with a qute popup!
-  
+
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/
