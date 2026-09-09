@@ -742,7 +742,7 @@ class FilenamePrompt(_BasePrompt):
 
         if clicked:
             path += os.sep
-        else:
+        elif path != "/":
             # On Windows, when we have C:\foo and tab over .., we get C:\
             path = path.rstrip(os.sep)
 
