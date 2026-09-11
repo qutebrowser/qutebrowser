@@ -243,8 +243,10 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             # create a directory and place the FIFO there, which sucks. Since
             # os.mkfifo will raise an exception anyways when the path doesn't
             # exist, it shouldn't be a big issue.
-            self._filepath = tempfile.mktemp(prefix='qutebrowser-userscript-',
-                                             dir=standarddir.runtime())
+            self._filepath = tempfile.mktemp(  # type: ignore[deprecated]
+                prefix='qutebrowser-userscript-',
+                dir=standarddir.runtime(),
+            )
             # pylint: disable=no-member,useless-suppression
             os.mkfifo(self._filepath, mode=0o600)
             # pylint: enable=no-member,useless-suppression
