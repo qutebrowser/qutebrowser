@@ -13,8 +13,8 @@ bdd.scenarios('downloads.feature')
 
 
 PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
-              "default={!r} mode=<PromptMode.download: 5> option=None "
-              "text=* title='Save file to:'>, *")
+              "choices=None default={!r} mode=<PromptMode.download: 5> "
+              "option=None text=* title='Save file to:'>, *")
 
 
 @pytest.fixture
