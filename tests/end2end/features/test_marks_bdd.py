@@ -13,6 +13,11 @@ def turn_on_scroll_logging(quteproc):
     quteproc.turn_on_scroll_logging(no_scroll_filtering=True)
 
 
+@pytest.fixture(autouse=True)
+def disable_search_delay(quteproc):
+    quteproc.set_setting('search.delay', '0')
+
+
 @bdd.then(bdd.parsers.parse("the page should be scrolled to {x} {y}"))
 def check_y(request, quteproc, x, y):
     data = quteproc.get_session()
