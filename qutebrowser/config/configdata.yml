@@ -1761,6 +1761,7 @@ hints.mode:
           are hinted.)
       - letter: Use the characters in the `hints.chars` setting.
       - word: Use hints words based on the html elements and the extra words.
+      - context: Use hints words based on the html elements only (no extra words).
   desc: Mode to use for hints.
 
 hints.next_regexes:
