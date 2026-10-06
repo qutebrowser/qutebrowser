@@ -338,8 +338,12 @@ class WebHistory(sql.SqlTable):
             earliest: Omit timestamps earlier than this.
             latest: Omit timestamps later than this.
         """
-        self._between_query.run(earliest=earliest, latest=latest)
-        return iter(self._between_query)
+        try:
+            self._between_query.run(earliest=earliest, latest=latest)
+            return iter(self._between_query)
+        except sql.KnownError as e:
+            message.error(f"Failed to read history: {e.text()}")
+            return iter([])
 
     def entries_before(self, latest, limit, offset):
         """Iterate non-redirect, non-qute entries occurring before a timestamp.
@@ -349,8 +353,12 @@ class WebHistory(sql.SqlTable):
             limit: Max number of entries to include.
             offset: Number of entries to skip.
         """
-        self._before_query.run(latest=latest, limit=limit, offset=offset)
-        return iter(self._before_query)
+        try:
+            self._before_query.run(latest=latest, limit=limit, offset=offset)
+            return iter(self._before_query)
+        except sql.KnownError as e:
+            message.error(f"Failed to read history: {e.text()}")
+            return iter([])
 
     def clear(self):
         """Clear all browsing history."""

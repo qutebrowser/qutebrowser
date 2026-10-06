@@ -83,6 +83,22 @@ class TestGetting:
                  web_history.entries_before(12348, limit=3, offset=2)]
         assert times == [12348, 12347, 12346]
 
+    def test_entries_before_sql_error(self, web_history, mocker, message_mock, caplog):
+        mocker.patch.object(web_history._before_query, 'run',
+                            side_effect=sql.KnownError('database locked', None))
+        with caplog.at_level(logging.ERROR):
+            assert list(web_history.entries_before(12348, limit=3, offset=2)) == []
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == "Failed to read history: database locked"
+
+    def test_entries_between_sql_error(self, web_history, mocker, message_mock, caplog):
+        mocker.patch.object(web_history._between_query, 'run',
+                            side_effect=sql.KnownError('database locked', None))
+        with caplog.at_level(logging.ERROR):
+            assert list(web_history.entries_between(12346, 12349)) == []
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == "Failed to read history: database locked"
+
 
 class TestDelete:
 
