@@ -7,7 +7,7 @@ from qutebrowser.utils import usertypes
 
 def test_unset_object_identity():
     assert usertypes.Unset() is not usertypes.Unset()
-    assert usertypes.UNSET is usertypes.UNSET  # noqa: R0124
+    assert usertypes.UNSET is usertypes.UNSET  # pylint: disable=comparison-with-itself
 
 
 def test_unset_object_repr():
