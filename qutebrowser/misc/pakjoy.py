@@ -225,8 +225,7 @@ def copy_webengine_resources() -> pathlib.Path | None:
         versions.webengine == utils.VersionNumber(6, 6)
         # https://bugreports.qt.io/browse/QTBUG-113369
         or (
-            versions.webengine >= utils.VersionNumber(6, 5)
-            and versions.webengine < utils.VersionNumber(6, 5, 3)
+            utils.VersionNumber(6, 5) <= versions.webengine < utils.VersionNumber(6, 5, 3)
             and config.val.colors.webpage.darkmode.enabled
         )
         # newer hardcoded versions handled in webenginesettings.py

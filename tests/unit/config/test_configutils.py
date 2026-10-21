@@ -324,7 +324,7 @@ class TestFontFamilies:
         for family in families:
             assert family
 
-        str(families)
+        str(families)  # noqa: B018
 
     def test_system_default_basics(self, qapp):
         families = configutils.FontFamilies.from_system_default()

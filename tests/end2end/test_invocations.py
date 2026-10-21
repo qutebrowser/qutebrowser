@@ -829,6 +829,7 @@ def test_sandboxing(
 ):
     # https://github.com/qutebrowser/qutebrowser/issues/8424
     userns_restricted = testutils.is_userns_restricted()
+    has_yama_non_broker = False
 
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
@@ -839,8 +840,6 @@ def test_sandboxing(
         has_namespaces = False
         expected_result = "You are NOT adequately sandboxed."
         has_yama_non_broker = has_yama
-    else:
-        has_yama_non_broker = False
 
     args = _base_args(request.config) + [
         '--temp-basedir',
@@ -881,7 +880,6 @@ def test_sandboxing(
             f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
             f"{yama_text} (Broker)": "Yes" if has_yama else "No",
-            # pylint: disable-next=used-before-assignment
             f"{yama_text} (Non-broker)": "Yes" if has_yama_non_broker else "No",
         }
 
