@@ -257,7 +257,7 @@ def main(arguments):
 
     username = selection['login']['username']
     password = selection['login']['password']
-    totp = selection['login']['totp']
+    totp = selection['login'].get('totp')
 
     if arguments.username_only:
         fake_key_raw(username)
