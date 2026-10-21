@@ -779,7 +779,7 @@ class TestParseJavascriptUrl:
         url = QUrl(scheme + urllib.parse.quote(source))
         hypothesis.assume(url.isValid())
 
-        try:  # pylint: disable=unreachable
+        try:
             parsed = urlutils.parse_javascript_url(url)
         except urlutils.Error:
             pass

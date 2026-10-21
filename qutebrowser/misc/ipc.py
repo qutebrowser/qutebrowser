@@ -78,7 +78,7 @@ class SocketError(Error):
 
     """Exception raised when there was an error with a QLocalSocket.
 
-    Args:
+    Attributes:
         code: The error code.
         message: The error message.
         action: The action which was taken when the error happened.
@@ -105,7 +105,7 @@ class ListenError(Error):
 
     """Exception raised when there was a problem with listening to IPC.
 
-    Args:
+    Attributes:
         code: The error code.
         message: The error message.
     """

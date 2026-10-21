@@ -559,7 +559,7 @@ class TestKeySequence:
         except keyutils.KeyParseError:
             pass
         else:
-            str(seq)
+            str(seq)  # noqa: B018
 
 
 def test_key_info_from_event():
