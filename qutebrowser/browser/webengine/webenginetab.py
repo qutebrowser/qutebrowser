@@ -780,10 +780,16 @@ class WebEngineElements(browsertab.AbstractElements):
 
     def find_css(self, selector, callback, error_cb, *,
                  only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_css', selector,
-                                      only_visible)
+        init_code = javascript.wrap_global(
+            'scripts',
+            resources.read_file('javascript/scroll.js'),
+            resources.read_file('javascript/webelem.js'),
+            resources.read_file('javascript/caret.js'),
+        )
+        call_code = javascript.assemble('webelem', 'find_css', selector,
+                                        only_visible)
         js_cb = functools.partial(self._js_cb_multiple, callback, error_cb)
-        self._tab.run_js_async(js_code, js_cb)
+        self._tab.run_js_async(init_code + '\n' + call_code, js_cb)
 
     def find_id(self, elem_id, callback):
         js_code = javascript.assemble('webelem', 'find_id', elem_id)
