@@ -345,6 +345,59 @@ qt.chromium.experimental_web_platform_features:
     Chromium. By default, this is enabled with Qt 5 to maximize compatibility
     despite an aging Chromium base.
 
+qt.chromium.lifecycle_state.enabled:
+  type: Bool
+  default: true
+  backend: QtWebEngine
+  # yamllint disable rule:line-length
+  desc: >-
+    Use recommended page lifecycle state.
+
+    This puts webpages into one of three lifecycle states: active, frozen, or
+    discarded. Using the recommended lifecycle state lets the browser use less
+    resources by freezing or discarding web views when it's safe to do so.
+
+    This results in significant battery life savings.
+
+    Ongoing page activity is taken into account when determining the
+    recommended lifecycle state, as to not disrupt your browsing.
+
+    This feature is only available on QtWebEngine 6.5+. On older versions
+    this setting is ignored.
+
+    See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
+  # yamllint enable rule:line-length
+
+qt.chromium.lifecycle_state.freeze_delay:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 30_000
+  backend: QtWebEngine
+  desc: >-
+    The amount of time (in milliseconds) to wait before transitioning a page to
+    the frozen lifecycle state.
+    This is a low-CPU state, where most DOM event processing, JavaScript
+    execution, and other tasks are suspended.
+
+qt.chromium.lifecycle_state.discard_delay:
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  default: -1
+  backend: QtWebEngine
+  desc: >-
+    The amount of time (in milliseconds) to wait before transitioning a page to
+    the discarded lifecycle state.
+    This state is an extreme resource-saving state, where the browsing context
+    of the web view is discarded and the renderer process is shut down.
+    Resource usage is therefore reduced to near-zero. The web page is
+    automatically reloaded when needed.
+
+    Set to -1 to disable this state.
+
 qt.highdpi:
   type: Bool
   default: false
