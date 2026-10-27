@@ -334,6 +334,10 @@ class GreasemonkeyManager(QObject):
                         successful.append(script)
                 except OSError as e:
                     errors.append((os.path.basename(script_filename), str(e)))
+                except UnicodeDecodeError as e:
+                    log.greasemonkey.warning(
+                        f"Failed to decode {os.path.basename(script_filename)}: {e}")
+                    errors.append((os.path.basename(script_filename), str(e)))
 
         self.scripts_reloaded.emit()
         return LoadResults(successful=successful, errors=errors)
