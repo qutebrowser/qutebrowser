@@ -138,3 +138,7 @@ def test_detach_after_toggling(hidden_again, needs_recreate,
             fake_inspector.set_position(inspector.Position.window)
         assert fake_inspector.isVisible()
         assert fake_inspector.isWindow()
+
+
+def test_window_title(fake_inspector):
+    assert fake_inspector.windowTitle() == "Web Inspector"
