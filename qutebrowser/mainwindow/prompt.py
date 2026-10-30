@@ -482,6 +482,13 @@ class PromptContainer(QWidget):
         assert len(folders) == 1
         self.prompt_accept(folders[0])
 
+    @cmdutils.register(
+        instance='prompt-container', scope='window',
+        modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
+    def prompt_toggle(self):
+        """Toggle visibility of prompts."""
+        self.setVisible(not self.isVisible())
+
 
 class LineEdit(QLineEdit):
 
@@ -518,6 +525,7 @@ class _BasePrompt(QWidget):
     """Base class for all prompts."""
 
     KEY_MODE = usertypes.KeyMode.prompt
+    _BASE_COMMANDS = [('prompt-toggle', 'Show/hide the currently shown prompt.')]
 
     def __init__(self, question, parent=None):
         super().__init__(parent)
@@ -552,7 +560,7 @@ class _BasePrompt(QWidget):
         labels = []
 
         has_bindings = False
-        for cmd, text in self._allowed_commands():
+        for cmd, text in self._allowed_commands() + self._BASE_COMMANDS:
             bindings = all_bindings.get(cmd, [])
             if bindings:
                 has_bindings = True
