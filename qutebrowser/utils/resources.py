@@ -10,7 +10,7 @@ import contextlib
 import posixpath
 import pathlib
 import importlib.resources
-from typing import Union
+from typing import TypeAlias, Union
 from collections.abc import Iterator, Iterable
 
 if sys.version_info >= (3, 11):  # pragma: no cover
@@ -24,7 +24,7 @@ _cache: dict[str, str] = {}
 _bin_cache: dict[str, bytes] = {}
 
 
-_ResourceType = Union[Traversable, pathlib.Path]
+_ResourceType: TypeAlias = Traversable | pathlib.Path
 
 
 def _path(filename: str) -> _ResourceType:
@@ -33,20 +33,6 @@ def _path(filename: str) -> _ResourceType:
     assert os.path.pardir not in filename.split(posixpath.sep), filename
 
     return importlib.resources.files(qutebrowser) / filename
-
-@contextlib.contextmanager
-def _keyerror_workaround() -> Iterator[None]:
-    """Re-raise KeyErrors as FileNotFoundErrors.
-
-    WORKAROUND for zipfile.Path resources raising KeyError when a file was notfound:
-    https://bugs.python.org/issue43063
-
-    Only needed for Python 3.9.
-    """
-    try:
-        yield
-    except KeyError as e:
-        raise FileNotFoundError(str(e))
 
 
 def _glob(
@@ -102,8 +88,7 @@ def read_file(filename: str) -> str:
         return _cache[filename]
 
     path = _path(filename)
-    with _keyerror_workaround():
-        return path.read_text(encoding='utf-8')
+    return path.read_text(encoding='utf-8')
 
 
 def read_file_binary(filename: str) -> bytes:
@@ -119,5 +104,4 @@ def read_file_binary(filename: str) -> bytes:
         return _bin_cache[filename]
 
     path = _path(filename)
-    with _keyerror_workaround():
-        return path.read_bytes()
+    return path.read_bytes()

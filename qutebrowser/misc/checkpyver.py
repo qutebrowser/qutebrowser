@@ -23,17 +23,21 @@ except ImportError:  # pragma: no cover
         messagebox = None  # type: ignore[assignment]
 
 
+MIN_PYTHON_VERSION = (3, 10)
+MIN_PYTHON_VERSION_STR = '.'.join(map(str, MIN_PYTHON_VERSION))
+
+
 # First we check the version of Python. This code should run fine with python2
 # and python3. We don't have Qt available here yet, so we just print an error
 # to stderr.
 def check_python_version():
     """Check if correct python version is run."""
-    if sys.hexversion < 0x03090000:
+    if sys.version_info[:2] < MIN_PYTHON_VERSION:
         # We don't use .format() and print_function here just in case someone
         # still has < 2.6 installed.
         version_str = '.'.join(map(str, sys.version_info[:3]))
-        text = ("At least Python 3.9 is required to run qutebrowser, but " +
-                "it's running with " + version_str + ".\n")
+        text = ("At least Python " + MIN_PYTHON_VERSION_STR + " is required to run "
+                "qutebrowser, but it's running with " + version_str + ".\n")
 
         show_errors = '--no-err-windows' not in sys.argv
         if Tk and show_errors:  # type: ignore[truthy-function]  # pragma: no cover

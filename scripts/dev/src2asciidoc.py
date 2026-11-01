@@ -110,7 +110,7 @@ class UsageFormatter(argparse.HelpFormatter):
         This only exists with Python 3.13+.
         """
         with self._patch_option_strings(actions):
-            # pylint: disable=no-member
+            # pylint: disable-next=no-member,useless-suppression
             return super()._get_actions_usage_parts(actions, groups)
 
     def _format_actions_usage(self, actions, groups):
@@ -120,23 +120,12 @@ class UsageFormatter(argparse.HelpFormatter):
         """
         if hasattr(super(), '_get_actions_usage_parts'):
             # Use the patching above
+            # pylint: disable=no-member,useless-suppression
             return super()._format_actions_usage(actions, groups)
 
         with self._patch_option_strings(actions):
+            # pylint: disable=no-member,useless-suppression
             return super()._format_actions_usage(actions, groups)
-
-    def _format_args(self, action, default_metavar):
-        """Backport simplified star nargs usage.
-
-        https://github.com/python/cpython/pull/17106
-        """
-        if sys.version_info >= (3, 9) or action.nargs != argparse.ZERO_OR_MORE:
-            return super()._format_args(action, default_metavar)
-
-        get_metavar = self._metavar_formatter(action, default_metavar)
-        metavar = get_metavar(1)
-        assert len(metavar) == 1
-        return f'[{metavar[0]} ...]'
 
 
 def _open_file(name, mode='w'):
@@ -513,8 +502,10 @@ def _format_block(filename, what, data):
     what = what.upper()
     oshandle, tmpname = tempfile.mkstemp()
     try:
-        with _open_file(filename, mode='r') as infile, \
-                _open_file(oshandle, mode='w') as temp:
+        with (
+            _open_file(filename, mode="r") as infile,
+            _open_file(oshandle, mode="w") as temp,
+        ):
             found_start = False
             found_end = False
             for line in infile:

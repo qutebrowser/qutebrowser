@@ -30,7 +30,6 @@ import argparse
 import warnings
 import importlib
 import dataclasses
-from typing import Optional
 
 from qutebrowser.utils import log
 
@@ -105,7 +104,7 @@ class SelectionReason(enum.Enum):
 class SelectionInfo:
     """Information about outcomes of importing Qt wrappers."""
 
-    wrapper: Optional[str] = None
+    wrapper: str | None = None
     outcomes: dict[str, str] = dataclasses.field(default_factory=dict)
     reason: SelectionReason = SelectionReason.unknown
 
@@ -164,7 +163,7 @@ def _autoselect_wrapper() -> SelectionInfo:
     return info
 
 
-def _select_wrapper(args: Optional[argparse.Namespace]) -> SelectionInfo:
+def _select_wrapper(args: argparse.Namespace | None) -> SelectionInfo:
     """Select a Qt wrapper.
 
     - If --qt-wrapper is given, use that.

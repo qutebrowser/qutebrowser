@@ -5,7 +5,7 @@
 
 """Keyboard macro system."""
 
-from typing import cast, Optional
+from typing import TypeAlias, cast
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -13,7 +13,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
 
-_CommandType = tuple[str, int]  # command, type
+_CommandType: TypeAlias = tuple[str, int]  # command, type
 
 macro_recorder = cast('MacroRecorder', None)
 
@@ -33,13 +33,13 @@ class MacroRecorder:
 
     def __init__(self) -> None:
         self._macros: dict[str, list[_CommandType]] = {}
-        self._recording_macro: Optional[str] = None
+        self._recording_macro: str | None = None
         self._macro_count: dict[int, int] = {}
-        self._last_register: Optional[str] = None
+        self._last_register: str | None = None
 
     @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def macro_record(self, win_id: int, register: str = None) -> None:
+    def macro_record(self, win_id: int, register: str | None = None) -> None:
         """Start or stop recording a macro.
 
         Args:
@@ -65,7 +65,7 @@ class MacroRecorder:
     @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def macro_run(self, win_id: int, count: int = 1, register: str = None) -> None:
+    def macro_run(self, win_id: int, count: int = 1, register: str | None = None) -> None:
         """Run a recorded macro.
 
         Args:

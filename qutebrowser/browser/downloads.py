@@ -13,7 +13,7 @@ import functools
 import pathlib
 import tempfile
 import enum
-from typing import Any, IO, Optional, Union
+from typing import Any, IO
 from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
@@ -35,7 +35,7 @@ class ModelRole(enum.IntEnum):
 
 
 # Remember the last used directory
-last_used_directory: Optional[str] = None
+last_used_directory: str | None = None
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
@@ -198,10 +198,12 @@ def transform_path(path):
     # Paths like COM1, ...
     # See https://github.com/qutebrowser/qutebrowser/issues/82
     if sys.version_info[:2] >= (3, 13):
-        if os.path.isreserved(path):  # pylint: disable=no-member
+        # pylint: disable=no-member,useless-suppression
+        if os.path.isreserved(path):
             return None
     else:
-        if pathlib.Path(path).is_reserved():  # pylint: disable=else-if-used
+        # pylint: disable-next=else-if-used,deprecated-method,useless-suppression
+        if pathlib.Path(path).is_reserved():
             return None
 
     return path
@@ -221,7 +223,7 @@ def suggested_fn_from_title(url_path, title=None):
     ext_whitelist = [".html", ".htm", ".php", ""]
     _, ext = os.path.splitext(url_path)
 
-    suggested_fn: Optional[str] = None
+    suggested_fn: str | None = None
     if ext.lower() in ext_whitelist and title:
         suggested_fn = utils.sanitize_filename(title, shorten=True)
         if not suggested_fn.lower().endswith((".html", ".htm")):
@@ -451,14 +453,10 @@ class AbstractDownloadItem(QObject):
         self.basename = '???'
         self.successful = False
 
-        self.fileobj: Union[
-            UnsupportedAttribute, IO[bytes], None
-        ] = UnsupportedAttribute()
-        self.raw_headers: Union[
-            UnsupportedAttribute, dict[bytes, bytes]
-        ] = UnsupportedAttribute()
+        self.fileobj: UnsupportedAttribute | IO[bytes] | None = UnsupportedAttribute()
+        self.raw_headers: UnsupportedAttribute | dict[bytes, bytes] = UnsupportedAttribute()
 
-        self._filename: Optional[str] = None
+        self._filename: str | None = None
         self._dead = False
 
     def __repr__(self):
@@ -1097,8 +1095,7 @@ class DownloadModel(QAbstractListModel):
         """Called when a downloader's data changed.
 
         Args:
-            start: The first changed index as int.
-            end: The last changed index as int, or -1 for all indices.
+            idx: The changed index as int.
             webengine: If given, the QtNetwork download length is added to the
                       index.
         """
@@ -1176,7 +1173,7 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def download_open(self, cmdline: str = None, count: int = 0,
+    def download_open(self, cmdline: str | None = None, count: int = 0,
                       dir_: bool = False) -> None:
         """Open the last/[count]th download.
 

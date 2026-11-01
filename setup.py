@@ -32,7 +32,7 @@ except NameError:
 
 def read_file(name):
     """Get the string contained in the file named name."""
-    with common.open_file(name, 'r', encoding='utf-8') as f:
+    with open(name, 'r', encoding='utf-8') as f:
         return f.read()
 
 
@@ -66,7 +66,7 @@ try:
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         zip_safe=True,
         install_requires=['jinja2', 'PyYAML'],
-        python_requires='>=3.9',
+        python_requires='>=3.10',
         name='qutebrowser',
         version=_get_constant('version'),
         description=_get_constant('description'),
@@ -86,11 +86,11 @@ try:
             'Operating System :: MacOS',
             'Operating System :: POSIX :: BSD',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
             'Programming Language :: Python :: 3.12',
             'Programming Language :: Python :: 3.13',
+            'Programming Language :: Python :: 3.14',
             'Topic :: Internet',
             'Topic :: Internet :: WWW/HTTP',
             'Topic :: Internet :: WWW/HTTP :: Browsers',

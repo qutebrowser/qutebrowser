@@ -8,7 +8,7 @@ import binascii
 import base64
 import itertools
 import functools
-from typing import Optional, cast
+from typing import TypeAlias, cast
 from collections.abc import MutableSequence
 
 from qutebrowser.qt import machinery
@@ -101,7 +101,7 @@ def get_target_window():
         return None
 
 
-_OverlayInfoType = tuple[QWidget, pyqtBoundSignal, bool, str]
+_OverlayInfoType: TypeAlias = tuple[QWidget, pyqtBoundSignal, bool, str]
 
 
 class MainWindow(QWidget):
@@ -184,8 +184,8 @@ class MainWindow(QWidget):
 
     def __init__(self, *,
                  private: bool,
-                 geometry: Optional[QByteArray] = None,
-                 parent: Optional[QWidget] = None) -> None:
+                 geometry: QByteArray | None = None,
+                 parent: QWidget | None = None) -> None:
         """Create a new main window.
 
         Args:

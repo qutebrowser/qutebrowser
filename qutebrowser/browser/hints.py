@@ -14,7 +14,7 @@ import dataclasses
 from pathlib import Path
 from itertools import product, combinations
 from string import ascii_lowercase
-from typing import (TYPE_CHECKING, Optional)
+from typing import (TYPE_CHECKING, TypeAlias)
 from collections.abc import (
     Iterable,
     Iterator,
@@ -188,9 +188,9 @@ class HintContext:
 
     all_labels: list[HintLabel] = dataclasses.field(default_factory=list)
     labels: dict[str, HintLabel] = dataclasses.field(default_factory=dict)
-    to_follow: Optional[str] = None
+    to_follow: str | None = None
     first_run: bool = True
-    filterstr: Optional[str] = None
+    filterstr: str | None = None
 
     def get_args(self, urlstr: str) -> Sequence[str]:
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -350,8 +350,8 @@ class HintActions:
         commandrunner.run_safely('spawn ' + ' '.join(args))
 
 
-_ElemsType = Sequence[webelem.AbstractWebElement]
-_HintStringsType = MutableSequence[str]
+_ElemsType: TypeAlias = Sequence[webelem.AbstractWebElement]
+_HintStringsType: TypeAlias = MutableSequence[str]
 
 
 class HintManager(QObject):
@@ -391,11 +391,11 @@ class HintManager(QObject):
 
     set_text = pyqtSignal(str)
 
-    def __init__(self, win_id: int, parent: QObject = None) -> None:
+    def __init__(self, win_id: int, parent: QObject | None = None) -> None:
         """Constructor."""
         super().__init__(parent)
         self._win_id = win_id
-        self._context: Optional[HintContext] = None
+        self._context: HintContext | None = None
         self._word_hinter = WordHinter()
         self._context_hinter = ContextHinter()
 
@@ -596,7 +596,7 @@ class HintManager(QObject):
                 raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
-    def _filter_matches(self, filterstr: Optional[str], elemstr: str) -> bool:
+    def _filter_matches(self, filterstr: str | None, elemstr: str) -> bool:
         """Return True if `filterstr` matches `elemstr`."""
         # Empty string and None always match
         if not filterstr:
@@ -672,7 +672,7 @@ class HintManager(QObject):
               group: str = 'all',
               target: Target = Target.normal,
               *args: str,
-              mode: str = None,
+              mode: str | None = None,
               add_history: bool = False,
               rapid: bool = False,
               first: bool = False) -> None:
@@ -792,7 +792,7 @@ class HintManager(QObject):
             error_cb=lambda err: message.error(str(err)),
             only_visible=True)
 
-    def _get_hint_mode(self, mode: Optional[str]) -> str:
+    def _get_hint_mode(self, mode: str | None) -> str:
         """Get the hinting mode to use based on a mode argument."""
         if mode is None:
             return config.val.hints.mode
@@ -804,7 +804,7 @@ class HintManager(QObject):
             raise cmdutils.CommandError("Invalid mode: {}".format(e))
         return mode
 
-    def current_mode(self) -> Optional[str]:
+    def current_mode(self) -> str | None:
         """Return the currently active hinting mode (or None otherwise)."""
         if self._context is None:
             return None
@@ -815,7 +815,7 @@ class HintManager(QObject):
             self,
             keystr: str = "",
             filterstr: str = "",
-            visible: Mapping[str, HintLabel] = None
+            visible: Mapping[str, HintLabel] | None = None
     ) -> None:
         """Handle the auto_follow option."""
         assert self._context is not None
@@ -877,7 +877,7 @@ class HintManager(QObject):
                 pass
         self._handle_auto_follow(keystr=keystr)
 
-    def filter_hints(self, filterstr: Optional[str]) -> None:
+    def filter_hints(self, filterstr: str | None) -> None:
         """Filter displayed hints according to a text.
 
         Args:
@@ -1005,7 +1005,7 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='window',
                        modes=[usertypes.KeyMode.hint])
-    def hint_follow(self, select: bool = False, keystring: str = None) -> None:
+    def hint_follow(self, select: bool = False, keystring: str | None = None) -> None:
         """Follow a hint.
 
         Args:
@@ -1086,8 +1086,7 @@ class WordHinter:
             self, elem: webelem.AbstractWebElement
     ) -> Iterator[str]:
         """Extract tag words form the given element."""
-        _extractor_type = Callable[[webelem.AbstractWebElement], str]
-        attr_extractors: Mapping[str, _extractor_type] = {
+        attr_extractors: Mapping[str, Callable[[webelem.AbstractWebElement], str]] = {
             "alt": lambda elem: elem["alt"],
             "name": lambda elem: elem["name"],
             "title": lambda elem: elem["title"],
@@ -1136,7 +1135,7 @@ class WordHinter:
 
     def new_hint_for(self, elem: webelem.AbstractWebElement,
                      existing: Iterable[str],
-                     fallback: Iterable[str]) -> Optional[str]:
+                     fallback: Iterable[str]) -> str | None:
         """Return a hint for elem, not conflicting with the existing."""
         new = self.tag_words_to_hints(self.extract_tag_words(elem))
         new_no_prefixes = self.filter_prefixes(new, existing)

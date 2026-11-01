@@ -19,9 +19,7 @@ import contextlib
 import shlex
 import sysconfig
 import mimetypes
-from typing import (Any, IO,
-                    Optional, Union,
-                    TypeVar, Protocol)
+from typing import Any, IO, TypeAlias, TypeVar, Protocol
 from collections.abc import Iterator, Sequence, Callable
 
 from qutebrowser.qt.core import QUrl, QVersionNumber, QRect, QPoint
@@ -40,7 +38,7 @@ except ImportError:  # pragma: no cover
 
 from qutebrowser.utils import log
 
-fake_clipboard: Optional[str] = None
+fake_clipboard: str | None = None
 log_clipboard = False
 
 is_mac = sys.platform.startswith('darwin')
@@ -199,7 +197,7 @@ def elide_filename(filename: str, length: int) -> str:
         return filename[:left] + elidestr + filename[-right:]
 
 
-def compact_text(text: str, elidelength: int = None) -> str:
+def compact_text(text: str, elidelength: int | None = None) -> str:
     """Remove leading whitespace and newlines from a text and maybe elide it.
 
     Args:
@@ -231,7 +229,7 @@ def format_seconds(total_seconds: int) -> str:
     return prefix + ':'.join(chunks)
 
 
-def format_size(size: Optional[float], base: int = 1024, suffix: str = '') -> str:
+def format_size(size: float | None, base: int = 1024, suffix: str = '') -> str:
     """Format a byte size so it's human readable.
 
     Inspired by https://stackoverflow.com/q/1094841
@@ -408,7 +406,7 @@ def qualname(obj: Any) -> str:
         return repr(obj)
 
 
-_ExceptionType = Union[type[BaseException], tuple[type[BaseException]]]
+_ExceptionType: TypeAlias = type[BaseException] | tuple[type[BaseException]]
 
 
 def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:
@@ -439,7 +437,7 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: Optional[str] = '_',
+                      replacement: str | None = '_',
                       shorten: bool = False) -> str:
     """Replace invalid filename characters.
 
@@ -567,7 +565,7 @@ def supports_selection() -> bool:
     return _clipboard().supportsSelection()
 
 
-def open_file(filename: str, cmdline: str = None) -> None:
+def open_file(filename: str, cmdline: str | None = None) -> None:
     """Open the given file.
 
     If cmdline is not given, downloads.open_dispatcher is used.
@@ -647,7 +645,7 @@ def expand_windows_drive(path: str) -> str:
         return path
 
 
-def yaml_load(f: Union[str, IO[str]]) -> Any:
+def yaml_load(f: str | IO[str]) -> Any:
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
 
@@ -687,7 +685,7 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
     return data
 
 
-def yaml_dump(data: Any, f: IO[str] = None) -> Optional[str]:
+def yaml_dump(data: Any, f: IO[str] | None = None) -> str | None:
     """Wrapper over yaml.dump using the C dumper if possible.
 
     Also returns a str instead of bytes.
@@ -777,7 +775,7 @@ def parse_duration(duration: str) -> int:
     return milliseconds
 
 
-def mimetype_extension(mimetype: str) -> Optional[str]:
+def mimetype_extension(mimetype: str) -> str | None:
     """Get a suitable extension for a given mimetype.
 
     This mostly delegates to Python's mimetypes.guess_extension(), but backports some
@@ -803,16 +801,6 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
             "image/webp": ".webp",
             "text/n3": ".n3",
             "text/vtt": ".vtt",
-        })
-    if sys.version_info[:2] < (3, 10):
-        overrides.update({
-            "application/x-hdf5": ".h5",
-            "audio/3gpp": ".3gp",
-            "audio/3gpp2": ".3g2",
-            "audio/aac": ".aac",
-            "audio/opus": ".opus",
-            "image/heic": ".heic",
-            "image/heif": ".heif",
         })
     if mimetype in overrides:
         return overrides[mimetype]
@@ -876,7 +864,7 @@ def parse_point(s: str) -> QPoint:
         raise ValueError(e)
 
 
-def match_globs(patterns: list[str], value: str) -> Optional[str]:
+def match_globs(patterns: list[str], value: str) -> str | None:
     """Match a list of glob-like patterns against a value.
 
     Return:

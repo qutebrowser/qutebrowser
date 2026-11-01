@@ -21,40 +21,38 @@ pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
 @pytest.mark.parametrize('available, snippet', [
     (True, '<title>PDF.js viewer</title>'),
     (False, '<h1>No pdf.js installation found</h1>'),
-    ('force', 'fake PDF.js'),
 ])
 def test_generate_pdfjs_page(available, snippet, monkeypatch):
-    if available == 'force':
-        monkeypatch.setattr(pdfjs, 'is_available', lambda: True)
-        monkeypatch.setattr(pdfjs, 'get_pdfjs_res',
-                            lambda filename: b'fake PDF.js')
-    elif available:
-        if not pdfjs.is_available():
-            pytest.skip("PDF.js unavailable")
-        monkeypatch.setattr(pdfjs, 'is_available', lambda: True)
-    else:
-        monkeypatch.setattr(pdfjs, 'is_available', lambda: False)
+    if available and not pdfjs.is_available():
+        pytest.skip("PDF.js unavailable")
 
+    monkeypatch.setattr(pdfjs, 'is_available', lambda: available)
     content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
     print(content)
     assert snippet in content
 
 
-# Note that we got double protection, once because we use QUrl.ComponentFormattingOption.FullyEncoded and
-# because we use qutebrowser.utils.javascript.to_js. Characters like " are
-# already replaced by QUrl.
-@pytest.mark.parametrize('filename, expected', [
+# Note that we got double protection, once because we use
+# QUrl.ComponentFormattingOption.FullyEncoded and because we use html.escape.
+# Characters like " are already replaced by QUrl.
+@pytest.mark.parametrize('filename, escaped', [
     ('foo.bar', "foo.bar"),
     ('foo"bar', "foo%22bar"),
     ('foo\0bar', 'foo%00bar'),
     ('foobar");alert("attack!");',
      'foobar%22);alert(%22attack!%22);'),
 ])
-def test_generate_pdfjs_script(filename, expected):
-    expected_open = 'open("qute://pdfjs/file?filename={}");'.format(expected)
-    actual = pdfjs._generate_pdfjs_script(filename)
-    assert expected_open in actual
-    assert 'PDFView' in actual
+def test_generate_pdfjs_page_url(
+    filename: str, escaped: str, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(pdfjs, 'is_available', lambda: True)
+    monkeypatch.setattr(
+        pdfjs, "get_pdfjs_res", lambda filename: b"<body>fake PDF.js</body>"
+    )
+    content = pdfjs.generate_pdfjs_page(filename, QUrl())
+    print(content)
+    snippet = f'<script src="qute://pdfjs/qb.js" data-url="qute://pdfjs/file?filename={escaped}"></script>'
+    assert snippet in content
 
 
 class TestResources:

@@ -35,7 +35,7 @@ Possible values:
 
 
 import inspect
-from typing import Any, Protocol, Optional, cast
+from typing import Any, Protocol, TypeAlias, cast
 from collections.abc import Iterable, Callable
 
 from qutebrowser.utils import qtutils
@@ -91,7 +91,7 @@ def check_exclusive(flags: Iterable[bool], names: Iterable[str]) -> None:
         raise CommandError("Only one of {} can be given!".format(argstr))
 
 
-_CmdHandlerFunc = Callable[..., Any]
+_CmdHandlerFunc: TypeAlias = Callable[..., Any]
 
 
 class _CmdHandlerType(Protocol):
@@ -102,7 +102,7 @@ class _CmdHandlerType(Protocol):
     Below, we cast the decorated function to _CmdHandlerType to make mypy aware of this.
     """
 
-    qute_args: Optional[dict[str, 'command.ArgInfo']]
+    qute_args: dict[str, 'command.ArgInfo'] | None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         ...
@@ -113,9 +113,9 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
     """Decorator to register a new command handler."""
 
     def __init__(self, *,
-                 instance: str = None,
-                 name: str = None,
-                 deprecated_name: str = None,
+                 instance: str | None = None,
+                 name: str | None = None,
+                 deprecated_name: str | None = None,
                  **kwargs: Any) -> None:
         """Save decorator arguments.
 

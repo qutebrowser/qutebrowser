@@ -16,7 +16,7 @@ import functools
 import threading
 import faulthandler
 import dataclasses
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 from collections.abc import Callable, MutableMapping
 
 from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
@@ -323,10 +323,10 @@ class SignalHandler(QObject):
         self._timer = usertypes.Timer(self, 'python_hacks')
         self._orig_handlers: MutableMapping[int, 'signal._HANDLER'] = {}
         self._activated = False
-        self._orig_wakeup_fd: Optional[int] = None
+        self._orig_wakeup_fd: int | None = None
 
         self._handlers: dict[
-            signal.Signals, Callable[[int, Optional[types.FrameType]], None]
+            signal.Signals, Callable[[int, types.FrameType | None], None]
         ] = {
             signal.SIGINT: self.interrupt,
             signal.SIGTERM: self.interrupt,

@@ -6,7 +6,7 @@
 
 import functools
 import dataclasses
-from typing import Union, cast
+from typing import TypeAlias, cast
 from collections.abc import Mapping, MutableMapping, Callable
 
 from qutebrowser.qt import machinery
@@ -25,7 +25,7 @@ INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 
 # FIXME:mypy TypedDict?
-ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
+ParserDictType: TypeAlias = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -185,7 +185,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     return modeman
 
 
-def instance(win_id: Union[int, str]) -> 'ModeManager':
+def instance(win_id: int | str) -> 'ModeManager':
     """Get a modemanager object.
 
     Raises UnavailableError if there is no instance available yet.
@@ -200,7 +200,7 @@ def instance(win_id: Union[int, str]) -> 'ModeManager':
 
 def enter(win_id: int,
           mode: usertypes.KeyMode,
-          reason: str = None,
+          reason: str | None = None,
           only_if_normal: bool = False) -> None:
     """Enter the mode 'mode'."""
     instance(win_id).enter(mode, reason, only_if_normal)
@@ -208,7 +208,7 @@ def enter(win_id: int,
 
 def leave(win_id: int,
           mode: usertypes.KeyMode,
-          reason: str = None, *,
+          reason: str | None = None, *,
           maybe: bool = False) -> None:
     """Leave the mode 'mode'."""
     instance(win_id).leave(mode, reason, maybe=maybe)
@@ -247,7 +247,7 @@ class ModeManager(QObject):
     left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
     keystring_updated = pyqtSignal(usertypes.KeyMode, str)
 
-    def __init__(self, win_id: int, parent: QObject = None) -> None:
+    def __init__(self, win_id: int, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self.parsers: ParserDictType = {}
@@ -345,7 +345,7 @@ class ModeManager(QObject):
             functools.partial(self.keystring_updated.emit, mode))
 
     def enter(self, mode: usertypes.KeyMode,
-              reason: str = None,
+              reason: str | None = None,
               only_if_normal: bool = False) -> None:
         """Enter a new mode.
 
@@ -408,7 +408,7 @@ class ModeManager(QObject):
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
     def leave(self, mode: usertypes.KeyMode,
-              reason: str = None,
+              reason: str | None = None,
               maybe: bool = False) -> None:
         """Leave a key mode.
 

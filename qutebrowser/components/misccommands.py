@@ -11,7 +11,6 @@ import os
 import signal
 import logging
 import pathlib
-from typing import Optional
 from collections.abc import Sequence, Callable
 
 try:
@@ -34,7 +33,7 @@ _LOGGER = logging.getLogger('misc')
 
 @cmdutils.register(name='reload')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def reloadpage(tab: Optional[apitypes.Tab],
+def reloadpage(tab: apitypes.Tab | None,
                force: bool = False) -> None:
     """Reload the current/[count]th tab.
 
@@ -48,7 +47,7 @@ def reloadpage(tab: Optional[apitypes.Tab],
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def stop(tab: Optional[apitypes.Tab]) -> None:
+def stop(tab: apitypes.Tab | None) -> None:
     """Stop loading in the current/[count]th tab.
 
     Args:
@@ -88,9 +87,9 @@ def _print_pdf(tab: apitypes.Tab, path: pathlib.Path) -> None:
 @cmdutils.register(name='print')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
 @cmdutils.argument('pdf', flag='f', metavar='file')
-def printpage(tab: Optional[apitypes.Tab],
+def printpage(tab: apitypes.Tab | None,
               preview: bool = False, *,
-              pdf: Optional[pathlib.Path] = None) -> None:
+              pdf: pathlib.Path | None = None) -> None:
     """Print the current/[count]th tab.
 
     Args:
@@ -152,7 +151,7 @@ def screenshot(
         tab: apitypes.Tab,
         filename: pathlib.Path,
         *,
-        rect: str = None,
+        rect: str | None = None,
         force: bool = False,
 ) -> None:
     """Take a screenshot of the currently shown part of the page.
@@ -193,7 +192,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
     Args:
         text: The text to insert.
     """
-    def _insert_text_cb(elem: Optional[apitypes.WebElement]) -> None:
+    def _insert_text_cb(elem: apitypes.WebElement | None) -> None:
         if elem is None:
             message.error("No element focused!")
             return
@@ -207,7 +206,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
 
 
 def _wrap_find_at_pos(value: str, tab: apitypes.Tab,
-                      callback: Callable[[Optional[apitypes.WebElement]], None]
+                      callback: Callable[[apitypes.WebElement | None], None]
                       ) -> None:
     try:
         point = utils.parse_point(value)
@@ -228,7 +227,7 @@ _FILTER_ERRORS = {
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
-def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,  # noqa: C901
+def click_element(tab: apitypes.Tab, filter_: str, value: str | None = None, *,  # noqa: C901
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
                   force_event: bool = False,
@@ -257,7 +256,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,  # noqa
         except apitypes.WebElemError as e:
             message.error(str(e))
 
-    def single_cb(elem: Optional[apitypes.WebElement]) -> None:
+    def single_cb(elem: apitypes.WebElement | None) -> None:
         """Click a single element."""
         if elem is None:
             message.error(f"No element found {_FILTER_ERRORS[filter_](value)}!")
@@ -322,7 +321,7 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def tab_mute(tab: Optional[apitypes.Tab]) -> None:
+def tab_mute(tab: apitypes.Tab | None) -> None:
     """Mute/Unmute the current/[count]th tab.
 
     Args:
@@ -415,7 +414,7 @@ def debug_trace(expr: str = "") -> None:
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('position', completion=miscmodels.inspector_position)
 def devtools(tab: apitypes.Tab,
-             position: apitypes.InspectorPosition = None) -> None:
+             position: apitypes.InspectorPosition | None = None) -> None:
     """Toggle the developer tools (web inspector).
 
     Args:

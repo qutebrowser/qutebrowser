@@ -47,8 +47,8 @@ def zoom_out(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def zoom(tab: apitypes.Tab,
-         level: str = None,
-         count: int = None,
+         level: str | None = None,
+         count: int | None = None,
          quiet: bool = False) -> None:
     """Set the zoom level for the current tab.
 

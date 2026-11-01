@@ -23,11 +23,7 @@ from qutebrowser.qt.core import QProcess, QPoint
 from helpers import testutils
 from end2end.fixtures import quteprocess
 from qutebrowser.utils import qtutils, utils, version
-
-
-ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
-                                  reason="Python >= 3.7 doesn't force ASCII "
-                                  "locale with LC_ALL=C")
+from qutebrowser.misc import checkpyver
 
 
 # For some reason (some floating point rounding differences?), color values are
@@ -94,96 +90,6 @@ def temp_basedir_env(tmp_path, runtime_tmpdir):
         'XDG_CACHE_HOME': str(cache_dir),
     }
     return env
-
-
-@pytest.mark.linux
-@ascii_locale
-def test_downloads_with_ascii_locale(request, server, tmp_path, quteproc_new):
-    """Test downloads with LC_ALL=C set.
-
-    https://github.com/qutebrowser/qutebrowser/issues/908
-    https://github.com/qutebrowser/qutebrowser/issues/1726
-    """
-    args = ['--temp-basedir'] + _base_args(request.config)
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('downloads.location.directory', str(tmp_path))
-
-    # Test a normal download
-    quteproc_new.set_setting('downloads.location.prompt', 'false')
-    url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
-        port=server.port)
-    quteproc_new.send_cmd(':download {}'.format(url))
-    quteproc_new.wait_for(category='downloads',
-                          message='Download ?-issue908.bin finished')
-
-    # Test :prompt-open-download
-    quteproc_new.set_setting('downloads.location.prompt', 'true')
-    quteproc_new.send_cmd(':download {}'.format(url))
-    quteproc_new.send_cmd(':prompt-open-download "{}" -c pass'
-                          .format(sys.executable))
-    quteproc_new.wait_for(category='downloads',
-                          message='Download ä-issue908.bin finished')
-    quteproc_new.wait_for(category='misc',
-                          message='Opening * with [*python*]')
-
-    assert len(list(tmp_path.iterdir())) == 1
-    assert (tmp_path / '?-issue908.bin').exists()
-
-
-@pytest.mark.linux
-@pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
-@ascii_locale
-def test_open_with_ascii_locale(request, server, tmp_path, quteproc_new, url):
-    """Test opening non-ascii URL with LC_ALL=C set.
-
-    https://github.com/qutebrowser/qutebrowser/issues/1450
-    """
-    args = ['--temp-basedir'] + _base_args(request.config)
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('url.auto_search', 'never')
-
-    # Test opening a file whose name contains non-ascii characters.
-    # No exception thrown means test success.
-    quteproc_new.send_cmd(':open {}'.format(url))
-
-    if not request.config.webengine:
-        line = quteproc_new.wait_for(message="Error while loading *: Error "
-                                     "opening /*: No such file or directory")
-        line.expected = True
-
-    quteproc_new.wait_for(message="load status for <* tab_id=* "
-                          "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
-
-    if request.config.webengine:
-        line = quteproc_new.wait_for(message='Load error: ERR_FILE_NOT_FOUND')
-        line.expected = True
-
-
-@pytest.mark.linux
-@ascii_locale
-def test_open_command_line_with_ascii_locale(request, server, tmp_path,
-                                             quteproc_new):
-    """Test opening file via command line with a non-ascii name with LC_ALL=C.
-
-    https://github.com/qutebrowser/qutebrowser/issues/1450
-    """
-    # The file does not actually have to exist because the relevant checks will
-    # all be called. No exception thrown means test success.
-    args = (['--temp-basedir'] + _base_args(request.config) +
-            ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
-
-    if not request.config.webengine:
-        line = quteproc_new.wait_for(message="Error while loading *: Error "
-                                     "opening /*: No such file or directory")
-        line.expected = True
-
-    quteproc_new.wait_for(message="load status for <* tab_id=* "
-                          "url='*/f*.html'>: LoadStatus.error")
-
-    if request.config.webengine:
-        line = quteproc_new.wait_for(message="Load error: ERR_FILE_NOT_FOUND")
-        line.expected = True
 
 
 @pytest.mark.linux
@@ -330,17 +236,14 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-@pytest.mark.parametrize('python', ['python2', 'python3.6', 'python3.7'])
+@pytest.mark.parametrize('python', testutils.old_python_versions())
 def test_launching_with_old_python(python):
-    try:
-        proc = subprocess.run(
-            [python, '-m', 'qutebrowser', '--no-err-windows'],
-            stderr=subprocess.PIPE,
-            check=False)
-    except FileNotFoundError:
-        pytest.skip(f"{python} not found")
+    proc = subprocess.run(
+        [python, '-m', 'qutebrowser', '--no-err-windows'],
+        stderr=subprocess.PIPE,
+        check=False)
     assert proc.returncode == 1
-    error = "At least Python 3.9 is required to run qutebrowser"
+    error = f"At least Python {checkpyver.MIN_PYTHON_VERSION_STR} is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
@@ -926,6 +829,7 @@ def test_sandboxing(
 ):
     # https://github.com/qutebrowser/qutebrowser/issues/8424
     userns_restricted = testutils.is_userns_restricted()
+    has_yama_non_broker = False
 
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
@@ -936,8 +840,6 @@ def test_sandboxing(
         has_namespaces = False
         expected_result = "You are NOT adequately sandboxed."
         has_yama_non_broker = has_yama
-    else:
-        has_yama_non_broker = False
 
     args = _base_args(request.config) + [
         '--temp-basedir',
@@ -978,7 +880,6 @@ def test_sandboxing(
             f"{bpf_text} supports TSYNC": "Yes" if has_seccomp else "No",
 
             f"{yama_text} (Broker)": "Yes" if has_yama else "No",
-            # pylint: disable-next=used-before-assignment
             f"{yama_text} (Non-broker)": "Yes" if has_yama_non_broker else "No",
         }
 

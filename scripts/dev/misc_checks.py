@@ -15,7 +15,6 @@ import subprocess
 import tokenize
 import traceback
 import pathlib
-from typing import Optional
 from collections.abc import Iterator
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -31,7 +30,7 @@ BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
 def _get_files(
         *,
         verbose: bool,
-        ignored: list[pathlib.Path] = None
+        ignored: list[pathlib.Path] | None = None
 ) -> Iterator[pathlib.Path]:
     """Iterate over all files and yield filenames."""
     filenames = subprocess.run(
@@ -65,7 +64,7 @@ def _get_files(
         yield path
 
 
-def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
+def check_changelog_urls(_args: argparse.Namespace | None = None) -> bool:
     """Ensure we have changelog URLs for all requirements."""
     ok = True
     all_requirements = set()
@@ -106,7 +105,7 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
     return ok
 
 
-def check_git(_args: argparse.Namespace = None) -> bool:
+def check_git(_args: argparse.Namespace | None = None) -> bool:
     """Check for uncommitted git files."""
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
@@ -145,7 +144,7 @@ def _check_spelling_all(
     args: argparse.Namespace,
     ignored: list[pathlib.Path],
     patterns: list[tuple[re.Pattern, str]],
-) -> Optional[bool]:
+) -> bool | None:
     try:
         ok = True
         for path in _get_files(verbose=args.verbose, ignored=ignored):
@@ -159,7 +158,7 @@ def _check_spelling_all(
         return None
 
 
-def check_spelling(args: argparse.Namespace) -> Optional[bool]:
+def check_spelling(args: argparse.Namespace) -> bool | None:
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
@@ -296,7 +295,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
-def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
+def check_pyqt_imports(args: argparse.Namespace) -> bool | None:
     """Check for direct PyQt imports."""
     ignored = [
         pathlib.Path("qutebrowser", "qt"),
@@ -316,7 +315,7 @@ def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
     return _check_spelling_all(args=args, ignored=ignored, patterns=patterns)
 
 
-def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
+def check_vcs_conflict(args: argparse.Namespace) -> bool | None:
     """Check VCS conflict markers."""
     try:
         ok = True
@@ -336,7 +335,7 @@ def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
         return None
 
 
-def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
+def check_userscripts_descriptions(_args: argparse.Namespace | None = None) -> bool:
     """Make sure all userscripts are described properly."""
     folder = pathlib.Path('misc/userscripts')
     readme = folder / 'README.md'

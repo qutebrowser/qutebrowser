@@ -23,8 +23,8 @@ class ListCategory(QSortFilterProxyModel, BaseCategory):
                  name: str,
                  items: Iterable[tuple[str, ...]],
                  sort: bool = True,
-                 delete_func: util.DeleteFuncType = None,
-                 parent: QWidget = None):
+                 delete_func: util.DeleteFuncType | None = None,
+                 parent: QWidget | None = None):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)

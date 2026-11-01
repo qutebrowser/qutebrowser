@@ -5,7 +5,7 @@
 """The ListView to display downloads in."""
 
 import functools
-from typing import Union, Optional
+from typing import TypeAlias
 from collections.abc import MutableSequence, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QSize, Qt
@@ -16,11 +16,9 @@ from qutebrowser.config import stylesheet
 from qutebrowser.utils import qtutils, utils
 
 
-_ActionListType = MutableSequence[
-    Union[
-        tuple[None, None],  # separator
-        tuple[str, Callable[[], None]],
-    ]
+_ActionListType: TypeAlias = MutableSequence[
+    tuple[None, None]  # separator
+    | tuple[str, Callable[[], None]]
 ]
 
 
@@ -67,7 +65,7 @@ class DownloadView(QListView):
 
     def __repr__(self):
         model = qtutils.add_optional(self.model())
-        count: Union[int, str]
+        count: int | str
         if model is None:
             count = 'None'
         else:
@@ -116,7 +114,7 @@ class DownloadView(QListView):
 
     def _get_menu_actions(
             self,
-            item: Optional[downloads.AbstractDownloadItem]
+            item: downloads.AbstractDownloadItem | None
     ) -> _ActionListType:
         """Get the available context menu actions for a given DownloadItem.
 

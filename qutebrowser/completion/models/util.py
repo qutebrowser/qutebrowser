@@ -4,13 +4,14 @@
 
 """Utility functions for completion models."""
 
+from typing import TypeAlias
 from collections.abc import Sequence, Callable
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
-DeleteFuncType = Callable[[Sequence[str]], None]
+DeleteFuncType: TypeAlias = Callable[[Sequence[str]], None]
 
 
 def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):

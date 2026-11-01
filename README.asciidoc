@@ -84,7 +84,7 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.9 or newer
+* https://www.python.org/[Python] 3.10 or newer
 * https://www.qt.io/[Qt], either 6.2.0 or newer, or 5.15.0 or newer, with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase or qtdeclarative in some distributions)
@@ -169,22 +169,6 @@ for those, please mailto:mail@qutebrowser.org[get in touch] for details.
   - Ethereum: link:ethereum:0x10c2425856F7a8799EBCaac4943026803b1089c6[0x10c2425856F7a8799EBCaac4943026803b1089c6]
   - Litecoin: link:litecoin:MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2[MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2]
   - Others: Please mailto:mail@qutebrowser.org[get in touch], I'd happily set up anything link:https://www.ledger.com/supported-crypto-assets[supported by Ledger Live]
-
-Sponsors
---------
-
-Thanks a lot to https://www.macstadium.com/[MacStadium] for supporting
-qutebrowser with a free hosted Mac Mini via their
-https://www.macstadium.com/opensource[Open Source Project].
-
-(They don't require including this here - I've just been very happy with their
-offer, and without them, no macOS releases or tests would exist)
-
-Thanks to the https://www.hsr.ch/[HSR Hochschule für Technik Rapperswil], which
-made it possible to work on qutebrowser extensions as a student research project.
-
-image:doc/img/sponsors/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
-image:doc/img/sponsors/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
 
 Authors
 -------

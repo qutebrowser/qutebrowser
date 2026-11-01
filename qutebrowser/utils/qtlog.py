@@ -10,13 +10,12 @@ import faulthandler
 import logging
 import sys
 import traceback
-from typing import Optional
 from collections.abc import Iterator
 
 from qutebrowser.qt import core as qtcore
 from qutebrowser.utils import log
 
-_args: Optional[argparse.Namespace] = None
+_args: argparse.Namespace | None = None
 
 
 def init(args: argparse.Namespace) -> None:
@@ -43,7 +42,7 @@ def disable_qt_msghandler() -> Iterator[None]:
 
 def qt_message_handler(msg_type: qtcore.QtMsgType,
                        context: qtcore.QMessageLogContext,
-                       msg: Optional[str]) -> None:
+                       msg: str | None) -> None:
     """Qt message handler to redirect qWarning etc. to the logging system.
 
     Args:
@@ -179,7 +178,7 @@ def qt_message_handler(msg_type: qtcore.QtMsgType,
 
     assert _args is not None
     if _args.debug:
-        stack: Optional[str] = ''.join(traceback.format_stack())
+        stack: str | None = ''.join(traceback.format_stack())
     else:
         stack = None
 

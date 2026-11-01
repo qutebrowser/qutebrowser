@@ -13,16 +13,17 @@ import platform
 import os.path
 import contextlib
 import pathlib
+import shutil
 import subprocess
 import importlib.util
 import importlib.machinery
-from typing import Optional
 
 import pytest
 
 from qutebrowser.qt.gui import QColor
 
 from qutebrowser.utils import log, utils, version
+from qutebrowser.misc import checkpyver
 
 ON_CI = 'CI' in os.environ
 
@@ -375,7 +376,7 @@ def enum_members(base, enumtype):
         }
 
 
-def is_userns_restricted() -> Optional[bool]:
+def is_userns_restricted() -> bool | None:
     if not utils.is_linux:
         return None
 
@@ -390,3 +391,11 @@ def is_userns_restricted() -> Optional[bool]:
         return None
 
     return proc.stdout.strip() == "1"
+
+
+def old_python_versions() -> list[str]:
+    """Get a list of old python versions for minimum Python version tests."""
+    candidates = ["python2"] + [
+        f"python3.{i}" for i in range(6, checkpyver.MIN_PYTHON_VERSION[1])
+    ]
+    return [c for c in candidates if shutil.which(c) is not None]

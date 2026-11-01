@@ -6,7 +6,7 @@
 
 import difflib
 import dataclasses
-from typing import Any, Optional, Union
+from typing import Any
 from collections.abc import Mapping, Sequence
 
 from qutebrowser.utils import usertypes, log
@@ -33,7 +33,7 @@ class BackendError(Error):
     def __init__(
             self, name: str,
             backend: usertypes.Backend,
-            raw_backends: Optional[Mapping[str, bool]]
+            raw_backends: Mapping[str, bool] | None
     ) -> None:
         if raw_backends is None or not raw_backends[backend.name]:
             msg = ("The {} setting is not available with the {} backend!"
@@ -63,7 +63,7 @@ class ValidationError(Error):
         msg: Additional error message.
     """
 
-    def __init__(self, value: Any, msg: Union[str, Exception]) -> None:
+    def __init__(self, value: Any, msg: str | Exception) -> None:
         super().__init__("Invalid value '{}' - {}".format(value, msg))
         self.option = None
 
@@ -78,9 +78,9 @@ class NoOptionError(Error):
     """Raised when an option was not found."""
 
     def __init__(self, option: str, *,
-                 all_names: list[str] = None,
+                 all_names: list[str] | None = None,
                  deleted: bool = False,
-                 renamed: str = None) -> None:
+                 renamed: str | None = None) -> None:
         if deleted:
             assert renamed is None
             suffix = ' (this option was removed from qutebrowser)'
@@ -111,8 +111,8 @@ class ConfigErrorDesc:
     """
 
     text: str
-    exception: Union[str, Exception]
-    traceback: Optional[str] = None
+    exception: str | Exception
+    traceback: str | None = None
 
     def __str__(self) -> str:
         if self.traceback:

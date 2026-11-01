@@ -9,7 +9,7 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Union, Optional
+from typing import cast
 from collections.abc import Callable
 
 from qutebrowser.qt.widgets import QApplication, QTabBar
@@ -105,7 +105,7 @@ class CommandDispatcher:
         background: bool = False,
         window: bool = False,
         related: bool = False,
-        private: Optional[bool] = None,
+        private: bool | None = None,
     ) -> None:
         """Helper function to open a page.
 
@@ -222,7 +222,6 @@ class CommandDispatcher:
             next_: Force selecting the tab after the current tab.
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs.select_on_remove'.
-            count: The tab index to close, or None
         """
         tabbar = self._tabbed_browser.widget.tabBar()
         selection_override = self._get_selection_override(prev, next_,
@@ -457,8 +456,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_give(self, win_id: int = None, keep: bool = False,
-                 count: int = None, private: bool = False) -> None:
+    def tab_give(self, win_id: int | None = None, keep: bool = False,
+                 count: int | None = None, private: bool = False) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -511,10 +510,10 @@ class CommandDispatcher:
         tab: bool,
         bg: bool,
         window: bool,
-        count: Optional[int],
+        count: int | None,
         forward: bool,
         quiet: bool,
-        index: Optional[int],
+        index: int | None,
     ) -> None:
         """Helper function for :back/:forward."""
         history = self._current_widget().history
@@ -555,8 +554,8 @@ class CommandDispatcher:
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('index', completion=miscmodels.back)
     def back(self, tab: bool = False, bg: bool = False,
-             window: bool = False, count: int = None,
-             index: int = None, quiet: bool = False) -> None:
+             window: bool = False, count: int | None = None,
+             index: int | None = None, quiet: bool = False) -> None:
         """Go back in the history of the current tab.
 
         Args:
@@ -581,8 +580,8 @@ class CommandDispatcher:
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('index', completion=miscmodels.forward)
     def forward(self, tab: bool = False, bg: bool = False,
-                window: bool = False, count: int = None,
-                index: int = None, quiet: bool = False) -> None:
+                window: bool = False, count: int | None = None,
+                index: int | None = None, quiet: bool = False) -> None:
         """Go forward in the history of the current tab.
 
         Args:
@@ -672,7 +671,7 @@ class CommandDispatcher:
     @cmdutils.argument('bottom_navigate', metavar='ACTION',
                        choices=('next', 'increment'))
     def scroll_page(self, x: float, y: float, *,
-                    top_navigate: str = None, bottom_navigate: str = None,
+                    top_navigate: str | None = None, bottom_navigate: str | None = None,
                     count: int = 1) -> None:
         """Scroll the frame page-wise.
 
@@ -829,7 +828,7 @@ class CommandDispatcher:
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('depth', completion=miscmodels.undo)
     def undo(self, window: bool = False,
-             count: int = None, depth: int = None) -> None:
+             count: int | None = None, depth: int | None = None) -> None:
         """Re-open the last closed tab(s) or window.
 
         Args:
@@ -975,8 +974,8 @@ class CommandDispatcher:
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
                        completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_focus(self, index: Union[str, int] = None,
-                  count: int = None, no_last: bool = False) -> None:
+    def tab_focus(self, index: str | int | None = None,
+                  count: int | None = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -1022,7 +1021,7 @@ class CommandDispatcher:
     @cmdutils.register(instance="command-dispatcher", scope="window")
     @cmdutils.argument("index", choices=["+", "-", "start", "end"])
     @cmdutils.argument("count", value=cmdutils.Value.count)
-    def tab_move(self, index: Union[str, int] = None, count: int = None) -> None:
+    def tab_move(self, index: str | int | None = None, count: int | None = None) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1718,7 +1717,7 @@ class CommandDispatcher:
                url: bool = False,
                quiet: bool = False,
                *,
-               world: Union[usertypes.JsWorld, int] = None) -> None:
+               world: usertypes.JsWorld | int | None = None) -> None:
         """Evaluate a JavaScript string.
 
         Args:

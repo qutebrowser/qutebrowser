@@ -1205,9 +1205,7 @@ class TestConfigPy:
         assert tblines[0] == "Traceback (most recent call last):"
         assert tblines[-1] == "SyntaxError: invalid syntax"
         assert "    +" in tblines
-        # Starting with the new PEG-based parser in Python 3.9, the caret
-        # points at the location *after* the +
-        assert "    ^" in tblines or "     ^" in tblines
+        assert "     ^" in tblines
 
     def test_load_autoconfig_warning(self, confpy):
         confpy.write('')

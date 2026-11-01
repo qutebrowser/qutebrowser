@@ -48,7 +48,7 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
     def __init__(self, *, mode: usertypes.KeyMode,
                  win_id: int,
                  commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None,
+                 parent: QObject | None = None,
                  do_log: bool = True,
                  passthrough: bool = False,
                  supports_count: bool = True) -> None:
@@ -57,7 +57,7 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
                          supports_count=supports_count)
         self._commandrunner = commandrunner
 
-    def execute(self, cmdstr: str, count: int = None) -> None:
+    def execute(self, cmdstr: str, count: int | None = None) -> None:
         try:
             self._commandrunner.run(cmdstr, count)
         except cmdexc.Error as e:
@@ -76,7 +76,7 @@ class NormalKeyParser(CommandKeyParser):
 
     def __init__(self, *, win_id: int,
                  commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(mode=usertypes.KeyMode.normal, win_id=win_id,
                          commandrunner=commandrunner, parent=parent)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
@@ -147,7 +147,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
     def __init__(self, *, win_id: int,
                  commandrunner: 'runners.CommandRunner',
                  hintmanager: hints.HintManager,
-                 parent: QObject = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(mode=usertypes.KeyMode.hint, win_id=win_id,
                          parent=parent, supports_count=False)
         self._command_parser = CommandKeyParser(mode=usertypes.KeyMode.hint,
@@ -237,7 +237,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         if not preserve_filter:
             self._filtertext = ''
 
-    def execute(self, cmdstr: str, count: int = None) -> None:
+    def execute(self, cmdstr: str, count: int | None = None) -> None:
         assert count is None
         self._hintmanager.handle_partial_key(cmdstr)
 
@@ -254,7 +254,7 @@ class RegisterKeyParser(CommandKeyParser):
     def __init__(self, *, win_id: int,
                  mode: usertypes.KeyMode,
                  commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
+                 parent: QObject | None = None) -> None:
         super().__init__(mode=usertypes.KeyMode.register,
                          win_id=win_id,
                          commandrunner=commandrunner,

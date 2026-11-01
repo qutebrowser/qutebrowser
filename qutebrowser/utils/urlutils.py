@@ -11,7 +11,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Union, cast
+from typing import TypeAlias, cast
 from collections.abc import Iterable
 
 from qutebrowser.qt import machinery
@@ -29,7 +29,7 @@ from qutebrowser.browser.network import pac
 
 
 if machinery.IS_QT6:
-    UrlFlagsType = Union[QUrl.UrlFormattingOption, QUrl.ComponentFormattingOption]
+    UrlFlagsType: TypeAlias = QUrl.UrlFormattingOption | QUrl.ComponentFormattingOption
 
     class FormatOption:
         """Simple wrapper around Qt enums to fix typing problems on Qt 5."""
@@ -42,12 +42,7 @@ if machinery.IS_QT6:
         REMOVE_PASSWORD = QUrl.UrlFormattingOption.RemovePassword
         REMOVE_QUERY = QUrl.UrlFormattingOption.RemoveQuery
 else:
-    UrlFlagsType = Union[
-        QUrl.FormattingOptions,
-        QUrl.UrlFormattingOption,
-        QUrl.ComponentFormattingOption,
-        QUrl.ComponentFormattingOptions,
-    ]
+    UrlFlagsType: TypeAlias = QUrl.FormattingOptions | QUrl.UrlFormattingOption | QUrl.ComponentFormattingOption | QUrl.ComponentFormattingOptions
 
     class _QtFormattingOptions(QUrl.FormattingOptions):
         """WORKAROUND for invalid stubs.
@@ -112,7 +107,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
+def _parse_search_term(s: str) -> tuple[str | None, str | None]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -128,8 +123,8 @@ def _parse_search_term(s: str) -> tuple[Optional[str], Optional[str]]:
 
     if len(split) == 2:
         if split[0] in config.val.url.searchengines:
-            engine: Optional[str] = split[0]
-            term: Optional[str] = split[1]
+            engine: str | None = split[0]
+            term: str | None = split[1]
         else:
             engine = None
             term = s
@@ -206,7 +201,7 @@ def _is_url_dns(urlstr: str) -> bool:
     """Check if a URL is really a URL via DNS.
 
     Args:
-        url: The URL to check for as a string.
+        urlstr: The URL to check for as a string.
 
     Return:
         True if the URL really is a URL, False otherwise.
@@ -231,7 +226,7 @@ def _is_url_dns(urlstr: str) -> bool:
 
 
 def fuzzy_url(urlstr: str,
-              cwd: str = None,
+              cwd: str | None = None,
               relative: bool = False,
               do_search: bool = True,
               force_search: bool = False) -> QUrl:
@@ -388,9 +383,9 @@ def raise_cmdexc_if_invalid(url: QUrl) -> None:
 
 
 def get_path_if_valid(pathstr: str,
-                      cwd: str = None,
+                      cwd: str | None = None,
                       relative: bool = False,
-                      check_exists: bool = False) -> Optional[str]:
+                      check_exists: bool = False) -> str | None:
     """Check if path is a valid path.
 
     Args:
@@ -408,7 +403,7 @@ def get_path_if_valid(pathstr: str,
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):
-        path: Optional[str] = expanded
+        path: str | None = expanded
     elif relative and cwd:
         path = os.path.join(cwd, expanded)
     elif relative:
@@ -435,7 +430,7 @@ def get_path_if_valid(pathstr: str,
     return path
 
 
-def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
+def filename_from_url(url: QUrl, fallback: str | None = None) -> str | None:
     """Get a suitable filename from a URL.
 
     Args:
@@ -465,7 +460,7 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
         return fallback
 
 
-HostTupleType = tuple[str, str, int]
+HostTupleType: TypeAlias = tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:
@@ -616,7 +611,7 @@ class InvalidProxyTypeError(Exception):
         super().__init__("Invalid proxy type {}!".format(typ))
 
 
-def proxy_from_url(url: QUrl) -> Union[QNetworkProxy, pac.PACFetcher]:
+def proxy_from_url(url: QUrl) -> QNetworkProxy | pac.PACFetcher:
     """Create a QNetworkProxy from QUrl and a proxy type.
 
     Args:

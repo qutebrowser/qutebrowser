@@ -9,7 +9,7 @@ import os.path
 import shutil
 import functools
 import dataclasses
-from typing import IO, Optional
+from typing import IO
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QTimer, QUrl
 from qutebrowser.qt.widgets import QApplication
@@ -72,7 +72,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(manager=manager, parent=manager)
-        self.fileobj: Optional[IO[bytes]] = None
+        self.fileobj: IO[bytes] | None = None
         self.raw_headers: dict[bytes, bytes] = {}
 
         self._autoclose = True

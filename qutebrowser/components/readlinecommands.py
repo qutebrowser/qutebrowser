@@ -5,7 +5,7 @@
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
 import os
-from typing import Optional, Any
+from typing import Any
 from collections.abc import Iterable, MutableMapping, Callable
 
 from qutebrowser.qt.widgets import QApplication, QLineEdit
@@ -24,7 +24,7 @@ class _ReadlineBridge:
     def __init__(self) -> None:
         self._deleted: MutableMapping[QLineEdit, str] = {}
 
-    def _widget(self) -> Optional[QLineEdit]:
+    def _widget(self) -> QLineEdit | None:
         """Get the currently active QLineEdit."""
         # FIXME add this to api.utils or so
         qapp = QApplication.instance()
@@ -37,7 +37,7 @@ class _ReadlineBridge:
             return None
 
     def _dispatch(self, name: str, *,
-                  mark: bool = None,
+                  mark: bool | None = None,
                   delete: bool = False) -> None:
         widget = self._widget()
         if widget is None:

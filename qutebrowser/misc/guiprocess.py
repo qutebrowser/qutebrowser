@@ -21,14 +21,14 @@ from qutebrowser.completion.models import miscmodels
 
 
 all_processes: dict[int, Optional['GUIProcess']] = {}
-last_pid: Optional[int] = None
+last_pid: int | None = None
 
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('pid', completion=miscmodels.process)
 @cmdutils.argument('action', choices=['show', 'terminate', 'kill'])
-def process(tab: apitypes.Tab, pid: int = None, action: str = 'show') -> None:
+def process(tab: apitypes.Tab, pid: int | None = None, action: str = 'show') -> None:
     """Manage processes spawned by qutebrowser.
 
     Note that processes with a successful exit get cleaned up after 1h.
@@ -71,8 +71,8 @@ class ProcessOutcome:
 
     what: str
     running: bool = False
-    status: Optional[QProcess.ExitStatus] = None
-    code: Optional[int] = None
+    status: QProcess.ExitStatus | None = None
+    code: int | None = None
 
     def was_successful(self) -> bool:
         """Whether the process exited successfully.
@@ -95,7 +95,7 @@ class ProcessOutcome:
             self.code == signal.SIGTERM
         )
 
-    def _crash_signal(self) -> Optional[signal.Signals]:
+    def _crash_signal(self) -> signal.Signals | None:
         """Get a Python signal (e.g. signal.SIGTERM) from a crashed process."""
         assert self.status == QProcess.ExitStatus.CrashExit
         if self.code is None:
@@ -175,7 +175,7 @@ class GUIProcess(QObject):
             what: str,
             *,
             verbose: bool = False,
-            additional_env: Mapping[str, str] = None,
+            additional_env: Mapping[str, str] | None = None,
             output_messages: bool = False,
     ):
         # We do not accept a parent, as GUIProcesses keep track of themselves
@@ -185,10 +185,10 @@ class GUIProcess(QObject):
         self.verbose = verbose
         self._output_messages = output_messages
         self.outcome = ProcessOutcome(what=what)
-        self.cmd: Optional[str] = None
-        self.resolved_cmd: Optional[str] = None
-        self.args: Optional[Sequence[str]] = None
-        self.pid: Optional[int] = None
+        self.cmd: str | None = None
+        self.resolved_cmd: str | None = None
+        self.args: Sequence[str] | None = None
+        self.pid: int | None = None
 
         self.stdout: str = ""
         self.stderr: str = ""

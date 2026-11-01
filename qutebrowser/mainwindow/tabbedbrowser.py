@@ -12,7 +12,7 @@ import weakref
 import datetime
 import dataclasses
 from typing import (
-    Any, Optional)
+    Any, TypeAlias)
 from collections.abc import Mapping, MutableMapping, MutableSequence
 
 from qutebrowser.qt.widgets import QSizePolicy, QWidget, QApplication
@@ -40,7 +40,7 @@ class _UndoEntry:
         default_factory=datetime.datetime.now)
 
 
-UndoStackType = MutableSequence[MutableSequence[_UndoEntry]]
+UndoStackType: TypeAlias = MutableSequence[MutableSequence[_UndoEntry]]
 
 
 class TabDeque:
@@ -85,7 +85,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab: Optional[browsertab.AbstractTab] = None
+        tab: browsertab.AbstractTab | None = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack.pop()()
         self._stack_deleted.append(weakref.ref(cur_tab))
@@ -102,7 +102,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab: Optional[browsertab.AbstractTab] = None
+        tab: browsertab.AbstractTab | None = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack_deleted.pop()()
         # On next tab-switch, current tab will be added to stack as normal.
@@ -302,7 +302,6 @@ class TabbedBrowser(QWidget):
         """Change the window title to match the current tab.
 
         Args:
-            idx: The tab index to update.
             field: A field name which was updated. If given, the title
                    is only set if the given field is in the template.
         """
@@ -397,7 +396,7 @@ class TabbedBrowser(QWidget):
         assert window is not None
         return window
 
-    def _tab_by_idx(self, idx: int) -> Optional[browsertab.AbstractTab]:
+    def _tab_by_idx(self, idx: int) -> browsertab.AbstractTab | None:
         """Get a browser tab by index.
 
         If no tab was found at the given index, None is returned.
@@ -604,10 +603,10 @@ class TabbedBrowser(QWidget):
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
     def tabopen(
-            self, url: QUrl = None,
-            background: bool = None,
+            self, url: QUrl | None = None,
+            background: bool | None = None,
             related: bool = True,
-            idx: int = None,
+            idx: int | None = None,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 

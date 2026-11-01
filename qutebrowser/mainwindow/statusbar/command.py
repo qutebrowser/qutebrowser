@@ -4,7 +4,7 @@
 
 """The commandline in the statusbar."""
 
-from typing import Optional, cast
+from typing import cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt, QSize
@@ -48,7 +48,7 @@ class Command(misc.CommandLineEdit):
 
     def __init__(self, *, win_id: int,
                  private: bool,
-                 parent: QWidget = None) -> None:
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         if not private:
@@ -114,7 +114,7 @@ class Command(misc.CommandLineEdit):
                        scope='window', maxsplit=0, deprecated_name='set-cmd-text')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def cmd_set_text_command(self, text: str,
-                             count: int = None,
+                             count: int | None = None,
                              space: bool = False,
                              append: bool = False,
                              run_on_count: bool = False) -> None:
@@ -238,7 +238,7 @@ class Command(misc.CommandLineEdit):
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
 
-    def setText(self, text: Optional[str]) -> None:
+    def setText(self, text: str | None) -> None:
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
             pass
@@ -252,7 +252,7 @@ class Command(misc.CommandLineEdit):
             text = cast(str, text)
         super().setText(text)
 
-    def keyPressEvent(self, e: Optional[QKeyEvent]) -> None:
+    def keyPressEvent(self, e: QKeyEvent | None) -> None:
         """Override keyPressEvent to ignore Return key presses, and add Shift-Ins.
 
         If this widget is focused, we are in passthrough key mode, and

@@ -11,14 +11,13 @@ import pathlib
 import itertools
 import urllib.request
 import tempfile
-from typing import Optional
 
 URL = "https://raw.githubusercontent.com/brave/adblock-rust/master/data/ublock-matches.tsv"
 CACHE_PATH = pathlib.Path(tempfile.gettempdir(), "ublock-matches-cache.tsv")
 ROWS_TO_USE = 30_000
 
 
-def type_rename(type_str: str) -> Optional[str]:
+def type_rename(type_str: str) -> str | None:
     """Use the same resource type names as QtWebEngine."""
     if type_str == "other":
         return "unknown"

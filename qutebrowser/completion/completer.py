@@ -276,7 +276,7 @@ class Completer(QObject):
         """Change the part we're currently completing in the commandline.
 
         Args:
-            text: The text to set (string) for the token under the cursor.
+            newtext: The text to set (string) for the token under the cursor.
             before: Commandline tokens before the token under the cursor.
             after: Commandline tokens after the token under the cursor.
             immediate: True if the text should be completed immediately

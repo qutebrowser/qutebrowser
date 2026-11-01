@@ -8,7 +8,7 @@
 import collections
 import functools
 from typing import (TYPE_CHECKING, Any,
-                    Optional, Union)
+                    TypeAlias)
 from collections.abc import MutableMapping, MutableSequence, Sequence, Callable
 
 from qutebrowser.qt.core import QObject, QTimer
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow
 
 
-_WindowTab = Union[str, int, None]
+_WindowTab: TypeAlias = str | int | None
 
 
 class RegistryUnavailableError(Exception):
@@ -38,11 +38,11 @@ class CommandOnlyError(Exception):
     """Raised when an object is requested which is used for commands only."""
 
 
-_IndexType = Union[str, int]
+_IndexType: TypeAlias = str | int
 
 
 # UserDict is only generic in Python 3.9+
-class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
+class ObjectRegistry(collections.UserDict[_IndexType, Any]):
 
     """A registry of long-living objects in qutebrowser.
 
@@ -153,7 +153,7 @@ def _get_tab_registry(win_id: _WindowTab,
     if tab_id is None:
         raise ValueError("Got tab_id None (win_id {})".format(win_id))
     if tab_id == 'current' and win_id is None:
-        window: Optional[QWidget] = QApplication.activeWindow()
+        window: QWidget | None = QApplication.activeWindow()
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
         win_id = window.win_id
@@ -179,7 +179,7 @@ def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
         raise TypeError("window is None with scope window!")
     try:
         if window == 'current':
-            win: Optional[QWidget] = QApplication.activeWindow()
+            win: QWidget | None = QApplication.activeWindow()
         elif window == 'last-focused':
             win = last_focused_window()
         else:
@@ -243,8 +243,8 @@ def register(name: str,
              obj: Any,
              *,
              update: bool = False,
-             scope: str = None,
-             registry: ObjectRegistry = None,
+             scope: str | None = None,
+             registry: ObjectRegistry | None = None,
              window: _WindowTab = None,
              tab: _WindowTab = None,
              command_only: bool = False) -> None:

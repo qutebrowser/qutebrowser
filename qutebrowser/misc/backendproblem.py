@@ -13,7 +13,7 @@ import shutil
 import os.path
 import argparse
 import dataclasses
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Sequence
 
 from qutebrowser.qt import machinery
@@ -98,8 +98,8 @@ class _Dialog(QDialog):
                  text: str,
                  backend: usertypes.Backend,
                  suggest_other_backend: bool = True,
-                 buttons: Sequence[_Button] = None,
-                 parent: QWidget = None) -> None:
+                 buttons: Sequence[_Button] | None = None,
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
 
@@ -154,8 +154,8 @@ class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_error: Optional[str] = None
-    webengine_error: Optional[str] = None
+    webkit_error: str | None = None
+    webengine_error: str | None = None
 
 
 class _BackendProblemChecker:

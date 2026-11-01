@@ -78,7 +78,7 @@ class SocketError(Error):
 
     """Exception raised when there was an error with a QLocalSocket.
 
-    Args:
+    Attributes:
         code: The error code.
         message: The error message.
         action: The action which was taken when the error happened.
@@ -105,7 +105,7 @@ class ListenError(Error):
 
     """Exception raised when there was a problem with listening to IPC.
 
-    Args:
+    Attributes:
         code: The error code.
         message: The error message.
     """
@@ -176,7 +176,7 @@ class IPCServer(QObject):
             self._atime_timer.timeout.connect(self.update_atime)
             self._atime_timer.setTimerType(Qt.TimerType.VeryCoarseTimer)
 
-        self._server: Optional[QLocalServer] = QLocalServer(self)
+        self._server: QLocalServer | None = QLocalServer(self)
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None

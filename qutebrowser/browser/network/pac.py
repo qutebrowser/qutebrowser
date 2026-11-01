@@ -6,7 +6,7 @@
 
 import sys
 import functools
-from typing import Optional, cast
+from typing import cast
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, pyqtSignal, pyqtSlot, QUrl
@@ -97,8 +97,8 @@ class _PACContext(QObject):
         """
         ips = QHostInfo.fromName(host)
         if ips.error() != QHostInfo.HostInfoError.NoError or not ips.addresses():
-            err_f = "Failed to resolve host during PAC evaluation: {}"
-            log.network.info(err_f.format(host))
+            err_f = "Failed to resolve host {!r} during PAC evaluation: {} ({})"
+            log.network.info(err_f.format(host, ips.errorString(), ips.error()))
             return QJSValue(QJSValue.SpecialValue.NullValue)
         else:
             return ips.addresses()[0].toString()
@@ -248,7 +248,7 @@ class PACFetcher(QObject):
         with qtlog.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
-            self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
+            self._manager: QNetworkAccessManager | None = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.ProxyType.NoProxy))
         self._pac = None
         self._error_message = None

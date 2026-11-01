@@ -7,7 +7,6 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
-from typing import Optional
 import re
 import os
 import sys
@@ -35,11 +34,11 @@ class AsciiDoc:
         'install', 'stacktrace'
     ]
 
-    def __init__(self, website: Optional[str]) -> None:
+    def __init__(self, website: str | None) -> None:
         self._website = website
-        self._homedir: Optional[pathlib.Path] = None
-        self._themedir: Optional[pathlib.Path] = None
-        self._tempdir: Optional[pathlib.Path] = None
+        self._homedir: pathlib.Path | None = None
+        self._themedir: pathlib.Path | None = None
+        self._tempdir: pathlib.Path | None = None
         self._failed = False
 
     def prepare(self) -> None:
@@ -86,8 +85,10 @@ class AsciiDoc:
         for src, dst in files:
             assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
-            with modified_src.open('w', encoding='utf-8') as moded_f, \
-                    src.open('r', encoding='utf-8') as f:
+            with (
+                modified_src.open("w", encoding="utf-8") as moded_f,
+                src.open("r", encoding="utf-8") as f,
+            ):
                 for line in f:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)

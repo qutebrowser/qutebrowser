@@ -9,7 +9,7 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Optional, Union)
+    TYPE_CHECKING, Any, TypeAlias)
 from collections.abc import Iterator, Sequence, MutableMapping
 
 from qutebrowser.qt.core import QUrl
@@ -36,7 +36,7 @@ class ScopedValue:
     id_gen = itertools.count(0)
 
     def __init__(self, value: Any,
-                 pattern: Optional[urlmatch.UrlPattern],
+                 pattern: urlmatch.UrlPattern | None,
                  hide_userconfig: bool = False) -> None:
         self.value = value
         self.pattern = pattern
@@ -69,7 +69,7 @@ class Values:
         _domain_map: A mapping from hostnames to all associated ScopedValues.
     """
 
-    _VmapKeyType = Optional[urlmatch.UrlPattern]
+    _VmapKeyType: TypeAlias = urlmatch.UrlPattern | None
 
     def __init__(self,
                  opt: 'configdata.Option',
@@ -79,7 +79,7 @@ class Values:
             Values._VmapKeyType, ScopedValue] = collections.OrderedDict()
         # A map from domain parts to rules that fall under them.
         self._domain_map: dict[
-            Optional[str], set[ScopedValue]] = collections.defaultdict(set)
+            str | None, set[ScopedValue]] = collections.defaultdict(set)
 
         for scoped in values:
             self._add_scoped(scoped)
@@ -130,13 +130,13 @@ class Values:
         return bool(self._vmap)
 
     def _check_pattern_support(
-            self, arg: Union[urlmatch.UrlPattern, QUrl, None]) -> None:
+            self, arg: urlmatch.UrlPattern | QUrl | None) -> None:
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
 
     def add(self, value: Any,
-            pattern: urlmatch.UrlPattern = None, *,
+            pattern: urlmatch.UrlPattern | None = None, *,
             hide_userconfig: bool = False) -> None:
         """Add a value with the given pattern to the list of values.
 
@@ -156,7 +156,7 @@ class Values:
         host = scoped.pattern.host if scoped.pattern else None
         self._domain_map[host].add(scoped)
 
-    def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
+    def remove(self, pattern: urlmatch.UrlPattern | None = None) -> bool:
         """Remove the value with the given pattern.
 
         If a matching pattern was removed, True is returned.
@@ -190,7 +190,7 @@ class Values:
         else:
             return usertypes.UNSET
 
-    def get_for_url(self, url: QUrl = None, *, fallback: bool = True) -> Any:
+    def get_for_url(self, url: QUrl | None = None, *, fallback: bool = True) -> Any:
         """Get a config value, falling back when needed.
 
         This first tries to find a value matching the URL (if given).
@@ -225,7 +225,7 @@ class Values:
         return self._get_fallback(fallback)
 
     def get_for_pattern(self,
-                        pattern: Optional[urlmatch.UrlPattern], *,
+                        pattern: urlmatch.UrlPattern | None, *,
                         fallback: bool = True) -> Any:
         """Get a value only if it's been overridden for the given pattern.
 

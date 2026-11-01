@@ -4,7 +4,6 @@
 
 """Showing messages above the statusbar."""
 
-from typing import Optional
 from collections.abc import MutableSequence
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt
@@ -22,9 +21,9 @@ class Message(QLabel):
             self,
             level: usertypes.MessageLevel,
             text: str,
-            replace: Optional[str],
+            replace: str | None,
             text_format: Qt.TextFormat,
-            parent: QWidget = None,
+            parent: QWidget | None = None,
     ) -> None:
         super().__init__(text, parent)
         self.replace = replace
@@ -68,7 +67,7 @@ class Message(QLabel):
         return Qt.TextFormat.RichText if info.rich else Qt.TextFormat.PlainText
 
     @classmethod
-    def from_info(cls, info: message.MessageInfo, parent: QWidget = None) -> "Message":
+    def from_info(cls, info: message.MessageInfo, parent: QWidget | None = None) -> "Message":
         return cls(
             level=info.level,
             text=info.text,

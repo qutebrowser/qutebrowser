@@ -10,7 +10,7 @@ import enum
 import time
 import dataclasses
 import logging
-from typing import Optional, TypeVar, Union
+from typing import TypeVar
 from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QTimer
@@ -56,8 +56,8 @@ class NeighborList(Sequence[_T]):
         edge = enum.auto()
         exception = enum.auto()
 
-    def __init__(self, items: Sequence[_T] = None,
-                 default: Union[_T, Unset] = UNSET,
+    def __init__(self, items: Sequence[_T] | None = None,
+                 default: _T | Unset = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -78,12 +78,12 @@ class NeighborList(Sequence[_T]):
 
         if not isinstance(default, Unset):
             idx = self._items.index(default)
-            self._idx: Optional[int] = idx
+            self._idx: int | None = idx
         else:
             self._idx = None
 
         self._mode = mode
-        self.fuzzyval: Optional[int] = None
+        self.fuzzyval: int | None = None
 
     def __getitem__(self, key: int) -> _T:  # type: ignore[override]
         return self._items[key]
@@ -391,15 +391,15 @@ class Question(QObject):
     answered_no = pyqtSignal()
     completed = pyqtSignal()
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self.mode: Optional[PromptMode] = None
-        self.default: Union[bool, str, None] = None
-        self.title: Optional[str] = None
-        self.text: Optional[str] = None
-        self.url: Optional[str] = None
-        self.option: Optional[bool] = None
-        self.answer: Union[str, bool, None] = None
+        self.mode: PromptMode | None = None
+        self.default: bool | str | None = None
+        self.title: str | None = None
+        self.text: str | None = None
+        self.url: str | None = None
+        self.option: bool | None = None
+        self.answer: str | bool | None = None
         self.is_aborted = False
         self.interrupted = False
 
@@ -444,9 +444,9 @@ class Timer(QTimer):
         _name: The name of the timer.
     """
 
-    def __init__(self, parent: QObject = None, name: str = None) -> None:
+    def __init__(self, parent: QObject | None = None, name: str | None = None) -> None:
         super().__init__(parent)
-        self._start_time: Optional[float] = None
+        self._start_time: float | None = None
         self.timeout.connect(self._validity_check_handler)
         if name is None:
             self._name = "unnamed"
@@ -495,7 +495,7 @@ class Timer(QTimer):
         qtutils.check_overflow(msec, 'int')
         super().setInterval(msec)
 
-    def start(self, msec: int = None) -> None:
+    def start(self, msec: int | None = None) -> None:
         """Extend start to check for overflows."""
         self._start_time = time.monotonic()
         if msec is not None:
@@ -515,7 +515,7 @@ class AbstractCertificateErrorWrapper:
     """A wrapper over an SSL/certificate error."""
 
     def __init__(self) -> None:
-        self._certificate_accepted: Optional[bool] = None
+        self._certificate_accepted: bool | None = None
 
     def __str__(self) -> str:
         raise NotImplementedError

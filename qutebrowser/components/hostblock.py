@@ -100,7 +100,7 @@ class HostBlocker:
 
         self._config_hosts_file = str(config_dir / "blocked-hosts")
 
-    def _is_blocked(self, request_url: QUrl, first_party_url: QUrl = None) -> bool:
+    def _is_blocked(self, request_url: QUrl, first_party_url: QUrl | None = None) -> bool:
         """Check whether the given request is blocked."""
         if not self.enabled:
             return False
@@ -143,7 +143,7 @@ class HostBlocker:
         """Read hosts from the given line.
 
         Args:
-            line: The bytes object to read.
+            raw_line: The bytes object to read.
 
         Returns:
             A set containing valid hosts found

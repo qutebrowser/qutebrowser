@@ -6,10 +6,11 @@
 """pdf.js integration for qutebrowser."""
 
 import os
+import html
 
 from qutebrowser.qt.core import QUrl, QUrlQuery
 
-from qutebrowser.utils import resources, javascript, jinja, standarddir, log, urlutils
+from qutebrowser.utils import resources, jinja, standarddir, log, urlutils
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 
@@ -56,31 +57,31 @@ def generate_pdfjs_page(filename, url):
                             url=url.toDisplayString(),
                             title="PDF.js not found",
                             pdfjs_dir=pdfjs_dir)
-    html = get_pdfjs_res('web/viewer.html').decode('utf-8')
+    html_src = get_pdfjs_res('web/viewer.html').decode('utf-8')
 
-    script = _generate_pdfjs_script(filename)
-    return html.replace('</body>', f'</body><script>{script}</script>')
+    file_url = _get_escaped_file_url(filename)
+    return html_src.replace(
+        '</body>',
+        f'<script src="qute://pdfjs/qb.js" data-url="{file_url}"></script></body>'
+    )
 
 
 def _get_polyfills() -> str:
     return resources.read_file("javascript/pdfjs_polyfills.js")
 
 
-def _generate_pdfjs_script(filename):
-    """Generate the script that shows the pdf with pdf.js.
-
-    Args:
-        filename: The name of the file to open.
-    """
+def _get_escaped_file_url(filename: str) -> str:
     url = QUrl('qute://pdfjs/file')
     url_query = QUrlQuery()
     url_query.addQueryItem('filename', filename)
     url.setQuery(url_query)
+    return html.escape(url.toString(urlutils.FormatOption.ENCODED))
 
-    js_url = javascript.to_js(url.toString(urlutils.FormatOption.ENCODED))
 
-    return jinja.js_environment.from_string("""
-        {{ polyfills }}
+def generate_pdfjs_script() -> str:
+    """Generate the script that shows the pdf with pdf.js."""
+    return _get_polyfills() + """
+        const url = document.currentScript.getAttribute('data-url');
 
         document.addEventListener("DOMContentLoaded", function() {
             if (typeof window.PDFJS !== 'undefined') {
@@ -94,16 +95,16 @@ def _generate_pdfjs_script(filename):
 
             if (typeof window.PDFView !== 'undefined') {
                 // < v1.6
-                window.PDFView.open({{ url }});
+                window.PDFView.open(url);
             } else {
                 // v1.6+
                 window.PDFViewerApplication.open({
-                    url: {{ url }},
-                    originalUrl: {{ url }}
+                    url: url,
+                    originalUrl: url
                 });
             }
         });
-    """).render(url=js_url, polyfills=_get_polyfills())
+    """
 
 
 def get_pdfjs_res_and_path(path):

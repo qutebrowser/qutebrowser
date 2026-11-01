@@ -7,7 +7,7 @@
 import traceback
 import re
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 from collections.abc import Iterator, Mapping, MutableMapping, Callable
 
 from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
@@ -19,7 +19,7 @@ from qutebrowser.keyinput import macros, modeman
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
-_ReplacementFunction = Callable[['tabbedbrowser.TabbedBrowser'], str]
+_ReplacementFunction: TypeAlias = Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 
 last_command: dict[usertypes.KeyMode, tuple[str, int]] = {}

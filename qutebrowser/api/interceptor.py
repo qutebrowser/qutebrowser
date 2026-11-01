@@ -4,13 +4,15 @@
 
 """APIs related to intercepting/blocking requests."""
 
+from typing import TypeAlias
+
 from qutebrowser.extensions import interceptors
 # pylint: disable=unused-import
 from qutebrowser.extensions.interceptors import Request
 
 
 #: Type annotation for an interceptor function.
-InterceptorType = interceptors.InterceptorType
+InterceptorType: TypeAlias = interceptors.InterceptorType
 
 #: Possible resource types for requests sent to interceptor.
 ResourceType = interceptors.ResourceType

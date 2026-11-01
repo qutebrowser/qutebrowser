@@ -12,7 +12,7 @@ import functools
 import glob
 import textwrap
 import dataclasses
-from typing import cast, Optional
+from typing import cast
 from collections.abc import Sequence
 
 from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
@@ -232,7 +232,7 @@ class LoadResults:
         names = '\n'.join(str(script) for script in sorted(self.successful, key=str))
         return f"Loaded Greasemonkey scripts:\n\n{names}"
 
-    def error_str(self) -> Optional[str]:
+    def error_str(self) -> str | None:
         """Get a string with all errors during script loading.
 
         This can be used e.g. for a message.error() call.
