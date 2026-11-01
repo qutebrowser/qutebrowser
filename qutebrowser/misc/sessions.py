@@ -122,6 +122,42 @@ class TabHistoryItem:
                               last_visited=self.last_visited)
 
 
+def reconstruct_tree_data(window_data):
+    """Return a dict usable as a tree from a window.
+
+    Returns a dict like:
+        {
+           1: {'children': [2]},
+           2: {
+                ...tab,
+                "treetab_node_data": {
+                  "children": [],
+                  "collapsed": False,
+                  "parent": 1,
+                  "uid": 2,
+              }
+          }
+        }
+
+    Which you can traverse by starting at the node with no "treetab_node_data"
+    attribute (the root) and pulling successive levels of children from the
+    dict using their `uid`s as keys.
+
+    The ...tab part represents the usual attributes for a tab when saved in a
+    session.
+    """
+    tree_data = {}
+    root = window_data['treetab_root']
+    tree_data[root['uid']] = {
+        'children': root['children'],
+        'tab': {},
+        'collapsed': False
+    }
+    for tab in window_data['tabs']:
+        tree_data[tab['treetab_node_data']['uid']] = tab
+    return tree_data
+
+
 class SessionManager(QObject):
 
     """Manager for sessions.
@@ -282,13 +318,31 @@ class SessionManager(QObject):
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
-            win_data['tabs'] = []
             if tabbed_browser.is_private:
                 win_data['private'] = True
-            for i, tab in enumerate(tabbed_browser.widgets()):
-                active = i == tabbed_browser.widget.currentIndex()
-                win_data['tabs'].append(self._save_tab(tab, active,
-                                                       with_history=with_history))
+
+            win_data['tabs'] = []
+            for tab in tabbed_browser.tabs(include_hidden=True):
+                active = tab == tabbed_browser.current_tab()
+                tab_data = self._save_tab(tab,
+                                          active,
+                                          with_history=with_history)
+                if tabbed_browser.is_treetabbedbrowser:
+                    node = tab.node
+                    node_data = {
+                        'parent': node.parent.uid,
+                        'children': [c.uid for c in node.children],
+                        'collapsed': node.collapsed,
+                        'uid': node.uid
+                    }
+                    tab_data['treetab_node_data'] = node_data
+                win_data['tabs'].append(tab_data)
+            if tabbed_browser.is_treetabbedbrowser:
+                root = tabbed_browser.widget.tree_root
+                win_data['treetab_root'] = {
+                    'children': [c.uid for c in root.children],
+                    'uid': root.uid
+                }
             data['windows'].append(win_data)
         return data
 
@@ -456,6 +510,86 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
+    def _load_tree(self, tabbed_browser, tree_data, legacy=False):
+        tree_keys = list(tree_data.keys())
+        if not tree_keys:
+            return None
+
+        root_data = tree_data.get(tree_keys[0])
+        if root_data is None:
+            return None
+
+        root_node = tabbed_browser.widget.tree_root
+        tab_to_focus = None
+        index = -1
+
+        def recursive_load_node(uid):
+            nonlocal tab_to_focus
+            nonlocal index
+            index += 1
+            if legacy:
+                node_data = tree_data[uid]
+                tab_data = node_data['tab']
+            else:
+                tab_data = tree_data[uid]
+                node_data = tab_data['treetab_node_data']
+            children_uids = node_data['children']
+
+            if tab_data.get('active'):
+                tab_to_focus = index
+
+            new_tab = tabbed_browser.tabopen(
+                background=False,
+                related=False,
+                idx=index,
+            )
+            self._load_tab(new_tab, tab_data)
+
+            new_tab.node.parent = root_node
+            children = [recursive_load_node(uid) for uid in children_uids]
+            new_tab.node.children = children
+            new_tab.node.collapsed = node_data['collapsed']
+            return new_tab.node
+
+        for child_uid in root_data['children']:
+            child = recursive_load_node(child_uid)
+            child.parent = root_node
+
+        # Make sure any collapsed tabs are removed from the widget.
+        # Since we only set the "collapsed" attribute after loading the tab,
+        # and the tree only gets updated in the above loop on tab loads. So if
+        # the last set of tabs we load is a collapsed group this children
+        # won't know they are support to be hidden yet.
+        tabbed_browser.widget.tree_tab_update()
+
+        return tab_to_focus
+
+    def _load_legacy_tree_tabs(self, win, tabbed_browser):
+        """Load the "legacy" tree session format.
+
+        For a number of years (pull #4602) tree tabs used a session format
+        that wasn't backwards compatible with prior session formats. In that
+        tab data was a child of a tree node. Now it's been switched to the
+        other way around. This method (along with a conditional in
+        `_load_tree()`) handle loading the old format for early adopters who
+        have session they don't want to have to rebuild.
+
+        Returns:
+          a. `(None, None)` if tree tabs where loaded, or
+          b. or a tuple of the tab index to focus and a flat list of tabs that
+             need loading if tree tabs is turned off.
+        """
+        plain_tabs = None
+        tab_to_focus = None
+        tree_data = win.get('tree')
+        if tabbed_browser.is_treetabbedbrowser:
+            tab_to_focus = self._load_tree(tabbed_browser, tree_data, legacy=True)
+            tabbed_browser.widget.tree_tab_update()
+        else:
+            plain_tabs = [tree_data[i]['tab'] for i in tree_data if
+                          tree_data[i]['tab']]
+        return tab_to_focus, plain_tabs
+
     def _load_window(self, win):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
@@ -463,13 +597,35 @@ class SessionManager(QObject):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
-        for i, tab in enumerate(win['tabs']):
-            new_tab = tabbed_browser.tabopen(background=False)
-            self._load_tab(new_tab, tab)
-            if tab.get('active', False):
-                tab_to_focus = i
-            if new_tab.data.pinned:
-                new_tab.set_pinned(True)
+
+        legacy_tree_loaded = False
+        if win.get('tree'):
+            tab_to_focus, tabs = self._load_legacy_tree_tabs(win, tabbed_browser)
+            legacy_tree_loaded = not tabs
+        else:
+            tabs = win['tabs']
+
+        # restore a tab tree only if the session contains treetab
+        # data and tree tabs are enabled.
+        # Otherwise, restore tabs "flat"
+        load_tree_tabs = 'treetab_root' in win.keys() and \
+            tabbed_browser.is_treetabbedbrowser
+        if load_tree_tabs:
+            tree_data = reconstruct_tree_data(win)
+            tab_to_focus = self._load_tree(tabbed_browser, tree_data)
+        elif not legacy_tree_loaded:
+            for i, tab in enumerate(tabs):
+                new_tab = tabbed_browser.tabopen(
+                    background=False,
+                    related=False,
+                    idx=i,
+                )
+                self._load_tab(new_tab, tab)
+                if tab.get('active', False):
+                    tab_to_focus = i
+                if new_tab.data.pinned:
+                    new_tab.set_pinned(True)
+
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
 
