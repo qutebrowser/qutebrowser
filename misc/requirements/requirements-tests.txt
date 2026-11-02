@@ -3,7 +3,7 @@
 backports.tarfile==1.2.0
 beautifulsoup4==4.15.0
 blinker==1.9.0
-certifi==2026.10.19
+certifi==2026.10.23
 charset-normalizer==3.5.2
 cheroot==11.1.2
 click==8.5.0
@@ -34,9 +34,9 @@ platformdirs==4.12.4
 pluggy==1.7.0
 py-cpuinfo2==10.1.1
 Pygments==2.21.0
-pytest==9.1.1
-pytest-bdd==9.0.0
-pytest-benchmark==5.3.0
+pytest==9.2.0
+pytest-bdd==9.0.1
+pytest-benchmark==5.3.1
 pytest-cov==7.1.0
 pytest-instafail==0.5.0
 pytest-mock==3.17.0
