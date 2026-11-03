@@ -20,5 +20,4 @@ def test_patterns(matcher_name):
     for matcher in problemmatchers.MATCHERS[matcher_name]:
         for pattern in matcher['pattern']:
             regexp = pattern['regexp']
-            print(regexp)
             re.compile(regexp)

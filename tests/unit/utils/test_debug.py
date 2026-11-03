@@ -4,9 +4,8 @@
 
 """Tests for qutebrowser.utils.debug."""
 
+import datetime
 import logging
-import re
-import time
 import textwrap
 
 import pytest
@@ -65,21 +64,20 @@ def test_log_signals(caplog, signal_obj):
 
 class TestLogTime:
 
-    def test_duration(self, caplog):
+    def test_duration(self, caplog, mocker):
         logger_name = 'qt-tests'
+        started = datetime.datetime(2026, 1, 1)
+        finished = started + datetime.timedelta(seconds=0.1)
+        datetime_mock = mocker.patch.object(debug.datetime, 'datetime')
+        datetime_mock.now.side_effect = [started, finished]
 
         with caplog.at_level(logging.DEBUG, logger_name):
             with debug.log_time(logger_name, action='foobar'):
-                time.sleep(0.1)
+                datetime_mock.now.assert_called_once_with()
 
             assert len(caplog.records) == 1
 
-            pattern = re.compile(r'Foobar took ([\d.]*) seconds\.')
-            match = pattern.fullmatch(caplog.messages[0])
-            assert match
-
-            duration = float(match.group(1))
-            assert 0 < duration < 30
+            assert caplog.messages[0] == 'Foobar took 0.1 seconds.'
 
     def test_logger(self, caplog):
         """Test with an explicit logger instead of a name."""

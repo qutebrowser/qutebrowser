@@ -36,7 +36,7 @@ class TestBaseLineParser:
             with pytest.raises(OSError,
                                match="Refusing to double-open LineParser."):
                 with lineparser._open('r'):
-                    pass
+                    assert False, "Expected OSError on double-open"
 
     def test_binary(self, mocker):
         """Test if _open and _write correctly handle binary files."""

@@ -30,7 +30,6 @@ def check_query(quteproc, name, value):
     """
     content = quteproc.get_content()
     data = json.loads(content)
-    print(data)
     assert data[name] == value
 
 

@@ -251,11 +251,9 @@ def test_qdatastream_status_members():
         QDataStream.Status.ReadCorruptData,
         QDataStream.Status.WriteFailed,
     }
-    try:
+    if hasattr(QDataStream.Status, 'SizeLimitExceeded'):
         expected.add(QDataStream.Status.SizeLimitExceeded)
-    except AttributeError:
-        # Added in Qt 6.7
-        pass
+
     assert status_vals == expected
 
 

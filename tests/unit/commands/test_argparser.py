@@ -51,46 +51,42 @@ class TestArgumentParser:
         assert tabbed_browser_stubs[1].loaded_url == expected_url
 
 
-@pytest.mark.parametrize('types, value, expected', [
-    ([Enum], 'foo', Enum.foo),
-    ([Enum], 'foo-bar', Enum.foo_bar),
+@pytest.mark.parametrize('converter, typ, value, expected', [
+    (argparser.multitype_conv, [Enum], 'foo', Enum.foo),
+    (argparser.multitype_conv, [Enum], 'foo-bar', Enum.foo_bar),
+    (argparser.multitype_conv, [int], '2', 2),
+    (argparser.multitype_conv, [int, str], 'foo', 'foo'),
+    (argparser.type_conv, Enum, 'foo', Enum.foo),
+    (argparser.type_conv, Enum, 'foo-bar', Enum.foo_bar),
+    (argparser.type_conv, int, '2', 2),
+])
+def test_type_conv_valid(converter, typ, value, expected):
+    param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
+    assert converter(param, typ, value) == expected
 
-    ([int], '2', 2),
-    ([int, str], 'foo', 'foo'),
+
+@pytest.mark.parametrize('typ, value, type_message', [
+    (Enum, 'blubb',
+     'foo: Invalid value blubb - expected one of: foo, foo-bar'),
+    (Enum, 'foo_bar',
+     'foo: Invalid value foo_bar - expected one of: foo, foo-bar'),
+    (int, '2.5', 'foo: Invalid int value 2.5'),
+    (int, 'foo', 'foo: Invalid int value foo'),
 ])
 @pytest.mark.parametrize('multi', [True, False])
-def test_type_conv_valid(types, value, expected, multi):
+def test_type_conv_invalid(typ, value, type_message, multi):
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-
-    if multi:
-        assert argparser.multitype_conv(param, types, value) == expected
-    elif len(types) == 1:
-        assert argparser.type_conv(param, types[0], value) == expected
-
-
-@pytest.mark.parametrize('typ, value', [
-    (Enum, 'blubb'),
-    (Enum, 'foo_bar'),
-    (int, '2.5'),
-    (int, 'foo'),
-])
-@pytest.mark.parametrize('multi', [True, False])
-def test_type_conv_invalid(typ, value, multi):
-    param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-
-    if multi:
-        msg = 'foo: Invalid value {}'.format(value)
-    elif typ is Enum:
-        msg = ('foo: Invalid value {} - expected one of: foo, '
-               'foo-bar'.format(value))
-    else:
-        msg = 'foo: Invalid {} value {}'.format(typ.__name__, value)
+    msg = {
+        True: 'foo: Invalid value {}'.format(value),
+        False: type_message,
+    }[multi]
+    converter, converter_type = {
+        True: (argparser.multitype_conv, [typ]),
+        False: (argparser.type_conv, typ),
+    }[multi]
 
     with pytest.raises(cmdexc.ArgumentTypeError, match=msg):
-        if multi:
-            argparser.multitype_conv(param, [typ], value)
-        else:
-            argparser.type_conv(param, typ, value)
+        converter(param, converter_type, value)
 
 
 def test_multitype_conv_invalid_type():

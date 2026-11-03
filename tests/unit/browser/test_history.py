@@ -133,27 +133,27 @@ class TestAdd:
         return 12345
 
     @pytest.mark.parametrize(
-        'url, atime, title, redirect, history_url, completion_url', [
+        'url, atime, title, redirect, history_url, expected_completion', [
             ('http://www.example.com', 12346, 'the title', False,
-             'http://www.example.com', 'http://www.example.com'),
+             'http://www.example.com',
+             [('http://www.example.com', 'the title', 12346)]),
             ('http://www.example.com', 12346, 'the title', True,
-             'http://www.example.com', None),
+             'http://www.example.com', []),
             ('http://www.example.com/sp ce', 12346, 'the title', False,
-             'http://www.example.com/sp%20ce', 'http://www.example.com/sp ce'),
+             'http://www.example.com/sp%20ce',
+             [('http://www.example.com/sp ce', 'the title', 12346)]),
             ('https://user:pass@example.com', 12346, 'the title', False,
-             'https://user@example.com', 'https://user@example.com'),
+             'https://user@example.com',
+             [('https://user@example.com', 'the title', 12346)]),
         ]
     )
     def test_add_url(self, qtbot, web_history,
-                     url, atime, title, redirect, history_url, completion_url):
+                     url, atime, title, redirect, history_url,
+                     expected_completion):
         web_history.add_url(QUrl(url), atime=atime, title=title,
                             redirect=redirect)
         assert list(web_history) == [(history_url, title, atime, redirect)]
-        if completion_url is None:
-            assert not len(web_history.completion)
-        else:
-            expected = [(completion_url, title, atime)]
-            assert list(web_history.completion) == expected
+        assert list(web_history.completion) == expected_completion
 
     def test_no_sql_web_history(self, web_history, monkeypatch):
         monkeypatch.setattr(objects, 'debug_flags', {'no-sql-history'})

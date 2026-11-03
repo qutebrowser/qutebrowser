@@ -1,0 +1,1663 @@
+arquivo,smell,metodo,linhas
+qutebrowser/misc/pakjoy.py,Programming Paradigms Blend,(nível do módulo),44;77
+tests/conftest.py,Conditional Test Logic,pytest_collection_modifyitems,194
+tests/conftest.py,Conditional Test Logic,pytest_collection_modifyitems,197
+tests/conftest.py,Conditional Test Logic,pytest_collection_modifyitems,200
+tests/conftest.py,Conditional Test Logic,pytest_collection_modifyitems,207
+tests/conftest.py,Conditional Test Logic,pytest_collection_modifyitems,211
+tests/conftest.py,Conditional Test Logic,pytest_collection_modifyitems,214
+tests/conftest.py,Verbose Test,_apply_platform_markers,64;165
+tests/conftest.py,Verbose Test,pytest_collection_modifyitems,168;220
+tests/conftest.py,Non-Functional Statement,apply_fake_os,371
+tests/conftest.py,Undefined Test,pytest_collection_modifyitems,168
+tests/test_conftest.py,Unknown Test,test_fail_on_warnings,27
+tests/end2end/conftest.py,Verbose Test,_get_version_tag,70;138
+tests/end2end/conftest.py,Non-Functional Statement,pytest_configure,40
+tests/end2end/test_adblock_e2e.py,Conditional Test Logic,test_adblock,25
+tests/end2end/test_adblock_e2e.py,Conditional Test Logic,test_adblock,35
+tests/end2end/test_adblock_e2e.py,Conditional Test Logic,test_adblock,41
+tests/end2end/test_adblock_e2e.py,Unknown Test,test_adblock,24
+tests/end2end/test_dirbrowser.py,Programming Paradigms Blend,(nível do módulo),20;24
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_hints,77
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_hints,79
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_hints,83
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_hints,90
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_hints,98
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_hints,108
+tests/end2end/test_hints_html.py,Conditional Test Logic,test_word_hints_issue1393,137
+tests/end2end/test_hints_html.py,Unknown Test,test_hints,75
+tests/end2end/test_hints_html.py,Unknown Test,test_word_hints_issue1393,114
+tests/end2end/test_hints_html.py,Programming Paradigms Blend,(nível do módulo),17;25
+tests/end2end/test_insert_mode.py,Conditional Test Logic,test_insert_mode,29
+tests/end2end/test_insert_mode.py,Conditional Test Logic,test_auto_load,52
+tests/end2end/test_insert_mode.py,Conditional Test Logic,test_auto_leave_insert_mode_reload,102
+tests/end2end/test_insert_mode.py,Unknown Test,test_insert_mode,19
+tests/end2end/test_insert_mode.py,Unknown Test,test_auto_load,46
+tests/end2end/test_insert_mode.py,Unknown Test,test_auto_load_delayed_tab_close,59
+tests/end2end/test_insert_mode.py,Unknown Test,test_auto_leave_insert_mode,72
+tests/end2end/test_insert_mode.py,Unknown Test,test_auto_leave_insert_mode_reload,93
+tests/end2end/test_insert_mode.py,Non-Functional Statement,test_auto_load_delayed_tab_close,62
+tests/end2end/test_invocations.py,Conditional Test Logic,test_optimize,145
+tests/end2end/test_invocations.py,Conditional Test Logic,test_webengine_download_suffix,201
+tests/end2end/test_invocations.py,Conditional Test Logic,test_referrer,344
+tests/end2end/test_invocations.py,Conditional Test Logic,test_referrer,348
+tests/end2end/test_invocations.py,Conditional Test Logic,test_referrer,349
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme_unsupported,357
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme,371
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme,375
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme,391
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme,394
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme,402
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme_with_dark_mode,414
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme_with_dark_mode,423
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme_with_dark_mode,432
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme_with_dark_mode,443
+tests/end2end/test_invocations.py,Conditional Test Logic,test_preferred_colorscheme_with_dark_mode,463
+tests/end2end/test_invocations.py,Conditional Test Logic,test_service_worker_workaround,478
+tests/end2end/test_invocations.py,Conditional Test Logic,test_service_worker_workaround,495
+tests/end2end/test_invocations.py,Conditional Test Logic,test_service_worker_workaround,504
+tests/end2end/test_invocations.py,Conditional Test Logic,test_service_worker_workaround,512
+tests/end2end/test_invocations.py,Conditional Test Logic,test_disable_hangouts_extension_crash,531
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode,668
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode,676
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode,685
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode,691
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode_mathml,707
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode_mathml,715
+tests/end2end/test_invocations.py,Conditional Test Logic,test_dark_mode_mathml,726
+tests/end2end/test_invocations.py,Conditional Test Logic,test_prefers_reduced_motion,752
+tests/end2end/test_invocations.py,Conditional Test Logic,test_unavailable_backend,779
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,834
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,856
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,861
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,869
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,911
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,912
+tests/end2end/test_invocations.py,Conditional Test Logic,test_sandboxing,929
+tests/end2end/test_invocations.py,Conditional Test Logic,test_restart,969
+tests/end2end/test_invocations.py,Exception Handling,test_unavailable_backend,788
+tests/end2end/test_invocations.py,Exception Handling,test_restart,970
+tests/end2end/test_invocations.py,Redundant Print,test_version,173
+tests/end2end/test_invocations.py,Redundant Print,test_version,175
+tests/end2end/test_invocations.py,Redundant Print,test_referrer,341
+tests/end2end/test_invocations.py,Redundant Print,test_sandboxing,852
+tests/end2end/test_invocations.py,Redundant Print,test_sandboxing,864
+tests/end2end/test_invocations.py,Unknown Test,test_optimize,142
+tests/end2end/test_invocations.py,Unknown Test,test_qt_arg,184
+tests/end2end/test_invocations.py,Unknown Test,test_command_on_start,227
+tests/end2end/test_invocations.py,Unknown Test,test_initial_private_browsing,250
+tests/end2end/test_invocations.py,Unknown Test,test_loading_empty_session,268
+tests/end2end/test_invocations.py,Unknown Test,test_disable_hangouts_extension_crash,520
+tests/end2end/test_invocations.py,Unknown Test,test_permission_prompt_across_restart,574
+tests/end2end/test_invocations.py,Unknown Test,test_dark_mode,666
+tests/end2end/test_invocations.py,Unknown Test,test_dark_mode_mathml,706
+tests/end2end/test_invocations.py,Unknown Test,test_unavailable_backend,766
+tests/end2end/test_invocations.py,Unknown Test,test_logfilter_arg_does_not_crash,944
+tests/end2end/test_invocations.py,Verbose Test,test_preferred_colorscheme_with_dark_mode,407;465
+tests/end2end/test_invocations.py,Verbose Test,test_sandboxing,826;940
+tests/end2end/test_invocations.py,Non-Functional Statement,test_unavailable_backend,791
+tests/end2end/test_invocations.py,Non-Functional Statement,test_restart,977
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,compare_mhtml,61
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,compare_mhtml,62
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,compare_mhtml,64
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,_test_mhtml_requests,76
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,_test_mhtml_requests,77
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,_test_mhtml_requests,85
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,test_mhtml,106
+tests/end2end/test_mhtml_e2e.py,Conditional Test Logic,test_mhtml,115
+tests/end2end/test_mhtml_e2e.py,Unknown Test,test_mhtml,91
+tests/end2end/test_mhtml_e2e.py,Programming Paradigms Blend,(nível do módulo),14;41
+tests/end2end/test_mhtml_e2e.py,Undefined Test,read_file,50
+tests/end2end/test_mhtml_e2e.py,Undefined Test,sanity_check_mhtml,55
+tests/end2end/test_mhtml_e2e.py,Undefined Test,compare_mhtml,58
+tests/end2end/test_mhtml_e2e.py,Undefined Test,_test_mhtml_requests,73
+tests/end2end/features/conftest.py,Conditional Test Logic,list_of_requests,464
+tests/end2end/features/conftest.py,Conditional Test Logic,list_of_requests_unordered,473
+tests/end2end/features/conftest.py,Conditional Test Logic,list_of_requests_unordered,477
+tests/end2end/features/conftest.py,Conditional Test Logic,check_header,572
+tests/end2end/features/conftest.py,Conditional Test Logic,check_open_tabs,632
+tests/end2end/features/conftest.py,Conditional Test Logic,check_open_tabs,640
+tests/end2end/features/conftest.py,Conditional Test Logic,check_open_tabs,641
+tests/end2end/features/conftest.py,Conditional Test Logic,check_open_tabs,653
+tests/end2end/features/conftest.py,Conditional Test Logic,check_open_tabs,658
+tests/end2end/features/conftest.py,Conditional Test Logic,check_scrolled,704
+tests/end2end/features/conftest.py,Redundant Print,check_header,571
+tests/end2end/features/conftest.py,Verbose Test,pytest_runtest_makereport,42;109
+tests/end2end/features/conftest.py,Verbose Test,open_path,191;241
+tests/end2end/features/conftest.py,Verbose Test,check_open_tabs,614;661
+tests/end2end/features/conftest.py,Non-Functional Statement,update_documentation,411
+tests/end2end/features/conftest.py,Non-Functional Statement,wait_pdfjs,434
+tests/end2end/features/conftest.py,Undefined Test,list_of_requests,461
+tests/end2end/features/conftest.py,Undefined Test,list_of_requests_unordered,470
+tests/end2end/features/conftest.py,Undefined Test,check_header,564
+tests/end2end/features/conftest.py,Undefined Test,check_contents_html,583
+tests/end2end/features/conftest.py,Undefined Test,check_contents_plain,590
+tests/end2end/features/conftest.py,Undefined Test,check_not_contents_plain,598
+tests/end2end/features/conftest.py,Undefined Test,check_contents_json,605
+tests/end2end/features/conftest.py,Undefined Test,check_open_tabs,614
+tests/end2end/features/conftest.py,Undefined Test,check_scrolled,701
+tests/end2end/features/conftest.py,Undefined Test,check_not_scrolled,713
+tests/end2end/features/conftest.py,Undefined Test,check_option,720
+tests/end2end/features/conftest.py,Undefined Test,check_option_per_domain,727
+tests/end2end/features/test_downloads_bdd.py,Non-Functional Statement,download_dir,28
+tests/end2end/features/test_downloads_bdd.py,Undefined Test,download_should_not_exist,92
+tests/end2end/features/test_downloads_bdd.py,Undefined Test,download_should_exist,98
+tests/end2end/features/test_downloads_bdd.py,Undefined Test,download_size,105
+tests/end2end/features/test_downloads_bdd.py,Undefined Test,download_contents,112
+tests/end2end/features/test_downloads_bdd.py,Undefined Test,fifo_should_be_fifo,158
+tests/end2end/features/test_editor_bdd.py,Programming Paradigms Blend,(nível do módulo),15;61
+tests/end2end/features/test_editor_bdd.py,Non-Functional Statement,wait_editor,135
+tests/end2end/features/test_editor_bdd.py,Undefined Test,set_up_editor_wait,97
+tests/end2end/features/test_history_bdd.py,Undefined Test,check_query,26
+tests/end2end/features/test_history_bdd.py,Undefined Test,check_history,37
+tests/end2end/features/test_javascript_bdd.py,Non-Functional Statement,create_greasemonkey_file,42
+tests/end2end/features/test_javascript_bdd.py,Undefined Test,check_window_sizes,12
+tests/end2end/features/test_marks_bdd.py,Undefined Test,check_y,17
+tests/end2end/features/test_misc_bdd.py,Undefined Test,pdf_exists,25
+tests/end2end/features/test_notifications_bdd.py,Undefined Test,notification_presented_single,40
+tests/end2end/features/test_notifications_bdd.py,Undefined Test,notification_presented_count,45
+tests/end2end/features/test_notifications_bdd.py,Undefined Test,notification_body,50
+tests/end2end/features/test_notifications_bdd.py,Undefined Test,notification_title,56
+tests/end2end/features/test_notifications_bdd.py,Undefined Test,notification_image_dimensions,63
+tests/end2end/features/test_notifications_bdd.py,Undefined Test,notification_closed,69
+tests/end2end/features/test_open_bdd.py,Conditional Test Logic,test_open_s,18
+tests/end2end/features/test_open_bdd.py,Unknown Test,test_open_s,13
+tests/end2end/features/test_open_bdd.py,Unknown Test,test_open_s_non_http,27
+tests/end2end/features/test_private_bdd.py,Undefined Test,check_cookie,12
+tests/end2end/features/test_private_bdd.py,Undefined Test,check_cookie_not_set,23
+tests/end2end/features/test_private_bdd.py,Undefined Test,check_not_contain,31
+tests/end2end/features/test_prompts_bdd.py,Conditional Test Logic,ssl_error_page,72
+tests/end2end/features/test_prompts_bdd.py,Conditional Test Logic,test_certificate_error_load_status,91
+tests/end2end/features/test_prompts_bdd.py,Conditional Test Logic,test_certificate_error_load_status,94
+tests/end2end/features/test_prompts_bdd.py,Unknown Test,test_certificate_error_load_status,87
+tests/end2end/features/test_prompts_bdd.py,Undefined Test,ssl_error_page,71
+tests/end2end/features/test_sessions_bdd.py,Undefined Test,session_should_exist,42
+tests/end2end/features/test_sessions_bdd.py,Undefined Test,session_should_not_exist,49
+tests/end2end/features/test_urlmarks_bdd.py,Conditional Test Logic,_check_marks,33
+tests/end2end/features/test_urlmarks_bdd.py,Conditional Test Logic,_check_marks,48
+tests/end2end/features/test_urlmarks_bdd.py,Undefined Test,_check_marks,25
+tests/end2end/features/test_zoom_bdd.py,Undefined Test,check_zoom,10
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,register,62
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,_parse_notify_args,95
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,_parse_notify_args,106
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,Notify,187
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,GetCapabilities,203
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,notification_server,227
+tests/end2end/fixtures/notificationserver.py,Conditional Test Logic,notification_server,237
+tests/end2end/fixtures/notificationserver.py,Programming Paradigms Blend,(nível do módulo),18;19
+tests/end2end/fixtures/notificationserver.py,Undefined Test,register,55
+tests/end2end/fixtures/notificationserver.py,Undefined Test,unregister,73
+tests/end2end/fixtures/notificationserver.py,Undefined Test,_parse_notify_args,77
+tests/end2end/fixtures/notificationserver.py,Undefined Test,_parse_image,112
+tests/end2end/fixtures/notificationserver.py,Undefined Test,Notify,181
+tests/end2end/fixtures/notificationserver.py,Undefined Test,GetCapabilities,197
+tests/end2end/fixtures/notificationserver.py,Undefined Test,CloseNotification,217
+tests/end2end/fixtures/notificationserver.py,Undefined Test,notification_server,226
+tests/end2end/fixtures/quteprocess.py,Conditional Test Logic,wait_for_load_finished_url,787
+tests/end2end/fixtures/quteprocess.py,Conditional Test Logic,wait_for_load_finished_url,788
+tests/end2end/fixtures/quteprocess.py,Conditional Test Logic,wait_for_load_finished_url,794
+tests/end2end/fixtures/quteprocess.py,Conditional Test Logic,get_screenshot,863
+tests/end2end/fixtures/quteprocess.py,Conditional Test Logic,get_screenshot,877
+tests/end2end/fixtures/quteprocess.py,Conditional Test Logic,get_screenshot,881
+tests/end2end/fixtures/quteprocess.py,Exception Handling,send_ipc,654
+tests/end2end/fixtures/quteprocess.py,Exception Handling,wait_for_load_finished_url,809
+tests/end2end/fixtures/quteprocess.py,Exception Handling,get_screenshot,888
+tests/end2end/fixtures/quteprocess.py,Redundant Print,get_screenshot,872
+tests/end2end/fixtures/quteprocess.py,Sleepy Test,send_ipc,649
+tests/end2end/fixtures/quteprocess.py,Sleepy Test,get_screenshot,885
+tests/end2end/fixtures/quteprocess.py,Verbose Test,is_ignored_lowlevel_message,41;91
+tests/end2end/fixtures/quteprocess.py,Verbose Test,is_ignored_chromium_message,94;278
+tests/end2end/fixtures/quteprocess.py,Programming Paradigms Blend,(nível do módulo),32;281
+tests/end2end/fixtures/quteprocess.py,Non-Functional Statement,after_test,608
+tests/end2end/fixtures/quteprocess.py,Undefined Test,send_ipc,646
+tests/end2end/fixtures/quteprocess.py,Undefined Test,wait_for_load_finished_url,781
+tests/end2end/fixtures/quteprocess.py,Undefined Test,get_screenshot,851
+tests/end2end/fixtures/test_quteprocess.py,Conditional Test Logic,test_log_line_parse,233
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_click_element,314
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_click_special_chars,318
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_duplicate,322
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_nonexistent,326
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_quteproc_error_message,91
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_quteproc_error_message_did_fail,101
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_quteproc_skip_via_js,123
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_quteproc_skip_and_wait_for,133
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_qt_log_ignore,141
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_quteprocess_quitting,148
+tests/end2end/fixtures/test_quteprocess.py,Unknown Test,test_log_line_no_match,303
+tests/end2end/fixtures/test_quteprocess.py,Undefined Test,getfixturevalue,70
+tests/end2end/fixtures/test_quteprocess.py,Undefined Test,request_mock,76
+tests/end2end/fixtures/test_testprocess.py,Conditional Test Logic,stopwatch,22
+tests/end2end/fixtures/test_testprocess.py,Conditional Test Logic,stopwatch,29
+tests/end2end/fixtures/test_testprocess.py,Conditional Test Logic,stopwatch,31
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_successful,162
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_other_text,169
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_no_text,176
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_existing_message,184
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_existing_message_previous_test,192
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_existing_message_already_waited,202
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_no_kwargs,216
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_do_skip,224
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_existing_message,239
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_late_message,246
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_no_matching_message,253
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_wait_for_and_blacklist,258
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_no_ready_python_process,111
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_quitting_process,118
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_quitting_process_expected,125
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_process_never_started,132
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_wait_signal_raising,137
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_custom_environment,145
+tests/end2end/fixtures/test_testprocess.py,Unknown Test,test_custom_environment_system_env,152
+tests/end2end/fixtures/test_testprocess.py,Programming Paradigms Blend,(nível do módulo),17;35
+tests/end2end/fixtures/test_testprocess.py,Non-Functional Statement,test_wait_signal_raising,142
+tests/end2end/fixtures/test_testprocess.py,Undefined Test,stopwatch,21
+tests/end2end/fixtures/test_webserver.py,Exception Handling,test_server,24
+tests/end2end/fixtures/test_webserver.py,Redundant Print,test_server,32
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,_start,244
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,_start,248
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,_start,249
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,_wait_for_match,408
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,_wait_for_match,414
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,_wait_for_match,418
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,wait_for,459
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,wait_for,460
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,wait_for,469
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,wait_for,471
+tests/end2end/fixtures/testprocess.py,Conditional Test Logic,wait_for,476
+tests/end2end/fixtures/testprocess.py,Non-Functional Statement,start,224
+tests/end2end/fixtures/testprocess.py,Non-Functional Statement,wait_for_quit,501
+tests/end2end/fixtures/testprocess.py,Undefined Test,_start,241
+tests/end2end/fixtures/testprocess.py,Undefined Test,_wait_for_match,406
+tests/end2end/fixtures/testprocess.py,Undefined Test,wait_for,438
+tests/end2end/fixtures/testprocess.py,Undefined Test,wait_for_quit,497
+tests/end2end/fixtures/webserver.py,Exception Handling,__init__,32
+tests/end2end/fixtures/webserver.py,Verbose Test,_check_status,48;93
+tests/end2end/fixtures/webserver.py,Undefined Test,__init__,30
+tests/end2end/misc/test_runners_e2e.py,Unknown Test,test_command_expansion,35
+tests/end2end/misc/test_runners_e2e.py,Unknown Test,test_command_expansion_complex,47
+tests/end2end/misc/test_runners_e2e.py,Unknown Test,test_command_expansion_basic_auth,52
+tests/end2end/misc/test_runners_e2e.py,Unknown Test,test_command_expansion_clipboard,63
+tests/helpers/fixtures.py,Conditional Test Logic,validate,645
+tests/helpers/fixtures.py,Conditional Test Logic,validate,646
+tests/helpers/fixtures.py,Exception Handling,testdata_scheme,162
+tests/helpers/fixtures.py,Unknown Test,testdata_scheme,161
+tests/helpers/fixtures.py,Programming Paradigms Blend,(nível do módulo),42;45
+tests/helpers/fixtures.py,Non-Functional Statement,testdata_scheme,171
+tests/helpers/fixtures.py,Non-Functional Statement,config_stub,336
+tests/helpers/fixtures.py,Non-Functional Statement,qnam,426
+tests/helpers/fixtures.py,Undefined Test,add_window,93
+tests/helpers/fixtures.py,Undefined Test,validate,643
+tests/helpers/fixtures.py,Undefined Test,fake_flatpak,742
+tests/helpers/messagemock.py,Conditional Test Logic,getmsg,63
+tests/helpers/messagemock.py,Undefined Test,getmsg,53
+tests/helpers/messagemock.py,Undefined Test,get_question,67
+tests/helpers/stubs.py,Undefined Test,can_go_back,217
+tests/helpers/stubs.py,Undefined Test,can_go_forward,221
+tests/helpers/stubs.py,Undefined Test,url,262
+tests/helpers/test_logfail.py,Unknown Test,test_log_debug,13
+tests/helpers/test_logfail.py,Unknown Test,test_log_warning,17
+tests/helpers/test_logfail.py,Unknown Test,test_log_expected,22
+tests/helpers/test_logfail.py,Unknown Test,test_log_expected_logger,27
+tests/helpers/test_logfail.py,Unknown Test,test_log_expected_wrong_level,33
+tests/helpers/test_logfail.py,Unknown Test,test_log_expected_logger_wrong_level,39
+tests/helpers/test_logfail.py,Unknown Test,test_log_expected_wrong_logger,46
+tests/helpers/test_stubs.py,Unknown Test,test_disconnect_all_invalid,48
+tests/helpers/testutils.py,Verbose Test,partial_compare,137;184
+tests/helpers/testutils.py,Programming Paradigms Blend,(nível do módulo),28;31
+tests/helpers/testutils.py,Undefined Test,gha_group_begin,119
+tests/helpers/testutils.py,Undefined Test,gha_group_end,128
+tests/unit/test_qt_machinery.py,Conditional Test Logic,test_select,328
+tests/unit/test_qt_machinery.py,Conditional Test Logic,test_select,333
+tests/unit/test_qt_machinery.py,Conditional Test Logic,test_autoselect_by_default,356
+tests/unit/test_qt_machinery.py,Conditional Test Logic,test_properly,483
+tests/unit/test_qt_machinery.py,Conditional Test Logic,test_selectioninfo_str_wrapper_precedence,127
+tests/unit/test_qt_machinery.py,Unknown Test,test_after_qt_import,363
+tests/unit/test_qt_machinery.py,Unknown Test,test_invalid_override,368
+tests/unit/test_qt_machinery.py,Unknown Test,test_multiple_implicit,379
+tests/unit/test_qt_machinery.py,Unknown Test,test_multiple_explicit,384
+tests/unit/test_qt_machinery.py,Unknown Test,test_none_available_implicit,417
+tests/unit/test_qt_machinery.py,Unknown Test,test_importerror_exceptions,54
+tests/unit/test_qt_machinery.py,Programming Paradigms Blend,(nível do módulo),21;222
+tests/unit/test_qutebrowser.py,Unknown Test,test_valid,77
+tests/unit/test_qutebrowser.py,Unknown Test,test_invalid,119
+tests/unit/test_qutebrowser.py,Programming Paradigms Blend,(nível do módulo),17;22
+tests/unit/api/test_cmdutils.py,Conditional Test Logic,test_pos_args,272
+tests/unit/api/test_cmdutils.py,Conditional Test Logic,test_typed_args,322
+tests/unit/api/test_cmdutils.py,Conditional Test Logic,test_no_docstring_with_optimize,447
+tests/unit/api/test_cmdutils.py,Conditional Test Logic,test_no_docstring_with_optimize,448
+tests/unit/api/test_cmdutils.py,Conditional Test Logic,test_backend,478
+tests/unit/api/test_cmdutils.py,Redundant Print,test_typed_args,314
+tests/unit/api/test_cmdutils.py,Unknown Test,test_good,41
+tests/unit/api/test_cmdutils.py,Unknown Test,test_bad,44
+tests/unit/api/test_cmdutils.py,Unknown Test,test_good,55
+tests/unit/api/test_cmdutils.py,Unknown Test,test_bad,58
+tests/unit/api/test_cmdutils.py,Unknown Test,test_multiple_registrations,104
+tests/unit/api/test_cmdutils.py,Unknown Test,test_star_args_type,141
+tests/unit/api/test_cmdutils.py,Unknown Test,test_star_args_optional_annotated,162
+tests/unit/api/test_cmdutils.py,Unknown Test,test_self_without_instance,198
+tests/unit/api/test_cmdutils.py,Unknown Test,test_instance_without_self,205
+tests/unit/api/test_cmdutils.py,Unknown Test,test_var_kw,212
+tests/unit/api/test_cmdutils.py,Unknown Test,test_partial_arg,219
+tests/unit/api/test_cmdutils.py,Unknown Test,test_fill_self,240
+tests/unit/api/test_cmdutils.py,Unknown Test,test_fill_invalid,248
+tests/unit/api/test_cmdutils.py,Unknown Test,test_count_without_default,256
+tests/unit/api/test_cmdutils.py,Unknown Test,test_choices_no_annotation,332
+tests/unit/api/test_cmdutils.py,Unknown Test,test_choices_no_annotation_kwonly,345
+tests/unit/api/test_cmdutils.py,Unknown Test,test_keyword_only_without_default,372
+tests/unit/api/test_cmdutils.py,Unknown Test,test_typed_keyword_only_without_default,381
+tests/unit/api/test_cmdutils.py,Unknown Test,test_invalid_argument,395
+tests/unit/api/test_cmdutils.py,Unknown Test,test_wrong_order,423
+tests/unit/api/test_cmdutils.py,Unknown Test,test_no_docstring_with_optimize,442
+tests/unit/api/test_cmdutils.py,Unknown Test,test_backend,475
+tests/unit/api/test_cmdutils.py,Unknown Test,test_no_args,485
+tests/unit/api/test_cmdutils.py,Unknown Test,test_instance_unavailable_with_backend,489
+tests/unit/api/test_cmdutils.py,Programming Paradigms Blend,(nível do módulo),22;39
+tests/unit/api/test_cmdutils.py,Non-Functional Statement,test_no_docstring,437
+tests/unit/api/test_cmdutils.py,Non-Functional Statement,test_no_docstring_with_optimize,457
+tests/unit/browser/test_browsertab.py,Unknown Test,test_run_string_invalid,28
+tests/unit/browser/test_caret.py,Conditional Test Logic,check,44
+tests/unit/browser/test_caret.py,Conditional Test Logic,check,49
+tests/unit/browser/test_caret.py,Conditional Test Logic,check,50
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_entire_document,105
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_end_and_start,116
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_end_and_start_with_selection,123
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_block,138
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_back_to_the_end_of_prev_block_with_sel,146
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_back_to_the_end_of_prev_block,157
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_back_to_the_start_of_prev_block_with_sel,164
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_back_to_the_start_of_prev_block,174
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_the_start_of_next_block_with_sel,181
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_the_start_of_next_block,186
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_a_line,195
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_and_selecting_a_line,200
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_next_line,206
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_end_and_to_start_of_line,211
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_a_line_backwards,218
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_previous_line,224
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_previous_line,230
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_a_word,240
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_end_and_selecting_a_word,252
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_next_word_and_selecting_a_word,258
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_next_word_and_selecting_until_next_word,264
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_previous_word_and_selecting_a_word,270
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_previous_word,276
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_a_char,286
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_and_selecting_a_char,291
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_previous_char,297
+tests/unit/browser/test_caret.py,Unknown Test,test_moving_to_previous_char,303
+tests/unit/browser/test_caret.py,Unknown Test,test_does_not_change_selection,388
+tests/unit/browser/test_caret.py,Unknown Test,test_repetition_of_movement_results_in_empty_selection,393
+tests/unit/browser/test_caret.py,Unknown Test,test_reverse,400
+tests/unit/browser/test_caret.py,Unknown Test,test_toggle,418
+tests/unit/browser/test_caret.py,Unknown Test,test_toggle_untoggle,422
+tests/unit/browser/test_caret.py,Unknown Test,test_from_center,430
+tests/unit/browser/test_caret.py,Unknown Test,test_more_lines,435
+tests/unit/browser/test_caret.py,Unknown Test,test_not_selecting_char,445
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_prev_next_word,452
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_end_word,459
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_prev_next_line,464
+tests/unit/browser/test_caret.py,Unknown Test,test_not_selecting_start_end_line,474
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_block,481
+tests/unit/browser/test_caret.py,Unknown Test,test_selecting_start_end_document,491
+tests/unit/browser/test_caret.py,Unknown Test,test_drop_selection,311
+tests/unit/browser/test_caret.py,Programming Paradigms Blend,(nível do módulo),17;30
+tests/unit/browser/test_caret.py,Undefined Test,check,38
+tests/unit/browser/test_downloads.py,Unknown Test,test_download_model,18
+tests/unit/browser/test_downloads.py,Programming Paradigms Blend,(nível do módulo),10;61
+tests/unit/browser/test_hints.py,Conditional Test Logic,test_scattered_hints_count,105
+tests/unit/browser/test_hints.py,Conditional Test Logic,test_scattered_hints_count,115
+tests/unit/browser/test_hints.py,Conditional Test Logic,test_scattered_hints_count,119
+tests/unit/browser/test_hints.py,Conditional Test Logic,test_scattered_hints_count,125
+tests/unit/browser/test_hints.py,Conditional Test Logic,test_scattered_hints_count,131
+tests/unit/browser/test_hints.py,Conditional Test Logic,test_scattered_hints_count,134
+tests/unit/browser/test_hints.py,Unknown Test,test_show_benchmark,31
+tests/unit/browser/test_hints.py,Unknown Test,test_match_benchmark,50
+tests/unit/browser/test_hints.py,Verbose Test,test_scattered_hints_count,79;137
+tests/unit/browser/test_history.py,Conditional Test Logic,test_error,175
+tests/unit/browser/test_history.py,Conditional Test Logic,test_error,179
+tests/unit/browser/test_history.py,Conditional Test Logic,test_error,184
+tests/unit/browser/test_history.py,Conditional Test Logic,test_init,300
+tests/unit/browser/test_history.py,Conditional Test Logic,test_init,314
+tests/unit/browser/test_history.py,Conditional Test Logic,test_init,319
+tests/unit/browser/test_history.py,Exception Handling,test_init,309
+tests/unit/browser/test_history.py,Unknown Test,test_history_interface,275
+tests/unit/browser/test_history.py,Unknown Test,test_nonexistent,348
+tests/unit/browser/test_history.py,Unknown Test,test_contains_keyerror,475
+tests/unit/browser/test_history.py,Unknown Test,test_getitem_keyerror,479
+tests/unit/browser/test_history.py,Unknown Test,test_setitem_keyerror,483
+tests/unit/browser/test_history.py,Programming Paradigms Blend,(nível do módulo),18;24
+tests/unit/browser/test_history.py,Non-Functional Statement,cleanup_init,295
+tests/unit/browser/test_inspector.py,Conditional Test Logic,test_toggle_window,75
+tests/unit/browser/test_inspector.py,Conditional Test Logic,test_toggle_docked,84
+tests/unit/browser/test_inspector.py,Conditional Test Logic,test_position_loading,109
+tests/unit/browser/test_inspector.py,Conditional Test Logic,test_detach_after_toggling,128
+tests/unit/browser/test_inspector.py,Conditional Test Logic,test_detach_after_toggling,132
+tests/unit/browser/test_navigate.py,Conditional Test Logic,test_incdec,42
+tests/unit/browser/test_navigate.py,Conditional Test Logic,test_count,91
+tests/unit/browser/test_navigate.py,Conditional Test Logic,test_count,94
+tests/unit/browser/test_navigate.py,Unknown Test,test_port_default,68
+tests/unit/browser/test_navigate.py,Unknown Test,test_no_number,144
+tests/unit/browser/test_navigate.py,Unknown Test,test_number_below_0,152
+tests/unit/browser/test_navigate.py,Unknown Test,test_invalid_url,156
+tests/unit/browser/test_navigate.py,Unknown Test,test_wrong_mode,160
+tests/unit/browser/test_navigate.py,Unknown Test,test_invalid_url,184
+tests/unit/browser/test_navigate.py,Unknown Test,test_count,205
+tests/unit/browser/test_navigate.py,Unknown Test,test_invalid_url,209
+tests/unit/browser/test_navigate.py,Programming Paradigms Blend,(nível do módulo),13;14
+tests/unit/browser/test_notification.py,Unknown Test,test_notify_fatal_error,211
+tests/unit/browser/test_notification.py,Unknown Test,test_notify_fatal_error_presenter,216
+tests/unit/browser/test_notification.py,Unknown Test,test_capabilities_error,251
+tests/unit/browser/test_notification.py,Programming Paradigms Blend,(nível do módulo),16;25
+tests/unit/browser/test_notification.py,Undefined Test,errorName,48
+tests/unit/browser/test_notification.py,Undefined Test,errorMessage,52
+tests/unit/browser/test_notification.py,Undefined Test,__init__,77
+tests/unit/browser/test_notification.py,Undefined Test,_call_Notify,103
+tests/unit/browser/test_pdfjs.py,Conditional Test Logic,test_get_pdfjs_res_bundled,86
+tests/unit/browser/test_pdfjs.py,Conditional Test Logic,test_get_pdfjs_res_bundled,99
+tests/unit/browser/test_pdfjs.py,Conditional Test Logic,test_generate_pdfjs_page,26
+tests/unit/browser/test_pdfjs.py,Conditional Test Logic,test_read_from_system,162
+tests/unit/browser/test_pdfjs.py,Conditional Test Logic,test_is_available,201
+tests/unit/browser/test_pdfjs.py,Conditional Test Logic,test_get_pdfjs_js_path,215
+tests/unit/browser/test_pdfjs.py,Unknown Test,test_get_pdfjs_js_path_none,223
+tests/unit/browser/test_pdfjs.py,Programming Paradigms Blend,(nível do módulo),18;56
+tests/unit/browser/test_qutescheme.py,Conditional Test Logic,test_qutehistory_data,170
+tests/unit/browser/test_qutescheme.py,Redundant Print,test_existing_process,112
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_invalid_redirect,42
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_qutejavascript_404,79
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_qutejavascript_empty_query,85
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_invalid_pid,96
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_missing_process,100
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_viewer_no_filename,274
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_viewer_inexistent_file,279
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_viewer_inexistent_file_no_source,284
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_file_no_filename,297
+tests/unit/browser/test_qutescheme.py,Unknown Test,test_file_pathsep,302
+tests/unit/browser/test_qutescheme.py,Undefined Test,data_patcher,203
+tests/unit/browser/test_shared.py,Conditional Test Logic,test_js_log_to_ui,141
+tests/unit/browser/test_urlmarks.py,Unknown Test,test_add_dupe,80
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_colorscheme,198
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_basics,237
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_qt_version_differences,318
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_customization,346
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_variant_qt67,396
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_options,443
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_options,444
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_options,447
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_options,451
+tests/unit/browser/webengine/test_darkmode.py,Conditional Test Logic,test_options,455
+tests/unit/browser/webengine/test_darkmode.py,Unknown Test,test_copy_remove_setting_not_found,126
+tests/unit/browser/webengine/test_darkmode.py,Unknown Test,test_copy_replace_setting_not_found,168
+tests/unit/browser/webengine/test_darkmode.py,Programming Paradigms Blend,(nível do módulo),9;31
+tests/unit/browser/webengine/test_spell.py,Conditional Test Logic,test_local_filename_dictionary_installed,51
+tests/unit/browser/webengine/test_spell.py,Conditional Test Logic,test_local_filename_installed_malformed,62
+tests/unit/browser/webengine/test_spell.py,Programming Paradigms Blend,(nível do módulo),16;68
+tests/unit/browser/webengine/test_webengine_cookies.py,Conditional Test Logic,test_logging,78
+tests/unit/browser/webengine/test_webengine_cookies.py,Unknown Test,test_real_profile,88
+tests/unit/browser/webengine/test_webengine_cookies.py,Programming Paradigms Blend,(nível do módulo),7;86
+tests/unit/browser/webengine/test_webenginedownloads.py,Conditional Test Logic,expected_names,74
+tests/unit/browser/webengine/test_webenginedownloads.py,Conditional Test Logic,expected_names,80
+tests/unit/browser/webengine/test_webenginedownloads.py,Programming Paradigms Blend,(nível do módulo),9;30
+tests/unit/browser/webengine/test_webenginedownloads.py,Undefined Test,expected_names,68
+tests/unit/browser/webengine/test_webengineinterceptor.py,Conditional Test Logic,test_resource_type_values,36
+tests/unit/browser/webengine/test_webengineinterceptor.py,Unknown Test,test_improperly_initialized,104
+tests/unit/browser/webengine/test_webengineinterceptor.py,Programming Paradigms Blend,(nível do módulo),11;61
+tests/unit/browser/webengine/test_webenginesettings.py,Conditional Test Logic,test_existing_dict,137
+tests/unit/browser/webengine/test_webenginesettings.py,Conditional Test Logic,test_spell_check_disabled,147
+tests/unit/browser/webengine/test_webenginesettings.py,Conditional Test Logic,test_profile_setter_settings,162
+tests/unit/browser/webengine/test_webenginetab.py,Conditional Test Logic,test_greasemonkey_run_at_values,132
+tests/unit/browser/webengine/test_webenginetab.py,Exception Handling,test_clipboard_value,241
+tests/unit/browser/webengine/test_webenginetab.py,Programming Paradigms Blend,(nível do módulo),11;24
+tests/unit/browser/webengine/test_webenginetab.py,Undefined Test,get_script,37
+tests/unit/browser/webengine/test_webview.py,Conditional Test Logic,camel_to_snake,26
+tests/unit/browser/webengine/test_webview.py,Conditional Test Logic,camel_to_snake,29
+tests/unit/browser/webengine/test_webview.py,Conditional Test Logic,test_enum_mappings,60
+tests/unit/browser/webengine/test_webview.py,Conditional Test Logic,suffix_mocks,75
+tests/unit/browser/webengine/test_webview.py,Conditional Test Logic,suffix_mocks,86
+tests/unit/browser/webengine/test_webview.py,Conditional Test Logic,suffix_mocks,88
+tests/unit/browser/webengine/test_webview.py,Programming Paradigms Blend,(nível do módulo),10;19
+tests/unit/browser/webengine/test_webview.py,Undefined Test,camel_to_snake,25
+tests/unit/browser/webengine/test_webview.py,Undefined Test,suffix_mocks,66
+tests/unit/browser/webkit/test_cache.py,Undefined Test,build_metadata,18
+tests/unit/browser/webkit/test_cache.py,Undefined Test,preload_cache,29
+tests/unit/browser/webkit/test_cookies.py,Unknown Test,test_cookies_changed_emit,157
+tests/unit/browser/webkit/test_cookies.py,Programming Paradigms Blend,(nível do módulo),14;23
+tests/unit/browser/webkit/test_mhtml.py,Conditional Test Logic,test_payload_lines_wrap,132
+tests/unit/browser/webkit/test_mhtml.py,Conditional Test Logic,test_files_appear_sorted,140
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_actual_close,292
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_quoted_printable_umlauts,51
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_refuses_non_ascii_header_value,77
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_file_encoded_as_base64,89
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_files_appear_sorted,136
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_empty_content_type,210
+tests/unit/browser/webkit/test_mhtml.py,Unknown Test,test_quoted_printable_spaces,260
+tests/unit/browser/webkit/test_mhtml.py,Verbose Test,test_files_appear_sorted,136;207
+tests/unit/browser/webkit/test_mhtml.py,Programming Paradigms Blend,(nível do módulo),13;21
+tests/unit/browser/webkit/test_mhtml.py,Undefined Test,expect,36
+tests/unit/browser/webkit/test_tabhistory.py,Unknown Test,test_no_active_item,113
+tests/unit/browser/webkit/test_tabhistory.py,Unknown Test,test_two_active_items,120
+tests/unit/browser/webkit/test_tabhistory.py,Programming Paradigms Blend,(nível do módulo),11;45
+tests/unit/browser/webkit/test_tabhistory.py,Undefined Test,empty_history,52
+tests/unit/browser/webkit/test_webkit_view.py,Unknown Test,test_background_color_none,16
+tests/unit/browser/webkit/test_webkitelem.py,Conditional Test Logic,test_no_link,464
+tests/unit/browser/webkit/test_webkitelem.py,Conditional Test Logic,test_no_link,468
+tests/unit/browser/webkit/test_webkitelem.py,Conditional Test Logic,invalid_objects,647
+tests/unit/browser/webkit/test_webkitelem.py,Conditional Test Logic,test_multiple_levels,783
+tests/unit/browser/webkit/test_webkitelem.py,Unknown Test,test_nullelem,241
+tests/unit/browser/webkit/test_webkitelem.py,Unknown Test,test_double_wrap,246
+tests/unit/browser/webkit/test_webkitelem.py,Unknown Test,test_vanished,278
+tests/unit/browser/webkit/test_webkitelem.py,Unknown Test,test_getitem_keyerror,307
+tests/unit/browser/webkit/test_webkitelem.py,Unknown Test,test_setitem_keyerror,320
+tests/unit/browser/webkit/test_webkitelem.py,Unknown Test,test_resolve_url_relative_base,886
+tests/unit/browser/webkit/test_webkitelem.py,Verbose Test,get_webelem,26;121
+tests/unit/browser/webkit/test_webkitelem.py,Programming Paradigms Blend,(nível do módulo),16;124
+tests/unit/browser/webkit/test_webkitelem.py,Non-Functional Statement,get_webelem,83
+tests/unit/browser/webkit/test_webkitelem.py,Undefined Test,objects,544
+tests/unit/browser/webkit/test_webkitelem.py,Undefined Test,invalid_objects,618
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_inlonly,109
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_inlonlyquoted,116
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_inlwithasciifilename,123
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_inlwithfnattach,131
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_inlwithasciifilenamepdf,140
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attonlyquoted,171
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attonlyucase,180
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilename,187
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilename25,195
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilename35,201
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifnescapedchar,207
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifnescapedquote,216
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithquotedsemicolon,228
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfilenameandextparam,237
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfilenameandextparamescaped,249
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilenameucase,262
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilenamenq,270
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithtokfncommanq,280
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilenamenqs,288
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attemptyparam,300
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilenamenqws,311
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfntokensq,321
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithisofnplain,329
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithutf8fnplain,339
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfnrawpctenca,351
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfnusingpct,361
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfnrawpctencaq,371
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithnamepct,383
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfilenamepctandiso,397
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfnrawpctenclong,406
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithasciifilenamews1,421
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwith2filenames,431
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attfnbrokentoken,439
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attfnbrokentokeniso,451
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attfnbrokentokenutf,462
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdisposition,473
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdisposition2,480
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdisposition3,487
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdisposition4,495
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_emptydisposition,506
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_doublecolon,514
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attandinline,521
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attandinline2,528
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attbrokenquotedfn,535
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attbrokenquotedfn2,543
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attbrokenquotedfn3,551
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmultinstances,559
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdelim,571
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdelim2,578
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attmissingdelim3,585
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attreversed,592
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attconfusedparam,599
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attabspath,606
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attabspathwin_unix,615
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attabspathwin_win,630
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_dispext,655
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_dispextbadfn,662
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithisofn2231iso,672
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231utf8,682
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231noc,692
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231utf8comp,700
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231utf8_bad,714
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231iso_bad,725
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231ws1,737
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231ws2,746
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231ws3,758
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231quot,768
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231quot2,779
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231singleqmissing,789
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231nbadpct1,799
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231nbadpct2,808
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231dpct,816
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231abspathdisguised_unix,826
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attwithfn2231abspathdisguised_win,836
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attfnboth,860
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attfnboth2,874
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attfnboth3,888
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attnewandfn,901
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attrfc2047token,932
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_attrfc2047quoted,941
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_inline_caps,62
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_att_double_space,68
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_iso2231_langtag,81
+tests/unit/browser/webkit/http/test_content_disposition.py,Unknown Test,test_iso2231_iso8859_invalid_chars,93
+tests/unit/browser/webkit/http/test_content_disposition.py,Programming Paradigms Blend,(nível do módulo),12;16
+tests/unit/browser/webkit/http/test_content_disposition.py,Undefined Test,check_filename,29
+tests/unit/browser/webkit/http/test_content_disposition.py,Undefined Test,check_ignored,38
+tests/unit/browser/webkit/http/test_content_disposition.py,Undefined Test,check_unnamed,47
+tests/unit/browser/webkit/http/test_httpheaders.py,Conditional Test Logic,test_parse_content_type,82
+tests/unit/browser/webkit/http/test_httpheaders.py,Exception Handling,test_content_disposition_directly_hypothesis,67
+tests/unit/browser/webkit/http/test_httpheaders.py,Unknown Test,test_parse_content_disposition_invalid,42
+tests/unit/browser/webkit/http/test_httpheaders.py,Unknown Test,test_parse_content_disposition_hypothesis,56
+tests/unit/browser/webkit/http/test_httpheaders.py,Unknown Test,test_content_disposition_directly_hypothesis,65
+tests/unit/browser/webkit/http/test_httpheaders.py,Unknown Test,test_parse_content_type_hypothesis,92
+tests/unit/browser/webkit/http/test_httpheaders.py,Non-Functional Statement,test_content_disposition_directly_hypothesis,71
+tests/unit/browser/webkit/network/test_filescheme.py,Conditional Test Logic,test_get_file_list,32
+tests/unit/browser/webkit/network/test_filescheme.py,Redundant Print,test_basic,150
+tests/unit/browser/webkit/network/test_filescheme.py,Redundant Print,test_icons,164
+tests/unit/browser/webkit/network/test_filescheme.py,Redundant Print,test_oserror,235
+tests/unit/browser/webkit/network/test_filescheme.py,Programming Paradigms Blend,(nível do módulo),19;42
+tests/unit/browser/webkit/network/test_networkreply.py,Conditional Test Logic,test_data_chunked,51
+tests/unit/browser/webkit/network/test_networkreply.py,Programming Paradigms Blend,(nível do módulo),15;20
+tests/unit/browser/webkit/network/test_networkreply.py,Non-Functional Statement,test_data,42
+tests/unit/browser/webkit/network/test_networkreply.py,Non-Functional Statement,test_error_network_reply,67
+tests/unit/browser/webkit/network/test_pac.py,Conditional Test Logic,test_dnsResolve,94
+tests/unit/browser/webkit/network/test_pac.py,Exception Handling,fetcher_test,237
+tests/unit/browser/webkit/network/test_pac.py,Sleepy Test,fetcher_test,238
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_dnsResolve,91
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_myIpAddress,102
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_isPlainHostName,111
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_proxyBindings,115
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_invalid_port,119
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_wrong_pac_string,132
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_fail_parse,144
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_fail_return,156
+tests/unit/browser/webkit/network/test_pac.py,Unknown Test,test_secret_url,180
+tests/unit/browser/webkit/network/test_pac.py,Undefined Test,_pac_common_test,28
+tests/unit/browser/webkit/network/test_pac.py,Undefined Test,fetcher_test,217
+tests/unit/commands/test_argparser.py,Unknown Test,test_error,39
+tests/unit/commands/test_argparser.py,Unknown Test,test_type_conv_invalid,77
+tests/unit/commands/test_argparser.py,Unknown Test,test_multitype_conv_invalid_type,92
+tests/unit/commands/test_argparser.py,Unknown Test,test_conv_str_type,108
+tests/unit/commands/test_argparser.py,Unknown Test,test_conv_str_choices_invalid,127
+tests/unit/commands/test_cmdexc.py,Unknown Test,test_empty_command_error,13
+tests/unit/commands/test_cmdexc.py,Unknown Test,test_no_such_command_error,23
+tests/unit/commands/test_parser.py,Conditional Test Logic,test_parse_all,26
+tests/unit/commands/test_parser.py,Conditional Test Logic,test_parse_all_with_alias,34
+tests/unit/commands/test_parser.py,Conditional Test Logic,test_parse_all_with_alias,40
+tests/unit/commands/test_parser.py,Unknown Test,test_parse_all,17
+tests/unit/commands/test_parser.py,Unknown Test,test_parse_empty_with_alias,47
+tests/unit/commands/test_parser.py,Unknown Test,test_dont_use_best_match,104
+tests/unit/commands/test_parser.py,Unknown Test,test_find_similar,131
+tests/unit/commands/test_userscripts.py,Unknown Test,test_unsupported,240
+tests/unit/commands/test_userscripts.py,Verbose Test,test_killed_command,156;201
+tests/unit/commands/test_userscripts.py,Programming Paradigms Blend,(nível do módulo),18;19
+tests/unit/completion/test_completer.py,Conditional Test Logic,test_update_completion,200
+tests/unit/completion/test_completer.py,Conditional Test Logic,test_on_selection_changed,305
+tests/unit/completion/test_completer.py,Conditional Test Logic,test_on_selection_changed,309
+tests/unit/completion/test_completer.py,Programming Paradigms Blend,(nível do módulo),17;24
+tests/unit/completion/test_completiondelegate.py,Unknown Test,test_benchmark_highlight,48
+tests/unit/completion/test_completiondelegate.py,Unknown Test,test_pattern_hypothesis,61
+tests/unit/completion/test_completionmodel.py,Conditional Test Logic,test_first_last_item,25
+tests/unit/completion/test_completionmodel.py,Conditional Test Logic,test_first_last_item,30
+tests/unit/completion/test_completionmodel.py,Conditional Test Logic,test_count,49
+tests/unit/completion/test_completionmodel.py,Conditional Test Logic,test_set_pattern,62
+tests/unit/completion/test_completionmodel.py,Conditional Test Logic,test_set_pattern,68
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_steps,248
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_category_headers,254
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_category_headers,262
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_set_model,38
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_set_model,42
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_completion_item_focus,119
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_completion_item_focus,123
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_completion_item_focus,124
+tests/unit/completion/test_completionwidget.py,Conditional Test Logic,test_completion_show,283
+tests/unit/completion/test_completionwidget.py,Unknown Test,test_set_pattern_no_model,54
+tests/unit/completion/test_completionwidget.py,Unknown Test,test_models_deleted_on_clear,149
+tests/unit/completion/test_completionwidget.py,Unknown Test,test_resize_no_model,373
+tests/unit/completion/test_completionwidget.py,Programming Paradigms Blend,(nível do módulo),17;184
+tests/unit/completion/test_completionwidget.py,Non-Functional Statement,test_models_deleted_on_clear,156
+tests/unit/completion/test_completionwidget.py,Non-Functional Statement,test_models_deleted_on_clear,158
+tests/unit/completion/test_histcategory.py,Conditional Test Logic,test_set_pattern,87
+tests/unit/completion/test_histcategory.py,Conditional Test Logic,test_sorting,189
+tests/unit/completion/test_histcategory.py,Unknown Test,test_set_pattern,85
+tests/unit/completion/test_histcategory.py,Unknown Test,test_set_pattern_repeated,95
+tests/unit/completion/test_histcategory.py,Unknown Test,test_set_pattern_hypothesis,141
+tests/unit/completion/test_histcategory.py,Unknown Test,test_sorting,186
+tests/unit/completion/test_histcategory.py,Unknown Test,test_remove_rows,198
+tests/unit/completion/test_histcategory.py,Unknown Test,test_timestamp_fmt,235
+tests/unit/completion/test_listcategory.py,Unknown Test,test_set_pattern,41
+tests/unit/completion/test_listcategory.py,Unknown Test,test_long_pattern,54
+tests/unit/completion/test_models.py,Conditional Test Logic,_check_completions,50
+tests/unit/completion/test_models.py,Conditional Test Logic,_check_completions,54
+tests/unit/completion/test_models.py,Conditional Test Logic,test_filesystem_completion,403
+tests/unit/completion/test_models.py,Conditional Test Logic,test_filesystem_completion_hypothesis,455
+tests/unit/completion/test_models.py,Conditional Test Logic,test_filesystem_completion_hypothesis,457
+tests/unit/completion/test_models.py,Conditional Test Logic,test_tab_completion_not_sorted,893
+tests/unit/completion/test_models.py,Conditional Test Logic,test_tab_completion_not_sorted,900
+tests/unit/completion/test_models.py,Conditional Test Logic,test_url_completion_benchmark,1316
+tests/unit/completion/test_models.py,Conditional Test Logic,test_url_completion_benchmark,1320
+tests/unit/completion/test_models.py,Unknown Test,test_command_completion,224
+tests/unit/completion/test_models.py,Unknown Test,test_help_completion,248
+tests/unit/completion/test_models.py,Unknown Test,test_open_categories,307
+tests/unit/completion/test_models.py,Unknown Test,test_open_categories_remove_all,351
+tests/unit/completion/test_models.py,Unknown Test,test_open_categories_remove_one,366
+tests/unit/completion/test_models.py,Unknown Test,test_filesystem_completion_hypothesis,454
+tests/unit/completion/test_models.py,Unknown Test,test_filesystem_completion_corner_cases,465
+tests/unit/completion/test_models.py,Unknown Test,test_default_filesystem_completion,470
+tests/unit/completion/test_models.py,Unknown Test,test_quickmark_completion,484
+tests/unit/completion/test_models.py,Unknown Test,test_bookmark_completion,519
+tests/unit/completion/test_models.py,Unknown Test,test_url_completion,554
+tests/unit/completion/test_models.py,Unknown Test,test_search_only_default,600
+tests/unit/completion/test_models.py,Unknown Test,test_url_completion_no_quickmarks,635
+tests/unit/completion/test_models.py,Unknown Test,test_url_completion_no_bookmarks,657
+tests/unit/completion/test_models.py,Unknown Test,test_session_completion,790
+tests/unit/completion/test_models.py,Unknown Test,test_tab_completion,803
+tests/unit/completion/test_models.py,Unknown Test,test_tab_completion_not_sorted,885
+tests/unit/completion/test_models.py,Unknown Test,test_tab_completion_tabs_are_windows,912
+tests/unit/completion/test_models.py,Unknown Test,test_other_tabs_completion,940
+tests/unit/completion/test_models.py,Unknown Test,test_other_tabs_completion_id0,964
+tests/unit/completion/test_models.py,Unknown Test,test_tab_focus_completion,986
+tests/unit/completion/test_models.py,Unknown Test,test_window_completion,1021
+tests/unit/completion/test_models.py,Unknown Test,test_setting_option_completion,1045
+tests/unit/completion/test_models.py,Unknown Test,test_setting_dict_option_completion,1069
+tests/unit/completion/test_models.py,Unknown Test,test_setting_list_option_completion,1088
+tests/unit/completion/test_models.py,Unknown Test,test_setting_customized_option_completion,1103
+tests/unit/completion/test_models.py,Unknown Test,test_setting_value_completion,1118
+tests/unit/completion/test_models.py,Unknown Test,test_setting_value_no_completions,1136
+tests/unit/completion/test_models.py,Unknown Test,test_setting_value_cycle,1181
+tests/unit/completion/test_models.py,Unknown Test,test_bind_completion,1191
+tests/unit/completion/test_models.py,Unknown Test,test_bind_completion_invalid,1219
+tests/unit/completion/test_models.py,Unknown Test,test_bind_completion_invalid_binding,1239
+tests/unit/completion/test_models.py,Unknown Test,test_bind_completion_no_binding,1260
+tests/unit/completion/test_models.py,Unknown Test,test_bind_completion_changed,1278
+tests/unit/completion/test_models.py,Unknown Test,test_url_completion_benchmark,1300
+tests/unit/completion/test_models.py,Unknown Test,test_back_completion,1386
+tests/unit/completion/test_models.py,Unknown Test,test_forward_completion,1399
+tests/unit/completion/test_models.py,Unknown Test,test_undo_completion,1412
+tests/unit/completion/test_models.py,Unknown Test,test_process_completion,1471
+tests/unit/completion/test_models.py,Unknown Test,test_listcategory_hypothesis,1519
+tests/unit/completion/test_models.py,Verbose Test,configdata_stub,82;161
+tests/unit/completion/test_models.py,Verbose Test,test_help_completion,248;304
+tests/unit/completion/test_models.py,Verbose Test,tab_with_history,1337;1383
+tests/unit/completion/test_models.py,Undefined Test,_check_completions,36
+tests/unit/components/test_blockutils.py,Conditional Test Logic,pretend_blocklists,29
+tests/unit/components/test_blockutils.py,Conditional Test Logic,pretend_blocklists,35
+tests/unit/components/test_blockutils.py,Conditional Test Logic,test_blocklist_dl,53
+tests/unit/components/test_blockutils.py,Undefined Test,pretend_blocklists,18
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,easylist_easyprivacy_both,130
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_blocking_enabled,208
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_adblock_cache,221
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_adblock_cache,230
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_adblock_cache,237
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_config_changed,273
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_config_changed,278
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_config_changed,295
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_buggy_url_workaround,374
+tests/unit/components/test_braveadblock.py,Conditional Test Logic,test_buggy_url_workaround_needed,395
+tests/unit/components/test_braveadblock.py,Undefined Test,easylist_easyprivacy_both,121
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_disabled_blocking_update,241
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_disabled_blocking_update,250
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_disabled_blocking_update,256
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_no_blocklist_update,286
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_no_blocklist_update,288
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_successful_update,302
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_failed_dl_update,373
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_failed_dl_update,376
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_invalid_utf8,393
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_invalid_utf8,399
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_invalid_utf8,412
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_config_change_initial,487
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_config_change,511
+tests/unit/components/test_hostblock.py,Conditional Test Logic,test_add_directory,518
+tests/unit/components/test_hostblock.py,Verbose Test,generic_blocklists,136;222
+tests/unit/components/test_hostblock.py,Undefined Test,blocklist_to_url,127
+tests/unit/components/test_hostblock.py,Undefined Test,generic_blocklists,136
+tests/unit/components/test_misccommands.py,Unknown Test,test_debug_crash_exception,26
+tests/unit/components/test_misccommands.py,Unknown Test,test_debug_trace_exception,60
+tests/unit/components/test_misccommands.py,Unknown Test,test_debug_trace_no_hunter,72
+tests/unit/components/test_readlinecommands.py,Conditional Test Logic,aug_text,69
+tests/unit/components/test_readlinecommands.py,Conditional Test Logic,test_none,115
+tests/unit/components/test_readlinecommands.py,Conditional Test Logic,test_none,117
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_rl_unix_line_discard,208
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_rl_kill_line,221
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_rl_unix_word_rubout,241
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_rl_unix_filename_rubout,259
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_filename_rubout,279
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_rl_kill_word,298
+tests/unit/components/test_readlinecommands.py,Unknown Test,test_rl_backward_kill_word,314
+tests/unit/components/test_readlinecommands.py,Programming Paradigms Blend,(nível do módulo),20;23
+tests/unit/components/test_readlinecommands.py,Undefined Test,aug_text,62
+tests/unit/components/test_readlinecommands.py,Undefined Test,_validate_deletion,83
+tests/unit/config/test_config.py,Conditional Test Logic,test_call,63
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_bindings_for_and_get_command,149
+tests/unit/config/test_config.py,Conditional Test Logic,test_unbind,320
+tests/unit/config/test_config.py,Conditional Test Logic,test_unset,422
+tests/unit/config/test_config.py,Conditional Test Logic,test_clear,451
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,543
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,547
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,549
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,556
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,558
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,566
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,569
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,573
+tests/unit/config/test_config.py,Conditional Test Logic,test_get_obj_mutable,576
+tests/unit/config/test_config.py,Conditional Test Logic,test_set_valid,660
+tests/unit/config/test_config.py,Conditional Test Logic,test_dump_userconfig,728
+tests/unit/config/test_config.py,Unknown Test,test_unknown_option,42
+tests/unit/config/test_config.py,Unknown Test,test_bind_mode_changing,247
+tests/unit/config/test_config.py,Unknown Test,test_bind_default_unbound,275
+tests/unit/config/test_config.py,Unknown Test,test_unbind_unbound,328
+tests/unit/config/test_config.py,Unknown Test,test_empty_command,371
+tests/unit/config/test_config.py,Unknown Test,test_no_option_error,478
+tests/unit/config/test_config.py,Unknown Test,test_get_obj_unknown_mutable,616
+tests/unit/config/test_config.py,Unknown Test,test_get_str_benchmark,737
+tests/unit/config/test_config.py,Unknown Test,test_get_dict_benchmark,746
+tests/unit/config/test_config.py,Unknown Test,test_getattr_invalid_private,756
+tests/unit/config/test_config.py,Unknown Test,test_pattern_no_configapi,812
+tests/unit/config/test_config.py,Verbose Test,test_get_obj_mutable,524;588
+tests/unit/config/test_config.py,Programming Paradigms Blend,(nível do módulo),22;34
+tests/unit/config/test_configcache.py,Conditional Test Logic,test_configcache_naive_benchmark,42
+tests/unit/config/test_configcache.py,Unknown Test,test_configcache_error_set,21
+tests/unit/config/test_configcache.py,Unknown Test,test_configcache_naive_benchmark,40
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_list_add,302
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_dict_add,337
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_dict_add_replace,348
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_list_remove,395
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_dict_remove,437
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_unset_pattern,490
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_config_source,538
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_bind_invalid,852
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_unbind,917
+tests/unit/config/test_configcommands.py,Conditional Test Logic,test_unbind,925
+tests/unit/config/test_configcommands.py,Unknown Test,test_set_invalid_pattern,94
+tests/unit/config/test_configcommands.py,Unknown Test,test_set_no_pattern,103
+tests/unit/config/test_configcommands.py,Unknown Test,test_set_invalid_option,155
+tests/unit/config/test_configcommands.py,Unknown Test,test_set_invalid_value,163
+tests/unit/config/test_configcommands.py,Unknown Test,test_set_wrong_backend,172
+tests/unit/config/test_configcommands.py,Unknown Test,test_empty,179
+tests/unit/config/test_configcommands.py,Unknown Test,test_toggle,188
+tests/unit/config/test_configcommands.py,Unknown Test,test_invalid,198
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_add_invalid_option,307
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_add_non_list,313
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_add_invalid_value,319
+tests/unit/config/test_configcommands.py,Unknown Test,test_dict_add_invalid_option,358
+tests/unit/config/test_configcommands.py,Unknown Test,test_dict_add_non_dict,364
+tests/unit/config/test_configcommands.py,Unknown Test,test_dict_add_invalid_value,370
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_remove_invalid_option,400
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_remove_non_list,406
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_remove_no_value,413
+tests/unit/config/test_configcommands.py,Unknown Test,test_list_remove_invalid_value,424
+tests/unit/config/test_configcommands.py,Unknown Test,test_dict_remove_invalid_option,442
+tests/unit/config/test_configcommands.py,Unknown Test,test_dict_remove_non_dict,448
+tests/unit/config/test_configcommands.py,Unknown Test,test_dict_remove_no_value,455
+tests/unit/config/test_configcommands.py,Unknown Test,test_unset_unknown_option,476
+tests/unit/config/test_configcommands.py,Unknown Test,test_unset_uncustomized,480
+tests/unit/config/test_configcommands.py,Unknown Test,test_unset_uncustomized_pattern,503
+tests/unit/config/test_configcommands.py,Unknown Test,test_oserror,735
+tests/unit/config/test_configcommands.py,Unknown Test,test_bind_invalid,846
+tests/unit/config/test_configcommands.py,Unknown Test,test_bind_none,879
+tests/unit/config/test_configcommands.py,Unknown Test,test_unbind_none,897
+tests/unit/config/test_configcommands.py,Programming Paradigms Blend,(nível do módulo),23;40
+tests/unit/config/test_configdata.py,Conditional Test Logic,test_shadowing,117
+tests/unit/config/test_configdata.py,Conditional Test Logic,test_data,29
+tests/unit/config/test_configdata.py,Conditional Test Logic,test_data,36
+tests/unit/config/test_configdata.py,Conditional Test Logic,test_data,39
+tests/unit/config/test_configdata.py,Conditional Test Logic,test_data,43
+tests/unit/config/test_configdata.py,Conditional Test Logic,test_data,44
+tests/unit/config/test_configdata.py,Unknown Test,test_invalid_keys,86
+tests/unit/config/test_configdata.py,Unknown Test,test_shadowing,104
+tests/unit/config/test_configdata.py,Unknown Test,test_rename_unknown_target,137
+tests/unit/config/test_configdata.py,Unknown Test,test_delete_invalid_value,154
+tests/unit/config/test_configdata.py,Unknown Test,test_invalid_node,218
+tests/unit/config/test_configdata.py,Unknown Test,test_unknown_type,225
+tests/unit/config/test_configdata.py,Unknown Test,test_unknown_dict,232
+tests/unit/config/test_configdata.py,Unknown Test,test_unknown_args,239
+tests/unit/config/test_configdata.py,Unknown Test,test_invalid_backend,302
+tests/unit/config/test_configdata.py,Unknown Test,test_init_benchmark,53
+tests/unit/config/test_configdata.py,Programming Paradigms Blend,(nível do módulo),19;64
+tests/unit/config/test_configexc.py,Unknown Test,test_no_option_error_clash,47
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,391
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,396
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,401
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,408
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,413
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,414
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_yaml_config,422
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_changed,467
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_unchanged,493
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_unchanged,500
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_content_media_capture,861
+tests/unit/config/test_configfiles.py,Conditional Test Logic,read,902
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_get,1049
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_nul_bytes,1177
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_multiple_errors,1302
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_source,1315
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_source_multiple_errors,1367
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_source_warn_autoconfig,1386
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_defaults_work,1554
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_defaults_work,1563
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_state_config,145
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_state_config,151
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_state_config,153
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_qt_version_changed,208
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_qtwe_version_changed,225
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_version_changed_webkit,242
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_qutebrowser_version_changed,271
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_chromium_version_changed,299
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_chromium_version_changed_inferring,319
+tests/unit/config/test_configfiles.py,Conditional Test Logic,test_init,1577
+tests/unit/config/test_configfiles.py,Exception Handling,test_defaults_work,1559
+tests/unit/config/test_configfiles.py,Unknown Test,test_invalid_in_migrations,539
+tests/unit/config/test_configfiles.py,Unknown Test,test_bool,732
+tests/unit/config/test_configfiles.py,Unknown Test,test_title_format,763
+tests/unit/config/test_configfiles.py,Unknown Test,test_user_agent,791
+tests/unit/config/test_configfiles.py,Unknown Test,test_font_replacements,839
+tests/unit/config/test_configfiles.py,Unknown Test,test_assertions,993
+tests/unit/config/test_configfiles.py,Unknown Test,test_getting_dirs,1000
+tests/unit/config/test_configfiles.py,Unknown Test,test_get,1046
+tests/unit/config/test_configfiles.py,Unknown Test,test_get_with_pattern,1056
+tests/unit/config/test_configfiles.py,Unknown Test,test_get_with_pattern_no_match,1067
+tests/unit/config/test_configfiles.py,Unknown Test,test_bind_freshly_defined_alias,1084
+tests/unit/config/test_configfiles.py,Unknown Test,test_source_warn_autoconfig,1378
+tests/unit/config/test_configfiles.py,Unknown Test,test_output,1395
+tests/unit/config/test_configfiles.py,Programming Paradigms Blend,(nível do módulo),23;30
+tests/unit/config/test_configfiles.py,Undefined Test,read_toplevel,48
+tests/unit/config/test_configfiles.py,Undefined Test,migration_test,628
+tests/unit/config/test_configfiles.py,Undefined Test,read,900
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_config_py,67
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_config_py,70
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_config_py,80
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_config_py,83
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_config_py,87
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_config_py,96
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,139
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,142
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,153
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,155
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,167
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,170
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,174
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_autoconfig_yml,181
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_late_init,276
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_late_init,280
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_late_init,297
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_fonts_defaults_init,333
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_fonts_defaults_init,339
+tests/unit/config/test_configinit.py,Conditional Test Logic,test_get_backend,417
+tests/unit/config/test_configinit.py,Unknown Test,test_autoconfig_warning_custom,208
+tests/unit/config/test_configinit.py,Unknown Test,test_invalid_change_filter,246
+tests/unit/config/test_configinit.py,Unknown Test,test_setting_fonts_defaults_family,377
+tests/unit/config/test_configinit.py,Verbose Test,test_autoconfig_yml,106;193
+tests/unit/config/test_configinit.py,Programming Paradigms Blend,(nível do módulo),19;52
+tests/unit/config/test_configinit.py,Non-Functional Statement,init_patch,33
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_contains,103
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_contains,105
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_from_str_hypothesis,223
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_from_str_hypothesis,230
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_from_str_hypothesis,245
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_none_ok_true,253
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_completion_validity,293
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_completion_validity,294
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_signature,306
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_complete,706
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_complete,707
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_validate_bounds_invalid,956
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_hypothesis,1073
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_keys,1594
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_keys,1607
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_keys,1614
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_hypothesis,1647
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_hypothesis_text,1660
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_to_py_valid,1910
+tests/unit/config/test_configtypes.py,Conditional Test Logic,test_regex_eq,2157
+tests/unit/config/test_configtypes.py,Exception Handling,test_from_str_hypothesis,216
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis,640
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis_text,652
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis,792
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis_text,804
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis,1211
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis_text,1223
+tests/unit/config/test_configtypes.py,Exception Handling,test_hypothesis_text,1655
+tests/unit/config/test_configtypes.py,Redundant Print,test_to_doc,668
+tests/unit/config/test_configtypes.py,Redundant Print,test_to_doc,822
+tests/unit/config/test_configtypes.py,Redundant Print,test_to_doc,1681
+tests/unit/config/test_configtypes.py,Unknown Test,test_empty,141
+tests/unit/config/test_configtypes.py,Unknown Test,test_none_ok_false,270
+tests/unit/config/test_configtypes.py,Unknown Test,test_invalid_python_type,284
+tests/unit/config/test_configtypes.py,Unknown Test,test_completion_validity,289
+tests/unit/config/test_configtypes.py,Unknown Test,test_validate_valid_values_nop,316
+tests/unit/config/test_configtypes.py,Unknown Test,test_validate_valid_values,320
+tests/unit/config/test_configtypes.py,Unknown Test,test_basic_str_validation_valid,329
+tests/unit/config/test_configtypes.py,Unknown Test,test_basic_validation_invalid,336
+tests/unit/config/test_configtypes.py,Unknown Test,test_basic_py_validation_valid,341
+tests/unit/config/test_configtypes.py,Unknown Test,test_basic_py_validation_invalid,344
+tests/unit/config/test_configtypes.py,Unknown Test,test_basic_py_validation_invalid_str,349
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,423
+tests/unit/config/test_configtypes.py,Unknown Test,test_lengths_valid,445
+tests/unit/config/test_configtypes.py,Unknown Test,test_lengths_invalid,453
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,492
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_duplicate_invalid,496
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,582
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,599
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid_valid_values,603
+tests/unit/config/test_configtypes.py,Unknown Test,test_invalid_empty_value_none_ok,607
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_length,614
+tests/unit/config/test_configtypes.py,Unknown Test,test_wrong_length,618
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_doc_unimplemented,671
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,692
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,742
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,755
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_length,760
+tests/unit/config/test_configtypes.py,Unknown Test,test_wrong_length,773
+tests/unit/config/test_configtypes.py,Unknown Test,test_hypothesis_text,801
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,855
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,863
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,899
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,907
+tests/unit/config/test_configtypes.py,Unknown Test,test_minval_gt_maxval,928
+tests/unit/config/test_configtypes.py,Unknown Test,test_validate_bounds_invalid,955
+tests/unit/config/test_configtypes.py,Unknown Test,test_suffix,962
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,988
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1006
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,1046
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1063
+tests/unit/config/test_configtypes.py,Unknown Test,test_hypothesis_text,1080
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,1112
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1131
+tests/unit/config/test_configtypes.py,Unknown Test,test_minperc_gt_maxperc,1150
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,1192
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1201
+tests/unit/config/test_configtypes.py,Unknown Test,test_invalid,1342
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1426
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1464
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1490
+tests/unit/config/test_configtypes.py,Unknown Test,test_passed_warnings,1497
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,1545
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1578
+tests/unit/config/test_configtypes.py,Unknown Test,test_keys,1593
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_does_not_exist_file,1708
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid_encoding,1754
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_does_not_exist,1768
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_exists_not_abs,1780
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid_encoding,1803
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1836
+tests/unit/config/test_configtypes.py,Unknown Test,test_invalid_encoding,1840
+tests/unit/config/test_configtypes.py,Unknown Test,test_from_str_invalid,1884
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1919
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1952
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1974
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,1997
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,2012
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,2032
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,2046
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,2076
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,2099
+tests/unit/config/test_configtypes.py,Unknown Test,test_to_py_invalid,2117
+tests/unit/config/test_configtypes.py,Unknown Test,test_validate_invalid_values,2134
+tests/unit/config/test_configtypes.py,Non-Functional Statement,gen_classes,181
+tests/unit/config/test_configtypes.py,Non-Functional Statement,test_hypothesis,643
+tests/unit/config/test_configtypes.py,Non-Functional Statement,test_hypothesis_text,655
+tests/unit/config/test_configtypes.py,Non-Functional Statement,test_hypothesis,795
+tests/unit/config/test_configtypes.py,Non-Functional Statement,test_hypothesis_text,807
+tests/unit/config/test_configtypes.py,Non-Functional Statement,test_hypothesis,1214
+tests/unit/config/test_configtypes.py,Non-Functional Statement,test_hypothesis_text,1226
+tests/unit/config/test_configutils.py,Conditional Test Logic,test_from_str_hypothesis,328
+tests/unit/config/test_configutils.py,Conditional Test Logic,test_system_default_rendering,373
+tests/unit/config/test_configutils.py,Conditional Test Logic,test_add_url_benchmark,268
+tests/unit/config/test_configutils.py,Conditional Test Logic,test_domain_lookup_sparse_benchmark,282
+tests/unit/config/test_configutils.py,Redundant Print,test_system_default_rendering,346
+tests/unit/config/test_configutils.py,Redundant Print,test_system_default_rendering,372
+tests/unit/config/test_configutils.py,Unknown Test,test_get_invalid,134
+tests/unit/config/test_configutils.py,Unknown Test,test_no_pattern_support,256
+tests/unit/config/test_configutils.py,Unknown Test,test_add_url_benchmark,264
+tests/unit/config/test_configutils.py,Unknown Test,test_domain_lookup_sparse_benchmark,279
+tests/unit/config/test_configutils.py,Programming Paradigms Blend,(nível do módulo),16;288
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_qt_args,81
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_with_settings,101
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_settings_exist,141
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_in_process_stack_traces,159
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_chromium_flags,245
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_chromium_flags,246
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_webrtc,286
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_webrtc,288
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_process_model,312
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_low_end_device_mode,330
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_sandboxing,350
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_sandboxing,353
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_referer,386
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_overlay_features_flag,434
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_overlay_features_flag,442
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_disable_features_passthrough,460
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_disable_features_passthrough,465
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_blink_settings_passthrough,478
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_installedapp_workaround,495
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_disable_feature_workaround,530
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_dark_mode_settings,575
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_webengine_args,618
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_webengine_args,625
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_environ_settings,683
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_environ_settings,684
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_environ_settings,693
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_environ_settings,694
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_qtwe_flags_warning,733
+tests/unit/config/test_qtargs.py,Conditional Test Logic,test_qtwe_flags_warning,741
+tests/unit/config/test_qtargs.py,Unknown Test,test_settings_exist,139
+tests/unit/config/test_qtargs.py,Unknown Test,test_env_vars_webkit,717
+tests/unit/config/test_qtargs.py,Programming Paradigms Blend,(nível do módulo),18;62
+tests/unit/config/test_qtargs_locale_workaround.py,Conditional Test Logic,test_lang_workaround_all_locales,407
+tests/unit/config/test_qtargs_locale_workaround.py,Redundant Print,test_lang_workaround_all_locales,397
+tests/unit/config/test_stylesheet.py,Conditional Test Logic,test_set_register_stylesheet,42
+tests/unit/config/test_stylesheet.py,Conditional Test Logic,test_set_register_stylesheet,53
+tests/unit/config/test_websettings.py,Conditional Test Logic,test_config_init,89
+tests/unit/extensions/test_loader.py,Unknown Test,test_on_walk_error,17
+tests/unit/extensions/test_loader.py,Programming Paradigms Blend,(nível do módulo),13;67
+tests/unit/javascript/conftest.py,Conditional Test Logic,load_url,87
+tests/unit/javascript/conftest.py,Conditional Test Logic,run,112
+tests/unit/javascript/conftest.py,Exception Handling,load,53
+tests/unit/javascript/conftest.py,Redundant Print,load,60
+tests/unit/javascript/conftest.py,Programming Paradigms Blend,(nível do módulo),16;19
+tests/unit/javascript/conftest.py,Undefined Test,load,42
+tests/unit/javascript/conftest.py,Undefined Test,load_url,77
+tests/unit/javascript/conftest.py,Undefined Test,run,101
+tests/unit/javascript/test_greasemonkey.py,Conditional Test Logic,test_full_name,261
+tests/unit/javascript/test_greasemonkey.py,Conditional Test Logic,test_required_scripts_are_included,363
+tests/unit/javascript/test_greasemonkey.py,Conditional Test Logic,test_window_isolation,419
+tests/unit/javascript/test_greasemonkey.py,Conditional Test Logic,test_window_isolation,428
+tests/unit/javascript/test_greasemonkey.py,Conditional Test Logic,test_run_at,478
+tests/unit/javascript/test_greasemonkey.py,Conditional Test Logic,test_greasemonkey_reload,540
+tests/unit/javascript/test_greasemonkey.py,Redundant Print,test_attributes,161
+tests/unit/javascript/test_greasemonkey.py,Unknown Test,test_no_name,237
+tests/unit/javascript/test_greasemonkey.py,Unknown Test,test_load_emits_signal,277
+tests/unit/javascript/test_greasemonkey.py,Unknown Test,test_window_isolation,374
+tests/unit/javascript/test_greasemonkey.py,Unknown Test,test_shared_window_proxy,432
+tests/unit/javascript/test_greasemonkey.py,Verbose Test,test_window_isolation,374;429
+tests/unit/javascript/test_greasemonkey.py,Programming Paradigms Blend,(nível do módulo),31;303
+tests/unit/javascript/test_greasemonkey.py,Undefined Test,_get_script,305
+tests/unit/javascript/test_js_quirks.py,Conditional Test Logic,test_js_quirks_match_settings,71
+tests/unit/javascript/test_js_quirks.py,Conditional Test Logic,test_js_quirks_match_settings,74
+tests/unit/javascript/test_js_quirks.py,Unknown Test,test_js_quirks,48
+tests/unit/javascript/position_caret/test_position_caret.py,Unknown Test,test_simple,62
+tests/unit/javascript/position_caret/test_position_caret.py,Unknown Test,test_scrolled_down,70
+tests/unit/javascript/position_caret/test_position_caret.py,Unknown Test,test_invisible,80
+tests/unit/javascript/position_caret/test_position_caret.py,Unknown Test,test_scrolled_down_img,88
+tests/unit/javascript/position_caret/test_position_caret.py,Programming Paradigms Blend,(nível do módulo),9;23
+tests/unit/javascript/position_caret/test_position_caret.py,Undefined Test,check,36
+tests/unit/javascript/position_caret/test_position_caret.py,Undefined Test,check_scrolled,46
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Unknown Test,test_set_delayed,70
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Unknown Test,test_set_clear_bg,80
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Unknown Test,test_set_xml,89
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Unknown Test,test_set_svg,97
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Unknown Test,test_set_error,107
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Unknown Test,test_appendchild,116
+tests/unit/javascript/stylesheet/test_stylesheet_js.py,Programming Paradigms Blend,(nível do módulo),10;22
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_valid_key,116
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_valid_key_count,130
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_invalid_keys,142
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_invalid_key,165
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_binding_with_shift,239
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_numpad,313
+tests/unit/keyinput/test_basekeyparser.py,Conditional Test Logic,test_split_count,78
+tests/unit/keyinput/test_basekeyparser.py,Exception Handling,test_count_limit_exceeded,351
+tests/unit/keyinput/test_basekeyparser.py,Unknown Test,test_superscript,296
+tests/unit/keyinput/test_basekeyparser.py,Unknown Test,test_empty_binding,85
+tests/unit/keyinput/test_basekeyparser.py,Programming Paradigms Blend,(nível do módulo),20;50
+tests/unit/keyinput/test_bindingtrie.py,Conditional Test Logic,test_matches_tree,90
+tests/unit/keyinput/test_bindingtrie.py,Conditional Test Logic,test_matches_tree,93
+tests/unit/keyinput/test_bindingtrie.py,Conditional Test Logic,test_bench_create,111
+tests/unit/keyinput/test_bindingtrie.py,Unknown Test,test_bench_create,109
+tests/unit/keyinput/test_keyutils.py,Conditional Test Logic,test_with_mappings,511
+tests/unit/keyinput/test_keyutils.py,Conditional Test Logic,test_parse,550
+tests/unit/keyinput/test_keyutils.py,Conditional Test Logic,test_key_data_keys,62
+tests/unit/keyinput/test_keyutils.py,Conditional Test Logic,test_key_data_modifiers,71
+tests/unit/keyinput/test_keyutils.py,Conditional Test Logic,test_key_data_modifiers,72
+tests/unit/keyinput/test_keyutils.py,Conditional Test Logic,test_non_plain,641
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_init_unknown,277
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_init_invalid,281
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_parse_unknown,285
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_append_event_invalid,487
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_parse_hypothesis,557
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_surrogate_error,225
+tests/unit/keyinput/test_keyutils.py,Unknown Test,test_non_plain,639
+tests/unit/keyinput/test_keyutils.py,Programming Paradigms Blend,(nível do módulo),22;78
+tests/unit/keyinput/test_keyutils.py,Undefined Test,qt_mod,45
+tests/unit/keyinput/test_modeparsers.py,Conditional Test Logic,test_keychain,40
+tests/unit/keyinput/test_modeparsers.py,Conditional Test Logic,test_command,160
+tests/unit/keyinput/test_modeparsers.py,Conditional Test Logic,test_command,165
+tests/unit/keyinput/test_modeparsers.py,Programming Paradigms Blend,(nível do módulo),16;21
+tests/unit/mainwindow/test_messageview.py,Conditional Test Logic,test_rich_text,113
+tests/unit/mainwindow/test_messageview.py,Conditional Test Logic,test_show_multiple_messages_longer,184
+tests/unit/mainwindow/test_messageview.py,Unknown Test,test_changing_timer_with_messages_shown,169
+tests/unit/mainwindow/test_messageview.py,Unknown Test,test_replacing_different_severity,206
+tests/unit/mainwindow/test_messageview.py,Unknown Test,test_replacing_geometry,226
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_simple_completion,45
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_simple_completion,50
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_backspacing_path,59
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_backspacing_path,66
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_backspacing_path,77
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_filtering_path,93
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_filtering_path,97
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_filtering_path,103
+tests/unit/mainwindow/test_prompt.py,Conditional Test Logic,test_filtering_path,107
+tests/unit/mainwindow/test_prompt.py,Non-Functional Statement,get_prompt,29
+tests/unit/mainwindow/test_prompt.py,Undefined Test,get_prompt,17
+tests/unit/mainwindow/test_tabbedbrowser.py,Unknown Test,test_size_handling,13
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_tab_size_same,50
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_tab_size_same,56
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_pinned_size,102
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_pinned_size,109
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_pinned_size,115
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_pinned_size,122
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_pinned_size,123
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_update_tab_titles_benchmark,136
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_tab_stays_hidden,161
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_add_remove_tab_benchmark,173
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_add_remove_tab_benchmark,178
+tests/unit/mainwindow/test_tabwidget.py,Conditional Test Logic,test_add_remove_tab_benchmark,180
+tests/unit/mainwindow/test_tabwidget.py,Unknown Test,test_small_icon_doesnt_crash,31
+tests/unit/mainwindow/test_tabwidget.py,Unknown Test,test_update_tab_titles_benchmark,133
+tests/unit/mainwindow/test_tabwidget.py,Unknown Test,test_add_remove_tab_benchmark,167
+tests/unit/mainwindow/test_tabwidget.py,Unknown Test,test_tab_pinned_benchmark,185
+tests/unit/mainwindow/statusbar/test_percentage.py,Conditional Test Logic,test_percentage_text,44
+tests/unit/mainwindow/statusbar/test_progress.py,Conditional Test Logic,test_progress_affecting_statusbar_height,71
+tests/unit/mainwindow/statusbar/test_progress.py,Undefined Test,progress_widget,14
+tests/unit/mainwindow/statusbar/test_url.py,Conditional Test Logic,test_set_url,62
+tests/unit/mainwindow/statusbar/test_url.py,Conditional Test Logic,test_set_url,63
+tests/unit/mainwindow/statusbar/test_url.py,Conditional Test Logic,test_set_url,67
+tests/unit/mainwindow/statusbar/test_url.py,Conditional Test Logic,test_set_url,76
+tests/unit/mainwindow/statusbar/test_url.py,Conditional Test Logic,test_on_tab_changed,120
+tests/unit/mainwindow/statusbar/test_url.py,Undefined Test,url_widget,16
+tests/unit/misc/test_autoupdate.py,Programming Paradigms Blend,(nível do módulo),13;16
+tests/unit/misc/test_checkpyver.py,Exception Handling,test_patched_errwindow,62
+tests/unit/misc/test_cmdhistory.py,Conditional Test Logic,test_previtem_index_error,126
+tests/unit/misc/test_cmdhistory.py,Unknown Test,test_setitem,75
+tests/unit/misc/test_cmdhistory.py,Unknown Test,test_not_browsing_error,82
+tests/unit/misc/test_cmdhistory.py,Unknown Test,test_nextitem_index_error,115
+tests/unit/misc/test_cmdhistory.py,Unknown Test,test_previtem_index_error,122
+tests/unit/misc/test_crashdialog.py,Conditional Test Logic,test_get_environment_vars,121
+tests/unit/misc/test_crashdialog.py,Conditional Test Logic,test_get_environment_vars,123
+tests/unit/misc/test_crashsignal.py,Conditional Test Logic,test_handlers_registered,47
+tests/unit/misc/test_crashsignal.py,Conditional Test Logic,test_handlers_deregistered,54
+tests/unit/misc/test_crashsignal.py,Conditional Test Logic,test_handlers_deregistered,60
+tests/unit/misc/test_crashsignal.py,Conditional Test Logic,test_interrupt_repeatedly,77
+tests/unit/misc/test_earlyinit.py,Conditional Test Logic,test_qt_version,23
+tests/unit/misc/test_earlyinit.py,Unknown Test,test_init_faulthandler_stderr_none,15
+tests/unit/misc/test_earlyinit.py,Unknown Test,test_qt_version_no_args,33
+tests/unit/misc/test_editor.py,Conditional Test Logic,test_with_filename,76
+tests/unit/misc/test_editor.py,Conditional Test Logic,test_unreadable,116
+tests/unit/misc/test_editor.py,Unknown Test,test_double_edit,150
+tests/unit/misc/test_editor.py,Programming Paradigms Blend,(nível do módulo),20;34
+tests/unit/misc/test_elf.py,Conditional Test Logic,test_result,48
+tests/unit/misc/test_elf.py,Exception Handling,test_hypothesis,133
+tests/unit/misc/test_elf.py,Redundant Print,test_hypothesis,136
+tests/unit/misc/test_elf.py,Unknown Test,test_hypothesis,130
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_start_output_message,147
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_start_output_message,149
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_start_output_message,161
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_start_output_message,180
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_start_output_message,184
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_live_messages_output,250
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_live_messages_output,256
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_elided_output,280
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_failing_to_start,398
+tests/unit/misc/test_guiprocess.py,Conditional Test Logic,test_exit_signal,465
+tests/unit/misc/test_guiprocess.py,Unknown Test,test_no_process,50
+tests/unit/misc/test_guiprocess.py,Unknown Test,test_inexistent_pid,69
+tests/unit/misc/test_guiprocess.py,Unknown Test,test_cleaned_up_pid,74
+tests/unit/misc/test_guiprocess.py,Unknown Test,test_double_start,330
+tests/unit/misc/test_guiprocess.py,Unknown Test,test_double_start_finished,339
+tests/unit/misc/test_guiprocess.py,Unknown Test,test_exit_successful_output,494
+tests/unit/misc/test_guiprocess.py,Verbose Test,test_start_output_message,142;187
+tests/unit/misc/test_guiprocess.py,Programming Paradigms Blend,(nível do módulo),20;44
+tests/unit/misc/test_ipc.py,Conditional Test Logic,test_flatpak,227
+tests/unit/misc/test_ipc.py,Conditional Test Logic,test_other_unix,242
+tests/unit/misc/test_ipc.py,Conditional Test Logic,test_normal,553
+tests/unit/misc/test_ipc.py,Conditional Test Logic,test_normal,568
+tests/unit/misc/test_ipc.py,Exception Handling,test_long_username,786
+tests/unit/misc/test_ipc.py,Redundant Print,test_permissions_posix,327
+tests/unit/misc/test_ipc.py,Redundant Print,test_permissions_posix,329
+tests/unit/misc/test_ipc.py,Redundant Print,test_socket_options_address_in_use_problem,818
+tests/unit/misc/test_ipc.py,Unknown Test,test_windows_broken_getpass,186
+tests/unit/misc/test_ipc.py,Unknown Test,test_other_unix,236
+tests/unit/misc/test_ipc.py,Unknown Test,test_remove_error,280
+tests/unit/misc/test_ipc.py,Unknown Test,test_error,287
+tests/unit/misc/test_ipc.py,Unknown Test,test_in_use,296
+tests/unit/misc/test_ipc.py,Unknown Test,test_successful,303
+tests/unit/misc/test_ipc.py,Unknown Test,test_atime_shutdown_typeerror,362
+tests/unit/misc/test_ipc.py,Unknown Test,test_other_error,396
+tests/unit/misc/test_ipc.py,Unknown Test,test_socket_error,575
+tests/unit/misc/test_ipc.py,Unknown Test,test_not_disconnected_immediately,581
+tests/unit/misc/test_ipc.py,Unknown Test,test_socket_error_no_server,585
+tests/unit/misc/test_ipc.py,Unknown Test,test_disconnected_without_data,472
+tests/unit/misc/test_ipc.py,Unknown Test,test_partial_line,481
+tests/unit/misc/test_ipc.py,Programming Paradigms Blend,(nível do módulo),27;76
+tests/unit/misc/test_ipc.py,Non-Functional Statement,test_other_unix,243
+tests/unit/misc/test_ipc.py,Non-Functional Statement,test_other_unix,245
+tests/unit/misc/test_ipc.py,Non-Functional Statement,test_other_unix,247
+tests/unit/misc/test_ipc.py,Non-Functional Statement,test_atime_update,344
+tests/unit/misc/test_ipc.py,Non-Functional Statement,test_atime_update,348
+tests/unit/misc/test_ipc.py,Non-Functional Statement,test_vanished_runtime_file,378
+tests/unit/misc/test_ipc.py,Non-Functional Statement,ipc_server,49
+tests/unit/misc/test_keyhints.py,Undefined Test,keyhint,33
+tests/unit/misc/test_lineparser.py,Unknown Test,test_double_open,91
+tests/unit/misc/test_miscwidgets.py,Conditional Test Logic,test_selection_cursor_left,63
+tests/unit/misc/test_miscwidgets.py,Conditional Test Logic,test_read_size,209
+tests/unit/misc/test_miscwidgets.py,Conditional Test Logic,test_read_size,220
+tests/unit/misc/test_miscwidgets.py,Conditional Test Logic,test_adjust_size,264
+tests/unit/misc/test_miscwidgets.py,Conditional Test Logic,test_adjust_size,275
+tests/unit/misc/test_miscwidgets.py,Unknown Test,test_timeout,126
+tests/unit/misc/test_miscwidgets.py,Unknown Test,test_no_inspector_resize,155
+tests/unit/misc/test_miscwidgets.py,Unknown Test,test_cycle_focus_no_inspector,159
+tests/unit/misc/test_miscwidgets.py,Unknown Test,test_cycle_focus_hidden_inspector,185
+tests/unit/misc/test_miscwidgets.py,Undefined Test,cmd_edit,20
+tests/unit/misc/test_msgbox.py,Conditional Test Logic,test_attributes,33
+tests/unit/misc/test_msgbox.py,Conditional Test Logic,test_information,75
+tests/unit/misc/test_objects.py,Unknown Test,test_no_backend,16
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,test_overridden,147
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,test_qt_data_path,155
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,test_url_not_found_high_level,431
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,test_version_gate,73
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,pak_factory,316
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,pak_factory,329
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,pak_factory,335
+tests/unit/misc/test_pakjoy.py,Conditional Test Logic,pak_factory,339
+tests/unit/misc/test_pakjoy.py,Unknown Test,test_nowhere,171
+tests/unit/misc/test_pakjoy.py,Unknown Test,test_bad_version,369
+tests/unit/misc/test_pakjoy.py,Unknown Test,test_bad_sentinal_position,385
+tests/unit/misc/test_pakjoy.py,Unknown Test,test_marker_not_found,398
+tests/unit/misc/test_pakjoy.py,Unknown Test,test_url_not_found,407
+tests/unit/misc/test_pakjoy.py,Programming Paradigms Blend,(nível do módulo),20;99
+tests/unit/misc/test_pakjoy.py,Non-Functional Statement,test_copying_resources_oserror,257
+tests/unit/misc/test_pakjoy.py,Non-Functional Statement,test_escape_hatch,94
+tests/unit/misc/test_pakjoy.py,Undefined Test,json_manifest_factory,290
+tests/unit/misc/test_pakjoy.py,Undefined Test,pak_factory,315
+tests/unit/misc/test_pastebin.py,Unknown Test,test_constructor,19
+tests/unit/misc/test_sessions.py,Conditional Test Logic,test_with_standarddir,49
+tests/unit/misc/test_sessions.py,Conditional Test Logic,test_existent,76
+tests/unit/misc/test_sessions.py,Conditional Test Logic,test_inexistent,87
+tests/unit/misc/test_sessions.py,Conditional Test Logic,test_active,101
+tests/unit/misc/test_sessions.py,Conditional Test Logic,test_user_data,300
+tests/unit/misc/test_sessions.py,Conditional Test Logic,test_urls,318
+tests/unit/misc/test_sessions.py,Unknown Test,test_no_active_window,147
+tests/unit/misc/test_sessions.py,Unknown Test,test_load_fail,285
+tests/unit/misc/test_sessions.py,Programming Paradigms Blend,(nível do módulo),12;33
+tests/unit/misc/test_sessions.py,Non-Functional Statement,cleanup,42
+tests/unit/misc/test_split.py,Programming Paradigms Blend,(nível do módulo),92;115
+tests/unit/misc/test_split_hypothesis.py,Unknown Test,test_split,16
+tests/unit/misc/test_split_hypothesis.py,Unknown Test,test_simple_split,23
+tests/unit/misc/test_sql.py,Conditional Test Logic,test_select,262
+tests/unit/misc/test_sql.py,Unknown Test,test_from_int_invalid,41
+tests/unit/misc/test_sql.py,Unknown Test,test_to_int_invalid,51
+tests/unit/misc/test_sql.py,Unknown Test,test_known,93
+tests/unit/misc/test_sql.py,Unknown Test,test_iter_inactive,363
+tests/unit/misc/test_sql.py,Unknown Test,test_iter_empty,369
+tests/unit/misc/test_sql.py,Unknown Test,test_run_missing_binding,392
+tests/unit/misc/test_sql.py,Unknown Test,test_run_batch_missing_binding,402
+tests/unit/misc/test_sql.py,Unknown Test,test_value_missing,407
+tests/unit/misc/test_sql.py,Unknown Test,test_num_rows_affected_not_active,413
+tests/unit/misc/test_sql.py,Unknown Test,test_num_rows_affected_select,418
+tests/unit/misc/test_sql.py,Unknown Test,test_init_table,175
+tests/unit/misc/test_sql.py,Unknown Test,test_insert,181
+tests/unit/misc/test_sql.py,Programming Paradigms Blend,(nível do módulo),18;21
+tests/unit/misc/test_throttle.py,Unknown Test,test_deleted_object,132
+tests/unit/misc/test_utilcmds.py,Unknown Test,test_cmd_repeat_last_initial,15
+tests/unit/misc/test_utilcmds.py,Programming Paradigms Blend,(nível do módulo),15;28
+tests/unit/misc/test_wmname.py,Conditional Test Logic,test_x11_get_wm_name,286
+tests/unit/misc/test_wmname.py,Exception Handling,test_load_libwayland_client,23
+tests/unit/misc/test_wmname.py,Exception Handling,test_wayland_real,169
+tests/unit/misc/test_wmname.py,Exception Handling,test_load_xlib,180
+tests/unit/misc/test_wmname.py,Exception Handling,test_x11_real,307
+tests/unit/misc/test_wmname.py,Unknown Test,test_load_libwayland_client,21
+tests/unit/misc/test_wmname.py,Unknown Test,test_load_libwayland_client_error,29
+tests/unit/misc/test_wmname.py,Unknown Test,test_pid_from_fd_invalid,55
+tests/unit/misc/test_wmname.py,Unknown Test,test_pid_from_fd_getsockopt_error,65
+tests/unit/misc/test_wmname.py,Unknown Test,test_pid_from_fd_no_so_peercred,77
+tests/unit/misc/test_wmname.py,Unknown Test,test_process_name_from_pid_invalid,91
+tests/unit/misc/test_wmname.py,Unknown Test,test_load_xlib,178
+tests/unit/misc/test_wmname.py,Unknown Test,test_load_xlib_not_found,186
+tests/unit/misc/test_wmname.py,Unknown Test,test_load_xlib_error,194
+tests/unit/misc/test_wmname.py,Non-Functional Statement,test_load_libwayland_client,26
+tests/unit/misc/test_wmname.py,Non-Functional Statement,test_wayland_display,116
+tests/unit/misc/test_wmname.py,Non-Functional Statement,test_wayland_display_error,130
+tests/unit/misc/test_wmname.py,Non-Functional Statement,test_load_xlib,183
+tests/unit/misc/test_wmname.py,Non-Functional Statement,test_x11_display,224
+tests/unit/misc/test_wmname.py,Non-Functional Statement,test_x11_display_error,236
+tests/unit/misc/userscripts/test_qute_lastpass.py,Verbose Test,test_main_merge_candidates,265;334
+tests/unit/misc/userscripts/test_qute_lastpass.py,Programming Paradigms Blend,(nível do módulo),16;30
+tests/unit/scripts/test_check_coverage.py,Conditional Test Logic,covtest,90
+tests/unit/scripts/test_check_coverage.py,Conditional Test Logic,covtest,95
+tests/unit/scripts/test_check_coverage.py,Unknown Test,test_skipped_args,210
+tests/unit/scripts/test_check_coverage.py,Unknown Test,test_skipped_non_linux,215
+tests/unit/scripts/test_check_coverage.py,Programming Paradigms Blend,(nível do módulo),16;20
+tests/unit/scripts/test_check_coverage.py,Non-Functional Statement,test_tested_with_branches,114
+tests/unit/scripts/test_check_coverage.py,Non-Functional Statement,test_tested_with_branches,116
+tests/unit/scripts/test_check_coverage.py,Non-Functional Statement,test_untested_branches,175
+tests/unit/scripts/test_check_coverage.py,Non-Functional Statement,test_untested_branches,177
+tests/unit/scripts/test_check_coverage.py,Undefined Test,run,37
+tests/unit/scripts/test_check_coverage.py,Undefined Test,check_skipped,62
+tests/unit/scripts/test_check_coverage.py,Undefined Test,covtest,72
+tests/unit/scripts/test_dictcli.py,Conditional Test Logic,test_available_languages,72
+tests/unit/scripts/test_dictcli.py,Conditional Test Logic,test_remove_old,143
+tests/unit/scripts/test_importer.py,Conditional Test Logic,test_opensearch_convert,52
+tests/unit/scripts/test_importer.py,Unknown Test,test_opensearch_convert_unsupported,56
+tests/unit/scripts/test_problemmatchers.py,Conditional Test Logic,test_patterns,20
+tests/unit/scripts/test_problemmatchers.py,Conditional Test Logic,test_patterns,21
+tests/unit/scripts/test_problemmatchers.py,Unknown Test,test_patterns,14
+tests/unit/scripts/test_run_vulture.py,Programming Paradigms Blend,(nível do módulo),15;28
+tests/unit/scripts/test_run_vulture.py,Undefined Test,run,39
+tests/unit/utils/test_debug.py,Unknown Test,test_int_noklass,135
+tests/unit/utils/test_debug.py,Unknown Test,test_find_flags,167
+tests/unit/utils/test_debug.py,Unknown Test,test_int_noklass,187
+tests/unit/utils/test_debug.py,Programming Paradigms Blend,(nível do módulo),19;20
+tests/unit/utils/test_debug.py,Non-Functional Statement,test_logger,88
+tests/unit/utils/test_error.py,Conditional Test Logic,test_err_windows,69
+tests/unit/utils/test_error.py,Exception Handling,test_no_err_windows,32
+tests/unit/utils/test_error.py,Exception Handling,test_err_windows,67
+tests/unit/utils/test_javascript.py,Conditional Test Logic,test_real_escape,69
+tests/unit/utils/test_javascript.py,Conditional Test Logic,test_real_escape_hypothesis,77
+tests/unit/utils/test_javascript.py,Conditional Test Logic,test_to_js,94
+tests/unit/utils/test_javascript.py,Unknown Test,test_real_escape,67
+tests/unit/utils/test_javascript.py,Unknown Test,test_real_escape_hypothesis,75
+tests/unit/utils/test_javascript.py,Programming Paradigms Blend,(nível do módulo),16;17
+tests/unit/utils/test_javascript.py,Undefined Test,_test_escape,57
+tests/unit/utils/test_jinja.py,Conditional Test Logic,test_autoescape,108
+tests/unit/utils/test_jinja.py,Redundant Print,test_resource_url,57
+tests/unit/utils/test_jinja.py,Redundant Print,test_data_url,66
+tests/unit/utils/test_jinja.py,Unknown Test,test_undefined_function,94
+tests/unit/utils/test_jinja.py,Unknown Test,test_attribute_error,100
+tests/unit/utils/test_jinja.py,Unknown Test,test_template_config_variables_no_option,134
+tests/unit/utils/test_log.py,Conditional Test Logic,test_ram_handler,204
+tests/unit/utils/test_log.py,Unknown Test,test_logfilter_benchmark,126
+tests/unit/utils/test_log.py,Unknown Test,test_debug_log_filter_cmd_invalid,159
+tests/unit/utils/test_log.py,Unknown Test,test_parsing_invalid,183
+tests/unit/utils/test_log.py,Unknown Test,test_stderr_none,245
+tests/unit/utils/test_log.py,Unknown Test,test_python_warnings_werror,261
+tests/unit/utils/test_log.py,Unknown Test,test_py_warning_filter_error,346
+tests/unit/utils/test_log.py,Unknown Test,test_warning_still_errors,355
+tests/unit/utils/test_log.py,Verbose Test,restore_loggers,23;70
+tests/unit/utils/test_log.py,Programming Paradigms Blend,(nível do módulo),22;90
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_line_endings,525
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_seek_tell,744
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_seek_unsupported,755
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_readline,862
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_read,907
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_all,1075
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_version_check,75
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_ensure_valid,194
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_check_qdatastream,234
+tests/unit/utils/test_qtutils.py,Conditional Test Logic,test_qdatastream_status_members,254
+tests/unit/utils/test_qtutils.py,Exception Handling,test_simple,1063
+tests/unit/utils/test_qtutils.py,Exception Handling,test_values_match_qt,1081
+tests/unit/utils/test_qtutils.py,Redundant Print,test_readline,863
+tests/unit/utils/test_qtutils.py,Redundant Print,test_read,908
+tests/unit/utils/test_qtutils.py,Unknown Test,test_good_values,130
+tests/unit/utils/test_qtutils.py,Unknown Test,test_bad_values_fatal,137
+tests/unit/utils/test_qtutils.py,Unknown Test,test_serialize_readonly_stream,363
+tests/unit/utils/test_qtutils.py,Unknown Test,test_deserialize_writeonly_stream,372
+tests/unit/utils/test_qtutils.py,Unknown Test,test_closed_device,664
+tests/unit/utils/test_qtutils.py,Unknown Test,test_unreadable,676
+tests/unit/utils/test_qtutils.py,Unknown Test,test_unwritable,687
+tests/unit/utils/test_qtutils.py,Unknown Test,test_fileno,715
+tests/unit/utils/test_qtutils.py,Unknown Test,test_seek_unsupported,752
+tests/unit/utils/test_qtutils.py,Unknown Test,test_truncate,786
+tests/unit/utils/test_qtutils.py,Unknown Test,test_flush,806
+tests/unit/utils/test_qtutils.py,Unknown Test,test_write_error,874
+tests/unit/utils/test_qtutils.py,Unknown Test,test_write_error_real,882
+tests/unit/utils/test_qtutils.py,Unknown Test,test_failing_reads,917
+tests/unit/utils/test_qtutils.py,Unknown Test,test_invalid_start,981
+tests/unit/utils/test_qtutils.py,Unknown Test,test_invalid_end,986
+tests/unit/utils/test_qtutils.py,Unknown Test,test_invalid_percentage,992
+tests/unit/utils/test_qtutils.py,Unknown Test,test_invalid_colorspace,997
+tests/unit/utils/test_qtutils.py,Unknown Test,test_all,1074
+tests/unit/utils/test_qtutils.py,Unknown Test,test_version_check_compiled_and_exact,86
+tests/unit/utils/test_qtutils.py,Unknown Test,test_check_qdatastream,224
+tests/unit/utils/test_qtutils.py,Unknown Test,test_qcolor_to_qsscolor_invalid,269
+tests/unit/utils/test_qtutils.py,Programming Paradigms Blend,(nível do módulo),24;124
+tests/unit/utils/test_qtutils.py,Non-Functional Statement,test_mock_open_error,409
+tests/unit/utils/test_qtutils.py,Non-Functional Statement,test_mock_commit_failed,432
+tests/unit/utils/test_qtutils.py,Non-Functional Statement,test_existing_dir,490
+tests/unit/utils/test_qtutils.py,Undefined Test,qsavefile_mock,395
+tests/unit/utils/test_qtutils.py,Undefined Test,_assert_executing,940
+tests/unit/utils/test_resources.py,Conditional Test Logic,html_zip,36
+tests/unit/utils/test_resources.py,Conditional Test Logic,html_zip,41
+tests/unit/utils/test_resources.py,Conditional Test Logic,test_not_found,109
+tests/unit/utils/test_resources.py,Unknown Test,test_not_found,93
+tests/unit/utils/test_resources.py,Programming Paradigms Blend,(nível do módulo),13;14
+tests/unit/utils/test_resources.py,Undefined Test,html_zip,35
+tests/unit/utils/test_standarddir.py,Conditional Test Logic,test_linux_explicit,161
+tests/unit/utils/test_standarddir.py,Conditional Test Logic,test_flatpak_runtimedir,189
+tests/unit/utils/test_standarddir.py,Conditional Test Logic,test_basedir,336
+tests/unit/utils/test_standarddir.py,Conditional Test Logic,test_basedir,341
+tests/unit/utils/test_standarddir.py,Conditional Test Logic,test_init,411
+tests/unit/utils/test_standarddir.py,Conditional Test Logic,test_no_qapplication,458
+tests/unit/utils/test_standarddir.py,Unknown Test,test_empty,117
+tests/unit/utils/test_standarddir.py,Unknown Test,test_runtimedir_empty_tempdir,200
+tests/unit/utils/test_standarddir.py,Unknown Test,test_exists_race_condition,345
+tests/unit/utils/test_standarddir.py,Unknown Test,test_unset_organization_no_qapp,66
+tests/unit/utils/test_standarddir.py,Programming Paradigms Blend,(nível do módulo),24;113
+tests/unit/utils/test_standarddir.py,Non-Functional Statement,test_unset_organization_no_qapp,70
+tests/unit/utils/test_standarddir.py,Undefined Test,clear_standarddir_cache_and_patch,39
+tests/unit/utils/test_urlmatch.py,Exception Handling,test_urlpattern_hypothesis,708
+tests/unit/utils/test_urlmatch.py,Unknown Test,test_failing_canonicalization,644
+tests/unit/utils/test_urlmatch.py,Unknown Test,test_invalid_patterns,194
+tests/unit/utils/test_urlmatch.py,Unknown Test,test_urlpattern_benchmark,675
+tests/unit/utils/test_urlmatch.py,Unknown Test,test_urlpattern_hypothesis,707
+tests/unit/utils/test_urlmatch.py,Programming Paradigms Blend,(nível do módulo),29;263
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_invalid_url_error,598
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_invalid_url_error,606
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_invalid_url_error,608
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_is_url,432
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_is_url,433
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_invalid_url_error,489
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_invalid_url_error,499
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_raise_cmdexc_if_invalid,522
+tests/unit/utils/test_urlutils.py,Conditional Test Logic,test_raise_cmdexc_if_invalid,526
+tests/unit/utils/test_urlutils.py,Exception Handling,test_hypothesis,782
+tests/unit/utils/test_urlutils.py,Unknown Test,test_invalid_url,205
+tests/unit/utils/test_urlutils.py,Unknown Test,test_empty,212
+tests/unit/utils/test_urlutils.py,Unknown Test,test_invalid,744
+tests/unit/utils/test_urlutils.py,Unknown Test,test_invalid,759
+tests/unit/utils/test_urlutils.py,Unknown Test,test_bench_widen_hostnames,829
+tests/unit/utils/test_urlutils.py,Unknown Test,test_get_search_url_invalid,334
+tests/unit/utils/test_urlutils.py,Unknown Test,test_host_tuple_invalid,577
+tests/unit/utils/test_urlutils.py,Unknown Test,test_same_domain_invalid_url,639
+tests/unit/utils/test_urlutils.py,Unknown Test,test_safe_display_string_invalid,705
+tests/unit/utils/test_urlutils.py,Verbose Test,test_is_url,409;459
+tests/unit/utils/test_urlutils.py,Non-Functional Statement,test_hypothesis,785
+tests/unit/utils/test_utils.py,Conditional Test Logic,test_ceil_log_hypothesis,881
+tests/unit/utils/test_utils.py,Exception Handling,test_load_float_bug,822
+tests/unit/utils/test_utils.py,Exception Handling,test_hypothesis_text,1015
+tests/unit/utils/test_utils.py,Exception Handling,test_hypothesis_sophisticated,1027
+tests/unit/utils/test_utils.py,Exception Handling,test_hypothesis_regex,1034
+tests/unit/utils/test_utils.py,Exception Handling,test_hypothesis_text,1065
+tests/unit/utils/test_utils.py,Exception Handling,test_hypothesis_sophisticated,1075
+tests/unit/utils/test_utils.py,Redundant Print,test_hypothesis_text,1018
+tests/unit/utils/test_utils.py,Redundant Print,test_hypothesis_sophisticated,1030
+tests/unit/utils/test_utils.py,Redundant Print,test_hypothesis_regex,1037
+tests/unit/utils/test_utils.py,Redundant Print,test_hypothesis_text,1068
+tests/unit/utils/test_utils.py,Redundant Print,test_hypothesis_sophisticated,1078
+tests/unit/utils/test_utils.py,Unknown Test,test_not_normalized,51
+tests/unit/utils/test_utils.py,Unknown Test,test_parse_invalid,80
+tests/unit/utils/test_utils.py,Unknown Test,test_too_small,177
+tests/unit/utils/test_utils.py,Unknown Test,test_too_small,195
+tests/unit/utils/test_utils.py,Unknown Test,test_flush,271
+tests/unit/utils/test_utils.py,Unknown Test,test_unrelated_exception,572
+tests/unit/utils/test_utils.py,Unknown Test,test_set_unsupported_selection,675
+tests/unit/utils/test_utils.py,Unknown Test,test_get_empty,697
+tests/unit/utils/test_utils.py,Unknown Test,test_get_unsupported_selection,702
+tests/unit/utils/test_utils.py,Unknown Test,test_fallback_without_selection,723
+tests/unit/utils/test_utils.py,Unknown Test,test_load_float_bug,821
+tests/unit/utils/test_utils.py,Unknown Test,test_hypothesis_text,1014
+tests/unit/utils/test_utils.py,Unknown Test,test_hypothesis_sophisticated,1026
+tests/unit/utils/test_utils.py,Unknown Test,test_hypothesis_regex,1033
+tests/unit/utils/test_utils.py,Unknown Test,test_hypothesis_text,1064
+tests/unit/utils/test_utils.py,Unknown Test,test_hypothesis_sophisticated,1074
+tests/unit/utils/test_utils.py,Unknown Test,test_unused,799
+tests/unit/utils/test_utils.py,Unknown Test,test_chunk_invalid,854
+tests/unit/utils/test_utils.py,Unknown Test,test_guess_mimetype_no_fallback,868
+tests/unit/utils/test_utils.py,Unknown Test,test_ceil_log_invalid,887
+tests/unit/utils/test_utils.py,Unknown Test,test_parse_duration_invalid,930
+tests/unit/utils/test_utils.py,Unknown Test,test_parse_duration_hypothesis,936
+tests/unit/utils/test_utils.py,Non-Functional Statement,test_load_float_bug,826
+tests/unit/utils/test_utils.py,Non-Functional Statement,test_no_file,958
+tests/unit/utils/test_utils.py,Non-Functional Statement,test_no_error,966
+tests/unit/utils/test_utils.py,Non-Functional Statement,test_no_error,968
+tests/unit/utils/test_utils.py,Non-Functional Statement,test_error,974
+tests/unit/utils/test_utils.py,Non-Functional Statement,test_directory,985
+tests/unit/utils/test_version.py,Conditional Test Logic,func,330
+tests/unit/utils/test_version.py,Conditional Test Logic,glob_fake,535
+tests/unit/utils/test_version.py,Conditional Test Logic,open_fake,549
+tests/unit/utils/test_version.py,Conditional Test Logic,test_all_present,647
+tests/unit/utils/test_version.py,Conditional Test Logic,test_all_present,649
+tests/unit/utils/test_version.py,Conditional Test Logic,test_missing_module,674
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_attribute,733
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_attribute,739
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_attribute,741
+tests/unit/utils/test_version.py,Conditional Test Logic,test_real_file,905
+tests/unit/utils/test_version.py,Conditional Test Logic,test_from_pyqt,1022
+tests/unit/utils/test_version.py,Conditional Test Logic,test_real_chromium_version,1051
+tests/unit/utils/test_version.py,Conditional Test Logic,test_real_chromium_version,1052
+tests/unit/utils/test_version.py,Conditional Test Logic,test_real_chromium_version,1062
+tests/unit/utils/test_version.py,Conditional Test Logic,test_simulated,1224
+tests/unit/utils/test_version.py,Conditional Test Logic,test_preexisting_profile,1619
+tests/unit/utils/test_version.py,Conditional Test Logic,test_distribution,279
+tests/unit/utils/test_version.py,Conditional Test Logic,test_is_flatpak,289
+tests/unit/utils/test_version.py,Conditional Test Logic,test_is_flatpak,295
+tests/unit/utils/test_version.py,Conditional Test Logic,test_release_info,587
+tests/unit/utils/test_version.py,Conditional Test Logic,test_path_info,609
+tests/unit/utils/test_version.py,Conditional Test Logic,test_path_info,619
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1390
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1406
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1441
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1447
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1453
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1469
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1482
+tests/unit/utils/test_version.py,Conditional Test Logic,test_version_info,1485
+tests/unit/utils/test_version.py,Exception Handling,test_real_chromium_version,1039
+tests/unit/utils/test_version.py,Exception Handling,test_real_chromium_version,1055
+tests/unit/utils/test_version.py,Exception Handling,test_real_chromium_security_version,1078
+tests/unit/utils/test_version.py,Exception Handling,test_chromium_version_dict,1097
+tests/unit/utils/test_version.py,Redundant Print,test_chromium_version_dict,1106
+tests/unit/utils/test_version.py,Unknown Test,test_linux_real,844
+tests/unit/utils/test_version.py,Unknown Test,test_windows_real,849
+tests/unit/utils/test_version.py,Unknown Test,test_mac_real,854
+tests/unit/utils/test_version.py,Unknown Test,test_posix_real,859
+tests/unit/utils/test_version.py,Unknown Test,test_prefers_saved_user_agent,1158
+tests/unit/utils/test_version.py,Unknown Test,test_func,1531
+tests/unit/utils/test_version.py,Verbose Test,test_version_info,1365;1521
+tests/unit/utils/test_version.py,Programming Paradigms Blend,(nível do módulo),35;309
+tests/unit/utils/test_version.py,Non-Functional Statement,test_real_chromium_version,1046
+tests/unit/utils/test_version.py,Undefined Test,func,324
+tests/unit/utils/test_version.py,Undefined Test,commit_file_mock,345
+tests/unit/utils/test_version.py,Undefined Test,glob_fake,528
+tests/unit/utils/test_version.py,Undefined Test,open_fake,541
+tests/unit/utils/usertypes/test_neighborlist.py,Unknown Test,test_invalid_mode,37
+tests/unit/utils/usertypes/test_neighborlist.py,Unknown Test,test_invalid_reset,62
+tests/unit/utils/usertypes/test_neighborlist.py,Unknown Test,test_curitem,77
+tests/unit/utils/usertypes/test_neighborlist.py,Unknown Test,test_firstitem,82
+tests/unit/utils/usertypes/test_neighborlist.py,Unknown Test,test_lastitem,87
+tests/unit/utils/usertypes/test_neighborlist.py,Unknown Test,test_getitem,92
+tests/unit/utils/usertypes/test_question.py,Unknown Test,test_attributes,17
+tests/unit/utils/usertypes/test_timer.py,Unknown Test,test_set_interval_overflow,46
+tests/unit/utils/usertypes/test_timer.py,Unknown Test,test_start_overflow,53
+tests/unit/utils/usertypes/test_timer.py,Unknown Test,test_timeout_start,60
+tests/unit/utils/usertypes/test_timer.py,Unknown Test,test_timeout_set_interval,67
+tests/unit/utils/usertypes/test_timer.py,Undefined Test,time_mock,76

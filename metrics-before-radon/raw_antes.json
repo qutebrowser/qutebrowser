@@ -1,0 +1,3674 @@
+{
+  "qutebrowser/__init__.py": {
+    "loc": 21,
+    "lloc": 13,
+    "sloc": 12,
+    "comments": 3,
+    "multi": 0,
+    "blank": 5,
+    "single_comments": 4
+  },
+  "qutebrowser/qutebrowser.py": {
+    "loc": 234,
+    "lloc": 97,
+    "sloc": 152,
+    "comments": 11,
+    "multi": 41,
+    "blank": 29,
+    "single_comments": 12
+  },
+  "qutebrowser/app.py": {
+    "loc": 590,
+    "lloc": 342,
+    "sloc": 367,
+    "comments": 27,
+    "multi": 63,
+    "blank": 128,
+    "single_comments": 32
+  },
+  "qutebrowser/__main__.py": {
+    "loc": 15,
+    "lloc": 5,
+    "sloc": 4,
+    "comments": 4,
+    "multi": 0,
+    "blank": 6,
+    "single_comments": 5
+  },
+  "qutebrowser/misc/msgbox.py": {
+    "loc": 69,
+    "lloc": 31,
+    "sloc": 28,
+    "comments": 3,
+    "multi": 20,
+    "blank": 16,
+    "single_comments": 5
+  },
+  "qutebrowser/misc/sessions.py": {
+    "loc": 669,
+    "lloc": 409,
+    "sloc": 429,
+    "comments": 29,
+    "multi": 91,
+    "blank": 109,
+    "single_comments": 40
+  },
+  "qutebrowser/misc/debugcachestats.py": {
+    "loc": 37,
+    "lloc": 19,
+    "sloc": 15,
+    "comments": 4,
+    "multi": 4,
+    "blank": 12,
+    "single_comments": 6
+  },
+  "qutebrowser/misc/pastebin.py": {
+    "loc": 82,
+    "lloc": 34,
+    "sloc": 33,
+    "comments": 3,
+    "multi": 28,
+    "blank": 17,
+    "single_comments": 4
+  },
+  "qutebrowser/misc/pakjoy.py": {
+    "loc": 327,
+    "lloc": 188,
+    "sloc": 209,
+    "comments": 40,
+    "multi": 20,
+    "blank": 72,
+    "single_comments": 26
+  },
+  "qutebrowser/misc/httpclient.py": {
+    "loc": 114,
+    "lloc": 62,
+    "sloc": 58,
+    "comments": 5,
+    "multi": 25,
+    "blank": 23,
+    "single_comments": 8
+  },
+  "qutebrowser/misc/quitter.py": {
+    "loc": 312,
+    "lloc": 170,
+    "sloc": 182,
+    "comments": 34,
+    "multi": 41,
+    "blank": 50,
+    "single_comments": 39
+  },
+  "qutebrowser/misc/lineparser.py": {
+    "loc": 227,
+    "lloc": 133,
+    "sloc": 118,
+    "comments": 3,
+    "multi": 54,
+    "blank": 44,
+    "single_comments": 11
+  },
+  "qutebrowser/misc/binparsing.py": {
+    "loc": 43,
+    "lloc": 25,
+    "sloc": 20,
+    "comments": 3,
+    "multi": 3,
+    "blank": 13,
+    "single_comments": 7
+  },
+  "qutebrowser/misc/ipc.py": {
+    "loc": 558,
+    "lloc": 350,
+    "sloc": 346,
+    "comments": 44,
+    "multi": 66,
+    "blank": 100,
+    "single_comments": 46
+  },
+  "qutebrowser/misc/miscwidgets.py": {
+    "loc": 469,
+    "lloc": 276,
+    "sloc": 261,
+    "comments": 11,
+    "multi": 81,
+    "blank": 99,
+    "single_comments": 28
+  },
+  "qutebrowser/misc/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/misc/keyhintwidget.py": {
+    "loc": 133,
+    "lloc": 63,
+    "sloc": 87,
+    "comments": 4,
+    "multi": 16,
+    "blank": 24,
+    "single_comments": 6
+  },
+  "qutebrowser/misc/utilcmds.py": {
+    "loc": 279,
+    "lloc": 171,
+    "sloc": 166,
+    "comments": 6,
+    "multi": 45,
+    "blank": 56,
+    "single_comments": 12
+  },
+  "qutebrowser/misc/nativeeventfilter.py": {
+    "loc": 189,
+    "lloc": 84,
+    "sloc": 108,
+    "comments": 20,
+    "multi": 10,
+    "blank": 50,
+    "single_comments": 21
+  },
+  "qutebrowser/misc/crashsignal.py": {
+    "loc": 472,
+    "lloc": 299,
+    "sloc": 292,
+    "comments": 22,
+    "multi": 71,
+    "blank": 77,
+    "single_comments": 32
+  },
+  "qutebrowser/misc/savemanager.py": {
+    "loc": 203,
+    "lloc": 113,
+    "sloc": 119,
+    "comments": 3,
+    "multi": 46,
+    "blank": 29,
+    "single_comments": 9
+  },
+  "qutebrowser/misc/backendproblem.py": {
+    "loc": 508,
+    "lloc": 286,
+    "sloc": 371,
+    "comments": 9,
+    "multi": 23,
+    "blank": 89,
+    "single_comments": 25
+  },
+  "qutebrowser/misc/crashdialog.py": {
+    "loc": 655,
+    "lloc": 435,
+    "sloc": 463,
+    "comments": 8,
+    "multi": 71,
+    "blank": 92,
+    "single_comments": 29
+  },
+  "qutebrowser/misc/split.py": {
+    "loc": 197,
+    "lloc": 137,
+    "sloc": 135,
+    "comments": 9,
+    "multi": 26,
+    "blank": 26,
+    "single_comments": 10
+  },
+  "qutebrowser/misc/wmname.py": {
+    "loc": 325,
+    "lloc": 173,
+    "sloc": 236,
+    "comments": 28,
+    "multi": 7,
+    "blank": 63,
+    "single_comments": 19
+  },
+  "qutebrowser/misc/elf.py": {
+    "loc": 317,
+    "lloc": 205,
+    "sloc": 172,
+    "comments": 16,
+    "multi": 47,
+    "blank": 74,
+    "single_comments": 24
+  },
+  "qutebrowser/misc/guiprocess.py": {
+    "loc": 431,
+    "lloc": 286,
+    "sloc": 281,
+    "comments": 21,
+    "multi": 47,
+    "blank": 73,
+    "single_comments": 30
+  },
+  "qutebrowser/misc/consolewidget.py": {
+    "loc": 203,
+    "lloc": 127,
+    "sloc": 123,
+    "comments": 12,
+    "multi": 23,
+    "blank": 37,
+    "single_comments": 20
+  },
+  "qutebrowser/misc/cmdhistory.py": {
+    "loc": 132,
+    "lloc": 71,
+    "sloc": 62,
+    "comments": 3,
+    "multi": 27,
+    "blank": 34,
+    "single_comments": 9
+  },
+  "qutebrowser/misc/sql.py": {
+    "loc": 579,
+    "lloc": 338,
+    "sloc": 335,
+    "comments": 54,
+    "multi": 83,
+    "blank": 120,
+    "single_comments": 41
+  },
+  "qutebrowser/misc/editor.py": {
+    "loc": 264,
+    "lloc": 131,
+    "sloc": 133,
+    "comments": 16,
+    "multi": 66,
+    "blank": 47,
+    "single_comments": 18
+  },
+  "qutebrowser/misc/objects.py": {
+    "loc": 35,
+    "lloc": 22,
+    "sloc": 17,
+    "comments": 5,
+    "multi": 0,
+    "blank": 11,
+    "single_comments": 7
+  },
+  "qutebrowser/misc/checkpyver.py": {
+    "loc": 54,
+    "lloc": 30,
+    "sloc": 28,
+    "comments": 17,
+    "multi": 3,
+    "blank": 11,
+    "single_comments": 12
+  },
+  "qutebrowser/misc/earlyinit.py": {
+    "loc": 350,
+    "lloc": 185,
+    "sloc": 195,
+    "comments": 41,
+    "multi": 46,
+    "blank": 64,
+    "single_comments": 45
+  },
+  "qutebrowser/misc/throttle.py": {
+    "loc": 89,
+    "lloc": 53,
+    "sloc": 48,
+    "comments": 6,
+    "multi": 12,
+    "blank": 19,
+    "single_comments": 10
+  },
+  "qutebrowser/misc/autoupdate.py": {
+    "loc": 74,
+    "lloc": 34,
+    "sloc": 31,
+    "comments": 3,
+    "multi": 21,
+    "blank": 18,
+    "single_comments": 4
+  },
+  "qutebrowser/mainwindow/windowundo.py": {
+    "loc": 79,
+    "lloc": 49,
+    "sloc": 48,
+    "comments": 3,
+    "multi": 3,
+    "blank": 22,
+    "single_comments": 6
+  },
+  "qutebrowser/mainwindow/tabwidget.py": {
+    "loc": 1025,
+    "lloc": 591,
+    "sloc": 620,
+    "comments": 53,
+    "multi": 161,
+    "blank": 161,
+    "single_comments": 83
+  },
+  "qutebrowser/mainwindow/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/mainwindow/mainwindow.py": {
+    "loc": 716,
+    "lloc": 391,
+    "sloc": 497,
+    "comments": 36,
+    "multi": 50,
+    "blank": 118,
+    "single_comments": 51
+  },
+  "qutebrowser/mainwindow/tabbedbrowser.py": {
+    "loc": 1139,
+    "lloc": 698,
+    "sloc": 728,
+    "comments": 57,
+    "multi": 178,
+    "blank": 155,
+    "single_comments": 78
+  },
+  "qutebrowser/mainwindow/prompt.py": {
+    "loc": 1054,
+    "lloc": 635,
+    "sloc": 680,
+    "comments": 45,
+    "multi": 95,
+    "blank": 210,
+    "single_comments": 69
+  },
+  "qutebrowser/mainwindow/messageview.py": {
+    "loc": 162,
+    "lloc": 99,
+    "sloc": 120,
+    "comments": 4,
+    "multi": 4,
+    "blank": 26,
+    "single_comments": 12
+  },
+  "qutebrowser/mainwindow/statusbar/textbase.py": {
+    "loc": 76,
+    "lloc": 41,
+    "sloc": 37,
+    "comments": 3,
+    "multi": 16,
+    "blank": 17,
+    "single_comments": 6
+  },
+  "qutebrowser/mainwindow/statusbar/command.py": {
+    "loc": 300,
+    "lloc": 184,
+    "sloc": 191,
+    "comments": 6,
+    "multi": 54,
+    "blank": 44,
+    "single_comments": 11
+  },
+  "qutebrowser/mainwindow/statusbar/keystring.py": {
+    "loc": 19,
+    "lloc": 9,
+    "sloc": 7,
+    "comments": 3,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 5
+  },
+  "qutebrowser/mainwindow/statusbar/clock.py": {
+    "loc": 40,
+    "lloc": 25,
+    "sloc": 20,
+    "comments": 4,
+    "multi": 0,
+    "blank": 12,
+    "single_comments": 8
+  },
+  "qutebrowser/mainwindow/statusbar/backforward.py": {
+    "loc": 37,
+    "lloc": 26,
+    "sloc": 22,
+    "comments": 4,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 7
+  },
+  "qutebrowser/mainwindow/statusbar/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/mainwindow/statusbar/url.py": {
+    "loc": 171,
+    "lloc": 89,
+    "sloc": 102,
+    "comments": 6,
+    "multi": 30,
+    "blank": 31,
+    "single_comments": 8
+  },
+  "qutebrowser/mainwindow/statusbar/percentage.py": {
+    "loc": 48,
+    "lloc": 31,
+    "sloc": 23,
+    "comments": 3,
+    "multi": 5,
+    "blank": 12,
+    "single_comments": 8
+  },
+  "qutebrowser/mainwindow/statusbar/bar.py": {
+    "loc": 468,
+    "lloc": 309,
+    "sloc": 326,
+    "comments": 12,
+    "multi": 45,
+    "blank": 70,
+    "single_comments": 27
+  },
+  "qutebrowser/mainwindow/statusbar/progress.py": {
+    "loc": 76,
+    "lloc": 42,
+    "sloc": 46,
+    "comments": 3,
+    "multi": 5,
+    "blank": 17,
+    "single_comments": 8
+  },
+  "qutebrowser/mainwindow/statusbar/searchmatch.py": {
+    "loc": 33,
+    "lloc": 16,
+    "sloc": 13,
+    "comments": 3,
+    "multi": 5,
+    "blank": 10,
+    "single_comments": 5
+  },
+  "qutebrowser/mainwindow/statusbar/tabindex.py": {
+    "loc": 19,
+    "lloc": 9,
+    "sloc": 6,
+    "comments": 3,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 6
+  },
+  "qutebrowser/config/configtypes.py": {
+    "loc": 2037,
+    "lloc": 1068,
+    "sloc": 1321,
+    "comments": 46,
+    "multi": 196,
+    "blank": 443,
+    "single_comments": 77
+  },
+  "qutebrowser/config/configinit.py": {
+    "loc": 137,
+    "lloc": 83,
+    "sloc": 91,
+    "comments": 6,
+    "multi": 0,
+    "blank": 35,
+    "single_comments": 11
+  },
+  "qutebrowser/config/configcache.py": {
+    "loc": 38,
+    "lloc": 19,
+    "sloc": 16,
+    "comments": 3,
+    "multi": 7,
+    "blank": 11,
+    "single_comments": 4
+  },
+  "qutebrowser/config/config.py": {
+    "loc": 665,
+    "lloc": 351,
+    "sloc": 375,
+    "comments": 33,
+    "multi": 120,
+    "blank": 122,
+    "single_comments": 48
+  },
+  "qutebrowser/config/configcommands.py": {
+    "loc": 494,
+    "lloc": 273,
+    "sloc": 295,
+    "comments": 7,
+    "multi": 101,
+    "blank": 85,
+    "single_comments": 13
+  },
+  "qutebrowser/config/configdata.py": {
+    "loc": 260,
+    "lloc": 133,
+    "sloc": 144,
+    "comments": 16,
+    "multi": 44,
+    "blank": 54,
+    "single_comments": 18
+  },
+  "qutebrowser/config/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/config/configfiles.py": {
+    "loc": 1049,
+    "lloc": 671,
+    "sloc": 748,
+    "comments": 27,
+    "multi": 53,
+    "blank": 184,
+    "single_comments": 64
+  },
+  "qutebrowser/config/configexc.py": {
+    "loc": 167,
+    "lloc": 80,
+    "sloc": 98,
+    "comments": 4,
+    "multi": 11,
+    "blank": 45,
+    "single_comments": 13
+  },
+  "qutebrowser/config/websettings.py": {
+    "loc": 273,
+    "lloc": 189,
+    "sloc": 184,
+    "comments": 6,
+    "multi": 17,
+    "blank": 53,
+    "single_comments": 19
+  },
+  "qutebrowser/config/stylesheet.py": {
+    "loc": 101,
+    "lloc": 54,
+    "sloc": 50,
+    "comments": 6,
+    "multi": 20,
+    "blank": 23,
+    "single_comments": 8
+  },
+  "qutebrowser/config/configutils.py": {
+    "loc": 348,
+    "lloc": 167,
+    "sloc": 165,
+    "comments": 12,
+    "multi": 76,
+    "blank": 86,
+    "single_comments": 21
+  },
+  "qutebrowser/config/qtargs.py": {
+    "loc": 422,
+    "lloc": 189,
+    "sloc": 273,
+    "comments": 61,
+    "multi": 19,
+    "blank": 67,
+    "single_comments": 63
+  },
+  "qutebrowser/qt/webenginewidgets.py": {
+    "loc": 47,
+    "lloc": 24,
+    "sloc": 23,
+    "comments": 6,
+    "multi": 7,
+    "blank": 11,
+    "single_comments": 6
+  },
+  "qutebrowser/qt/webenginecore.py": {
+    "loc": 45,
+    "lloc": 13,
+    "sloc": 25,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/sip.py": {
+    "loc": 40,
+    "lloc": 17,
+    "sloc": 16,
+    "comments": 10,
+    "multi": 8,
+    "blank": 9,
+    "single_comments": 7
+  },
+  "qutebrowser/qt/dbus.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/__init__.py": {
+    "loc": 3,
+    "lloc": 0,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 0,
+    "single_comments": 3
+  },
+  "qutebrowser/qt/core.py": {
+    "loc": 34,
+    "lloc": 14,
+    "sloc": 13,
+    "comments": 4,
+    "multi": 7,
+    "blank": 10,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/test.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/widgets.py": {
+    "loc": 34,
+    "lloc": 13,
+    "sloc": 12,
+    "comments": 6,
+    "multi": 7,
+    "blank": 10,
+    "single_comments": 5
+  },
+  "qutebrowser/qt/opengl.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/webkitwidgets.py": {
+    "loc": 38,
+    "lloc": 12,
+    "sloc": 11,
+    "comments": 9,
+    "multi": 8,
+    "blank": 10,
+    "single_comments": 9
+  },
+  "qutebrowser/qt/_core_pyqtproperty.py": {
+    "loc": 82,
+    "lloc": 37,
+    "sloc": 57,
+    "comments": 6,
+    "multi": 4,
+    "blank": 16,
+    "single_comments": 5
+  },
+  "qutebrowser/qt/network.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/printsupport.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/sql.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/machinery.py": {
+    "loc": 308,
+    "lloc": 146,
+    "sloc": 129,
+    "comments": 45,
+    "multi": 44,
+    "blank": 87,
+    "single_comments": 48
+  },
+  "qutebrowser/qt/qml.py": {
+    "loc": 30,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 4,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/gui.py": {
+    "loc": 32,
+    "lloc": 13,
+    "sloc": 12,
+    "comments": 5,
+    "multi": 7,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "qutebrowser/qt/webkit.py": {
+    "loc": 37,
+    "lloc": 12,
+    "sloc": 11,
+    "comments": 10,
+    "multi": 8,
+    "blank": 9,
+    "single_comments": 9
+  },
+  "qutebrowser/completion/completionwidget.py": {
+    "loc": 493,
+    "lloc": 272,
+    "sloc": 314,
+    "comments": 30,
+    "multi": 61,
+    "blank": 80,
+    "single_comments": 38
+  },
+  "qutebrowser/completion/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/completion/completer.py": {
+    "loc": 310,
+    "lloc": 187,
+    "sloc": 180,
+    "comments": 32,
+    "multi": 46,
+    "blank": 49,
+    "single_comments": 35
+  },
+  "qutebrowser/completion/completiondelegate.py": {
+    "loc": 311,
+    "lloc": 188,
+    "sloc": 198,
+    "comments": 18,
+    "multi": 43,
+    "blank": 48,
+    "single_comments": 22
+  },
+  "qutebrowser/completion/models/util.py": {
+    "loc": 45,
+    "lloc": 24,
+    "sloc": 22,
+    "comments": 3,
+    "multi": 8,
+    "blank": 11,
+    "single_comments": 4
+  },
+  "qutebrowser/completion/models/__init__.py": {
+    "loc": 24,
+    "lloc": 13,
+    "sloc": 8,
+    "comments": 3,
+    "multi": 5,
+    "blank": 7,
+    "single_comments": 4
+  },
+  "qutebrowser/completion/models/completionmodel.py": {
+    "loc": 247,
+    "lloc": 148,
+    "sloc": 132,
+    "comments": 16,
+    "multi": 43,
+    "blank": 47,
+    "single_comments": 25
+  },
+  "qutebrowser/completion/models/filepathcategory.py": {
+    "loc": 99,
+    "lloc": 62,
+    "sloc": 56,
+    "comments": 7,
+    "multi": 16,
+    "blank": 16,
+    "single_comments": 11
+  },
+  "qutebrowser/completion/models/miscmodels.py": {
+    "loc": 318,
+    "lloc": 182,
+    "sloc": 210,
+    "comments": 6,
+    "multi": 19,
+    "blank": 69,
+    "single_comments": 20
+  },
+  "qutebrowser/completion/models/histcategory.py": {
+    "loc": 127,
+    "lloc": 64,
+    "sloc": 77,
+    "comments": 21,
+    "multi": 4,
+    "blank": 22,
+    "single_comments": 24
+  },
+  "qutebrowser/completion/models/urlmodel.py": {
+    "loc": 88,
+    "lloc": 47,
+    "sloc": 54,
+    "comments": 3,
+    "multi": 8,
+    "blank": 22,
+    "single_comments": 4
+  },
+  "qutebrowser/completion/models/listcategory.py": {
+    "loc": 100,
+    "lloc": 55,
+    "sloc": 58,
+    "comments": 9,
+    "multi": 13,
+    "blank": 20,
+    "single_comments": 9
+  },
+  "qutebrowser/completion/models/configmodel.py": {
+    "loc": 142,
+    "lloc": 81,
+    "sloc": 86,
+    "comments": 3,
+    "multi": 18,
+    "blank": 29,
+    "single_comments": 9
+  },
+  "qutebrowser/utils/qtutils.py": {
+    "loc": 760,
+    "lloc": 454,
+    "sloc": 471,
+    "comments": 35,
+    "multi": 83,
+    "blank": 160,
+    "single_comments": 46
+  },
+  "qutebrowser/utils/version.py": {
+    "loc": 1258,
+    "lloc": 618,
+    "sloc": 825,
+    "comments": 169,
+    "multi": 131,
+    "blank": 233,
+    "single_comments": 69
+  },
+  "qutebrowser/utils/error.py": {
+    "loc": 59,
+    "lloc": 27,
+    "sloc": 35,
+    "comments": 3,
+    "multi": 10,
+    "blank": 9,
+    "single_comments": 5
+  },
+  "qutebrowser/utils/log.py": {
+    "loc": 624,
+    "lloc": 340,
+    "sloc": 400,
+    "comments": 32,
+    "multi": 80,
+    "blank": 109,
+    "single_comments": 35
+  },
+  "qutebrowser/utils/docutils.py": {
+    "loc": 170,
+    "lloc": 114,
+    "sloc": 109,
+    "comments": 3,
+    "multi": 22,
+    "blank": 27,
+    "single_comments": 12
+  },
+  "qutebrowser/utils/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/utils/message.py": {
+    "loc": 287,
+    "lloc": 115,
+    "sloc": 135,
+    "comments": 6,
+    "multi": 87,
+    "blank": 55,
+    "single_comments": 10
+  },
+  "qutebrowser/utils/jinja.py": {
+    "loc": 161,
+    "lloc": 93,
+    "sloc": 102,
+    "comments": 9,
+    "multi": 12,
+    "blank": 32,
+    "single_comments": 15
+  },
+  "qutebrowser/utils/utils.py": {
+    "loc": 876,
+    "lloc": 496,
+    "sloc": 483,
+    "comments": 54,
+    "multi": 133,
+    "blank": 196,
+    "single_comments": 64
+  },
+  "qutebrowser/utils/objreg.py": {
+    "loc": 358,
+    "lloc": 234,
+    "sloc": 231,
+    "comments": 16,
+    "multi": 24,
+    "blank": 70,
+    "single_comments": 33
+  },
+  "qutebrowser/utils/debug.py": {
+    "loc": 388,
+    "lloc": 213,
+    "sloc": 217,
+    "comments": 32,
+    "multi": 60,
+    "blank": 77,
+    "single_comments": 34
+  },
+  "qutebrowser/utils/urlmatch.py": {
+    "loc": 314,
+    "lloc": 173,
+    "sloc": 165,
+    "comments": 39,
+    "multi": 49,
+    "blank": 64,
+    "single_comments": 36
+  },
+  "qutebrowser/utils/resources.py": {
+    "loc": 107,
+    "lloc": 59,
+    "sloc": 58,
+    "comments": 8,
+    "multi": 15,
+    "blank": 26,
+    "single_comments": 8
+  },
+  "qutebrowser/utils/qtlog.py": {
+    "loc": 218,
+    "lloc": 87,
+    "sloc": 160,
+    "comments": 42,
+    "multi": 10,
+    "blank": 29,
+    "single_comments": 19
+  },
+  "qutebrowser/utils/urlutils.py": {
+    "loc": 702,
+    "lloc": 372,
+    "sloc": 385,
+    "comments": 44,
+    "multi": 123,
+    "blank": 149,
+    "single_comments": 45
+  },
+  "qutebrowser/utils/javascript.py": {
+    "loc": 72,
+    "lloc": 41,
+    "sloc": 46,
+    "comments": 11,
+    "multi": 5,
+    "blank": 12,
+    "single_comments": 9
+  },
+  "qutebrowser/utils/usertypes.py": {
+    "loc": 583,
+    "lloc": 352,
+    "sloc": 310,
+    "comments": 43,
+    "multi": 83,
+    "blank": 138,
+    "single_comments": 52
+  },
+  "qutebrowser/utils/standarddir.py": {
+    "loc": 364,
+    "lloc": 206,
+    "sloc": 207,
+    "comments": 36,
+    "multi": 40,
+    "blank": 79,
+    "single_comments": 38
+  },
+  "qutebrowser/extensions/interceptors.py": {
+    "loc": 103,
+    "lloc": 59,
+    "sloc": 47,
+    "comments": 9,
+    "multi": 14,
+    "blank": 29,
+    "single_comments": 13
+  },
+  "qutebrowser/extensions/__init__.py": {
+    "loc": 0,
+    "lloc": 0,
+    "sloc": 0,
+    "comments": 0,
+    "multi": 0,
+    "blank": 0,
+    "single_comments": 0
+  },
+  "qutebrowser/extensions/loader.py": {
+    "loc": 150,
+    "lloc": 94,
+    "sloc": 86,
+    "comments": 8,
+    "multi": 8,
+    "blank": 41,
+    "single_comments": 15
+  },
+  "qutebrowser/keyinput/basekeyparser.py": {
+    "loc": 371,
+    "lloc": 202,
+    "sloc": 215,
+    "comments": 7,
+    "multi": 73,
+    "blank": 69,
+    "single_comments": 14
+  },
+  "qutebrowser/keyinput/eventfilter.py": {
+    "loc": 125,
+    "lloc": 62,
+    "sloc": 64,
+    "comments": 15,
+    "multi": 19,
+    "blank": 26,
+    "single_comments": 16
+  },
+  "qutebrowser/keyinput/modeparsers.py": {
+    "loc": 304,
+    "lloc": 179,
+    "sloc": 202,
+    "comments": 8,
+    "multi": 29,
+    "blank": 57,
+    "single_comments": 16
+  },
+  "qutebrowser/keyinput/modeman.py": {
+    "loc": 471,
+    "lloc": 185,
+    "sloc": 291,
+    "comments": 11,
+    "multi": 76,
+    "blank": 85,
+    "single_comments": 19
+  },
+  "qutebrowser/keyinput/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/keyinput/keyutils.py": {
+    "loc": 745,
+    "lloc": 377,
+    "sloc": 457,
+    "comments": 71,
+    "multi": 86,
+    "blank": 141,
+    "single_comments": 61
+  },
+  "qutebrowser/keyinput/macros.py": {
+    "loc": 109,
+    "lloc": 71,
+    "sloc": 60,
+    "comments": 5,
+    "multi": 18,
+    "blank": 22,
+    "single_comments": 9
+  },
+  "qutebrowser/browser/browsertab.py": {
+    "loc": 1348,
+    "lloc": 793,
+    "sloc": 749,
+    "comments": 69,
+    "multi": 187,
+    "blank": 303,
+    "single_comments": 109
+  },
+  "qutebrowser/browser/pdfjs.py": {
+    "loc": 262,
+    "lloc": 120,
+    "sloc": 156,
+    "comments": 19,
+    "multi": 35,
+    "blank": 55,
+    "single_comments": 16
+  },
+  "qutebrowser/browser/downloadview.py": {
+    "loc": 187,
+    "lloc": 128,
+    "sloc": 133,
+    "comments": 4,
+    "multi": 19,
+    "blank": 27,
+    "single_comments": 8
+  },
+  "qutebrowser/browser/eventfilter.py": {
+    "loc": 281,
+    "lloc": 141,
+    "sloc": 153,
+    "comments": 26,
+    "multi": 44,
+    "blank": 54,
+    "single_comments": 30
+  },
+  "qutebrowser/browser/qutescheme.py": {
+    "loc": 610,
+    "lloc": 369,
+    "sloc": 385,
+    "comments": 25,
+    "multi": 43,
+    "blank": 140,
+    "single_comments": 42
+  },
+  "qutebrowser/browser/navigate.py": {
+    "loc": 221,
+    "lloc": 125,
+    "sloc": 140,
+    "comments": 16,
+    "multi": 20,
+    "blank": 42,
+    "single_comments": 19
+  },
+  "qutebrowser/browser/inspector.py": {
+    "loc": 201,
+    "lloc": 121,
+    "sloc": 111,
+    "comments": 7,
+    "multi": 24,
+    "blank": 47,
+    "single_comments": 19
+  },
+  "qutebrowser/browser/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/browser/webelem.py": {
+    "loc": 450,
+    "lloc": 275,
+    "sloc": 265,
+    "comments": 18,
+    "multi": 55,
+    "blank": 88,
+    "single_comments": 42
+  },
+  "qutebrowser/browser/downloads.py": {
+    "loc": 1391,
+    "lloc": 812,
+    "sloc": 783,
+    "comments": 77,
+    "multi": 238,
+    "blank": 253,
+    "single_comments": 117
+  },
+  "qutebrowser/browser/shared.py": {
+    "loc": 586,
+    "lloc": 281,
+    "sloc": 384,
+    "comments": 28,
+    "multi": 68,
+    "blank": 98,
+    "single_comments": 36
+  },
+  "qutebrowser/browser/signalfilter.py": {
+    "loc": 79,
+    "lloc": 28,
+    "sloc": 29,
+    "comments": 5,
+    "multi": 25,
+    "blank": 19,
+    "single_comments": 6
+  },
+  "qutebrowser/browser/qtnetworkdownloads.py": {
+    "loc": 588,
+    "lloc": 342,
+    "sloc": 346,
+    "comments": 48,
+    "multi": 90,
+    "blank": 96,
+    "single_comments": 56
+  },
+  "qutebrowser/browser/urlmarks.py": {
+    "loc": 282,
+    "lloc": 149,
+    "sloc": 142,
+    "comments": 7,
+    "multi": 53,
+    "blank": 70,
+    "single_comments": 17
+  },
+  "qutebrowser/browser/hints.py": {
+    "loc": 1160,
+    "lloc": 632,
+    "sloc": 704,
+    "comments": 60,
+    "multi": 192,
+    "blank": 182,
+    "single_comments": 82
+  },
+  "qutebrowser/browser/greasemonkey.py": {
+    "loc": 503,
+    "lloc": 290,
+    "sloc": 305,
+    "comments": 22,
+    "multi": 77,
+    "blank": 91,
+    "single_comments": 30
+  },
+  "qutebrowser/browser/commands.py": {
+    "loc": 1901,
+    "lloc": 1025,
+    "sloc": 1124,
+    "comments": 40,
+    "multi": 446,
+    "blank": 277,
+    "single_comments": 54
+  },
+  "qutebrowser/browser/history.py": {
+    "loc": 491,
+    "lloc": 260,
+    "sloc": 285,
+    "comments": 29,
+    "multi": 68,
+    "blank": 102,
+    "single_comments": 36
+  },
+  "qutebrowser/browser/webengine/cookies.py": {
+    "loc": 44,
+    "lloc": 26,
+    "sloc": 29,
+    "comments": 4,
+    "multi": 0,
+    "blank": 9,
+    "single_comments": 6
+  },
+  "qutebrowser/browser/webengine/spell.py": {
+    "loc": 67,
+    "lloc": 37,
+    "sloc": 34,
+    "comments": 4,
+    "multi": 8,
+    "blank": 17,
+    "single_comments": 8
+  },
+  "qutebrowser/browser/webengine/webenginesettings.py": {
+    "loc": 685,
+    "lloc": 340,
+    "sloc": 464,
+    "comments": 58,
+    "multi": 32,
+    "blank": 128,
+    "single_comments": 61
+  },
+  "qutebrowser/browser/webengine/webengineinspector.py": {
+    "loc": 117,
+    "lloc": 66,
+    "sloc": 70,
+    "comments": 4,
+    "multi": 16,
+    "blank": 25,
+    "single_comments": 6
+  },
+  "qutebrowser/browser/webengine/notification.py": {
+    "loc": 1192,
+    "lloc": 602,
+    "sloc": 747,
+    "comments": 109,
+    "multi": 126,
+    "blank": 223,
+    "single_comments": 96
+  },
+  "qutebrowser/browser/webengine/webenginedownloads.py": {
+    "loc": 315,
+    "lloc": 192,
+    "sloc": 223,
+    "comments": 14,
+    "multi": 20,
+    "blank": 56,
+    "single_comments": 16
+  },
+  "qutebrowser/browser/webengine/certificateerror.py": {
+    "loc": 66,
+    "lloc": 39,
+    "sloc": 40,
+    "comments": 6,
+    "multi": 3,
+    "blank": 17,
+    "single_comments": 6
+  },
+  "qutebrowser/browser/webengine/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/browser/webengine/webengineelem.py": {
+    "loc": 265,
+    "lloc": 146,
+    "sloc": 167,
+    "comments": 31,
+    "multi": 16,
+    "blank": 46,
+    "single_comments": 36
+  },
+  "qutebrowser/browser/webengine/tabhistory.py": {
+    "loc": 147,
+    "lloc": 49,
+    "sloc": 47,
+    "comments": 58,
+    "multi": 17,
+    "blank": 29,
+    "single_comments": 54
+  },
+  "qutebrowser/browser/webengine/interceptor.py": {
+    "loc": 208,
+    "lloc": 82,
+    "sloc": 150,
+    "comments": 19,
+    "multi": 8,
+    "blank": 29,
+    "single_comments": 21
+  },
+  "qutebrowser/browser/webengine/webenginetab.py": {
+    "loc": 1764,
+    "lloc": 1065,
+    "sloc": 1224,
+    "comments": 101,
+    "multi": 68,
+    "blank": 336,
+    "single_comments": 136
+  },
+  "qutebrowser/browser/webengine/darkmode.py": {
+    "loc": 452,
+    "lloc": 149,
+    "sloc": 218,
+    "comments": 49,
+    "multi": 104,
+    "blank": 102,
+    "single_comments": 28
+  },
+  "qutebrowser/browser/webengine/webenginequtescheme.py": {
+    "loc": 130,
+    "lloc": 62,
+    "sloc": 72,
+    "comments": 9,
+    "multi": 18,
+    "blank": 28,
+    "single_comments": 12
+  },
+  "qutebrowser/browser/webengine/webview.py": {
+    "loc": 349,
+    "lloc": 182,
+    "sloc": 235,
+    "comments": 19,
+    "multi": 38,
+    "blank": 51,
+    "single_comments": 25
+  },
+  "qutebrowser/browser/webkit/cookies.py": {
+    "loc": 121,
+    "lloc": 72,
+    "sloc": 66,
+    "comments": 7,
+    "multi": 15,
+    "blank": 29,
+    "single_comments": 11
+  },
+  "qutebrowser/browser/webkit/webpage.py": {
+    "loc": 519,
+    "lloc": 266,
+    "sloc": 326,
+    "comments": 42,
+    "multi": 87,
+    "blank": 67,
+    "single_comments": 39
+  },
+  "qutebrowser/browser/webkit/httpheaders.py": {
+    "loc": 186,
+    "lloc": 84,
+    "sloc": 85,
+    "comments": 31,
+    "multi": 33,
+    "blank": 38,
+    "single_comments": 30
+  },
+  "qutebrowser/browser/webkit/cache.py": {
+    "loc": 46,
+    "lloc": 27,
+    "sloc": 25,
+    "comments": 4,
+    "multi": 0,
+    "blank": 14,
+    "single_comments": 7
+  },
+  "qutebrowser/browser/webkit/certificateerror.py": {
+    "loc": 67,
+    "lloc": 37,
+    "sloc": 43,
+    "comments": 5,
+    "multi": 0,
+    "blank": 18,
+    "single_comments": 6
+  },
+  "qutebrowser/browser/webkit/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/browser/webkit/tabhistory.py": {
+    "loc": 93,
+    "lloc": 43,
+    "sloc": 44,
+    "comments": 17,
+    "multi": 12,
+    "blank": 20,
+    "single_comments": 17
+  },
+  "qutebrowser/browser/webkit/mhtml.py": {
+    "loc": 537,
+    "lloc": 283,
+    "sloc": 283,
+    "comments": 67,
+    "multi": 89,
+    "blank": 98,
+    "single_comments": 67
+  },
+  "qutebrowser/browser/webkit/webkittab.py": {
+    "loc": 1050,
+    "lloc": 720,
+    "sloc": 758,
+    "comments": 82,
+    "multi": 18,
+    "blank": 199,
+    "single_comments": 75
+  },
+  "qutebrowser/browser/webkit/webkitelem.py": {
+    "loc": 387,
+    "lloc": 254,
+    "sloc": 259,
+    "comments": 27,
+    "multi": 26,
+    "blank": 67,
+    "single_comments": 35
+  },
+  "qutebrowser/browser/webkit/webkitinspector.py": {
+    "loc": 31,
+    "lloc": 16,
+    "sloc": 16,
+    "comments": 5,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 7
+  },
+  "qutebrowser/browser/webkit/webkitsettings.py": {
+    "loc": 194,
+    "lloc": 74,
+    "sloc": 137,
+    "comments": 8,
+    "multi": 5,
+    "blank": 37,
+    "single_comments": 15
+  },
+  "qutebrowser/browser/webkit/webview.py": {
+    "loc": 206,
+    "lloc": 94,
+    "sloc": 101,
+    "comments": 19,
+    "multi": 51,
+    "blank": 34,
+    "single_comments": 20
+  },
+  "qutebrowser/browser/webkit/webkithistory.py": {
+    "loc": 55,
+    "lloc": 23,
+    "sloc": 18,
+    "comments": 6,
+    "multi": 14,
+    "blank": 16,
+    "single_comments": 7
+  },
+  "qutebrowser/browser/webkit/network/webkitqutescheme.py": {
+    "loc": 66,
+    "lloc": 27,
+    "sloc": 43,
+    "comments": 3,
+    "multi": 8,
+    "blank": 11,
+    "single_comments": 4
+  },
+  "qutebrowser/browser/webkit/network/networkreply.py": {
+    "loc": 136,
+    "lloc": 76,
+    "sloc": 56,
+    "comments": 14,
+    "multi": 24,
+    "blank": 34,
+    "single_comments": 22
+  },
+  "qutebrowser/browser/webkit/network/__init__.py": {
+    "loc": 1,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 0,
+    "multi": 0,
+    "blank": 0,
+    "single_comments": 1
+  },
+  "qutebrowser/browser/webkit/network/filescheme.py": {
+    "loc": 115,
+    "lloc": 46,
+    "sloc": 42,
+    "comments": 12,
+    "multi": 34,
+    "blank": 26,
+    "single_comments": 13
+  },
+  "qutebrowser/browser/webkit/network/networkmanager.py": {
+    "loc": 445,
+    "lloc": 264,
+    "sloc": 276,
+    "comments": 48,
+    "multi": 45,
+    "blank": 65,
+    "single_comments": 59
+  },
+  "qutebrowser/browser/network/proxy.py": {
+    "loc": 103,
+    "lloc": 64,
+    "sloc": 59,
+    "comments": 7,
+    "multi": 10,
+    "blank": 23,
+    "single_comments": 11
+  },
+  "qutebrowser/browser/network/__init__.py": {
+    "loc": 1,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 0,
+    "multi": 0,
+    "blank": 0,
+    "single_comments": 1
+  },
+  "qutebrowser/browser/network/pac.py": {
+    "loc": 335,
+    "lloc": 203,
+    "sloc": 197,
+    "comments": 13,
+    "multi": 47,
+    "blank": 69,
+    "single_comments": 22
+  },
+  "qutebrowser/components/hostblock.py": {
+    "loc": 307,
+    "lloc": 172,
+    "sloc": 199,
+    "comments": 13,
+    "multi": 27,
+    "blank": 61,
+    "single_comments": 20
+  },
+  "qutebrowser/components/braveadblock.py": {
+    "loc": 352,
+    "lloc": 164,
+    "sloc": 236,
+    "comments": 25,
+    "multi": 28,
+    "blank": 55,
+    "single_comments": 33
+  },
+  "qutebrowser/components/caretcommands.py": {
+    "loc": 207,
+    "lloc": 111,
+    "sloc": 91,
+    "comments": 3,
+    "multi": 52,
+    "blank": 54,
+    "single_comments": 10
+  },
+  "qutebrowser/components/__init__.py": {
+    "loc": 5,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 4
+  },
+  "qutebrowser/components/adblockcommands.py": {
+    "loc": 16,
+    "lloc": 9,
+    "sloc": 7,
+    "comments": 3,
+    "multi": 0,
+    "blank": 4,
+    "single_comments": 5
+  },
+  "qutebrowser/components/scrollcommands.py": {
+    "loc": 109,
+    "lloc": 53,
+    "sloc": 59,
+    "comments": 4,
+    "multi": 26,
+    "blank": 19,
+    "single_comments": 5
+  },
+  "qutebrowser/components/misccommands.py": {
+    "loc": 444,
+    "lloc": 242,
+    "sloc": 248,
+    "comments": 9,
+    "multi": 90,
+    "blank": 91,
+    "single_comments": 15
+  },
+  "qutebrowser/components/zoomcommands.py": {
+    "loc": 80,
+    "lloc": 44,
+    "sloc": 44,
+    "comments": 3,
+    "multi": 19,
+    "blank": 13,
+    "single_comments": 4
+  },
+  "qutebrowser/components/readlinecommands.py": {
+    "loc": 348,
+    "lloc": 156,
+    "sloc": 140,
+    "comments": 44,
+    "multi": 70,
+    "blank": 91,
+    "single_comments": 47
+  },
+  "qutebrowser/components/utils/blockutils.py": {
+    "loc": 146,
+    "lloc": 81,
+    "sloc": 76,
+    "comments": 13,
+    "multi": 30,
+    "blank": 26,
+    "single_comments": 14
+  },
+  "qutebrowser/components/utils/__init__.py": {
+    "loc": 0,
+    "lloc": 0,
+    "sloc": 0,
+    "comments": 0,
+    "multi": 0,
+    "blank": 0,
+    "single_comments": 0
+  },
+  "qutebrowser/api/qtutils.py": {
+    "loc": 8,
+    "lloc": 2,
+    "sloc": 1,
+    "comments": 4,
+    "multi": 0,
+    "blank": 2,
+    "single_comments": 5
+  },
+  "qutebrowser/api/cmdutils.py": {
+    "loc": 246,
+    "lloc": 68,
+    "sloc": 75,
+    "comments": 14,
+    "multi": 90,
+    "blank": 70,
+    "single_comments": 11
+  },
+  "qutebrowser/api/config.py": {
+    "loc": 28,
+    "lloc": 8,
+    "sloc": 6,
+    "comments": 13,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 15
+  },
+  "qutebrowser/api/apitypes.py": {
+    "loc": 14,
+    "lloc": 6,
+    "sloc": 7,
+    "comments": 4,
+    "multi": 0,
+    "blank": 2,
+    "single_comments": 5
+  },
+  "qutebrowser/api/hook.py": {
+    "loc": 81,
+    "lloc": 25,
+    "sloc": 24,
+    "comments": 4,
+    "multi": 26,
+    "blank": 25,
+    "single_comments": 6
+  },
+  "qutebrowser/api/__init__.py": {
+    "loc": 11,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 5,
+    "blank": 3,
+    "single_comments": 3
+  },
+  "qutebrowser/api/message.py": {
+    "loc": 8,
+    "lloc": 2,
+    "sloc": 1,
+    "comments": 4,
+    "multi": 0,
+    "blank": 2,
+    "single_comments": 5
+  },
+  "qutebrowser/api/downloads.py": {
+    "loc": 64,
+    "lloc": 26,
+    "sloc": 23,
+    "comments": 5,
+    "multi": 14,
+    "blank": 20,
+    "single_comments": 7
+  },
+  "qutebrowser/api/interceptor.py": {
+    "loc": 33,
+    "lloc": 10,
+    "sloc": 7,
+    "comments": 6,
+    "multi": 8,
+    "blank": 11,
+    "single_comments": 7
+  },
+  "qutebrowser/commands/cmdexc.py": {
+    "loc": 52,
+    "lloc": 23,
+    "sloc": 16,
+    "comments": 3,
+    "multi": 7,
+    "blank": 21,
+    "single_comments": 8
+  },
+  "qutebrowser/commands/command.py": {
+    "loc": 561,
+    "lloc": 352,
+    "sloc": 373,
+    "comments": 19,
+    "multi": 88,
+    "blank": 76,
+    "single_comments": 24
+  },
+  "qutebrowser/commands/__init__.py": {
+    "loc": 25,
+    "lloc": 1,
+    "sloc": 0,
+    "comments": 3,
+    "multi": 17,
+    "blank": 5,
+    "single_comments": 3
+  },
+  "qutebrowser/commands/parser.py": {
+    "loc": 204,
+    "lloc": 102,
+    "sloc": 102,
+    "comments": 18,
+    "multi": 44,
+    "blank": 37,
+    "single_comments": 21
+  },
+  "qutebrowser/commands/userscripts.py": {
+    "loc": 455,
+    "lloc": 249,
+    "sloc": 245,
+    "comments": 25,
+    "multi": 83,
+    "blank": 94,
+    "single_comments": 33
+  },
+  "qutebrowser/commands/runners.py": {
+    "loc": 188,
+    "lloc": 107,
+    "sloc": 122,
+    "comments": 10,
+    "multi": 10,
+    "blank": 40,
+    "single_comments": 16
+  },
+  "qutebrowser/commands/argparser.py": {
+    "loc": 149,
+    "lloc": 70,
+    "sloc": 68,
+    "comments": 6,
+    "multi": 30,
+    "blank": 42,
+    "single_comments": 9
+  },
+  "tests/conftest.py": {
+    "loc": 452,
+    "lloc": 196,
+    "sloc": 305,
+    "comments": 27,
+    "multi": 36,
+    "blank": 81,
+    "single_comments": 30
+  },
+  "tests/test_conftest.py": {
+    "loc": 37,
+    "lloc": 20,
+    "sloc": 17,
+    "comments": 3,
+    "multi": 0,
+    "blank": 13,
+    "single_comments": 7
+  },
+  "tests/unit/test_qt_machinery.py": {
+    "loc": 496,
+    "lloc": 146,
+    "sloc": 421,
+    "comments": 11,
+    "multi": 10,
+    "blank": 54,
+    "single_comments": 11
+  },
+  "tests/unit/test_qutebrowser.py": {
+    "loc": 122,
+    "lloc": 41,
+    "sloc": 86,
+    "comments": 4,
+    "multi": 7,
+    "blank": 25,
+    "single_comments": 4
+  },
+  "tests/unit/test_app.py": {
+    "loc": 25,
+    "lloc": 11,
+    "sloc": 9,
+    "comments": 3,
+    "multi": 4,
+    "blank": 8,
+    "single_comments": 4
+  },
+  "tests/unit/misc/test_ipc.py": {
+    "loc": 821,
+    "lloc": 515,
+    "sloc": 581,
+    "comments": 20,
+    "multi": 38,
+    "blank": 180,
+    "single_comments": 22
+  },
+  "tests/unit/misc/test_checkpyver.py": {
+    "loc": 81,
+    "lloc": 54,
+    "sloc": 57,
+    "comments": 4,
+    "multi": 0,
+    "blank": 17,
+    "single_comments": 7
+  },
+  "tests/unit/misc/test_split.py": {
+    "loc": 179,
+    "lloc": 63,
+    "sloc": 126,
+    "comments": 6,
+    "multi": 8,
+    "blank": 29,
+    "single_comments": 16
+  },
+  "tests/unit/misc/test_miscwidgets.py": {
+    "loc": 292,
+    "lloc": 173,
+    "sloc": 223,
+    "comments": 20,
+    "multi": 0,
+    "blank": 57,
+    "single_comments": 12
+  },
+  "tests/unit/misc/test_autoupdate.py": {
+    "loc": 78,
+    "lloc": 48,
+    "sloc": 43,
+    "comments": 4,
+    "multi": 5,
+    "blank": 22,
+    "single_comments": 8
+  },
+  "tests/unit/misc/test_wmname.py": {
+    "loc": 313,
+    "lloc": 173,
+    "sloc": 202,
+    "comments": 7,
+    "multi": 4,
+    "blank": 83,
+    "single_comments": 24
+  },
+  "tests/unit/misc/test_utilcmds.py": {
+    "loc": 64,
+    "lloc": 42,
+    "sloc": 36,
+    "comments": 3,
+    "multi": 4,
+    "blank": 17,
+    "single_comments": 7
+  },
+  "tests/unit/misc/test_editor.py": {
+    "loc": 300,
+    "lloc": 198,
+    "sloc": 195,
+    "comments": 6,
+    "multi": 11,
+    "blank": 74,
+    "single_comments": 20
+  },
+  "tests/unit/misc/test_pastebin.py": {
+    "loc": 106,
+    "lloc": 46,
+    "sloc": 84,
+    "comments": 4,
+    "multi": 0,
+    "blank": 18,
+    "single_comments": 4
+  },
+  "tests/unit/misc/test_sessions.py": {
+    "loc": 353,
+    "lloc": 238,
+    "sloc": 239,
+    "comments": 8,
+    "multi": 10,
+    "blank": 90,
+    "single_comments": 14
+  },
+  "tests/unit/misc/test_earlyinit.py": {
+    "loc": 35,
+    "lloc": 22,
+    "sloc": 19,
+    "comments": 3,
+    "multi": 0,
+    "blank": 10,
+    "single_comments": 6
+  },
+  "tests/unit/misc/test_keyhints.py": {
+    "loc": 204,
+    "lloc": 110,
+    "sloc": 148,
+    "comments": 3,
+    "multi": 5,
+    "blank": 39,
+    "single_comments": 12
+  },
+  "tests/unit/misc/test_cmdhistory.py": {
+    "loc": 168,
+    "lloc": 110,
+    "sloc": 96,
+    "comments": 6,
+    "multi": 0,
+    "blank": 51,
+    "single_comments": 21
+  },
+  "tests/unit/misc/test_guiprocess.py": {
+    "loc": 544,
+    "lloc": 308,
+    "sloc": 413,
+    "comments": 6,
+    "multi": 4,
+    "blank": 108,
+    "single_comments": 19
+  },
+  "tests/unit/misc/test_sql.py": {
+    "loc": 466,
+    "lloc": 307,
+    "sloc": 349,
+    "comments": 21,
+    "multi": 8,
+    "blank": 90,
+    "single_comments": 19
+  },
+  "tests/unit/misc/test_msgbox.py": {
+    "loc": 85,
+    "lloc": 53,
+    "sloc": 57,
+    "comments": 4,
+    "multi": 0,
+    "blank": 22,
+    "single_comments": 6
+  },
+  "tests/unit/misc/test_throttle.py": {
+    "loc": 146,
+    "lloc": 97,
+    "sloc": 96,
+    "comments": 3,
+    "multi": 0,
+    "blank": 46,
+    "single_comments": 4
+  },
+  "tests/unit/misc/test_pakjoy.py": {
+    "loc": 490,
+    "lloc": 266,
+    "sloc": 366,
+    "comments": 18,
+    "multi": 5,
+    "blank": 97,
+    "single_comments": 22
+  },
+  "tests/unit/misc/test_crashsignal.py": {
+    "loc": 104,
+    "lloc": 50,
+    "sloc": 69,
+    "comments": 7,
+    "multi": 0,
+    "blank": 26,
+    "single_comments": 9
+  },
+  "tests/unit/misc/test_split_hypothesis.py": {
+    "loc": 24,
+    "lloc": 14,
+    "sloc": 13,
+    "comments": 3,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 4
+  },
+  "tests/unit/misc/test_crashdialog.py": {
+    "loc": 125,
+    "lloc": 24,
+    "sloc": 106,
+    "comments": 3,
+    "multi": 0,
+    "blank": 14,
+    "single_comments": 5
+  },
+  "tests/unit/misc/test_elf.py": {
+    "loc": 136,
+    "lloc": 45,
+    "sloc": 97,
+    "comments": 10,
+    "multi": 11,
+    "blank": 23,
+    "single_comments": 5
+  },
+  "tests/unit/misc/test_objects.py": {
+    "loc": 18,
+    "lloc": 8,
+    "sloc": 11,
+    "comments": 3,
+    "multi": 0,
+    "blank": 4,
+    "single_comments": 3
+  },
+  "tests/unit/misc/test_lineparser.py": {
+    "loc": 104,
+    "lloc": 70,
+    "sloc": 67,
+    "comments": 3,
+    "multi": 0,
+    "blank": 24,
+    "single_comments": 13
+  },
+  "tests/unit/misc/userscripts/test_qute_lastpass.py": {
+    "loc": 334,
+    "lloc": 153,
+    "sloc": 238,
+    "comments": 7,
+    "multi": 0,
+    "blank": 72,
+    "single_comments": 24
+  },
+  "tests/unit/mainwindow/test_prompt.py": {
+    "loc": 115,
+    "lloc": 70,
+    "sloc": 77,
+    "comments": 8,
+    "multi": 0,
+    "blank": 26,
+    "single_comments": 12
+  },
+  "tests/unit/mainwindow/test_tabbedbrowser.py": {
+    "loc": 16,
+    "lloc": 8,
+    "sloc": 8,
+    "comments": 3,
+    "multi": 0,
+    "blank": 5,
+    "single_comments": 3
+  },
+  "tests/unit/mainwindow/test_messageview.py": {
+    "loc": 248,
+    "lloc": 123,
+    "sloc": 181,
+    "comments": 17,
+    "multi": 7,
+    "blank": 48,
+    "single_comments": 12
+  },
+  "tests/unit/mainwindow/test_tabwidget.py": {
+    "loc": 189,
+    "lloc": 132,
+    "sloc": 128,
+    "comments": 8,
+    "multi": 6,
+    "blank": 39,
+    "single_comments": 16
+  },
+  "tests/unit/mainwindow/statusbar/test_backforward.py": {
+    "loc": 87,
+    "lloc": 55,
+    "sloc": 57,
+    "comments": 3,
+    "multi": 0,
+    "blank": 22,
+    "single_comments": 8
+  },
+  "tests/unit/mainwindow/statusbar/test_textbase.py": {
+    "loc": 79,
+    "lloc": 43,
+    "sloc": 43,
+    "comments": 3,
+    "multi": 10,
+    "blank": 19,
+    "single_comments": 7
+  },
+  "tests/unit/mainwindow/statusbar/test_percentage.py": {
+    "loc": 55,
+    "lloc": 23,
+    "sloc": 32,
+    "comments": 4,
+    "multi": 6,
+    "blank": 10,
+    "single_comments": 7
+  },
+  "tests/unit/mainwindow/statusbar/test_progress.py": {
+    "loc": 96,
+    "lloc": 49,
+    "sloc": 50,
+    "comments": 5,
+    "multi": 15,
+    "blank": 23,
+    "single_comments": 8
+  },
+  "tests/unit/mainwindow/statusbar/test_tabindex.py": {
+    "loc": 22,
+    "lloc": 12,
+    "sloc": 10,
+    "comments": 3,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 5
+  },
+  "tests/unit/mainwindow/statusbar/test_url.py": {
+    "loc": 155,
+    "lloc": 57,
+    "sloc": 128,
+    "comments": 6,
+    "multi": 0,
+    "blank": 19,
+    "single_comments": 8
+  },
+  "tests/unit/config/test_stylesheet.py": {
+    "loc": 61,
+    "lloc": 37,
+    "sloc": 40,
+    "comments": 4,
+    "multi": 0,
+    "blank": 18,
+    "single_comments": 3
+  },
+  "tests/unit/config/test_qtargs_locale_workaround.py": {
+    "loc": 451,
+    "lloc": 50,
+    "sloc": 421,
+    "comments": 7,
+    "multi": 0,
+    "blank": 26,
+    "single_comments": 4
+  },
+  "tests/unit/config/test_configexc.py": {
+    "loc": 135,
+    "lloc": 57,
+    "sloc": 92,
+    "comments": 4,
+    "multi": 0,
+    "blank": 36,
+    "single_comments": 7
+  },
+  "tests/unit/config/test_configfiles.py": {
+    "loc": 1586,
+    "lloc": 863,
+    "sloc": 1239,
+    "comments": 21,
+    "multi": 6,
+    "blank": 312,
+    "single_comments": 29
+  },
+  "tests/unit/config/test_configtypes.py": {
+    "loc": 2189,
+    "lloc": 1190,
+    "sloc": 1698,
+    "comments": 98,
+    "multi": 12,
+    "blank": 394,
+    "single_comments": 85
+  },
+  "tests/unit/config/test_configcache.py": {
+    "loc": 49,
+    "lloc": 28,
+    "sloc": 27,
+    "comments": 7,
+    "multi": 0,
+    "blank": 14,
+    "single_comments": 8
+  },
+  "tests/unit/config/test_qtargs.py": {
+    "loc": 746,
+    "lloc": 349,
+    "sloc": 608,
+    "comments": 36,
+    "multi": 11,
+    "blank": 113,
+    "single_comments": 14
+  },
+  "tests/unit/config/test_configutils.py": {
+    "loc": 373,
+    "lloc": 201,
+    "sloc": 248,
+    "comments": 13,
+    "multi": 4,
+    "blank": 107,
+    "single_comments": 14
+  },
+  "tests/unit/config/test_config.py": {
+    "loc": 816,
+    "lloc": 513,
+    "sloc": 623,
+    "comments": 26,
+    "multi": 25,
+    "blank": 138,
+    "single_comments": 30
+  },
+  "tests/unit/config/test_configinit.py": {
+    "loc": 425,
+    "lloc": 250,
+    "sloc": 309,
+    "comments": 23,
+    "multi": 13,
+    "blank": 81,
+    "single_comments": 22
+  },
+  "tests/unit/config/test_websettings.py": {
+    "loc": 97,
+    "lloc": 32,
+    "sloc": 83,
+    "comments": 9,
+    "multi": 0,
+    "blank": 11,
+    "single_comments": 3
+  },
+  "tests/unit/config/test_configcommands.py": {
+    "loc": 924,
+    "lloc": 537,
+    "sloc": 644,
+    "comments": 28,
+    "multi": 63,
+    "blank": 193,
+    "single_comments": 24
+  },
+  "tests/unit/config/test_configdata.py": {
+    "loc": 305,
+    "lloc": 149,
+    "sloc": 233,
+    "comments": 17,
+    "multi": 0,
+    "blank": 45,
+    "single_comments": 27
+  },
+  "tests/unit/completion/test_listcategory.py": {
+    "loc": 60,
+    "lloc": 22,
+    "sloc": 41,
+    "comments": 4,
+    "multi": 0,
+    "blank": 13,
+    "single_comments": 6
+  },
+  "tests/unit/completion/test_histcategory.py": {
+    "loc": 254,
+    "lloc": 114,
+    "sloc": 201,
+    "comments": 9,
+    "multi": 0,
+    "blank": 42,
+    "single_comments": 11
+  },
+  "tests/unit/completion/test_completiondelegate.py": {
+    "loc": 85,
+    "lloc": 38,
+    "sloc": 56,
+    "comments": 7,
+    "multi": 6,
+    "blank": 18,
+    "single_comments": 5
+  },
+  "tests/unit/completion/test_models.py": {
+    "loc": 1522,
+    "lloc": 599,
+    "sloc": 1207,
+    "comments": 18,
+    "multi": 47,
+    "blank": 221,
+    "single_comments": 47
+  },
+  "tests/unit/completion/test_completer.py": {
+    "loc": 358,
+    "lloc": 160,
+    "sloc": 252,
+    "comments": 16,
+    "multi": 23,
+    "blank": 57,
+    "single_comments": 26
+  },
+  "tests/unit/completion/test_completionwidget.py": {
+    "loc": 376,
+    "lloc": 203,
+    "sloc": 272,
+    "comments": 15,
+    "multi": 18,
+    "blank": 64,
+    "single_comments": 22
+  },
+  "tests/unit/completion/test_completionmodel.py": {
+    "loc": 103,
+    "lloc": 76,
+    "sloc": 77,
+    "comments": 6,
+    "multi": 0,
+    "blank": 16,
+    "single_comments": 10
+  },
+  "tests/unit/utils/test_javascript.py": {
+    "loc": 116,
+    "lloc": 57,
+    "sloc": 81,
+    "comments": 7,
+    "multi": 0,
+    "blank": 24,
+    "single_comments": 11
+  },
+  "tests/unit/utils/test_resources.py": {
+    "loc": 115,
+    "lloc": 78,
+    "sloc": 81,
+    "comments": 3,
+    "multi": 0,
+    "blank": 26,
+    "single_comments": 8
+  },
+  "tests/unit/utils/test_version.py": {
+    "loc": 1802,
+    "lloc": 789,
+    "sloc": 1387,
+    "comments": 63,
+    "multi": 94,
+    "blank": 257,
+    "single_comments": 64
+  },
+  "tests/unit/utils/test_utils.py": {
+    "loc": 1092,
+    "lloc": 573,
+    "sloc": 812,
+    "comments": 28,
+    "multi": 8,
+    "blank": 218,
+    "single_comments": 54
+  },
+  "tests/unit/utils/test_debug.py": {
+    "loc": 286,
+    "lloc": 141,
+    "sloc": 188,
+    "comments": 9,
+    "multi": 13,
+    "blank": 76,
+    "single_comments": 9
+  },
+  "tests/unit/utils/test_qtutils.py": {
+    "loc": 1144,
+    "lloc": 696,
+    "sloc": 741,
+    "comments": 51,
+    "multi": 99,
+    "blank": 209,
+    "single_comments": 95
+  },
+  "tests/unit/utils/overflow_test_cases.py": {
+    "loc": 62,
+    "lloc": 23,
+    "sloc": 28,
+    "comments": 3,
+    "multi": 16,
+    "blank": 15,
+    "single_comments": 3
+  },
+  "tests/unit/utils/test_qtlog.py": {
+    "loc": 68,
+    "lloc": 47,
+    "sloc": 43,
+    "comments": 6,
+    "multi": 0,
+    "blank": 18,
+    "single_comments": 7
+  },
+  "tests/unit/utils/test_log.py": {
+    "loc": 358,
+    "lloc": 215,
+    "sloc": 264,
+    "comments": 16,
+    "multi": 10,
+    "blank": 67,
+    "single_comments": 17
+  },
+  "tests/unit/utils/test_urlutils.py": {
+    "loc": 830,
+    "lloc": 378,
+    "sloc": 606,
+    "comments": 40,
+    "multi": 64,
+    "blank": 136,
+    "single_comments": 24
+  },
+  "tests/unit/utils/test_error.py": {
+    "loc": 82,
+    "lloc": 37,
+    "sloc": 60,
+    "comments": 7,
+    "multi": 0,
+    "blank": 15,
+    "single_comments": 7
+  },
+  "tests/unit/utils/test_standarddir.py": {
+    "loc": 479,
+    "lloc": 304,
+    "sloc": 328,
+    "comments": 9,
+    "multi": 20,
+    "blank": 99,
+    "single_comments": 32
+  },
+  "tests/unit/utils/test_jinja.py": {
+    "loc": 136,
+    "lloc": 85,
+    "sloc": 87,
+    "comments": 4,
+    "multi": 5,
+    "blank": 32,
+    "single_comments": 12
+  },
+  "tests/unit/utils/test_urlmatch.py": {
+    "loc": 795,
+    "lloc": 263,
+    "sloc": 588,
+    "comments": 62,
+    "multi": 44,
+    "blank": 141,
+    "single_comments": 22
+  },
+  "tests/unit/utils/usertypes/test_misc.py": {
+    "loc": 14,
+    "lloc": 6,
+    "sloc": 6,
+    "comments": 4,
+    "multi": 0,
+    "blank": 5,
+    "single_comments": 3
+  },
+  "tests/unit/utils/usertypes/test_question.py": {
+    "loc": 68,
+    "lloc": 40,
+    "sloc": 41,
+    "comments": 3,
+    "multi": 0,
+    "blank": 17,
+    "single_comments": 10
+  },
+  "tests/unit/utils/usertypes/test_neighborlist.py": {
+    "loc": 305,
+    "lloc": 229,
+    "sloc": 188,
+    "comments": 3,
+    "multi": 0,
+    "blank": 69,
+    "single_comments": 48
+  },
+  "tests/unit/utils/usertypes/test_timer.py": {
+    "loc": 137,
+    "lloc": 85,
+    "sloc": 86,
+    "comments": 10,
+    "multi": 0,
+    "blank": 33,
+    "single_comments": 18
+  },
+  "tests/unit/extensions/test_loader.py": {
+    "loc": 122,
+    "lloc": 70,
+    "sloc": 76,
+    "comments": 4,
+    "multi": 0,
+    "blank": 41,
+    "single_comments": 5
+  },
+  "tests/unit/keyinput/conftest.py": {
+    "loc": 52,
+    "lloc": 24,
+    "sloc": 32,
+    "comments": 3,
+    "multi": 4,
+    "blank": 11,
+    "single_comments": 5
+  },
+  "tests/unit/keyinput/test_modeparsers.py": {
+    "loc": 168,
+    "lloc": 86,
+    "sloc": 120,
+    "comments": 12,
+    "multi": 0,
+    "blank": 32,
+    "single_comments": 16
+  },
+  "tests/unit/keyinput/test_basekeyparser.py": {
+    "loc": 364,
+    "lloc": 224,
+    "sloc": 261,
+    "comments": 13,
+    "multi": 0,
+    "blank": 77,
+    "single_comments": 26
+  },
+  "tests/unit/keyinput/test_keyutils.py": {
+    "loc": 648,
+    "lloc": 276,
+    "sloc": 514,
+    "comments": 19,
+    "multi": 13,
+    "blank": 109,
+    "single_comments": 12
+  },
+  "tests/unit/keyinput/test_modeman.py": {
+    "loc": 56,
+    "lloc": 27,
+    "sloc": 36,
+    "comments": 4,
+    "multi": 0,
+    "blank": 15,
+    "single_comments": 5
+  },
+  "tests/unit/keyinput/test_bindingtrie.py": {
+    "loc": 117,
+    "lloc": 45,
+    "sloc": 92,
+    "comments": 4,
+    "multi": 0,
+    "blank": 21,
+    "single_comments": 4
+  },
+  "tests/unit/keyinput/key_data.py": {
+    "loc": 608,
+    "lloc": 39,
+    "sloc": 542,
+    "comments": 79,
+    "multi": 15,
+    "blank": 45,
+    "single_comments": 6
+  },
+  "tests/unit/browser/test_shared.py": {
+    "loc": 144,
+    "lloc": 31,
+    "sloc": 128,
+    "comments": 15,
+    "multi": 0,
+    "blank": 13,
+    "single_comments": 3
+  },
+  "tests/unit/browser/test_caret.py": {
+    "loc": 503,
+    "lloc": 335,
+    "sloc": 375,
+    "comments": 4,
+    "multi": 12,
+    "blank": 110,
+    "single_comments": 6
+  },
+  "tests/unit/browser/test_navigate.py": {
+    "loc": 211,
+    "lloc": 106,
+    "sloc": 169,
+    "comments": 8,
+    "multi": 0,
+    "blank": 34,
+    "single_comments": 8
+  },
+  "tests/unit/browser/test_hints.py": {
+    "loc": 137,
+    "lloc": 79,
+    "sloc": 77,
+    "comments": 17,
+    "multi": 6,
+    "blank": 36,
+    "single_comments": 18
+  },
+  "tests/unit/browser/test_signalfilter.py": {
+    "loc": 96,
+    "lloc": 66,
+    "sloc": 64,
+    "comments": 3,
+    "multi": 0,
+    "blank": 27,
+    "single_comments": 5
+  },
+  "tests/unit/browser/test_qutescheme.py": {
+    "loc": 342,
+    "lloc": 207,
+    "sloc": 243,
+    "comments": 15,
+    "multi": 0,
+    "blank": 73,
+    "single_comments": 26
+  },
+  "tests/unit/browser/test_urlmarks.py": {
+    "loc": 132,
+    "lloc": 62,
+    "sloc": 93,
+    "comments": 3,
+    "multi": 0,
+    "blank": 35,
+    "single_comments": 4
+  },
+  "tests/unit/browser/test_downloadview.py": {
+    "loc": 78,
+    "lloc": 38,
+    "sloc": 50,
+    "comments": 9,
+    "multi": 0,
+    "blank": 20,
+    "single_comments": 8
+  },
+  "tests/unit/browser/test_notification.py": {
+    "loc": 281,
+    "lloc": 146,
+    "sloc": 217,
+    "comments": 8,
+    "multi": 0,
+    "blank": 59,
+    "single_comments": 5
+  },
+  "tests/unit/browser/test_pdfjs.py": {
+    "loc": 269,
+    "lloc": 147,
+    "sloc": 203,
+    "comments": 13,
+    "multi": 0,
+    "blank": 58,
+    "single_comments": 8
+  },
+  "tests/unit/browser/test_downloads.py": {
+    "loc": 164,
+    "lloc": 81,
+    "sloc": 126,
+    "comments": 9,
+    "multi": 0,
+    "blank": 30,
+    "single_comments": 8
+  },
+  "tests/unit/browser/test_inspector.py": {
+    "loc": 140,
+    "lloc": 83,
+    "sloc": 103,
+    "comments": 3,
+    "multi": 0,
+    "blank": 33,
+    "single_comments": 4
+  },
+  "tests/unit/browser/test_browsertab.py": {
+    "loc": 33,
+    "lloc": 19,
+    "sloc": 22,
+    "comments": 3,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 3
+  },
+  "tests/unit/browser/test_history.py": {
+    "loc": 549,
+    "lloc": 356,
+    "sloc": 414,
+    "comments": 12,
+    "multi": 3,
+    "blank": 113,
+    "single_comments": 19
+  },
+  "tests/unit/browser/webengine/test_webenginetab.py": {
+    "loc": 246,
+    "lloc": 110,
+    "sloc": 189,
+    "comments": 9,
+    "multi": 0,
+    "blank": 45,
+    "single_comments": 12
+  },
+  "tests/unit/browser/webengine/test_webengineinterceptor.py": {
+    "loc": 119,
+    "lloc": 61,
+    "sloc": 93,
+    "comments": 4,
+    "multi": 0,
+    "blank": 22,
+    "single_comments": 4
+  },
+  "tests/unit/browser/webengine/test_webengine_cookies.py": {
+    "loc": 98,
+    "lloc": 54,
+    "sloc": 66,
+    "comments": 3,
+    "multi": 4,
+    "blank": 23,
+    "single_comments": 5
+  },
+  "tests/unit/browser/webengine/test_darkmode.py": {
+    "loc": 456,
+    "lloc": 179,
+    "sloc": 372,
+    "comments": 20,
+    "multi": 0,
+    "blank": 77,
+    "single_comments": 7
+  },
+  "tests/unit/browser/webengine/test_webenginedownloads.py": {
+    "loc": 148,
+    "lloc": 82,
+    "sloc": 95,
+    "comments": 6,
+    "multi": 11,
+    "blank": 35,
+    "single_comments": 7
+  },
+  "tests/unit/browser/webengine/test_spell.py": {
+    "loc": 82,
+    "lloc": 58,
+    "sloc": 48,
+    "comments": 4,
+    "multi": 2,
+    "blank": 23,
+    "single_comments": 9
+  },
+  "tests/unit/browser/webengine/test_webenginesettings.py": {
+    "loc": 163,
+    "lloc": 83,
+    "sloc": 121,
+    "comments": 10,
+    "multi": 3,
+    "blank": 31,
+    "single_comments": 8
+  },
+  "tests/unit/browser/webengine/test_webview.py": {
+    "loc": 141,
+    "lloc": 62,
+    "sloc": 105,
+    "comments": 11,
+    "multi": 0,
+    "blank": 27,
+    "single_comments": 9
+  },
+  "tests/unit/browser/webkit/test_mhtml.py": {
+    "loc": 300,
+    "lloc": 93,
+    "sloc": 236,
+    "comments": 5,
+    "multi": 4,
+    "blank": 55,
+    "single_comments": 5
+  },
+  "tests/unit/browser/webkit/test_cookies.py": {
+    "loc": 189,
+    "lloc": 119,
+    "sloc": 118,
+    "comments": 8,
+    "multi": 5,
+    "blank": 51,
+    "single_comments": 15
+  },
+  "tests/unit/browser/webkit/test_tabhistory.py": {
+    "loc": 136,
+    "lloc": 79,
+    "sloc": 80,
+    "comments": 6,
+    "multi": 0,
+    "blank": 37,
+    "single_comments": 19
+  },
+  "tests/unit/browser/webkit/test_webkitelem.py": {
+    "loc": 889,
+    "lloc": 458,
+    "sloc": 626,
+    "comments": 16,
+    "multi": 97,
+    "blank": 140,
+    "single_comments": 26
+  },
+  "tests/unit/browser/webkit/test_webkitsettings.py": {
+    "loc": 16,
+    "lloc": 8,
+    "sloc": 8,
+    "comments": 3,
+    "multi": 0,
+    "blank": 5,
+    "single_comments": 3
+  },
+  "tests/unit/browser/webkit/test_webkit_view.py": {
+    "loc": 17,
+    "lloc": 9,
+    "sloc": 9,
+    "comments": 3,
+    "multi": 0,
+    "blank": 5,
+    "single_comments": 3
+  },
+  "tests/unit/browser/webkit/test_certificateerror.py": {
+    "loc": 61,
+    "lloc": 17,
+    "sloc": 49,
+    "comments": 3,
+    "multi": 0,
+    "blank": 9,
+    "single_comments": 3
+  },
+  "tests/unit/browser/webkit/test_cache.py": {
+    "loc": 175,
+    "lloc": 122,
+    "sloc": 110,
+    "comments": 6,
+    "multi": 0,
+    "blank": 48,
+    "single_comments": 17
+  },
+  "tests/unit/browser/webkit/network/test_pac.py": {
+    "loc": 270,
+    "lloc": 121,
+    "sloc": 202,
+    "comments": 12,
+    "multi": 7,
+    "blank": 56,
+    "single_comments": 5
+  },
+  "tests/unit/browser/webkit/network/test_networkmanager.py": {
+    "loc": 17,
+    "lloc": 8,
+    "sloc": 8,
+    "comments": 3,
+    "multi": 0,
+    "blank": 6,
+    "single_comments": 3
+  },
+  "tests/unit/browser/webkit/network/test_filescheme.py": {
+    "loc": 268,
+    "lloc": 176,
+    "sloc": 194,
+    "comments": 6,
+    "multi": 4,
+    "blank": 61,
+    "single_comments": 9
+  },
+  "tests/unit/browser/webkit/network/test_networkreply.py": {
+    "loc": 86,
+    "lloc": 62,
+    "sloc": 63,
+    "comments": 5,
+    "multi": 0,
+    "blank": 19,
+    "single_comments": 4
+  },
+  "tests/unit/browser/webkit/http/test_content_disposition.py": {
+    "loc": 948,
+    "lloc": 324,
+    "sloc": 299,
+    "comments": 9,
+    "multi": 383,
+    "blank": 248,
+    "single_comments": 18
+  },
+  "tests/unit/browser/webkit/http/test_httpheaders.py": {
+    "loc": 94,
+    "lloc": 49,
+    "sloc": 72,
+    "comments": 10,
+    "multi": 0,
+    "blank": 16,
+    "single_comments": 6
+  },
+  "tests/unit/components/test_readlinecommands.py": {
+    "loc": 325,
+    "lloc": 162,
+    "sloc": 229,
+    "comments": 21,
+    "multi": 13,
+    "blank": 55,
+    "single_comments": 28
+  },
+  "tests/unit/components/test_misccommands.py": {
+    "loc": 79,
+    "lloc": 52,
+    "sloc": 45,
+    "comments": 7,
+    "multi": 0,
+    "blank": 19,
+    "single_comments": 15
+  },
+  "tests/unit/components/test_hostblock.py": {
+    "loc": 563,
+    "lloc": 281,
+    "sloc": 400,
+    "comments": 23,
+    "multi": 41,
+    "blank": 92,
+    "single_comments": 30
+  },
+  "tests/unit/components/test_braveadblock.py": {
+    "loc": 421,
+    "lloc": 204,
+    "sloc": 301,
+    "comments": 26,
+    "multi": 13,
+    "blank": 78,
+    "single_comments": 29
+  },
+  "tests/unit/components/test_blockutils.py": {
+    "loc": 67,
+    "lloc": 39,
+    "sloc": 41,
+    "comments": 5,
+    "multi": 4,
+    "blank": 17,
+    "single_comments": 5
+  },
+  "tests/unit/scripts/test_check_coverage.py": {
+    "loc": 232,
+    "lloc": 99,
+    "sloc": 160,
+    "comments": 6,
+    "multi": 5,
+    "blank": 54,
+    "single_comments": 13
+  },
+  "tests/unit/scripts/test_importer.py": {
+    "loc": 122,
+    "lloc": 64,
+    "sloc": 76,
+    "comments": 9,
+    "multi": 0,
+    "blank": 34,
+    "single_comments": 12
+  },
+  "tests/unit/scripts/test_problemmatchers.py": {
+    "loc": 24,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 3,
+    "multi": 4,
+    "blank": 7,
+    "single_comments": 3
+  },
+  "tests/unit/scripts/test_dictcli.py": {
+    "loc": 154,
+    "lloc": 73,
+    "sloc": 101,
+    "comments": 13,
+    "multi": 0,
+    "blank": 40,
+    "single_comments": 13
+  },
+  "tests/unit/scripts/test_run_vulture.py": {
+    "loc": 89,
+    "lloc": 43,
+    "sloc": 51,
+    "comments": 5,
+    "multi": 4,
+    "blank": 26,
+    "single_comments": 8
+  },
+  "tests/unit/api/test_cmdutils.py": {
+    "loc": 528,
+    "lloc": 355,
+    "sloc": 355,
+    "comments": 12,
+    "multi": 12,
+    "blank": 103,
+    "single_comments": 58
+  },
+  "tests/unit/commands/test_parser.py": {
+    "loc": 134,
+    "lloc": 66,
+    "sloc": 81,
+    "comments": 3,
+    "multi": 18,
+    "blank": 29,
+    "single_comments": 6
+  },
+  "tests/unit/commands/test_argparser.py": {
+    "loc": 136,
+    "lloc": 79,
+    "sloc": 87,
+    "comments": 3,
+    "multi": 4,
+    "blank": 37,
+    "single_comments": 8
+  },
+  "tests/unit/commands/test_cmdexc.py": {
+    "loc": 25,
+    "lloc": 11,
+    "sloc": 14,
+    "comments": 3,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 4
+  },
+  "tests/unit/commands/test_userscripts.py": {
+    "loc": 245,
+    "lloc": 125,
+    "sloc": 179,
+    "comments": 7,
+    "multi": 0,
+    "blank": 57,
+    "single_comments": 9
+  },
+  "tests/unit/javascript/test_greasemonkey.py": {
+    "loc": 577,
+    "lloc": 231,
+    "sloc": 453,
+    "comments": 26,
+    "multi": 4,
+    "blank": 96,
+    "single_comments": 24
+  },
+  "tests/unit/javascript/conftest.py": {
+    "loc": 131,
+    "lloc": 60,
+    "sloc": 58,
+    "comments": 6,
+    "multi": 34,
+    "blank": 29,
+    "single_comments": 10
+  },
+  "tests/unit/javascript/test_js_quirks.py": {
+    "loc": 77,
+    "lloc": 26,
+    "sloc": 56,
+    "comments": 5,
+    "multi": 5,
+    "blank": 13,
+    "single_comments": 3
+  },
+  "tests/unit/javascript/test_js_execution.py": {
+    "loc": 66,
+    "lloc": 30,
+    "sloc": 39,
+    "comments": 14,
+    "multi": 0,
+    "blank": 14,
+    "single_comments": 13
+  },
+  "tests/unit/javascript/stylesheet/test_stylesheet_js.py": {
+    "loc": 121,
+    "lloc": 75,
+    "sloc": 73,
+    "comments": 4,
+    "multi": 5,
+    "blank": 29,
+    "single_comments": 14
+  },
+  "tests/unit/javascript/position_caret/test_position_caret.py": {
+    "loc": 93,
+    "lloc": 62,
+    "sloc": 51,
+    "comments": 5,
+    "multi": 5,
+    "blank": 23,
+    "single_comments": 14
+  },
+  "tests/end2end/conftest.py": {
+    "loc": 189,
+    "lloc": 89,
+    "sloc": 146,
+    "comments": 7,
+    "multi": 8,
+    "blank": 24,
+    "single_comments": 11
+  },
+  "tests/end2end/test_invocations.py": {
+    "loc": 977,
+    "lloc": 500,
+    "sloc": 691,
+    "comments": 85,
+    "multi": 22,
+    "blank": 175,
+    "single_comments": 89
+  },
+  "tests/end2end/test_mhtml_e2e.py": {
+    "loc": 123,
+    "lloc": 70,
+    "sloc": 79,
+    "comments": 10,
+    "multi": 0,
+    "blank": 32,
+    "single_comments": 12
+  },
+  "tests/end2end/test_adblock_e2e.py": {
+    "loc": 46,
+    "lloc": 22,
+    "sloc": 32,
+    "comments": 3,
+    "multi": 0,
+    "blank": 10,
+    "single_comments": 4
+  },
+  "tests/end2end/test_dirbrowser.py": {
+    "loc": 198,
+    "lloc": 138,
+    "sloc": 132,
+    "comments": 8,
+    "multi": 4,
+    "blank": 46,
+    "single_comments": 16
+  },
+  "tests/end2end/test_hints_html.py": {
+    "loc": 142,
+    "lloc": 83,
+    "sloc": 100,
+    "comments": 7,
+    "multi": 0,
+    "blank": 34,
+    "single_comments": 8
+  },
+  "tests/end2end/test_insert_mode.py": {
+    "loc": 106,
+    "lloc": 61,
+    "sloc": 73,
+    "comments": 7,
+    "multi": 5,
+    "blank": 23,
+    "single_comments": 5
+  },
+  "tests/end2end/misc/test_runners_e2e.py": {
+    "loc": 71,
+    "lloc": 23,
+    "sloc": 50,
+    "comments": 6,
+    "multi": 0,
+    "blank": 17,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_javascript_bdd.py": {
+    "loc": 53,
+    "lloc": 28,
+    "sloc": 42,
+    "comments": 3,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_tabs_bdd.py": {
+    "loc": 6,
+    "lloc": 2,
+    "sloc": 2,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_history_bdd.py": {
+    "loc": 56,
+    "lloc": 34,
+    "sloc": 34,
+    "comments": 4,
+    "multi": 3,
+    "blank": 14,
+    "single_comments": 5
+  },
+  "tests/end2end/features/conftest.py": {
+    "loc": 768,
+    "lloc": 464,
+    "sloc": 500,
+    "comments": 17,
+    "multi": 51,
+    "blank": 173,
+    "single_comments": 44
+  },
+  "tests/end2end/features/test_downloads_bdd.py": {
+    "loc": 161,
+    "lloc": 101,
+    "sloc": 111,
+    "comments": 4,
+    "multi": 0,
+    "blank": 46,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_backforward_bdd.py": {
+    "loc": 6,
+    "lloc": 2,
+    "sloc": 2,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_invoke_bdd.py": {
+    "loc": 16,
+    "lloc": 8,
+    "sloc": 9,
+    "comments": 3,
+    "multi": 0,
+    "blank": 3,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_completion_bdd.py": {
+    "loc": 13,
+    "lloc": 7,
+    "sloc": 6,
+    "comments": 3,
+    "multi": 0,
+    "blank": 3,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_sessions_bdd.py": {
+    "loc": 52,
+    "lloc": 30,
+    "sloc": 36,
+    "comments": 5,
+    "multi": 0,
+    "blank": 12,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_open_bdd.py": {
+    "loc": 30,
+    "lloc": 16,
+    "sloc": 18,
+    "comments": 4,
+    "multi": 0,
+    "blank": 6,
+    "single_comments": 6
+  },
+  "tests/end2end/features/test_utilcmds_bdd.py": {
+    "loc": 13,
+    "lloc": 6,
+    "sloc": 6,
+    "comments": 3,
+    "multi": 0,
+    "blank": 4,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_prompts_bdd.py": {
+    "loc": 100,
+    "lloc": 53,
+    "sloc": 62,
+    "comments": 12,
+    "multi": 0,
+    "blank": 24,
+    "single_comments": 14
+  },
+  "tests/end2end/features/test_misc_bdd.py": {
+    "loc": 28,
+    "lloc": 18,
+    "sloc": 18,
+    "comments": 3,
+    "multi": 0,
+    "blank": 7,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_notifications_bdd.py": {
+    "loc": 97,
+    "lloc": 52,
+    "sloc": 61,
+    "comments": 3,
+    "multi": 0,
+    "blank": 33,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_search_bdd.py": {
+    "loc": 32,
+    "lloc": 14,
+    "sloc": 14,
+    "comments": 9,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 10
+  },
+  "tests/end2end/features/test_hints_bdd.py": {
+    "loc": 31,
+    "lloc": 9,
+    "sloc": 23,
+    "comments": 3,
+    "multi": 0,
+    "blank": 5,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_marks_bdd.py": {
+    "loc": 21,
+    "lloc": 12,
+    "sloc": 12,
+    "comments": 3,
+    "multi": 0,
+    "blank": 6,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_navigate_bdd.py": {
+    "loc": 6,
+    "lloc": 2,
+    "sloc": 2,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_spawn_bdd.py": {
+    "loc": 6,
+    "lloc": 2,
+    "sloc": 2,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_yankpaste_bdd.py": {
+    "loc": 22,
+    "lloc": 11,
+    "sloc": 10,
+    "comments": 3,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_keyinput_bdd.py": {
+    "loc": 6,
+    "lloc": 2,
+    "sloc": 2,
+    "comments": 3,
+    "multi": 0,
+    "blank": 1,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_zoom_bdd.py": {
+    "loc": 14,
+    "lloc": 8,
+    "sloc": 8,
+    "comments": 3,
+    "multi": 0,
+    "blank": 3,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_private_bdd.py": {
+    "loc": 35,
+    "lloc": 21,
+    "sloc": 19,
+    "comments": 3,
+    "multi": 3,
+    "blank": 9,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_editor_bdd.py": {
+    "loc": 165,
+    "lloc": 87,
+    "sloc": 114,
+    "comments": 10,
+    "multi": 0,
+    "blank": 35,
+    "single_comments": 16
+  },
+  "tests/end2end/features/test_qutescheme_bdd.py": {
+    "loc": 48,
+    "lloc": 18,
+    "sloc": 35,
+    "comments": 6,
+    "multi": 0,
+    "blank": 8,
+    "single_comments": 5
+  },
+  "tests/end2end/features/test_scroll_bdd.py": {
+    "loc": 13,
+    "lloc": 6,
+    "sloc": 6,
+    "comments": 3,
+    "multi": 0,
+    "blank": 4,
+    "single_comments": 3
+  },
+  "tests/end2end/features/test_caret_bdd.py": {
+    "loc": 10,
+    "lloc": 3,
+    "sloc": 3,
+    "comments": 4,
+    "multi": 0,
+    "blank": 3,
+    "single_comments": 4
+  },
+  "tests/end2end/features/test_urlmarks_bdd.py": {
+    "loc": 70,
+    "lloc": 38,
+    "sloc": 39,
+    "comments": 4,
+    "multi": 6,
+    "blank": 21,
+    "single_comments": 4
+  },
+  "tests/end2end/fixtures/webserver_sub.py": {
+    "loc": 395,
+    "lloc": 243,
+    "sloc": 251,
+    "comments": 16,
+    "multi": 17,
+    "blank": 92,
+    "single_comments": 35
+  },
+  "tests/end2end/fixtures/webserver_sub_ssl.py": {
+    "loc": 65,
+    "lloc": 33,
+    "sloc": 34,
+    "comments": 3,
+    "multi": 3,
+    "blank": 24,
+    "single_comments": 4
+  },
+  "tests/end2end/fixtures/webserver.py": {
+    "loc": 242,
+    "lloc": 142,
+    "sloc": 161,
+    "comments": 7,
+    "multi": 12,
+    "blank": 57,
+    "single_comments": 12
+  },
+  "tests/end2end/fixtures/test_testprocess.py": {
+    "loc": 261,
+    "lloc": 173,
+    "sloc": 175,
+    "comments": 5,
+    "multi": 9,
+    "blank": 60,
+    "single_comments": 17
+  },
+  "tests/end2end/fixtures/test_webserver.py": {
+    "loc": 76,
+    "lloc": 24,
+    "sloc": 59,
+    "comments": 8,
+    "multi": 0,
+    "blank": 9,
+    "single_comments": 8
+  },
+  "tests/end2end/fixtures/quteprocess.py": {
+    "loc": 1044,
+    "lloc": 507,
+    "sloc": 744,
+    "comments": 144,
+    "multi": 68,
+    "blank": 172,
+    "single_comments": 60
+  },
+  "tests/end2end/fixtures/testprocess.py": {
+    "loc": 502,
+    "lloc": 298,
+    "sloc": 279,
+    "comments": 19,
+    "multi": 78,
+    "blank": 106,
+    "single_comments": 39
+  },
+  "tests/end2end/fixtures/test_quteprocess.py": {
+    "loc": 363,
+    "lloc": 139,
+    "sloc": 270,
+    "comments": 15,
+    "multi": 0,
+    "blank": 72,
+    "single_comments": 21
+  },
+  "tests/end2end/fixtures/notificationserver.py": {
+    "loc": 242,
+    "lloc": 144,
+    "sloc": 160,
+    "comments": 18,
+    "multi": 13,
+    "blank": 47,
+    "single_comments": 22
+  },
+  "tests/end2end/data/misc/pyeval_file.py": {
+    "loc": 8,
+    "lloc": 3,
+    "sloc": 2,
+    "comments": 3,
+    "multi": 0,
+    "blank": 2,
+    "single_comments": 4
+  },
+  "tests/end2end/data/brave-adblock/generate.py": {
+    "loc": 80,
+    "lloc": 53,
+    "sloc": 59,
+    "comments": 8,
+    "multi": 0,
+    "blank": 12,
+    "single_comments": 9
+  },
+  "tests/end2end/data/userscripts/stdinclose.py": {
+    "loc": 13,
+    "lloc": 6,
+    "sloc": 5,
+    "comments": 4,
+    "multi": 0,
+    "blank": 3,
+    "single_comments": 5
+  },
+  "tests/helpers/test_stubs.py": {
+    "loc": 91,
+    "lloc": 67,
+    "sloc": 58,
+    "comments": 3,
+    "multi": 0,
+    "blank": 21,
+    "single_comments": 12
+  },
+  "tests/helpers/test_helper_utils.py": {
+    "loc": 75,
+    "lloc": 24,
+    "sloc": 56,
+    "comments": 3,
+    "multi": 0,
+    "blank": 16,
+    "single_comments": 3
+  },
+  "tests/helpers/testutils.py": {
+    "loc": 401,
+    "lloc": 215,
+    "sloc": 238,
+    "comments": 14,
+    "multi": 40,
+    "blank": 106,
+    "single_comments": 17
+  },
+  "tests/helpers/logfail.py": {
+    "loc": 44,
+    "lloc": 25,
+    "sloc": 25,
+    "comments": 5,
+    "multi": 0,
+    "blank": 12,
+    "single_comments": 7
+  },
+  "tests/helpers/stubs.py": {
+    "loc": 741,
+    "lloc": 459,
+    "sloc": 415,
+    "comments": 5,
+    "multi": 73,
+    "blank": 220,
+    "single_comments": 33
+  },
+  "tests/helpers/test_logfail.py": {
+    "loc": 50,
+    "lloc": 29,
+    "sloc": 28,
+    "comments": 3,
+    "multi": 0,
+    "blank": 18,
+    "single_comments": 4
+  },
+  "tests/helpers/messagemock.py": {
+    "loc": 93,
+    "lloc": 54,
+    "sloc": 50,
+    "comments": 3,
+    "multi": 14,
+    "blank": 22,
+    "single_comments": 7
+  },
+  "tests/helpers/fixtures.py": {
+    "loc": 745,
+    "lloc": 489,
+    "sloc": 459,
+    "comments": 32,
+    "multi": 31,
+    "blank": 190,
+    "single_comments": 65
+  }
+}

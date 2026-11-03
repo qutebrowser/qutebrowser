@@ -14,6 +14,7 @@ import re
 import shlex
 import math
 import operator
+import contextlib
 
 from qutebrowser.qt.core import QUrl, QRect, QPoint
 from qutebrowser.qt.gui import QClipboard
@@ -933,10 +934,8 @@ def test_parse_duration_invalid(duration):
 
 @hypothesis.given(strategies.text())
 def test_parse_duration_hypothesis(duration):
-    try:
+    with contextlib.suppress(ValueError):
         utils.parse_duration(duration)
-    except ValueError:
-        pass
 
 
 @pytest.mark.parametrize('mimetype, extension', [

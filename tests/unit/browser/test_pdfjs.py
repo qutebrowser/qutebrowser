@@ -28,7 +28,6 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
 
     monkeypatch.setattr(pdfjs, 'is_available', lambda: available)
     content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
-    print(content)
     assert snippet in content
 
 
@@ -50,7 +49,6 @@ def test_generate_pdfjs_page_url(
         pdfjs, "get_pdfjs_res", lambda filename: b"<body>fake PDF.js</body>"
     )
     content = pdfjs.generate_pdfjs_page(filename, QUrl())
-    print(content)
     snippet = f'<script src="qute://pdfjs/qb.js" data-url="qute://pdfjs/file?filename={escaped}"></script>'
     assert snippet in content
 

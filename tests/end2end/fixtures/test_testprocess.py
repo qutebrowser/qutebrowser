@@ -10,7 +10,7 @@ import contextlib
 import datetime
 
 import pytest
-from qutebrowser.qt.core import QProcess
+from qutebrowser.qt.core import QProcess, QTimer
 
 from end2end.fixtures import testprocess
 
@@ -161,14 +161,14 @@ class TestWaitFor:
 
     def test_successful(self, pyproc):
         """Using wait_for with the expected text."""
-        pyproc.code = "time.sleep(0.5); print('foobar')"
-        with stopwatch(min_ms=500):
-            pyproc.start()
-            pyproc.wait_for(data="foobar")
+        pyproc.code = "input(); print('foobar')"
+        pyproc.start()
+        QTimer.singleShot(0, lambda: pyproc.proc.write(b'\n'))
+        pyproc.wait_for(data="foobar")
 
     def test_other_text(self, pyproc):
         """Test wait_for when getting some unrelated text."""
-        pyproc.code = "time.sleep(0.1); print('blahblah')"
+        pyproc.code = "print('blahblah')"
         pyproc.start()
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=500)
@@ -183,9 +183,10 @@ class TestWaitFor:
     @pytest.mark.parametrize('message', ['foobar', 'literal [x]'])
     def test_existing_message(self, message, pyproc):
         """Test with a message which already passed when waiting."""
-        pyproc.code = "print('{}')".format(message)
+        pyproc.code = "input(); print('{}')".format(message)
         pyproc.start()
-        time.sleep(0.5)  # to make sure the message is printed
+        with pyproc._wait_signal(pyproc.new_data):
+            pyproc.proc.write(b'\n')
         pyproc.wait_for(data=message)
 
     def test_existing_message_previous_test(self, pyproc):
@@ -206,7 +207,7 @@ class TestWaitFor:
         existing messages, as that makes it likely it's not what we actually
         want.
         """
-        pyproc.code = "time.sleep(0.1); print('foobar')"
+        pyproc.code = "print('foobar')"
         pyproc.start()
         pyproc.wait_for(data="foobar")
         with pytest.raises(testprocess.WaitForTimeout):
@@ -243,8 +244,9 @@ class TestEnsureNotLogged:
                 pyproc.ensure_not_logged(data=pattern, delay=2000)
 
     def test_late_message(self, pyproc):
-        pyproc.code = "time.sleep(0.5); print('blacklisted')"
+        pyproc.code = "input(); print('blacklisted')"
         pyproc.start()
+        QTimer.singleShot(0, lambda: pyproc.proc.write(b'\n'))
         with pytest.raises(testprocess.BlacklistedMessageError):
             pyproc.ensure_not_logged(data='blacklisted', delay=5000)
 

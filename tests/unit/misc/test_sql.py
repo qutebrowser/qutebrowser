@@ -454,13 +454,11 @@ class TestTransaction:
 
     def test_failed_transaction(self, database):
         my_table = database.table('my_table', ['column'])
-        try:
+        with pytest.raises(RuntimeError, match='something went horribly wrong'):
             with database.transaction():
                 my_table.insert({'column': 1})
                 my_table.insert({'column': 2})
                 raise RuntimeError(
                     'something went horribly wrong and the transaction will be aborted'
                 )
-        except RuntimeError:
-            pass
         assert database.query('select count(*) from my_table').run().value() == 0

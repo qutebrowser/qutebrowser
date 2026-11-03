@@ -233,12 +233,8 @@ class TestSave:
         fake_history([Item(QUrl('http://www.qutebrowser.org/'), '\ud800',
                            active=True)])
 
-        try:
+        with contextlib.suppress(sessions.SessionError):
             sess_man.save(str(session_path))
-        except sessions.SessionError:
-            # This seems to happen on some systems only?!
-            pass
-        else:
             data = session_path.read_text('utf-8')
             assert r'title: "\uD800"' in data
 
