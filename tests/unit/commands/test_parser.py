@@ -71,6 +71,13 @@ class TestCommandParser:
         ("cmd-set-text /", "cmd-set-text", ["/"]),
         ("cmd-set-text ?", "cmd-set-text", ["?"]),
         ("cmd-set-text :", "cmd-set-text", [":"]),
+        # :unbind should not require escaping backslashes, like :bind
+        # https://github.com/qutebrowser/qutebrowser/issues/3904
+        ("unbind \\", "unbind", ['\\']),
+        ("unbind \\\\", "unbind", ['\\\\']),
+        ("unbind \\\"", "unbind", ['\\"']),
+        ("unbind --mode insert \\\"", "unbind",
+         ["--mode", "insert", '\\"']),
     ])
     def test_parse_result(self, config_stub, command, name, args):
         p = parser.CommandParser()

@@ -168,7 +168,8 @@ class ConfigCommands:
         with self._handle_config_error():
             self._keyconfig.bind(seq, command, mode=mode, save_yaml=True)
 
-    @cmdutils.register(instance='config-commands')
+    @cmdutils.register(instance='config-commands', maxsplit=0,
+                       no_cmd_split=True, no_replace_variables=True)
     def unbind(self, key: str, *, mode: str = 'normal') -> None:
         """Unbind a keychain.
 

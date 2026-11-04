@@ -28,6 +28,8 @@ Fixed
 ~~~~~
 
 - Recent PDF.js versions now work properly again (#8966)
+- The `:unbind` command now parses its keychain argument like `:bind` does, so
+  backslashes in keychains no longer need to be escaped (#3904)
 
 [[v3.7.0]]
 v3.7.0 (2026-04-03)
