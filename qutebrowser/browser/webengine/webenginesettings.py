@@ -265,6 +265,7 @@ class ProfileSetter:
         self._name_to_method = {
             'content.cache.size': self.set_http_cache_size,
             'content.cookies.store': self.set_persistent_cookie_policy,
+            'content.push_service.enabled': self.set_push_service,
             'spellcheck.languages': self.set_dictionary_language,
             'content.headers.user_agent': self.set_http_headers,
             'content.headers.accept_language': self.set_http_headers,
@@ -284,6 +285,7 @@ class ProfileSetter:
         self.set_http_cache_size()
         self._set_hardcoded_settings()
         self.set_persistent_cookie_policy()
+        self.set_push_service()
         self.set_dictionary_language()
         self.disable_persistent_permissions_policy()
 
@@ -331,6 +333,21 @@ class ProfileSetter:
         else:
             value = QWebEngineProfile.PersistentCookiesPolicy.NoPersistentCookies
         self._profile.setPersistentCookiesPolicy(value)
+
+    def set_push_service(self):
+        """Enable/disable the push service for the profile.
+
+        Never enabled for private (off-the-record) profiles.
+        """
+        if self._profile.isOffTheRecord():
+            return
+        if machinery.IS_QT6:  # for mypy
+            try:
+                self._profile.setPushServiceEnabled(
+                    config.val.content.push_service.enabled)
+            except AttributeError:
+                # New in QtWebEngine 6.5
+                pass
 
     def set_dictionary_language(self):
         """Load the given dictionaries."""
