@@ -28,6 +28,8 @@ Fixed
 ~~~~~
 
 - Recent PDF.js versions now work properly again (#8966)
+- The `qute-bitwarden` userscript no longer crashes with a `KeyError` for
+  logins without a `totp` field (#9018).
 
 [[v3.7.0]]
 v3.7.0 (2026-04-03)
