@@ -78,6 +78,10 @@ def test_toggle_window(fake_inspector):
         fake_inspector.toggle()
 
 
+def test_window_title(fake_inspector):
+    assert fake_inspector.windowTitle() == "Devtools - qutebrowser"
+
+
 def test_toggle_docked(fake_inspector, splitter, inspector_widget):
     fake_inspector.set_position(inspector.Position.right)
     splitter.show()

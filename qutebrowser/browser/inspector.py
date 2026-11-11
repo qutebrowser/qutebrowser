@@ -97,7 +97,8 @@ class AbstractWebInspector(QWidget):
 
     def _set_widget(self, widget: _WidgetType) -> None:
         self._widget = widget
-        self._widget.setWindowTitle("Web Inspector")
+        self.setWindowTitle("Devtools - qutebrowser")
+        self._widget.setWindowTitle("Devtools - qutebrowser")
         self._widget.installEventFilter(self._child_event_filter)
         self._layout.wrap(self, self._widget)
 
