@@ -45,7 +45,6 @@ class TestLogFilter:
             parser.parse_args(['--logfilter', 'invalid'])
 
         _out, err = capsys.readouterr()
-        print(err)
         assert 'Invalid log category invalid - valid categories' in err
 
 

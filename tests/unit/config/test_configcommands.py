@@ -126,8 +126,16 @@ class TestSet:
         assert config_stub.val.url.auto_search == 'never'
         assert yaml_value('url.auto_search') == 'dns'
 
-    @pytest.mark.parametrize('pattern', [None, '*://example.com'])
-    def test_set_print(self, config_stub, commands, message_mock, pattern):
+    @pytest.mark.parametrize('pattern, expected_pattern, expected_message', [
+        (None, None, 'content.javascript.enabled = false'),
+        (
+            '*://example.com',
+            urlmatch.UrlPattern('*://example.com'),
+            'content.javascript.enabled = false for *://example.com',
+        ),
+    ])
+    def test_set_print(self, config_stub, commands, message_mock, pattern,
+                       expected_pattern, expected_message):
         """Run ':set -p [-u *://example.com] content.javascript.enabled false'.
 
         Should set show the value.
@@ -138,14 +146,11 @@ class TestSet:
 
         value = config_stub.get_obj_for_pattern(
             'content.javascript.enabled',
-            pattern=None if pattern is None else urlmatch.UrlPattern(pattern))
+            pattern=expected_pattern)
         assert not value
 
-        expected = 'content.javascript.enabled = false'
-        if pattern is not None:
-            expected += ' for {}'.format(pattern)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
-        assert msg.text == expected
+        assert msg.text == expected_message
 
     def test_set_invalid_option(self, commands):
         """Run ':set foo bar'.

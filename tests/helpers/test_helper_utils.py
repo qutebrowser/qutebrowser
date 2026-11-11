@@ -62,8 +62,10 @@ def test_pattern_match(pattern, value, expected):
 
 
 def test_nop_contextmanager():
+    executed = False
     with testutils.nop_contextmanager():
-        pass
+        executed = True
+    assert executed
 
 
 def test_enum_members():

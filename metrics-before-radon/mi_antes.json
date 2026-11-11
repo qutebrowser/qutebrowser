@@ -1,0 +1,1634 @@
+{
+  "qutebrowser/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qutebrowser.py": {
+    "mi": 70.55428955064576,
+    "rank": "A"
+  },
+  "qutebrowser/app.py": {
+    "mi": 40.711104601459766,
+    "rank": "A"
+  },
+  "qutebrowser/__main__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/misc/msgbox.py": {
+    "mi": 86.97504560468218,
+    "rank": "A"
+  },
+  "qutebrowser/misc/sessions.py": {
+    "mi": 29.527719386289967,
+    "rank": "A"
+  },
+  "qutebrowser/misc/debugcachestats.py": {
+    "mi": 96.28629893244221,
+    "rank": "A"
+  },
+  "qutebrowser/misc/pastebin.py": {
+    "mi": 83.66536252448569,
+    "rank": "A"
+  },
+  "qutebrowser/misc/pakjoy.py": {
+    "mi": 50.74080982590448,
+    "rank": "A"
+  },
+  "qutebrowser/misc/httpclient.py": {
+    "mi": 78.241744075015,
+    "rank": "A"
+  },
+  "qutebrowser/misc/quitter.py": {
+    "mi": 56.381287355017626,
+    "rank": "A"
+  },
+  "qutebrowser/misc/lineparser.py": {
+    "mi": 61.036637377948345,
+    "rank": "A"
+  },
+  "qutebrowser/misc/binparsing.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/misc/ipc.py": {
+    "mi": 40.381244542982714,
+    "rank": "A"
+  },
+  "qutebrowser/misc/miscwidgets.py": {
+    "mi": 42.679046293151536,
+    "rank": "A"
+  },
+  "qutebrowser/misc/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/misc/keyhintwidget.py": {
+    "mi": 68.35487077949495,
+    "rank": "A"
+  },
+  "qutebrowser/misc/utilcmds.py": {
+    "mi": 57.26911406274572,
+    "rank": "A"
+  },
+  "qutebrowser/misc/nativeeventfilter.py": {
+    "mi": 64.89400123794746,
+    "rank": "A"
+  },
+  "qutebrowser/misc/crashsignal.py": {
+    "mi": 44.904603623531536,
+    "rank": "A"
+  },
+  "qutebrowser/misc/savemanager.py": {
+    "mi": 61.86528220438445,
+    "rank": "A"
+  },
+  "qutebrowser/misc/backendproblem.py": {
+    "mi": 32.178621209921296,
+    "rank": "A"
+  },
+  "qutebrowser/misc/crashdialog.py": {
+    "mi": 33.699803237513656,
+    "rank": "A"
+  },
+  "qutebrowser/misc/split.py": {
+    "mi": 51.8835670684708,
+    "rank": "A"
+  },
+  "qutebrowser/misc/wmname.py": {
+    "mi": 54.03019531132195,
+    "rank": "A"
+  },
+  "qutebrowser/misc/elf.py": {
+    "mi": 56.467016159371745,
+    "rank": "A"
+  },
+  "qutebrowser/misc/guiprocess.py": {
+    "mi": 38.45154645218479,
+    "rank": "A"
+  },
+  "qutebrowser/misc/consolewidget.py": {
+    "mi": 61.35846556597898,
+    "rank": "A"
+  },
+  "qutebrowser/misc/cmdhistory.py": {
+    "mi": 70.93010138582137,
+    "rank": "A"
+  },
+  "qutebrowser/misc/sql.py": {
+    "mi": 42.559241240910005,
+    "rank": "A"
+  },
+  "qutebrowser/misc/editor.py": {
+    "mi": 60.00942391123415,
+    "rank": "A"
+  },
+  "qutebrowser/misc/objects.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/misc/checkpyver.py": {
+    "mi": 81.43730952400438,
+    "rank": "A"
+  },
+  "qutebrowser/misc/earlyinit.py": {
+    "mi": 54.546807282705345,
+    "rank": "A"
+  },
+  "qutebrowser/misc/throttle.py": {
+    "mi": 73.25767042099876,
+    "rank": "A"
+  },
+  "qutebrowser/misc/autoupdate.py": {
+    "mi": 89.22291227236215,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/windowundo.py": {
+    "mi": 76.73374118641861,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/tabwidget.py": {
+    "mi": 17.857436455442244,
+    "rank": "B"
+  },
+  "qutebrowser/mainwindow/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/mainwindow.py": {
+    "mi": 31.75890961464216,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/tabbedbrowser.py": {
+    "mi": 14.25010662185418,
+    "rank": "B"
+  },
+  "qutebrowser/mainwindow/prompt.py": {
+    "mi": 15.315818018227528,
+    "rank": "B"
+  },
+  "qutebrowser/mainwindow/messageview.py": {
+    "mi": 51.49566547385943,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/textbase.py": {
+    "mi": 84.26896167412737,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/command.py": {
+    "mi": 51.116117367647526,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/keystring.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/clock.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/backforward.py": {
+    "mi": 77.75692803390943,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/url.py": {
+    "mi": 68.47692905786056,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/percentage.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/bar.py": {
+    "mi": 34.832254766423,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/progress.py": {
+    "mi": 75.32602119318445,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/searchmatch.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/mainwindow/statusbar/tabindex.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/config/configtypes.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "qutebrowser/config/configinit.py": {
+    "mi": 55.0124158036665,
+    "rank": "A"
+  },
+  "qutebrowser/config/configcache.py": {
+    "mi": 92.88144229911923,
+    "rank": "A"
+  },
+  "qutebrowser/config/config.py": {
+    "mi": 39.4037307142355,
+    "rank": "A"
+  },
+  "qutebrowser/config/configcommands.py": {
+    "mi": 45.54636762142979,
+    "rank": "A"
+  },
+  "qutebrowser/config/configdata.py": {
+    "mi": 61.06023662183305,
+    "rank": "A"
+  },
+  "qutebrowser/config/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/config/configfiles.py": {
+    "mi": 8.139794383534575,
+    "rank": "C"
+  },
+  "qutebrowser/config/configexc.py": {
+    "mi": 62.546628010578715,
+    "rank": "A"
+  },
+  "qutebrowser/config/websettings.py": {
+    "mi": 45.74924718416226,
+    "rank": "A"
+  },
+  "qutebrowser/config/stylesheet.py": {
+    "mi": 78.67689701610828,
+    "rank": "A"
+  },
+  "qutebrowser/config/configutils.py": {
+    "mi": 54.07784889324317,
+    "rank": "A"
+  },
+  "qutebrowser/config/qtargs.py": {
+    "mi": 44.23858090241793,
+    "rank": "A"
+  },
+  "qutebrowser/qt/webenginewidgets.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/webenginecore.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/sip.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/dbus.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/core.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/test.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/widgets.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/opengl.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/webkitwidgets.py": {
+    "mi": 86.71667027657078,
+    "rank": "A"
+  },
+  "qutebrowser/qt/_core_pyqtproperty.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/network.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/printsupport.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/sql.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/machinery.py": {
+    "mi": 58.644770151622524,
+    "rank": "A"
+  },
+  "qutebrowser/qt/qml.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/gui.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/qt/webkit.py": {
+    "mi": 84.83120588968816,
+    "rank": "A"
+  },
+  "qutebrowser/completion/completionwidget.py": {
+    "mi": 39.31084270351118,
+    "rank": "A"
+  },
+  "qutebrowser/completion/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/completion/completer.py": {
+    "mi": 51.11088409970862,
+    "rank": "A"
+  },
+  "qutebrowser/completion/completiondelegate.py": {
+    "mi": 49.10147018766412,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/util.py": {
+    "mi": 83.08161589800173,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/__init__.py": {
+    "mi": 96.46694360016319,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/completionmodel.py": {
+    "mi": 56.17847581775136,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/filepathcategory.py": {
+    "mi": 72.20816520541902,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/miscmodels.py": {
+    "mi": 49.29486692140871,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/histcategory.py": {
+    "mi": 68.41661026814383,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/urlmodel.py": {
+    "mi": 69.3858306130004,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/listcategory.py": {
+    "mi": 73.10888293817594,
+    "rank": "A"
+  },
+  "qutebrowser/completion/models/configmodel.py": {
+    "mi": 66.57340858629375,
+    "rank": "A"
+  },
+  "qutebrowser/utils/qtutils.py": {
+    "mi": 24.61652606736411,
+    "rank": "A"
+  },
+  "qutebrowser/utils/version.py": {
+    "mi": 22.228730886006733,
+    "rank": "A"
+  },
+  "qutebrowser/utils/error.py": {
+    "mi": 87.36219401949586,
+    "rank": "A"
+  },
+  "qutebrowser/utils/log.py": {
+    "mi": 40.211931211740925,
+    "rank": "A"
+  },
+  "qutebrowser/utils/docutils.py": {
+    "mi": 59.2997979956786,
+    "rank": "A"
+  },
+  "qutebrowser/utils/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/utils/message.py": {
+    "mi": 68.4723633021301,
+    "rank": "A"
+  },
+  "qutebrowser/utils/jinja.py": {
+    "mi": 68.0132647372109,
+    "rank": "A"
+  },
+  "qutebrowser/utils/utils.py": {
+    "mi": 29.181838496733164,
+    "rank": "A"
+  },
+  "qutebrowser/utils/objreg.py": {
+    "mi": 40.2667487132919,
+    "rank": "A"
+  },
+  "qutebrowser/utils/debug.py": {
+    "mi": 51.28967166007088,
+    "rank": "A"
+  },
+  "qutebrowser/utils/urlmatch.py": {
+    "mi": 49.319136004582596,
+    "rank": "A"
+  },
+  "qutebrowser/utils/resources.py": {
+    "mi": 72.7985197179023,
+    "rank": "A"
+  },
+  "qutebrowser/utils/qtlog.py": {
+    "mi": 64.98367028803843,
+    "rank": "A"
+  },
+  "qutebrowser/utils/urlutils.py": {
+    "mi": 37.110487175745675,
+    "rank": "A"
+  },
+  "qutebrowser/utils/javascript.py": {
+    "mi": 77.41369684927496,
+    "rank": "A"
+  },
+  "qutebrowser/utils/usertypes.py": {
+    "mi": 41.52642648623752,
+    "rank": "A"
+  },
+  "qutebrowser/utils/standarddir.py": {
+    "mi": 52.36331031419928,
+    "rank": "A"
+  },
+  "qutebrowser/extensions/interceptors.py": {
+    "mi": 82.30121071229588,
+    "rank": "A"
+  },
+  "qutebrowser/extensions/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/extensions/loader.py": {
+    "mi": 63.530847471981474,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/basekeyparser.py": {
+    "mi": 49.767864121321836,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/eventfilter.py": {
+    "mi": 73.21208413389705,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/modeparsers.py": {
+    "mi": 48.21340697341224,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/modeman.py": {
+    "mi": 51.33140023366216,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/keyutils.py": {
+    "mi": 32.46504066760424,
+    "rank": "A"
+  },
+  "qutebrowser/keyinput/macros.py": {
+    "mi": 71.08013422533926,
+    "rank": "A"
+  },
+  "qutebrowser/browser/browsertab.py": {
+    "mi": 14.425561257902064,
+    "rank": "B"
+  },
+  "qutebrowser/browser/pdfjs.py": {
+    "mi": 63.10258009855936,
+    "rank": "A"
+  },
+  "qutebrowser/browser/downloadview.py": {
+    "mi": 54.2938924869501,
+    "rank": "A"
+  },
+  "qutebrowser/browser/eventfilter.py": {
+    "mi": 55.1518355249685,
+    "rank": "A"
+  },
+  "qutebrowser/browser/qutescheme.py": {
+    "mi": 35.684214331893756,
+    "rank": "A"
+  },
+  "qutebrowser/browser/navigate.py": {
+    "mi": 56.50196833914297,
+    "rank": "A"
+  },
+  "qutebrowser/browser/inspector.py": {
+    "mi": 61.09130717424525,
+    "rank": "A"
+  },
+  "qutebrowser/browser/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webelem.py": {
+    "mi": 38.61497613646366,
+    "rank": "A"
+  },
+  "qutebrowser/browser/downloads.py": {
+    "mi": 7.834597869474799,
+    "rank": "C"
+  },
+  "qutebrowser/browser/shared.py": {
+    "mi": 40.14422977917228,
+    "rank": "A"
+  },
+  "qutebrowser/browser/signalfilter.py": {
+    "mi": 84.14768677272085,
+    "rank": "A"
+  },
+  "qutebrowser/browser/qtnetworkdownloads.py": {
+    "mi": 38.483005606539926,
+    "rank": "A"
+  },
+  "qutebrowser/browser/urlmarks.py": {
+    "mi": 60.237777870556705,
+    "rank": "A"
+  },
+  "qutebrowser/browser/hints.py": {
+    "mi": 17.596643727536776,
+    "rank": "B"
+  },
+  "qutebrowser/browser/greasemonkey.py": {
+    "mi": 39.13539836230484,
+    "rank": "A"
+  },
+  "qutebrowser/browser/commands.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "qutebrowser/browser/history.py": {
+    "mi": 46.94833797930707,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/cookies.py": {
+    "mi": 75.31445028466939,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/spell.py": {
+    "mi": 84.08104153889494,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webenginesettings.py": {
+    "mi": 36.835168885013665,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webengineinspector.py": {
+    "mi": 67.82750452932638,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/notification.py": {
+    "mi": 20.770285522502245,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webenginedownloads.py": {
+    "mi": 46.626238908956374,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/certificateerror.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webengineelem.py": {
+    "mi": 52.27060001514748,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/tabhistory.py": {
+    "mi": 63.29795459315179,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/interceptor.py": {
+    "mi": 61.508818012672315,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webenginetab.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "qutebrowser/browser/webengine/darkmode.py": {
+    "mi": 57.14002210587419,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webenginequtescheme.py": {
+    "mi": 70.60987663240219,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webengine/webview.py": {
+    "mi": 50.038572128764876,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/cookies.py": {
+    "mi": 70.98054564731626,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/webpage.py": {
+    "mi": 46.011338637473166,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/httpheaders.py": {
+    "mi": 69.31374615196653,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/cache.py": {
+    "mi": 79.83703231919675,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/certificateerror.py": {
+    "mi": 70.02808322453134,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/tabhistory.py": {
+    "mi": 82.39494274084481,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/mhtml.py": {
+    "mi": 48.56104100691153,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/webkittab.py": {
+    "mi": 0.3923917838025684,
+    "rank": "C"
+  },
+  "qutebrowser/browser/webkit/webkitelem.py": {
+    "mi": 38.84544085193649,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/webkitinspector.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/webkitsettings.py": {
+    "mi": 65.04355246252454,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/webview.py": {
+    "mi": 66.3550602035408,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/webkithistory.py": {
+    "mi": 88.92575380069479,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/network/webkitqutescheme.py": {
+    "mi": 83.28118972149646,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/network/networkreply.py": {
+    "mi": 81.04803359307961,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/network/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/network/filescheme.py": {
+    "mi": 82.21617526785121,
+    "rank": "A"
+  },
+  "qutebrowser/browser/webkit/network/networkmanager.py": {
+    "mi": 44.361890987940875,
+    "rank": "A"
+  },
+  "qutebrowser/browser/network/proxy.py": {
+    "mi": 70.12251120003513,
+    "rank": "A"
+  },
+  "qutebrowser/browser/network/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/browser/network/pac.py": {
+    "mi": 51.587648649305926,
+    "rank": "A"
+  },
+  "qutebrowser/components/hostblock.py": {
+    "mi": 47.96866710085444,
+    "rank": "A"
+  },
+  "qutebrowser/components/braveadblock.py": {
+    "mi": 51.565307690698646,
+    "rank": "A"
+  },
+  "qutebrowser/components/caretcommands.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/components/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/components/adblockcommands.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/components/scrollcommands.py": {
+    "mi": 77.1557084146506,
+    "rank": "A"
+  },
+  "qutebrowser/components/misccommands.py": {
+    "mi": 52.34493002621222,
+    "rank": "A"
+  },
+  "qutebrowser/components/zoomcommands.py": {
+    "mi": 79.28705464109062,
+    "rank": "A"
+  },
+  "qutebrowser/components/readlinecommands.py": {
+    "mi": 58.28448754990031,
+    "rank": "A"
+  },
+  "qutebrowser/components/utils/blockutils.py": {
+    "mi": 70.27298249552145,
+    "rank": "A"
+  },
+  "qutebrowser/components/utils/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/api/qtutils.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/api/cmdutils.py": {
+    "mi": 62.625369163210436,
+    "rank": "A"
+  },
+  "qutebrowser/api/config.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/api/apitypes.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/api/hook.py": {
+    "mi": 85.56830826340781,
+    "rank": "A"
+  },
+  "qutebrowser/api/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/api/message.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/api/downloads.py": {
+    "mi": 91.81257485399327,
+    "rank": "A"
+  },
+  "qutebrowser/api/interceptor.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/commands/cmdexc.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/commands/command.py": {
+    "mi": 31.898393899353742,
+    "rank": "A"
+  },
+  "qutebrowser/commands/__init__.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "qutebrowser/commands/parser.py": {
+    "mi": 63.62870126049414,
+    "rank": "A"
+  },
+  "qutebrowser/commands/userscripts.py": {
+    "mi": 53.097926000240115,
+    "rank": "A"
+  },
+  "qutebrowser/commands/runners.py": {
+    "mi": 56.81146260407141,
+    "rank": "A"
+  },
+  "qutebrowser/commands/argparser.py": {
+    "mi": 73.94200562172058,
+    "rank": "A"
+  },
+  "tests/conftest.py": {
+    "mi": 47.2316846178858,
+    "rank": "A"
+  },
+  "tests/test_conftest.py": {
+    "mi": 83.2486243514444,
+    "rank": "A"
+  },
+  "tests/unit/test_qt_machinery.py": {
+    "mi": 43.1429528838175,
+    "rank": "A"
+  },
+  "tests/unit/test_qutebrowser.py": {
+    "mi": 70.87532536487969,
+    "rank": "A"
+  },
+  "tests/unit/test_app.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_ipc.py": {
+    "mi": 18.474482401945735,
+    "rank": "B"
+  },
+  "tests/unit/misc/test_checkpyver.py": {
+    "mi": 63.96580047757501,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_split.py": {
+    "mi": 63.139772588043,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_miscwidgets.py": {
+    "mi": 39.17571285611358,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_autoupdate.py": {
+    "mi": 81.39205254137866,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_wmname.py": {
+    "mi": 48.171640086685194,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_utilcmds.py": {
+    "mi": 78.32107267642809,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_editor.py": {
+    "mi": 43.756823598214694,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_pastebin.py": {
+    "mi": 63.12217712354047,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_sessions.py": {
+    "mi": 34.89037168513686,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_earlyinit.py": {
+    "mi": 87.01703500036022,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_keyhints.py": {
+    "mi": 50.66168113216205,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_cmdhistory.py": {
+    "mi": 48.74791146113342,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_guiprocess.py": {
+    "mi": 20.109121755142063,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_sql.py": {
+    "mi": 30.610794344938896,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_msgbox.py": {
+    "mi": 60.00438050677938,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_throttle.py": {
+    "mi": 53.055841638226646,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_pakjoy.py": {
+    "mi": 30.4142022617507,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_crashsignal.py": {
+    "mi": 69.96903282539115,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_split_hypothesis.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_crashdialog.py": {
+    "mi": 71.19679514243825,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_elf.py": {
+    "mi": 71.78922876267355,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_objects.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/misc/test_lineparser.py": {
+    "mi": 54.45083703994468,
+    "rank": "A"
+  },
+  "tests/unit/misc/userscripts/test_qute_lastpass.py": {
+    "mi": 42.86842836017785,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/test_prompt.py": {
+    "mi": 57.751640832004554,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/test_tabbedbrowser.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/test_messageview.py": {
+    "mi": 51.869311633596695,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/test_tabwidget.py": {
+    "mi": 48.47081267684989,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/statusbar/test_backforward.py": {
+    "mi": 59.67323824644428,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/statusbar/test_textbase.py": {
+    "mi": 78.68095527409692,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/statusbar/test_percentage.py": {
+    "mi": 87.08241268920115,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/statusbar/test_progress.py": {
+    "mi": 76.22651511423818,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/statusbar/test_tabindex.py": {
+    "mi": 97.9543401392719,
+    "rank": "A"
+  },
+  "tests/unit/mainwindow/statusbar/test_url.py": {
+    "mi": 56.01345930737386,
+    "rank": "A"
+  },
+  "tests/unit/config/test_stylesheet.py": {
+    "mi": 67.4062829749781,
+    "rank": "A"
+  },
+  "tests/unit/config/test_qtargs_locale_workaround.py": {
+    "mi": 54.325992538896756,
+    "rank": "A"
+  },
+  "tests/unit/config/test_configexc.py": {
+    "mi": 56.41965602556186,
+    "rank": "A"
+  },
+  "tests/unit/config/test_configfiles.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "tests/unit/config/test_configtypes.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "tests/unit/config/test_configcache.py": {
+    "mi": 81.72734239901368,
+    "rank": "A"
+  },
+  "tests/unit/config/test_qtargs.py": {
+    "mi": 19.795186394378852,
+    "rank": "A"
+  },
+  "tests/unit/config/test_configutils.py": {
+    "mi": 36.863702736502354,
+    "rank": "A"
+  },
+  "tests/unit/config/test_config.py": {
+    "mi": 10.03426442598144,
+    "rank": "B"
+  },
+  "tests/unit/config/test_configinit.py": {
+    "mi": 35.01010568085724,
+    "rank": "A"
+  },
+  "tests/unit/config/test_websettings.py": {
+    "mi": 70.12430643895436,
+    "rank": "A"
+  },
+  "tests/unit/config/test_configcommands.py": {
+    "mi": 14.678682299762775,
+    "rank": "B"
+  },
+  "tests/unit/config/test_configdata.py": {
+    "mi": 41.952839497118546,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_listcategory.py": {
+    "mi": 79.42296709794853,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_histcategory.py": {
+    "mi": 52.51825486572585,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_completiondelegate.py": {
+    "mi": 84.83765413410826,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_models.py": {
+    "mi": 23.87530404219667,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_completer.py": {
+    "mi": 54.23482881160858,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_completionwidget.py": {
+    "mi": 46.384090548174804,
+    "rank": "A"
+  },
+  "tests/unit/completion/test_completionmodel.py": {
+    "mi": 58.06527964122245,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_javascript.py": {
+    "mi": 61.01177208603279,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_resources.py": {
+    "mi": 50.51801689712674,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_version.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "tests/unit/utils/test_utils.py": {
+    "mi": 3.0009264182282016,
+    "rank": "C"
+  },
+  "tests/unit/utils/test_debug.py": {
+    "mi": 49.48672064674189,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_qtutils.py": {
+    "mi": 14.084441318833381,
+    "rank": "B"
+  },
+  "tests/unit/utils/overflow_test_cases.py": {
+    "mi": 82.86911945980103,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_qtlog.py": {
+    "mi": 70.68494671957473,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_log.py": {
+    "mi": 42.071886751366065,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_urlutils.py": {
+    "mi": 29.486275257718464,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_error.py": {
+    "mi": 71.07185175813916,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_standarddir.py": {
+    "mi": 31.058052692779093,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_jinja.py": {
+    "mi": 56.867851271207776,
+    "rank": "A"
+  },
+  "tests/unit/utils/test_urlmatch.py": {
+    "mi": 31.47971172151406,
+    "rank": "A"
+  },
+  "tests/unit/utils/usertypes/test_misc.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/utils/usertypes/test_question.py": {
+    "mi": 70.84992609128383,
+    "rank": "A"
+  },
+  "tests/unit/utils/usertypes/test_neighborlist.py": {
+    "mi": 18.946520412749244,
+    "rank": "B"
+  },
+  "tests/unit/utils/usertypes/test_timer.py": {
+    "mi": 58.2930425732815,
+    "rank": "A"
+  },
+  "tests/unit/extensions/test_loader.py": {
+    "mi": 56.20833659171052,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/conftest.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/test_modeparsers.py": {
+    "mi": 52.74779323396202,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/test_basekeyparser.py": {
+    "mi": 33.73026628122723,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/test_keyutils.py": {
+    "mi": 26.366505724278312,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/test_modeman.py": {
+    "mi": 82.12474486012027,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/test_bindingtrie.py": {
+    "mi": 63.364622722847606,
+    "rank": "A"
+  },
+  "tests/unit/keyinput/key_data.py": {
+    "mi": 73.26193010257346,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_shared.py": {
+    "mi": 72.17928588323629,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_caret.py": {
+    "mi": 33.418720127825225,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_navigate.py": {
+    "mi": 46.94231457235152,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_hints.py": {
+    "mi": 63.37739244280177,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_signalfilter.py": {
+    "mi": 59.98058260648102,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_qutescheme.py": {
+    "mi": 36.066306663162884,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_urlmarks.py": {
+    "mi": 55.009194006629265,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_downloadview.py": {
+    "mi": 76.03961473885909,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_notification.py": {
+    "mi": 41.00586122445624,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_pdfjs.py": {
+    "mi": 42.71323687931956,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_downloads.py": {
+    "mi": 56.909856118663406,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_inspector.py": {
+    "mi": 49.3824623422104,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_browsertab.py": {
+    "mi": 83.6756129726048,
+    "rank": "A"
+  },
+  "tests/unit/browser/test_history.py": {
+    "mi": 17.076576561814665,
+    "rank": "B"
+  },
+  "tests/unit/browser/webengine/test_webenginetab.py": {
+    "mi": 46.12197119256424,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_webengineinterceptor.py": {
+    "mi": 57.88306391073041,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_webengine_cookies.py": {
+    "mi": 65.74383024419942,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_darkmode.py": {
+    "mi": 36.638526251657325,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_webenginedownloads.py": {
+    "mi": 63.548019686897895,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_spell.py": {
+    "mi": 62.569359934468125,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_webenginesettings.py": {
+    "mi": 57.88610832088185,
+    "rank": "A"
+  },
+  "tests/unit/browser/webengine/test_webview.py": {
+    "mi": 62.98614958152108,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_mhtml.py": {
+    "mi": 51.29011139032548,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_cookies.py": {
+    "mi": 51.63038154051526,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_tabhistory.py": {
+    "mi": 57.30961555404805,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_webkitelem.py": {
+    "mi": 19.89270409250318,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_webkitsettings.py": {
+    "mi": 99.80345439949507,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_webkit_view.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_certificateerror.py": {
+    "mi": 81.81936903702835,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/test_cache.py": {
+    "mi": 45.155385118833145,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/network/test_pac.py": {
+    "mi": 52.286810849937304,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/network/test_networkmanager.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/network/test_filescheme.py": {
+    "mi": 38.6087901966382,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/network/test_networkreply.py": {
+    "mi": 55.17283429873451,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/http/test_content_disposition.py": {
+    "mi": 39.176911237097634,
+    "rank": "A"
+  },
+  "tests/unit/browser/webkit/http/test_httpheaders.py": {
+    "mi": 71.38272374156114,
+    "rank": "A"
+  },
+  "tests/unit/components/test_readlinecommands.py": {
+    "mi": 48.070932630973445,
+    "rank": "A"
+  },
+  "tests/unit/components/test_misccommands.py": {
+    "mi": 75.15039273745798,
+    "rank": "A"
+  },
+  "tests/unit/components/test_hostblock.py": {
+    "mi": 41.91410711386457,
+    "rank": "A"
+  },
+  "tests/unit/components/test_braveadblock.py": {
+    "mi": 47.92987488728046,
+    "rank": "A"
+  },
+  "tests/unit/components/test_blockutils.py": {
+    "mi": 73.74406840617,
+    "rank": "A"
+  },
+  "tests/unit/scripts/test_check_coverage.py": {
+    "mi": 51.33235714458932,
+    "rank": "A"
+  },
+  "tests/unit/scripts/test_importer.py": {
+    "mi": 60.94144755599126,
+    "rank": "A"
+  },
+  "tests/unit/scripts/test_problemmatchers.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/scripts/test_dictcli.py": {
+    "mi": 59.78125668857071,
+    "rank": "A"
+  },
+  "tests/unit/scripts/test_run_vulture.py": {
+    "mi": 73.29391304016144,
+    "rank": "A"
+  },
+  "tests/unit/api/test_cmdutils.py": {
+    "mi": 28.599027756461684,
+    "rank": "A"
+  },
+  "tests/unit/commands/test_parser.py": {
+    "mi": 70.9602681246478,
+    "rank": "A"
+  },
+  "tests/unit/commands/test_argparser.py": {
+    "mi": 57.97650250417253,
+    "rank": "A"
+  },
+  "tests/unit/commands/test_cmdexc.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/unit/commands/test_userscripts.py": {
+    "mi": 46.06940030091054,
+    "rank": "A"
+  },
+  "tests/unit/javascript/test_greasemonkey.py": {
+    "mi": 33.601407927741604,
+    "rank": "A"
+  },
+  "tests/unit/javascript/conftest.py": {
+    "mi": 75.74936802262262,
+    "rank": "A"
+  },
+  "tests/unit/javascript/test_js_quirks.py": {
+    "mi": 75.94416131010334,
+    "rank": "A"
+  },
+  "tests/unit/javascript/test_js_execution.py": {
+    "mi": 84.88617059904561,
+    "rank": "A"
+  },
+  "tests/unit/javascript/stylesheet/test_stylesheet_js.py": {
+    "mi": 72.99490754881514,
+    "rank": "A"
+  },
+  "tests/unit/javascript/position_caret/test_position_caret.py": {
+    "mi": 81.33991510063612,
+    "rank": "A"
+  },
+  "tests/end2end/conftest.py": {
+    "mi": 53.960435587932444,
+    "rank": "A"
+  },
+  "tests/end2end/test_invocations.py": {
+    "mi": 25.062403294091524,
+    "rank": "A"
+  },
+  "tests/end2end/test_mhtml_e2e.py": {
+    "mi": 60.01038298852577,
+    "rank": "A"
+  },
+  "tests/end2end/test_adblock_e2e.py": {
+    "mi": 73.5665468569086,
+    "rank": "A"
+  },
+  "tests/end2end/test_dirbrowser.py": {
+    "mi": 50.40697958167933,
+    "rank": "A"
+  },
+  "tests/end2end/test_hints_html.py": {
+    "mi": 52.94434282277195,
+    "rank": "A"
+  },
+  "tests/end2end/test_insert_mode.py": {
+    "mi": 74.6012332813331,
+    "rank": "A"
+  },
+  "tests/end2end/misc/test_runners_e2e.py": {
+    "mi": 84.6510752723459,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_javascript_bdd.py": {
+    "mi": 71.99610317469029,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_tabs_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_history_bdd.py": {
+    "mi": 79.64802690106511,
+    "rank": "A"
+  },
+  "tests/end2end/features/conftest.py": {
+    "mi": 30.218779743612707,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_downloads_bdd.py": {
+    "mi": 48.23783753040544,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_backforward_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_invoke_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_completion_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_sessions_bdd.py": {
+    "mi": 75.97664259270131,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_open_bdd.py": {
+    "mi": 87.89670078433734,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_utilcmds_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_prompts_bdd.py": {
+    "mi": 69.72173024889608,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_misc_bdd.py": {
+    "mi": 89.49557562908133,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_notifications_bdd.py": {
+    "mi": 62.85057885928352,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_search_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_hints_bdd.py": {
+    "mi": 94.20390332338766,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_marks_bdd.py": {
+    "mi": 91.75051395189438,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_navigate_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_spawn_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_yankpaste_bdd.py": {
+    "mi": 98.91316137157132,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_keyinput_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_zoom_bdd.py": {
+    "mi": 96.24030478036617,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_private_bdd.py": {
+    "mi": 86.14689912891784,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_editor_bdd.py": {
+    "mi": 58.55178062496724,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_qutescheme_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_scroll_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_caret_bdd.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/features/test_urlmarks_bdd.py": {
+    "mi": 85.61145673272574,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/webserver_sub.py": {
+    "mi": 43.65316999622415,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/webserver_sub_ssl.py": {
+    "mi": 76.954288645918,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/webserver.py": {
+    "mi": 52.376685246656024,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/test_testprocess.py": {
+    "mi": 49.060734533660394,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/test_webserver.py": {
+    "mi": 77.30951072462716,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/quteprocess.py": {
+    "mi": 22.25126513240988,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/testprocess.py": {
+    "mi": 39.61177584634031,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/test_quteprocess.py": {
+    "mi": 50.13583545129915,
+    "rank": "A"
+  },
+  "tests/end2end/fixtures/notificationserver.py": {
+    "mi": 48.47725039355556,
+    "rank": "A"
+  },
+  "tests/end2end/data/misc/pyeval_file.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/end2end/data/brave-adblock/generate.py": {
+    "mi": 67.92536841148063,
+    "rank": "A"
+  },
+  "tests/end2end/data/userscripts/stdinclose.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/helpers/test_stubs.py": {
+    "mi": 60.419963666944234,
+    "rank": "A"
+  },
+  "tests/helpers/test_helper_utils.py": {
+    "mi": 71.80970521044031,
+    "rank": "A"
+  },
+  "tests/helpers/testutils.py": {
+    "mi": 45.91395327794757,
+    "rank": "A"
+  },
+  "tests/helpers/logfail.py": {
+    "mi": 82.05663611532151,
+    "rank": "A"
+  },
+  "tests/helpers/stubs.py": {
+    "mi": 30.87170961615168,
+    "rank": "A"
+  },
+  "tests/helpers/test_logfail.py": {
+    "mi": 100.0,
+    "rank": "A"
+  },
+  "tests/helpers/messagemock.py": {
+    "mi": 77.03710597028939,
+    "rank": "A"
+  },
+  "tests/helpers/fixtures.py": {
+    "mi": 39.24166793402641,
+    "rank": "A"
+  }
+}

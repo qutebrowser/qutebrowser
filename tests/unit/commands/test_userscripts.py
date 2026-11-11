@@ -5,7 +5,6 @@
 import os
 import pathlib
 import json
-import time
 import logging
 import signal
 
@@ -174,8 +173,10 @@ def test_killed_command(qtbot, tmp_path, py_proc, runner, caplog):
         # on Windows, where QUTE_FIFO is only monitored after the script has
         # exited.
 
-        with open(sys.argv[1], 'w') as f:
+        temp_path = sys.argv[1] + '.tmp'
+        with open(temp_path, 'w') as f:
             json.dump(data, f)
+        os.replace(temp_path, sys.argv[1])
 
         time.sleep(30)
     """)
@@ -189,9 +190,6 @@ def test_killed_command(qtbot, tmp_path, py_proc, runner, caplog):
     # For some reason, this tends to be flaky on Windows, and we got the
     # directoryChanged signal *without* the file existing (wut?)...
     qtbot.wait_until(data_file.exists)
-
-    # Make sure the PID was written to the file, not just the file created
-    time.sleep(0.5)
 
     with data_file.open() as f:
         data = json.load(f)

@@ -246,7 +246,6 @@ class TestCompletionItemFocusPage:
         completionview.set_model(model)
 
         for move, item in steps:
-            print('{:9} -> expecting {}'.format(move, item))
             with qtbot.wait_signal(completionview.selection_changed) as blocker:
                 completionview.completion_item_focus(move)
             assert blocker.args == [item]

@@ -13,7 +13,10 @@ from qutebrowser.utils import urlutils
 @pytest.mark.usefixtures('config_stub')
 class TestIncDec:
 
-    @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
+    @pytest.mark.parametrize('incdec, offset', [
+        ('increment', 1),
+        ('decrement', -1),
+    ])
     @pytest.mark.parametrize('value', [
         '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
     ])
@@ -35,7 +38,7 @@ class TestIncDec:
         # Make sure that spaces in paths work
         'http://example.com/path with {} spaces',
     ])
-    def test_incdec(self, incdec, value, url, config_stub):
+    def test_incdec(self, incdec, offset, value, url, config_stub):
         if (value == '{}foo' and
                 url == 'http://example.com/path with {} spaces'):
             pytest.xfail("https://github.com/qutebrowser/qutebrowser/issues/4917")
@@ -47,10 +50,7 @@ class TestIncDec:
         # bigger than 1
         # 20 was chosen by dice roll, guaranteed to be random
         base_value = value.format(20)
-        if incdec == 'increment':
-            expected_value = value.format(21)
-        else:
-            expected_value = value.format(19)
+        expected_value = value.format(20 + offset)
 
         base_url = QUrl(url.format(base_value))
         expected_url = QUrl(url.format(expected_value))

@@ -6,7 +6,6 @@
 
 import signal
 import contextlib
-import time
 
 import pytest
 
@@ -46,7 +45,6 @@ def test_debug_crash_segfault():
         # the "Segfault failed (wat.)" Exception
         with pytest.raises(Exception, match="Segfault failed"):
             misccommands.debug_crash(typ='segfault')
-        time.sleep(0.001)
     assert caught
 
 

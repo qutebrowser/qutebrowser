@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import contextlib
 import operator
 
 import hypothesis
@@ -554,11 +555,8 @@ class TestKeySequence:
 
     @hypothesis.given(strategies.text())
     def test_parse_hypothesis(self, keystr):
-        try:
+        with contextlib.suppress(keyutils.KeyParseError):
             seq = keyutils.KeySequence.parse(keystr)
-        except keyutils.KeyParseError:
-            pass
-        else:
             str(seq)  # noqa: B018
 
 

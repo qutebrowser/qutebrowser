@@ -50,16 +50,13 @@ def objects():
     return Objects(signal_filter=signal_filter, signaller=signaller)
 
 
-@pytest.mark.parametrize('index_of, emitted', [(0, True), (1, False)])
-def test_filtering(objects, tabbed_browser_stubs, index_of, emitted):
+@pytest.mark.parametrize('index_of, expected', [(0, 'foo'), (1, None)])
+def test_filtering(objects, tabbed_browser_stubs, index_of, expected):
     browser = tabbed_browser_stubs[0]
     browser.widget.current_index = 0
     browser.widget.index_of = index_of
     objects.signaller.signal.emit('foo')
-    if emitted:
-        assert objects.signaller.filtered_signal_arg == 'foo'
-    else:
-        assert objects.signaller.filtered_signal_arg is None
+    assert objects.signaller.filtered_signal_arg == expected
 
 
 @pytest.mark.parametrize('index_of, verb', [(0, 'emitting'), (1, 'ignoring')])

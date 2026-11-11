@@ -45,7 +45,10 @@ def view(model, qtbot):
     return dv
 
 
-@pytest.mark.parametrize('can_clear', [True, False])
+@pytest.mark.parametrize('finished_downloads, extra_actions', [
+    ([FakeDownload(done=True)], [None, "Remove all finished"]),
+    ([], []),
+])
 @pytest.mark.parametrize('item, expected', [
     # Clicking outside of a download item
     (None, []),
@@ -65,14 +68,10 @@ def view(model, qtbot):
         ["Retry", "Remove", "Copy URL"],
     ),
 ])
-def test_get_menu_actions(can_clear, item, expected, view, qtnetwork_manager):
-    if can_clear:
-        qtnetwork_manager.downloads.append(FakeDownload(done=True))
-        expected = expected.copy() + [None, "Remove all finished"]
-    else:
-        assert not qtnetwork_manager.downloads
-        assert "Remove all finished" not in expected
+def test_get_menu_actions(finished_downloads, extra_actions, item, expected,
+                          view, qtnetwork_manager):
+    qtnetwork_manager.downloads.extend(finished_downloads)
 
     actions = view._get_menu_actions(item)
     texts = [action[0] for action in actions]
-    assert texts == expected
+    assert texts == expected + extra_actions

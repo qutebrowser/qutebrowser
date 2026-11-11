@@ -219,7 +219,6 @@ def test_adblock_cache(config_stub, easylist_easyprivacy, caplog, ad_blocker):
     config_stub.val.content.blocking.enabled = True
 
     for i in range(3):
-        print("At cache test iteration {}".format(i))
         # Trying to read the cache before calling the update command should return
         # a log message.
         with caplog.at_level(logging.INFO):

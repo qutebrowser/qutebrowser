@@ -75,9 +75,11 @@ def test_version_gate(cache_tmpdir, unaffected_version, mocker, config_stub, wor
         (workdir / "some_patched_file.pak").ensure()
     fake_open = mocker.patch("qutebrowser.misc.pakjoy.open")
 
+    executed = False
     with pakjoy.patch_webengine():
-        pass
+        executed = True
 
+    assert executed
     assert not fake_open.called
     assert not workdir.exists()
 

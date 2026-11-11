@@ -164,21 +164,29 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
         config_stub.val.content.cookies.store = False
 
 
-@pytest.mark.parametrize('store_cookies,empty', [(True, False), (False, True)])
-def test_cookies_changed(config_stub, fake_save_manager, monkeypatch, qtbot,
-                         store_cookies, empty):
+def test_cookies_changed_enabled(config_stub, fake_save_manager, monkeypatch,
+                                 qtbot):
     """Test that cookies are saved correctly."""
     monkeypatch.setattr(lineparser, 'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
     jar._lineparser.data = [COOKIE1, COOKIE2]
     jar.parse_cookies()
-    config_stub.val.content.cookies.store = store_cookies
+    config_stub.val.content.cookies.store = True
 
-    if empty:
-        assert not jar._lineparser.data
-        assert not jar._lineparser.saved
-    else:
-        assert jar._lineparser.data
+    assert jar._lineparser.data
+
+
+def test_cookies_changed_disabled(config_stub, fake_save_manager, monkeypatch,
+                                  qtbot):
+    """Test that cookies are cleared when storage is disabled."""
+    monkeypatch.setattr(lineparser, 'LineParser', LineparserSaveStub)
+    jar = cookies.CookieJar()
+    jar._lineparser.data = [COOKIE1, COOKIE2]
+    jar.parse_cookies()
+    config_stub.val.content.cookies.store = False
+
+    assert not jar._lineparser.data
+    assert not jar._lineparser.saved
 
 
 def test_init(qapp, config_stub, fake_save_manager):
