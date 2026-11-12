@@ -52,7 +52,7 @@ def verbose_copy(src, dst, *, follow_symlinks=True):
 
 def get_ignored_files(directory, files):
     """Get the files which should be ignored for link_pyqt() on Windows."""
-    needed_exts = ('.py', '.dll', '.pyd', '.so')
+    needed_exts = ('.py', '.dll', '.pyd', '.so', '.exe', '.pak', '.dat', '.bin')
     ignored_dirs = ('examples', 'qml', 'uic', 'doc')
     filtered = []
     for f in files:
