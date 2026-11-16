@@ -28,6 +28,8 @@ Fixed
 ~~~~~
 
 - Recent PDF.js versions now work properly again (#8966)
+- `:unbind` now takes the key as typed, like `:bind` does. Before, keys such as
+  `"` or `'` had to be escaped, and `:unbind "x` silently unbound `x` instead (#3904).
 
 [[v3.7.0]]
 v3.7.0 (2026-04-03)

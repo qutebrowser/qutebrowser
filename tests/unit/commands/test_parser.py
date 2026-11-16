@@ -71,6 +71,13 @@ class TestCommandParser:
         ("cmd-set-text /", "cmd-set-text", ["/"]),
         ("cmd-set-text ?", "cmd-set-text", ["?"]),
         ("cmd-set-text :", "cmd-set-text", [":"]),
+        # See https://github.com/qutebrowser/qutebrowser/issues/3904
+        ("unbind x", "unbind", ["x"]),
+        ('unbind "', "unbind", ['"']),
+        ("unbind '", "unbind", ["'"]),
+        ("unbind \\", "unbind", ["\\"]),
+        ('unbind "x', "unbind", ['"x']),
+        ('unbind --mode=insert "', "unbind", ["--mode=insert", '"']),
     ])
     def test_parse_result(self, config_stub, command, name, args):
         p = parser.CommandParser()
