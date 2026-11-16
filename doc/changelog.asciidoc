@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v3.8.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- The confirmation dialog when overriding an existing quickmark now shows the
+  old URL (#7622).
+
 Removed
 ~~~~~~~
 

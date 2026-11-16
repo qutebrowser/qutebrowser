@@ -130,3 +130,20 @@ def test_reload(bm_file, fake_save_manager, qtbot):
     assert list(bm.marks.items()) == [
         ('http://example.org', 'Example Site'),
     ]
+
+
+def test_quickmark_override_escaped_url(config_tmpdir, fake_save_manager,
+                                        monkeypatch):
+    quickmark_file = config_tmpdir / 'quickmarks'
+    quickmark_file.write('foo http://example.com/?q=a&b<c\n')
+
+    qm = urlmarks.QuickmarkManager()
+
+    confirm = unittest.mock.Mock()
+    monkeypatch.setattr(urlmarks.message, 'confirm_async', confirm)
+
+    qm.quickmark_add('http://example.org', 'foo')
+
+    confirm.assert_called_once()
+    assert confirm.call_args.kwargs['text'] == (
+        'Old URL: http://example.com/?q=a&amp;b&lt;c')
