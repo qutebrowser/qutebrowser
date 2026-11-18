@@ -196,7 +196,8 @@
                 }
             },
             set: function(target, prop, val) {
-                return qute_gm_window_shadow[prop] = val;
+                qute_gm_window_shadow[prop] = val;
+                return true;
             },
             has: function(target, key) {
                 return key in qute_gm_window_shadow || key in target;
