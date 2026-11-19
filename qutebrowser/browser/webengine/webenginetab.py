@@ -1278,6 +1278,8 @@ class _WebEngineWebAuth(QObject):
         self, state: "QWebEngineWebAuthUxRequest.WebAuthUxState"
     ) -> None:
         log.webview.debug(f"Webauth UX state: {state}")
+        if state == QWebEngineWebAuthUxRequest.WebAuthUxState.NotStarted:
+            log.webview.debug("Webauth not started")
         elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.SelectAccount:
             self._ux_account_selection()
         if state == QWebEngineWebAuthUxRequest.WebAuthUxState.CollectPin:
@@ -1290,6 +1292,8 @@ class _WebEngineWebAuth(QObject):
             self._ux_request_cancelled()
         elif state == QWebEngineWebAuthUxRequest.WebAuthUxState.Completed:
             self._ux_request_completed()
+        elif self._is_webauth_ux_state_discovery(state):
+            self._ux_discovery()
         else:
             raise utils.Unreachable(state)
 
@@ -1308,6 +1312,18 @@ class _WebEngineWebAuth(QObject):
     def _ux_finish_token_collection(self) -> None:
         log.webview.debug("Finish Webauth token collection")
         message.info("Please touch your device now.")
+
+    def _is_webauth_ux_state_discovery(
+        self, state: "QWebEngineWebAuthUxRequest.WebAuthUxState"
+    ) -> bool:
+        try:
+            return state == QWebEngineWebAuthUxRequest.WebAuthUxState.Discovery
+        except AttributeError:
+            return False  # added in QtWebEngine 6.12
+
+    def _ux_discovery(self) -> None:
+        log.webview.debug("Webauth device discovery")
+        message.info("Please select a device by touching it.")
 
     def _ux_account_selection(self) -> None:
         assert self._request is not None
