@@ -833,6 +833,25 @@ class AbstractElements:
         raise NotImplementedError
 
 
+class AbstractZapper(QObject):
+    """Hiding selected Elements."""
+
+    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self._widget = cast(_WidgetType, None)
+        self._tab = tab
+
+    def zapper_select(self) -> None:
+        """Highlights hovered elements, detects clicks and Enter presses."""
+        raise NotImplementedError
+
+    def save_hidden_elements_setting(self) -> None:
+        raise NotImplementedError
+
+    def reset_hidden_elements_setting(self) -> None:
+        raise NotImplementedError
+
+
 class AbstractAudio(QObject):
 
     """Handling of audio/muting for this tab."""
