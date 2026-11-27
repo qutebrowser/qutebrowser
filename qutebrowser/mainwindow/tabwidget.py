@@ -70,7 +70,12 @@ class TabWidget(QTabWidget):
         tabbar = self.tab_bar()
         tabbar.vertical = position in [
             QTabWidget.TabPosition.West, QTabWidget.TabPosition.East]
-        tabbar.setSelectionBehaviorOnRemove(selection_behavior)
+        # 'firefox' mode uses custom selection logic; fall back to 'next' for Qt
+        if selection_behavior == 'firefox':
+            tabbar.setSelectionBehaviorOnRemove(
+                QTabBar.SelectionBehavior.SelectRightTab)
+        else:
+            tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
     def tab_bar(self) -> "TabBar":
