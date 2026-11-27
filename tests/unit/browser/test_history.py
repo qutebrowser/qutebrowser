@@ -83,6 +83,36 @@ class TestGetting:
                  web_history.entries_before(12348, limit=3, offset=2)]
         assert times == [12348, 12347, 12346]
 
+    def test_entries_between_sql_error(self, monkeypatch, web_history, message_mock, caplog):
+        def raise_error(**_kwargs):
+            raise sql.KnownError("Database disk image is malformed")
+
+        monkeypatch.setattr(web_history._between_query, 'run', raise_error)
+        with caplog.at_level(logging.ERROR):
+            assert list(web_history.entries_between(100, 200)) == []
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == "Failed to read history: Database disk image is malformed"
+
+    def test_entries_before_sql_error(self, monkeypatch, web_history, message_mock, caplog):
+        def raise_error(**_kwargs):
+            raise sql.KnownError("Database disk image is malformed")
+
+        monkeypatch.setattr(web_history._before_query, 'run', raise_error)
+        with caplog.at_level(logging.ERROR):
+            assert list(web_history.entries_before(200, limit=10, offset=0)) == []
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == "Failed to read history: Database disk image is malformed"
+
+    def test_contains_sql_error(self, monkeypatch, web_history, message_mock, caplog):
+        def raise_error(**_kwargs):
+            raise sql.KnownError("Database disk image is malformed")
+
+        monkeypatch.setattr(web_history._contains_query, 'run', raise_error)
+        with caplog.at_level(logging.ERROR):
+            assert 'http://example.com' not in web_history
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == "Failed to read history: Database disk image is malformed"
+
 
 class TestDelete:
 
