@@ -63,7 +63,7 @@ jobs:
           result-encoding: string
       - uses: actions/checkout@v6
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           # Doesn't really matter what we prepare the release with, but let's
           # use the same version for consistency.
@@ -167,7 +167,7 @@ jobs:
         with:
           ref: v${{ inputs.release_type == 'reupload' && needs.prepare.outputs.version_x || needs.prepare.outputs.version }}
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ inputs.python_version }}
       - name: Import GPG Key
