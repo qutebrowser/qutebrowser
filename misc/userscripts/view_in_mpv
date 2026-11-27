@@ -83,44 +83,66 @@ cat <<EOF
             // the object anyway.
             continue;
         }
-        var replacement = document.createElement("div");
-        replacement.innerHTML = "
-            <p style=\\"margin-bottom: 0.5em\\">
-            Opening page with:
-            <span style=\\"font-family: monospace;\\">${video_command[*]}</span>
-            </p>
-            <p>
-            In order to restore this particular video
-            <a style=\\"font-weight: bold;
-                        color: white;
-                        background: transparent;
-                        cursor: pointer;
-                     \\"
-               onClick=\\"restore_video(this, " + i + ");\\"
-              >click here</a>.
-            </p>
-        ";
-        replacement.style.position = "relative";
-        replacement.style.zIndex = "100003000000";
-        replacement.style.fontSize = "1rem";
-        replacement.style.textAlign = "center";
+
+        var replacement                 = document.createElement("div");
+        replacement.style.position      = "relative";
+        replacement.style.zIndex        = "100003000000";
+        replacement.style.fontSize      = "1rem";
+        replacement.style.textAlign     = "center";
         replacement.style.verticalAlign = "middle";
-        replacement.style.height = "100%";
-        replacement.style.background = "#101010";
-        replacement.style.color = "white";
-        replacement.style.border = "4px dashed #545454";
-        replacement.style.padding = "2em";
-        replacement.style.margin = "auto";
+        replacement.style.height        = "100%";
+        replacement.style.background    = "#101010";
+        replacement.style.color         = "white";
+        replacement.style.border        = "4px dashed #545454";
+        replacement.style.padding       = "2em";
+        replacement.style.margin        = "auto";
+
+        var p1                = document.createElement("p");
+        p1.style.marginBottom = "0.5em";
+
+        p1.appendChild(document.createTextNode("Opening page with: "));
+
+        var span              = document.createElement("span");
+        span.style.fontFamily = "monospace";
+        span.textContent      = "${video_command[*]}";
+        p1.appendChild(span);
+
+        replacement.appendChild(p1);
+
+        var p2 = document.createElement("p");
+
+        p2.appendChild(document.createTextNode("In order to restore this particular video "));
+
+        var a = document.createElement("a");
+        a.textContent = "click here";
+        a.style.fontWeight = "bold";
+        a.style.color = "white";
+        a.style.background = "transparent";
+        a.style.cursor = "pointer";
+        a.href = "#";
+
+        var restore_video = ((i) => {
+          return (() => {
+            var obj = App.all_replacements[i];
+            var video = App.backup_videos[i];
+            obj.parentNode.replaceChild(video, obj);
+        })})(i);
+
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          restore_video();
+        });
+
+        p2.appendChild(a);
+        p2.appendChild(document.createTextNode("."));
+
+        replacement.appendChild(p2);
+
         App.all_replacements[i] = replacement;
         App.backup_videos[i] = video;
         video.parentNode.replaceChild(replacement, video);
     }
 
-    function restore_video(obj, index) {
-        obj = App.all_replacements[index];
-        video = App.backup_videos[index];
-        obj.parentNode.replaceChild(video, obj);
-    }
 
     /** force repainting the video, thanks to:
      * http://web.archive.org/web/20151029064649/https://martinwolf.org/2014/06/10/force-repaint-of-an-element-with-javascript/
