@@ -5,6 +5,7 @@
 import string
 import functools
 import operator
+from unittest import mock
 
 import pytest
 from qutebrowser.qt.core import QUrl
@@ -135,3 +136,155 @@ def test_scattered_hints_count(min_len, num_chars, num_elements):
             # Check that we really couldn't use any short links
             assert ((num_chars ** longest_hint_len) - num_elements <
                     len(chars) - 1)
+
+
+class TestTextFiltering:
+    """Tests for the --text parameter hint filtering functionality."""
+    
+    @pytest.fixture
+    def hint_manager(self):
+        """Create a HintManager instance for testing."""
+        return qutebrowser.browser.hints.HintManager(win_id=0)
+    
+    @pytest.fixture 
+    def mock_elem(self):
+        """Create a mock web element for testing."""
+        elem = mock.Mock()
+        elem.value = mock.Mock(return_value="")
+        elem.get = mock.Mock(return_value="")
+        return elem
+    
+    def test_filter_matches_basic(self, hint_manager):
+        """Test basic text filtering functionality."""
+        # Test case-insensitive matching
+        assert hint_manager._filter_matches("hello", "Hello World")
+        assert hint_manager._filter_matches("WORLD", "hello world")
+        
+        # Test substring matching
+        assert hint_manager._filter_matches("ell", "Hello")
+        assert not hint_manager._filter_matches("xyz", "Hello")
+        
+        # Test empty filter (should match everything)
+        assert hint_manager._filter_matches("", "anything")
+        assert hint_manager._filter_matches(None, "anything")
+    
+    def test_filter_matches_multiword(self, hint_manager):
+        """Test multi-word filtering functionality."""
+        text = "Submit the form now"
+        
+        # Test multi-word matching (all words must be present)
+        assert hint_manager._filter_matches("submit form", text)
+        assert hint_manager._filter_matches("the now", text)
+        assert hint_manager._filter_matches("form submit", text)  # order doesn't matter
+        
+        # Test partial multi-word matching fails
+        assert not hint_manager._filter_matches("submit missing", text)
+        assert not hint_manager._filter_matches("form xyz", text)
+    
+    def test_text_filter_with_placeholder(self, hint_manager, mock_elem):
+        """Test text filtering includes placeholder text."""
+        # Mock element with placeholder
+        mock_elem.__str__ = mock.Mock(return_value="Submit")  # text content
+        mock_elem.value = mock.Mock(return_value="")  # no value
+        mock_elem.get = mock.Mock(return_value="Enter your name")  # placeholder
+        
+        # Combined text should be "Submit  Enter your name"
+        combined = f"Submit   Enter your name".strip()
+        
+        # Should match placeholder text
+        assert hint_manager._filter_matches("Enter", combined)
+        assert hint_manager._filter_matches("name", combined)
+        assert hint_manager._filter_matches("your name", combined)
+        
+        # Should still match text content
+        assert hint_manager._filter_matches("Submit", combined)
+        
+        # Should match combination
+        assert hint_manager._filter_matches("Submit Enter", combined)
+    
+    def test_text_filter_with_value(self, hint_manager, mock_elem):
+        """Test text filtering includes input values."""
+        # Mock element with value
+        mock_elem.__str__ = mock.Mock(return_value="")  # no text content
+        mock_elem.value = mock.Mock(return_value="current input text")  # input value
+        mock_elem.get = mock.Mock(return_value="placeholder text")  # placeholder
+        
+        combined = f" current input text placeholder text".strip()
+        
+        # Should match input value
+        assert hint_manager._filter_matches("current", combined)
+        assert hint_manager._filter_matches("input text", combined)
+        
+        # Should match placeholder
+        assert hint_manager._filter_matches("placeholder", combined)
+        
+        # Should match combination
+        assert hint_manager._filter_matches("current placeholder", combined)
+    
+    def test_text_filter_combined_sources(self, hint_manager, mock_elem):
+        """Test text filtering with all text sources combined."""
+        # Mock element with all text sources
+        mock_elem.__str__ = mock.Mock(return_value="Login Button")  # text content
+        mock_elem.value = mock.Mock(return_value="login")  # input value  
+        mock_elem.get = mock.Mock(return_value="Enter credentials")  # placeholder
+        
+        combined = "Login Button login Enter credentials"
+        
+        # Should match any individual source
+        assert hint_manager._filter_matches("Button", combined)
+        assert hint_manager._filter_matches("login", combined)  # matches both text and value
+        assert hint_manager._filter_matches("credentials", combined)
+        
+        # Should match across sources
+        assert hint_manager._filter_matches("Login Enter", combined)
+        assert hint_manager._filter_matches("Button credentials", combined)
+    
+    def test_text_filter_empty_sources(self, hint_manager, mock_elem):
+        """Test text filtering with empty/None values."""
+        # Mock element with empty values
+        mock_elem.__str__ = mock.Mock(return_value="Button Text")
+        mock_elem.value = mock.Mock(return_value=None)  # None value
+        mock_elem.get = mock.Mock(return_value="")  # empty placeholder
+        
+        combined = "Button Text  ".strip()
+        
+        # Should still work with just text content
+        assert hint_manager._filter_matches("Button", combined)
+        assert hint_manager._filter_matches("Text", combined)
+        assert not hint_manager._filter_matches("missing", combined)
+    
+    def test_hint_context_text_filter(self):
+        """Test HintContext includes text_filter field."""
+        from qutebrowser.browser.hints import HintContext
+        from qutebrowser.qt.core import QUrl
+        
+        # Create a minimal HintContext to test text_filter field
+        context = HintContext(
+            tab=mock.Mock(),
+            target=mock.Mock(),
+            rapid=False,
+            hint_mode="number",
+            add_history=False,
+            first=False,
+            baseurl=QUrl("https://example.com"),
+            args=[],
+            group="all",
+            text_filter="test filter"
+        )
+
+        assert context.text_filter == "test filter"
+
+        # Test with None (default)
+        context_none = HintContext(
+            tab=mock.Mock(),
+            target=mock.Mock(),
+            rapid=False,
+            hint_mode="number",
+            add_history=False,
+            first=False,
+            baseurl=QUrl("https://example.com"),
+            args=[],
+            group="all"
+        )
+
+        assert context_none.text_filter is None
