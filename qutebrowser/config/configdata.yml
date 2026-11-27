@@ -50,6 +50,16 @@ changelog_after_upgrade:
 ignore_case:
   renamed: search.ignore_case
 
+search.delay:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 400
+  desc: Delay (in milliseconds) between last keystroke when searching and the
+    search being submitted. Larger values produce fewer redundant searches but
+    also delay receiving search results.
+
 search.ignore_case:
   type: IgnoreCase
   default: smart
