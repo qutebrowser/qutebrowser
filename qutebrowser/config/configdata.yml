@@ -2212,6 +2212,11 @@ statusbar.widgets:
   default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
 
+statusbar.mode_text:
+  default: true
+  type: Bool
+  desc: Show a text widget with the current input mode in the statusbar.
+
 ## tabs
 
 tabs.background:
