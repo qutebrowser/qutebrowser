@@ -165,10 +165,10 @@ window._qutebrowser.webelem = (function() {
         let rect = add_offset_rect(elem.getBoundingClientRect(), offset_rect);
 
         if (!rect ||
-                rect.top > window.innerHeight ||
-                rect.bottom < 0 ||
-                rect.left > window.innerWidth ||
-                rect.right < 0) {
+            rect.top > window.innerHeight ||
+            rect.bottom < 0 ||
+            rect.left > window.innerWidth ||
+            rect.right < 0) {
             return false;
         }
 
@@ -257,6 +257,30 @@ window._qutebrowser.webelem = (function() {
         return null;
     }
 
+    funcs.find_xpath = (xpath) => {
+        function finder(win) {
+            const doc = win.document;
+            const xpath_result = doc.evaluate(xpath, doc, null,
+                XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+            const out = [];
+
+            for (let i = 0; i < xpath_result.snapshotLength; i++) {
+                out.push(serialize_elem(xpath_result.snapshotItem(i)));
+            }
+
+            if (out.length > 0) {
+                return out;
+            }
+            return null;
+        }
+
+        const direct = finder(window) ?? [];
+        const in_frames = run_frames(finder) ?? [];
+
+        return {"success": true, "result": [...direct, ...in_frames]};
+    };
+
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
         if (elem) {
@@ -320,7 +344,7 @@ window._qutebrowser.webelem = (function() {
             (frame) => {
                 // Subtract offsets due to being in an iframe
                 const frame_offset_rect =
-                      frame.frameElement.getBoundingClientRect();
+                    frame.frameElement.getBoundingClientRect();
                 return serialize_elem(frame.document.
                     elementFromPoint(x - frame_offset_rect.left,
                         y - frame_offset_rect.top), frame);
@@ -331,6 +355,27 @@ window._qutebrowser.webelem = (function() {
         }
         return serialize_elem(elem);
     };
+
+    function *traverse_dom(start_node) {
+        let cur_node = start_node;
+        while (cur_node !== null) {
+            yield cur_node;
+            if (cur_node.children.length > 0) {
+                cur_node = cur_node.children[0];
+                continue; // eslint-disable-line no-continue
+            }
+
+            if (iframe_same_domain(cur_node.contentWindow)) {
+                yield* traverse_dom(cur_node.document);
+            }
+
+            while (cur_node !== null && cur_node.nextSibling === null) {
+                cur_node = cur_node.parentNode;
+            }
+
+            cur_node = cur_node?.nextElementSibling;
+        }
+    }
 
     // Function for returning a selection or focus to python (so we can click
     // it). If nothing is selected but there is something focused, returns
