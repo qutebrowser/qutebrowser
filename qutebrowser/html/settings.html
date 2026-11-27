@@ -18,7 +18,7 @@ table {
 }
 
 tbody tr:nth-child(odd) {
-    background: #eaf4fb;
+    background: var(--color-bg-alt);
 }
 
 pre {
@@ -28,11 +28,11 @@ pre {
 th {
     padding: 10px;
     border-radius: 5px;
-    background: #a6dfff;
+    background: var(--color-bg-feature);
     text-align: left;
     font-weight: normal;
     font-size: 1.5rem;
-    color: #084c88;
+    color: var(--color-fg-feature);
 }
 
 td {
@@ -45,18 +45,24 @@ th pre {
 }
 
 input {
+    /*
+    Leave background transparent,
+    opaque color bleeds over the jump hint marker location.
+    */
     padding: 8px;
     width: 98%;
     box-sizing: border-box;
     border-radius: 4px;
-    border: 1px solid #01cdd0;
+    border: 1px solid var(--color-border);
     font-size: 0.9rem;
     font-family: DejaVu, serif;
+    background-color: #00000000;
+    color: var(--color-fg);
 }
 
 input:focus {
     outline: none;
-    border: 2px solid #7a589ea6;
+    border: 2px solid var(--color-border-focused);
 }
 
 input[type="radio"] {
@@ -73,13 +79,13 @@ label {
     margin-bottom: 2px;
     padding: 5px 10px;
     border-radius: 5px;
-    background-color: #dddddd;
-    color: #666666;
+    background-color: var(--color-bg-label);
+    color: var(--color-fg-label);
 }
 
 input[type="radio"]:checked + label {
-    background-color: #a6dfff;
-    color: #084c88;
+    background-color: var(--color-bg-feature);
+    color: var(--color-fg-feature);
 }
 
 .radio-button {
@@ -111,7 +117,7 @@ input[type="radio"]:checked + label {
 
 .option-description {
     margin: .5ex 0;
-    color: #635d5dcf;
+    color: var(--color-fg-alt);
     font-size: 80%;
     font-style: italic;
 }
@@ -135,14 +141,14 @@ details[open] .details {
 summary {
     margin: .5ex 0;
     width: fit-content;
-    color: #1887c5;
+    color: var(--color-fg-feature-alt);
     outline: none;
     font-size: 105%;
     cursor: pointer;
 }
 
 summary .short-description {
-    color: #635d5dcf;
+    color: var(--color-fg-alt);
 }
 
 summary::selection {
