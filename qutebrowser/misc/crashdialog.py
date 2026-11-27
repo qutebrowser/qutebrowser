@@ -197,14 +197,14 @@ class _CrashDialog(QDialog):
         self._vbox.addWidget(self._btn_box)
 
         self._btn_report = QPushButton("Report")
-        self._btn_report.setDefault(True)
+        self._btn_report.setAutoDefault(False)
         self._btn_report.clicked.connect(self.on_report_clicked)
-        self._btn_box.addButton(self._btn_report, QDialogButtonBox.ButtonRole.AcceptRole)
+        self._btn_box.addButton(self._btn_report, QDialogButtonBox.ButtonRole.YesRole)
 
         self._btn_cancel = QPushButton("Don't report")
         self._btn_cancel.setAutoDefault(False)
         self._btn_cancel.clicked.connect(self.finish)
-        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.ButtonRole.RejectRole)
+        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.ButtonRole.NoRole)
 
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
@@ -626,7 +626,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
         qobjects: A list of all QObjects as string.
     """
     print(file=sys.stderr)
-    print("\n\n===== Handling exception with --no-err-windows... =====\n\n",
+    print("\n\n===== Handling exception without a dialog... =====\n\n",
           file=sys.stderr)
     print("\n---- Exceptions ----", file=sys.stderr)
     print(''.join(traceback.format_exception(*exc)), file=sys.stderr)
